@@ -1,6 +1,6 @@
-# scsc
+# Will
 
-Simple client/server C++.
+Will is a C++ TCP messenger with a dedicated server and chat client.
 
 ## Build
 
@@ -15,14 +15,15 @@ Open two terminals:
 
 1. Start server:
 ```bash
-./build/server
+./build/will-server
 ```
 2. Run client:
 ```bash
-./build/client
+./build/will-client
 ```
 
 Expected flow:
-- client sends: `Hello from client!`
-- server echoes the same bytes back (TCP echo server)
+- start `will-server` in one terminal
+- start `will-client` in another terminal
+- type messages in client and see incoming messages from peer in real time
 

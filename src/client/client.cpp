@@ -29,7 +29,7 @@ try {
 	MessengerClient client;
 	client.connect(server_address);
 
-	std::cout << "Connected to chat. Type messages and press Enter.\n";
+	std::cout << "Connected to Will chat. Type messages and press Enter.\n";
 	std::cout << "Press Ctrl+D to exit.\n";
 
 	std::thread receiver([&client]() {
