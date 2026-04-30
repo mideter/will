@@ -32,17 +32,17 @@ try {
 	std::cout << "Connected to Will chat. Type messages and press Enter.\n";
 	std::cout << "Press Ctrl+D to exit.\n";
 
-	std::thread receiver([&client]() {
+	std::jthread receiver([&client]() {
 		try {
 			while (true) {
 				const std::string incoming = client.receive();
+
 				if (incoming.empty()) {
-					std::cout << "\nDisconnected from chat.\n";
+					std::cout << std::endl << "Disconnected from chat." << std::endl;
 					break;
 				}
-				std::cout << "Peer: " << incoming;
-				if (!incoming.empty() && incoming.back() != '\n')
-					std::cout << '\n';
+
+				std::cout << "Peer: " << incoming << std::endl;
 				std::cout.flush();
 			}
 		}
@@ -56,7 +56,6 @@ try {
 		client.send(line + '\n');
 
 	client.shutdown();
-	receiver.join();
 
 	return 0;
 } 

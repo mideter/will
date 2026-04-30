@@ -49,6 +49,7 @@ std::string MessengerClient::receive(std::size_t max_bytes) const
 
 	std::vector<char> buffer(max_bytes + 1, '\0');
 	const ssize_t bytes_received = ::recv(socket_.get(), buffer.data(), max_bytes, 0);
+	
 	if (bytes_received < 0)
 		throw SocketError("recv failed");
 
