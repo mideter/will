@@ -7,11 +7,12 @@ class ChatSession {
 public:
 	explicit ChatSession(MessengerClient& client);
 
-	void run() const;
+	void run();
 
 private:
-	bool authorize_on_server() const;
+	bool authorize_on_server();
 	void receiveLoop() const;
 
 	MessengerClient& client_;
+	std::string username_;
 };

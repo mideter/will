@@ -11,7 +11,7 @@ ChatSession::ChatSession(MessengerClient& client)
 {}
 
 
-bool ChatSession::authorize_on_server() const
+bool ChatSession::authorize_on_server()
 {
 	std::string username;
 	std::string password;
@@ -32,12 +32,13 @@ bool ChatSession::authorize_on_server() const
 		return false;
 	}
 
+	username_ = username;
 	std::cout << "Authorization successful.\n";
 	return true;
 }
 
 
-void ChatSession::run() const
+void ChatSession::run()
 {
 	if (!authorize_on_server()) {
 		client_.shutdown();
@@ -55,7 +56,7 @@ void ChatSession::run() const
 
 	std::string line;
 	while (!receive_finished.load() && std::getline(std::cin, line))
-		client_.send(line + '\n');
+		client_.send(username_ + ": " + line + '\n');
 
 	client_.shutdown();
 }
@@ -72,7 +73,7 @@ void ChatSession::receiveLoop() const
 				break;
 			}
 
-			std::cout << "Peer: " << incoming;
+			std::cout << incoming;
 			
 			if (incoming.back() != '\n') 
 				std::cout << std::endl;
