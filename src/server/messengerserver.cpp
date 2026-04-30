@@ -7,6 +7,7 @@
 #include <atomic>
 #include <functional>
 #include <iostream>
+#include <sstream>
 #include <thread>
 
 #include "serveraddress.h"
@@ -50,10 +51,21 @@ void MessengerServer::serve_clients(const SocketHandle& server_socket) const
 			std::cout << "Waiting for first client..." << std::endl;
 			ClientConnection first_client = ClientConnection::accept_from(server_socket);
 			log_client_connected(first_client);
+			if (!authenticate_client(first_client)) {
+				std::cout << "First client failed authorization" << std::endl;
+				first_client.shutdown();
+				continue;
+			}
 
 			std::cout << "Waiting for second client..." << std::endl;
 			ClientConnection second_client = ClientConnection::accept_from(server_socket);
 			log_client_connected(second_client);
+			if (!authenticate_client(second_client)) {
+				std::cout << "Second client failed authorization" << std::endl;
+				second_client.shutdown();
+				first_client.shutdown();
+				continue;
+			}
 
 			std::cout << "Chat session started" << std::endl;
 			run_chat_session(first_client, second_client);
@@ -69,6 +81,71 @@ void MessengerServer::serve_clients(const SocketHandle& server_socket) const
 void MessengerServer::log_client_connected(const ClientConnection& client)
 {
 	std::cout << "Client " << client.address() << " connected" << std::endl;
+}
+
+
+MessengerServer::AuthLineReadResult MessengerServer::receive_line(const ClientConnection& client)
+{
+	std::string line;
+	char byte = '\0';
+	std::size_t received = 0;
+
+	while (client.recv_some(&byte, 1, received)) {
+		if (byte == '\n')
+			return {.line = line, .too_long = false};
+
+		if (line.size() >= MaxAuthLineSize)
+			return {.line = std::nullopt, .too_long = true};
+
+		line.push_back(byte);
+	}
+
+	return {.line = std::nullopt, .too_long = false};
+}
+
+
+bool MessengerServer::authenticate_client(const ClientConnection& client)
+{
+	const AuthLineReadResult read_result = receive_line(client);
+	if (!read_result.line.has_value()) {
+		if (read_result.too_long)
+			std::cout << "Authorization failed: auth line is too long from " << client.address() << std::endl;
+		else
+			std::cout << "Authorization failed: auth line not received from " << client.address() << std::endl;
+
+		client.send_all("AUTH_FAIL\n", 10);
+		return false;
+	}
+
+	std::istringstream auth_stream(*read_result.line);
+	std::string command;
+	std::string username;
+	std::string password;
+	std::string trailing_token;
+
+	auth_stream >> command >> username >> password;
+
+	const bool has_trailing_data = static_cast<bool>(auth_stream >> trailing_token);
+	const bool format_ok = (command == "AUTH")
+		&& !username.empty()
+		&& !password.empty()
+		&& !has_trailing_data;
+	const bool roman_ok = (username == "Roman" && password == "1");
+	const bool ilya_ok = (username == "Ilya" && password == "2");
+
+	if (format_ok && (roman_ok || ilya_ok)) {
+		client.send_all("AUTH_OK\n", 8);
+		return true;
+	}
+
+	if (!format_ok)
+		std::cout << "Authorization failed: invalid auth format from " << client.address() << std::endl;
+	else
+		std::cout << "Authorization failed: invalid credentials for user '" << username
+				  << "' from " << client.address() << std::endl;
+
+	client.send_all("AUTH_FAIL\n", 10);
+	return false;
 }
 
 

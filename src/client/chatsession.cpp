@@ -11,8 +11,39 @@ ChatSession::ChatSession(MessengerClient& client)
 {}
 
 
+bool ChatSession::authorize_on_server() const
+{
+	std::string username;
+	std::string password;
+
+	std::cout << "Login: ";
+	if (!std::getline(std::cin, username))
+		return false;
+
+	std::cout << "Password: ";
+	if (!std::getline(std::cin, password))
+		return false;
+
+	client_.send("AUTH " + username + " " + password + "\n");
+	const std::string response = client_.receive();
+
+	if (response != "AUTH_OK\n") {
+		std::cerr << "Authorization failed on server.\n";
+		return false;
+	}
+
+	std::cout << "Authorization successful.\n";
+	return true;
+}
+
+
 void ChatSession::run() const
 {
+	if (!authorize_on_server()) {
+		client_.shutdown();
+		return;
+	}
+
 	std::cout << "Connected to Will chat. Type messages and press Enter.\n";
 	std::cout << "Press Ctrl+D to exit.\n";
 
