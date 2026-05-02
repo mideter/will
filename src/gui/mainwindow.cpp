@@ -1,48 +1,97 @@
 #include "mainwindow.h"
 
+#include <QAbstractItemView>
+#include <QApplication>
+#include <QEvent>
+#include <QFrame>
 #include <QHBoxLayout>
+#include <QIcon>
 #include <QLineEdit>
+#include <QListWidget>
+#include <QListWidgetItem>
 #include <QMessageBox>
+#include <QMouseEvent>
+#include <QPainter>
 #include <QPushButton>
-#include <QTextCursor>
-#include <QTextEdit>
 #include <QVBoxLayout>
 #include <QWidget>
+
+namespace {
+
+constexpr QColor kInk(26, 26, 26);
+constexpr QColor kMuted(120, 120, 120);
+constexpr QColor kRow(248, 248, 248);
+constexpr QColor kRowUnread(241, 248, 255);
+constexpr QColor kAccent(59, 130, 246);
+} // namespace
 
 
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent)
     , bridge_(this)
+    , unreadDotIcon_(makeUnreadDotIcon())
 {
-    setWindowTitle("Will");
+    setWindowTitle(QStringLiteral("Will"));
     resize(720, 520);
 
-    btnConnect_ = new QPushButton("Подключиться", this);
+    btnConnect_ = new QPushButton(QStringLiteral("Подключиться"), this);
+    btnConnect_->setObjectName(QStringLiteral("connectBtn"));
+    btnConnect_->setCursor(Qt::PointingHandCursor);
+    btnConnect_->setFlat(true);
 
-    auto* rowConnect = new QHBoxLayout();
-    rowConnect->addStretch();
-    rowConnect->addWidget(btnConnect_);
-
-    log_ = new QTextEdit(this);
-    log_->setReadOnly(true);
+    chatList_ = new QListWidget(this);
+    chatList_->setFrameShape(QFrame::NoFrame);
+    chatList_->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    chatList_->setSpacing(0);
+    chatList_->setUniformItemSizes(false);
+    chatList_->setWordWrap(true);
+    chatList_->setTextElideMode(Qt::ElideNone);
+    chatList_->setSelectionMode(QAbstractItemView::NoSelection);
+    chatList_->setFocusPolicy(Qt::NoFocus);
+    chatList_->setIconSize(QSize(12, 12));
+    chatList_->viewport()->setCursor(Qt::PointingHandCursor);
 
     editMessage_ = new QLineEdit(this);
-    editMessage_->setPlaceholderText("Сообщение…");
-    btnSend_ = new QPushButton("Отправить", this);
+    editMessage_->setObjectName(QStringLiteral("composerField"));
+    editMessage_->setPlaceholderText(QStringLiteral("Сообщение…"));
+
+    btnSend_ = new QPushButton(QStringLiteral("→"), this);
+    btnSend_->setObjectName(QStringLiteral("sendBtn"));
+    btnSend_->setCursor(Qt::PointingHandCursor);
+    btnSend_->setFlat(true);
+    btnSend_->setFixedWidth(40);
+    btnSend_->setToolTip(QStringLiteral("Отправить (Enter)"));
     btnSend_->setEnabled(false);
 
     auto* rowSend = new QHBoxLayout();
+    rowSend->setContentsMargins(16, 10, 16, 14);
+    rowSend->setSpacing(8);
     rowSend->addWidget(editMessage_, 1);
     rowSend->addWidget(btnSend_);
 
+    composerWrap_ = new QWidget(this);
+    composerWrap_->setObjectName(QStringLiteral("composerWrap"));
+    composerWrap_->setLayout(rowSend);
+    composerWrap_->setVisible(false);
+
+    auto* rowConnect = new QHBoxLayout();
+    rowConnect->setContentsMargins(16, 12, 16, 4);
+    rowConnect->addStretch();
+    rowConnect->addWidget(btnConnect_);
+
     auto* root = new QVBoxLayout();
+    root->setContentsMargins(0, 0, 0, 0);
+    root->setSpacing(0);
     root->addLayout(rowConnect);
-    root->addWidget(log_, 1);
-    root->addLayout(rowSend);
+    root->addWidget(chatList_, 1);
+    root->addWidget(composerWrap_, 0);
 
     auto* central = new QWidget(this);
+    central->setObjectName(QStringLiteral("centralRoot"));
     central->setLayout(root);
     setCentralWidget(central);
+
+    chatList_->viewport()->installEventFilter(this);
 
     QObject::connect(btnConnect_, &QPushButton::clicked, this, &MainWindow::onToggleConnect);
     QObject::connect(btnSend_, &QPushButton::clicked, this, &MainWindow::onSend);
@@ -51,6 +100,166 @@ MainWindow::MainWindow(QWidget* parent)
     QObject::connect(&bridge_, &WillChatBridge::connectionChanged, this, &MainWindow::onConnectionChanged);
 
     QObject::connect(editMessage_, &QLineEdit::returnPressed, this, &MainWindow::onSend);
+
+    applyMinimalStyle();
+}
+
+
+bool MainWindow::eventFilter(QObject* watched, QEvent* event)
+{
+    if (watched == chatList_->viewport() && event->type() == QEvent::MouseButtonPress) {
+        auto* me = static_cast<QMouseEvent*>(event);
+        if (me->button() == Qt::LeftButton)
+            onChatAreaClicked();
+    }
+    return QMainWindow::eventFilter(watched, event);
+}
+
+
+void MainWindow::changeEvent(QEvent* event)
+{
+    QMainWindow::changeEvent(event);
+    if (event->type() == QEvent::WindowActivate)
+        markPeerMessagesRead();
+}
+
+
+void MainWindow::onChatAreaClicked()
+{
+    showComposer();
+    markPeerMessagesRead();
+}
+
+
+void MainWindow::showComposer()
+{
+    if (composerWrap_->isVisible())
+        return;
+    composerWrap_->setVisible(true);
+    if (bridge_.isConnected())
+        editMessage_->setFocus(Qt::OtherFocusReason);
+}
+
+
+void MainWindow::markPeerMessagesRead()
+{
+    for (int i = 0; i < chatList_->count(); ++i) {
+        QListWidgetItem* item = chatList_->item(i);
+        if (!item)
+            continue;
+        if (item->data(kRoleKind).toInt() != static_cast<int>(LineKind::Peer))
+            continue;
+        if (!item->data(kRoleUnread).toBool())
+            continue;
+        item->setData(kRoleUnread, false);
+        item->setBackground(kRow);
+        item->setIcon(QIcon());
+    }
+}
+
+
+void MainWindow::applyMinimalStyle()
+{
+    QWidget* root = centralWidget();
+    if (!root)
+        return;
+
+    const QString qss = QStringLiteral(
+        "QMainWindow, QWidget#centralRoot { background: #ffffff; color: #1a1a1a; }"
+        "QListWidget {"
+        "  background: #ffffff;"
+        "  color: #1a1a1a;"
+        "  border: none;"
+        "  outline: none;"
+        "  padding: 0 0 8px 0;"
+        "}"
+        "QListWidget::item {"
+        "  border: none;"
+        "  border-bottom: 1px solid #ececec;"
+        "  padding: 14px 18px 14px 14px;"
+        "  margin: 0;"
+        "}"
+        "QPushButton#connectBtn {"
+        "  border: none;"
+        "  background: transparent;"
+        "  color: #1a1a1a;"
+        "  font-size: 13px;"
+        "  padding: 4px 2px;"
+        "}"
+        "QPushButton#connectBtn:hover { color: #3b82f6; }"
+        "QWidget#composerWrap {"
+        "  background: #fafafa;"
+        "  border-top: 1px solid #ececec;"
+        "}"
+        "QLineEdit#composerField {"
+        "  border: none;"
+        "  border-bottom: 1px solid #d4d4d4;"
+        "  background: transparent;"
+        "  padding: 8px 4px;"
+        "  font-size: 15px;"
+        "  selection-background-color: #dbeafe;"
+        "}"
+        "QLineEdit#composerField:focus { border-bottom-color: #3b82f6; }"
+        "QPushButton#sendBtn {"
+        "  border: none;"
+        "  background: transparent;"
+        "  color: #1a1a1a;"
+        "  font-size: 18px;"
+        "}"
+        "QPushButton#sendBtn:hover { color: #3b82f6; }"
+        "QPushButton#sendBtn:disabled { color: #c4c4c4; }");
+
+    root->setStyleSheet(qss);
+}
+
+
+QIcon MainWindow::makeUnreadDotIcon()
+{
+    QPixmap pm(12, 12);
+    pm.fill(Qt::transparent);
+    QPainter painter(&pm);
+    painter.setRenderHint(QPainter::Antialiasing);
+    painter.setBrush(kAccent);
+    painter.setPen(Qt::NoPen);
+    painter.drawEllipse(3, 3, 6, 6);
+    return QIcon(pm);
+}
+
+
+void MainWindow::appendChatLine(LineKind kind, const QString& text, bool peerUnread)
+{
+    auto* item = new QListWidgetItem();
+    item->setData(kRoleKind, static_cast<int>(kind));
+    item->setFlags(item->flags() & ~Qt::ItemIsSelectable);
+
+    switch (kind) {
+    case LineKind::System:
+        item->setText(text);
+        item->setForeground(kMuted);
+        item->setBackground(Qt::transparent);
+        item->setData(kRoleUnread, false);
+        break;
+    case LineKind::Self:
+        item->setText(QStringLiteral("Вы\n%1").arg(text));
+        item->setForeground(kInk);
+        item->setBackground(kRow);
+        item->setData(kRoleUnread, false);
+        break;
+    case LineKind::Peer:
+        item->setText(QStringLiteral("Собеседник\n%1").arg(text));
+        item->setForeground(kInk);
+        item->setData(kRoleUnread, peerUnread);
+        if (peerUnread) {
+            item->setBackground(kRowUnread);
+            item->setIcon(unreadDotIcon_);
+        } else {
+            item->setBackground(kRow);
+        }
+        break;
+    }
+
+    chatList_->addItem(item);
+    chatList_->scrollToItem(item, QAbstractItemView::PositionAtBottom);
 }
 
 
@@ -61,7 +270,7 @@ void MainWindow::onToggleConnect()
         return;
     }
 
-    appendLog("Подключение к серверу…");
+    appendChatLine(LineKind::System, QStringLiteral("Подключение к серверу…"));
     bridge_.connectDefaultServer();
 }
 
@@ -75,7 +284,7 @@ void MainWindow::onSend()
     if (text.isEmpty())
         return;
 
-    appendLog(QString("Вы: %1").arg(text));
+    appendChatLine(LineKind::Self, text);
     bridge_.sendLine(text);
     editMessage_->clear();
 }
@@ -83,14 +292,15 @@ void MainWindow::onSend()
 
 void MainWindow::onPeerMessage(const QString& text)
 {
-    appendLog(QString("Собеседник: %1").arg(text));
+    const bool unread = !isActiveWindow();
+    appendChatLine(LineKind::Peer, text, unread);
 }
 
 
 void MainWindow::onBridgeError(const QString& message)
 {
-    QMessageBox::warning(this, "Сеть", message);
-    appendLog(QString("Ошибка: %1").arg(message));
+    QMessageBox::warning(this, QStringLiteral("Сеть"), message);
+    appendChatLine(LineKind::System, QStringLiteral("Ошибка: %1").arg(message));
 }
 
 
@@ -98,25 +308,15 @@ void MainWindow::onConnectionChanged(bool connected)
 {
     setConnectedUi(connected);
     if (connected)
-        appendLog("Соединение установлено.");
+        appendChatLine(LineKind::System, QStringLiteral("Соединение установлено."));
     else
-        appendLog("Отключено.");
+        appendChatLine(LineKind::System, QStringLiteral("Отключено."));
 }
 
 
 void MainWindow::setConnectedUi(bool connected)
 {
-    btnConnect_->setText(connected ? "Отключиться" : "Подключиться");
+    btnConnect_->setText(connected ? QStringLiteral("Отключиться") : QStringLiteral("Подключиться"));
     editMessage_->setEnabled(connected);
     btnSend_->setEnabled(connected);
-}
-
-
-void MainWindow::appendLog(const QString& line)
-{
-    log_->moveCursor(QTextCursor::End);
-    log_->insertPlainText(line);
-    if (!line.endsWith(QLatin1Char('\n')))
-        log_->insertPlainText("\n");
-    log_->moveCursor(QTextCursor::End);
 }
