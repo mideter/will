@@ -14,6 +14,13 @@ public:
 };
 
 
+class RussianServer {
+public:
+	inline static const Port port{8080};
+	inline static const IPv4 ip{"83.217.202.145"};
+};
+
+
 class LocalServer {
 public:
 	inline static const Port port{8080};
@@ -23,7 +30,7 @@ public:
 
 int main()
 try {
-	const ServerAddress server_address(SingaporeServer::ip, SingaporeServer::port);
+	const ServerAddress server_address(RussianServer::ip, RussianServer::port);
 	
 	MessengerClient client;
 	client.connect(server_address);
