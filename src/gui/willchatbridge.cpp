@@ -1,9 +1,7 @@
 #include "willchatbridge.h"
 
 #include "messengerclient.h"
-#include "ipv4.h"
-#include "port.h"
-#include "serveraddress.h"
+#include "defaultwillserver.h"
 
 #include <QMetaObject>
 
@@ -32,14 +30,14 @@ bool WillChatBridge::isConnected() const
 }
 
 
-void WillChatBridge::connectToServer(const QString& host, int port)
+void WillChatBridge::connectDefaultServer()
 {
     disconnectServer();
 
     std::unique_ptr<MessengerClient> next;
     try {
         next = std::make_unique<MessengerClient>();
-        next->connect(ServerAddress(IPv4(host.toStdString()), Port(port)));
+        next->connect(defaultWillServerAddress());
     } catch (const std::exception& e) {
         emit errorOccurred(QString::fromLocal8Bit(e.what()));
         emit connectionChanged(false);

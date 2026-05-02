@@ -29,8 +29,6 @@ private:
 
     WillChatBridge bridge_;
 
-    QLineEdit* editHost_ = nullptr;
-    QLineEdit* editPort_ = nullptr;
     QPushButton* btnConnect_ = nullptr;
 
     QTextEdit* log_ = nullptr;

@@ -20,7 +20,7 @@ public:
     bool isConnected() const;
 
 public slots:
-    void connectToServer(const QString& host, int port);
+    void connectDefaultServer();
     void sendLine(const QString& line);
     void disconnectServer();
 

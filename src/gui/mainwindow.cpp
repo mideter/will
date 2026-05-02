@@ -1,8 +1,6 @@
 #include "mainwindow.h"
 
-#include <QFormLayout>
 #include <QHBoxLayout>
-#include <QLabel>
 #include <QLineEdit>
 #include <QMessageBox>
 #include <QPushButton>
@@ -19,18 +17,11 @@ MainWindow::MainWindow(QWidget* parent)
     setWindowTitle("Will");
     resize(720, 520);
 
-    editHost_ = new QLineEdit("83.217.202.145", this);
-    editPort_ = new QLineEdit("8080", this);
-    editPort_->setMaximumWidth(120);
-
     btnConnect_ = new QPushButton("Подключиться", this);
 
-    auto* rowHost = new QHBoxLayout();
-    rowHost->addWidget(new QLabel("Сервер", this));
-    rowHost->addWidget(editHost_, 1);
-    rowHost->addWidget(new QLabel("Порт", this));
-    rowHost->addWidget(editPort_);
-    rowHost->addWidget(btnConnect_);
+    auto* rowConnect = new QHBoxLayout();
+    rowConnect->addStretch();
+    rowConnect->addWidget(btnConnect_);
 
     log_ = new QTextEdit(this);
     log_->setReadOnly(true);
@@ -45,7 +36,7 @@ MainWindow::MainWindow(QWidget* parent)
     rowSend->addWidget(btnSend_);
 
     auto* root = new QVBoxLayout();
-    root->addLayout(rowHost);
+    root->addLayout(rowConnect);
     root->addWidget(log_, 1);
     root->addLayout(rowSend);
 
@@ -70,21 +61,8 @@ void MainWindow::onToggleConnect()
         return;
     }
 
-    bool ok = false;
-    const int port = editPort_->text().toInt(&ok);
-    if (!ok || port < 0 || port > 65535) {
-        QMessageBox::warning(this, "Порт", "Укажите порт от 0 до 65535.");
-        return;
-    }
-
-    const QString host = editHost_->text().trimmed();
-    if (host.isEmpty()) {
-        QMessageBox::warning(this, "Сервер", "Укажите IPv4-адрес сервера.");
-        return;
-    }
-
-    appendLog(QString("Подключение к %1:%2…").arg(host).arg(port));
-    bridge_.connectToServer(host, port);
+    appendLog("Подключение к серверу…");
+    bridge_.connectDefaultServer();
 }
 
 
@@ -128,8 +106,6 @@ void MainWindow::onConnectionChanged(bool connected)
 
 void MainWindow::setConnectedUi(bool connected)
 {
-    editHost_->setEnabled(!connected);
-    editPort_->setEnabled(!connected);
     btnConnect_->setText(connected ? "Отключиться" : "Подключиться");
     editMessage_->setEnabled(connected);
     btnSend_->setEnabled(connected);
