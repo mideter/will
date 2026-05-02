@@ -6,7 +6,9 @@
 #include <mutex>
 #include <thread>
 
+
 class MessengerClient;
+
 
 class WillChatBridge final : public QObject {
     Q_OBJECT
