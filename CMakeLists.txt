@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.14)
 project(will LANGUAGES CXX)
 
+# Единая папка для всех исполняемых файлов (в т.ч. из add_subdirectory).
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -29,4 +32,9 @@ add_executable(will-client
 )
 target_include_directories(will-client PRIVATE src/client)
 target_link_libraries(will-client PRIVATE common)
+
+find_package(Qt5 QUIET COMPONENTS Widgets)
+if(Qt5Widgets_FOUND)
+  add_subdirectory(src/gui)
+endif()
 
