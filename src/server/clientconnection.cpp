@@ -2,6 +2,7 @@
 
 #include <sys/socket.h>
 
+#include <cerrno>
 #include <stdexcept>
 #include <utility>
 
@@ -34,10 +35,14 @@ const ClientAddress& ClientConnection::address() const noexcept
 
 bool ClientConnection::recv_some(char* buffer, std::size_t len, std::size_t& received) const
 {
-	const ssize_t n = ::recv(socket_.get(), buffer, len, 0);
-
-	if (n < 0)
-		throw SocketError("recv failed");
+	ssize_t n = 0;
+	while (true) {
+		n = ::recv(socket_.get(), buffer, len, 0);
+		if (n >= 0)
+			break;
+		if (errno != EINTR)
+			throw SocketError("recv failed");
+	}
 
 	if (n == 0) {
 		received = 0;
@@ -55,8 +60,11 @@ void ClientConnection::send_all(const char* data, std::size_t len) const
 	while (sent < len) {
 		const ssize_t n = ::send(socket_.get(), data + sent, len - sent, MSG_NOSIGNAL);
 
-		if (n < 0)
+		if (n < 0) {
+			if (errno == EINTR)
+				continue;
 			throw SocketError("send failed");
+		}
 
 		if (n == 0)
 			throw std::runtime_error("send failed: connection closed");
