@@ -13,6 +13,7 @@
 #include <system_error>
 #include <thread>
 
+#include "defaultwillserver.h"
 #include "listensocketstopsignals.h"
 #include "serveraddress.h"
 #include "socketerror.h"
@@ -37,8 +38,7 @@ std::optional<ClientConnection> accept_client_or_stop(const SocketHandle& server
 } // namespace
 
 
-MessengerServer::MessengerServer(Port port)
-	: port_(port)
+MessengerServer::MessengerServer()
 {}
 
 
@@ -56,7 +56,7 @@ SocketHandle MessengerServer::create_listen_socket() const
 
 void MessengerServer::bind_and_listen(const SocketHandle& server_socket) const
 {
-	ServerAddress server = ServerAddress::any(port_);
+	ServerAddress server = ServerAddress::any(defaultWillServerAddress().port_);
 
 	if (::bind(server_socket.get(), reinterpret_cast<sockaddr*>(&server.address_), sizeof(server.address_)) < 0)
 		throw SocketError("bind failed");

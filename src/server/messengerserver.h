@@ -14,7 +14,7 @@ class ListenSocketStopSignals;
 
 class MessengerServer {
 public:
-	explicit MessengerServer(Port port);
+	explicit MessengerServer();
 
 	void run() const;
 
