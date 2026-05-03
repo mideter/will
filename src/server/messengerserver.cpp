@@ -7,6 +7,7 @@
 #include <atomic>
 #include <functional>
 #include <iostream>
+#include <mutex>
 #include <sstream>
 #include <thread>
 
@@ -191,9 +192,18 @@ void MessengerServer::run_chat_session(const ClientConnection& first, const Clie
 
 void MessengerServer::relay_messages(const ClientConnection& from, const ClientConnection& to)
 {
+	static std::mutex relay_log_mutex;
 	std::array<char, BufferSize> buffer{};
 	std::size_t received = 0;
 
-	while (from.recv_some(buffer.data(), buffer.size(), received))
+	while (from.recv_some(buffer.data(), buffer.size(), received)) {
+		{
+			std::lock_guard<std::mutex> lock(relay_log_mutex);
+			std::cout << "Message " << from.address() << " -> " << to.address()
+					  << " (" << received << " byte" << (received == 1 ? "" : "s") << "): ";
+			std::cout.write(buffer.data(), static_cast<std::streamsize>(received));
+			std::cout << std::endl;
+		}
 		to.send_all(buffer.data(), received);
+	}
 }
