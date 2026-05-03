@@ -1,0 +1,23 @@
+[Unit]
+Description=Will Messenger Server
+Documentation=file:///usr/share/doc/will-server/README.Debian
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/will-server
+User=will-server
+Group=will-server
+Restart=on-failure
+RestartSec=3
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=will-server
+
+# Hardening (optional; safe for this daemon)
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

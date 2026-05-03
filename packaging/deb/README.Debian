@@ -1,0 +1,10 @@
+will-server for Debian
+----------------------
+
+The server listens on the TCP port compiled into the binary (see the
+will source package).
+
+After installation the systemd unit `will-server.service` is enabled.
+Logs: journalctl -u will-server -f
+
+The daemon runs as the unprivileged system user `will-server`.
