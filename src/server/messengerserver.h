@@ -9,6 +9,7 @@
 
 
 class SocketHandle;
+class ListenSocketStopSignals;
 
 
 class MessengerServer {
@@ -25,7 +26,7 @@ private:
 
 	SocketHandle 	create_listen_socket() const;
 	void 			bind_and_listen(const SocketHandle& server_socket) const;
-	void 			serve_clients(const SocketHandle& server_socket) const;
+	void 			serve_clients(const SocketHandle& server_socket, const ListenSocketStopSignals& stop_signals) const;
 	
 	static void log_client_connected(const ClientConnection& client_connection);
 	static AuthLineReadResult receive_line(const ClientConnection& client);

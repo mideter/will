@@ -8,12 +8,33 @@
 #include <functional>
 #include <iostream>
 #include <mutex>
+#include <optional>
 #include <sstream>
+#include <system_error>
 #include <thread>
 
+#include "listensocketstopsignals.h"
 #include "serveraddress.h"
 #include "socketerror.h"
 #include "sockethandle.h"
+
+
+namespace {
+
+std::optional<ClientConnection> accept_client_or_stop(const SocketHandle& server_socket,
+													   const ListenSocketStopSignals& stop_signals)
+{
+	try {
+		return ClientConnection::accept_from(server_socket);
+	}
+	catch (const std::system_error&) {
+		if (stop_signals.shutdown_requested())
+			return std::nullopt;
+		throw;
+	}
+}
+
+} // namespace
 
 
 MessengerServer::MessengerServer(Port port)
@@ -45,12 +66,20 @@ void MessengerServer::bind_and_listen(const SocketHandle& server_socket) const
 }
 
 
-void MessengerServer::serve_clients(const SocketHandle& server_socket) const
+void MessengerServer::serve_clients(const SocketHandle& server_socket,
+									const ListenSocketStopSignals& stop_signals) const
 {
 	while (true) {
 		try {
+			if (stop_signals.shutdown_requested())
+				break;
+
 			std::cout << "Waiting for first client..." << std::endl;
-			ClientConnection first_client = ClientConnection::accept_from(server_socket);
+			std::optional<ClientConnection> first_opt = accept_client_or_stop(server_socket, stop_signals);
+			if (!first_opt.has_value())
+				break;
+
+			ClientConnection first_client = std::move(*first_opt);
 			log_client_connected(first_client);
 			if (!authenticate_client(first_client)) {
 				std::cout << "First client failed authorization" << std::endl;
@@ -59,7 +88,13 @@ void MessengerServer::serve_clients(const SocketHandle& server_socket) const
 			}
 
 			std::cout << "Waiting for second client..." << std::endl;
-			ClientConnection second_client = ClientConnection::accept_from(server_socket);
+			std::optional<ClientConnection> second_opt = accept_client_or_stop(server_socket, stop_signals);
+			if (!second_opt.has_value()) {
+				first_client.shutdown();
+				break;
+			}
+
+			ClientConnection second_client = std::move(*second_opt);
 			log_client_connected(second_client);
 			if (!authenticate_client(second_client)) {
 				std::cout << "Second client failed authorization" << std::endl;
@@ -155,8 +190,10 @@ void MessengerServer::run() const
 	SocketHandle server_socket = create_listen_socket();
 	bind_and_listen(server_socket);
 
-	std::cout << "Messenger server on port " << port_ << " (Ctrl+C to stop)" << std::endl;
-	serve_clients(server_socket);
+	std::cout << "Messenger server on port " << port_ << " (SIGINT or SIGTERM to stop)" << std::endl;
+
+	const ListenSocketStopSignals stop_signals{server_socket.get()};
+	serve_clients(server_socket, stop_signals);
 }
 
 

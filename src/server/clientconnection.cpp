@@ -19,11 +19,19 @@ ClientConnection ClientConnection::accept_from(const SocketHandle& server_socket
 {
 	sockaddr_in peer{};
 	socklen_t peer_len = sizeof(peer);
-	SocketHandle socket(::accept(server_socket.get(),
-								 reinterpret_cast<sockaddr*>(&peer),
-								 &peer_len));
 
-	return ClientConnection(std::move(socket), ClientAddress{peer});
+	while (true) {
+		const int fd = ::accept(server_socket.get(),
+								reinterpret_cast<sockaddr*>(&peer),
+								&peer_len);
+		if (fd >= 0)
+			return ClientConnection(SocketHandle{fd}, ClientAddress{peer});
+
+		if (errno == EINTR)
+			continue;
+
+		throw std::system_error(errno, std::generic_category(), "accept failed");
+	}
 }
 
 

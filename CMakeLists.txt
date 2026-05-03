@@ -19,6 +19,7 @@ target_include_directories(common PUBLIC src/common)
 add_executable(will-server
   src/server/server.cpp
   src/server/messengerserver.cpp
+  src/server/listensocketstopsignals.cpp
   src/server/clientconnection.cpp
   src/server/clientaddress.cpp
 )

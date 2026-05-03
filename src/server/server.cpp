@@ -10,11 +10,11 @@ try {
 	std::cout << "Starting Will Messenger Server v" << version << '\n';
 
 	const MessengerServer server(Port{8080});
-	
+
 	server.run();
-	
+
 	return 0;
-} 
+}
 catch (const std::exception& e) {
 	std::cerr << "Server error: " << e.what() << '\n';
 	return 1;
