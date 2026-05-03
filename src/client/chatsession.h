@@ -10,7 +10,6 @@ public:
 	void run();
 
 private:
-	bool authorize_on_server();
 	void receiveLoop() const;
 
 	MessengerClient& client_;
