@@ -53,7 +53,7 @@ void ClientConnection::send_all(const char* data, std::size_t len) const
 {
 	std::size_t sent = 0;
 	while (sent < len) {
-		const ssize_t n = ::send(socket_.get(), data + sent, len - sent, 0);
+		const ssize_t n = ::send(socket_.get(), data + sent, len - sent, MSG_NOSIGNAL);
 
 		if (n < 0)
 			throw SocketError("send failed");
