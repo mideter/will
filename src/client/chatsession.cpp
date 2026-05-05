@@ -2,6 +2,7 @@
 
 #include <atomic>
 #include <iostream>
+#include <optional>
 #include <string>
 #include <thread>
 
@@ -32,7 +33,7 @@ void ChatSession::run()
 
 	std::string line;
 	while (!receive_finished.load() && std::getline(std::cin, line))
-		client_.send(username_ + ": " + line + '\n');
+		client_.send(username_ + ": " + line);
 
 	client_.shutdown();
 }
@@ -42,18 +43,14 @@ void ChatSession::receiveLoop() const
 {
 	try {
 		while (true) {
-			const std::string incoming = client_.receive();
+			const std::optional<std::string> incoming = client_.receiveMessage();
 
-			if (incoming.empty()) {
+			if (!incoming.has_value()) {
 				std::cout << std::endl << "Disconnected from chat." << std::endl;
 				break;
 			}
 
-			std::cout << incoming;
-			
-			if (incoming.back() != '\n') 
-				std::cout << std::endl;
-
+			std::cout << *incoming << std::endl;
 			std::cout.flush();
 		}
 	}

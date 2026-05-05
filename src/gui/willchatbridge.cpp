@@ -6,6 +6,7 @@
 #include <QMetaObject>
 
 #include <exception>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -59,7 +60,7 @@ void WillChatBridge::connectDefaultServer()
 
 void WillChatBridge::sendLine(const QString& line)
 {
-    std::string bytes = (line + QLatin1Char('\n')).toStdString();
+    std::string bytes = line.toStdString();
     const std::string_view chunk(bytes);
 
     std::unique_ptr<MessengerClient> dead;
@@ -126,12 +127,14 @@ void WillChatBridge::disconnectServer()
 void WillChatBridge::recvLoop(MessengerClient* c)
 {
     try {
-        for (;;) {
-            const std::string incoming = c->receive();
-            if (incoming.empty())
+        while (true) {
+            const std::optional<std::string> incoming = c->receiveMessage();
+            
+            if (!incoming.has_value())
                 break;
 
-            const QString q = QString::fromStdString(incoming);
+            const QString q = QString::fromStdString(*incoming);
+
             QMetaObject::invokeMethod(
                 this,
                 "deliverPeer",

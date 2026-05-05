@@ -109,8 +109,6 @@ void MessengerServer::run() const
 	SocketHandle server_socket = create_listen_socket();
 	bind_and_listen(server_socket);
 
-	std::cout << "Messenger server (SIGINT or SIGTERM to stop)" << std::endl;
-
 	const ListenSocketStopSignals stop_signals{server_socket.get()};
 	serve_clients(server_socket, stop_signals);
 }

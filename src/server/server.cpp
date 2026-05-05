@@ -6,7 +6,7 @@
 
 int main()
 try {
-	constexpr const char* version = "1.3.1";
+	constexpr const char* version = "2.0.0";
 	std::cout << "Starting Will Messenger Server v" << version << '\n';
 
 	const MessengerServer server;

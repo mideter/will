@@ -1,12 +1,83 @@
 #include "messengerclient.h"
 
-#include <arpa/inet.h>
 #include <sys/socket.h>
 
 #include <cerrno>
-#include <vector>
+#include <cstdint>
+#include <stdexcept>
+#include <string>
 
 #include "socketerror.h"
+
+
+namespace {
+	
+
+std::uint32_t read_u32_be(const unsigned char b[4])
+{
+	return (std::uint32_t(b[0]) << 24u) | (std::uint32_t(b[1]) << 16u) |
+		   (std::uint32_t(b[2]) << 8u) | std::uint32_t(b[3]);
+}
+
+
+void append_u32_be(unsigned char b[4], std::size_t payload_len)
+{
+	const auto n = static_cast<std::uint32_t>(payload_len);
+	b[0] = static_cast<unsigned char>((n >> 24u) & 0xffu);
+	b[1] = static_cast<unsigned char>((n >> 16u) & 0xffu);
+	b[2] = static_cast<unsigned char>((n >> 8u) & 0xffu);
+	b[3] = static_cast<unsigned char>(n & 0xffu);
+}
+
+
+void send_all(int sock, const char* data, std::size_t len)
+{
+	std::size_t sent = 0;
+	while (sent < len) {
+		const ssize_t n =
+			::send(sock, data + sent, len - sent, MSG_NOSIGNAL);
+		if (n < 0) {
+			if (errno == EINTR)
+				continue;
+			throw SocketError("send failed");
+		}
+		if (n == 0)
+			throw SocketError(EPIPE, "send failed");
+		sent += static_cast<std::size_t>(n);
+	}
+}
+
+
+/** Exactly {@code len} bytes, or EOF before/on first byte ({@code true}), or protocol error after partial read. */
+bool recv_exact_or_eof_before_first_byte(int sock, unsigned char* data, std::size_t len)
+{
+	std::size_t got = 0;
+	while (got < len) {
+		const ssize_t n = ::recv(sock, data + got, len - got, 0);
+		if (n > 0) {
+			got += static_cast<std::size_t>(n);
+			continue;
+		}
+		if (n == 0) {
+			if (got == 0)
+				return true;
+			throw std::runtime_error("Will protocol: connection closed mid-frame");
+		}
+		if (errno != EINTR)
+			throw SocketError("recv failed");
+	}
+	return false;
+}
+
+
+void recv_exact(int sock, unsigned char* data, std::size_t len)
+{
+	if (recv_exact_or_eof_before_first_byte(sock, data, len))
+		throw std::runtime_error("Will protocol: unexpected end of stream mid-frame");
+}
+
+
+} // namespace
 
 
 MessengerClient::MessengerClient()
@@ -16,49 +87,41 @@ MessengerClient::MessengerClient()
 
 void MessengerClient::connect(ServerAddress server)
 {
-	if (::connect(socket_.get(), reinterpret_cast<sockaddr*>(&server.address_), sizeof(server.address_)) < 0)
+	if (::connect(socket_.get(), reinterpret_cast<sockaddr*>(&server.address_),
+				  sizeof(server.address_)) < 0)
 		throw SocketError("connect failed");
 }
 
 
 void MessengerClient::send(std::string_view message) const
 {
-	std::size_t total_sent = 0;
-	while (total_sent < message.size()) {
-		const ssize_t sent = ::send(
-			socket_.get(),
-			message.data() + total_sent,
-			message.size() - total_sent,
-			MSG_NOSIGNAL
-		);
+	if (message.size() > max_payload_bytes)
+		throw std::runtime_error("message exceeds max_payload_bytes");
 
-		if (sent < 0)
-			throw SocketError("send failed");
-
-		if (sent == 0)
-			throw SocketError(EPIPE, "send failed");
-
-		total_sent += static_cast<std::size_t>(sent);
-	}
+	unsigned char header[4];
+	append_u32_be(header, message.size());
+	send_all(socket_.get(), reinterpret_cast<char*>(header), sizeof(header));
+	if (!message.empty())
+		send_all(socket_.get(), message.data(), message.size());
 }
 
 
-std::string MessengerClient::receive(std::size_t max_bytes) const
+std::optional<std::string> MessengerClient::receiveMessage() const
 {
-	if (max_bytes == 0)
-		return {};
+	const int fd = socket_.get();
+	unsigned char len_bytes[4];
+	if (recv_exact_or_eof_before_first_byte(fd, len_bytes, sizeof(len_bytes)))
+		return std::nullopt;
 
-	std::vector<char> buffer(max_bytes + 1, '\0');
-	ssize_t bytes_received = 0;
-	while (true) {
-		bytes_received = ::recv(socket_.get(), buffer.data(), max_bytes, 0);
-		if (bytes_received >= 0)
-			break;
-		if (errno != EINTR)
-			throw SocketError("recv failed");
-	}
+	const std::uint32_t len_u32 = read_u32_be(len_bytes);
+	const std::size_t plen = static_cast<std::size_t>(len_u32);
+	if (plen > max_payload_bytes)
+		throw std::runtime_error("Will protocol: frame exceeds max_payload_bytes");
 
-	return std::string(buffer.data(), static_cast<std::size_t>(bytes_received));
+	std::string body(plen, '\0');
+	if (plen > 0)
+		recv_exact(fd, reinterpret_cast<unsigned char*>(body.data()), plen);
+	return body;
 }
 
 
