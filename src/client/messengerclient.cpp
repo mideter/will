@@ -3,6 +3,7 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 
+#include <cerrno>
 #include <vector>
 
 #include "socketerror.h"
@@ -48,10 +49,14 @@ std::string MessengerClient::receive(std::size_t max_bytes) const
 		return {};
 
 	std::vector<char> buffer(max_bytes + 1, '\0');
-	const ssize_t bytes_received = ::recv(socket_.get(), buffer.data(), max_bytes, 0);
-	
-	if (bytes_received < 0)
-		throw SocketError("recv failed");
+	ssize_t bytes_received = 0;
+	while (true) {
+		bytes_received = ::recv(socket_.get(), buffer.data(), max_bytes, 0);
+		if (bytes_received >= 0)
+			break;
+		if (errno != EINTR)
+			throw SocketError("recv failed");
+	}
 
 	return std::string(buffer.data(), static_cast<std::size_t>(bytes_received));
 }
