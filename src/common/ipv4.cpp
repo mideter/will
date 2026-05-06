@@ -7,6 +7,9 @@
 #include <system_error>
 
 
+namespace will {
+
+
 IPv4::IPv4(std::string address)
 	: ip_{std::move(address)}
 	, network_order_{}
@@ -37,3 +40,6 @@ std::ostream& operator<<(std::ostream& os, const IPv4& ip)
 {
 	return os << ip.ip_;
 } 
+
+
+} // namespace will

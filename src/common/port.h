@@ -6,6 +6,9 @@
 #include <iosfwd>
 
 
+namespace will {
+
+
 class Port {
 public:
 	explicit Port(int port);
@@ -21,3 +24,6 @@ private:
 
 
 std::ostream& operator<<(std::ostream& os, const Port& port);
+
+
+} // namespace will

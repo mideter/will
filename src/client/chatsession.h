@@ -3,6 +3,9 @@
 #include "messengerclient.h"
 
 
+namespace will {
+
+
 class ChatSession {
 public:
 	explicit ChatSession(MessengerClient& client);
@@ -15,3 +18,6 @@ private:
 	MessengerClient& client_;
 	std::string username_;
 };
+
+
+} // namespace will

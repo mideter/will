@@ -27,17 +27,17 @@ void MessengerWorker::connectDefaultServer()
 {
     disconnectServer();
 
-    std::unique_ptr<MessengerClient> next;
+    std::unique_ptr<will::MessengerClient> next;
     try {
-        next = std::make_unique<MessengerClient>();
-        next->connect(defaultWillServerAddress());
+        next = std::make_unique<will::MessengerClient>();
+        next->connect(will::defaultWillServerAddress());
     } catch (const std::exception& e) {
         emit errorOccurred(QString::fromLocal8Bit(e.what()));
         emit connectionChanged(false);
         return;
     }
 
-    MessengerClient* raw = nullptr;
+    will::MessengerClient* raw = nullptr;
     {
         std::lock_guard<std::mutex> lock(mutex_);
         stop_requested_.store(false);
@@ -57,7 +57,7 @@ void MessengerWorker::sendLine(const QString& line)
     const std::string_view chunk(bytes);
 
     std::jthread join_me{};
-    std::unique_ptr<MessengerClient> dead;
+    std::unique_ptr<will::MessengerClient> dead;
     QString err;
     bool was_connected = false;
 
@@ -97,7 +97,7 @@ void MessengerWorker::sendLine(const QString& line)
 void MessengerWorker::disconnectServer()
 {
     std::jthread join_me{};
-    std::unique_ptr<MessengerClient> dead;
+    std::unique_ptr<will::MessengerClient> dead;
 
     const bool was_connected = connected_.exchange(false);
 
@@ -125,7 +125,7 @@ void MessengerWorker::disconnectServer()
 }
 
 
-void MessengerWorker::recvLoop(MessengerClient* c)
+void MessengerWorker::recvLoop(will::MessengerClient* c)
 {
     try {
         while (!stop_requested_.load()) {
@@ -146,7 +146,7 @@ void MessengerWorker::recvLoop(MessengerClient* c)
 void MessengerWorker::finalizeDisconnectFromRecv()
 {
     std::jthread join_me{};
-    std::unique_ptr<MessengerClient> dead;
+    std::unique_ptr<will::MessengerClient> dead;
     const bool was_connected = connected_.exchange(false);
 
     {
@@ -163,4 +163,3 @@ void MessengerWorker::finalizeDisconnectFromRecv()
     if (was_connected)
         emit connectionChanged(false);
 }
-

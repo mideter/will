@@ -3,6 +3,9 @@
 #include <arpa/inet.h>
 
 
+namespace will {
+
+
 ServerAddress::ServerAddress(IPv4 ipv4, Port port)
 	: ip_(ipv4), port_(port)
 {
@@ -16,3 +19,6 @@ ServerAddress ServerAddress::any(Port port)
 {
 	return ServerAddress(IPv4("0.0.0.0"), port);
 }
+
+
+} // namespace will

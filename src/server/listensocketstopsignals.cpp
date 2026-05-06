@@ -34,6 +34,9 @@ void on_stop_signal(int)
 } // namespace
 
 
+namespace will {
+
+
 ListenSocketStopSignals::ListenSocketStopSignals(int listen_fd)
 {
 	g_listen_fd = listen_fd;
@@ -78,3 +81,6 @@ void ListenSocketStopSignals::set_chat_peer_fds(int peer_a_fd, int peer_b_fd) no
 	g_chat_peer_a_fd = static_cast<sig_atomic_t>(peer_a_fd);
 	g_chat_peer_b_fd = static_cast<sig_atomic_t>(peer_b_fd);
 }
+
+
+} // namespace will

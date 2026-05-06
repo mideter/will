@@ -7,6 +7,9 @@
 #include <string>
 
 
+namespace will {
+
+
 Port::Port(int port)
 {
 	if (port < 0 || port > 65535)
@@ -27,3 +30,6 @@ std::ostream& operator<<(std::ostream& os, const Port& port)
 {
 	return os << port.port_;
 }
+
+
+} // namespace will

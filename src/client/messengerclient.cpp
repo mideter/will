@@ -10,6 +10,9 @@
 #include "socketerror.h"
 
 
+namespace will {
+
+
 namespace {
 
 void send_all(int sock, const char* data, std::size_t len)
@@ -81,7 +84,7 @@ void MessengerClient::send(std::string_view message) const
 		throw std::runtime_error("message exceeds max_payload_bytes");
 
 	unsigned char header[4];
-	will::TcpFrame::append_u32_be(header, message.size());
+	TcpFrame::append_u32_be(header, message.size());
 	send_all(socket_.get(), reinterpret_cast<char*>(header), sizeof(header));
 	if (!message.empty())
 		send_all(socket_.get(), message.data(), message.size());
@@ -95,7 +98,7 @@ std::optional<std::string> MessengerClient::receiveMessage() const
 	if (recv_exact_or_eof_before_first_byte(fd, len_bytes, sizeof(len_bytes)))
 		return std::nullopt;
 
-	const std::uint32_t len_u32 = will::TcpFrame::read_u32_be(len_bytes);
+	const std::uint32_t len_u32 = TcpFrame::read_u32_be(len_bytes);
 	const std::size_t plen = static_cast<std::size_t>(len_u32);
 	if (plen > max_payload_bytes)
 		throw std::runtime_error("Will protocol: frame exceeds max_payload_bytes");
@@ -111,3 +114,6 @@ void MessengerClient::shutdown() const
 {
 	::shutdown(socket_.get(), SHUT_RDWR);
 }
+
+
+} // namespace will

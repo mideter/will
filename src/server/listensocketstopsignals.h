@@ -3,6 +3,9 @@
 #include <csignal>
 
 
+namespace will {
+
+
 class ListenSocketStopSignals {
 public:
 	explicit ListenSocketStopSignals(int listen_fd);
@@ -20,3 +23,6 @@ private:
 	struct sigaction old_term_ {};
 	struct sigaction old_int_ {};
 };
+
+
+} // namespace will

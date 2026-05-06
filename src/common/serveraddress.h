@@ -6,6 +6,9 @@
 #include "port.h"
 
 
+namespace will {
+
+
 class MessengerServer;
 class MessengerClient;
 
@@ -25,3 +28,6 @@ private:
 
 	sockaddr_in address_{};
 };
+
+
+} // namespace will

@@ -9,7 +9,9 @@
 #include <thread>
 
 
+namespace will {
 class MessengerClient;
+}
 
 
 class MessengerWorker final : public QObject {
@@ -30,13 +32,12 @@ signals:
     void connectionChanged(bool connected);
 
 private:
-    void recvLoop(MessengerClient* client);
+    void recvLoop(will::MessengerClient* client);
     void finalizeDisconnectFromRecv();
 
     std::mutex mutex_;
-    std::unique_ptr<MessengerClient> client_;
+    std::unique_ptr<will::MessengerClient> client_;
     std::jthread recv_thread_;
     std::atomic_bool stop_requested_{false};
     std::atomic_bool connected_{false};
 };
-

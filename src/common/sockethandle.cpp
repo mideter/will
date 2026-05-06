@@ -6,6 +6,9 @@
 #include <system_error>
 
 
+namespace will {
+
+
 SocketHandle::SocketHandle(int fd)
 	: fd_(fd)
 {
@@ -46,3 +49,6 @@ int SocketHandle::get() const
 {
 	return fd_;
 }
+
+
+} // namespace will

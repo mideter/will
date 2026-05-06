@@ -3,6 +3,9 @@
 #include <ostream>
 
 
+namespace will {
+
+
 ClientAddress::ClientAddress(sockaddr_in addr)
 	: ip_{addr.sin_addr}
 	, port_{addr.sin_port}
@@ -14,3 +17,6 @@ std::ostream& operator<<(std::ostream& os, const ClientAddress& address)
 {
 	return os << address.ip_ << ":" << address.port_;
 }
+
+
+} // namespace will

@@ -22,6 +22,9 @@
 #include "willprotocol.h"
 
 
+namespace will {
+
+
 namespace {
 
 	
@@ -197,9 +200,9 @@ void MessengerServer::relay_messages(const ClientConnection& from, const ClientC
 			return;
 
 		const unsigned char* const header_u = reinterpret_cast<unsigned char*>(header_buf);
-		const std::uint32_t len_u32 = will::TcpFrame::read_u32_be(header_u);
+		const std::uint32_t len_u32 = TcpFrame::read_u32_be(header_u);
 		const auto plen = static_cast<std::size_t>(len_u32);
-		if (plen > will::TcpFrame::max_payload_bytes)
+		if (plen > TcpFrame::max_payload_bytes)
 			throw std::runtime_error{"Will relay: frame exceeds TcpFrame::max_payload_bytes"};
 
 		std::vector<char> payload(plen);
@@ -221,3 +224,6 @@ void MessengerServer::relay_messages(const ClientConnection& from, const ClientC
 			to.send_all(payload.data(), payload.size());
 	}
 }
+
+
+} // namespace will

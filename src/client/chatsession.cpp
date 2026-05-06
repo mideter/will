@@ -7,6 +7,9 @@
 #include <thread>
 
 
+namespace will {
+
+
 ChatSession::ChatSession(MessengerClient& client)
 	: client_(client)
 {}
@@ -58,3 +61,6 @@ void ChatSession::receiveLoop() const
 		std::cerr << std::endl << "Receive error: " << e.what() << std::endl;
 	}
 }
+
+
+} // namespace will

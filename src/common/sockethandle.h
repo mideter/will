@@ -1,6 +1,9 @@
 #pragma once
 
 
+namespace will {
+
+
 class SocketHandle {
 public:
 	explicit SocketHandle(int fd);
@@ -17,3 +20,6 @@ public:
 private:
 	int fd_;
 };
+
+
+} // namespace will

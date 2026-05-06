@@ -3,6 +3,9 @@
 #include "clientconnection.h"
 
 
+namespace will {
+
+
 class SocketHandle;
 class ListenSocketStopSignals;
 
@@ -22,3 +25,6 @@ private:
 
 	static constexpr int Backlog = 5;
 };
+
+
+} // namespace will

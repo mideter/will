@@ -11,6 +11,9 @@
 #include "socketerror.h"
 
 
+namespace will {
+
+
 ClientConnection::ClientConnection(SocketHandle socket, ClientAddress address)
 	: socket_(std::move(socket))
 	, address_(std::move(address))
@@ -98,3 +101,6 @@ void ClientConnection::shutdown() const
 {
 	::shutdown(socket_.get(), SHUT_RDWR);
 }
+
+
+} // namespace will

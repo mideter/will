@@ -5,6 +5,9 @@
 #include <system_error>
 
 
+namespace will {
+
+
 class SocketError : public std::system_error {
 public:
 	explicit SocketError(const std::string& message)
@@ -15,3 +18,6 @@ public:
 		: std::system_error(error_code, std::generic_category(), message)
 	{}
 };
+
+
+} // namespace will

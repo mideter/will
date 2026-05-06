@@ -6,6 +6,9 @@
 #include "sockethandle.h"
 
 
+namespace will {
+
+
 class ListenSocketStopSignals;
 
 
@@ -28,3 +31,6 @@ private:
 	SocketHandle socket_;
 	ClientAddress address_;
 };
+
+
+} // namespace will

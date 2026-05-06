@@ -6,6 +6,9 @@
 #include <iosfwd>
 
 
+namespace will {
+
+
 class IPv4 {
 public:
 	explicit IPv4(std::string address);
@@ -21,3 +24,6 @@ private:
 
 
 std::ostream& operator<<(std::ostream& os, const IPv4& ip); 
+
+
+} // namespace will

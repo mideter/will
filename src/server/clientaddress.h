@@ -7,6 +7,9 @@
 #include "port.h"
 
 
+namespace will {
+
+
 class ClientAddress {
 public:
 	ClientAddress(const ClientAddress&) = default;
@@ -28,3 +31,6 @@ private:
 
 
 std::ostream& operator<<(std::ostream& os, const ClientAddress& address);
+
+
+} // namespace will
