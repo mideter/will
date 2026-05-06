@@ -19,18 +19,12 @@
 #include "serveraddress.h"
 #include "socketerror.h"
 #include "sockethandle.h"
+#include "willprotocol.h"
 
 
 namespace {
 
 	
-std::uint32_t read_u32_be(const unsigned char b[4])
-{
-	return (std::uint32_t(b[0]) << 24u) | (std::uint32_t(b[1]) << 16u) |
-		   (std::uint32_t(b[2]) << 8u) | std::uint32_t(b[3]);
-}
-
-
 /** Exactly {@code len} bytes unless peer closes before passing the first byte of this chunk (then {@code false}). Truncated after any byte ⇒ throws. */
 bool recv_exact_relaxed_eof_before_first_byte(const ClientConnection& from,
 											  char* data,
@@ -203,10 +197,10 @@ void MessengerServer::relay_messages(const ClientConnection& from, const ClientC
 			return;
 
 		const unsigned char* const header_u = reinterpret_cast<unsigned char*>(header_buf);
-		const std::uint32_t len_u32 = read_u32_be(header_u);
+		const std::uint32_t len_u32 = will::TcpFrame::read_u32_be(header_u);
 		const auto plen = static_cast<std::size_t>(len_u32);
-		if (plen > MaxFramePayloadBytes)
-			throw std::runtime_error{"Will relay: frame exceeds MaxFramePayloadBytes"};
+		if (plen > will::TcpFrame::max_payload_bytes)
+			throw std::runtime_error{"Will relay: frame exceeds TcpFrame::max_payload_bytes"};
 
 		std::vector<char> payload(plen);
 		if (!payload.empty()) {

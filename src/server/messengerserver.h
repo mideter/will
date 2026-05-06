@@ -1,7 +1,5 @@
 #pragma once
 
-#include <cstddef>
-
 #include "clientconnection.h"
 
 
@@ -22,7 +20,5 @@ private:
 	static void run_chat_session(const ClientConnection& first, const ClientConnection& second);
 	static void relay_messages(const ClientConnection& from, const ClientConnection& to);
 
-	/** Must stay in sync with {@code MessengerClient::max_payload_bytes}. */
-	static constexpr std::size_t MaxFramePayloadBytes = 1u << 20;
 	static constexpr int Backlog = 5;
 };

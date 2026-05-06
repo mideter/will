@@ -11,24 +11,6 @@
 
 
 namespace {
-	
-
-std::uint32_t read_u32_be(const unsigned char b[4])
-{
-	return (std::uint32_t(b[0]) << 24u) | (std::uint32_t(b[1]) << 16u) |
-		   (std::uint32_t(b[2]) << 8u) | std::uint32_t(b[3]);
-}
-
-
-void append_u32_be(unsigned char b[4], std::size_t payload_len)
-{
-	const auto n = static_cast<std::uint32_t>(payload_len);
-	b[0] = static_cast<unsigned char>((n >> 24u) & 0xffu);
-	b[1] = static_cast<unsigned char>((n >> 16u) & 0xffu);
-	b[2] = static_cast<unsigned char>((n >> 8u) & 0xffu);
-	b[3] = static_cast<unsigned char>(n & 0xffu);
-}
-
 
 void send_all(int sock, const char* data, std::size_t len)
 {
@@ -99,7 +81,7 @@ void MessengerClient::send(std::string_view message) const
 		throw std::runtime_error("message exceeds max_payload_bytes");
 
 	unsigned char header[4];
-	append_u32_be(header, message.size());
+	will::TcpFrame::append_u32_be(header, message.size());
 	send_all(socket_.get(), reinterpret_cast<char*>(header), sizeof(header));
 	if (!message.empty())
 		send_all(socket_.get(), message.data(), message.size());
@@ -113,7 +95,7 @@ std::optional<std::string> MessengerClient::receiveMessage() const
 	if (recv_exact_or_eof_before_first_byte(fd, len_bytes, sizeof(len_bytes)))
 		return std::nullopt;
 
-	const std::uint32_t len_u32 = read_u32_be(len_bytes);
+	const std::uint32_t len_u32 = will::TcpFrame::read_u32_be(len_bytes);
 	const std::size_t plen = static_cast<std::size_t>(len_u32);
 	if (plen > max_payload_bytes)
 		throw std::runtime_error("Will protocol: frame exceeds max_payload_bytes");

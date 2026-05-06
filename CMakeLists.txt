@@ -13,6 +13,7 @@ add_library(common
   src/common/ipv4.cpp
   src/common/port.cpp
   src/common/serveraddress.cpp
+  src/common/willprotocol.cpp
 )
 target_include_directories(common PUBLIC src/common)
 

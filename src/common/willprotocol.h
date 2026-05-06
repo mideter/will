@@ -1,0 +1,23 @@
+#pragma once
+
+#include <cstddef>
+#include <cstdint>
+
+
+namespace will {
+
+	
+/** Framing helpers: uint32 big-endian length prefix + payload. */
+class TcpFrame {
+public:
+	/** Payload octets per frame after the 4-byte length prefix. */
+	static constexpr std::size_t max_payload_bytes = 1u << 20;
+
+	static std::uint32_t read_u32_be(const unsigned char b[4]) noexcept;
+	static void append_u32_be(unsigned char b[4], std::size_t payload_len) noexcept;
+
+	TcpFrame() = delete;
+};
+
+
+} // namespace will
