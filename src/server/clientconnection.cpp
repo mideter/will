@@ -21,7 +21,7 @@ ClientConnection::ClientConnection(SocketHandle socket, ClientAddress address)
 
 
 ClientConnection ClientConnection::accept_from(const SocketHandle& server_socket,
-											   const ListenSocketStopSignals* stop_signals)
+											   const ListenSocketStopSignals& stop_signals)
 {
 	sockaddr_in peer{};
 	socklen_t peer_len = sizeof(peer);
@@ -34,7 +34,7 @@ ClientConnection ClientConnection::accept_from(const SocketHandle& server_socket
 			return ClientConnection(SocketHandle{fd}, ClientAddress{peer});
 
 		if (errno == EINTR) {
-			if (stop_signals != nullptr && stop_signals->shutdown_requested())
+			if (stop_signals.shutdown_requested())
 				throw std::system_error(EINTR, std::generic_category(), "accept interrupted during shutdown");
 			continue;
 		}

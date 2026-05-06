@@ -65,7 +65,7 @@ std::optional<ClientConnection> accept_client_or_stop(const SocketHandle& server
 													   const ListenSocketStopSignals& stop_signals)
 {
 	try {
-		return ClientConnection::accept_from(server_socket, &stop_signals);
+		return ClientConnection::accept_from(server_socket, stop_signals);
 	}
 	catch (const std::system_error&) {
 		if (stop_signals.shutdown_requested())

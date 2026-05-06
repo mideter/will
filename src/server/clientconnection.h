@@ -17,7 +17,7 @@ public:
 	ClientConnection(SocketHandle socket, ClientAddress address);
 
 	static ClientConnection accept_from(const SocketHandle& server_socket,
-										const ListenSocketStopSignals* stop_signals = nullptr);
+										const ListenSocketStopSignals& stop_signals);
 
 	int socket_fd() const noexcept;
 
