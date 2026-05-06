@@ -6,6 +6,7 @@
 namespace will {
 
 
+/** `extern "C"` so `sigaction` gets a plain C handler; matches the `friend` declaration below. */
 extern "C" void listen_socket_stop_signal_trampoline(int) noexcept;
 
 
