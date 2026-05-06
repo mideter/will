@@ -6,11 +6,17 @@
 #include "sockethandle.h"
 
 
+class ListenSocketStopSignals;
+
+
 class ClientConnection {
 public:
 	ClientConnection(SocketHandle socket, ClientAddress address);
 
-	static ClientConnection accept_from(const SocketHandle& server_socket);
+	static ClientConnection accept_from(const SocketHandle& server_socket,
+										const ListenSocketStopSignals* stop_signals = nullptr);
+
+	int socket_fd() const noexcept;
 
 	const ClientAddress& address() const noexcept;
 	

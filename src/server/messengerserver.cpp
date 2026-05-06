@@ -21,11 +21,25 @@
 
 namespace {
 
+/** SIGTERM handler shuts these down so recv/send unblock during graceful stop */
+struct ChatPeerFdRegistration {
+	~ChatPeerFdRegistration()
+	{
+		ListenSocketStopSignals::set_chat_peer_fds(-1, -1);
+	}
+
+	static void assign(int peer_a_fd, int peer_b_fd)
+	{
+		ListenSocketStopSignals::set_chat_peer_fds(peer_a_fd, peer_b_fd);
+	}
+};
+
+
 std::optional<ClientConnection> accept_client_or_stop(const SocketHandle& server_socket,
 													   const ListenSocketStopSignals& stop_signals)
 {
 	try {
-		return ClientConnection::accept_from(server_socket);
+		return ClientConnection::accept_from(server_socket, &stop_signals);
 	}
 	catch (const std::system_error&) {
 		if (stop_signals.shutdown_requested())
@@ -77,6 +91,9 @@ void MessengerServer::serve_clients(const SocketHandle& server_socket,
 			ClientConnection first_client = std::move(*first_opt);
 			log_client_connected(first_client);
 
+			ChatPeerFdRegistration peer_fds_raii{};
+			ChatPeerFdRegistration::assign(first_client.socket_fd(), -1);
+
 			std::cout << "Waiting for second client..." << std::endl;
 			std::optional<ClientConnection> second_opt = accept_client_or_stop(server_socket, stop_signals);
 			if (!second_opt.has_value()) {
@@ -86,6 +103,8 @@ void MessengerServer::serve_clients(const SocketHandle& server_socket,
 
 			ClientConnection second_client = std::move(*second_opt);
 			log_client_connected(second_client);
+
+			ChatPeerFdRegistration::assign(first_client.socket_fd(), second_client.socket_fd());
 
 			std::cout << "Chat session started" << std::endl;
 			run_chat_session(first_client, second_client);

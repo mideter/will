@@ -4,8 +4,10 @@
 
 #include <cerrno>
 #include <stdexcept>
+#include <system_error>
 #include <utility>
 
+#include "listensocketstopsignals.h"
 #include "socketerror.h"
 
 
@@ -15,7 +17,8 @@ ClientConnection::ClientConnection(SocketHandle socket, ClientAddress address)
 {}
 
 
-ClientConnection ClientConnection::accept_from(const SocketHandle& server_socket)
+ClientConnection ClientConnection::accept_from(const SocketHandle& server_socket,
+											   const ListenSocketStopSignals* stop_signals)
 {
 	sockaddr_in peer{};
 	socklen_t peer_len = sizeof(peer);
@@ -27,11 +30,20 @@ ClientConnection ClientConnection::accept_from(const SocketHandle& server_socket
 		if (fd >= 0)
 			return ClientConnection(SocketHandle{fd}, ClientAddress{peer});
 
-		if (errno == EINTR)
+		if (errno == EINTR) {
+			if (stop_signals != nullptr && stop_signals->shutdown_requested())
+				throw std::system_error(EINTR, std::generic_category(), "accept interrupted during shutdown");
 			continue;
+		}
 
 		throw std::system_error(errno, std::generic_category(), "accept failed");
 	}
+}
+
+
+int ClientConnection::socket_fd() const noexcept
+{
+	return socket_.get();
 }
 
 
