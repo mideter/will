@@ -3,14 +3,16 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 
-#include <array>
 #include <atomic>
+#include <cstdint>
 #include <functional>
 #include <iostream>
 #include <mutex>
 #include <optional>
+#include <stdexcept>
 #include <system_error>
 #include <thread>
+#include <vector>
 
 #include "defaultwillserver.h"
 #include "listensocketstopsignals.h"
@@ -20,6 +22,33 @@
 
 
 namespace {
+
+	
+std::uint32_t read_u32_be(const unsigned char b[4])
+{
+	return (std::uint32_t(b[0]) << 24u) | (std::uint32_t(b[1]) << 16u) |
+		   (std::uint32_t(b[2]) << 8u) | std::uint32_t(b[3]);
+}
+
+
+/** Exactly {@code len} bytes unless peer closes before passing the first byte of this chunk (then {@code false}). Truncated after any byte ⇒ throws. */
+bool recv_exact_relaxed_eof_before_first_byte(const ClientConnection& from,
+											  char* data,
+											  std::size_t len)
+{
+	std::size_t got = 0;
+	while (got < len) {
+		std::size_t chunk = 0;
+		if (!from.recv_some(data + got, len - got, chunk)) {
+			if (got != 0)
+				throw std::runtime_error{"Will relay: connection closed mid-frame"};
+			return false;
+		}
+		got += chunk;
+	}
+	return true;
+}
+
 
 /** SIGTERM handler shuts these down so recv/send unblock during graceful stop */
 struct ChatPeerFdRegistration {
@@ -47,6 +76,7 @@ std::optional<ClientConnection> accept_client_or_stop(const SocketHandle& server
 		throw;
 	}
 }
+
 
 } // namespace
 
@@ -166,17 +196,34 @@ void MessengerServer::run_chat_session(const ClientConnection& first, const Clie
 void MessengerServer::relay_messages(const ClientConnection& from, const ClientConnection& to)
 {
 	static std::mutex relay_log_mutex;
-	std::array<char, BufferSize> buffer{};
-	std::size_t received = 0;
 
-	while (from.recv_some(buffer.data(), buffer.size(), received)) {
+	while (true) {
+		char header_buf[4];
+		if (!recv_exact_relaxed_eof_before_first_byte(from, header_buf, sizeof(header_buf)))
+			return;
+
+		const unsigned char* const header_u = reinterpret_cast<unsigned char*>(header_buf);
+		const std::uint32_t len_u32 = read_u32_be(header_u);
+		const auto plen = static_cast<std::size_t>(len_u32);
+		if (plen > MaxFramePayloadBytes)
+			throw std::runtime_error{"Will relay: frame exceeds MaxFramePayloadBytes"};
+
+		std::vector<char> payload(plen);
+		if (!payload.empty()) {
+			if (!recv_exact_relaxed_eof_before_first_byte(from, payload.data(), payload.size()))
+				throw std::runtime_error{"Will relay: connection closed mid-frame"};
+		}
+
 		{
 			std::lock_guard<std::mutex> lock(relay_log_mutex);
-			std::cout << "Message " << from.address() << " -> " << to.address()
-					  << " (" << received << " byte" << (received == 1 ? "" : "s") << "): ";
-			std::cout.write(buffer.data(), static_cast<std::streamsize>(received));
+			std::cout << "Frame " << from.address() << " -> " << to.address() << ": header payload_len="
+					  << len_u32 << ", body (" << plen << " byte" << (plen == 1 ? "" : "s") << "): ";
+			std::cout.write(payload.data(), static_cast<std::streamsize>(payload.size()));
 			std::cout << std::endl;
 		}
-		to.send_all(buffer.data(), received);
+
+		to.send_all(header_buf, sizeof(header_buf));
+		if (!payload.empty())
+			to.send_all(payload.data(), payload.size());
 	}
 }
