@@ -116,7 +116,7 @@ void MessengerServer::serve_clients(const SocketHandle& server_socket,
 				break;
 
 			ClientConnection first_client = std::move(*first_opt);
-			log_client_connected(first_client);
+			std::cout << "Client " << first_client.address() << " connected" << std::endl;
 
 			ChatPeerFdRegistration peer_fds_raii{};
 			ChatPeerFdRegistration::assign(first_client.socket_fd(), -1);
@@ -129,7 +129,7 @@ void MessengerServer::serve_clients(const SocketHandle& server_socket,
 			}
 
 			ClientConnection second_client = std::move(*second_opt);
-			log_client_connected(second_client);
+			std::cout << "Client " << second_client.address() << " connected" << std::endl;
 
 			ChatPeerFdRegistration::assign(first_client.socket_fd(), second_client.socket_fd());
 
@@ -141,12 +141,6 @@ void MessengerServer::serve_clients(const SocketHandle& server_socket,
 			std::cerr << "Session error: " << e.what() << '\n';
 		}
 	}
-}
-
-
-void MessengerServer::log_client_connected(const ClientConnection& client)
-{
-	std::cout << "Client " << client.address() << " connected" << std::endl;
 }
 
 
