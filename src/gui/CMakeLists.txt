@@ -6,6 +6,8 @@ add_executable(will-gui
   main.cpp
   mainwindow.cpp
   mainwindow.h
+  messengerworker.cpp
+  messengerworker.h
   willchatbridge.cpp
   willchatbridge.h
   ${CMAKE_SOURCE_DIR}/src/client/messengerclient.cpp

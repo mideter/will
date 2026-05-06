@@ -2,12 +2,11 @@
 
 #include <QObject>
 
+#include <atomic>
 #include <memory>
-#include <mutex>
-#include <thread>
 
-
-class MessengerClient;
+class MessengerWorker;
+class WorkerRuntime;
 
 
 class WillChatBridge final : public QObject {
@@ -29,15 +28,12 @@ signals:
     void errorOccurred(const QString& message);
     void connectionChanged(bool connected);
 
-private slots:
-    void deliverPeer(const QString& text);
-    void deliverError(const QString& message);
-    void onRecvThreadDone();
+signals:
+    void requestConnectDefaultServer();
+    void requestSendLine(const QString& line);
+    void requestDisconnectServer();
 
 private:
-    void recvLoop(MessengerClient* client);
-
-    mutable std::mutex mutex_;
-    std::unique_ptr<MessengerClient> client_;
-    std::jthread recv_thread_;
+    std::unique_ptr<WorkerRuntime> worker_runtime_;
+    std::atomic_bool connected_{false};
 };
