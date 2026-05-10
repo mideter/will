@@ -3,6 +3,7 @@
 #include <sys/socket.h>
 
 #include <cerrno>
+#include <mutex>
 #include <system_error>
 
 
@@ -11,8 +12,7 @@ namespace will {
 
 volatile sig_atomic_t ListenSocketStopSignals::shutting_down_ = 0;
 volatile int ListenSocketStopSignals::listen_fd_ = -1;
-volatile sig_atomic_t ListenSocketStopSignals::chat_peer_a_fd_ = -1;
-volatile sig_atomic_t ListenSocketStopSignals::chat_peer_b_fd_ = -1;
+std::atomic<int> ListenSocketStopSignals::chat_peer_fd_slots_[ListenSocketStopSignals::max_registered_chat_peer_fds];
 
 
 void ListenSocketStopSignals::invoke_stop_signal() noexcept
@@ -22,12 +22,11 @@ void ListenSocketStopSignals::invoke_stop_signal() noexcept
 	if (listen_fd >= 0)
 		::shutdown(listen_fd, SHUT_RDWR);
 
-	const int peer_a = chat_peer_a_fd_;
-	const int peer_b = chat_peer_b_fd_;
-	if (peer_a >= 0)
-		::shutdown(peer_a, SHUT_RDWR);
-	if (peer_b >= 0)
-		::shutdown(peer_b, SHUT_RDWR);
+	for (int i = 0; i < max_registered_chat_peer_fds; ++i) {
+		const int fd = chat_peer_fd_slots_[i].load();
+		if (fd >= 0)
+			::shutdown(fd, SHUT_RDWR);
+	}
 }
 
 
@@ -39,6 +38,12 @@ extern "C" void listen_socket_stop_signal_trampoline(int) noexcept
 
 ListenSocketStopSignals::ListenSocketStopSignals(int listen_fd)
 {
+	static std::once_flag slots_initialized;
+	std::call_once(slots_initialized, []() noexcept {
+		for (int i = 0; i < max_registered_chat_peer_fds; ++i)
+			chat_peer_fd_slots_[i].store(-1);
+	});
+
 	listen_fd_ = listen_fd;
 
 	struct sigaction sa {};
@@ -61,8 +66,9 @@ ListenSocketStopSignals::ListenSocketStopSignals(int listen_fd)
 
 ListenSocketStopSignals::~ListenSocketStopSignals()
 {
-	chat_peer_a_fd_ = -1;
-	chat_peer_b_fd_ = -1;
+	for (int i = 0; i < max_registered_chat_peer_fds; ++i)
+		chat_peer_fd_slots_[i].store(-1);
+
 	sigaction(SIGTERM, &old_term_, nullptr);
 	sigaction(SIGINT, &old_int_, nullptr);
 	listen_fd_ = -1;
@@ -76,10 +82,25 @@ bool ListenSocketStopSignals::shutdown_requested() const noexcept
 }
 
 
-void ListenSocketStopSignals::set_chat_peer_fds(int peer_a_fd, int peer_b_fd) noexcept
+int ListenSocketStopSignals::register_chat_peer_fd(int fd) noexcept
 {
-	chat_peer_a_fd_ = static_cast<sig_atomic_t>(peer_a_fd);
-	chat_peer_b_fd_ = static_cast<sig_atomic_t>(peer_b_fd);
+	if (fd < 0)
+		return -1;
+
+	for (int i = 0; i < max_registered_chat_peer_fds; ++i) {
+		int expected = -1;
+		if (chat_peer_fd_slots_[i].compare_exchange_strong(expected, fd))
+			return i;
+	}
+
+	return -1;
+}
+
+
+void ListenSocketStopSignals::unregister_chat_peer_fd(int slot) noexcept
+{
+	if (slot >= 0 && slot < max_registered_chat_peer_fds)
+		chat_peer_fd_slots_[slot].store(-1);
 }
 
 

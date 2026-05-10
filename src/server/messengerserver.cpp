@@ -1,7 +1,7 @@
 #include "messengerserver.h"
 
-#include <atomic>
 #include <iostream>
+#include <memory>
 #include <mutex>
 #include <optional>
 #include <thread>
@@ -19,18 +19,109 @@ namespace will {
 namespace {
 
 
-/** SIGTERM handler shuts these down so recv/send unblock during graceful stop */
-struct ChatPeerFdRegistration {
-	~ChatPeerFdRegistration()
+struct ClientHub {
+	mutable std::mutex mutex_;
+	std::vector<std::shared_ptr<Client>> clients_;
+
+	void add(std::shared_ptr<Client> client)
 	{
-		ListenSocketStopSignals::set_chat_peer_fds(-1, -1);
+		std::lock_guard lock(mutex_);
+		clients_.push_back(std::move(client));
 	}
 
-	static void assign(int peer_a_fd, int peer_b_fd)
+	void remove(const Client* identity)
 	{
-		ListenSocketStopSignals::set_chat_peer_fds(peer_a_fd, peer_b_fd);
+		std::lock_guard lock(mutex_);
+		std::erase_if(clients_, [identity](const std::shared_ptr<Client>& c) {
+			return c.get() == identity;
+		});
+	}
+
+	std::vector<std::shared_ptr<Client>> snapshot() const
+	{
+		std::lock_guard lock(mutex_);
+		return clients_;
 	}
 };
+
+
+std::mutex frame_log_mutex;
+
+
+void broadcast_from_sender(const std::shared_ptr<ClientHub>& hub, Client& sender,
+						   const std::vector<char>& payload)
+{
+	std::vector<std::shared_ptr<Client>> recipients;
+	recipients.reserve(8);
+	const std::vector<std::shared_ptr<Client>> now = hub->snapshot();
+	for (const std::shared_ptr<Client>& c : now) {
+		if (c.get() != &sender)
+			recipients.push_back(c);
+	}
+
+	const auto plen = payload.size();
+
+	if (recipients.empty()) {
+		std::lock_guard io_lock(frame_log_mutex);
+		std::cout << "Frame from " << sender.address()
+				  << " (no other peers; logged only): header payload_len=" << static_cast<unsigned int>(plen)
+				  << ", body (" << plen << " byte" << (plen == 1 ? "" : "s") << "): ";
+		std::cout.write(payload.data(), static_cast<std::streamsize>(payload.size()));
+		std::cout << std::endl;
+		return;
+	}
+
+	for (const std::shared_ptr<Client>& peer : recipients) {
+		try {
+			peer->send_frame(payload);
+		}
+		catch (const std::exception& e) {
+			std::cerr << "Broadcast send failed to " << peer->address() << ": " << e.what() << '\n';
+			try {
+				peer->shutdown();
+			}
+			catch (const std::exception&) {
+			}
+			hub->remove(peer.get());
+		}
+	}
+
+	std::lock_guard io_lock(frame_log_mutex);
+	std::cout << "Broadcast from " << sender.address() << " to " << recipients.size()
+			  << " peer(s): header payload_len=" << static_cast<unsigned int>(plen) << ", body (" << plen
+			  << " byte" << (plen == 1 ? "" : "s") << "): ";
+	std::cout.write(payload.data(), static_cast<std::streamsize>(payload.size()));
+	std::cout << std::endl;
+}
+
+
+void reader_main(std::shared_ptr<ClientHub> hub, std::shared_ptr<Client> client, int sig_slot)
+{
+	hub->add(client);
+
+	try {
+		while (true) {
+			std::vector<char> payload;
+			if (!client->recv_frame(payload))
+				break;
+
+			broadcast_from_sender(hub, *client, payload);
+		}
+	}
+	catch (const std::exception& e) {
+		std::cerr << "Reader error " << client->address() << ": " << e.what() << '\n';
+	}
+
+	try {
+		client->shutdown();
+	}
+	catch (const std::exception&) {
+	}
+
+	if (sig_slot >= 0)
+		ListenSocketStopSignals::unregister_chat_peer_fd(sig_slot);
+	hub->remove(client.get());
+}
 
 
 } // namespace
@@ -39,37 +130,31 @@ struct ChatPeerFdRegistration {
 void MessengerServer::serve_clients(ConnectionAcceptor& acceptor,
 									  const ListenSocketStopSignals& stop_signals) const
 {
+	const std::shared_ptr<ClientHub> hub = std::make_shared<ClientHub>();
+
 	while (true) {
 		try {
 			if (stop_signals.shutdown_requested())
 				break;
 
-			std::cout << "Waiting for first client..." << std::endl;
-			std::optional<ClientConnection> first_opt = acceptor.accept_next(stop_signals);
-			if (!first_opt.has_value())
+			std::cout << "Waiting for client..." << std::endl;
+			std::optional<ClientConnection> connection_opt = acceptor.accept_next(stop_signals);
+			if (!connection_opt.has_value())
 				break;
 
-			Client first_client(std::move(*first_opt));
-			std::cout << "Client " << first_client.address() << " connected" << std::endl;
+			ClientConnection connection = std::move(*connection_opt);
 
-			ChatPeerFdRegistration peer_fds_raii{};
-			ChatPeerFdRegistration::assign(first_client.socket_fd(), -1);
+			const int sig_slot =
+				ListenSocketStopSignals::register_chat_peer_fd(connection.socket_fd());
+			if (sig_slot < 0)
+				std::cerr << "Warning: chat peer FD registry full; graceful signal stop may omit this peer\n";
 
-			std::cout << "Waiting for second client..." << std::endl;
-			std::optional<ClientConnection> second_opt = acceptor.accept_next(stop_signals);
-			if (!second_opt.has_value()) {
-				first_client.shutdown();
-				break;
-			}
+			auto client = std::make_shared<Client>(std::move(connection));
+			std::cout << "Client " << client->address() << " connected" << std::endl;
 
-			Client second_client(std::move(*second_opt));
-			std::cout << "Client " << second_client.address() << " connected" << std::endl;
-
-			ChatPeerFdRegistration::assign(first_client.socket_fd(), second_client.socket_fd());
-
-			std::cout << "Chat session started" << std::endl;
-			run_chat_session(first_client, second_client);
-			std::cout << "Chat session ended" << std::endl;
+			std::thread([hub, client, sig_slot]() {
+				reader_main(hub, std::move(client), sig_slot);
+			}).detach();
 		}
 		catch (const std::exception& e) {
 			std::cerr << "Session error: " << e.what() << '\n';
@@ -83,61 +168,6 @@ void MessengerServer::run() const
 	ConnectionAcceptor acceptor;
 	const ListenSocketStopSignals stop_signals{acceptor.listen_fd()};
 	serve_clients(acceptor, stop_signals);
-}
-
-
-void MessengerServer::run_chat_session(const Client& first, const Client& second)
-{
-	std::atomic<bool> stopping{false};
-
-	auto stop_session = [&]() {
-		if (stopping.exchange(true))
-			return;
-
-		first.shutdown();
-		second.shutdown();
-	};
-
-	auto relay_with_stop = [&](const Client& from, const Client& to) {
-		try {
-			relay_messages(from, to);
-		}
-		catch (const std::exception& e) {
-			std::cerr << "Relay error: " << e.what() << '\n';
-		}
-		stop_session();
-	};
-
-	std::thread first_to_second(relay_with_stop, std::cref(first), std::cref(second));
-	std::thread second_to_first(relay_with_stop, std::cref(second), std::cref(first));
-
-	first_to_second.join();
-	second_to_first.join();
-}
-
-
-void MessengerServer::relay_messages(const Client& from, const Client& to)
-{
-	static std::mutex relay_log_mutex;
-
-	while (true) {
-		std::vector<char> payload;
-		if (!from.recv_frame(payload))
-			return;
-
-		const std::size_t plen = payload.size();
-		const auto len_u32 = static_cast<unsigned int>(plen);
-
-		{
-			std::lock_guard<std::mutex> lock(relay_log_mutex);
-			std::cout << "Frame " << from.address() << " -> " << to.address() << ": header payload_len="
-					  << len_u32 << ", body (" << plen << " byte" << (plen == 1 ? "" : "s") << "): ";
-			std::cout.write(payload.data(), static_cast<std::streamsize>(payload.size()));
-			std::cout << std::endl;
-		}
-
-		to.send_frame(payload);
-	}
 }
 
 
