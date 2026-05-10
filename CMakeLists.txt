@@ -21,6 +21,8 @@ add_executable(will-server
   src/server/server.cpp
   src/server/messengerserver.cpp
   src/server/listensocketstopsignals.cpp
+  src/server/connectionacceptor.cpp
+  src/server/client.cpp
   src/server/clientconnection.cpp
   src/server/clientaddress.cpp
 )

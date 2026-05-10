@@ -1,50 +1,22 @@
 #include "messengerserver.h"
 
-#include <netinet/in.h>
-#include <sys/socket.h>
-
 #include <atomic>
-#include <cstdint>
-#include <functional>
 #include <iostream>
 #include <mutex>
 #include <optional>
-#include <stdexcept>
-#include <system_error>
 #include <thread>
 #include <vector>
 
-#include "defaultwillserver.h"
+#include "client.h"
+#include "clientconnection.h"
+#include "connectionacceptor.h"
 #include "listensocketstopsignals.h"
-#include "serveraddress.h"
-#include "socketerror.h"
-#include "sockethandle.h"
-#include "willprotocol.h"
 
 
 namespace will {
 
 
 namespace {
-
-	
-/** Exactly {@code len} bytes unless peer closes before passing the first byte of this chunk (then {@code false}). Truncated after any byte ⇒ throws. */
-bool recv_exact_relaxed_eof_before_first_byte(const ClientConnection& from,
-											  char* data,
-											  std::size_t len)
-{
-	std::size_t got = 0;
-	while (got < len) {
-		std::size_t chunk = 0;
-		if (!from.recv_some(data + got, len - got, chunk)) {
-			if (got != 0)
-				throw std::runtime_error{"Will relay: connection closed mid-frame"};
-			return false;
-		}
-		got += chunk;
-	}
-	return true;
-}
 
 
 /** SIGTERM handler shuts these down so recv/send unblock during graceful stop */
@@ -61,49 +33,11 @@ struct ChatPeerFdRegistration {
 };
 
 
-std::optional<ClientConnection> accept_client_or_stop(const SocketHandle& server_socket,
-													   const ListenSocketStopSignals& stop_signals)
-{
-	try {
-		return ClientConnection::accept_from(server_socket, stop_signals);
-	}
-	catch (const std::system_error&) {
-		if (stop_signals.shutdown_requested())
-			return std::nullopt;
-		throw;
-	}
-}
-
-
 } // namespace
 
 
-SocketHandle MessengerServer::create_listen_socket() const
-{
-	SocketHandle server_socket(::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP));
-
-	int opt = 1;
-	if (::setsockopt(server_socket.get(), SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
-		throw SocketError("setsockopt failed");
-
-	return server_socket;
-}
-
-
-void MessengerServer::bind_and_listen(const SocketHandle& server_socket) const
-{
-	ServerAddress server = ServerAddress::any(defaultWillServerAddress().port_);
-
-	if (::bind(server_socket.get(), reinterpret_cast<sockaddr*>(&server.address_), sizeof(server.address_)) < 0)
-		throw SocketError("bind failed");
-
-	if (::listen(server_socket.get(), Backlog) < 0)
-		throw SocketError("listen failed");
-}
-
-
-void MessengerServer::serve_clients(const SocketHandle& server_socket,
-									const ListenSocketStopSignals& stop_signals) const
+void MessengerServer::serve_clients(ConnectionAcceptor& acceptor,
+									  const ListenSocketStopSignals& stop_signals) const
 {
 	while (true) {
 		try {
@@ -111,24 +45,24 @@ void MessengerServer::serve_clients(const SocketHandle& server_socket,
 				break;
 
 			std::cout << "Waiting for first client..." << std::endl;
-			std::optional<ClientConnection> first_opt = accept_client_or_stop(server_socket, stop_signals);
+			std::optional<ClientConnection> first_opt = acceptor.accept_next(stop_signals);
 			if (!first_opt.has_value())
 				break;
 
-			ClientConnection first_client = std::move(*first_opt);
+			Client first_client(std::move(*first_opt));
 			std::cout << "Client " << first_client.address() << " connected" << std::endl;
 
 			ChatPeerFdRegistration peer_fds_raii{};
 			ChatPeerFdRegistration::assign(first_client.socket_fd(), -1);
 
 			std::cout << "Waiting for second client..." << std::endl;
-			std::optional<ClientConnection> second_opt = accept_client_or_stop(server_socket, stop_signals);
+			std::optional<ClientConnection> second_opt = acceptor.accept_next(stop_signals);
 			if (!second_opt.has_value()) {
 				first_client.shutdown();
 				break;
 			}
 
-			ClientConnection second_client = std::move(*second_opt);
+			Client second_client(std::move(*second_opt));
 			std::cout << "Client " << second_client.address() << " connected" << std::endl;
 
 			ChatPeerFdRegistration::assign(first_client.socket_fd(), second_client.socket_fd());
@@ -146,15 +80,13 @@ void MessengerServer::serve_clients(const SocketHandle& server_socket,
 
 void MessengerServer::run() const
 {
-	SocketHandle server_socket = create_listen_socket();
-	bind_and_listen(server_socket);
-
-	const ListenSocketStopSignals stop_signals{server_socket.get()};
-	serve_clients(server_socket, stop_signals);
+	ConnectionAcceptor acceptor;
+	const ListenSocketStopSignals stop_signals{acceptor.listen_fd()};
+	serve_clients(acceptor, stop_signals);
 }
 
 
-void MessengerServer::run_chat_session(const ClientConnection& first, const ClientConnection& second)
+void MessengerServer::run_chat_session(const Client& first, const Client& second)
 {
 	std::atomic<bool> stopping{false};
 
@@ -166,7 +98,7 @@ void MessengerServer::run_chat_session(const ClientConnection& first, const Clie
 		second.shutdown();
 	};
 
-	auto relay_with_stop = [&](const ClientConnection& from, const ClientConnection& to) {
+	auto relay_with_stop = [&](const Client& from, const Client& to) {
 		try {
 			relay_messages(from, to);
 		}
@@ -184,26 +116,17 @@ void MessengerServer::run_chat_session(const ClientConnection& first, const Clie
 }
 
 
-void MessengerServer::relay_messages(const ClientConnection& from, const ClientConnection& to)
+void MessengerServer::relay_messages(const Client& from, const Client& to)
 {
 	static std::mutex relay_log_mutex;
 
 	while (true) {
-		char header_buf[4];
-		if (!recv_exact_relaxed_eof_before_first_byte(from, header_buf, sizeof(header_buf)))
+		std::vector<char> payload;
+		if (!from.recv_frame(payload))
 			return;
 
-		const unsigned char* const header_u = reinterpret_cast<unsigned char*>(header_buf);
-		const std::uint32_t len_u32 = TcpFrame::read_u32_be(header_u);
-		const auto plen = static_cast<std::size_t>(len_u32);
-		if (plen > TcpFrame::max_payload_bytes)
-			throw std::runtime_error{"Will relay: frame exceeds TcpFrame::max_payload_bytes"};
-
-		std::vector<char> payload(plen);
-		if (!payload.empty()) {
-			if (!recv_exact_relaxed_eof_before_first_byte(from, payload.data(), payload.size()))
-				throw std::runtime_error{"Will relay: connection closed mid-frame"};
-		}
+		const std::size_t plen = payload.size();
+		const auto len_u32 = static_cast<unsigned int>(plen);
 
 		{
 			std::lock_guard<std::mutex> lock(relay_log_mutex);
@@ -213,9 +136,7 @@ void MessengerServer::relay_messages(const ClientConnection& from, const ClientC
 			std::cout << std::endl;
 		}
 
-		to.send_all(header_buf, sizeof(header_buf));
-		if (!payload.empty())
-			to.send_all(payload.data(), payload.size());
+		to.send_frame(payload);
 	}
 }
 

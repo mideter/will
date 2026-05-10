@@ -1,5 +1,6 @@
 #include "clientconnection.h"
 
+#include <netinet/in.h>
 #include <sys/socket.h>
 
 #include <cerrno>
@@ -20,14 +21,14 @@ ClientConnection::ClientConnection(SocketHandle socket, ClientAddress address)
 {}
 
 
-ClientConnection ClientConnection::accept_from(const SocketHandle& server_socket,
-											   const ListenSocketStopSignals& stop_signals)
+ClientConnection ClientConnection::accept_on_listen(const SocketHandle& listen_socket,
+													const ListenSocketStopSignals& stop_signals)
 {
 	sockaddr_in peer{};
 	socklen_t peer_len = sizeof(peer);
 
 	while (true) {
-		const int fd = ::accept(server_socket.get(),
+		const int fd = ::accept(listen_socket.get(),
 								reinterpret_cast<sockaddr*>(&peer),
 								&peer_len);
 		if (fd >= 0)

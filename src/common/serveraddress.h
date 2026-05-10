@@ -11,6 +11,7 @@ namespace will {
 
 class MessengerServer;
 class MessengerClient;
+class ConnectionAcceptor;
 
 
 class ServerAddress {
@@ -22,6 +23,7 @@ public:
 private:
 	friend class MessengerServer;
 	friend class MessengerClient;
+	friend class ConnectionAcceptor;
 
 	IPv4 ip_;
 	Port port_;
