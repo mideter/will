@@ -134,18 +134,12 @@ void MessengerServer::serve_clients(ConnectionAcceptor& acceptor,
 
 	while (true) {
 		try {
-			std::optional<ClientConnection> connection_opt = acceptor.accept_next(stop_signals);
-			if (!connection_opt.has_value())
+			std::optional<AcceptedConnection> accepted = acceptor.accept_next(stop_signals);
+			if (!accepted.has_value())
 				break;
 
-			ClientConnection connection = std::move(*connection_opt);
-
-			const int sig_slot =
-				ListenSocketStopSignals::register_chat_peer_fd(connection.socket_fd());
-			if (sig_slot < 0)
-				std::cerr << "Warning: chat peer FD registry full; graceful signal stop may omit this peer\n";
-
-			auto client = std::make_shared<Client>(std::move(connection));
+			const int sig_slot = accepted->sig_slot;
+			auto client = std::make_shared<Client>(std::move(accepted->connection));
 			std::cout << "Client " << client->address() << " connected" << std::endl;
 
 			std::thread([hub, client, sig_slot]() {
