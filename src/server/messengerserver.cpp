@@ -77,11 +77,7 @@ void broadcast_from_sender(const std::shared_ptr<ClientHub>& hub, Client& sender
 		}
 		catch (const std::exception& e) {
 			std::cerr << "Broadcast send failed to " << peer->address() << ": " << e.what() << '\n';
-			try {
-				peer->shutdown();
-			}
-			catch (const std::exception&) {
-			}
+			peer->shutdown();
 			hub->remove(peer.get());
 		}
 	}
@@ -99,6 +95,8 @@ void reader_main(std::shared_ptr<ClientHub> hub, std::shared_ptr<Client> client,
 {
 	hub->add(client);
 
+	std::cout << "Client " << client->address() << " connected" << std::endl;
+
 	try {
 		while (true) {
 			std::vector<char> payload;
@@ -112,11 +110,7 @@ void reader_main(std::shared_ptr<ClientHub> hub, std::shared_ptr<Client> client,
 		std::cerr << "Reader error " << client->address() << ": " << e.what() << '\n';
 	}
 
-	try {
-		client->shutdown();
-	}
-	catch (const std::exception&) {
-	}
+	client->shutdown();
 
 	if (sig_slot >= 0)
 		ListenSocketStopSignals::unregister_chat_peer_fd(sig_slot);
@@ -140,7 +134,6 @@ void MessengerServer::serve_clients(ConnectionAcceptor& acceptor,
 
 			const int sig_slot = accepted->sig_slot;
 			auto client = std::make_shared<Client>(std::move(accepted->connection));
-			std::cout << "Client " << client->address() << " connected" << std::endl;
 
 			std::thread([hub, client, sig_slot]() {
 				reader_main(hub, std::move(client), sig_slot);
