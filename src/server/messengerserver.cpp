@@ -134,10 +134,6 @@ void MessengerServer::serve_clients(ConnectionAcceptor& acceptor,
 
 	while (true) {
 		try {
-			if (stop_signals.shutdown_requested())
-				break;
-
-			std::cout << "Waiting for client..." << std::endl;
 			std::optional<ClientConnection> connection_opt = acceptor.accept_next(stop_signals);
 			if (!connection_opt.has_value())
 				break;
