@@ -132,12 +132,8 @@ void MessengerServer::serve_clients(ConnectionAcceptor& acceptor,
 			if (!accepted.has_value())
 				break;
 
-			const int sig_slot = accepted->sig_slot;
-			auto client = std::make_shared<Client>(std::move(accepted->connection));
-
-			std::thread([hub, client, sig_slot]() {
-				reader_main(hub, std::move(client), sig_slot);
-			}).detach();
+			AcceptedConnection ac = std::move(*accepted);
+			std::thread(reader_main, hub, std::make_shared<Client>(std::move(ac.connection)), ac.sig_slot).detach();
 		}
 		catch (const std::exception& e) {
 			std::cerr << "Session error: " << e.what() << '\n';
