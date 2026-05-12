@@ -127,7 +127,7 @@ MessengerServer::MessengerServer()
 MessengerServer::~MessengerServer() = default;
 
 
-void MessengerServer::serve_clients()
+void MessengerServer::run()
 {
 	client_threads_.clear();
 	hub_ = std::make_unique<ClientHub>();
@@ -146,12 +146,6 @@ void MessengerServer::serve_clients()
 			std::cerr << "Session error: " << e.what() << '\n';
 		}
 	}
-}
-
-
-void MessengerServer::run()
-{
-	serve_clients();
 }
 
 

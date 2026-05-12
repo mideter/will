@@ -22,8 +22,6 @@ public:
 	void run();
 
 private:
-	void serve_clients();
-
 	ConnectionAcceptor acceptor_;
 	ListenSocketStopSignals stop_signals_;
 	std::unique_ptr<ClientHub> hub_;
