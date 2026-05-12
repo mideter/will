@@ -75,6 +75,8 @@ void MessengerClient::connect(ServerAddress server)
 	if (::connect(socket_.get(), reinterpret_cast<sockaddr*>(&server.address_),
 				  sizeof(server.address_)) < 0)
 		throw SocketError("connect failed");
+
+	socket_.enable_tcp_keepalive();
 }
 
 

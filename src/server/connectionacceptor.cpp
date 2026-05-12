@@ -41,8 +41,11 @@ ClientConnection ConnectionAcceptor::accept_incoming_connection()
 		const int fd = ::accept(listen_socket_.get(),
 								reinterpret_cast<sockaddr*>(&peer),
 								&peer_len);
-		if (fd >= 0)
-			return ClientConnection(SocketHandle{fd}, ClientAddress{peer});
+		if (fd >= 0) {
+			SocketHandle accepted{fd};
+			accepted.enable_tcp_keepalive();
+			return ClientConnection(std::move(accepted), ClientAddress{peer});
+		}
 
 		if (errno == EINTR) {
 			if (stop_signals_.shutdown_requested())

@@ -17,6 +17,9 @@ public:
 
 	int get() const;
 
+	/** TCP keepalive: SO_KEEPALIVE and TCP_KEEPIDLE / TCP_KEEPINTVL / TCP_KEEPCNT. */
+	void enable_tcp_keepalive() const;
+
 private:
 	int fd_;
 };
