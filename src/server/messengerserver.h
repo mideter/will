@@ -5,7 +5,6 @@
 
 #include "connectionacceptor.h"
 #include "clienthub.h"
-#include "listensocketstopsignals.h"
 
 
 namespace will {
@@ -25,7 +24,6 @@ private:
 	};
 
 	ConnectionAcceptor acceptor_;
-	ListenSocketStopSignals stop_signals_;
 	Peers peers_;
 };
 

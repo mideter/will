@@ -13,9 +13,7 @@
 namespace will {
 
 
-MessengerServer::MessengerServer()
-	: stop_signals_{acceptor_.listen_fd()}
-{}
+MessengerServer::MessengerServer() = default;
 
 
 MessengerServer::~MessengerServer() = default;
@@ -28,12 +26,12 @@ void MessengerServer::run()
 
 	while (true) {
 		try {
-			std::optional<AcceptedConnection> accepted = acceptor_.accept_next(stop_signals_);
+			std::optional<AcceptedConnection> accepted = acceptor_.accept_next();
 			if (!accepted.has_value())
 				break;
 
 			AcceptedConnection ac = std::move(*accepted);
-			
+
 			peers_.threads.emplace_back(MessengerLoops::reader_main, 
 										std::ref(peers_.clients), 
 										std::make_shared<Client>(std::move(ac.connection)),
