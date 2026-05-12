@@ -13,11 +13,11 @@ namespace will {
 class ClientHub;
 
 
-/** Per-client read loop and frame broadcast for the messenger server. */
+/** Per-client session in a worker thread: read frames and broadcast to peers. */
 class MessengerLoops {
 public:
 	static void broadcast_from_sender(ClientHub& hub, Client& sender, const std::vector<char>& payload);
-	static void reader_main(ClientHub& hub, std::shared_ptr<Client> client);
+	static void run_client_session(ClientHub& hub, std::shared_ptr<Client> client);
 
 private:
 	static void gather_recipients_excluding_sender(const ClientHub& hub,

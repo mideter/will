@@ -90,7 +90,7 @@ void MessengerLoops::broadcast_from_sender(ClientHub& hub, Client& sender, const
 }
 
 
-void MessengerLoops::reader_main(ClientHub& hub, std::shared_ptr<Client> client)
+void MessengerLoops::run_client_session(ClientHub& hub, std::shared_ptr<Client> client)
 {
 	hub.add(client);
 

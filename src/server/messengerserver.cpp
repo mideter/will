@@ -30,7 +30,7 @@ void MessengerServer::run()
 			if (!accepted.has_value())
 				break;
 
-			peers_.threads.emplace_back(MessengerLoops::reader_main,
+			peers_.threads.emplace_back(MessengerLoops::run_client_session,
 										std::ref(peers_.clients),
 										std::make_shared<Client>(std::move(*accepted)));
 		}
