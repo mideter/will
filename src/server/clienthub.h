@@ -32,7 +32,7 @@ public:
 	/** Registers a live client; no-op if {@code client} is null. */
 	void add(std::shared_ptr<Client> client);
 
-	/** Drops the client from the hub, then shuts down the connection and unregisters the signal slot (if any). */
+	/** Drops the client from the hub, then {@link Client::shutdown} (closes transport and clears signal slot if any). */
 	void remove(const Client* identity);
 
 	/** Consistent point-in-time copy of current members (each non-null). */

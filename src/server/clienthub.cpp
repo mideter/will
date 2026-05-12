@@ -4,7 +4,6 @@
 #include <iostream>
 
 #include "client.h"
-#include "listensocketstopsignals.h"
 
 
 namespace will {
@@ -42,9 +41,6 @@ void ClientHub::remove(const Client* identity)
 	}
 
 	gone->shutdown();
-	const int sig_slot = gone->chat_peer_signal_slot();
-	if (sig_slot >= 0)
-		ListenSocketStopSignals::unregister_chat_peer_fd(sig_slot);
 
 	std::cout << "Client " << gone->address() << " disconnected" << std::endl;
 }

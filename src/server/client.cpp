@@ -5,6 +5,7 @@
 
 #include "clientconnection.h"
 #include "connectionacceptor.h"
+#include "listensocketstopsignals.h"
 #include "willprotocol.h"
 
 
@@ -23,21 +24,21 @@ int Client::socket_fd() const noexcept
 }
 
 
-int Client::chat_peer_signal_slot() const noexcept
-{
-	return chat_peer_signal_slot_;
-}
-
-
 const ClientAddress& Client::address() const noexcept
 {
 	return connection_.address();
 }
 
 
-void Client::shutdown() const
+void Client::shutdown()
 {
 	connection_.shutdown();
+
+	const int slot = chat_peer_signal_slot_;
+	if (slot >= 0) {
+		ListenSocketStopSignals::unregister_chat_peer_fd(slot);
+		chat_peer_signal_slot_ = -1;
+	}
 }
 
 
