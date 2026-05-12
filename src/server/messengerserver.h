@@ -1,6 +1,8 @@
 #pragma once
 
 #include <memory>
+#include <thread>
+#include <vector>
 
 
 namespace will {
@@ -13,7 +15,7 @@ class ListenSocketStopSignals;
 
 class MessengerServer {
 public:
-	MessengerServer() = default;
+	MessengerServer();
 	~MessengerServer();
 
 	void run();
@@ -21,7 +23,8 @@ public:
 private:
 	void serve_clients(ConnectionAcceptor& acceptor, const ListenSocketStopSignals& stop_signals);
 
-	std::shared_ptr<ClientHub> hub_;
+	std::unique_ptr<ClientHub> hub_;
+	std::vector<std::jthread> client_threads_;
 };
 
 

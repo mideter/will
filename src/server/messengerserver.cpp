@@ -1,10 +1,10 @@
 #include "messengerserver.h"
 
+#include <functional>
 #include <iostream>
 #include <memory>
 #include <mutex>
 #include <optional>
-#include <thread>
 #include <vector>
 
 #include "client.h"
@@ -48,12 +48,11 @@ namespace {
 std::mutex frame_log_mutex;
 
 
-void broadcast_from_sender(const std::shared_ptr<ClientHub>& hub, Client& sender,
-						   const std::vector<char>& payload)
+void broadcast_from_sender(ClientHub& hub, Client& sender, const std::vector<char>& payload)
 {
 	std::vector<std::shared_ptr<Client>> recipients;
 	recipients.reserve(8);
-	const std::vector<std::shared_ptr<Client>> now = hub->snapshot();
+	const std::vector<std::shared_ptr<Client>> now = hub.snapshot();
 	for (const std::shared_ptr<Client>& c : now) {
 		if (c.get() != &sender)
 			recipients.push_back(c);
@@ -78,7 +77,7 @@ void broadcast_from_sender(const std::shared_ptr<ClientHub>& hub, Client& sender
 		catch (const std::exception& e) {
 			std::cerr << "Broadcast send failed to " << peer->address() << ": " << e.what() << '\n';
 			peer->shutdown();
-			hub->remove(peer.get());
+			hub.remove(peer.get());
 		}
 	}
 
@@ -91,9 +90,9 @@ void broadcast_from_sender(const std::shared_ptr<ClientHub>& hub, Client& sender
 }
 
 
-void reader_main(std::shared_ptr<ClientHub> hub, std::shared_ptr<Client> client, int sig_slot)
+void reader_main(ClientHub& hub, std::shared_ptr<Client> client, int sig_slot)
 {
-	hub->add(client);
+	hub.add(client);
 
 	std::cout << "Client " << client->address() << " connected" << std::endl;
 
@@ -114,19 +113,22 @@ void reader_main(std::shared_ptr<ClientHub> hub, std::shared_ptr<Client> client,
 
 	if (sig_slot >= 0)
 		ListenSocketStopSignals::unregister_chat_peer_fd(sig_slot);
-	hub->remove(client.get());
+	hub.remove(client.get());
 }
 
 
 } // namespace
 
 
+MessengerServer::MessengerServer() = default;
+
 MessengerServer::~MessengerServer() = default;
 
 
 void MessengerServer::serve_clients(ConnectionAcceptor& acceptor, const ListenSocketStopSignals& stop_signals)
 {
-	hub_ = std::make_shared<ClientHub>();
+	client_threads_.clear();
+	hub_ = std::make_unique<ClientHub>();
 
 	while (true) {
 		try {
@@ -135,7 +137,8 @@ void MessengerServer::serve_clients(ConnectionAcceptor& acceptor, const ListenSo
 				break;
 
 			AcceptedConnection ac = std::move(*accepted);
-			std::thread(reader_main, hub_, std::make_shared<Client>(std::move(ac.connection)), ac.sig_slot).detach();
+			client_threads_.emplace_back(reader_main, std::ref(*hub_), std::make_shared<Client>(std::move(ac.connection)),
+										 ac.sig_slot);
 		}
 		catch (const std::exception& e) {
 			std::cerr << "Session error: " << e.what() << '\n';
