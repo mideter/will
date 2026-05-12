@@ -1,6 +1,7 @@
 #include "clienthub.h"
 
 #include <algorithm>
+#include <iostream>
 
 #include "client.h"
 
@@ -12,7 +13,10 @@ void ClientHub::add(std::shared_ptr<Client> client)
 {
 	if (!client)
 		return;
+
 	std::lock_guard lock(mutex_);
+	std::cout << "Client " << client->address() << " connected" << std::endl;
+	
 	clients_.push_back(std::move(client));
 }
 
@@ -21,10 +25,17 @@ void ClientHub::remove(const Client* identity)
 {
 	if (!identity)
 		return;
+
 	std::lock_guard lock(mutex_);
-	std::erase_if(clients_, [identity](const std::shared_ptr<Client>& c) {
-		return c.get() == identity;
-	});
+
+	auto predicate = [identity](const std::shared_ptr<Client>& c) { return c.get() == identity; };
+	const auto it = std::ranges::find_if(clients_, predicate);
+	
+	if (it == clients_.end())
+		return;
+	
+	std::cout << "Client " << (*it)->address() << " disconnected" << std::endl;
+	clients_.erase(it);
 }
 
 
@@ -38,6 +49,10 @@ std::vector<std::shared_ptr<Client>> ClientHub::snapshot() const
 void ClientHub::reset()
 {
 	std::lock_guard lock(mutex_);
+
+	for (const std::shared_ptr<Client>& c : clients_)
+		std::cout << "Client " << c->address() << " disconnected" << std::endl;
+	
 	clients_.clear();
 }
 
