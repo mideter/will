@@ -3,6 +3,7 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 
+#include <cerrno>
 #include <system_error>
 
 #include "defaultwillserver.h"
@@ -31,9 +32,32 @@ ConnectionAcceptor::ConnectionAcceptor()
 }
 
 
+ClientConnection ConnectionAcceptor::accept_incoming_connection()
+{
+	sockaddr_in peer{};
+	socklen_t peer_len = sizeof(peer);
+
+	while (true) {
+		const int fd = ::accept(listen_socket_.get(),
+								reinterpret_cast<sockaddr*>(&peer),
+								&peer_len);
+		if (fd >= 0)
+			return ClientConnection(SocketHandle{fd}, ClientAddress{peer});
+
+		if (errno == EINTR) {
+			if (stop_signals_.shutdown_requested())
+				throw std::system_error(EINTR, std::generic_category(), "accept interrupted during shutdown");
+			continue;
+		}
+
+		throw std::system_error(errno, std::generic_category(), "accept failed");
+	}
+}
+
+
 std::optional<ClientConnection> ConnectionAcceptor::accept_next()
 try {
-	return ClientConnection::accept_on_listen(listen_socket_, stop_signals_);
+	return accept_incoming_connection();
 }
 catch (const std::system_error&) {
 	if (stop_signals_.shutdown_requested())

@@ -17,6 +17,8 @@ public:
 	std::optional<ClientConnection> accept_next();
 
 private:
+	ClientConnection accept_incoming_connection();
+
 	SocketHandle listen_socket_;
 	ListenSocketStopSignals stop_signals_;
 

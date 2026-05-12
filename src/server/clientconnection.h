@@ -9,15 +9,9 @@
 namespace will {
 
 
-class ListenSocketStopSignals;
-
-
 class ClientConnection {
 public:
 	ClientConnection(SocketHandle socket, ClientAddress address);
-
-	static ClientConnection accept_on_listen(const SocketHandle& listen_socket,
-											 const ListenSocketStopSignals& stop_signals);
 
 	int socket_fd() const noexcept;
 

@@ -1,14 +1,10 @@
 #include "clientconnection.h"
 
-#include <netinet/in.h>
 #include <sys/socket.h>
 
 #include <cerrno>
 #include <stdexcept>
-#include <system_error>
-#include <utility>
 
-#include "listensocketstopsignals.h"
 #include "socketerror.h"
 
 
@@ -19,30 +15,6 @@ ClientConnection::ClientConnection(SocketHandle socket, ClientAddress address)
 	: socket_(std::move(socket))
 	, address_(std::move(address))
 {}
-
-
-ClientConnection ClientConnection::accept_on_listen(const SocketHandle& listen_socket,
-													const ListenSocketStopSignals& stop_signals)
-{
-	sockaddr_in peer{};
-	socklen_t peer_len = sizeof(peer);
-
-	while (true) {
-		const int fd = ::accept(listen_socket.get(),
-								reinterpret_cast<sockaddr*>(&peer),
-								&peer_len);
-		if (fd >= 0)
-			return ClientConnection(SocketHandle{fd}, ClientAddress{peer});
-
-		if (errno == EINTR) {
-			if (stop_signals.shutdown_requested())
-				throw std::system_error(EINTR, std::generic_category(), "accept interrupted during shutdown");
-			continue;
-		}
-
-		throw std::system_error(errno, std::generic_category(), "accept failed");
-	}
-}
 
 
 int ClientConnection::socket_fd() const noexcept

@@ -19,6 +19,7 @@ public:
 
 private:
 	friend class ClientConnection;
+	friend class ConnectionAcceptor;
 	friend std::ostream& operator<<(std::ostream& os, const ClientAddress& address);
 
 	explicit ClientAddress(sockaddr_in addr);
