@@ -125,14 +125,14 @@ MessengerServer::MessengerServer() = default;
 MessengerServer::~MessengerServer() = default;
 
 
-void MessengerServer::serve_clients(ConnectionAcceptor& acceptor, const ListenSocketStopSignals& stop_signals)
+void MessengerServer::serve_clients(const ListenSocketStopSignals& stop_signals)
 {
 	client_threads_.clear();
 	hub_ = std::make_unique<ClientHub>();
 
 	while (true) {
 		try {
-			std::optional<AcceptedConnection> accepted = acceptor.accept_next(stop_signals);
+			std::optional<AcceptedConnection> accepted = acceptor_.accept_next(stop_signals);
 			if (!accepted.has_value())
 				break;
 
@@ -149,9 +149,8 @@ void MessengerServer::serve_clients(ConnectionAcceptor& acceptor, const ListenSo
 
 void MessengerServer::run()
 {
-	ConnectionAcceptor acceptor;
-	const ListenSocketStopSignals stop_signals{acceptor.listen_fd()};
-	serve_clients(acceptor, stop_signals);
+	const ListenSocketStopSignals stop_signals{acceptor_.listen_fd()};
+	serve_clients(stop_signals);
 }
 
 

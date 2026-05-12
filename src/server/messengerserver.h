@@ -4,12 +4,13 @@
 #include <thread>
 #include <vector>
 
+#include "connectionacceptor.h"
+
 
 namespace will {
 
 
 struct ClientHub;
-class ConnectionAcceptor;
 class ListenSocketStopSignals;
 
 
@@ -21,8 +22,9 @@ public:
 	void run();
 
 private:
-	void serve_clients(ConnectionAcceptor& acceptor, const ListenSocketStopSignals& stop_signals);
+	void serve_clients(const ListenSocketStopSignals& stop_signals);
 
+	ConnectionAcceptor acceptor_;
 	std::unique_ptr<ClientHub> hub_;
 	std::vector<std::jthread> client_threads_;
 };
