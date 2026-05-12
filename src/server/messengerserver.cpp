@@ -129,8 +129,8 @@ MessengerServer::~MessengerServer() = default;
 
 void MessengerServer::run()
 {
-	client_threads_.clear();
-	hub_ = std::make_unique<ClientHub>();
+	peers_.threads.clear();
+	peers_.clients = std::make_unique<ClientHub>();
 
 	while (true) {
 		try {
@@ -139,8 +139,8 @@ void MessengerServer::run()
 				break;
 
 			AcceptedConnection ac = std::move(*accepted);
-			client_threads_.emplace_back(reader_main, std::ref(*hub_), std::make_shared<Client>(std::move(ac.connection)),
-										 ac.sig_slot);
+			peers_.threads.emplace_back(reader_main, std::ref(*peers_.clients), std::make_shared<Client>(std::move(ac.connection)),
+										   ac.sig_slot);
 		}
 		catch (const std::exception& e) {
 			std::cerr << "Session error: " << e.what() << '\n';

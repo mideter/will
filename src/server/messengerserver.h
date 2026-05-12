@@ -22,10 +22,14 @@ public:
 	void run();
 
 private:
+	struct Peers {
+		std::unique_ptr<ClientHub> clients;
+		std::vector<std::jthread> threads;
+	};
+
 	ConnectionAcceptor acceptor_;
 	ListenSocketStopSignals stop_signals_;
-	std::unique_ptr<ClientHub> hub_;
-	std::vector<std::jthread> client_threads_;
+	Peers peers_;
 };
 
 
