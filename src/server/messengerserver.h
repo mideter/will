@@ -1,17 +1,14 @@
 #pragma once
 
-#include <memory>
 #include <thread>
 #include <vector>
 
 #include "connectionacceptor.h"
+#include "clienthub.h"
 #include "listensocketstopsignals.h"
 
 
 namespace will {
-
-
-struct ClientHub;
 
 
 class MessengerServer {
@@ -23,7 +20,7 @@ public:
 
 private:
 	struct Peers {
-		std::unique_ptr<ClientHub> clients;
+		ClientHub clients;
 		std::vector<std::jthread> threads;
 	};
 

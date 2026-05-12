@@ -15,32 +15,6 @@
 namespace will {
 
 
-struct ClientHub {
-	mutable std::mutex mutex_;
-	std::vector<std::shared_ptr<Client>> clients_;
-
-	void add(std::shared_ptr<Client> client)
-	{
-		std::lock_guard lock(mutex_);
-		clients_.push_back(std::move(client));
-	}
-
-	void remove(const Client* identity)
-	{
-		std::lock_guard lock(mutex_);
-		std::erase_if(clients_, [identity](const std::shared_ptr<Client>& c) {
-			return c.get() == identity;
-		});
-	}
-
-	std::vector<std::shared_ptr<Client>> snapshot() const
-	{
-		std::lock_guard lock(mutex_);
-		return clients_;
-	}
-};
-
-
 namespace {
 
 
@@ -130,7 +104,7 @@ MessengerServer::~MessengerServer() = default;
 void MessengerServer::run()
 {
 	peers_.threads.clear();
-	peers_.clients = std::make_unique<ClientHub>();
+	peers_.clients.reset();
 
 	while (true) {
 		try {
@@ -139,7 +113,7 @@ void MessengerServer::run()
 				break;
 
 			AcceptedConnection ac = std::move(*accepted);
-			peers_.threads.emplace_back(reader_main, std::ref(*peers_.clients), std::make_shared<Client>(std::move(ac.connection)),
+			peers_.threads.emplace_back(reader_main, std::ref(peers_.clients), std::make_shared<Client>(std::move(ac.connection)),
 										   ac.sig_slot);
 		}
 		catch (const std::exception& e) {
