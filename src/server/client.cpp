@@ -4,15 +4,16 @@
 #include <stdexcept>
 
 #include "clientconnection.h"
+#include "connectionacceptor.h"
 #include "willprotocol.h"
 
 
 namespace will {
 
 
-Client::Client(ClientConnection connection, int chat_peer_signal_slot)
-	: connection_(std::move(connection))
-	, chat_peer_signal_slot_(chat_peer_signal_slot)
+Client::Client(AcceptedConnection accepted)
+	: connection_(std::move(accepted.connection))
+	, chat_peer_signal_slot_(accepted.sig_slot)
 {}
 
 

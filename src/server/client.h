@@ -5,6 +5,7 @@
 
 #include "clientaddress.h"
 #include "clientconnection.h"
+#include "connectionacceptor.h"
 
 
 namespace will {
@@ -13,7 +14,7 @@ namespace will {
 /** Will protocol over a transport: {@link TcpFrame} length-prefixed payloads. */
 class Client {
 public:
-	explicit Client(ClientConnection connection, int chat_peer_signal_slot = -1);
+	explicit Client(AcceptedConnection accepted);
 
 	Client(const Client&) = delete;
 	Client& operator=(const Client&) = delete;
