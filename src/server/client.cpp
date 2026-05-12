@@ -4,7 +4,6 @@
 #include <stdexcept>
 
 #include "clientconnection.h"
-#include "connectionacceptor.h"
 #include "listensocketstopsignals.h"
 #include "willprotocol.h"
 
@@ -12,10 +11,13 @@
 namespace will {
 
 
-Client::Client(AcceptedConnection accepted)
-	: connection_(std::move(accepted.connection))
-	, chat_peer_signal_slot_(accepted.sig_slot)
-{}
+Client::Client(ClientConnection connection)
+	: connection_(std::move(connection))
+	, chat_peer_signal_slot_(ListenSocketStopSignals::register_chat_peer_fd(connection_.socket_fd()))
+{
+	if (chat_peer_signal_slot_ < 0)
+		throw std::runtime_error{"ListenSocketStopSignals chat peer FD registry full"};
+}
 
 
 const ClientAddress& Client::address() const noexcept

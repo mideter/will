@@ -15,7 +15,7 @@ This document records project conventions so changes stay consistent. When in do
 ## Naming
 
 - **Namespace:** `will` for project code.
-- **Types (classes, structs, enums, type aliases):** `PascalCase` (for example `ClientHub`, `AcceptedConnection`).
+- **Types (classes, structs, enums, type aliases):** `PascalCase` (for example `ClientHub`, `ConnectionAcceptor`).
 - **Functions and methods:** `snake_case` (for example `listen_fd`, `accept_next`).
 - **Variables and parameters:** `snake_case`.
 - **Private or implementation-detail members:** trailing underscore, for example `clients_`, `listen_socket_`.

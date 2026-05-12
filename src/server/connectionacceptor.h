@@ -10,18 +10,11 @@
 namespace will {
 
 
-/** Result of accept_next: new peer and ListenSocketStopSignals registry slot (or -1 if full). */
-struct AcceptedConnection {
-	ClientConnection connection;
-	int sig_slot = -1;
-};
-
-
 class ConnectionAcceptor {
 public:
 	ConnectionAcceptor();
 
-	std::optional<AcceptedConnection> accept_next();
+	std::optional<ClientConnection> accept_next();
 
 private:
 	SocketHandle listen_socket_;

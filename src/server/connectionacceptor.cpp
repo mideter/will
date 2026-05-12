@@ -3,7 +3,6 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 
-#include <iostream>
 #include <system_error>
 
 #include "defaultwillserver.h"
@@ -32,22 +31,15 @@ ConnectionAcceptor::ConnectionAcceptor()
 }
 
 
-std::optional<AcceptedConnection> ConnectionAcceptor::accept_next()
-{
-	try {
-		ClientConnection connection = ClientConnection::accept_on_listen(listen_socket_, stop_signals_);
-		const int sig_slot = ListenSocketStopSignals::register_chat_peer_fd(connection.socket_fd());
-		
-		if (sig_slot < 0)
-			std::cerr << "Warning: chat peer FD registry full; graceful signal stop may omit this peer\n";
-
-		return AcceptedConnection{std::move(connection), sig_slot};
-	}
-	catch (const std::system_error&) {
-		if (stop_signals_.shutdown_requested())
-			return std::nullopt;
-		throw;
-	}
+std::optional<ClientConnection> ConnectionAcceptor::accept_next()
+try {
+	return ClientConnection::accept_on_listen(listen_socket_, stop_signals_);
+}
+catch (const std::system_error&) {
+	if (stop_signals_.shutdown_requested())
+		return std::nullopt;
+	
+	throw;
 }
 
 

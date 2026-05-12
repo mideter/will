@@ -26,7 +26,7 @@ void MessengerServer::run()
 
 	while (true) {
 		try {
-			std::optional<AcceptedConnection> accepted = acceptor_.accept_next();
+			std::optional<ClientConnection> accepted = acceptor_.accept_next();
 			if (!accepted.has_value())
 				break;
 
