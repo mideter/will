@@ -5,13 +5,13 @@
 #include <vector>
 
 #include "connectionacceptor.h"
+#include "listensocketstopsignals.h"
 
 
 namespace will {
 
 
 struct ClientHub;
-class ListenSocketStopSignals;
 
 
 class MessengerServer {
@@ -22,9 +22,10 @@ public:
 	void run();
 
 private:
-	void serve_clients(const ListenSocketStopSignals& stop_signals);
+	void serve_clients();
 
 	ConnectionAcceptor acceptor_;
+	ListenSocketStopSignals stop_signals_;
 	std::unique_ptr<ClientHub> hub_;
 	std::vector<std::jthread> client_threads_;
 };

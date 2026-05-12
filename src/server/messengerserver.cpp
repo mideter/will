@@ -10,7 +10,6 @@
 #include "client.h"
 #include "clientconnection.h"
 #include "connectionacceptor.h"
-#include "listensocketstopsignals.h"
 
 
 namespace will {
@@ -120,19 +119,22 @@ void reader_main(ClientHub& hub, std::shared_ptr<Client> client, int sig_slot)
 } // namespace
 
 
-MessengerServer::MessengerServer() = default;
+MessengerServer::MessengerServer()
+	: stop_signals_{acceptor_.listen_fd()}
+{}
+
 
 MessengerServer::~MessengerServer() = default;
 
 
-void MessengerServer::serve_clients(const ListenSocketStopSignals& stop_signals)
+void MessengerServer::serve_clients()
 {
 	client_threads_.clear();
 	hub_ = std::make_unique<ClientHub>();
 
 	while (true) {
 		try {
-			std::optional<AcceptedConnection> accepted = acceptor_.accept_next(stop_signals);
+			std::optional<AcceptedConnection> accepted = acceptor_.accept_next(stop_signals_);
 			if (!accepted.has_value())
 				break;
 
@@ -149,8 +151,7 @@ void MessengerServer::serve_clients(const ListenSocketStopSignals& stop_signals)
 
 void MessengerServer::run()
 {
-	const ListenSocketStopSignals stop_signals{acceptor_.listen_fd()};
-	serve_clients(stop_signals);
+	serve_clients();
 }
 
 
