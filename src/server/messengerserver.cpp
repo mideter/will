@@ -32,10 +32,9 @@ void MessengerServer::run()
 
 			AcceptedConnection ac = std::move(*accepted);
 
-			peers_.threads.emplace_back(MessengerLoops::reader_main, 
-										std::ref(peers_.clients), 
-										std::make_shared<Client>(std::move(ac.connection)),
-										ac.sig_slot);
+			peers_.threads.emplace_back(MessengerLoops::reader_main,
+										std::ref(peers_.clients),
+										std::make_shared<Client>(std::move(ac.connection), ac.sig_slot));
 		}
 		catch (const std::exception& e) {
 			std::cerr << "Session error: " << e.what() << '\n';

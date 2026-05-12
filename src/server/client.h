@@ -13,7 +13,7 @@ namespace will {
 /** Will protocol over a transport: {@link TcpFrame} length-prefixed payloads. */
 class Client {
 public:
-	explicit Client(ClientConnection connection);
+	explicit Client(ClientConnection connection, int chat_peer_signal_slot = -1);
 
 	Client(const Client&) = delete;
 	Client& operator=(const Client&) = delete;
@@ -21,6 +21,8 @@ public:
 	Client& operator=(Client&&) noexcept = default;
 
 	int socket_fd() const noexcept;
+	/** Slot from {@link ListenSocketStopSignals::register_chat_peer_fd}, or -1 if none. */
+	int chat_peer_signal_slot() const noexcept;
 	const ClientAddress& address() const noexcept;
 	void shutdown() const;
 
@@ -32,6 +34,7 @@ public:
 
 private:
 	ClientConnection connection_;
+	int chat_peer_signal_slot_;
 
 	static bool recv_exact_relaxed_eof_before_first_byte(const ClientConnection& from,
 														 char* data,

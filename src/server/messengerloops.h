@@ -16,7 +16,7 @@ class ClientHub;
 class MessengerLoops {
 public:
 	static void broadcast_from_sender(ClientHub& hub, Client& sender, const std::vector<char>& payload);
-	static void reader_main(ClientHub& hub, std::shared_ptr<Client> client, int sig_slot);
+	static void reader_main(ClientHub& hub, std::shared_ptr<Client> client);
 
 private:
 	static std::mutex frame_log_mutex_;

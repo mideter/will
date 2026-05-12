@@ -32,7 +32,7 @@ public:
 	/** Registers a live client; no-op if {@code client} is null. */
 	void add(std::shared_ptr<Client> client);
 
-	/** Removes the entry whose raw pointer matches {@code identity}; no-op if {@code identity} is null. */
+	/** Drops the client from the hub, then shuts down the connection and unregisters the signal slot (if any). */
 	void remove(const Client* identity);
 
 	/** Consistent point-in-time copy of current members (each non-null). */

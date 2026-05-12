@@ -5,7 +5,6 @@
 
 #include "client.h"
 #include "clienthub.h"
-#include "listensocketstopsignals.h"
 
 
 namespace will {
@@ -46,7 +45,6 @@ void MessengerLoops::broadcast_from_sender(ClientHub& hub, Client& sender, const
 		}
 		catch (const std::exception& e) {
 			std::cerr << "Broadcast send failed to " << peer->address() << ": " << e.what() << std::endl;
-			peer->shutdown();
 			hub.remove(peer.get());
 		}
 	}
@@ -62,7 +60,7 @@ void MessengerLoops::broadcast_from_sender(ClientHub& hub, Client& sender, const
 }
 
 
-void MessengerLoops::reader_main(ClientHub& hub, std::shared_ptr<Client> client, int sig_slot)
+void MessengerLoops::reader_main(ClientHub& hub, std::shared_ptr<Client> client)
 {
 	hub.add(client);
 
@@ -78,11 +76,6 @@ void MessengerLoops::reader_main(ClientHub& hub, std::shared_ptr<Client> client,
 	catch (const std::exception& e) {
 		std::cerr << "Reader error " << client->address() << ": " << e.what() << '\n';
 	}
-
-	client->shutdown();
-
-	if (sig_slot >= 0)
-		ListenSocketStopSignals::unregister_chat_peer_fd(sig_slot);
 
 	hub.remove(client.get());
 }

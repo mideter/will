@@ -10,14 +10,21 @@
 namespace will {
 
 
-Client::Client(ClientConnection connection)
+Client::Client(ClientConnection connection, int chat_peer_signal_slot)
 	: connection_(std::move(connection))
+	, chat_peer_signal_slot_(chat_peer_signal_slot)
 {}
 
 
 int Client::socket_fd() const noexcept
 {
 	return connection_.socket_fd();
+}
+
+
+int Client::chat_peer_signal_slot() const noexcept
+{
+	return chat_peer_signal_slot_;
 }
 
 

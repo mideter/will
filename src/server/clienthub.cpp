@@ -4,6 +4,7 @@
 #include <iostream>
 
 #include "client.h"
+#include "listensocketstopsignals.h"
 
 
 namespace will {
@@ -26,16 +27,26 @@ void ClientHub::remove(const Client* identity)
 	if (!identity)
 		return;
 
-	std::lock_guard lock(mutex_);
+	std::shared_ptr<Client> gone;
+	{
+		std::lock_guard lock(mutex_);
 
-	auto predicate = [identity](const std::shared_ptr<Client>& c) { return c.get() == identity; };
-	const auto it = std::ranges::find_if(clients_, predicate);
-	
-	if (it == clients_.end())
-		return;
-	
-	std::cout << "Client " << (*it)->address() << " disconnected" << std::endl;
-	clients_.erase(it);
+		auto predicate = [identity](const std::shared_ptr<Client>& c) { return c.get() == identity; };
+		const auto it = std::ranges::find_if(clients_, predicate);
+
+		if (it == clients_.end())
+			return;
+
+		gone = std::move(*it);
+		clients_.erase(it);
+	}
+
+	gone->shutdown();
+	const int sig_slot = gone->chat_peer_signal_slot();
+	if (sig_slot >= 0)
+		ListenSocketStopSignals::unregister_chat_peer_fd(sig_slot);
+
+	std::cout << "Client " << gone->address() << " disconnected" << std::endl;
 }
 
 
