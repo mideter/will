@@ -21,7 +21,6 @@ public:
 	Client(Client&&) noexcept = default;
 	Client& operator=(Client&&) noexcept = default;
 
-	int socket_fd() const noexcept;
 	const ClientAddress& address() const noexcept;
 	void shutdown();
 

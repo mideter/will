@@ -18,12 +18,6 @@ Client::Client(AcceptedConnection accepted)
 {}
 
 
-int Client::socket_fd() const noexcept
-{
-	return connection_.socket_fd();
-}
-
-
 const ClientAddress& Client::address() const noexcept
 {
 	return connection_.address();
