@@ -8,7 +8,7 @@ try {
 	constexpr const char* version = "2.1.0";
 	std::cout << "Starting Will Messenger Server v" << version << '\n';
 
-	const will::MessengerServer server;
+	will::MessengerServer server;
 
 	server.run();
 

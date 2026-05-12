@@ -16,9 +16,6 @@
 namespace will {
 
 
-namespace {
-
-
 struct ClientHub {
 	mutable std::mutex mutex_;
 	std::vector<std::shared_ptr<Client>> clients_;
@@ -43,6 +40,9 @@ struct ClientHub {
 		return clients_;
 	}
 };
+
+
+namespace {
 
 
 std::mutex frame_log_mutex;
@@ -121,10 +121,12 @@ void reader_main(std::shared_ptr<ClientHub> hub, std::shared_ptr<Client> client,
 } // namespace
 
 
-void MessengerServer::serve_clients(ConnectionAcceptor& acceptor,
-									  const ListenSocketStopSignals& stop_signals) const
+MessengerServer::~MessengerServer() = default;
+
+
+void MessengerServer::serve_clients(ConnectionAcceptor& acceptor, const ListenSocketStopSignals& stop_signals)
 {
-	const std::shared_ptr<ClientHub> hub = std::make_shared<ClientHub>();
+	hub_ = std::make_shared<ClientHub>();
 
 	while (true) {
 		try {
@@ -133,7 +135,7 @@ void MessengerServer::serve_clients(ConnectionAcceptor& acceptor,
 				break;
 
 			AcceptedConnection ac = std::move(*accepted);
-			std::thread(reader_main, hub, std::make_shared<Client>(std::move(ac.connection)), ac.sig_slot).detach();
+			std::thread(reader_main, hub_, std::make_shared<Client>(std::move(ac.connection)), ac.sig_slot).detach();
 		}
 		catch (const std::exception& e) {
 			std::cerr << "Session error: " << e.what() << '\n';
@@ -142,7 +144,7 @@ void MessengerServer::serve_clients(ConnectionAcceptor& acceptor,
 }
 
 
-void MessengerServer::run() const
+void MessengerServer::run()
 {
 	ConnectionAcceptor acceptor;
 	const ListenSocketStopSignals stop_signals{acceptor.listen_fd()};
