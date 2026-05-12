@@ -87,6 +87,8 @@ void MessengerLoops::reader_main(ClientHub& hub, std::shared_ptr<Client> client,
 		ListenSocketStopSignals::unregister_chat_peer_fd(sig_slot);
 
 	hub.remove(client.get());
+
+	std::cout << "Client " << client->address() << " disconnected" << std::endl;
 }
 
 
