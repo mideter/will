@@ -4,12 +4,12 @@ This document records project conventions so changes stay consistent. When in do
 
 ## Language and toolchain
 
-- C++ standard and compiler flags are defined in CMake; prefer portable constructs unless a platform-specific block is already established.
+- C++ standard and compiler flags are defined in CMake
 - Build and run: see [README.md](README.md).
 
 ## Layout and modules
 
-- Library and binary sources live under `src/`; keep new features near related modules rather than introducing parallel trees without reason.
+- Library and binary sources live under `src/`
 - Public headers shipped or included across targets should stay minimal; prefer implementation detail in `.cpp` files.
 
 ## Naming
@@ -44,5 +44,3 @@ This document records project conventions so changes stay consistent. When in do
 
 - Write commit messages in clear, complete sentences (imperative mood is fine: “Add …”, “Fix …”).
 - Keep changes scoped to one concern when possible; unrelated refactors belong in separate commits or PRs.
-
-If these rules conflict with a small local pattern in a file you are editing, prefer consistency **within that file** first, then open a follow-up to normalize if needed.
