@@ -22,7 +22,8 @@ namespace {
 
 constexpr QColor kInk(26, 26, 26);
 constexpr QColor kMuted(120, 120, 120);
-constexpr QColor kRow(248, 248, 248);
+constexpr QColor kSelfBubble(232, 242, 255);
+constexpr QColor kPeerBubble(245, 245, 245);
 } // namespace
 
 
@@ -219,18 +220,21 @@ void MainWindow::appendChatLine(LineKind kind, const QString& text)
         item->setText(text);
         item->setForeground(kMuted);
         item->setBackground(Qt::transparent);
+        item->setTextAlignment(Qt::AlignLeft | Qt::AlignTop);
         break;
     case LineKind::Self:
-        item->setText(QStringLiteral("Вы\n%1").arg(text));
+        item->setText(text);
         item->setForeground(kInk);
-        item->setBackground(kRow);
+        item->setBackground(kSelfBubble);
+        item->setTextAlignment(Qt::AlignRight | Qt::AlignTop);
         item->setData(kRoleSelfBody, text);
         item->setData(kRoleServerConfirmed, false);
         break;
     case LineKind::Peer:
-        item->setText(QStringLiteral("Собеседник\n%1").arg(text));
+        item->setText(text);
         item->setForeground(kInk);
-        item->setBackground(kRow);
+        item->setBackground(kPeerBubble);
+        item->setTextAlignment(Qt::AlignLeft | Qt::AlignTop);
         break;
     }
 
@@ -283,8 +287,6 @@ void MainWindow::onServerReceiptConfirmed()
         if (item->data(kRoleServerConfirmed).toBool())
             continue;
 
-        const QString body = item->data(kRoleSelfBody).toString();
-        item->setText(QStringLiteral("Вы\n%1").arg(body));
         item->setToolTip(QStringLiteral("Сервер получил сообщение"));
         item->setIcon(serverOkIcon_);
         item->setData(kRoleServerConfirmed, true);
