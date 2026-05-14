@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <string>
 #include <string_view>
 #include <vector>
 
@@ -25,6 +26,9 @@ public:
 
 	static bool is_user_chat(const std::vector<char>& payload) noexcept;
 	static bool is_server_receipt_ack(const std::vector<char>& payload) noexcept;
+
+	/** Single-line UTF-8 safe for journald/terminals: never dumps raw framing bytes. */
+	static std::string format_payload_for_log(const std::vector<char>& payload);
 
 	WillMessage() = delete;
 };

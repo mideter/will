@@ -35,5 +35,14 @@ int main()
 	assert(!WillMessage::is_valid_client_to_server_payload({'\2'}));
 	assert(!WillMessage::is_valid_client_to_server_payload({'\0'}));
 
+	{
+		const auto v = WillMessage::encode_user_chat("hi");
+		const std::string line = WillMessage::format_payload_for_log(v);
+		assert(line.find("UserChat") != std::string::npos);
+		assert(line.find("hi") != std::string::npos);
+	}
+
+	assert(WillMessage::format_payload_for_log(WillMessage::encode_server_receipt_ack()) == "ServerReceiptAck");
+
 	return EXIT_SUCCESS;
 }

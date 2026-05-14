@@ -36,10 +36,9 @@ void MessengerLoops::log_frame_no_other_peers(const Client& sender, const std::v
 
 	std::cout << "Frame from " << sender.address()
 			  << " (no other peers; logged only): header payload_len=" << static_cast<unsigned int>(plen)
-			  << ", body (" << plen << " byte" << (plen == 1 ? "" : "s") << "): ";
+			  << ", ";
 
-	std::cout.write(payload.data(), static_cast<std::streamsize>(payload.size()));
-	std::cout << std::endl;
+	std::cout << WillMessage::format_payload_for_log(payload) << std::endl;
 }
 
 
@@ -68,11 +67,9 @@ void MessengerLoops::log_frame_broadcast_summary(const Client& sender,
 	std::lock_guard io_lock(frame_log_mutex_);
 
 	std::cout << "Broadcast from " << sender.address() << " to " << recipient_count
-			  << " peer(s): header payload_len=" << static_cast<unsigned int>(plen) << ", body (" << plen
-			  << " byte" << (plen == 1 ? "" : "s") << "): ";
+			  << " peer(s): header payload_len=" << static_cast<unsigned int>(plen) << ", ";
 
-	std::cout.write(payload.data(), static_cast<std::streamsize>(payload.size()));
-	std::cout << std::endl;
+	std::cout << WillMessage::format_payload_for_log(payload) << std::endl;
 }
 
 
