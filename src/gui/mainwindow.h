@@ -27,6 +27,7 @@ private slots:
     void onToggleConnect();
     void onSend();
     void onPeerMessage(const QString& text);
+    void onServerReceiptConfirmed();
     void onBridgeError(const QString& message);
     void onConnectionChanged(bool connected);
     void onChatAreaClicked();
@@ -40,9 +41,12 @@ private:
     void markPeerMessagesRead();
     void applyMinimalStyle();
     static QIcon makeUnreadDotIcon();
+    static QIcon makeServerReceiptIcon();
 
     static constexpr int kRoleKind = 256; // Qt::UserRole
     static constexpr int kRoleUnread = 257;
+    static constexpr int kRoleServerConfirmed = 258;
+    static constexpr int kRoleSelfBody = 259;
 
     WillChatBridge bridge_;
 
@@ -54,4 +58,5 @@ private:
     QPushButton* btnSend_ = nullptr;
 
     QIcon unreadDotIcon_;
+    QIcon serverOkIcon_;
 };

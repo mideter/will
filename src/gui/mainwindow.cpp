@@ -12,8 +12,10 @@
 #include <QMessageBox>
 #include <QMouseEvent>
 #include <QPainter>
+#include <QPainterPath>
 #include <QPushButton>
 #include <QVBoxLayout>
+#include <QVariant>
 #include <QWidget>
 
 namespace {
@@ -30,6 +32,7 @@ MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent)
     , bridge_(this)
     , unreadDotIcon_(makeUnreadDotIcon())
+    , serverOkIcon_(makeServerReceiptIcon())
 {
     setWindowTitle(QStringLiteral("Will"));
     resize(720, 520);
@@ -96,6 +99,7 @@ MainWindow::MainWindow(QWidget* parent)
     QObject::connect(btnConnect_, &QPushButton::clicked, this, &MainWindow::onToggleConnect);
     QObject::connect(btnSend_, &QPushButton::clicked, this, &MainWindow::onSend);
     QObject::connect(&bridge_, &WillChatBridge::peerMessageReceived, this, &MainWindow::onPeerMessage);
+    QObject::connect(&bridge_, &WillChatBridge::serverReceiptConfirmed, this, &MainWindow::onServerReceiptConfirmed);
     QObject::connect(&bridge_, &WillChatBridge::errorOccurred, this, &MainWindow::onBridgeError);
     QObject::connect(&bridge_, &WillChatBridge::connectionChanged, this, &MainWindow::onConnectionChanged);
 
@@ -226,6 +230,26 @@ QIcon MainWindow::makeUnreadDotIcon()
 }
 
 
+QIcon MainWindow::makeServerReceiptIcon()
+{
+    QPixmap pm(12, 12);
+    pm.fill(Qt::transparent);
+    QPainter painter(&pm);
+    painter.setRenderHint(QPainter::Antialiasing);
+    QPen pen(QColor(148, 163, 184));
+    pen.setWidthF(1.15);
+    pen.setCapStyle(Qt::RoundCap);
+    pen.setJoinStyle(Qt::RoundJoin);
+    painter.setPen(pen);
+    QPainterPath path;
+    path.moveTo(2.0, 6.2);
+    path.lineTo(4.9, 9.0);
+    path.lineTo(10.0, 3.5);
+    painter.drawPath(path);
+    return QIcon(pm);
+}
+
+
 void MainWindow::appendChatLine(LineKind kind, const QString& text, bool peerUnread)
 {
     auto* item = new QListWidgetItem();
@@ -244,6 +268,8 @@ void MainWindow::appendChatLine(LineKind kind, const QString& text, bool peerUnr
         item->setForeground(kInk);
         item->setBackground(kRow);
         item->setData(kRoleUnread, false);
+        item->setData(kRoleSelfBody, text);
+        item->setData(kRoleServerConfirmed, false);
         break;
     case LineKind::Peer:
         item->setText(QStringLiteral("Собеседник\n%1").arg(text));
@@ -294,6 +320,27 @@ void MainWindow::onPeerMessage(const QString& text)
 {
     const bool unread = !isActiveWindow();
     appendChatLine(LineKind::Peer, text, unread);
+}
+
+
+void MainWindow::onServerReceiptConfirmed()
+{
+    for (int i = 0; i < chatList_->count(); ++i) {
+        QListWidgetItem* item = chatList_->item(i);
+        if (!item)
+            continue;
+        if (item->data(kRoleKind).toInt() != static_cast<int>(LineKind::Self))
+            continue;
+        if (item->data(kRoleServerConfirmed).toBool())
+            continue;
+
+        const QString body = item->data(kRoleSelfBody).toString();
+        item->setText(QStringLiteral("Вы\n%1").arg(body));
+        item->setToolTip(QStringLiteral("Сервер получил сообщение"));
+        item->setIcon(serverOkIcon_);
+        item->setData(kRoleServerConfirmed, true);
+        return;
+    }
 }
 
 
