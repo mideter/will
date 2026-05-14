@@ -23,15 +23,12 @@ namespace {
 constexpr QColor kInk(26, 26, 26);
 constexpr QColor kMuted(120, 120, 120);
 constexpr QColor kRow(248, 248, 248);
-constexpr QColor kRowUnread(241, 248, 255);
-constexpr QColor kAccent(59, 130, 246);
 } // namespace
 
 
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent)
     , bridge_(this)
-    , unreadDotIcon_(makeUnreadDotIcon())
     , serverOkIcon_(makeServerReceiptIcon())
 {
     setWindowTitle(QStringLiteral("Will"));
@@ -120,18 +117,9 @@ bool MainWindow::eventFilter(QObject* watched, QEvent* event)
 }
 
 
-void MainWindow::changeEvent(QEvent* event)
-{
-    QMainWindow::changeEvent(event);
-    if (event->type() == QEvent::WindowActivate)
-        markPeerMessagesRead();
-}
-
-
 void MainWindow::onChatAreaClicked()
 {
     showComposer();
-    markPeerMessagesRead();
 }
 
 
@@ -142,23 +130,6 @@ void MainWindow::showComposer()
     composerWrap_->setVisible(true);
     if (bridge_.isConnected())
         editMessage_->setFocus(Qt::OtherFocusReason);
-}
-
-
-void MainWindow::markPeerMessagesRead()
-{
-    for (int i = 0; i < chatList_->count(); ++i) {
-        QListWidgetItem* item = chatList_->item(i);
-        if (!item)
-            continue;
-        if (item->data(kRoleKind).toInt() != static_cast<int>(LineKind::Peer))
-            continue;
-        if (!item->data(kRoleUnread).toBool())
-            continue;
-        item->setData(kRoleUnread, false);
-        item->setBackground(kRow);
-        item->setIcon(QIcon());
-    }
 }
 
 
@@ -217,19 +188,6 @@ void MainWindow::applyMinimalStyle()
 }
 
 
-QIcon MainWindow::makeUnreadDotIcon()
-{
-    QPixmap pm(12, 12);
-    pm.fill(Qt::transparent);
-    QPainter painter(&pm);
-    painter.setRenderHint(QPainter::Antialiasing);
-    painter.setBrush(kAccent);
-    painter.setPen(Qt::NoPen);
-    painter.drawEllipse(3, 3, 6, 6);
-    return QIcon(pm);
-}
-
-
 QIcon MainWindow::makeServerReceiptIcon()
 {
     QPixmap pm(12, 12);
@@ -250,7 +208,7 @@ QIcon MainWindow::makeServerReceiptIcon()
 }
 
 
-void MainWindow::appendChatLine(LineKind kind, const QString& text, bool peerUnread)
+void MainWindow::appendChatLine(LineKind kind, const QString& text)
 {
     auto* item = new QListWidgetItem();
     item->setData(kRoleKind, static_cast<int>(kind));
@@ -261,26 +219,18 @@ void MainWindow::appendChatLine(LineKind kind, const QString& text, bool peerUnr
         item->setText(text);
         item->setForeground(kMuted);
         item->setBackground(Qt::transparent);
-        item->setData(kRoleUnread, false);
         break;
     case LineKind::Self:
         item->setText(QStringLiteral("Вы\n%1").arg(text));
         item->setForeground(kInk);
         item->setBackground(kRow);
-        item->setData(kRoleUnread, false);
         item->setData(kRoleSelfBody, text);
         item->setData(kRoleServerConfirmed, false);
         break;
     case LineKind::Peer:
         item->setText(QStringLiteral("Собеседник\n%1").arg(text));
         item->setForeground(kInk);
-        item->setData(kRoleUnread, peerUnread);
-        if (peerUnread) {
-            item->setBackground(kRowUnread);
-            item->setIcon(unreadDotIcon_);
-        } else {
-            item->setBackground(kRow);
-        }
+        item->setBackground(kRow);
         break;
     }
 
@@ -318,8 +268,7 @@ void MainWindow::onSend()
 
 void MainWindow::onPeerMessage(const QString& text)
 {
-    const bool unread = !isActiveWindow();
-    appendChatLine(LineKind::Peer, text, unread);
+    appendChatLine(LineKind::Peer, text);
 }
 
 
