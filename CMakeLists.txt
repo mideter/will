@@ -14,6 +14,7 @@ add_library(common
   src/common/port.cpp
   src/common/serveraddress.cpp
   src/common/willprotocol.cpp
+  src/common/willmessage.cpp
 )
 target_include_directories(common PUBLIC src/common)
 
@@ -43,4 +44,9 @@ find_package(Qt5 QUIET COMPONENTS Widgets)
 if(Qt5Widgets_FOUND)
   add_subdirectory(src/gui)
 endif()
+
+enable_testing()
+add_executable(will-message-test tests/will_message_test.cpp)
+target_link_libraries(will-message-test PRIVATE common)
+add_test(NAME will-message COMMAND will-message-test)
 

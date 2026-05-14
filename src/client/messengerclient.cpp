@@ -6,8 +6,10 @@
 #include <cstdint>
 #include <stdexcept>
 #include <string>
+#include <vector>
 
 #include "socketerror.h"
+#include "willmessage.h"
 
 
 namespace will {
@@ -80,20 +82,20 @@ void MessengerClient::connect(ServerAddress server)
 }
 
 
-void MessengerClient::send(std::string_view message) const
+void MessengerClient::send(std::string_view utf8_chat_body) const
 {
-	if (message.size() > max_payload_bytes)
+	const std::vector<char> payload = WillMessage::encode_user_chat(utf8_chat_body);
+	if (payload.size() > max_payload_bytes)
 		throw std::runtime_error("message exceeds max_payload_bytes");
 
 	unsigned char header[4];
-	TcpFrame::append_u32_be(header, message.size());
+	TcpFrame::append_u32_be(header, payload.size());
 	send_all(socket_.get(), reinterpret_cast<char*>(header), sizeof(header));
-	if (!message.empty())
-		send_all(socket_.get(), message.data(), message.size());
+	send_all(socket_.get(), payload.data(), payload.size());
 }
 
 
-std::optional<std::string> MessengerClient::receiveMessage() const
+std::optional<InboundMessage> MessengerClient::receiveMessage() const
 {
 	const int fd = socket_.get();
 	unsigned char len_bytes[4];
@@ -104,11 +106,19 @@ std::optional<std::string> MessengerClient::receiveMessage() const
 	const std::size_t plen = static_cast<std::size_t>(len_u32);
 	if (plen > max_payload_bytes)
 		throw std::runtime_error("Will protocol: frame exceeds max_payload_bytes");
+	if (plen == 0)
+		throw std::runtime_error("Will protocol: empty typed payload is invalid");
 
-	std::string body(plen, '\0');
-	if (plen > 0)
-		recv_exact(fd, reinterpret_cast<unsigned char*>(body.data()), plen);
-	return body;
+	std::vector<char> payload(plen);
+	recv_exact(fd, reinterpret_cast<unsigned char*>(payload.data()), plen);
+
+	if (WillMessage::is_server_receipt_ack(payload))
+		return InboundMessage{std::in_place_type<ServerReceiptAck>};
+
+	if (WillMessage::is_user_chat(payload))
+		return InboundMessage{std::in_place_type<std::string>, std::string(payload.begin() + 1, payload.end())};
+
+	throw std::runtime_error("Will protocol: unknown message type");
 }
 
 

@@ -20,13 +20,13 @@ public:
     explicit MainWindow(QWidget* parent = nullptr);
 
 protected:
-    void changeEvent(QEvent* event) override;
     bool eventFilter(QObject* watched, QEvent* event) override;
 
 private slots:
     void onToggleConnect();
     void onSend();
     void onPeerMessage(const QString& text);
+    void onServerReceiptConfirmed();
     void onBridgeError(const QString& message);
     void onConnectionChanged(bool connected);
     void onChatAreaClicked();
@@ -35,14 +35,14 @@ private:
     enum class LineKind { System, Self, Peer };
 
     void setConnectedUi(bool connected);
-    void appendChatLine(LineKind kind, const QString& text, bool peerUnread = false);
+    void appendChatLine(LineKind kind, const QString& text);
     void showComposer();
-    void markPeerMessagesRead();
     void applyMinimalStyle();
-    static QIcon makeUnreadDotIcon();
+    static QIcon makeServerReceiptIcon();
 
     static constexpr int kRoleKind = 256; // Qt::UserRole
-    static constexpr int kRoleUnread = 257;
+    static constexpr int kRoleServerConfirmed = 257;
+    static constexpr int kRoleSelfBody = 258;
 
     WillChatBridge bridge_;
 
@@ -53,5 +53,5 @@ private:
     QLineEdit* editMessage_ = nullptr;
     QPushButton* btnSend_ = nullptr;
 
-    QIcon unreadDotIcon_;
+    QIcon serverOkIcon_;
 };

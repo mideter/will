@@ -5,6 +5,7 @@
 
 #include "client.h"
 #include "clienthub.h"
+#include "willmessage.h"
 
 
 namespace will {
@@ -35,10 +36,9 @@ void MessengerLoops::log_frame_no_other_peers(const Client& sender, const std::v
 
 	std::cout << "Frame from " << sender.address()
 			  << " (no other peers; logged only): header payload_len=" << static_cast<unsigned int>(plen)
-			  << ", body (" << plen << " byte" << (plen == 1 ? "" : "s") << "): ";
+			  << ", ";
 
-	std::cout.write(payload.data(), static_cast<std::streamsize>(payload.size()));
-	std::cout << std::endl;
+	std::cout << WillMessage::format_payload_for_log(payload) << std::endl;
 }
 
 
@@ -67,11 +67,9 @@ void MessengerLoops::log_frame_broadcast_summary(const Client& sender,
 	std::lock_guard io_lock(frame_log_mutex_);
 
 	std::cout << "Broadcast from " << sender.address() << " to " << recipient_count
-			  << " peer(s): header payload_len=" << static_cast<unsigned int>(plen) << ", body (" << plen
-			  << " byte" << (plen == 1 ? "" : "s") << "): ";
+			  << " peer(s): header payload_len=" << static_cast<unsigned int>(plen) << ", ";
 
-	std::cout.write(payload.data(), static_cast<std::streamsize>(payload.size()));
-	std::cout << std::endl;
+	std::cout << WillMessage::format_payload_for_log(payload) << std::endl;
 }
 
 
@@ -99,6 +97,20 @@ void MessengerLoops::run_client_session(ClientHub& hub, std::shared_ptr<Client> 
 			std::vector<char> payload;
 			if (!client->recv_frame(payload))
 				break;
+
+			if (!WillMessage::is_valid_client_to_server_payload(payload)) {
+				std::cerr << "Protocol error: invalid frame from " << client->address() << '\n';
+				break;
+			}
+
+			try {
+				const std::vector<char> ack = WillMessage::encode_server_receipt_ack();
+				client->send_frame(ack);
+			}
+			catch (const std::exception& e) {
+				std::cerr << "ACK send failed to " << client->address() << ": " << e.what() << '\n';
+				break;
+			}
 
 			broadcast_from_sender(hub, *client, payload);
 		}
