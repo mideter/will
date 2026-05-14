@@ -10,6 +10,7 @@
 #include <string>
 #include <string_view>
 #include <utility>
+#include <variant>
 
 
 MessengerWorker::MessengerWorker(QObject* parent)
@@ -129,11 +130,16 @@ void MessengerWorker::recvLoop(will::MessengerClient* c)
 {
     try {
         while (!stop_requested_.load()) {
-            const std::optional<std::string> incoming = c->receiveMessage();
+            const std::optional<will::InboundMessage> incoming = c->receiveMessage();
             if (!incoming.has_value())
                 break;
 
-            emit peerMessageReceived(QString::fromStdString(*incoming));
+            if (std::holds_alternative<will::ServerReceiptAck>(*incoming)) {
+                emit serverReceiptConfirmed();
+                continue;
+            }
+
+            emit peerMessageReceived(QString::fromStdString(std::get<std::string>(*incoming)));
         }
     } catch (const std::exception& e) {
         emit errorOccurred(QString::fromLocal8Bit(e.what()));

@@ -25,6 +25,7 @@ public slots:
 
 signals:
     void peerMessageReceived(const QString& text);
+    void serverReceiptConfirmed();
     void errorOccurred(const QString& message);
     void connectionChanged(bool connected);
 

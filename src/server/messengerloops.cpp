@@ -5,6 +5,7 @@
 
 #include "client.h"
 #include "clienthub.h"
+#include "willmessage.h"
 
 
 namespace will {
@@ -99,6 +100,20 @@ void MessengerLoops::run_client_session(ClientHub& hub, std::shared_ptr<Client> 
 			std::vector<char> payload;
 			if (!client->recv_frame(payload))
 				break;
+
+			if (!WillMessage::is_valid_client_to_server_payload(payload)) {
+				std::cerr << "Protocol error: invalid frame from " << client->address() << '\n';
+				break;
+			}
+
+			try {
+				const std::vector<char> ack = WillMessage::encode_server_receipt_ack();
+				client->send_frame(ack);
+			}
+			catch (const std::exception& e) {
+				std::cerr << "ACK send failed to " << client->address() << ": " << e.what() << '\n';
+				break;
+			}
 
 			broadcast_from_sender(hub, *client, payload);
 		}

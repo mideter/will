@@ -5,6 +5,7 @@
 #include <optional>
 #include <string>
 #include <thread>
+#include <variant>
 
 
 namespace will {
@@ -46,14 +47,19 @@ void ChatSession::receiveLoop() const
 {
 	try {
 		while (true) {
-			const std::optional<std::string> incoming = client_.receiveMessage();
+			const std::optional<InboundMessage> incoming = client_.receiveMessage();
 
 			if (!incoming.has_value()) {
 				std::cout << std::endl << "Disconnected from chat." << std::endl;
 				break;
 			}
 
-			std::cout << *incoming << std::endl;
+			if (std::holds_alternative<ServerReceiptAck>(*incoming)) {
+				std::cerr << "[server] ваше сообщение принято\n";
+				continue;
+			}
+
+			std::cout << std::get<std::string>(*incoming) << std::endl;
 			std::cout.flush();
 		}
 	}

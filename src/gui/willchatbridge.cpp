@@ -38,6 +38,7 @@ WillChatBridge::WillChatBridge(QObject* parent)
     , worker_runtime_(std::make_unique<WorkerRuntime>())
 {
     QObject::connect(worker_runtime_->worker, &MessengerWorker::peerMessageReceived, this, &WillChatBridge::peerMessageReceived);
+    QObject::connect(worker_runtime_->worker, &MessengerWorker::serverReceiptConfirmed, this, &WillChatBridge::serverReceiptConfirmed);
     QObject::connect(worker_runtime_->worker, &MessengerWorker::errorOccurred, this, &WillChatBridge::errorOccurred);
     QObject::connect(worker_runtime_->worker, &MessengerWorker::connectionChanged, this, [this](bool connected) {
         connected_.store(connected);
