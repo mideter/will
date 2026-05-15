@@ -27,7 +27,7 @@ void MessengerServer::run()
     while (true) {
         try {
             std::optional<ClientConnection> accepted = acceptor_.accept_next();
-			         
+
             // No connection: accept loop ended on graceful shutdown (e.g. SIGINT/SIGTERM).
             if (!accepted.has_value())
                 break;

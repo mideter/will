@@ -13,6 +13,11 @@ class ClientConnection {
 public:
     ClientConnection(SocketHandle socket, ClientAddress address);
 
+    ClientConnection(const ClientConnection&) = delete;
+    ClientConnection& operator=(const ClientConnection&) = delete;
+    ClientConnection(ClientConnection&&) noexcept = default;
+    ClientConnection& operator=(ClientConnection&&) noexcept = default;
+
     int socket_fd() const noexcept;
 
     const ClientAddress& address() const noexcept;
