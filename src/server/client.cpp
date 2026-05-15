@@ -83,6 +83,7 @@ void Client::send_frame(const char* payload, std::size_t payload_len) const
     unsigned char header_buf[4];
     TcpFrame::append_u32_be(header_buf, payload_len);
     connection_.send_all(reinterpret_cast<const char*>(header_buf), sizeof(header_buf));
+    
     if (payload_len != 0)
         connection_.send_all(payload, payload_len);
 }

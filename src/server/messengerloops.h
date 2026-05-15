@@ -26,6 +26,8 @@ private:
 
     static void log_frame_no_other_peers(const Client& sender, const std::vector<char>& payload);
     
+    static void send_receipt_ack_to_sender(Client& sender);
+
     static void send_payload_to_recipients(ClientHub& hub,
                                            const std::vector<std::shared_ptr<Client>>& recipients,
                                            const std::vector<char>& payload);

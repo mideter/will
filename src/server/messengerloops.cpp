@@ -1,7 +1,8 @@
 #include "messengerloops.h"
 
-#include <exception>
+#include <format>
 #include <iostream>
+#include <stdexcept>
 
 #include "client.h"
 #include "clienthub.h"
@@ -39,6 +40,17 @@ void MessengerLoops::log_frame_no_other_peers(const Client& sender, const std::v
               << ", ";
 
     std::cout << WillMessage::format_payload_for_log(payload) << std::endl;
+}
+
+
+void MessengerLoops::send_receipt_ack_to_sender(Client& sender)
+try {
+    const std::vector<char> ack = WillMessage::encode_server_receipt_ack();
+    sender.send_frame(ack);
+}
+catch (const std::exception& e) {
+    throw std::runtime_error(
+        std::format("ACK send failed to {}: {}", sender.address(), e.what()));
 }
 
 
@@ -103,15 +115,7 @@ void MessengerLoops::run_client_session(ClientHub& hub, std::shared_ptr<Client> 
                 break;
             }
 
-            try {
-                const std::vector<char> ack = WillMessage::encode_server_receipt_ack();
-                client->send_frame(ack);
-            }
-            catch (const std::exception& e) {
-                std::cerr << "ACK send failed to " << client->address() << ": " << e.what() << '\n';
-                break;
-            }
-
+            send_receipt_ack_to_sender(*client);
             broadcast_from_sender(hub, *client, payload);
         }
     }

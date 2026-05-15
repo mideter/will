@@ -1,7 +1,9 @@
 #pragma once
 
-#include <netinet/in.h>
+#include <format>
 #include <iosfwd>
+#include <netinet/in.h>
+#include <sstream>
 
 #include "ipv4.h"
 #include "port.h"
@@ -35,3 +37,19 @@ std::ostream& operator<<(std::ostream& os, const ClientAddress& address);
 
 
 } // namespace will
+
+
+template <>
+struct std::formatter<will::ClientAddress> {
+    constexpr auto parse(std::format_parse_context& ctx)
+    {
+        return ctx.begin();
+    }
+
+    auto format(const will::ClientAddress& address, std::format_context& ctx) const
+    {
+        std::ostringstream os;
+        os << address;
+        return std::format_to(ctx.out(), "{}", os.str());
+    }
+};
