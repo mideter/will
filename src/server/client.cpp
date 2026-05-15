@@ -59,6 +59,7 @@ bool Client::recv_exact_relaxed_eof_before_first_byte(const ClientConnection& fr
 bool Client::recv_frame(std::vector<char>& payload_out) const
 {
     char header_buf[4];
+    
     if (!recv_exact_relaxed_eof_before_first_byte(connection_, header_buf, sizeof(header_buf)))
         return false;
 
@@ -70,10 +71,12 @@ bool Client::recv_frame(std::vector<char>& payload_out) const
         throw std::runtime_error{"Will frame: frame exceeds TcpFrame::MaxPayloadBytes"};
 
     payload_out.assign(plen, '\0');
+
     if (!payload_out.empty()) {
         if (!recv_exact_relaxed_eof_before_first_byte(connection_, payload_out.data(), payload_out.size()))
             throw std::runtime_error{"Will frame: connection closed mid-frame"};
     }
+
     return true;
 }
 
@@ -83,7 +86,7 @@ void Client::send_frame(const char* payload, std::size_t payload_len) const
     unsigned char header_buf[4];
     TcpFrame::append_u32_be(header_buf, payload_len);
     connection_.send_all(reinterpret_cast<const char*>(header_buf), sizeof(header_buf));
-    
+
     if (payload_len != 0)
         connection_.send_all(payload, payload_len);
 }

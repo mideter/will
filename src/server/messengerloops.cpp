@@ -43,6 +43,20 @@ void MessengerLoops::log_frame_no_other_peers(const Client& sender, const std::v
 }
 
 
+bool MessengerLoops::recv_client_message(Client& client, std::vector<char>& payload_out)
+{
+    if (!client.recv_frame(payload_out))
+        return false;
+
+    if (!WillMessage::is_valid_client_to_server_payload(payload_out)) {
+        throw std::runtime_error(
+            std::format("Protocol error: invalid frame from {}", client.address()));
+    }
+
+    return true;
+}
+
+
 void MessengerLoops::send_receipt_ack_to_sender(Client& sender)
 try {
     const std::vector<char> ack = WillMessage::encode_server_receipt_ack();
@@ -107,13 +121,8 @@ void MessengerLoops::run_client_session(ClientHub& hub, std::shared_ptr<Client> 
     try {
         while (true) {
             std::vector<char> payload;
-            if (!client->recv_frame(payload))
+            if (!recv_client_message(*client, payload))
                 break;
-
-            if (!WillMessage::is_valid_client_to_server_payload(payload)) {
-                std::cerr << "Protocol error: invalid frame from " << client->address() << '\n';
-                break;
-            }
 
             send_receipt_ack_to_sender(*client);
             broadcast_from_sender(hub, *client, payload);

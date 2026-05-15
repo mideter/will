@@ -25,7 +25,10 @@ private:
                                                    std::vector<std::shared_ptr<Client>>& recipients_out);
 
     static void log_frame_no_other_peers(const Client& sender, const std::vector<char>& payload);
-    
+
+    /** @return false if peer disconnected before the next frame. */
+    static bool recv_client_message(Client& client, std::vector<char>& payload_out);
+
     static void send_receipt_ack_to_sender(Client& sender);
 
     static void send_payload_to_recipients(ClientHub& hub,
