@@ -12,17 +12,17 @@ namespace will {
 
 class ConnectionAcceptor {
 public:
-	ConnectionAcceptor();
+    ConnectionAcceptor();
 
-	std::optional<ClientConnection> accept_next();
+    std::optional<ClientConnection> accept_next();
 
 private:
-	ClientConnection accept_incoming_connection();
+    ClientConnection accept_incoming_connection();
 
-	SocketHandle listen_socket_;
-	ListenSocketStopSignals stop_signals_;
+    SocketHandle listen_socket_;
+    ListenSocketStopSignals stop_signals_;
 
-	static constexpr int Backlog = 5;
+    static constexpr int Backlog = 5;
 };
 
 

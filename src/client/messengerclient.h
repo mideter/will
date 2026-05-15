@@ -23,20 +23,20 @@ using InboundMessage = std::variant<ServerReceiptAck, std::string>;
 // TCP: TcpFrame; payload is typed Will message (see willmessage.h).
 class MessengerClient {
 public:
-	MessengerClient();
+    MessengerClient();
 
-	void connect(ServerAddress server);
+    void connect(ServerAddress server);
 
-	/** Sends {@code UserChat} with UTF-8 body. */
-	void send(std::string_view utf8_chat_body) const;
+    /** Sends {@code UserChat} with UTF-8 body. */
+    void send(std::string_view utf8_chat_body) const;
 
-	/** std::nullopt = peer closed before next frame header; otherwise typed inbound message. */
-	std::optional<InboundMessage> receiveMessage() const;
+    /** std::nullopt = peer closed before next frame header; otherwise typed inbound message. */
+    std::optional<InboundMessage> receiveMessage() const;
 
-	void shutdown() const;
+    void shutdown() const;
 
 private:
-	SocketHandle socket_;
+    SocketHandle socket_;
 };
 
 

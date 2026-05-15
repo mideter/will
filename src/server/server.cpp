@@ -5,16 +5,16 @@
 
 int main()
 try {
-	constexpr const char* version = "3.0.1";
-	std::cout << "Starting Will Messenger Server v" << version << '\n';
+    constexpr const char* version = "3.0.1";
+    std::cout << "Starting Will Messenger Server v" << version << '\n';
 
-	will::MessengerServer server;
+    will::MessengerServer server;
 
-	server.run();
+    server.run();
 
-	return 0;
+    return 0;
 }
 catch (const std::exception& e) {
-	std::cerr << "Server error: " << e.what() << '\n';
-	return 1;
+    std::cerr << "Server error: " << e.what() << '\n';
+    return 1;
 }

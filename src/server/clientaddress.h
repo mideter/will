@@ -12,22 +12,22 @@ namespace will {
 
 class ClientAddress {
 public:
-	ClientAddress(const ClientAddress&) = default;
-	ClientAddress& operator=(const ClientAddress&) = default;
-	ClientAddress(ClientAddress&&) = default;
-	ClientAddress& operator=(ClientAddress&&) = default;
+    ClientAddress(const ClientAddress&) = default;
+    ClientAddress& operator=(const ClientAddress&) = default;
+    ClientAddress(ClientAddress&&) = default;
+    ClientAddress& operator=(ClientAddress&&) = default;
 
 private:
-	friend class ClientConnection;
-	friend class ConnectionAcceptor;
-	friend std::ostream& operator<<(std::ostream& os, const ClientAddress& address);
+    friend class ClientConnection;
+    friend class ConnectionAcceptor;
+    friend std::ostream& operator<<(std::ostream& os, const ClientAddress& address);
 
-	explicit ClientAddress(sockaddr_in addr);
+    explicit ClientAddress(sockaddr_in addr);
 
-	IPv4 ip_;
-	Port port_;
+    IPv4 ip_;
+    Port port_;
 
-	sockaddr_in address_{};
+    sockaddr_in address_{};
 };
 
 

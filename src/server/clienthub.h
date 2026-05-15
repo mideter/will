@@ -21,32 +21,32 @@ class Client;
  */
 class ClientHub {
 public:
-	ClientHub() = default;
-	~ClientHub() = default;
+    ClientHub() = default;
+    ~ClientHub() = default;
 
-	ClientHub(const ClientHub&) = delete;
-	ClientHub& operator=(const ClientHub&) = delete;
-	ClientHub(ClientHub&&) = delete;
-	ClientHub& operator=(ClientHub&&) = delete;
+    ClientHub(const ClientHub&) = delete;
+    ClientHub& operator=(const ClientHub&) = delete;
+    ClientHub(ClientHub&&) = delete;
+    ClientHub& operator=(ClientHub&&) = delete;
 
-	/** Registers a live client; no-op if {@code client} is null. */
-	void add(std::shared_ptr<Client> client);
+    /** Registers a live client; no-op if {@code client} is null. */
+    void add(std::shared_ptr<Client> client);
 
-	/** Drops the client from the hub, then {@link Client::shutdown} (closes transport and clears signal slot if any). */
-	void remove(const Client* identity);
+    /** Drops the client from the hub, then {@link Client::shutdown} (closes transport and clears signal slot if any). */
+    void remove(const Client* identity);
 
-	/** Consistent point-in-time copy of current members (each non-null). */
-	std::vector<std::shared_ptr<Client>> snapshot() const;
+    /** Consistent point-in-time copy of current members (each non-null). */
+    std::vector<std::shared_ptr<Client>> snapshot() const;
 
-	/** Clears all registrations under the mutex. */
-	void reset();
+    /** Clears all registrations under the mutex. */
+    void reset();
 
-	/** Number of registered clients (O(1) size query under lock). */
-	std::size_t count() const noexcept;
+    /** Number of registered clients (O(1) size query under lock). */
+    std::size_t count() const noexcept;
 
 private:
-	mutable std::mutex mutex_;
-	std::vector<std::shared_ptr<Client>> clients_;
+    mutable std::mutex mutex_;
+    std::vector<std::shared_ptr<Client>> clients_;
 };
 
 

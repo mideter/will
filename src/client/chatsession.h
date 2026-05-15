@@ -8,15 +8,15 @@ namespace will {
 
 class ChatSession {
 public:
-	explicit ChatSession(MessengerClient& client);
+    explicit ChatSession(MessengerClient& client);
 
-	void run();
+    void run();
 
 private:
-	void receiveLoop() const;
+    void receiveLoop() const;
 
-	MessengerClient& client_;
-	std::string username_;
+    MessengerClient& client_;
+    std::string username_;
 };
 
 

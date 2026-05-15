@@ -16,19 +16,19 @@ class ConnectionAcceptor;
 
 class ServerAddress {
 public:
-	ServerAddress(IPv4 ipv4, Port port);
-	
-	static ServerAddress any(Port port);
+    ServerAddress(IPv4 ipv4, Port port);
+    
+    static ServerAddress any(Port port);
 
 private:
-	friend class MessengerServer;
-	friend class MessengerClient;
-	friend class ConnectionAcceptor;
+    friend class MessengerServer;
+    friend class MessengerClient;
+    friend class ConnectionAcceptor;
 
-	IPv4 ip_;
-	Port port_;
+    IPv4 ip_;
+    Port port_;
 
-	sockaddr_in address_{};
+    sockaddr_in address_{};
 };
 
 

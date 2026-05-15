@@ -7,17 +7,17 @@
 
 int main()
 try {
-	const will::ServerAddress server_address = will::defaultWillServerAddress();
-	
-	will::MessengerClient client;
-	client.connect(server_address);
+    const will::ServerAddress server_address = will::defaultWillServerAddress();
+    
+    will::MessengerClient client;
+    client.connect(server_address);
 
-	will::ChatSession chat_session(client);
-	chat_session.run();
+    will::ChatSession chat_session(client);
+    chat_session.run();
 
-	return 0;
+    return 0;
 } 
 catch (const std::exception& e) {
-	std::cerr << e.what() << '\n';
-	return 1;
+    std::cerr << e.what() << '\n';
+    return 1;
 }

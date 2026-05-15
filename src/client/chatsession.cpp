@@ -12,60 +12,60 @@ namespace will {
 
 
 ChatSession::ChatSession(MessengerClient& client)
-	: client_(client)
+    : client_(client)
 {}
 
 
 void ChatSession::run()
 {
-	std::cout << "Your name (shown in chat): ";
-	if (!std::getline(std::cin, username_)) {
-		client_.shutdown();
-		return;
-	}
-	if (username_.empty())
-		username_ = "Guest";
+    std::cout << "Your name (shown in chat): ";
+    if (!std::getline(std::cin, username_)) {
+        client_.shutdown();
+        return;
+    }
+    if (username_.empty())
+        username_ = "Guest";
 
-	std::cout << "Connected to Will chat. Type messages and press Enter.\n";
-	std::cout << "Press Ctrl+D to exit.\n";
+    std::cout << "Connected to Will chat. Type messages and press Enter.\n";
+    std::cout << "Press Ctrl+D to exit.\n";
 
-	std::atomic<bool> receive_finished{false};
-	std::jthread receiver([this, &receive_finished]() {
-		receiveLoop();
-		receive_finished.store(true);
-	});
+    std::atomic<bool> receive_finished{false};
+    std::jthread receiver([this, &receive_finished]() {
+        receiveLoop();
+        receive_finished.store(true);
+    });
 
-	std::string line;
-	while (!receive_finished.load() && std::getline(std::cin, line))
-		client_.send(username_ + ": " + line);
+    std::string line;
+    while (!receive_finished.load() && std::getline(std::cin, line))
+        client_.send(username_ + ": " + line);
 
-	client_.shutdown();
+    client_.shutdown();
 }
 
 
 void ChatSession::receiveLoop() const
 {
-	try {
-		while (true) {
-			const std::optional<InboundMessage> incoming = client_.receiveMessage();
+    try {
+        while (true) {
+            const std::optional<InboundMessage> incoming = client_.receiveMessage();
 
-			if (!incoming.has_value()) {
-				std::cout << std::endl << "Disconnected from chat." << std::endl;
-				break;
-			}
+            if (!incoming.has_value()) {
+                std::cout << std::endl << "Disconnected from chat." << std::endl;
+                break;
+            }
 
-			if (std::holds_alternative<ServerReceiptAck>(*incoming)) {
-				std::cerr << "[server] ваше сообщение принято\n";
-				continue;
-			}
+            if (std::holds_alternative<ServerReceiptAck>(*incoming)) {
+                std::cerr << "[server] ваше сообщение принято\n";
+                continue;
+            }
 
-			std::cout << std::get<std::string>(*incoming) << std::endl;
-			std::cout.flush();
-		}
-	}
-	catch (const std::exception& e) {
-		std::cerr << std::endl << "Receive error: " << e.what() << std::endl;
-	}
+            std::cout << std::get<std::string>(*incoming) << std::endl;
+            std::cout.flush();
+        }
+    }
+    catch (const std::exception& e) {
+        std::cerr << std::endl << "Receive error: " << e.what() << std::endl;
+    }
 }
 
 

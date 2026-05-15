@@ -12,19 +12,19 @@ namespace will {
 
 class MessengerServer {
 public:
-	MessengerServer();
-	~MessengerServer();
+    MessengerServer();
+    ~MessengerServer();
 
-	void run();
+    void run();
 
 private:
-	struct Peers {
-		ClientHub clients;
-		std::vector<std::jthread> threads;
-	};
+    struct Peers {
+        ClientHub clients;
+        std::vector<std::jthread> threads;
+    };
 
-	ConnectionAcceptor acceptor_;
-	Peers peers_;
+    ConnectionAcceptor acceptor_;
+    Peers peers_;
 };
 
 
