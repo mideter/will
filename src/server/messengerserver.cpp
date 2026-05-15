@@ -37,7 +37,7 @@ void MessengerServer::run()
                                         std::make_shared<Client>(std::move(*accepted)));
         }
         catch (const std::exception& e) {
-            std::cerr << "Session error: " << e.what() << '\n';
+            std::cerr << "Session error: " << e.what() << std::endl;
         }
     }
 }
