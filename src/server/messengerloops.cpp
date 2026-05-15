@@ -2,6 +2,7 @@
 
 #include <format>
 #include <iostream>
+#include <optional>
 #include <stdexcept>
 
 #include "client.h"
@@ -43,17 +44,19 @@ void MessengerLoops::log_frame_no_other_peers(const Client& sender, const std::v
 }
 
 
-bool MessengerLoops::recv_client_message(Client& client, std::vector<char>& payload_out)
+std::optional<std::vector<char>> MessengerLoops::recv_client_message(Client& client)
 {
-    if (!client.recv_frame(payload_out))
-        return false;
+    std::vector<char> payload;
 
-    if (!WillMessage::is_valid_client_to_server_payload(payload_out)) {
+    if (!client.recv_frame(payload))
+        return std::nullopt;
+
+    if (!WillMessage::is_valid_client_to_server_payload(payload)) {
         throw std::runtime_error(
             std::format("Protocol error: invalid frame from {}", client.address()));
     }
 
-    return true;
+    return std::move(payload);
 }
 
 
@@ -120,12 +123,14 @@ void MessengerLoops::run_client_session(ClientHub& hub, std::shared_ptr<Client> 
 
     try {
         while (true) {
-            std::vector<char> payload;
-            if (!recv_client_message(*client, payload))
+            std::optional<std::vector<char>> payload = recv_client_message(*client);
+
+            // No frame: peer disconnected before the next message.
+            if (!payload.has_value())
                 break;
 
             send_receipt_ack_to_sender(*client);
-            broadcast_from_sender(hub, *client, payload);
+            broadcast_from_sender(hub, *client, *payload);
         }
     }
     catch (const std::exception& e) {

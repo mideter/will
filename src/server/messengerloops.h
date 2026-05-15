@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <vector>
 
 #include "client.h"
@@ -26,8 +27,8 @@ private:
 
     static void log_frame_no_other_peers(const Client& sender, const std::vector<char>& payload);
 
-    /** @return false if peer disconnected before the next frame. */
-    static bool recv_client_message(Client& client, std::vector<char>& payload_out);
+    /** @return nullopt if the peer disconnected; otherwise the frame payload. */
+    static std::optional<std::vector<char>> recv_client_message(Client& client);
 
     static void send_receipt_ack_to_sender(Client& sender);
 
