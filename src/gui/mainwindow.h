@@ -40,9 +40,9 @@ private:
     void applyMinimalStyle();
     static QIcon makeServerReceiptIcon();
 
-    static constexpr int kRoleKind = 256; // Qt::UserRole
-    static constexpr int kRoleServerConfirmed = 257;
-    static constexpr int kRoleSelfBody = 258;
+    static constexpr int RoleKind = 256; // Qt::UserRole
+    static constexpr int RoleServerConfirmed = 257;
+    static constexpr int RoleSelfBody = 258;
 
     WillChatBridge bridge_;
 

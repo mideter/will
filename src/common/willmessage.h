@@ -15,13 +15,13 @@ namespace will {
 /** Typed payload inside {@link TcpFrame}: first byte {@code MessageType}, then type-specific body. */
 class WillMessage {
 public:
-	static constexpr std::uint8_t kUserChat = 1;
-	static constexpr std::uint8_t kServerReceiptAck = 2;
+	static constexpr std::uint8_t UserChat = 1;
+	static constexpr std::uint8_t ServerReceiptAck = 2;
 
 	static std::vector<char> encode_user_chat(std::string_view utf8_body);
 	static std::vector<char> encode_server_receipt_ack();
 
-	/** Non-empty and type {@code kUserChat} (client may only send this). */
+	/** Non-empty and type {@code UserChat} (client may only send this). */
 	static bool is_valid_client_to_server_payload(const std::vector<char>& payload) noexcept;
 
 	static bool is_user_chat(const std::vector<char>& payload) noexcept;

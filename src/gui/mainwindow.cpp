@@ -20,10 +20,10 @@
 
 namespace {
 
-constexpr QColor kInk(26, 26, 26);
-constexpr QColor kMuted(120, 120, 120);
-constexpr QColor kSelfBubble(232, 242, 255);
-constexpr QColor kPeerBubble(245, 245, 245);
+constexpr QColor Ink(26, 26, 26);
+constexpr QColor Muted(120, 120, 120);
+constexpr QColor SelfBubble(232, 242, 255);
+constexpr QColor PeerBubble(245, 245, 245);
 } // namespace
 
 
@@ -212,28 +212,28 @@ QIcon MainWindow::makeServerReceiptIcon()
 void MainWindow::appendChatLine(LineKind kind, const QString& text)
 {
     auto* item = new QListWidgetItem();
-    item->setData(kRoleKind, static_cast<int>(kind));
+    item->setData(RoleKind, static_cast<int>(kind));
     item->setFlags(item->flags() & ~Qt::ItemIsSelectable);
 
     switch (kind) {
     case LineKind::System:
         item->setText(text);
-        item->setForeground(kMuted);
+        item->setForeground(Muted);
         item->setBackground(Qt::transparent);
         item->setTextAlignment(Qt::AlignLeft | Qt::AlignTop);
         break;
     case LineKind::Self:
         item->setText(text);
-        item->setForeground(kInk);
-        item->setBackground(kSelfBubble);
+        item->setForeground(Ink);
+        item->setBackground(SelfBubble);
         item->setTextAlignment(Qt::AlignRight | Qt::AlignTop);
-        item->setData(kRoleSelfBody, text);
-        item->setData(kRoleServerConfirmed, false);
+        item->setData(RoleSelfBody, text);
+        item->setData(RoleServerConfirmed, false);
         break;
     case LineKind::Peer:
         item->setText(text);
-        item->setForeground(kInk);
-        item->setBackground(kPeerBubble);
+        item->setForeground(Ink);
+        item->setBackground(PeerBubble);
         item->setTextAlignment(Qt::AlignLeft | Qt::AlignTop);
         break;
     }
@@ -282,14 +282,14 @@ void MainWindow::onServerReceiptConfirmed()
         QListWidgetItem* item = chatList_->item(i);
         if (!item)
             continue;
-        if (item->data(kRoleKind).toInt() != static_cast<int>(LineKind::Self))
+        if (item->data(RoleKind).toInt() != static_cast<int>(LineKind::Self))
             continue;
-        if (item->data(kRoleServerConfirmed).toBool())
+        if (item->data(RoleServerConfirmed).toBool())
             continue;
 
         item->setToolTip(QStringLiteral("Сервер получил сообщение"));
         item->setIcon(serverOkIcon_);
-        item->setData(kRoleServerConfirmed, true);
+        item->setData(RoleServerConfirmed, true);
         return;
     }
 }

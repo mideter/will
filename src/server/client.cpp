@@ -65,8 +65,9 @@ bool Client::recv_frame(std::vector<char>& payload_out) const
 	const unsigned char* const header_u = reinterpret_cast<const unsigned char*>(header_buf);
 	const std::uint32_t len_u32 = TcpFrame::read_u32_be(header_u);
 	const auto plen = static_cast<std::size_t>(len_u32);
-	if (plen > TcpFrame::max_payload_bytes)
-		throw std::runtime_error{"Will frame: frame exceeds TcpFrame::max_payload_bytes"};
+	
+	if (plen > TcpFrame::MaxPayloadBytes)
+		throw std::runtime_error{"Will frame: frame exceeds TcpFrame::MaxPayloadBytes"};
 
 	payload_out.assign(plen, '\0');
 	if (!payload_out.empty()) {

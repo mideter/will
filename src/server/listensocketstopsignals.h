@@ -23,7 +23,7 @@ public:
 
 	bool shutdown_requested() const noexcept;
 
-	static constexpr int max_registered_chat_peer_fds = 64;
+	static constexpr int MaxRegisteredChatPeerFds = 64;
 
 	/**
 	 * Register a chat client socket fd for graceful shutdown(SIGINT/SIGTERM).
@@ -41,7 +41,7 @@ private:
 
 	static volatile sig_atomic_t shutting_down_;
 	static volatile int listen_fd_;
-	static std::atomic<int> chat_peer_fd_slots_[max_registered_chat_peer_fds];
+	static std::atomic<int> chat_peer_fd_slots_[MaxRegisteredChatPeerFds];
 
 	struct sigaction old_term_ {};
 	struct sigaction old_int_ {};

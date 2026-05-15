@@ -13,14 +13,14 @@ int main()
 	{
 		const auto v = WillMessage::encode_user_chat("hi");
 		assert(v.size() == 3);
-		assert(static_cast<unsigned char>(v[0]) == WillMessage::kUserChat);
+		assert(static_cast<unsigned char>(v[0]) == WillMessage::UserChat);
 		assert(v[1] == 'h' && v[2] == 'i');
 	}
 
 	{
 		const auto v = WillMessage::encode_user_chat("");
 		assert(v.size() == 1);
-		assert(static_cast<unsigned char>(v[0]) == WillMessage::kUserChat);
+		assert(static_cast<unsigned char>(v[0]) == WillMessage::UserChat);
 	}
 
 	{

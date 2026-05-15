@@ -14,18 +14,18 @@
 namespace will {
 
 
-/** Server → client: single-byte {@link WillMessage::kServerReceiptAck} frame. */
+/** Server → client: single-byte {@link WillMessage::ServerReceiptAck} frame. */
 struct ServerReceiptAck {};
 
 
-/** Peer chat text (UTF-8) after stripping {@link WillMessage::kUserChat} prefix. */
+/** Peer chat text (UTF-8) after stripping {@link WillMessage::UserChat} prefix. */
 using InboundMessage = std::variant<ServerReceiptAck, std::string>;
 
 
 // TCP: TcpFrame; payload is typed Will message (see willmessage.h).
 class MessengerClient {
 public:
-	static constexpr std::size_t max_payload_bytes = TcpFrame::max_payload_bytes;
+	static constexpr std::size_t MaxPayloadBytes = TcpFrame::MaxPayloadBytes;
 
 	MessengerClient();
 

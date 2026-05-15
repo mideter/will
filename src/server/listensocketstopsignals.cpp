@@ -12,7 +12,7 @@ namespace will {
 
 volatile sig_atomic_t ListenSocketStopSignals::shutting_down_ = 0;
 volatile int ListenSocketStopSignals::listen_fd_ = -1;
-std::atomic<int> ListenSocketStopSignals::chat_peer_fd_slots_[ListenSocketStopSignals::max_registered_chat_peer_fds];
+std::atomic<int> ListenSocketStopSignals::chat_peer_fd_slots_[ListenSocketStopSignals::MaxRegisteredChatPeerFds];
 
 
 void ListenSocketStopSignals::invoke_stop_signal() noexcept
@@ -22,7 +22,7 @@ void ListenSocketStopSignals::invoke_stop_signal() noexcept
 	if (listen_fd >= 0)
 		::shutdown(listen_fd, SHUT_RDWR);
 
-	for (int i = 0; i < max_registered_chat_peer_fds; ++i) {
+	for (int i = 0; i < MaxRegisteredChatPeerFds; ++i) {
 		const int fd = chat_peer_fd_slots_[i].load();
 		if (fd >= 0)
 			::shutdown(fd, SHUT_RDWR);
@@ -40,7 +40,7 @@ ListenSocketStopSignals::ListenSocketStopSignals(int listen_fd)
 {
 	static std::once_flag slots_initialized;
 	std::call_once(slots_initialized, []() noexcept {
-		for (int i = 0; i < max_registered_chat_peer_fds; ++i)
+		for (int i = 0; i < MaxRegisteredChatPeerFds; ++i)
 			chat_peer_fd_slots_[i].store(-1);
 	});
 
@@ -66,7 +66,7 @@ ListenSocketStopSignals::ListenSocketStopSignals(int listen_fd)
 
 ListenSocketStopSignals::~ListenSocketStopSignals()
 {
-	for (int i = 0; i < max_registered_chat_peer_fds; ++i)
+	for (int i = 0; i < MaxRegisteredChatPeerFds; ++i)
 		chat_peer_fd_slots_[i].store(-1);
 
 	sigaction(SIGTERM, &old_term_, nullptr);
@@ -87,7 +87,7 @@ int ListenSocketStopSignals::register_chat_peer_fd(int fd) noexcept
 	if (fd < 0)
 		return -1;
 
-	for (int i = 0; i < max_registered_chat_peer_fds; ++i) {
+	for (int i = 0; i < MaxRegisteredChatPeerFds; ++i) {
 		int expected = -1;
 		if (chat_peer_fd_slots_[i].compare_exchange_strong(expected, fd))
 			return i;
@@ -99,7 +99,7 @@ int ListenSocketStopSignals::register_chat_peer_fd(int fd) noexcept
 
 void ListenSocketStopSignals::unregister_chat_peer_fd(int slot) noexcept
 {
-	if (slot >= 0 && slot < max_registered_chat_peer_fds)
+	if (slot >= 0 && slot < MaxRegisteredChatPeerFds)
 		chat_peer_fd_slots_[slot].store(-1);
 }
 

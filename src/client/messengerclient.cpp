@@ -85,8 +85,8 @@ void MessengerClient::connect(ServerAddress server)
 void MessengerClient::send(std::string_view utf8_chat_body) const
 {
 	const std::vector<char> payload = WillMessage::encode_user_chat(utf8_chat_body);
-	if (payload.size() > max_payload_bytes)
-		throw std::runtime_error("message exceeds max_payload_bytes");
+	if (payload.size() > MaxPayloadBytes)
+		throw std::runtime_error("message exceeds MaxPayloadBytes");
 
 	unsigned char header[4];
 	TcpFrame::append_u32_be(header, payload.size());
@@ -104,8 +104,9 @@ std::optional<InboundMessage> MessengerClient::receiveMessage() const
 
 	const std::uint32_t len_u32 = TcpFrame::read_u32_be(len_bytes);
 	const std::size_t plen = static_cast<std::size_t>(len_u32);
-	if (plen > max_payload_bytes)
-		throw std::runtime_error("Will protocol: frame exceeds max_payload_bytes");
+	
+	if (plen > MaxPayloadBytes)
+		throw std::runtime_error("Will protocol: frame exceeds MaxPayloadBytes");
 	if (plen == 0)
 		throw std::runtime_error("Will protocol: empty typed payload is invalid");
 
