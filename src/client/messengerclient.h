@@ -1,6 +1,5 @@
 #pragma once
 
-#include <cstddef>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -8,7 +7,6 @@
 
 #include "serveraddress.h"
 #include "sockethandle.h"
-#include "willprotocol.h"
 
 
 namespace will {
@@ -25,8 +23,6 @@ using InboundMessage = std::variant<ServerReceiptAck, std::string>;
 // TCP: TcpFrame; payload is typed Will message (see willmessage.h).
 class MessengerClient {
 public:
-	static constexpr std::size_t MaxPayloadBytes = TcpFrame::MaxPayloadBytes;
-
 	MessengerClient();
 
 	void connect(ServerAddress server);
