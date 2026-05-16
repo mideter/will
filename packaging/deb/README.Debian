@@ -1,10 +1,32 @@
 will-server for Debian
 ----------------------
 
-The server listens on the TCP port compiled into the binary (see the
-will source package).
+The server listens on TCP port 7770 by default (override with --port).
 
 After installation the systemd unit `will-server.service` is enabled.
 Logs: journalctl -u will-server -f
 
 The daemon runs as the unprivileged system user `will-server`.
+
+Scaling (single process)
+------------------------
+
+will-server uses an asynchronous I/O model (standalone Asio) suitable for
+roughly 2k-5k concurrent connections on one host, depending on CPU, RAM, and
+message rate.
+
+Recommended production settings:
+
+- systemd LimitNOFILE=65535 (already set in will-server.service)
+- Ensure the process ulimits allow open files: ulimit -n
+- Optional CLI flags:
+    --max-clients 4096
+    --listen-backlog 1024
+    --io-threads 4
+
+Load testing:
+
+  will-server --port 7770 &
+  will-load-clients --host 127.0.0.1 --port 7770 --clients 2000 --hold-seconds 10
+
+Acceptance: 2000 idle connections with failures=0 in load_clients output.

@@ -1,73 +1,102 @@
 #include "clienthub.h"
 
-#include <algorithm>
 #include <iostream>
 
-#include "client.h"
+#include "session.h"
+#include "willmessage.h"
 
 
 namespace will {
 
 
-void ClientHub::add(std::shared_ptr<Client> client)
+void ClientHub::add(std::shared_ptr<Session> session)
 {
-    if (!client)
+    if (!session)
         return;
 
     std::lock_guard lock(mutex_);
-    std::cout << "Client " << client->address() << " connected" << std::endl;
-    
-    clients_.push_back(std::move(client));
+    std::cout << "Client " << session->address() << " connected" << std::endl;
+    sessions_.emplace(session->id(), session);
 }
 
 
-void ClientHub::remove(const Client* identity)
+void ClientHub::remove(std::uint64_t session_id)
 {
-    if (!identity)
-        return;
-
-    std::shared_ptr<Client> gone;
+    std::shared_ptr<Session> gone;
     {
         std::lock_guard lock(mutex_);
-
-        auto predicate = [identity](const std::shared_ptr<Client>& c) { return c.get() == identity; };
-        const auto it = std::ranges::find_if(clients_, predicate);
-
-        if (it == clients_.end())
+        const auto it = sessions_.find(session_id);
+        if (it == sessions_.end())
             return;
-
-        gone = std::move(*it);
-        clients_.erase(it);
+        gone = it->second;
+        sessions_.erase(it);
     }
 
-    gone->shutdown();
-
     std::cout << "Client " << gone->address() << " disconnected" << std::endl;
-}
-
-
-std::vector<std::shared_ptr<Client>> ClientHub::snapshot() const
-{
-    std::lock_guard lock(mutex_);
-    return clients_;
 }
 
 
 void ClientHub::reset()
 {
     std::lock_guard lock(mutex_);
+    for (const auto& [id, session] : sessions_)
+        std::cout << "Client " << session->address() << " disconnected" << std::endl;
+    sessions_.clear();
+}
 
-    for (const std::shared_ptr<Client>& c : clients_)
-        std::cout << "Client " << c->address() << " disconnected" << std::endl;
-    
-    clients_.clear();
+
+void ClientHub::shutdown_all()
+{
+    std::vector<std::shared_ptr<Session>> sessions;
+    {
+        std::lock_guard lock(mutex_);
+        sessions.reserve(sessions_.size());
+        for (const auto& [id, session] : sessions_)
+            sessions.push_back(session);
+        sessions_.clear();
+    }
+
+    for (const std::shared_ptr<Session>& session : sessions)
+        session->close();
 }
 
 
 std::size_t ClientHub::count() const noexcept
 {
     std::lock_guard lock(mutex_);
-    return clients_.size();
+    return sessions_.size();
+}
+
+
+void ClientHub::broadcast_except(std::uint64_t except_id, const std::vector<char>& payload,
+                                 const std::function<void(const std::shared_ptr<Session>&)>& enqueue_fn)
+{
+    std::vector<std::shared_ptr<Session>> peers;
+    {
+        std::lock_guard lock(mutex_);
+        peers.reserve(sessions_.size());
+        for (const auto& [id, session] : sessions_) {
+            if (id != except_id)
+                peers.push_back(session);
+        }
+    }
+
+    if (peers.empty()) {
+        std::lock_guard io_lock(Session::frameLogMutex());
+        std::cout << "Frame (no other peers; logged only): "
+                  << WillMessage::format_payload_for_log(payload) << std::endl;
+        return;
+    }
+
+    for (const std::shared_ptr<Session>& peer : peers)
+        enqueue_fn(peer);
+}
+
+
+bool ClientHub::at_capacity(std::size_t max_connections) const noexcept
+{
+    std::lock_guard lock(mutex_);
+    return sessions_.size() >= max_connections;
 }
 
 

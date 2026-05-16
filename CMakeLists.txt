@@ -8,6 +8,17 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+include(FetchContent)
+FetchContent_Declare(
+  asio
+  GIT_REPOSITORY https://github.com/chriskohlhoff/asio.git
+  GIT_TAG asio-1-30-2
+  GIT_SHALLOW TRUE
+)
+FetchContent_MakeAvailable(asio)
+
+find_package(Threads REQUIRED)
+
 add_library(common
   src/common/sockethandle.cpp
   src/common/ipv4.cpp
@@ -21,16 +32,17 @@ target_include_directories(common PUBLIC src/common)
 add_executable(will-server
   src/server/server.cpp
   src/server/clienthub.cpp
-  src/server/messengerloops.cpp
   src/server/messengerserver.cpp
-  src/server/listensocketstopsignals.cpp
-  src/server/connectionacceptor.cpp
-  src/server/client.cpp
-  src/server/clientconnection.cpp
+  src/server/asioserver.cpp
+  src/server/session.cpp
   src/server/clientaddress.cpp
 )
-target_include_directories(will-server PRIVATE src/server)
-target_link_libraries(will-server PRIVATE common)
+target_include_directories(will-server PRIVATE
+  src/server
+  ${asio_SOURCE_DIR}/asio/include
+)
+target_compile_definitions(will-server PRIVATE ASIO_STANDALONE)
+target_link_libraries(will-server PRIVATE common Threads::Threads)
 
 add_executable(will-client
   src/client/client.cpp
@@ -39,6 +51,12 @@ add_executable(will-client
 )
 target_include_directories(will-client PRIVATE src/client)
 target_link_libraries(will-client PRIVATE common)
+
+add_executable(will-load-clients
+  tools/load_clients.cpp
+)
+target_include_directories(will-load-clients PRIVATE src/client src/common)
+target_link_libraries(will-load-clients PRIVATE common Threads::Threads)
 
 find_package(Qt5 QUIET COMPONENTS Widgets)
 if(Qt5Widgets_FOUND)
@@ -49,4 +67,3 @@ enable_testing()
 add_executable(will-message-test tests/will_message_test.cpp)
 target_link_libraries(will-message-test PRIVATE common)
 add_test(NAME will-message COMMAND will-message-test)
-

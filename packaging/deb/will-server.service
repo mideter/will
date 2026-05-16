@@ -15,6 +15,9 @@ StandardOutput=journal
 StandardError=journal
 SyslogIdentifier=will-server
 
+# Thousands of concurrent TCP sessions
+LimitNOFILE=65535
+
 # Hardening (optional; safe for this daemon)
 NoNewPrivileges=true
 PrivateTmp=true

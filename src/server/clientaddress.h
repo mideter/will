@@ -19,15 +19,15 @@ public:
     ClientAddress(ClientAddress&&) = default;
     ClientAddress& operator=(ClientAddress&&) = default;
 
-private:
-    friend class ClientConnection;
-    friend class ConnectionAcceptor;
-    friend std::ostream& operator<<(std::ostream& os, const ClientAddress& address);
-
-    explicit ClientAddress(sockaddr_in addr);
+    static ClientAddress from_sockaddr_in(sockaddr_in addr);
 
     IPv4 ip_;
     Port port_;
+
+private:
+    friend std::ostream& operator<<(std::ostream& os, const ClientAddress& address);
+
+    explicit ClientAddress(sockaddr_in addr);
 
     sockaddr_in address_{};
 };

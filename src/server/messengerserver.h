@@ -1,10 +1,7 @@
 #pragma once
 
-#include <thread>
-#include <vector>
-
-#include "connectionacceptor.h"
-#include "clienthub.h"
+#include "asioserver.h"
+#include "serverconfig.h"
 
 
 namespace will {
@@ -12,19 +9,12 @@ namespace will {
 
 class MessengerServer {
 public:
-    MessengerServer();
-    ~MessengerServer();
+    explicit MessengerServer(ServerConfig config = {});
 
     void run();
 
 private:
-    struct Peers {
-        ClientHub clients;
-        std::vector<std::jthread> threads;
-    };
-
-    ConnectionAcceptor acceptor_;
-    Peers peers_;
+    AsioMessengerServer server_;
 };
 
 

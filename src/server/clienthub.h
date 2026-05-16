@@ -1,23 +1,22 @@
 #pragma once
 
 #include <cstddef>
+#include <cstdint>
+#include <functional>
 #include <memory>
 #include <mutex>
+#include <unordered_map>
 #include <vector>
 
 
 namespace will {
 
 
-class Client;
+class Session;
 
 
 /**
- * Thread-safe registry of connected {@link Client} instances.
- *
- * Invariants:
- * - {@code clients_} is read or modified only while {@code mutex_} is held.
- * - Every stored {@code shared_ptr<Client>} is non-null (null arguments to {@link add} are ignored).
+ * Thread-safe registry of connected {@link Session} instances.
  */
 class ClientHub {
 public:
@@ -29,24 +28,24 @@ public:
     ClientHub(ClientHub&&) = delete;
     ClientHub& operator=(ClientHub&&) = delete;
 
-    /** Registers a live client; no-op if {@code client} is null. */
-    void add(std::shared_ptr<Client> client);
-
-    /** Drops the client from the hub, then {@link Client::shutdown} (closes transport and clears signal slot if any). */
-    void remove(const Client* identity);
-
-    /** Consistent point-in-time copy of current members (each non-null). */
-    std::vector<std::shared_ptr<Client>> snapshot() const;
-
-    /** Clears all registrations under the mutex. */
+    void add(std::shared_ptr<Session> session);
+    void remove(std::uint64_t session_id);
     void reset();
 
-    /** Number of registered clients (O(1) size query under lock). */
+    /** Closes all sessions and clears the registry. */
+    void shutdown_all();
+
     std::size_t count() const noexcept;
+
+    /** Invokes {@code fn} for each session except {@code except_id} (under hub lock). */
+    void broadcast_except(std::uint64_t except_id, const std::vector<char>& payload,
+                          const std::function<void(const std::shared_ptr<Session>&)>& enqueue_fn);
+
+    bool at_capacity(std::size_t max_connections) const noexcept;
 
 private:
     mutable std::mutex mutex_;
-    std::vector<std::shared_ptr<Client>> clients_;
+    std::unordered_map<std::uint64_t, std::shared_ptr<Session>> sessions_;
 };
 
 
