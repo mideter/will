@@ -58,11 +58,6 @@ add_executable(will-load-clients
 target_include_directories(will-load-clients PRIVATE src/client src/common)
 target_link_libraries(will-load-clients PRIVATE common Threads::Threads)
 
-find_package(Qt5 QUIET COMPONENTS Widgets)
-if(Qt5Widgets_FOUND)
-  add_subdirectory(src/gui)
-endif()
-
 enable_testing()
 add_executable(will-message-test tests/will_message_test.cpp)
 target_link_libraries(will-message-test PRIVATE common)
