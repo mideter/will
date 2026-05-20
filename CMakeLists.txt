@@ -31,6 +31,7 @@ target_include_directories(common PUBLIC src/common)
 
 add_executable(will-server
   src/server/server.cpp
+  src/server/serverconfigparser.cpp
   src/server/clienthub.cpp
   src/server/messengerserver.cpp
   src/server/asioserver.cpp
