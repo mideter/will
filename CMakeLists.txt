@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.14)
 project(will LANGUAGES CXX)
 
-# Единая папка для всех исполняемых файлов (в т.ч. из add_subdirectory).
+# Single output directory for all executables (including from add_subdirectory).
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
 set(CMAKE_CXX_STANDARD 20)
@@ -20,7 +20,6 @@ FetchContent_MakeAvailable(asio)
 find_package(Threads REQUIRED)
 
 add_library(common
-  src/common/sockethandle.cpp
   src/common/ipv4.cpp
   src/common/port.cpp
   src/common/serveraddress.cpp
@@ -50,8 +49,12 @@ add_executable(will-client
   src/client/chatsession.cpp
   src/client/messengerclient.cpp
 )
-target_include_directories(will-client PRIVATE src/client)
-target_link_libraries(will-client PRIVATE common)
+target_include_directories(will-client PRIVATE
+  src/client
+  ${asio_SOURCE_DIR}/asio/include
+)
+target_compile_definitions(will-client PRIVATE ASIO_STANDALONE)
+target_link_libraries(will-client PRIVATE common Threads::Threads)
 
 add_executable(will-load-clients
   tools/load_clients.cpp

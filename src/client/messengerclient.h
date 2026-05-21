@@ -1,12 +1,13 @@
 #pragma once
 
+#include <asio.hpp>
+
 #include <optional>
 #include <string>
 #include <string_view>
 #include <variant>
 
 #include "serveraddress.h"
-#include "sockethandle.h"
 
 
 namespace will {
@@ -36,7 +37,10 @@ public:
     void shutdown() const;
 
 private:
-    SocketHandle socket_;
+    static asio::ip::tcp::endpoint endpoint_from_server(const ServerAddress& server);
+
+    asio::io_context ioc_;
+    mutable asio::ip::tcp::socket socket_;
 };
 
 

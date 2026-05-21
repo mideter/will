@@ -4,7 +4,6 @@
 
 #include <format>
 #include <iostream>
-#include <stdexcept>
 
 #include "willmessage.h"
 #include "willprotocol.h"

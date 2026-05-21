@@ -1,8 +1,6 @@
 #include "asioserver.h"
 
 #include <iostream>
-#include <netinet/tcp.h>
-#include <sys/socket.h>
 
 #include "session.h"
 
@@ -92,15 +90,7 @@ void AsioMessengerServer::on_accept(const asio::error_code& ec, asio::ip::tcp::s
         }
         else {
             try {
-                const int fd = socket.native_handle();
-                int on = 1;
-                ::setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, &on, sizeof(on));
-                const int keepidle = 60;
-                const int keepintvl = 10;
-                const int keepcnt = 3;
-                ::setsockopt(fd, IPPROTO_TCP, TCP_KEEPIDLE, &keepidle, sizeof(keepidle));
-                ::setsockopt(fd, IPPROTO_TCP, TCP_KEEPINTVL, &keepintvl, sizeof(keepintvl));
-                ::setsockopt(fd, IPPROTO_TCP, TCP_KEEPCNT, &keepcnt, sizeof(keepcnt));
+                socket.set_option(asio::socket_base::keep_alive(true));
 
                 const ClientAddress peer_address = address_from_socket(socket);
                 auto session = std::make_shared<Session>(ioc_, std::move(socket), peer_address, hub_,
