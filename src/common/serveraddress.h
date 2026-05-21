@@ -9,7 +9,7 @@
 namespace will {
 
 
-class MessengerServer;
+class WillServer;
 class MessengerClient;
 
 
@@ -26,7 +26,7 @@ public:
     static const ServerAddress Novosibirsk;
 
 private:
-    friend class MessengerServer;
+    friend class WillServer;
     friend class MessengerClient;
 
     IPv4 ip_;

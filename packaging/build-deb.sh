@@ -7,11 +7,11 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 VERSION="${VERSION:-}"
 if [[ -z "${VERSION}" ]]; then
 	VERSION="$(
-		sed -n 's/^[[:space:]]*constexpr const char\* version = "\([^"]*\)".*/\1/p' \
-			"${ROOT}/src/server/server.cpp" | head -n1
+		sed -n 's/^[[:space:]]*static constexpr const char\* Version = "\([^"]*\)".*/\1/p' \
+			"${ROOT}/src/server/willserver.h" | head -n1
 	)"
 fi
-[[ -n "${VERSION}" ]] || { echo "Could not detect version from src/server/server.cpp" >&2; exit 1; }
+[[ -n "${VERSION}" ]] || { echo "Could not detect version from src/server/willserver.h" >&2; exit 1; }
 
 if command -v dpkg-architecture >/dev/null 2>&1; then
 	ARCH="$(dpkg-architecture -qDEB_HOST_ARCH 2>/dev/null || dpkg-architecture -qDEB_BUILD_ARCH)"

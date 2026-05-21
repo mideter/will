@@ -21,6 +21,8 @@ public:
     void run();
     void request_stop();
 
+    const ServerConfig& config() const noexcept { return config_; }
+
 private:
     void open_acceptor();
     void do_accept();

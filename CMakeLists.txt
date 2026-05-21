@@ -32,7 +32,7 @@ add_executable(will-server
   src/server/server.cpp
   src/server/serverconfigparser.cpp
   src/server/clienthub.cpp
-  src/server/messengerserver.cpp
+  src/server/willserver.cpp
   src/server/asioserver.cpp
   src/server/session.cpp
   src/server/clientaddress.cpp
