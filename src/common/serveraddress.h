@@ -19,6 +19,12 @@ public:
     
     static ServerAddress any(Port port);
 
+    /** Local Will server (loopback). */
+    static const ServerAddress Local;
+
+    /** Remote Will server (Novosibirsk). */
+    static const ServerAddress Novosibirsk;
+
 private:
     friend class MessengerServer;
     friend class MessengerClient;

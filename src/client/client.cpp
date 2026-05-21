@@ -2,12 +2,11 @@
 
 #include "chatsession.h"
 #include "messengerclient.h"
-#include "defaultwillserver.h"
 
 
 int main()
 try {
-    const will::ServerAddress server_address = will::defaultWillServerAddress();
+    const will::ServerAddress server_address = will::ServerAddress::Local;
     
     will::MessengerClient client;
     client.connect(server_address);

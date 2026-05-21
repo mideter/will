@@ -21,4 +21,9 @@ ServerAddress ServerAddress::any(Port port)
 }
 
 
+const ServerAddress ServerAddress::Local(IPv4("127.0.0.1"), Port(7770));
+
+const ServerAddress ServerAddress::Novosibirsk(IPv4("83.217.202.145"), Port(7770));
+
+
 } // namespace will
