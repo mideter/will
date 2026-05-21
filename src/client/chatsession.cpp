@@ -18,14 +18,6 @@ ChatSession::ChatSession(WillClient& client)
 
 void ChatSession::run()
 {
-    std::cout << "Your name (shown in chat): ";
-    if (!std::getline(std::cin, username_)) {
-        client_.shutdown();
-        return;
-    }
-    if (username_.empty())
-        username_ = "Guest";
-
     std::cout << "Connected to Will chat. Type messages and press Enter.\n";
     std::cout << "Press Ctrl+D to exit.\n";
 
@@ -37,7 +29,7 @@ void ChatSession::run()
 
     std::string line;
     while (!receive_finished.load() && std::getline(std::cin, line))
-        client_.send(username_ + ": " + line);
+        client_.send(line);
 
     client_.shutdown();
 }

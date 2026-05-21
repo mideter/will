@@ -16,7 +16,6 @@ private:
     void receiveLoop() const;
 
     WillClient& client_;
-    std::string username_;
 };
 
 
