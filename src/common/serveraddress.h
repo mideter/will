@@ -10,7 +10,7 @@ namespace will {
 
 
 class WillServer;
-class MessengerClient;
+class WillClient;
 
 
 class ServerAddress {
@@ -27,7 +27,7 @@ public:
 
 private:
     friend class WillServer;
-    friend class MessengerClient;
+    friend class WillClient;
 
     IPv4 ip_;
     Port port_;

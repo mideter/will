@@ -1,4 +1,4 @@
-#include "messengerclient.h"
+#include "willclient.h"
 
 #include <arpa/inet.h>
 
@@ -60,7 +60,7 @@ void read_exact(asio::ip::tcp::socket& socket, unsigned char* data, std::size_t 
 } // namespace
 
 
-asio::ip::tcp::endpoint MessengerClient::endpoint_from_server(const ServerAddress& server)
+asio::ip::tcp::endpoint WillClient::endpoint_from_server(const ServerAddress& server)
 {
     const sockaddr_in& addr = server.address_;
     return asio::ip::tcp::endpoint(asio::ip::make_address_v4(ntohl(addr.sin_addr.s_addr)),
@@ -68,19 +68,19 @@ asio::ip::tcp::endpoint MessengerClient::endpoint_from_server(const ServerAddres
 }
 
 
-MessengerClient::MessengerClient()
+WillClient::WillClient()
     : socket_(ioc_)
 {}
 
 
-void MessengerClient::connect(ServerAddress server)
+void WillClient::connect(ServerAddress server)
 {
     socket_.connect(endpoint_from_server(server));
     socket_.set_option(asio::socket_base::keep_alive(true));
 }
 
 
-void MessengerClient::send(std::string_view utf8_chat_body) const
+void WillClient::send(std::string_view utf8_chat_body) const
 {
     const std::vector<char> payload = WillMessage::encode_user_chat(utf8_chat_body);
 
@@ -94,7 +94,7 @@ void MessengerClient::send(std::string_view utf8_chat_body) const
 }
 
 
-std::optional<InboundMessage> MessengerClient::receiveMessage() const
+std::optional<InboundMessage> WillClient::receiveMessage() const
 {
     unsigned char len_bytes[4];
     if (read_exact_or_eof_before_first_byte(socket_, len_bytes, sizeof(len_bytes)))
@@ -122,7 +122,7 @@ std::optional<InboundMessage> MessengerClient::receiveMessage() const
 }
 
 
-void MessengerClient::shutdown() const
+void WillClient::shutdown() const
 {
     asio::error_code ignored;
     socket_.shutdown(asio::ip::tcp::socket::shutdown_both, ignored);

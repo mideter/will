@@ -47,7 +47,7 @@ target_link_libraries(will-server PRIVATE common Threads::Threads)
 add_executable(will-client
   src/client/client.cpp
   src/client/chatsession.cpp
-  src/client/messengerclient.cpp
+  src/client/willclient.cpp
 )
 target_include_directories(will-client PRIVATE
   src/client

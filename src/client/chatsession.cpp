@@ -11,7 +11,7 @@
 namespace will {
 
 
-ChatSession::ChatSession(MessengerClient& client)
+ChatSession::ChatSession(WillClient& client)
     : client_(client)
 {}
 

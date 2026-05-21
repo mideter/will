@@ -1,6 +1,6 @@
 #pragma once
 
-#include "messengerclient.h"
+#include "willclient.h"
 
 
 namespace will {
@@ -8,14 +8,14 @@ namespace will {
 
 class ChatSession {
 public:
-    explicit ChatSession(MessengerClient& client);
+    explicit ChatSession(WillClient& client);
 
     void run();
 
 private:
     void receiveLoop() const;
 
-    MessengerClient& client_;
+    WillClient& client_;
     std::string username_;
 };
 

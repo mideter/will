@@ -1,14 +1,14 @@
 #include <iostream>
 
 #include "chatsession.h"
-#include "messengerclient.h"
+#include "willclient.h"
 
 
 int main()
 try {
     const will::ServerAddress server_address = will::ServerAddress::Local;
     
-    will::MessengerClient client;
+    will::WillClient client;
     client.connect(server_address);
 
     will::ChatSession chat_session(client);

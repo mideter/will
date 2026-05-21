@@ -22,9 +22,9 @@ using InboundMessage = std::variant<ServerReceiptAck, std::string>;
 
 
 // TCP: TcpFrame; payload is typed Will message (see willmessage.h).
-class MessengerClient {
+class WillClient {
 public:
-    MessengerClient();
+    WillClient();
 
     void connect(ServerAddress server);
 
