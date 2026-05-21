@@ -7,7 +7,7 @@
 namespace will {
 
 
-class WillServer {
+class WillServer : private AsioMessengerServer {
 public:
     static constexpr const char* Version = "4.0.0";
 
@@ -17,8 +17,6 @@ public:
 
 private:
     static void log_startup(const ServerConfig& config);
-
-    AsioMessengerServer server_;
 };
 
 
