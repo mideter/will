@@ -30,6 +30,9 @@ public:
     std::uint64_t id() const noexcept { return id_; }
     const ClientAddress& address() const noexcept { return address_; }
 
+    bool operator==(const Session& other) const noexcept { return id_ == other.id_; }
+    bool operator!=(const Session& other) const noexcept { return !(*this == other); }
+
     void start();
     void close();
 

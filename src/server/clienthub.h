@@ -2,13 +2,10 @@
 
 #include <cstddef>
 #include <cstdint>
-#include <functional>
 #include <memory>
 #include <mutex>
 #include <unordered_map>
 #include <vector>
-
-#include "clientaddress.h"
 
 
 namespace will {
@@ -39,10 +36,8 @@ public:
 
     std::size_t count() const noexcept;
 
-    /** Invokes {@code fn} for each session except {@code except_id} (under hub lock). */
-    void broadcast_except(std::uint64_t except_id, const ClientAddress& from,
-                          const std::vector<char>& payload,
-                          const std::function<void(const std::shared_ptr<Session>&)>& enqueue_fn);
+    /** Logs and fan-out of {@code payload} to every session except {@code sender}. */
+    void broadcast_except(const Session& sender, const std::vector<char>& payload);
 
     bool at_capacity(std::size_t max_connections) const noexcept;
 
