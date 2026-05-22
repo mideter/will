@@ -1,6 +1,7 @@
 #include "session.h"
 
 #include "sessionregistry.h"
+#include "tcpframereader.h"
 
 #include <format>
 #include <iostream>
@@ -28,7 +29,15 @@ Session::Session(asio::io_context& ioc, TcpSocket socket, ClientAddress address,
 
 void Session::begin()
 {
-    asio::dispatch(strand_, [self = shared_from_this()] { self->do_read_header(); });
+    frame_reader_ = std::make_shared<TcpFrameReader>(
+        socket_, strand_,
+        [self = shared_from_this()](std::vector<char> payload) { self->on_frame(std::move(payload)); },
+        [self = shared_from_this()](const char* message) { self->fail_protocol(message); },
+        [self = shared_from_this()](const char* context, const asio::error_code& ec) {
+            self->on_read_error(context, ec);
+        });
+
+    frame_reader_->start();
 }
 
 
@@ -38,6 +47,10 @@ void Session::shutdown()
         if (self->closed_)
             return;
         self->closed_ = true;
+        
+        if (self->frame_reader_)
+            self->frame_reader_->stop();
+
         asio::error_code ignored;
         self->socket_.shutdown(TcpSocket::shutdown_both, ignored);
         self->socket_.close(ignored);
@@ -45,105 +58,32 @@ void Session::shutdown()
 }
 
 
-void Session::do_read_header()
+void Session::on_frame(std::vector<char> payload)
 {
     if (closed_)
         return;
 
-    asio::async_read(socket_, asio::buffer(header_buf_),
-                     asio::bind_executor(strand_,
-                                         [self = shared_from_this()](const asio::error_code& ec,
-                                                                     std::size_t n) {
-                                             self->on_read_header(ec, n);
-                                         }));
-}
-
-
-void Session::on_read_header(const asio::error_code& ec, std::size_t n)
-{
-    if (closed_)
-        return;
-
-    if (ec) {
-        if (ec != asio::error::eof)
-            fail("read header", ec);
-        registry_.close_session(id_);
-        return;
-    }
-
-    if (n != header_buf_.size()) {
-        fail_protocol("Will frame: incomplete header");
-        return;
-    }
-
-    const unsigned char* const header_u = reinterpret_cast<const unsigned char*>(header_buf_.data());
-    const std::uint32_t len_u32 = TcpFrame::read_u32_be(header_u);
-    expected_body_len_ = static_cast<std::size_t>(len_u32);
-
-    if (expected_body_len_ > TcpFrame::MaxPayloadBytes) {
-        fail_protocol("Will frame: frame exceeds TcpFrame::MaxPayloadBytes");
-        return;
-    }
-
-    body_buf_.assign(expected_body_len_, '\0');
-    if (expected_body_len_ == 0) {
-        handle_complete_payload();
-        return;
-    }
-
-    do_read_body();
-}
-
-
-void Session::do_read_body()
-{
-    if (closed_)
-        return;
-
-    asio::async_read(socket_, asio::buffer(body_buf_),
-                     asio::bind_executor(strand_,
-                                         [self = shared_from_this()](const asio::error_code& ec,
-                                                                     std::size_t n) {
-                                             self->on_read_body(ec, n);
-                                         }));
-}
-
-
-void Session::on_read_body(const asio::error_code& ec, std::size_t n)
-{
-    if (closed_)
-        return;
-
-    if (ec) {
-        if (ec != asio::error::eof)
-            fail("read body", ec);
-        registry_.close_session(id_);
-        return;
-    }
-
-    if (n != body_buf_.size()) {
-        fail_protocol("Will frame: connection closed mid-frame");
-        return;
-    }
-
-    handle_complete_payload();
-}
-
-
-void Session::handle_complete_payload()
-{
-    if (!WillMessage::is_valid_client_to_server_payload(body_buf_)) {
+    if (!WillMessage::is_valid_client_to_server_payload(payload)) {
         const std::string msg = std::format("Protocol error: invalid frame from {}", address_);
         fail_protocol(msg.c_str());
         return;
     }
 
-    const std::vector<char> payload = body_buf_;
     enqueue_frame_bytes(encode_frame(WillMessage::encode_server_receipt_ack()));
 
     registry_.broadcast_except(*this, payload);
+}
 
-    do_read_header();
+
+void Session::on_read_error(const char* context, const asio::error_code& ec)
+{
+    if (closed_)
+        return;
+
+    if (ec != asio::error::eof)
+        fail(context, ec);
+    
+    registry_.close_session(id_);
 }
 
 

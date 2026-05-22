@@ -35,6 +35,7 @@ add_executable(will-server
   src/server/willserver.cpp
   src/server/asioserver.cpp
   src/server/session.cpp
+  src/server/tcpframereader.cpp
   src/server/clientaddress.cpp
 )
 target_include_directories(will-server PRIVATE

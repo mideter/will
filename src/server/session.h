@@ -2,7 +2,6 @@
 
 #include <asio.hpp>
 
-#include <array>
 #include <atomic>
 #include <cstddef>
 #include <cstdint>
@@ -17,6 +16,7 @@ namespace will {
 
 
 class SessionRegistry;
+class TcpFrameReader;
 
 
 class Session : public std::enable_shared_from_this<Session> {
@@ -37,12 +37,8 @@ private:
     void begin();
     void shutdown();
 
-    void do_read_header();
-    void on_read_header(const asio::error_code& ec, std::size_t n);
-    void do_read_body();
-    void on_read_body(const asio::error_code& ec, std::size_t n);
-
-    void handle_complete_payload();
+    void on_frame(std::vector<char> payload);
+    void on_read_error(const char* context, const asio::error_code& ec);
     void fail(const char* context, const asio::error_code& ec);
     void fail_protocol(const char* message);
 
@@ -63,9 +59,7 @@ private:
     Strand strand_;
     ClientAddress address_;
 
-    std::array<char, 4> header_buf_{};
-    std::vector<char> body_buf_;
-    std::size_t expected_body_len_ = 0;
+    std::shared_ptr<TcpFrameReader> frame_reader_;
 
     std::deque<std::vector<char>> write_queue_;
     std::size_t queued_bytes_ = 0;
