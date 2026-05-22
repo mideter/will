@@ -23,11 +23,14 @@ void ClientHub::add(std::shared_ptr<Session> session)
 void ClientHub::remove(std::uint64_t session_id)
 {
     std::shared_ptr<Session> gone;
+
     {
         std::lock_guard lock(mutex_);
         const auto it = sessions_.find(session_id);
+
         if (it == sessions_.end())
             return;
+        
         gone = it->second;
         sessions_.erase(it);
     }
@@ -39,8 +42,10 @@ void ClientHub::remove(std::uint64_t session_id)
 void ClientHub::reset()
 {
     std::lock_guard lock(mutex_);
+
     for (const auto& [id, session] : sessions_)
         std::cout << "Client " << session->address() << " disconnected" << std::endl;
+    
     sessions_.clear();
 }
 
@@ -48,11 +53,14 @@ void ClientHub::reset()
 void ClientHub::shutdown_all()
 {
     std::vector<std::shared_ptr<Session>> sessions;
+
     {
         std::lock_guard lock(mutex_);
         sessions.reserve(sessions_.size());
+
         for (const auto& [id, session] : sessions_)
             sessions.push_back(session);
+        
         sessions_.clear();
     }
 
@@ -75,17 +83,11 @@ void ClientHub::broadcast_except(std::uint64_t except_id, const std::vector<char
     {
         std::lock_guard lock(mutex_);
         peers.reserve(sessions_.size());
+
         for (const auto& [id, session] : sessions_) {
             if (id != except_id)
                 peers.push_back(session);
         }
-    }
-
-    if (peers.empty()) {
-        std::lock_guard io_lock(Session::frameLogMutex());
-        std::cout << "Frame (no other peers; logged only): "
-                  << WillMessage::format_payload_for_log(payload) << std::endl;
-        return;
     }
 
     for (const std::shared_ptr<Session>& peer : peers)
