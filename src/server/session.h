@@ -31,8 +31,6 @@ public:
     std::uint64_t id() const noexcept { return id_; }
     const ClientAddress& address() const noexcept { return address_; }
 
-    static std::mutex& frameLogMutex();
-
     void start();
     void close();
 
@@ -75,11 +73,6 @@ private:
     static std::atomic<std::uint64_t> next_id_;
     static std::mutex frame_log_mutex_;
 };
-
-inline std::mutex& Session::frameLogMutex()
-{
-    return frame_log_mutex_;
-}
 
 
 } // namespace will
