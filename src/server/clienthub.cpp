@@ -76,10 +76,15 @@ std::size_t ClientHub::count() const noexcept
 }
 
 
-void ClientHub::broadcast_except(std::uint64_t except_id,
+void ClientHub::broadcast_except(std::uint64_t except_id, const ClientAddress& from,
+                                 const std::vector<char>& payload,
                                  const std::function<void(const std::shared_ptr<Session>&)>& enqueue_fn)
 {
+    std::cout << "Broadcast from " << from << ": "
+              << WillMessage::format_payload_for_log(payload) << std::endl;
+
     std::vector<std::shared_ptr<Session>> peers;
+    
     {
         std::lock_guard lock(mutex_);
         peers.reserve(sessions_.size());

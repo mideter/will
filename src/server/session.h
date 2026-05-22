@@ -8,7 +8,6 @@
 #include <cstdint>
 #include <deque>
 #include <memory>
-#include <mutex>
 #include <vector>
 
 #include "clientaddress.h"
@@ -71,7 +70,6 @@ private:
     bool closed_ = false;
 
     static std::atomic<std::uint64_t> next_id_;
-    static std::mutex frame_log_mutex_;
 };
 
 

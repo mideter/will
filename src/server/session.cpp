@@ -13,7 +13,6 @@ namespace will {
 
 
 std::atomic<std::uint64_t> Session::next_id_{1};
-std::mutex Session::frame_log_mutex_{};
 
 
 Session::Session(asio::io_context& ioc, TcpSocket socket, ClientAddress address, ClientHub& hub,
@@ -144,15 +143,9 @@ void Session::handle_complete_payload()
     const std::vector<char> payload = body_buf_;
     enqueue_frame_bytes(encode_frame(WillMessage::encode_server_receipt_ack()));
 
-    hub_.broadcast_except(id_, [payload](const std::shared_ptr<Session>& peer) {
+    hub_.broadcast_except(id_, address_, payload, [payload](const std::shared_ptr<Session>& peer) {
         peer->enqueue_payload_broadcast(payload);
     });
-
-    {
-        std::lock_guard io_lock(frame_log_mutex_);
-        std::cout << "Broadcast from " << address_ << ": "
-                  << WillMessage::format_payload_for_log(payload) << std::endl;
-    }
 
     do_read_header();
 }
