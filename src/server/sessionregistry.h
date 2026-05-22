@@ -1,11 +1,15 @@
 #pragma once
 
+#include <asio.hpp>
+
 #include <cstddef>
 #include <cstdint>
 #include <memory>
 #include <mutex>
 #include <unordered_map>
 #include <vector>
+
+#include "clientaddress.h"
 
 
 namespace will {
@@ -16,6 +20,7 @@ class Session;
 
 /**
  * Thread-safe registry of connected {@link Session} instances.
+ * Owns session creation and teardown.
  */
 class SessionRegistry {
 public:
@@ -27,8 +32,10 @@ public:
     SessionRegistry(SessionRegistry&&) = delete;
     SessionRegistry& operator=(SessionRegistry&&) = delete;
 
-    void add(std::shared_ptr<Session> session);
-    void remove(std::uint64_t session_id);
+    void accept_session(asio::io_context& ioc, asio::ip::tcp::socket socket, ClientAddress address,
+                        std::size_t max_outbound_queue_bytes);
+
+    void close_session(std::uint64_t session_id);
 
     /** Closes all sessions and clears the registry. */
     void shutdown_all();

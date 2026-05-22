@@ -26,14 +26,13 @@ Session::Session(asio::io_context& ioc, TcpSocket socket, ClientAddress address,
 {}
 
 
-void Session::start()
+void Session::begin()
 {
-    registry_.add(shared_from_this());
     asio::dispatch(strand_, [self = shared_from_this()] { self->do_read_header(); });
 }
 
 
-void Session::close()
+void Session::shutdown()
 {
     asio::post(strand_, [self = shared_from_this()] {
         if (self->closed_)
@@ -42,7 +41,6 @@ void Session::close()
         asio::error_code ignored;
         self->socket_.shutdown(TcpSocket::shutdown_both, ignored);
         self->socket_.close(ignored);
-        self->registry_.remove(self->id_);
     });
 }
 
@@ -69,7 +67,7 @@ void Session::on_read_header(const asio::error_code& ec, std::size_t n)
     if (ec) {
         if (ec != asio::error::eof)
             fail("read header", ec);
-        close();
+        registry_.close_session(id_);
         return;
     }
 
@@ -119,7 +117,7 @@ void Session::on_read_body(const asio::error_code& ec, std::size_t n)
     if (ec) {
         if (ec != asio::error::eof)
             fail("read body", ec);
-        close();
+        registry_.close_session(id_);
         return;
     }
 
@@ -179,7 +177,7 @@ void Session::enqueue_frame_bytes(std::vector<char> frame_bytes)
     const std::size_t frame_len = frame_bytes.size();
     if (queued_bytes_ + frame_len > max_outbound_queue_bytes_) {
         std::cerr << "Write queue limit exceeded for " << address_ << ", disconnecting\n";
-        close();
+        registry_.close_session(id_);
         return;
     }
 
@@ -216,7 +214,7 @@ void Session::on_write(const asio::error_code& ec, std::size_t n)
 
     if (ec) {
         fail("write", ec);
-        close();
+        registry_.close_session(id_);
         return;
     }
 
@@ -250,7 +248,7 @@ void Session::fail(const char* context, const asio::error_code& ec)
 void Session::fail_protocol(const char* message)
 {
     std::cerr << "Session " << address_ << ": " << message << '\n';
-    close();
+    registry_.close_session(id_);
 }
 
 

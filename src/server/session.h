@@ -24,19 +24,19 @@ public:
     using TcpSocket = asio::ip::tcp::socket;
     using Strand = asio::strand<asio::io_context::executor_type>;
 
-    Session(asio::io_context& ioc, TcpSocket socket, ClientAddress address, SessionRegistry& registry,
-            std::size_t max_outbound_queue_bytes);
-
     std::uint64_t id() const noexcept { return id_; }
     const ClientAddress& address() const noexcept { return address_; }
 
     bool operator==(const Session& other) const noexcept { return id_ == other.id_; }
     bool operator!=(const Session& other) const noexcept { return !(*this == other); }
 
-    void start();
-    void close();
-
 private:
+    Session(asio::io_context& ioc, TcpSocket socket, ClientAddress address, SessionRegistry& registry,
+            std::size_t max_outbound_queue_bytes);
+
+    void begin();
+    void shutdown();
+
     void do_read_header();
     void on_read_header(const asio::error_code& ec, std::size_t n);
     void do_read_body();

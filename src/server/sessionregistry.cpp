@@ -1,6 +1,7 @@
 #include "sessionregistry.h"
 
 #include <iostream>
+#include <utility>
 
 #include "session.h"
 #include "willmessage.h"
@@ -9,20 +10,25 @@
 namespace will {
 
 
-void SessionRegistry::add(std::shared_ptr<Session> session)
+void SessionRegistry::accept_session(asio::io_context& ioc, asio::ip::tcp::socket socket,
+                                     ClientAddress address, std::size_t max_outbound_queue_bytes)
 {
-    if (!session)
-        return;
+    auto session = std::shared_ptr<Session>(
+        new Session(ioc, std::move(socket), std::move(address), *this, max_outbound_queue_bytes));
 
-    std::lock_guard lock(mutex_);
-    std::cout << "Client " << session->address() << " connected" << std::endl;
-    sessions_.emplace(session->id(), session);
+    {
+        std::lock_guard lock(mutex_);
+        std::cout << "Client " << session->address() << " connected" << std::endl;
+        sessions_.emplace(session->id(), session);
+    }
+
+    session->begin();
 }
 
 
-void SessionRegistry::remove(std::uint64_t session_id)
+void SessionRegistry::close_session(std::uint64_t session_id)
 {
-    std::shared_ptr<Session> gone;
+    std::shared_ptr<Session> session;
 
     {
         std::lock_guard lock(mutex_);
@@ -30,12 +36,13 @@ void SessionRegistry::remove(std::uint64_t session_id)
 
         if (it == sessions_.end())
             return;
-        
-        gone = it->second;
+
+        session = it->second;
         sessions_.erase(it);
     }
 
-    std::cout << "Client " << gone->address() << " disconnected" << std::endl;
+    std::cout << "Client " << session->address() << " disconnected" << std::endl;
+    session->shutdown();
 }
 
 
@@ -49,12 +56,14 @@ void SessionRegistry::shutdown_all()
 
         for (const auto& [id, session] : sessions_)
             sessions.push_back(session);
-        
+
         sessions_.clear();
     }
 
-    for (const std::shared_ptr<Session>& session : sessions)
-        session->close();
+    for (const std::shared_ptr<Session>& session : sessions) {
+        std::cout << "Client " << session->address() << " disconnected" << std::endl;
+        session->shutdown();
+    }
 }
 
 
