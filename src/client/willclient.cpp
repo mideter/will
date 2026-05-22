@@ -60,22 +60,14 @@ void read_exact(asio::ip::tcp::socket& socket, unsigned char* data, std::size_t 
 } // namespace
 
 
-asio::ip::tcp::endpoint WillClient::endpoint_from_server(const ServerAddress& server)
-{
-    const sockaddr_in& addr = server.address_;
-    return asio::ip::tcp::endpoint(asio::ip::make_address_v4(ntohl(addr.sin_addr.s_addr)),
-                                   ntohs(addr.sin_port));
-}
-
-
 WillClient::WillClient()
     : socket_(ioc_)
 {}
 
 
-void WillClient::connect(ServerAddress server)
+void WillClient::connect(HostAddress host)
 {
-    socket_.connect(endpoint_from_server(server));
+    socket_.connect(host.endpoint());
     socket_.set_option(asio::socket_base::keep_alive(true));
 }
 

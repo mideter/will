@@ -7,7 +7,7 @@
 #include <string_view>
 #include <variant>
 
-#include "serveraddress.h"
+#include "hostaddress.h"
 
 
 namespace will {
@@ -26,7 +26,7 @@ class WillClient {
 public:
     WillClient();
 
-    void connect(ServerAddress server);
+    void connect(HostAddress host);
 
     /** Sends {@code UserChat} with UTF-8 body. */
     void send(std::string_view utf8_chat_body) const;
@@ -37,8 +37,6 @@ public:
     void shutdown() const;
 
 private:
-    static asio::ip::tcp::endpoint endpoint_from_server(const ServerAddress& server);
-
     asio::io_context ioc_;
     mutable asio::ip::tcp::socket socket_;
 };

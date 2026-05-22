@@ -11,7 +11,7 @@ namespace will {
 
 
 void SessionRegistry::accept_session(asio::io_context& ioc, asio::ip::tcp::socket socket,
-                                     ClientAddress address, std::size_t max_outbound_queue_bytes)
+                                     HostAddress address, std::size_t max_outbound_queue_bytes)
 {
     auto session = std::shared_ptr<Session>(
         new Session(ioc, std::move(socket), std::move(address), *this, max_outbound_queue_bytes));

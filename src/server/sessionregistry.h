@@ -9,7 +9,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "clientaddress.h"
+#include "hostaddress.h"
 
 
 namespace will {
@@ -32,7 +32,7 @@ public:
     SessionRegistry(SessionRegistry&&) = delete;
     SessionRegistry& operator=(SessionRegistry&&) = delete;
 
-    void accept_session(asio::io_context& ioc, asio::ip::tcp::socket socket, ClientAddress address,
+    void accept_session(asio::io_context& ioc, asio::ip::tcp::socket socket, HostAddress address,
                         std::size_t max_outbound_queue_bytes);
 
     void close_session(std::uint64_t session_id);

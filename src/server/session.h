@@ -9,7 +9,7 @@
 #include <memory>
 #include <vector>
 
-#include "clientaddress.h"
+#include "hostaddress.h"
 
 
 namespace will {
@@ -25,13 +25,13 @@ public:
     using Strand = asio::strand<asio::io_context::executor_type>;
 
     std::uint64_t id() const noexcept { return id_; }
-    const ClientAddress& address() const noexcept { return address_; }
+    const HostAddress& address() const noexcept { return address_; }
 
     bool operator==(const Session& other) const noexcept { return id_ == other.id_; }
     bool operator!=(const Session& other) const noexcept { return !(*this == other); }
 
 private:
-    Session(asio::io_context& ioc, TcpSocket socket, ClientAddress address, SessionRegistry& registry,
+    Session(asio::io_context& ioc, TcpSocket socket, HostAddress address, SessionRegistry& registry,
             std::size_t max_outbound_queue_bytes);
 
     void begin();
@@ -56,7 +56,7 @@ private:
 
     TcpSocket socket_;
     Strand strand_;
-    ClientAddress address_;
+    HostAddress address_;
 
     std::shared_ptr<TcpFrameReader> frame_reader_;
 

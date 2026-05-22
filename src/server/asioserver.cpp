@@ -87,7 +87,7 @@ void AsioMessengerServer::on_accept(const asio::error_code& ec, asio::ip::tcp::s
             try {
                 socket.set_option(asio::socket_base::keep_alive(true));
 
-                const ClientAddress peer_address = address_from_socket(socket);
+                const HostAddress peer_address = address_from_socket(socket);
                 registry_.accept_session(ioc_, std::move(socket), peer_address,
                                          config_.max_outbound_queue_bytes());
             }
@@ -105,14 +105,9 @@ void AsioMessengerServer::on_accept(const asio::error_code& ec, asio::ip::tcp::s
 }
 
 
-ClientAddress AsioMessengerServer::address_from_socket(const asio::ip::tcp::socket& socket)
+HostAddress AsioMessengerServer::address_from_socket(const asio::ip::tcp::socket& socket)
 {
-    const asio::ip::tcp::endpoint remote = socket.remote_endpoint();
-    sockaddr_in addr{};
-    addr.sin_family = AF_INET;
-    addr.sin_port = htons(remote.port());
-    addr.sin_addr.s_addr = htonl(remote.address().to_v4().to_uint());
-    return ClientAddress::from_sockaddr_in(addr);
+    return HostAddress::from_endpoint(socket.remote_endpoint());
 }
 
 

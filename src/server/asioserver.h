@@ -6,7 +6,7 @@
 #include <thread>
 #include <vector>
 
-#include "clientaddress.h"
+#include "hostaddress.h"
 #include "sessionregistry.h"
 #include "serverconfig.h"
 
@@ -31,7 +31,7 @@ private:
     void setup_signals();
     void on_signal(const asio::error_code& ec, int signal_number);
 
-    static ClientAddress address_from_socket(const asio::ip::tcp::socket& socket);
+    static HostAddress address_from_socket(const asio::ip::tcp::socket& socket);
     
     asio::io_context ioc_;
     asio::ip::tcp::acceptor acceptor_;

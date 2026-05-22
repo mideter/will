@@ -16,7 +16,7 @@ namespace will {
 std::atomic<std::uint64_t> Session::next_id_{1};
 
 
-Session::Session(asio::io_context& ioc, TcpSocket socket, ClientAddress address, SessionRegistry& registry,
+Session::Session(asio::io_context& ioc, TcpSocket socket, HostAddress address, SessionRegistry& registry,
                  std::size_t max_outbound_queue_bytes)
     : id_(next_id_.fetch_add(1, std::memory_order_relaxed))
     , registry_(registry)

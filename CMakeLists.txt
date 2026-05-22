@@ -20,13 +20,15 @@ FetchContent_MakeAvailable(asio)
 find_package(Threads REQUIRED)
 
 add_library(common
-  src/common/ipv4.cpp
-  src/common/port.cpp
-  src/common/serveraddress.cpp
+  src/common/hostaddress.cpp
   src/common/willprotocol.cpp
   src/common/willmessage.cpp
 )
-target_include_directories(common PUBLIC src/common)
+target_include_directories(common PUBLIC
+  src/common
+  ${asio_SOURCE_DIR}/asio/include
+)
+target_compile_definitions(common PUBLIC ASIO_STANDALONE)
 
 add_executable(will-server
   src/server/server.cpp
@@ -38,7 +40,6 @@ add_executable(will-server
   src/server/asioserver.cpp
   src/server/session.cpp
   src/server/tcpframereader.cpp
-  src/server/clientaddress.cpp
 )
 target_include_directories(will-server PRIVATE
   src/server

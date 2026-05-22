@@ -1,12 +1,13 @@
 #include <iostream>
 
 #include "chatsession.h"
+#include "hostaddress.h"
 #include "willclient.h"
 
 
 int main()
 try {
-    const will::ServerAddress server_address = will::ServerAddress::Local;
+    const will::HostAddress server_address{"127.0.0.1", 7770};
     
     will::WillClient client;
     client.connect(server_address);
