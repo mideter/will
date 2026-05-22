@@ -34,7 +34,6 @@ private:
     static ClientAddress address_from_socket(const asio::ip::tcp::socket& socket);
     
     asio::io_context ioc_;
-    asio::executor_work_guard<asio::io_context::executor_type> work_guard_;
     asio::ip::tcp::acceptor acceptor_;
     asio::signal_set signals_;
 

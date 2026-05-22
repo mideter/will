@@ -8,7 +8,6 @@ namespace will {
 
 AsioMessengerServer::AsioMessengerServer(ServerConfig config)
     : config_(config)
-    , work_guard_(asio::make_work_guard(ioc_))
     , acceptor_(ioc_)
     , signals_(ioc_)
 {
@@ -136,8 +135,7 @@ void AsioMessengerServer::request_stop()
     acceptor_.close(ignored);
 
     registry_.close_all_sessions();
-    
-    work_guard_.reset();
+
     ioc_.stop();
 }
 
