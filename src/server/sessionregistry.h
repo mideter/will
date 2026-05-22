@@ -37,8 +37,7 @@ public:
 
     void close_session(std::uint64_t session_id);
 
-    /** Closes all sessions and clears the registry. */
-    void shutdown_all();
+    void close_all_sessions();
 
     std::size_t count() const noexcept;
 

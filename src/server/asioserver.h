@@ -29,7 +29,6 @@ private:
     void on_accept(const asio::error_code& ec, asio::ip::tcp::socket socket);
     void setup_signals();
     void on_signal(const asio::error_code& ec, int signal_number);
-    void close_all_sessions();
 
     static ClientAddress address_from_socket(const asio::ip::tcp::socket& socket);
 

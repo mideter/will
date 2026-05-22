@@ -46,24 +46,20 @@ void SessionRegistry::close_session(std::uint64_t session_id)
 }
 
 
-void SessionRegistry::shutdown_all()
+void SessionRegistry::close_all_sessions()
 {
-    std::vector<std::shared_ptr<Session>> sessions;
+    std::vector<std::uint64_t> session_ids;
 
     {
         std::lock_guard lock(mutex_);
-        sessions.reserve(sessions_.size());
+        session_ids.reserve(sessions_.size());
 
         for (const auto& [id, session] : sessions_)
-            sessions.push_back(session);
-
-        sessions_.clear();
+            session_ids.push_back(id);
     }
 
-    for (const std::shared_ptr<Session>& session : sessions) {
-        std::cout << "Client " << session->address() << " disconnected" << std::endl;
-        session->shutdown();
-    }
+    for (const std::uint64_t session_id : session_ids)
+        close_session(session_id);
 }
 
 
