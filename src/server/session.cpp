@@ -1,6 +1,6 @@
 #include "session.h"
 
-#include "clienthub.h"
+#include "sessionregistry.h"
 
 #include <format>
 #include <iostream>
@@ -15,10 +15,10 @@ namespace will {
 std::atomic<std::uint64_t> Session::next_id_{1};
 
 
-Session::Session(asio::io_context& ioc, TcpSocket socket, ClientAddress address, ClientHub& hub,
+Session::Session(asio::io_context& ioc, TcpSocket socket, ClientAddress address, SessionRegistry& registry,
                  std::size_t max_outbound_queue_bytes)
     : id_(next_id_.fetch_add(1, std::memory_order_relaxed))
-    , hub_(hub)
+    , registry_(registry)
     , max_outbound_queue_bytes_(max_outbound_queue_bytes)
     , socket_(std::move(socket))
     , strand_(asio::make_strand(ioc))
@@ -28,7 +28,7 @@ Session::Session(asio::io_context& ioc, TcpSocket socket, ClientAddress address,
 
 void Session::start()
 {
-    hub_.add(shared_from_this());
+    registry_.add(shared_from_this());
     asio::dispatch(strand_, [self = shared_from_this()] { self->do_read_header(); });
 }
 
@@ -42,7 +42,7 @@ void Session::close()
         asio::error_code ignored;
         self->socket_.shutdown(TcpSocket::shutdown_both, ignored);
         self->socket_.close(ignored);
-        self->hub_.remove(self->id_);
+        self->registry_.remove(self->id_);
     });
 }
 
@@ -143,7 +143,7 @@ void Session::handle_complete_payload()
     const std::vector<char> payload = body_buf_;
     enqueue_frame_bytes(encode_frame(WillMessage::encode_server_receipt_ack()));
 
-    hub_.broadcast_except(*this, payload);
+    registry_.broadcast_except(*this, payload);
 
     do_read_header();
 }

@@ -41,7 +41,7 @@ void AsioMessengerServer::setup_signals()
 
 void AsioMessengerServer::run()
 {
-    hub_.reset();
+    registry_.reset();
 
     do_accept();
 
@@ -83,7 +83,7 @@ void AsioMessengerServer::on_accept(const asio::error_code& ec, asio::ip::tcp::s
     }
 
     if (!ec) {
-        if (hub_.at_capacity(config_.max_connections)) {
+        if (registry_.at_capacity(config_.max_connections)) {
             std::cerr << "Max connections (" << config_.max_connections << ") reached, rejecting peer\n";
             asio::error_code ignored;
             socket.close(ignored);
@@ -93,7 +93,7 @@ void AsioMessengerServer::on_accept(const asio::error_code& ec, asio::ip::tcp::s
                 socket.set_option(asio::socket_base::keep_alive(true));
 
                 const ClientAddress peer_address = address_from_socket(socket);
-                auto session = std::make_shared<Session>(ioc_, std::move(socket), peer_address, hub_,
+                auto session = std::make_shared<Session>(ioc_, std::move(socket), peer_address, registry_,
                                                            config_.max_outbound_queue_bytes);
                 session->start();
             }
@@ -147,7 +147,7 @@ void AsioMessengerServer::request_stop()
 
 void AsioMessengerServer::close_all_sessions()
 {
-    hub_.shutdown_all();
+    registry_.shutdown_all();
 }
 
 

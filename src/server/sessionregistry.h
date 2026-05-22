@@ -17,15 +17,15 @@ class Session;
 /**
  * Thread-safe registry of connected {@link Session} instances.
  */
-class ClientHub {
+class SessionRegistry {
 public:
-    ClientHub() = default;
-    ~ClientHub() = default;
+    SessionRegistry() = default;
+    ~SessionRegistry() = default;
 
-    ClientHub(const ClientHub&) = delete;
-    ClientHub& operator=(const ClientHub&) = delete;
-    ClientHub(ClientHub&&) = delete;
-    ClientHub& operator=(ClientHub&&) = delete;
+    SessionRegistry(const SessionRegistry&) = delete;
+    SessionRegistry& operator=(const SessionRegistry&) = delete;
+    SessionRegistry(SessionRegistry&&) = delete;
+    SessionRegistry& operator=(SessionRegistry&&) = delete;
 
     void add(std::shared_ptr<Session> session);
     void remove(std::uint64_t session_id);

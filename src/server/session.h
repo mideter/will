@@ -16,7 +16,7 @@
 namespace will {
 
 
-class ClientHub;
+class SessionRegistry;
 
 
 class Session : public std::enable_shared_from_this<Session> {
@@ -24,7 +24,7 @@ public:
     using TcpSocket = asio::ip::tcp::socket;
     using Strand = asio::strand<asio::io_context::executor_type>;
 
-    Session(asio::io_context& ioc, TcpSocket socket, ClientAddress address, ClientHub& hub,
+    Session(asio::io_context& ioc, TcpSocket socket, ClientAddress address, SessionRegistry& registry,
             std::size_t max_outbound_queue_bytes);
 
     std::uint64_t id() const noexcept { return id_; }
@@ -49,14 +49,14 @@ private:
     void enqueue_frame_bytes(std::vector<char> frame_bytes);
     void enqueue_payload_broadcast(const std::vector<char>& payload);
 
-    friend class ClientHub;
+    friend class SessionRegistry;
     void pump_writes();
     void on_write(const asio::error_code& ec, std::size_t n);
 
     static std::vector<char> encode_frame(const std::vector<char>& payload);
 
     const std::uint64_t id_;
-    ClientHub& hub_;
+    SessionRegistry& registry_;
     const std::size_t max_outbound_queue_bytes_;
 
     TcpSocket socket_;

@@ -7,7 +7,7 @@
 #include <vector>
 
 #include "clientaddress.h"
-#include "clienthub.h"
+#include "sessionregistry.h"
 #include "serverconfig.h"
 
 
@@ -38,7 +38,7 @@ private:
     asio::executor_work_guard<asio::io_context::executor_type> work_guard_;
     asio::ip::tcp::acceptor acceptor_;
     asio::signal_set signals_;
-    ClientHub hub_;
+    SessionRegistry registry_;
     std::vector<std::thread> io_threads_;
     std::atomic<bool> stopping_{false};
 };

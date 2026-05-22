@@ -15,18 +15,18 @@ This document records project conventions so changes stay consistent. When in do
 ## Naming
 
 - **Namespace:** `will` for project code.
-- **Types (classes, structs, enums, type aliases):** `PascalCase` (for example `ClientHub`, `ConnectionAcceptor`).
+- **Types (classes, structs, enums, type aliases):** `PascalCase` (for example `SessionRegistry`, `ConnectionAcceptor`).
 - **Functions and methods:** `snake_case` (for example `listen_fd`, `accept_next`).
 - **Variables and parameters:** `snake_case`.
 - **Private or implementation-detail members:** trailing underscore, for example `clients_`, `listen_socket_`.
 - **Compile-time constants in class scope:** `PascalCase` for `static constexpr` names where they read as constants (for example `Backlog`).
-- **Files:** lowercase, no separators, stem matches the primary type when practical (`clienthub.cpp` / `clienthub.h`, `connectionacceptor.h`).
+- **Files:** lowercase, no separators, stem matches the primary type when practical (`sessionregistry.cpp` / `sessionregistry.h`, `connectionacceptor.h`).
 
 ## Headers
 
 - Use `#pragma once` as the include guard mechanism.
 - Include order: paired header first, then a blank line, then system/library headers, then other project headers. Group with blank lines when it improves readability.
-- Prefer quoted includes for project headers (`#include "clienthub.h"`).
+- Prefer quoted includes for project headers (`#include "sessionregistry.h"`).
 
 ## Formatting
 

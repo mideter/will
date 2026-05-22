@@ -1,4 +1,4 @@
-#include "clienthub.h"
+#include "sessionregistry.h"
 
 #include <iostream>
 
@@ -9,7 +9,7 @@
 namespace will {
 
 
-void ClientHub::add(std::shared_ptr<Session> session)
+void SessionRegistry::add(std::shared_ptr<Session> session)
 {
     if (!session)
         return;
@@ -20,7 +20,7 @@ void ClientHub::add(std::shared_ptr<Session> session)
 }
 
 
-void ClientHub::remove(std::uint64_t session_id)
+void SessionRegistry::remove(std::uint64_t session_id)
 {
     std::shared_ptr<Session> gone;
 
@@ -39,7 +39,7 @@ void ClientHub::remove(std::uint64_t session_id)
 }
 
 
-void ClientHub::reset()
+void SessionRegistry::reset()
 {
     std::lock_guard lock(mutex_);
 
@@ -50,7 +50,7 @@ void ClientHub::reset()
 }
 
 
-void ClientHub::shutdown_all()
+void SessionRegistry::shutdown_all()
 {
     std::vector<std::shared_ptr<Session>> sessions;
 
@@ -69,14 +69,14 @@ void ClientHub::shutdown_all()
 }
 
 
-std::size_t ClientHub::count() const noexcept
+std::size_t SessionRegistry::count() const noexcept
 {
     std::lock_guard lock(mutex_);
     return sessions_.size();
 }
 
 
-void ClientHub::broadcast_except(const Session& sender, const std::vector<char>& payload)
+void SessionRegistry::broadcast_except(const Session& sender, const std::vector<char>& payload)
 {
     std::cout << "Broadcast from " << sender.address() << ": "
               << WillMessage::format_payload_for_log(payload) << std::endl;
@@ -98,7 +98,7 @@ void ClientHub::broadcast_except(const Session& sender, const std::vector<char>&
 }
 
 
-bool ClientHub::at_capacity(std::size_t max_connections) const noexcept
+bool SessionRegistry::at_capacity(std::size_t max_connections) const noexcept
 {
     std::lock_guard lock(mutex_);
     return sessions_.size() >= max_connections;
