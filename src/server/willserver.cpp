@@ -14,7 +14,7 @@ WillServer::WillServer(ServerConfig config)
 
 void WillServer::run()
 {
-    log_startup(config());
+    log_startup(config_);
     AsioMessengerServer::run();
 }
 

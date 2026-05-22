@@ -21,7 +21,8 @@ public:
     void run();
     void request_stop();
 
-    const ServerConfig& config() const noexcept { return config_; }
+protected:
+    ServerConfig config_;
 
 private:
     void open_acceptor();
@@ -31,8 +32,6 @@ private:
     void on_signal(const asio::error_code& ec, int signal_number);
 
     static ClientAddress address_from_socket(const asio::ip::tcp::socket& socket);
-
-    ServerConfig config_;
     
     asio::io_context ioc_;
     asio::executor_work_guard<asio::io_context::executor_type> work_guard_;
