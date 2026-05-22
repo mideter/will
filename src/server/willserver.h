@@ -9,7 +9,7 @@ namespace will {
 
 class WillServer : private AsioMessengerServer {
 public:
-    static constexpr const char* Version = "4.0.1";
+    static constexpr const char* Version = "4.0.2";
 
     explicit WillServer(ServerConfig config = {});
 
