@@ -6,9 +6,9 @@
 
 int main(int argc, char* argv[])
 try {
-    const will::ServerConfig config = will::ServerConfigParser::parse(argc, argv);
+    const will::ServerConfigParser config_parser(argc, argv);
 
-    will::WillServer server(config);
+    will::WillServer server(config_parser.config());
     server.run();
 
     return 0;
