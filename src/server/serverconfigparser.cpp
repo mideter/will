@@ -37,20 +37,50 @@ void ServerConfigParser::print_usage()
 void ServerConfigParser::parse_command_line()
 {
     for (index_ = 1; index_ < argc_; ++index_) {
-        const std::string_view option{argv_[index_]};
+        const std::string_view option_text{argv_[index_]};
+        const Option option = classify_option(option_text);
 
-        try {
-            apply_option(option);
+        if (option == Option::Help) {
+            print_usage();
+            std::exit(0);
         }
-        catch (const ServerConfigError& error) {
-            cli_fail_option(option, error);
+        if (option == Option::Unknown) {
+            std::cerr << "Unknown option: " << option_text << '\n';
+            print_usage();
+            std::exit(2);
         }
+
+        apply_option(option);
     }
 }
 
 
-std::string_view ServerConfigParser::need_value(const char* flag)
+const char* ServerConfigParser::option_flag(Option option)
 {
+    switch (option) {
+    case Option::Port:
+        return "--port";
+    case Option::IoThreads:
+        return "--io-threads";
+    case Option::ListenBacklog:
+        return "--listen-backlog";
+    case Option::MaxClients:
+        return "--max-clients";
+    case Option::MaxOutboundQueueBytes:
+        return "--max-outbound-queue-bytes";
+    case Option::Help:
+    case Option::Unknown:
+        break;
+    }
+
+    return "option";
+}
+
+
+std::string_view ServerConfigParser::need_value(Option option)
+{
+    const char* flag = option_flag(option);
+
     if (index_ + 1 >= argc_) {
         std::cerr << flag << " requires a value\n";
         print_usage();
@@ -85,105 +115,86 @@ std::optional<int> ServerConfigParser::parse_int(std::string_view text)
 }
 
 
-void ServerConfigParser::cli_fail(const char* message) const
+void ServerConfigParser::cli_fail_flag(Option option) const
 {
-    std::cerr << message << std::endl;
+    std::cerr << "Invalid " << option_flag(option) << '\n';
     std::exit(2);
 }
 
 
-void ServerConfigParser::cli_fail_option(std::string_view option, const ServerConfigError& error) const
+void ServerConfigParser::cli_fail_option(Option option, const ServerConfigError& error) const
 {
-    std::cerr << "Invalid " << option << ": " << error.what() << '\n';
+    std::cerr << "Invalid " << option_flag(option) << ": " << error.what() << '\n';
     std::exit(2);
 }
 
 
-void ServerConfigParser::apply_port()
+int ServerConfigParser::require_int(Option option)
 {
-    const auto port = parse_int(need_value("--port"));
+    const auto value = parse_int(need_value(option));
 
-    if (!port)
-        cli_fail("Invalid --port");
+    if (!value)
+        cli_fail_flag(option);
 
-    config_.set_listen_port(*port);
+    return *value;
 }
 
 
-void ServerConfigParser::apply_io_threads()
+std::size_t ServerConfigParser::require_size(Option option)
 {
-    const auto n = parse_int(need_value("--io-threads"));
+    const auto value = parse_size(need_value(option));
 
-    if (!n)
-        cli_fail("Invalid --io-threads");
+    if (!value)
+        cli_fail_flag(option);
 
-    config_.set_io_threads(*n);
+    return *value;
 }
 
 
-void ServerConfigParser::apply_listen_backlog()
+ServerConfigParser::Option ServerConfigParser::classify_option(std::string_view option)
 {
-    const auto n = parse_int(need_value("--listen-backlog"));
+    if (option == "--port")
+        return Option::Port;
+    if (option == "--io-threads")
+        return Option::IoThreads;
+    if (option == "--listen-backlog")
+        return Option::ListenBacklog;
+    if (option == "--max-clients")
+        return Option::MaxClients;
+    if (option == "--max-outbound-queue-bytes")
+        return Option::MaxOutboundQueueBytes;
+    if (option == "--help" || option == "-h")
+        return Option::Help;
 
-    if (!n)
-        cli_fail("Invalid --listen-backlog");
-
-    config_.set_listen_backlog(*n);
+    return Option::Unknown;
 }
 
 
-void ServerConfigParser::apply_max_clients()
-{
-    const auto n = parse_size(need_value("--max-clients"));
-
-    if (!n)
-        cli_fail("Invalid --max-clients");
-
-    config_.set_max_connections(*n);
+void ServerConfigParser::apply_option(Option option)
+try {
+    switch (option) {
+    case Option::Port:
+        config_.set_listen_port(require_int(option));
+        break;
+    case Option::IoThreads:
+        config_.set_io_threads(require_int(option));
+        break;
+    case Option::ListenBacklog:
+        config_.set_listen_backlog(require_int(option));
+        break;
+    case Option::MaxClients:
+        config_.set_max_connections(require_size(option));
+        break;
+    case Option::MaxOutboundQueueBytes:
+        config_.set_max_outbound_queue_bytes(require_size(option));
+        break;
+    case Option::Help:
+    case Option::Unknown:
+        break;
+    }
 }
-
-
-void ServerConfigParser::apply_max_outbound_queue_bytes()
-{
-    const auto n = parse_size(need_value("--max-outbound-queue-bytes"));
-
-    if (!n)
-        cli_fail("Invalid --max-outbound-queue-bytes");
-
-    config_.set_max_outbound_queue_bytes(*n);
-}
-
-
-void ServerConfigParser::apply_option(std::string_view option)
-{
-    if (option == "--port") {
-        apply_port();
-        return;
-    }
-    if (option == "--io-threads") {
-        apply_io_threads();
-        return;
-    }
-    if (option == "--listen-backlog") {
-        apply_listen_backlog();
-        return;
-    }
-    if (option == "--max-clients") {
-        apply_max_clients();
-        return;
-    }
-    if (option == "--max-outbound-queue-bytes") {
-        apply_max_outbound_queue_bytes();
-        return;
-    }
-    if (option == "--help" || option == "-h") {
-        print_usage();
-        std::exit(0);
-    }
-
-    std::cerr << "Unknown option: " << option << '\n';
-    print_usage();
-    std::exit(2);
+catch (const ServerConfigError& error) {
+    cli_fail_option(option, error);
 }
 
 

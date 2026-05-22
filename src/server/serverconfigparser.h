@@ -20,23 +20,32 @@ public:
     static void print_usage();
 
 private:
+    enum class Option {
+        Port,
+        IoThreads,
+        ListenBacklog,
+        MaxClients,
+        MaxOutboundQueueBytes,
+        Help,
+        Unknown
+    };
+
+    static Option classify_option(std::string_view option);
+    static const char* option_flag(Option option);
+
     void parse_command_line();
 
-    [[nodiscard]] std::string_view need_value(const char* flag);
+    [[nodiscard]] std::string_view need_value(Option option);
+    [[nodiscard]] int require_int(Option option);
+    [[nodiscard]] std::size_t require_size(Option option);
 
     static std::optional<std::size_t> parse_size(std::string_view text);
     static std::optional<int> parse_int(std::string_view text);
 
-    [[noreturn]] void cli_fail(const char* message) const;
-    [[noreturn]] void cli_fail_option(std::string_view option, const ServerConfigError& error) const;
+    [[noreturn]] void cli_fail_flag(Option option) const;
+    [[noreturn]] void cli_fail_option(Option option, const ServerConfigError& error) const;
 
-    void apply_port();
-    void apply_io_threads();
-    void apply_listen_backlog();
-    void apply_max_clients();
-    void apply_max_outbound_queue_bytes();
-
-    void apply_option(std::string_view option);
+    void apply_option(Option option);
 
     ServerConfig config_;
     int argc_;
