@@ -33,11 +33,14 @@ private:
     static ClientAddress address_from_socket(const asio::ip::tcp::socket& socket);
 
     ServerConfig config_;
+    
     asio::io_context ioc_;
     asio::executor_work_guard<asio::io_context::executor_type> work_guard_;
     asio::ip::tcp::acceptor acceptor_;
     asio::signal_set signals_;
+
     SessionRegistry registry_;
+    
     std::vector<std::thread> io_threads_;
     std::atomic<bool> stopping_{false};
 };

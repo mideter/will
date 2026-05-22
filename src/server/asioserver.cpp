@@ -134,7 +134,9 @@ void AsioMessengerServer::request_stop()
 
     asio::error_code ignored;
     acceptor_.close(ignored);
+
     registry_.close_all_sessions();
+    
     work_guard_.reset();
     ioc_.stop();
 }

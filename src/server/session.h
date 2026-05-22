@@ -45,7 +45,6 @@ private:
     void enqueue_frame_bytes(std::vector<char> frame_bytes);
     void enqueue_payload_broadcast(const std::vector<char>& payload);
 
-    friend class SessionRegistry;
     void pump_writes();
     void on_write(const asio::error_code& ec, std::size_t n);
 
@@ -67,6 +66,8 @@ private:
     bool closed_ = false;
 
     static std::atomic<std::uint64_t> next_id_;
+
+    friend class SessionRegistry;
 };
 
 
