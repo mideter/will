@@ -144,7 +144,7 @@ void Session::handle_complete_payload()
     const std::vector<char> payload = body_buf_;
     enqueue_frame_bytes(encode_frame(WillMessage::encode_server_receipt_ack()));
 
-    hub_.broadcast_except(id_, payload, [payload](const std::shared_ptr<Session>& peer) {
+    hub_.broadcast_except(id_, [payload](const std::shared_ptr<Session>& peer) {
         peer->enqueue_payload_broadcast(payload);
     });
 

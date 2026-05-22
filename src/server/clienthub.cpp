@@ -76,7 +76,7 @@ std::size_t ClientHub::count() const noexcept
 }
 
 
-void ClientHub::broadcast_except(std::uint64_t except_id, const std::vector<char>& payload,
+void ClientHub::broadcast_except(std::uint64_t except_id,
                                  const std::function<void(const std::shared_ptr<Session>&)>& enqueue_fn)
 {
     std::vector<std::shared_ptr<Session>> peers;
