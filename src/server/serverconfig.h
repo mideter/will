@@ -10,6 +10,8 @@ namespace will {
 /** Server configuration with enforced field invariants. */
 class ServerConfig {
 public:
+    static constexpr int MinListenPort = 1;
+    static constexpr int MaxListenPort = 65535;
     static constexpr std::uint16_t DefaultListenPort = 7770;
     static constexpr int DefaultIoThreads = 4;
     static constexpr int DefaultListenBacklog = 1024;
@@ -27,7 +29,7 @@ public:
         return max_outbound_queue_bytes_;
     }
 
-    void set_listen_port(std::uint16_t port);
+    void set_listen_port(int port);
     void set_io_threads(int threads);
     void set_listen_backlog(int backlog);
     void set_max_connections(std::size_t max_connections);

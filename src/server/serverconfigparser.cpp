@@ -20,7 +20,8 @@ void ServerConfigParser::print_usage()
 {
     std::cerr
         << "Usage: will-server [options]\n"
-        << "  --port PORT                 Listen port (default "
+        << "  --port PORT                 Listen port "
+        << ServerConfig::MinListenPort << "-" << ServerConfig::MaxListenPort << " (default "
         << ServerConfig::DefaultListenPort << ")\n"
         << "  --io-threads N              io_context worker threads (default "
         << ServerConfig::DefaultIoThreads << ")\n"
@@ -102,10 +103,10 @@ void ServerConfigParser::apply_port()
 {
     const auto port = parse_int(need_value("--port"));
 
-    if (!port || *port <= 0 || *port > 65535)
+    if (!port)
         cli_fail("Invalid --port");
 
-    config_.set_listen_port(static_cast<std::uint16_t>(*port));
+    config_.set_listen_port(*port);
 }
 
 

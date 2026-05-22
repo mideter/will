@@ -9,12 +9,12 @@ namespace will {
 ServerConfig::ServerConfig() = default;
 
 
-void ServerConfig::set_listen_port(std::uint16_t port)
+void ServerConfig::set_listen_port(int port)
 {
-    if (port == 0)
+    if (port < MinListenPort || port > MaxListenPort)
         throw ServerConfigError("listen_port", "must be between 1 and 65535");
 
-    listen_port_ = port;
+    listen_port_ = static_cast<std::uint16_t>(port);
 }
 
 
