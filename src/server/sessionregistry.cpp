@@ -39,17 +39,6 @@ void SessionRegistry::remove(std::uint64_t session_id)
 }
 
 
-void SessionRegistry::reset()
-{
-    std::lock_guard lock(mutex_);
-
-    for (const auto& [id, session] : sessions_)
-        std::cout << "Client " << session->address() << " disconnected" << std::endl;
-    
-    sessions_.clear();
-}
-
-
 void SessionRegistry::shutdown_all()
 {
     std::vector<std::shared_ptr<Session>> sessions;

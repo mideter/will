@@ -41,8 +41,6 @@ void AsioMessengerServer::setup_signals()
 
 void AsioMessengerServer::run()
 {
-    registry_.reset();
-
     do_accept();
 
     const int thread_count = config_.io_threads > 0 ? config_.io_threads : 1;

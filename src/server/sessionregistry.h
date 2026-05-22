@@ -29,7 +29,6 @@ public:
 
     void add(std::shared_ptr<Session> session);
     void remove(std::uint64_t session_id);
-    void reset();
 
     /** Closes all sessions and clears the registry. */
     void shutdown_all();
