@@ -9,6 +9,36 @@ namespace will {
 ServerConfig::ServerConfig() = default;
 
 
+std::uint16_t ServerConfig::listen_port() const noexcept
+{
+    return listen_port_;
+}
+
+
+int ServerConfig::io_threads() const noexcept
+{
+    return io_threads_;
+}
+
+
+int ServerConfig::listen_backlog() const noexcept
+{
+    return listen_backlog_;
+}
+
+
+std::size_t ServerConfig::max_connections() const noexcept
+{
+    return max_connections_;
+}
+
+
+std::size_t ServerConfig::max_outbound_queue_bytes() const noexcept
+{
+    return max_outbound_queue_bytes_;
+}
+
+
 void ServerConfig::set_listen_port(int port)
 {
     if (port < MinListenPort || port > MaxListenPort)
