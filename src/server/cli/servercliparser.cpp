@@ -31,6 +31,37 @@ void ServerCliParser::print_option_usage(std::ostream& os)
 }
 
 
+bool ServerCliParser::is_help_option(const CliOptionMatch& option)
+{
+    const std::string_view token = option.token();
+    return token == "--help" || token == "-h";
+}
+
+
+void ServerCliParser::apply_matched_option(const CliOptionMatch& option)
+try {
+    server_config_.apply_cli_option(option);
+}
+catch (const std::exception& error) {
+    cli_fail_option(option.primary_flag(), error);
+}
+
+
+void ServerCliParser::fail_unknown_option(const CliOptionMatch& option)
+{
+    std::cerr << "Unknown option: " << option.token() << '\n';
+    print_usage();
+    std::exit(2);
+}
+
+
+void ServerCliParser::exit_with_help()
+{
+    print_usage();
+    std::exit(0);
+}
+
+
 void ServerCliParser::cli_fail_option(std::string_view flag, const std::exception& error)
 {
     std::cerr << "Invalid " << flag << ": " << error.what() << '\n';
@@ -46,25 +77,13 @@ void ServerCliParser::parse_command_line(int argc, char* argv[])
     while (cursor.has_option()) {
         const CliOptionMatch option = cursor.get_option(all_server_cli_options());
 
-        if (!option) {
-            std::cerr << "Unknown option: " << option.token() << '\n';
-            print_usage();
-            std::exit(2);
-        }
+        if (!option)
+            fail_unknown_option(option);
 
-        const std::string_view token = option.token();
-        if (token == "--help" || token == "-h") {
-            print_usage();
-            std::exit(0);
-        }
+        if (is_help_option(option))
+            exit_with_help();
 
-        try {
-            server_config_.apply_cli_option(option);
-        }
-        catch (const std::exception& error) {
-            cli_fail_option(option.primary_flag(), error);
-        }
-
+        apply_matched_option(option);
         cursor.next_option();
     }
 }
