@@ -2,9 +2,8 @@
 
 #include "clioption.h"
 
-#include <array>
-#include <cstddef>
 #include <iosfwd>
+#include <span>
 #include <string_view>
 
 
@@ -73,8 +72,8 @@ public:
 };
 
 
-[[nodiscard]] const std::array<const CliOption*, 6>& all_server_cli_options();
-[[nodiscard]] const std::array<const CliOption*, 5>& config_server_cli_options();
+[[nodiscard]] std::span<const CliOption* const> all_server_cli_options();
+[[nodiscard]] std::span<const CliOption* const> config_server_cli_options();
 
 
 } // namespace will

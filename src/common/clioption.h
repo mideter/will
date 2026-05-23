@@ -1,7 +1,5 @@
 #pragma once
 
-#include <array>
-#include <cstddef>
 #include <iosfwd>
 #include <optional>
 #include <string_view>
@@ -64,26 +62,6 @@ private:
     std::optional<int> int_value_;
     std::optional<std::size_t> size_value_;
 };
-
-
-template<std::size_t N>
-[[nodiscard]] CliOptionMatch find_cli_option(const std::array<const CliOption*, N>& options, std::string_view text)
-{
-    for (const CliOption* option : options) {
-        if (option->matches(text))
-            return CliOptionMatch(option, text);
-    }
-
-    return CliOptionMatch(nullptr, text);
-}
-
-
-template<std::size_t N>
-void print_cli_usage(std::ostream& os, const std::array<const CliOption*, N>& options)
-{
-    for (const CliOption* option : options)
-        option->print_usage(os);
-}
 
 
 } // namespace will

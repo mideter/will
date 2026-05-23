@@ -26,7 +26,8 @@ void ServerCliParser::print_usage()
 
 void ServerCliParser::print_option_usage(std::ostream& os)
 {
-    print_cli_usage(os, config_server_cli_options());
+    for (const CliOption* option : config_server_cli_options())
+        option->print_usage(os);
 }
 
 

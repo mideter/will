@@ -2,6 +2,7 @@
 
 #include "serverconfig.h"
 
+#include <array>
 #include <iostream>
 
 
@@ -127,7 +128,7 @@ void HelpCliOption::print_usage(std::ostream& os) const
 }
 
 
-const std::array<const CliOption*, 6>& all_server_cli_options()
+std::span<const CliOption* const> all_server_cli_options()
 {
     static const std::array<const CliOption*, 6> options{
         &PortCliOption::instance(),
@@ -141,7 +142,7 @@ const std::array<const CliOption*, 6>& all_server_cli_options()
 }
 
 
-const std::array<const CliOption*, 5>& config_server_cli_options()
+std::span<const CliOption* const> config_server_cli_options()
 {
     static const std::array<const CliOption*, 5> options{
         &PortCliOption::instance(),

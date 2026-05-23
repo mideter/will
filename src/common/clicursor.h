@@ -2,9 +2,8 @@
 
 #include "clioption.h"
 
-#include <array>
-#include <cstddef>
 #include <optional>
+#include <span>
 #include <string_view>
 
 
@@ -22,13 +21,7 @@ public:
 
     [[nodiscard]] std::string_view current_option() const;
 
-    template<std::size_t N>
-    [[nodiscard]] CliOptionMatch get_option(const std::array<const CliOption*, N>& options)
-    {
-        CliOptionMatch match = find_cli_option(options, current_option());
-        match.read_value(*this);
-        return match;
-    }
+    [[nodiscard]] CliOptionMatch get_option(std::span<const CliOption* const> options);
 
     [[nodiscard]] std::string_view need_value(std::string_view flag);
     [[nodiscard]] int require_int(std::string_view flag);
