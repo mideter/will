@@ -72,8 +72,9 @@ void ServerConfigParser::parse_command_line(int argc, char* argv[])
 {
     CliParserContext context(argc, argv);
 
-    for (context.set_index(1); context.index() < context.argc();
-         context.set_index(context.index() + 1)) {
+    context.set_index(1);
+    
+    while (context.index() < context.argc()) {
         const std::string_view option_text = context.current();
         const ServerCliOption* const option = find_option(option_text);
 
@@ -89,6 +90,8 @@ void ServerConfigParser::parse_command_line(int argc, char* argv[])
         catch (const std::exception& error) {
             context.cli_fail_option(option->primary_flag(), error);
         }
+
+        context.set_index(context.index() + 1);
     }
 }
 
