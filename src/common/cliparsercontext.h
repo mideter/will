@@ -9,10 +9,10 @@
 namespace will {
 
 
-/** argv cursor and value parsing (no configuration target). */
-class CliParserContextBase {
+/** argv cursor and value parsing. */
+class CliParserContext {
 public:
-    CliParserContextBase(int argc, char* argv[]);
+    CliParserContext(int argc, char* argv[]);
 
     [[nodiscard]] int argc() const noexcept { return argc_; }
     [[nodiscard]] int index() const noexcept { return index_; }
@@ -35,27 +35,6 @@ private:
     char** argv_;
     int index_ = 0;
 };
-
-
-/** argv cursor bound to a configuration object of type Config. */
-template<typename Config>
-class CliParserContext : public CliParserContextBase {
-public:
-    CliParserContext(int argc, char* argv[], Config& config);
-
-    [[nodiscard]] Config& config() noexcept { return config_; }
-    [[nodiscard]] const Config& config() const noexcept { return config_; }
-
-private:
-    Config& config_;
-};
-
-
-template<typename Config>
-CliParserContext<Config>::CliParserContext(int argc, char* argv[], Config& config)
-    : CliParserContextBase(argc, argv)
-    , config_(config)
-{}
 
 
 } // namespace will

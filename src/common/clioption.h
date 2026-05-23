@@ -20,7 +20,7 @@ public:
     [[nodiscard]] virtual std::string_view primary_flag() const = 0;
 
     virtual void print_usage(std::ostream& os) const = 0;
-    virtual void apply(CliParserContext<Config>& context) const = 0;
+    virtual void apply(CliParserContext& context, Config& config) const = 0;
 };
 
 

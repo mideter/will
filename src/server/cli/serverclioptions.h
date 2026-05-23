@@ -16,7 +16,7 @@ public:
     [[nodiscard]] std::string_view primary_flag() const override;
 
     void print_usage(std::ostream& os) const override;
-    void apply(CliParserContext<ServerConfig>& context) const override;
+    void apply(CliParserContext& context, ServerConfig& config) const override;
 };
 
 
@@ -26,7 +26,7 @@ public:
     [[nodiscard]] std::string_view primary_flag() const override;
 
     void print_usage(std::ostream& os) const override;
-    void apply(CliParserContext<ServerConfig>& context) const override;
+    void apply(CliParserContext& context, ServerConfig& config) const override;
 };
 
 
@@ -36,7 +36,7 @@ public:
     [[nodiscard]] std::string_view primary_flag() const override;
 
     void print_usage(std::ostream& os) const override;
-    void apply(CliParserContext<ServerConfig>& context) const override;
+    void apply(CliParserContext& context, ServerConfig& config) const override;
 };
 
 
@@ -46,7 +46,7 @@ public:
     [[nodiscard]] std::string_view primary_flag() const override;
 
     void print_usage(std::ostream& os) const override;
-    void apply(CliParserContext<ServerConfig>& context) const override;
+    void apply(CliParserContext& context, ServerConfig& config) const override;
 };
 
 
@@ -56,7 +56,7 @@ public:
     [[nodiscard]] std::string_view primary_flag() const override;
 
     void print_usage(std::ostream& os) const override;
-    void apply(CliParserContext<ServerConfig>& context) const override;
+    void apply(CliParserContext& context, ServerConfig& config) const override;
 };
 
 
@@ -66,7 +66,7 @@ public:
     [[nodiscard]] std::string_view primary_flag() const override;
 
     void print_usage(std::ostream& os) const override;
-    void apply(CliParserContext<ServerConfig>& context) const override;
+    void apply(CliParserContext& context, ServerConfig& config) const override;
 };
 
 

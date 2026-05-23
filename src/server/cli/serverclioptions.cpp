@@ -28,9 +28,9 @@ void PortCliOption::print_usage(std::ostream& os) const
 }
 
 
-void PortCliOption::apply(CliParserContext<ServerConfig>& context) const
+void PortCliOption::apply(CliParserContext& context, ServerConfig& config) const
 {
-    context.config().set_listen_port(context.require_int(primary_flag()));
+    config.set_listen_port(context.require_int(primary_flag()));
 }
 
 
@@ -53,9 +53,9 @@ void IoThreadsCliOption::print_usage(std::ostream& os) const
 }
 
 
-void IoThreadsCliOption::apply(CliParserContext<ServerConfig>& context) const
+void IoThreadsCliOption::apply(CliParserContext& context, ServerConfig& config) const
 {
-    context.config().set_io_threads(context.require_int(primary_flag()));
+    config.set_io_threads(context.require_int(primary_flag()));
 }
 
 
@@ -78,9 +78,9 @@ void ListenBacklogCliOption::print_usage(std::ostream& os) const
 }
 
 
-void ListenBacklogCliOption::apply(CliParserContext<ServerConfig>& context) const
+void ListenBacklogCliOption::apply(CliParserContext& context, ServerConfig& config) const
 {
-    context.config().set_listen_backlog(context.require_int(primary_flag()));
+    config.set_listen_backlog(context.require_int(primary_flag()));
 }
 
 
@@ -103,9 +103,9 @@ void MaxClientsCliOption::print_usage(std::ostream& os) const
 }
 
 
-void MaxClientsCliOption::apply(CliParserContext<ServerConfig>& context) const
+void MaxClientsCliOption::apply(CliParserContext& context, ServerConfig& config) const
 {
-    context.config().set_max_connections(context.require_size(primary_flag()));
+    config.set_max_connections(context.require_size(primary_flag()));
 }
 
 
@@ -128,9 +128,9 @@ void MaxOutboundQueueCliOption::print_usage(std::ostream& os) const
 }
 
 
-void MaxOutboundQueueCliOption::apply(CliParserContext<ServerConfig>& context) const
+void MaxOutboundQueueCliOption::apply(CliParserContext& context, ServerConfig& config) const
 {
-    context.config().set_max_outbound_queue_bytes(context.require_size(primary_flag()));
+    config.set_max_outbound_queue_bytes(context.require_size(primary_flag()));
 }
 
 
@@ -152,9 +152,10 @@ void HelpCliOption::print_usage(std::ostream& os) const
 }
 
 
-void HelpCliOption::apply(CliParserContext<ServerConfig>& context) const
+void HelpCliOption::apply(CliParserContext& context, ServerConfig& config) const
 {
     (void)context;
+    (void)config;
 
     ServerConfigParser::print_usage();
     std::exit(0);

@@ -72,7 +72,7 @@ const ServerCliOption* ServerConfigParser::find_option(std::string_view text)
 
 void ServerConfigParser::parse_command_line()
 {
-    CliParserContext<ServerConfig> context(argc_, argv_, config_);
+    CliParserContext context(argc_, argv_);
 
     for (context.set_index(1); context.index() < context.argc();
          context.set_index(context.index() + 1)) {
@@ -86,7 +86,7 @@ void ServerConfigParser::parse_command_line()
         }
 
         try {
-            option->apply(context);
+            option->apply(context, config_);
         }
         catch (const std::exception& error) {
             context.cli_fail_option(option->primary_flag(), error);
