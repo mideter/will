@@ -1,4 +1,4 @@
-#include "serverconfigparser.h"
+#include "servercliparser.h"
 
 #include "cliparsercontext.h"
 #include "serverclioptions.h"
@@ -43,37 +43,36 @@ const std::array<const ServerCliOption*, 5>& config_server_cli_options()
 } // namespace
 
 
-ServerConfigParser::ServerConfigParser(int argc, char* argv[])
+ServerCliParser::ServerCliParser(int argc, char* argv[])
 {
     parse_command_line(argc, argv);
 }
 
 
-void ServerConfigParser::print_usage()
+void ServerCliParser::print_usage()
 {
     std::cerr << "Usage: will-server [options]\n";
     print_option_usage(std::cerr);
 }
 
 
-void ServerConfigParser::print_option_usage(std::ostream& os)
+void ServerCliParser::print_option_usage(std::ostream& os)
 {
     print_cli_usage(os, config_server_cli_options());
 }
 
 
-const ServerCliOption* ServerConfigParser::find_option(std::string_view text)
+const ServerCliOption* ServerCliParser::find_option(std::string_view text)
 {
     return find_cli_option(all_server_cli_options(), text);
 }
 
 
-void ServerConfigParser::parse_command_line(int argc, char* argv[])
+void ServerCliParser::parse_command_line(int argc, char* argv[])
 {
     CliParserContext context(argc, argv);
 
     context.set_index(1);
-    
     while (context.index() < context.argc()) {
         const std::string_view option_text = context.current();
         const ServerCliOption* const option = find_option(option_text);
@@ -85,7 +84,7 @@ void ServerConfigParser::parse_command_line(int argc, char* argv[])
         }
 
         try {
-            option->apply(context, config_);
+            option->apply(context, server_config_);
         }
         catch (const std::exception& error) {
             context.cli_fail_option(option->primary_flag(), error);

@@ -1,6 +1,6 @@
 #include "serverclioptions.h"
 
-#include "serverconfigparser.h"
+#include "servercliparser.h"
 
 #include <cstdlib>
 #include <iostream>
@@ -157,7 +157,7 @@ void HelpCliOption::apply(CliParserContext& context, ServerConfig& config) const
     (void)context;
     (void)config;
 
-    ServerConfigParser::print_usage();
+    ServerCliParser::print_usage();
     std::exit(0);
 }
 

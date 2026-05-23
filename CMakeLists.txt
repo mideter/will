@@ -35,7 +35,7 @@ add_executable(will-server
   src/server/server.cpp
   src/server/serverconfig.cpp
   src/server/serverconfigerror.cpp
-  src/server/cli/serverconfigparser.cpp
+  src/server/cli/servercliparser.cpp
   src/server/cli/serverclioptions.cpp
   src/server/sessionregistry.cpp
   src/server/willserver.cpp
