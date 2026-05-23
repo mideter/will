@@ -20,14 +20,8 @@ ServerCliParser::ServerCliParser(int argc, char* argv[])
 void ServerCliParser::print_usage()
 {
     std::cerr << "Usage: will-server [options]\n";
-    print_option_usage(std::cerr);
-}
-
-
-void ServerCliParser::print_option_usage(std::ostream& os)
-{
-    for (const CliOption* option : config_server_cli_options())
-        option->print_usage(os);
+    for (const CliOption* option : CliOption::all_options())
+        option->print_usage(std::cerr);
 }
 
 
@@ -75,7 +69,7 @@ void ServerCliParser::parse_command_line(int argc, char* argv[])
 
     cursor.begin_options();
     while (cursor.has_option()) {
-        const CliOptionMatch option = cursor.get_option(all_server_cli_options());
+        const CliOptionMatch option = cursor.get_option(CliOption::all_options());
 
         if (!option)
             fail_unknown_option(option);

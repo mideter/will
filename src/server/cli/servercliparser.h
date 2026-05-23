@@ -4,7 +4,6 @@
 #include "serverconfig.h"
 
 #include <exception>
-#include <iosfwd>
 #include <string_view>
 
 
@@ -21,8 +20,6 @@ public:
 
 private:
     void parse_command_line(int argc, char* argv[]);
-
-    static void print_option_usage(std::ostream& os);
 
     static bool is_help_option(const CliOptionMatch& option);
     void apply_matched_option(const CliOptionMatch& option);

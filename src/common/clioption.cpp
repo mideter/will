@@ -6,10 +6,12 @@
 namespace will {
 
 
-CliOption::CliOption(std::string_view flag, CliValueType value_type)
+CliOption::CliOption(const std::string_view flag, const CliValueType value_type)
     : flag_(flag)
     , value_type_(value_type)
-{}
+{
+    registered_options_.push_back(this);
+}
 
 
 bool CliOption::matches(std::string_view text) const
@@ -27,6 +29,12 @@ std::string_view CliOption::primary_flag() const
 std::string_view CliOption::flag() const noexcept
 {
     return flag_;
+}
+
+
+std::span<const CliOption* const> CliOption::all_options()
+{
+    return registered_options_;
 }
 
 

@@ -2,7 +2,9 @@
 
 #include <iosfwd>
 #include <optional>
+#include <span>
 #include <string_view>
+#include <vector>
 
 
 namespace will {
@@ -28,12 +30,16 @@ public:
 
     [[nodiscard]] CliValueType value_type() const noexcept { return value_type_; }
 
+    [[nodiscard]] static std::span<const CliOption* const> all_options();
+
 protected:
     explicit CliOption(std::string_view flag, CliValueType value_type);
 
     [[nodiscard]] std::string_view flag() const noexcept;
 
 private:
+    inline static std::vector<const CliOption*> registered_options_{};
+
     std::string_view flag_;
     CliValueType value_type_;
 };

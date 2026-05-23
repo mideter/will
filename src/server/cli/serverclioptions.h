@@ -3,7 +3,6 @@
 #include "clioption.h"
 
 #include <iosfwd>
-#include <span>
 #include <string_view>
 
 
@@ -70,10 +69,6 @@ public:
 
     void print_usage(std::ostream& os) const override;
 };
-
-
-[[nodiscard]] std::span<const CliOption* const> all_server_cli_options();
-[[nodiscard]] std::span<const CliOption* const> config_server_cli_options();
 
 
 } // namespace will

@@ -2,7 +2,6 @@
 
 #include "serverconfig.h"
 
-#include <array>
 #include <iostream>
 
 
@@ -124,35 +123,30 @@ bool HelpCliOption::matches(std::string_view text) const
 
 void HelpCliOption::print_usage(std::ostream& os) const
 {
-    (void)os;
+    os << "  --help, -h                  Show this help\n";
 }
 
 
-std::span<const CliOption* const> all_server_cli_options()
-{
-    static const std::array<const CliOption*, 6> options{
-        &PortCliOption::instance(),
-        &IoThreadsCliOption::instance(),
-        &ListenBacklogCliOption::instance(),
-        &MaxClientsCliOption::instance(),
-        &MaxOutboundQueueCliOption::instance(),
-        &HelpCliOption::instance(),
-    };
-    return options;
-}
+namespace {
 
 
-std::span<const CliOption* const> config_server_cli_options()
-{
-    static const std::array<const CliOption*, 5> options{
-        &PortCliOption::instance(),
-        &IoThreadsCliOption::instance(),
-        &ListenBacklogCliOption::instance(),
-        &MaxClientsCliOption::instance(),
-        &MaxOutboundQueueCliOption::instance(),
-    };
-    return options;
-}
+struct ServerCliOptionsRegistrar {
+    ServerCliOptionsRegistrar()
+    {
+        (void)PortCliOption::instance();
+        (void)IoThreadsCliOption::instance();
+        (void)ListenBacklogCliOption::instance();
+        (void)MaxClientsCliOption::instance();
+        (void)MaxOutboundQueueCliOption::instance();
+        (void)HelpCliOption::instance();
+    }
+};
+
+
+const ServerCliOptionsRegistrar server_cli_options_registrar;
+
+
+} // namespace
 
 
 } // namespace will
