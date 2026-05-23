@@ -20,6 +20,7 @@ FetchContent_MakeAvailable(asio)
 find_package(Threads REQUIRED)
 
 add_library(common
+  src/common/cliparsercontext.cpp
   src/common/hostaddress.cpp
   src/common/willprotocol.cpp
   src/common/willmessage.cpp
@@ -34,7 +35,8 @@ add_executable(will-server
   src/server/server.cpp
   src/server/serverconfig.cpp
   src/server/serverconfigerror.cpp
-  src/server/serverconfigparser.cpp
+  src/server/cli/serverconfigparser.cpp
+  src/server/cli/serverclioptions.cpp
   src/server/sessionregistry.cpp
   src/server/willserver.cpp
   src/server/asioserver.cpp
@@ -43,6 +45,7 @@ add_executable(will-server
 )
 target_include_directories(will-server PRIVATE
   src/server
+  src/server/cli
   ${asio_SOURCE_DIR}/asio/include
 )
 target_compile_definitions(will-server PRIVATE ASIO_STANDALONE)
