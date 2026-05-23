@@ -20,12 +20,12 @@ public:
 
     [[nodiscard]] std::string_view current() const;
 
-    [[nodiscard]] std::string_view need_value(const char* flag);
-    [[nodiscard]] int require_int(const char* flag);
-    [[nodiscard]] std::size_t require_size(const char* flag);
+    [[nodiscard]] std::string_view need_value(std::string_view flag);
+    [[nodiscard]] int require_int(std::string_view flag);
+    [[nodiscard]] std::size_t require_size(std::string_view flag);
 
-    [[noreturn]] void cli_fail_flag(const char* flag) const;
-    [[noreturn]] void cli_fail_option(const char* flag, const std::exception& error) const;
+    [[noreturn]] void cli_fail_flag(std::string_view flag) const;
+    [[noreturn]] void cli_fail_option(std::string_view flag, const std::exception& error) const;
 
 private:
     static std::optional<std::size_t> parse_size(std::string_view text);

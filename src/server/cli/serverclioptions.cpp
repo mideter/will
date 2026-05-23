@@ -15,7 +15,7 @@ bool PortCliOption::matches(std::string_view text) const
 }
 
 
-const char* PortCliOption::primary_flag() const
+std::string_view PortCliOption::primary_flag() const
 {
     return "--port";
 }
@@ -40,7 +40,7 @@ bool IoThreadsCliOption::matches(std::string_view text) const
 }
 
 
-const char* IoThreadsCliOption::primary_flag() const
+std::string_view IoThreadsCliOption::primary_flag() const
 {
     return "--io-threads";
 }
@@ -65,7 +65,7 @@ bool ListenBacklogCliOption::matches(std::string_view text) const
 }
 
 
-const char* ListenBacklogCliOption::primary_flag() const
+std::string_view ListenBacklogCliOption::primary_flag() const
 {
     return "--listen-backlog";
 }
@@ -90,7 +90,7 @@ bool MaxClientsCliOption::matches(std::string_view text) const
 }
 
 
-const char* MaxClientsCliOption::primary_flag() const
+std::string_view MaxClientsCliOption::primary_flag() const
 {
     return "--max-clients";
 }
@@ -115,7 +115,7 @@ bool MaxOutboundQueueCliOption::matches(std::string_view text) const
 }
 
 
-const char* MaxOutboundQueueCliOption::primary_flag() const
+std::string_view MaxOutboundQueueCliOption::primary_flag() const
 {
     return "--max-outbound-queue-bytes";
 }
@@ -140,7 +140,7 @@ bool HelpCliOption::matches(std::string_view text) const
 }
 
 
-const char* HelpCliOption::primary_flag() const
+std::string_view HelpCliOption::primary_flag() const
 {
     return "--help";
 }

@@ -20,7 +20,7 @@ std::string_view CliParserContextBase::current() const
 }
 
 
-std::string_view CliParserContextBase::need_value(const char* flag)
+std::string_view CliParserContextBase::need_value(std::string_view flag)
 {
     if (index_ + 1 >= argc_) {
         std::cerr << flag << " requires a value\n";
@@ -55,21 +55,21 @@ std::optional<int> CliParserContextBase::parse_int(std::string_view text)
 }
 
 
-void CliParserContextBase::cli_fail_flag(const char* flag) const
+void CliParserContextBase::cli_fail_flag(std::string_view flag) const
 {
     std::cerr << "Invalid " << flag << '\n';
     std::exit(2);
 }
 
 
-void CliParserContextBase::cli_fail_option(const char* flag, const std::exception& error) const
+void CliParserContextBase::cli_fail_option(std::string_view flag, const std::exception& error) const
 {
     std::cerr << "Invalid " << flag << ": " << error.what() << '\n';
     std::exit(2);
 }
 
 
-int CliParserContextBase::require_int(const char* flag)
+int CliParserContextBase::require_int(std::string_view flag)
 {
     const auto value = parse_int(need_value(flag));
 
@@ -80,7 +80,7 @@ int CliParserContextBase::require_int(const char* flag)
 }
 
 
-std::size_t CliParserContextBase::require_size(const char* flag)
+std::size_t CliParserContextBase::require_size(std::string_view flag)
 {
     const auto value = parse_size(need_value(flag));
 

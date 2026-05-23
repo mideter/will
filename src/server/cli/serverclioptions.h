@@ -13,7 +13,7 @@ namespace will {
 class PortCliOption final : public CliOption<ServerConfig, PortCliOption> {
 public:
     [[nodiscard]] bool matches(std::string_view text) const override;
-    [[nodiscard]] const char* primary_flag() const override;
+    [[nodiscard]] std::string_view primary_flag() const override;
 
     void print_usage(std::ostream& os) const override;
     void apply(CliParserContext<ServerConfig>& context) const override;
@@ -23,7 +23,7 @@ public:
 class IoThreadsCliOption final : public CliOption<ServerConfig, IoThreadsCliOption> {
 public:
     [[nodiscard]] bool matches(std::string_view text) const override;
-    [[nodiscard]] const char* primary_flag() const override;
+    [[nodiscard]] std::string_view primary_flag() const override;
 
     void print_usage(std::ostream& os) const override;
     void apply(CliParserContext<ServerConfig>& context) const override;
@@ -33,7 +33,7 @@ public:
 class ListenBacklogCliOption final : public CliOption<ServerConfig, ListenBacklogCliOption> {
 public:
     [[nodiscard]] bool matches(std::string_view text) const override;
-    [[nodiscard]] const char* primary_flag() const override;
+    [[nodiscard]] std::string_view primary_flag() const override;
 
     void print_usage(std::ostream& os) const override;
     void apply(CliParserContext<ServerConfig>& context) const override;
@@ -43,7 +43,7 @@ public:
 class MaxClientsCliOption final : public CliOption<ServerConfig, MaxClientsCliOption> {
 public:
     [[nodiscard]] bool matches(std::string_view text) const override;
-    [[nodiscard]] const char* primary_flag() const override;
+    [[nodiscard]] std::string_view primary_flag() const override;
 
     void print_usage(std::ostream& os) const override;
     void apply(CliParserContext<ServerConfig>& context) const override;
@@ -53,7 +53,7 @@ public:
 class MaxOutboundQueueCliOption final : public CliOption<ServerConfig, MaxOutboundQueueCliOption> {
 public:
     [[nodiscard]] bool matches(std::string_view text) const override;
-    [[nodiscard]] const char* primary_flag() const override;
+    [[nodiscard]] std::string_view primary_flag() const override;
 
     void print_usage(std::ostream& os) const override;
     void apply(CliParserContext<ServerConfig>& context) const override;
@@ -63,7 +63,7 @@ public:
 class HelpCliOption final : public CliOption<ServerConfig, HelpCliOption> {
 public:
     [[nodiscard]] bool matches(std::string_view text) const override;
-    [[nodiscard]] const char* primary_flag() const override;
+    [[nodiscard]] std::string_view primary_flag() const override;
 
     void print_usage(std::ostream& os) const override;
     void apply(CliParserContext<ServerConfig>& context) const override;

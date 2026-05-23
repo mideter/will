@@ -17,7 +17,7 @@ public:
     virtual ~CliOptionBase() = default;
 
     [[nodiscard]] virtual bool matches(std::string_view text) const = 0;
-    [[nodiscard]] virtual const char* primary_flag() const = 0;
+    [[nodiscard]] virtual std::string_view primary_flag() const = 0;
 
     virtual void print_usage(std::ostream& os) const = 0;
     virtual void apply(CliParserContext<Config>& context) const = 0;
