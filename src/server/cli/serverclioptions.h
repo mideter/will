@@ -1,8 +1,9 @@
 #pragma once
 
 #include "clioption.h"
-#include "serverconfig.h"
 
+#include <array>
+#include <cstddef>
 #include <iosfwd>
 #include <string_view>
 
@@ -10,64 +11,70 @@
 namespace will {
 
 
-class PortCliOption final : public CliOption<ServerConfig, PortCliOption> {
+class PortCliOption final : public CliOption {
 public:
-    [[nodiscard]] bool matches(std::string_view text) const override;
-    [[nodiscard]] std::string_view primary_flag() const override;
+    PortCliOption();
+
+    [[nodiscard]] static const PortCliOption& instance();
 
     void print_usage(std::ostream& os) const override;
-    void apply(CliCursor& cursor, ServerConfig& config) const override;
 };
 
 
-class IoThreadsCliOption final : public CliOption<ServerConfig, IoThreadsCliOption> {
+class IoThreadsCliOption final : public CliOption {
 public:
-    [[nodiscard]] bool matches(std::string_view text) const override;
-    [[nodiscard]] std::string_view primary_flag() const override;
+    IoThreadsCliOption();
+
+    [[nodiscard]] static const IoThreadsCliOption& instance();
 
     void print_usage(std::ostream& os) const override;
-    void apply(CliCursor& cursor, ServerConfig& config) const override;
 };
 
 
-class ListenBacklogCliOption final : public CliOption<ServerConfig, ListenBacklogCliOption> {
+class ListenBacklogCliOption final : public CliOption {
 public:
-    [[nodiscard]] bool matches(std::string_view text) const override;
-    [[nodiscard]] std::string_view primary_flag() const override;
+    ListenBacklogCliOption();
+
+    [[nodiscard]] static const ListenBacklogCliOption& instance();
 
     void print_usage(std::ostream& os) const override;
-    void apply(CliCursor& cursor, ServerConfig& config) const override;
 };
 
 
-class MaxClientsCliOption final : public CliOption<ServerConfig, MaxClientsCliOption> {
+class MaxClientsCliOption final : public CliOption {
 public:
-    [[nodiscard]] bool matches(std::string_view text) const override;
-    [[nodiscard]] std::string_view primary_flag() const override;
+    MaxClientsCliOption();
+
+    [[nodiscard]] static const MaxClientsCliOption& instance();
 
     void print_usage(std::ostream& os) const override;
-    void apply(CliCursor& cursor, ServerConfig& config) const override;
 };
 
 
-class MaxOutboundQueueCliOption final : public CliOption<ServerConfig, MaxOutboundQueueCliOption> {
+class MaxOutboundQueueCliOption final : public CliOption {
 public:
-    [[nodiscard]] bool matches(std::string_view text) const override;
-    [[nodiscard]] std::string_view primary_flag() const override;
+    MaxOutboundQueueCliOption();
+
+    [[nodiscard]] static const MaxOutboundQueueCliOption& instance();
 
     void print_usage(std::ostream& os) const override;
-    void apply(CliCursor& cursor, ServerConfig& config) const override;
 };
 
 
-class HelpCliOption final : public CliOption<ServerConfig, HelpCliOption> {
+class HelpCliOption final : public CliOption {
 public:
+    HelpCliOption();
+
+    [[nodiscard]] static const HelpCliOption& instance();
+
     [[nodiscard]] bool matches(std::string_view text) const override;
-    [[nodiscard]] std::string_view primary_flag() const override;
 
     void print_usage(std::ostream& os) const override;
-    void apply(CliCursor& cursor, ServerConfig& config) const override;
 };
+
+
+[[nodiscard]] const std::array<const CliOption*, 6>& all_server_cli_options();
+[[nodiscard]] const std::array<const CliOption*, 5>& config_server_cli_options();
 
 
 } // namespace will

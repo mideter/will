@@ -3,14 +3,12 @@
 #include "clioption.h"
 #include "serverconfig.h"
 
+#include <exception>
 #include <iosfwd>
 #include <string_view>
 
 
 namespace will {
-
-
-using ServerCliOption = CliOptionBase<ServerConfig>;
 
 
 class ServerCliParser {
@@ -25,7 +23,8 @@ private:
     void parse_command_line(int argc, char* argv[]);
 
     static void print_option_usage(std::ostream& os);
-    [[nodiscard]] static const ServerCliOption* find_option(std::string_view text);
+
+    [[noreturn]] static void cli_fail_option(std::string_view flag, const std::exception& error);
 
     ServerConfig server_config_;
 };

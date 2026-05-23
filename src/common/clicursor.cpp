@@ -80,13 +80,6 @@ void CliCursor::cli_fail_flag(std::string_view flag) const
 }
 
 
-void CliCursor::cli_fail_option(std::string_view flag, const std::exception& error) const
-{
-    std::cerr << "Invalid " << flag << ": " << error.what() << '\n';
-    std::exit(2);
-}
-
-
 int CliCursor::require_int(std::string_view flag)
 {
     const auto value = parse_int(need_value(flag));

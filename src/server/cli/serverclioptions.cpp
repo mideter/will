@@ -1,23 +1,22 @@
 #include "serverclioptions.h"
 
-#include "servercliparser.h"
+#include "serverconfig.h"
 
-#include <cstdlib>
 #include <iostream>
 
 
 namespace will {
 
 
-bool PortCliOption::matches(std::string_view text) const
-{
-    return text == "--port";
-}
+PortCliOption::PortCliOption()
+    : CliOption("--port", CliValueType::Int)
+{}
 
 
-std::string_view PortCliOption::primary_flag() const
+const PortCliOption& PortCliOption::instance()
 {
-    return "--port";
+    static const PortCliOption option;
+    return option;
 }
 
 
@@ -28,21 +27,15 @@ void PortCliOption::print_usage(std::ostream& os) const
 }
 
 
-void PortCliOption::apply(CliCursor& cursor, ServerConfig& config) const
+IoThreadsCliOption::IoThreadsCliOption()
+    : CliOption("--io-threads", CliValueType::Int)
+{}
+
+
+const IoThreadsCliOption& IoThreadsCliOption::instance()
 {
-    config.set_listen_port(cursor.require_int(primary_flag()));
-}
-
-
-bool IoThreadsCliOption::matches(std::string_view text) const
-{
-    return text == "--io-threads";
-}
-
-
-std::string_view IoThreadsCliOption::primary_flag() const
-{
-    return "--io-threads";
+    static const IoThreadsCliOption option;
+    return option;
 }
 
 
@@ -53,21 +46,15 @@ void IoThreadsCliOption::print_usage(std::ostream& os) const
 }
 
 
-void IoThreadsCliOption::apply(CliCursor& cursor, ServerConfig& config) const
+ListenBacklogCliOption::ListenBacklogCliOption()
+    : CliOption("--listen-backlog", CliValueType::Int)
+{}
+
+
+const ListenBacklogCliOption& ListenBacklogCliOption::instance()
 {
-    config.set_io_threads(cursor.require_int(primary_flag()));
-}
-
-
-bool ListenBacklogCliOption::matches(std::string_view text) const
-{
-    return text == "--listen-backlog";
-}
-
-
-std::string_view ListenBacklogCliOption::primary_flag() const
-{
-    return "--listen-backlog";
+    static const ListenBacklogCliOption option;
+    return option;
 }
 
 
@@ -78,21 +65,15 @@ void ListenBacklogCliOption::print_usage(std::ostream& os) const
 }
 
 
-void ListenBacklogCliOption::apply(CliCursor& cursor, ServerConfig& config) const
+MaxClientsCliOption::MaxClientsCliOption()
+    : CliOption("--max-clients", CliValueType::Size)
+{}
+
+
+const MaxClientsCliOption& MaxClientsCliOption::instance()
 {
-    config.set_listen_backlog(cursor.require_int(primary_flag()));
-}
-
-
-bool MaxClientsCliOption::matches(std::string_view text) const
-{
-    return text == "--max-clients";
-}
-
-
-std::string_view MaxClientsCliOption::primary_flag() const
-{
-    return "--max-clients";
+    static const MaxClientsCliOption option;
+    return option;
 }
 
 
@@ -103,21 +84,15 @@ void MaxClientsCliOption::print_usage(std::ostream& os) const
 }
 
 
-void MaxClientsCliOption::apply(CliCursor& cursor, ServerConfig& config) const
+MaxOutboundQueueCliOption::MaxOutboundQueueCliOption()
+    : CliOption("--max-outbound-queue-bytes", CliValueType::Size)
+{}
+
+
+const MaxOutboundQueueCliOption& MaxOutboundQueueCliOption::instance()
 {
-    config.set_max_connections(cursor.require_size(primary_flag()));
-}
-
-
-bool MaxOutboundQueueCliOption::matches(std::string_view text) const
-{
-    return text == "--max-outbound-queue-bytes";
-}
-
-
-std::string_view MaxOutboundQueueCliOption::primary_flag() const
-{
-    return "--max-outbound-queue-bytes";
+    static const MaxOutboundQueueCliOption option;
+    return option;
 }
 
 
@@ -128,21 +103,21 @@ void MaxOutboundQueueCliOption::print_usage(std::ostream& os) const
 }
 
 
-void MaxOutboundQueueCliOption::apply(CliCursor& cursor, ServerConfig& config) const
+HelpCliOption::HelpCliOption()
+    : CliOption("--help", CliValueType::None)
+{}
+
+
+const HelpCliOption& HelpCliOption::instance()
 {
-    config.set_max_outbound_queue_bytes(cursor.require_size(primary_flag()));
+    static const HelpCliOption option;
+    return option;
 }
 
 
 bool HelpCliOption::matches(std::string_view text) const
 {
-    return text == "--help" || text == "-h";
-}
-
-
-std::string_view HelpCliOption::primary_flag() const
-{
-    return "--help";
+    return text == flag() || text == "-h";
 }
 
 
@@ -152,13 +127,30 @@ void HelpCliOption::print_usage(std::ostream& os) const
 }
 
 
-void HelpCliOption::apply(CliCursor& cursor, ServerConfig& config) const
+const std::array<const CliOption*, 6>& all_server_cli_options()
 {
-    (void)cursor;
-    (void)config;
+    static const std::array<const CliOption*, 6> options{
+        &PortCliOption::instance(),
+        &IoThreadsCliOption::instance(),
+        &ListenBacklogCliOption::instance(),
+        &MaxClientsCliOption::instance(),
+        &MaxOutboundQueueCliOption::instance(),
+        &HelpCliOption::instance(),
+    };
+    return options;
+}
 
-    ServerCliParser::print_usage();
-    std::exit(0);
+
+const std::array<const CliOption*, 5>& config_server_cli_options()
+{
+    static const std::array<const CliOption*, 5> options{
+        &PortCliOption::instance(),
+        &IoThreadsCliOption::instance(),
+        &ListenBacklogCliOption::instance(),
+        &MaxClientsCliOption::instance(),
+        &MaxOutboundQueueCliOption::instance(),
+    };
+    return options;
 }
 
 

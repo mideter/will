@@ -20,6 +20,7 @@ FetchContent_MakeAvailable(asio)
 find_package(Threads REQUIRED)
 
 add_library(common
+  src/common/clioption.cpp
   src/common/clicursor.cpp
   src/common/hostaddress.cpp
   src/common/willprotocol.cpp

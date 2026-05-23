@@ -3,44 +3,12 @@
 #include "clicursor.h"
 #include "serverclioptions.h"
 
-#include <array>
+#include <cstdlib>
+#include <exception>
 #include <iostream>
 
 
 namespace will {
-
-
-namespace {
-
-
-const std::array<const ServerCliOption*, 6>& all_server_cli_options()
-{
-    static const std::array<const ServerCliOption*, 6> options{
-        &PortCliOption::instance(),
-        &IoThreadsCliOption::instance(),
-        &ListenBacklogCliOption::instance(),
-        &MaxClientsCliOption::instance(),
-        &MaxOutboundQueueCliOption::instance(),
-        &HelpCliOption::instance(),
-    };
-    return options;
-}
-
-
-const std::array<const ServerCliOption*, 5>& config_server_cli_options()
-{
-    static const std::array<const ServerCliOption*, 5> options{
-        &PortCliOption::instance(),
-        &IoThreadsCliOption::instance(),
-        &ListenBacklogCliOption::instance(),
-        &MaxClientsCliOption::instance(),
-        &MaxOutboundQueueCliOption::instance(),
-    };
-    return options;
-}
-
-
-} // namespace
 
 
 ServerCliParser::ServerCliParser(int argc, char* argv[])
@@ -62,9 +30,10 @@ void ServerCliParser::print_option_usage(std::ostream& os)
 }
 
 
-const ServerCliOption* ServerCliParser::find_option(std::string_view text)
+void ServerCliParser::cli_fail_option(std::string_view flag, const std::exception& error)
 {
-    return find_cli_option(all_server_cli_options(), text);
+    std::cerr << "Invalid " << flag << ": " << error.what() << '\n';
+    std::exit(2);
 }
 
 
@@ -74,20 +43,25 @@ void ServerCliParser::parse_command_line(int argc, char* argv[])
 
     cursor.begin_options();
     while (cursor.has_option()) {
-        const std::string_view option_text = cursor.current_option();
-        const ServerCliOption* const option = find_option(option_text);
+        const CliOptionMatch option = cursor.get_option(all_server_cli_options());
 
         if (!option) {
-            std::cerr << "Unknown option: " << option_text << '\n';
+            std::cerr << "Unknown option: " << option.token() << '\n';
             print_usage();
             std::exit(2);
         }
 
+        const std::string_view token = option.token();
+        if (token == "--help" || token == "-h") {
+            print_usage();
+            std::exit(0);
+        }
+
         try {
-            option->apply(cursor, server_config_);
+            server_config_.apply_cli_option(option);
         }
         catch (const std::exception& error) {
-            cursor.cli_fail_option(option->primary_flag(), error);
+            cli_fail_option(option.primary_flag(), error);
         }
 
         cursor.next_option();

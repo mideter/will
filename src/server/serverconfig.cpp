@@ -1,5 +1,6 @@
 #include "serverconfig.h"
 
+#include "clioption.h"
 #include "serverconfigerror.h"
 
 
@@ -81,6 +82,48 @@ void ServerConfig::set_max_outbound_queue_bytes(std::size_t max_bytes)
         throw ServerConfigError("max_outbound_queue_bytes", "must be at least 1");
 
     max_outbound_queue_bytes_ = max_bytes;
+}
+
+
+void ServerConfig::apply_cli_option(const CliOptionMatch& option)
+{
+    if (const std::optional<int> value = option.int_value())
+        apply_cli_option(option.primary_flag(), *value);
+    else if (const std::optional<std::size_t> value = option.size_value())
+        apply_cli_option(option.primary_flag(), *value);
+}
+
+
+void ServerConfig::apply_cli_option(std::string_view flag, int value)
+{
+    if (flag == "--port") {
+        set_listen_port(value);
+        return;
+    }
+
+    if (flag == "--io-threads") {
+        set_io_threads(value);
+        return;
+    }
+
+    if (flag == "--listen-backlog") {
+        set_listen_backlog(value);
+        return;
+    }
+}
+
+
+void ServerConfig::apply_cli_option(std::string_view flag, std::size_t value)
+{
+    if (flag == "--max-clients") {
+        set_max_connections(value);
+        return;
+    }
+
+    if (flag == "--max-outbound-queue-bytes") {
+        set_max_outbound_queue_bytes(value);
+        return;
+    }
 }
 
 

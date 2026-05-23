@@ -2,9 +2,13 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <string_view>
 
 
 namespace will {
+
+
+class CliOptionMatch;
 
 
 /** Server configuration with enforced field invariants. */
@@ -32,7 +36,12 @@ public:
     void set_max_connections(std::size_t max_connections);
     void set_max_outbound_queue_bytes(std::size_t max_bytes);
 
+    void apply_cli_option(const CliOptionMatch& option);
+
 private:
+    void apply_cli_option(std::string_view flag, int value);
+    void apply_cli_option(std::string_view flag, std::size_t value);
+
     std::uint16_t listen_port_ = DefaultListenPort;
     int io_threads_ = DefaultIoThreads;
     int listen_backlog_ = DefaultListenBacklog;
