@@ -44,10 +44,8 @@ const std::array<const ServerCliOption*, 5>& config_server_cli_options()
 
 
 ServerConfigParser::ServerConfigParser(int argc, char* argv[])
-    : argc_(argc)
-    , argv_(argv)
 {
-    parse_command_line();
+    parse_command_line(argc, argv);
 }
 
 
@@ -70,9 +68,9 @@ const ServerCliOption* ServerConfigParser::find_option(std::string_view text)
 }
 
 
-void ServerConfigParser::parse_command_line()
+void ServerConfigParser::parse_command_line(int argc, char* argv[])
 {
-    CliParserContext context(argc_, argv_);
+    CliParserContext context(argc, argv);
 
     for (context.set_index(1); context.index() < context.argc();
          context.set_index(context.index() + 1)) {

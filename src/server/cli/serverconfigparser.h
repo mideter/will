@@ -22,14 +22,12 @@ public:
     static void print_usage();
 
 private:
-    void parse_command_line();
+    void parse_command_line(int argc, char* argv[]);
 
     static void print_option_usage(std::ostream& os);
     [[nodiscard]] static const ServerCliOption* find_option(std::string_view text);
 
     ServerConfig config_;
-    int argc_;
-    char** argv_;
 };
 
 
