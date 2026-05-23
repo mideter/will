@@ -24,18 +24,18 @@ class CliOption {
 public:
     virtual ~CliOption() = default;
 
-    [[nodiscard]] virtual bool matches(std::string_view text) const;
-    [[nodiscard]] virtual std::string_view primary_flag() const;
+    virtual bool matches(std::string_view text) const;
+    virtual std::string_view primary_flag() const;
     virtual void print_usage(std::ostream& os) const = 0;
 
-    [[nodiscard]] CliValueType value_type() const noexcept { return value_type_; }
+    CliValueType value_type() const noexcept { return value_type_; }
 
-    [[nodiscard]] static std::span<const CliOption* const> all_options();
+    static std::span<const CliOption* const> all_options();
 
 protected:
     explicit CliOption(std::string_view flag, CliValueType value_type);
 
-    [[nodiscard]] std::string_view flag() const noexcept;
+    std::string_view flag() const noexcept;
 
 private:
     inline static std::vector<const CliOption*> registered_options_{};
@@ -56,11 +56,11 @@ public:
 
     void read_value(CliCursor& cursor);
 
-    [[nodiscard]] std::string_view token() const noexcept { return token_; }
-    [[nodiscard]] std::string_view primary_flag() const { return option_->primary_flag(); }
+    std::string_view token() const noexcept { return token_; }
+    std::string_view primary_flag() const { return option_->primary_flag(); }
 
-    [[nodiscard]] std::optional<int> int_value() const noexcept { return int_value_; }
-    [[nodiscard]] std::optional<std::size_t> size_value() const noexcept { return size_value_; }
+    std::optional<int> int_value() const noexcept { return int_value_; }
+    std::optional<std::size_t> size_value() const noexcept { return size_value_; }
 
 private:
     const CliOption* option_;

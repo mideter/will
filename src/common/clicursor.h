@@ -16,16 +16,16 @@ public:
     CliCursor(int argc, char* argv[]);
 
     void begin_options() noexcept;
-    [[nodiscard]] bool has_option() const noexcept;
+    bool has_option() const noexcept;
     void next_option() noexcept;
 
-    [[nodiscard]] std::string_view current_option() const;
+    std::string_view current_option() const;
 
-    [[nodiscard]] CliOptionMatch get_option(std::span<const CliOption* const> options);
+    CliOptionMatch get_option(std::span<const CliOption* const> options);
 
-    [[nodiscard]] std::string_view need_value(std::string_view flag);
-    [[nodiscard]] int require_int(std::string_view flag);
-    [[nodiscard]] std::size_t require_size(std::string_view flag);
+    std::string_view need_value(std::string_view flag);
+    int require_int(std::string_view flag);
+    std::size_t require_size(std::string_view flag);
 
     [[noreturn]] void cli_fail_flag(std::string_view flag) const;
 
