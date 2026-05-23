@@ -1,6 +1,6 @@
 #include "servercliparser.h"
 
-#include "cliparsercontext.h"
+#include "clicursor.h"
 #include "serverclioptions.h"
 
 #include <array>
@@ -70,11 +70,11 @@ const ServerCliOption* ServerCliParser::find_option(std::string_view text)
 
 void ServerCliParser::parse_command_line(int argc, char* argv[])
 {
-    CliParserContext context(argc, argv);
+    CliCursor cursor(argc, argv);
 
-    context.set_index(1);
-    while (context.index() < context.argc()) {
-        const std::string_view option_text = context.current();
+    cursor.begin_options();
+    while (cursor.has_option()) {
+        const std::string_view option_text = cursor.current_option();
         const ServerCliOption* const option = find_option(option_text);
 
         if (!option) {
@@ -84,13 +84,13 @@ void ServerCliParser::parse_command_line(int argc, char* argv[])
         }
 
         try {
-            option->apply(context, server_config_);
+            option->apply(cursor, server_config_);
         }
         catch (const std::exception& error) {
-            context.cli_fail_option(option->primary_flag(), error);
+            cursor.cli_fail_option(option->primary_flag(), error);
         }
 
-        context.set_index(context.index() + 1);
+        cursor.next_option();
     }
 }
 

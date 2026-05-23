@@ -1,4 +1,4 @@
-#include "cliparsercontext.h"
+#include "clicursor.h"
 
 #include <charconv>
 #include <cstdlib>
@@ -8,19 +8,37 @@
 namespace will {
 
 
-CliParserContext::CliParserContext(int argc, char* argv[])
+CliCursor::CliCursor(int argc, char* argv[])
     : argc_(argc)
     , argv_(argv)
 {}
 
 
-std::string_view CliParserContext::current() const
+void CliCursor::begin_options() noexcept
+{
+    index_ = 1;
+}
+
+
+bool CliCursor::has_option() const noexcept
+{
+    return index_ < argc_;
+}
+
+
+void CliCursor::next_option() noexcept
+{
+    ++index_;
+}
+
+
+std::string_view CliCursor::current_option() const
 {
     return std::string_view{argv_[index_]};
 }
 
 
-std::string_view CliParserContext::need_value(std::string_view flag)
+std::string_view CliCursor::need_value(std::string_view flag)
 {
     if (index_ + 1 >= argc_) {
         std::cerr << flag << " requires a value\n";
@@ -31,7 +49,7 @@ std::string_view CliParserContext::need_value(std::string_view flag)
 }
 
 
-std::optional<std::size_t> CliParserContext::parse_size(std::string_view text)
+std::optional<std::size_t> CliCursor::parse_size(std::string_view text)
 {
     std::size_t value = 0;
     const auto [ptr, ec] = std::from_chars(text.data(), text.data() + text.size(), value);
@@ -43,7 +61,7 @@ std::optional<std::size_t> CliParserContext::parse_size(std::string_view text)
 }
 
 
-std::optional<int> CliParserContext::parse_int(std::string_view text)
+std::optional<int> CliCursor::parse_int(std::string_view text)
 {
     int value = 0;
     const auto [ptr, ec] = std::from_chars(text.data(), text.data() + text.size(), value);
@@ -55,21 +73,21 @@ std::optional<int> CliParserContext::parse_int(std::string_view text)
 }
 
 
-void CliParserContext::cli_fail_flag(std::string_view flag) const
+void CliCursor::cli_fail_flag(std::string_view flag) const
 {
     std::cerr << "Invalid " << flag << '\n';
     std::exit(2);
 }
 
 
-void CliParserContext::cli_fail_option(std::string_view flag, const std::exception& error) const
+void CliCursor::cli_fail_option(std::string_view flag, const std::exception& error) const
 {
     std::cerr << "Invalid " << flag << ": " << error.what() << '\n';
     std::exit(2);
 }
 
 
-int CliParserContext::require_int(std::string_view flag)
+int CliCursor::require_int(std::string_view flag)
 {
     const auto value = parse_int(need_value(flag));
 
@@ -80,7 +98,7 @@ int CliParserContext::require_int(std::string_view flag)
 }
 
 
-std::size_t CliParserContext::require_size(std::string_view flag)
+std::size_t CliCursor::require_size(std::string_view flag)
 {
     const auto value = parse_size(need_value(flag));
 

@@ -9,16 +9,16 @@
 namespace will {
 
 
-/** argv cursor and value parsing. */
-class CliParserContext {
+/** Cursor over argv with value parsing helpers. */
+class CliCursor {
 public:
-    CliParserContext(int argc, char* argv[]);
+    CliCursor(int argc, char* argv[]);
 
-    [[nodiscard]] int argc() const noexcept { return argc_; }
-    [[nodiscard]] int index() const noexcept { return index_; }
-    void set_index(int index) noexcept { index_ = index; }
+    void begin_options() noexcept;
+    [[nodiscard]] bool has_option() const noexcept;
+    void next_option() noexcept;
 
-    [[nodiscard]] std::string_view current() const;
+    [[nodiscard]] std::string_view current_option() const;
 
     [[nodiscard]] std::string_view need_value(std::string_view flag);
     [[nodiscard]] int require_int(std::string_view flag);
