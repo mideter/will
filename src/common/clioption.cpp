@@ -9,7 +9,12 @@ namespace will {
 
 
 CliUnknownOptionError::CliUnknownOptionError(const std::string_view token)
-    : std::runtime_error(std::string("Unknown option: ").append(token))
+    : CliError(std::string("Unknown option: ").append(token))
+{}
+
+
+CliHelpNotAloneError::CliHelpNotAloneError()
+    : CliError("--help must be the only option")
 {}
 
 

@@ -20,9 +20,21 @@ enum class CliValueType {
 };
 
 
-class CliUnknownOptionError : public std::runtime_error {
+class CliError : public std::runtime_error {
+public:
+    using std::runtime_error::runtime_error;
+};
+
+
+class CliUnknownOptionError : public CliError {
 public:
     explicit CliUnknownOptionError(std::string_view token);
+};
+
+
+class CliHelpNotAloneError : public CliError {
+public:
+    CliHelpNotAloneError();
 };
 
 

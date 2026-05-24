@@ -37,14 +37,6 @@ catch (const std::exception& error) {
 }
 
 
-void ServerCliParser::fail_help_not_alone()
-{
-    std::cerr << "--help must be the only option\n";
-    print_usage();
-    std::exit(2);
-}
-
-
 void ServerCliParser::exit_with_help()
 {
     print_usage();
@@ -65,7 +57,7 @@ void ServerCliParser::handle_help_option(int argc, CliCursor& cursor)
         return;
 
     if (argc != 2)
-        fail_help_not_alone();
+        throw CliHelpNotAloneError{};
 
     exit_with_help();
 }
@@ -83,7 +75,7 @@ try {
         cursor.next_option();
     }
 }
-catch (const CliUnknownOptionError& error) {
+catch (const CliError& error) {
     std::cerr << error.what() << '\n';
     print_usage();
     std::exit(2);
