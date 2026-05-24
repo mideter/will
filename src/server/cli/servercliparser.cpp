@@ -5,6 +5,7 @@
 
 
 namespace will {
+namespace cli {
 
 
 ServerCliParser::ServerCliParser(int argc, char* argv[])
@@ -72,4 +73,5 @@ catch (const CliError& error) {
 }
 
 
+} // namespace cli
 } // namespace will

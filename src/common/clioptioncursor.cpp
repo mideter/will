@@ -6,6 +6,7 @@
 
 
 namespace will {
+namespace cli {
 
 
 CliOptionCursor::CliOptionCursor(int argc, char* argv[])
@@ -102,4 +103,5 @@ std::size_t CliOptionCursor::require_size(std::string_view flag)
 }
 
 
+} // namespace cli
 } // namespace will

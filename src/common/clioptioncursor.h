@@ -5,6 +5,7 @@
 
 
 namespace will {
+namespace cli {
 
 
 /** Cursor over argv option flags with value parsing helpers. */
@@ -34,4 +35,5 @@ private:
 };
 
 
+} // namespace cli
 } // namespace will

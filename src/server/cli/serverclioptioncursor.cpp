@@ -2,6 +2,7 @@
 
 
 namespace will {
+namespace cli {
 
 
 ServerCliOptionCursor::ServerCliOptionCursor(int argc, char* argv[])
@@ -21,4 +22,5 @@ void ServerCliOptionCursor::advance()
 }
 
 
+} // namespace cli
 } // namespace will

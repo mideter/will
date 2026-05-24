@@ -6,6 +6,7 @@
 
 
 namespace will {
+namespace cli {
 
 
 /** argv cursor with server option table matching built in. */
@@ -18,4 +19,5 @@ public:
 };
 
 
+} // namespace cli
 } // namespace will

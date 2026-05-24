@@ -15,6 +15,7 @@
 
 
 namespace will {
+namespace cli {
 
 
 class Value {};
@@ -149,4 +150,5 @@ std::string_view CliOptionMatch<OptionVariant>::primary_flag() const
 }
 
 
+} // namespace cli
 } // namespace will

@@ -11,6 +11,7 @@
 
 
 namespace will {
+namespace cli {
 
 
 template<typename ValueTag>
@@ -40,4 +41,5 @@ struct ServerCliOptionTable {
 };
 
 
+} // namespace cli
 } // namespace will

@@ -4,6 +4,7 @@
 
 
 namespace will {
+namespace cli {
 
 
 namespace {
@@ -121,4 +122,5 @@ void ServerCliOption<ValueTag>::apply(ServerConfig& config, const CliParsedValue
 template class ServerCliOption<IntValue>;
 template class ServerCliOption<SizeValue>;
 
+} // namespace cli
 } // namespace will

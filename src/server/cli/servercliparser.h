@@ -7,6 +7,7 @@
 
 
 namespace will {
+namespace cli {
 
 
 class ServerCliParser {
@@ -26,4 +27,5 @@ private:
 };
 
 
+} // namespace cli
 } // namespace will

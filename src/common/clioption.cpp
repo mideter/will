@@ -5,6 +5,7 @@
 
 
 namespace will {
+namespace cli {
 
 
 int IntValue::read(CliOptionCursor& cursor, const std::string_view flag)
@@ -77,4 +78,5 @@ void CliOptionBase::print_usage(std::ostream& os) const
 }
 
 
+} // namespace cli
 } // namespace will

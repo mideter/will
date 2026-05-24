@@ -43,7 +43,7 @@ will::ServerConfig parse_server_options(int argc, char* argv[]);
 
 void assert_help_matches()
 {
-    using namespace will;
+    using namespace will::cli;
 
     assert(ServerCliOptionTable::HelpOption.matches("--help"));
     assert(ServerCliOptionTable::HelpOption.matches("-h"));
@@ -53,7 +53,7 @@ void assert_help_matches()
 
 void assert_unknown_option()
 {
-    using namespace will;
+    using namespace will::cli;
 
     Argv args{"will-server", "--unknown"};
     ServerCliOptionCursor cursor(args.argc(), args.argv());
@@ -71,7 +71,7 @@ void assert_unknown_option()
 
 void assert_help_not_alone()
 {
-    using namespace will;
+    using namespace will::cli;
 
     Argv args{"will-server", "--help", "--port", "8080"};
     bool threw = false;
@@ -86,7 +86,7 @@ void assert_help_not_alone()
 
 void assert_help_only_when_alone()
 {
-    using namespace will;
+    using namespace will::cli;
 
     Argv args{"will-server", "--help"};
     bool threw = false;
@@ -101,7 +101,7 @@ void assert_help_only_when_alone()
 
 void assert_help_after_other_option_is_unknown()
 {
-    using namespace will;
+    using namespace will::cli;
 
     Argv args{"will-server", "--port", "8080", "--help"};
     bool threw = false;
@@ -117,9 +117,9 @@ void assert_help_after_other_option_is_unknown()
 
 will::ServerConfig parse_server_options(int argc, char* argv[])
 {
-    using namespace will;
+    using namespace will::cli;
 
-    ServerConfig config;
+    will::ServerConfig config;
     ServerCliOptionCursor cursor(argc, argv);
 
     if (cursor.has_option()
@@ -134,7 +134,7 @@ will::ServerConfig parse_server_options(int argc, char* argv[])
         const CliOptionMatch<ServerOption> match = cursor.match();
         try {
             std::visit([&](const auto& option) { option.apply(config, match.value()); }, match.option());
-        } catch (const ServerConfigError& error) {
+        } catch (const will::ServerConfigError& error) {
             throw CliInvalidOptionError(match.primary_flag(), error.what());
         }
         cursor.advance();
@@ -146,22 +146,22 @@ will::ServerConfig parse_server_options(int argc, char* argv[])
 
 void assert_defaults()
 {
-    using namespace will;
+    using namespace will::cli;
 
     Argv args{"will-server"};
-    const ServerConfig config = parse_server_options(args.argc(), args.argv());
+    const will::ServerConfig config = parse_server_options(args.argc(), args.argv());
 
-    assert(config.listen_port() == ServerConfig::DefaultListenPort);
-    assert(config.io_threads() == ServerConfig::DefaultIoThreads);
-    assert(config.listen_backlog() == ServerConfig::DefaultListenBacklog);
-    assert(config.max_connections() == ServerConfig::DefaultMaxConnections);
-    assert(config.max_outbound_queue_bytes() == ServerConfig::DefaultMaxOutboundQueueBytes);
+    assert(config.listen_port() == will::ServerConfig::DefaultListenPort);
+    assert(config.io_threads() == will::ServerConfig::DefaultIoThreads);
+    assert(config.listen_backlog() == will::ServerConfig::DefaultListenBacklog);
+    assert(config.max_connections() == will::ServerConfig::DefaultMaxConnections);
+    assert(config.max_outbound_queue_bytes() == will::ServerConfig::DefaultMaxOutboundQueueBytes);
 }
 
 
 void assert_all_options()
 {
-    using namespace will;
+    using namespace will::cli;
 
     Argv args{"will-server",
               "--port",
@@ -174,7 +174,7 @@ void assert_all_options()
               "128",
               "--max-outbound-queue-bytes",
               "4096"};
-    const ServerConfig config = parse_server_options(args.argc(), args.argv());
+    const will::ServerConfig config = parse_server_options(args.argc(), args.argv());
 
     assert(config.listen_port() == 9000);
     assert(config.io_threads() == 2);
@@ -186,7 +186,7 @@ void assert_all_options()
 
 void assert_invalid_port()
 {
-    using namespace will;
+    using namespace will::cli;
 
     Argv args{"will-server", "--port", "0"};
     bool threw = false;
@@ -204,7 +204,7 @@ void assert_invalid_port()
 
 void assert_missing_value()
 {
-    using namespace will;
+    using namespace will::cli;
 
     Argv args{"will-server", "--port"};
     bool threw = false;
@@ -222,7 +222,7 @@ void assert_missing_value()
 
 void assert_invalid_numeric_value()
 {
-    using namespace will;
+    using namespace will::cli;
 
     Argv args{"will-server", "--io-threads", "abc"};
     bool threw = false;
@@ -240,7 +240,7 @@ void assert_invalid_numeric_value()
 
 void assert_cli_option_read_value()
 {
-    using namespace will;
+    using namespace will::cli;
 
     Argv args{"will-server", "--port", "1234"};
     ServerCliOptionCursor cursor(args.argc(), args.argv());
