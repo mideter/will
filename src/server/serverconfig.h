@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <stdexcept>
 #include <string_view>
 
 
@@ -9,6 +10,12 @@ namespace will {
 
 
 class CliOptionMatch;
+
+
+class ServerConfigError : public std::invalid_argument {
+public:
+    ServerConfigError(std::string_view field, std::string_view reason);
+};
 
 
 /** Server configuration with enforced field invariants. */
