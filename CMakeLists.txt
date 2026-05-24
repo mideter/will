@@ -84,3 +84,8 @@ target_include_directories(will-cli-test PRIVATE
 )
 target_link_libraries(will-cli-test PRIVATE common)
 add_test(NAME will-cli COMMAND will-cli-test)
+
+add_executable(will-server-cli-integration-test tests/server_cli_integration_test.cpp)
+add_dependencies(will-server-cli-integration-test will-server)
+add_test(NAME will-server-cli-integration
+  COMMAND will-server-cli-integration-test $<TARGET_FILE:will-server>)
