@@ -3,20 +3,30 @@
 #include "clioption.h"
 #include "serverconfig.h"
 
+#include <functional>
 #include <span>
+#include <string_view>
 
 
 namespace will {
 
 
-struct ServerCliOption {
-    CliOption cli;
-    void (*apply)(ServerConfig& config, const CliOptionMatch::Value& value);
+class ServerCliOption : public CliOption {
+public:
+    using Applier = std::function<void(ServerConfig&, const CliOptionMatch::Value&)>;
+
+    ServerCliOption(Applier applier, std::string_view flag, CliValueType value_type,
+                    UsagePrinter print_usage, std::span<const std::string_view> aliases = {});
+
+    void apply(ServerConfig& config, const CliOptionMatch::Value& value) const;
+
+    static constexpr std::size_t ServerOptionCount = 5;
+    static const ServerCliOption ServerOptions[ServerOptionCount];
+
+private:
+    Applier applier_;
 };
 
-
-std::span<const ServerCliOption> ServerCliOptions();
-std::span<const CliOption> ServerCliOptionCliOptions();
 
 extern const CliOption HelpCliOption;
 

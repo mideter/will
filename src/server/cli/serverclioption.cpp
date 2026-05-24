@@ -83,40 +83,34 @@ void ApplyMaxOutboundQueue(ServerConfig& config, const CliOptionMatch::Value& va
 constexpr std::string_view HelpCliOptionAliases[] = {"-h"};
 
 
-const ServerCliOption ServerOptions[] = {
-    {{"--port", CliValueType::Int, PrintPortUsage}, ApplyPort},
-    {{"--io-threads", CliValueType::Int, PrintIoThreadsUsage}, ApplyIoThreads},
-    {{"--listen-backlog", CliValueType::Int, PrintListenBacklogUsage}, ApplyListenBacklog},
-    {{"--max-clients", CliValueType::Size, PrintMaxClientsUsage}, ApplyMaxClients},
-    {{"--max-outbound-queue-bytes", CliValueType::Size, PrintMaxOutboundQueueUsage},
-     ApplyMaxOutboundQueue},
-};
-
-
 } // namespace
 
 
+const ServerCliOption ServerCliOption::ServerOptions[] = {
+    ServerCliOption{ApplyPort, "--port", CliValueType::Int, PrintPortUsage},
+    ServerCliOption{ApplyIoThreads, "--io-threads", CliValueType::Int, PrintIoThreadsUsage},
+    ServerCliOption{ApplyListenBacklog, "--listen-backlog", CliValueType::Int, PrintListenBacklogUsage},
+    ServerCliOption{ApplyMaxClients, "--max-clients", CliValueType::Size, PrintMaxClientsUsage},
+    ServerCliOption{ApplyMaxOutboundQueue, "--max-outbound-queue-bytes", CliValueType::Size,
+                    PrintMaxOutboundQueueUsage},
+};
+
+
+ServerCliOption::ServerCliOption(Applier applier, const std::string_view flag,
+                                 const CliValueType value_type, const UsagePrinter print_usage,
+                                 const std::span<const std::string_view> aliases)
+    : CliOption(flag, value_type, print_usage, aliases)
+    , applier_(std::move(applier))
+{}
+
+
+void ServerCliOption::apply(ServerConfig& config, const CliOptionMatch::Value& value) const
+{
+    applier_(config, value);
+}
+
+
 const CliOption HelpCliOption{"--help", CliValueType::None, PrintHelpUsage, HelpCliOptionAliases};
-
-
-std::span<const ServerCliOption> ServerCliOptions()
-{
-    return ServerOptions;
-}
-
-
-std::span<const CliOption> ServerCliOptionCliOptions()
-{
-    static const CliOption CliOptions[] = {
-        ServerOptions[0].cli,
-        ServerOptions[1].cli,
-        ServerOptions[2].cli,
-        ServerOptions[3].cli,
-        ServerOptions[4].cli,
-    };
-
-    return CliOptions;
-}
 
 
 } // namespace will

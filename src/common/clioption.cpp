@@ -65,23 +65,6 @@ CliValueType CliOption::value_type() const noexcept
 }
 
 
-CliOptionMatch::CliOptionMatch(CliCursor& cursor, const std::span<const CliOption> options)
-{
-    const std::string_view text = cursor.current_option();
-
-    for (const CliOption& option : options) {
-        if (!option.matches(text))
-            continue;
-
-        option_ = &option;
-        read_value(cursor);
-        return;
-    }
-
-    throw CliUnknownOptionError(text);
-}
-
-
 void CliOptionMatch::read_value(CliCursor& cursor)
 {
     const std::string_view flag = option_->primary_flag();

@@ -1,5 +1,8 @@
 #pragma once
 
+#include "clicursor.h"
+
+#include <concepts>
 #include <iosfwd>
 #include <span>
 #include <stdexcept>
@@ -8,9 +11,6 @@
 
 
 namespace will {
-
-
-class CliCursor;
 
 
 enum class CliValueType {
@@ -68,7 +68,8 @@ class CliOptionMatch {
 public:
     using Value = std::variant<std::monostate, int, std::size_t>;
 
-    CliOptionMatch(CliCursor& cursor, std::span<const CliOption> options);
+    template<std::derived_from<CliOption> Option>
+    CliOptionMatch(CliCursor& cursor, std::span<const Option> options);
 
     std::string_view primary_flag() const { return option_->primary_flag(); }
     const Value& value() const noexcept { return value_; }
@@ -79,6 +80,24 @@ private:
     const CliOption* option_;
     Value value_;
 };
+
+
+template<std::derived_from<CliOption> Option>
+CliOptionMatch::CliOptionMatch(CliCursor& cursor, const std::span<const Option> options)
+{
+    const std::string_view text = cursor.current_option();
+
+    for (const Option& option : options) {
+        if (!option.matches(text))
+            continue;
+
+        option_ = &static_cast<const CliOption&>(option);
+        read_value(cursor);
+        return;
+    }
+
+    throw CliUnknownOptionError(text);
+}
 
 
 } // namespace will
