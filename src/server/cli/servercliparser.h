@@ -7,9 +7,6 @@
 namespace will {
 
 
-class CliCursor;
-
-
 class ServerCliParser {
 public:
     ServerCliParser(int argc, char* argv[]);

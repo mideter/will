@@ -22,13 +22,11 @@ public:
     void apply(ServerConfig& config, const CliOptionMatch::Value& value) const;
 
     static const std::array<ServerCliOption, 5> ServerOptions;
+    static const CliOption HelpOption;
 
 private:
     Applier applier_;
 };
-
-
-extern const CliOption HelpCliOption;
 
 
 } // namespace will

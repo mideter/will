@@ -41,7 +41,7 @@ public:
 };
 
 
-class CliInvalidOptionError : public std::runtime_error {
+class CliInvalidOptionError : public CliError {
 public:
     CliInvalidOptionError(std::string_view flag, std::string_view reason);
 };
@@ -75,6 +75,7 @@ public:
     CliOptionMatch(CliCursor& cursor, const std::array<Option, N>& options);
 
     std::string_view primary_flag() const { return option_->primary_flag(); }
+    const CliOption& option() const noexcept { return *option_; }
     const Value& value() const noexcept { return value_; }
 
 private:

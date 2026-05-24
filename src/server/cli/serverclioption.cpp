@@ -50,6 +50,9 @@ void PrintHelpUsage(std::ostream& os)
 }
 
 
+constexpr std::string_view HelpOptionAliases[] = {"-h"};
+
+
 void ApplyPort(ServerConfig& config, const CliOptionMatch::Value& value)
 {
     config.set_listen_port(std::get<int>(value));
@@ -80,10 +83,11 @@ void ApplyMaxOutboundQueue(ServerConfig& config, const CliOptionMatch::Value& va
 }
 
 
-constexpr std::string_view HelpCliOptionAliases[] = {"-h"};
-
-
 } // namespace
+
+
+const CliOption ServerCliOption::HelpOption{
+    "--help", CliValueType::None, PrintHelpUsage, HelpOptionAliases};
 
 
 const std::array<ServerCliOption, 5> ServerCliOption::ServerOptions = {
@@ -108,9 +112,6 @@ void ServerCliOption::apply(ServerConfig& config, const CliOptionMatch::Value& v
 {
     applier_(config, value);
 }
-
-
-const CliOption HelpCliOption{"--help", CliValueType::None, PrintHelpUsage, HelpCliOptionAliases};
 
 
 } // namespace will

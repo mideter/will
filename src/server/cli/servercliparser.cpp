@@ -23,13 +23,13 @@ void ServerCliParser::print_usage()
     for (const ServerCliOption& option : ServerCliOption::ServerOptions)
         option.print_usage(std::cerr);
 
-    HelpCliOption.print_usage(std::cerr);
+    ServerCliOption::HelpOption.print_usage(std::cerr);
 }
 
 
 void ServerCliParser::handle_help_option(int argc, CliCursor& cursor)
 {
-    if (!cursor.has_option() || !HelpCliOption.matches(cursor.current_option()))
+    if (!cursor.has_option() || !ServerCliOption::HelpOption.matches(cursor.current_option()))
         return;
 
     if (argc != 2)
@@ -42,13 +42,7 @@ void ServerCliParser::handle_help_option(int argc, CliCursor& cursor)
 
 void ServerCliParser::apply_cli_option(const CliOptionMatch& match)
 try {
-    for (const ServerCliOption& option : ServerCliOption::ServerOptions) {
-        if (option.primary_flag() != match.primary_flag())
-            continue;
-
-        option.apply(server_config_, match.value());
-        return;
-    }
+    static_cast<const ServerCliOption&>(match.option()).apply(server_config_, match.value());
 } catch (const ServerConfigError& error) {
     throw CliInvalidOptionError(match.primary_flag(), error.what());
 }

@@ -1,7 +1,5 @@
 #include "clioption.h"
 
-#include "clicursor.h"
-
 #include <format>
 
 
@@ -20,7 +18,7 @@ CliHelpNotAloneError::CliHelpNotAloneError()
 
 CliInvalidOptionError::CliInvalidOptionError(const std::string_view flag,
                                              const std::string_view reason)
-    : std::runtime_error(std::format("Invalid {}: {}", flag, reason))
+    : CliError(std::format("Invalid {}: {}", flag, reason))
 {}
 
 
