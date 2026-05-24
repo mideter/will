@@ -53,13 +53,16 @@ void PrintHelpUsage(std::ostream& os)
 }
 
 
-constexpr std::string_view HelpOptionAliases[] = {"-h"};
+constexpr std::string_view HelpCliOptionAliases[] = {"-h"};
 
 
 } // namespace
 
 
-std::span<const CliOption> AllServerCliOptions()
+const CliOption HelpCliOption{"--help", CliValueType::None, PrintHelpUsage, HelpCliOptionAliases};
+
+
+std::span<const CliOption> ServerCliOptions()
 {
     static const CliOption Options[] = {
         {"--port", CliValueType::Int, PrintPortUsage},
@@ -67,7 +70,6 @@ std::span<const CliOption> AllServerCliOptions()
         {"--listen-backlog", CliValueType::Int, PrintListenBacklogUsage},
         {"--max-clients", CliValueType::Size, PrintMaxClientsUsage},
         {"--max-outbound-queue-bytes", CliValueType::Size, PrintMaxOutboundQueueUsage},
-        {"--help", CliValueType::None, PrintHelpUsage, HelpOptionAliases},
     };
 
     return Options;

@@ -20,8 +20,11 @@ ServerCliParser::ServerCliParser(int argc, char* argv[])
 void ServerCliParser::print_usage()
 {
     std::cerr << "Usage: will-server [options]\n";
-    for (const CliOption& option : AllServerCliOptions())
+    
+    for (const CliOption& option : ServerCliOptions())
         option.print_usage(std::cerr);
+
+    HelpCliOption.print_usage(std::cerr);
 }
 
 
@@ -42,6 +45,14 @@ void ServerCliParser::fail_unknown_option(const CliOptionMatch& option)
 }
 
 
+void ServerCliParser::fail_help_not_alone()
+{
+    std::cerr << "--help must be the only option\n";
+    print_usage();
+    std::exit(2);
+}
+
+
 void ServerCliParser::exit_with_help()
 {
     print_usage();
@@ -56,19 +67,30 @@ void ServerCliParser::cli_fail_option(std::string_view flag, const std::exceptio
 }
 
 
+void ServerCliParser::handle_help_option(int argc, CliCursor& cursor)
+{
+    if (!cursor.has_option() || !HelpCliOption.matches(cursor.current_option()))
+        return;
+
+    if (argc != 2)
+        fail_help_not_alone();
+
+    exit_with_help();
+}
+
+
 void ServerCliParser::parse_command_line(int argc, char* argv[])
 {
     CliCursor cursor(argc, argv);
 
     cursor.begin_options();
+    handle_help_option(argc, cursor);
+
     while (cursor.has_option()) {
-        const CliOptionMatch option = cursor.get_option(AllServerCliOptions());
+        const CliOptionMatch option = cursor.get_option(ServerCliOptions());
 
         if (!option)
             fail_unknown_option(option);
-
-        if (option.primary_flag() == "--help")
-            exit_with_help();
 
         apply_matched_option(option);
         cursor.next_option();

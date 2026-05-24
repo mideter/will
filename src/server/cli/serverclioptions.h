@@ -8,7 +8,9 @@ namespace will {
 
 class CliOption;
 
-std::span<const CliOption> AllServerCliOptions();
+extern const CliOption HelpCliOption;
+
+std::span<const CliOption> ServerCliOptions();
 
 
 } // namespace will

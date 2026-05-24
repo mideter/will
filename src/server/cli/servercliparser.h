@@ -10,6 +10,9 @@
 namespace will {
 
 
+class CliCursor;
+
+
 class ServerCliParser {
 public:
     ServerCliParser(int argc, char* argv[]);
@@ -21,9 +24,11 @@ private:
 
     void apply_matched_option(const CliOptionMatch& option);
 
+    static void handle_help_option(int argc, CliCursor& cursor);
     static void print_usage();
 
     [[noreturn]] static void fail_unknown_option(const CliOptionMatch& option);
+    [[noreturn]] static void fail_help_not_alone();
     [[noreturn]] static void exit_with_help();
     [[noreturn]] static void cli_fail_option(std::string_view flag, const std::exception& error);
 
