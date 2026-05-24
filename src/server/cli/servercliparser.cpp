@@ -1,7 +1,6 @@
 #include "servercliparser.h"
 
 #include "clicursor.h"
-#include "serverclioption.h"
 
 #include <cstdlib>
 #include <iostream>
@@ -20,17 +19,20 @@ void ServerCliParser::print_usage()
 {
     std::cerr << "Usage: will-server [options]\n";
 
-    for (const ServerCliOption& option : ServerCliOption::ServerOptions)
-        option.print_usage(std::cerr);
+    for (const ServerOption& option : ServerCliOptionTable::ServerOptions) {
+        std::visit([&](const auto& entry) { entry.print_usage(std::cerr); }, option);
+    }
 
-    ServerCliOption::HelpOption.print_usage(std::cerr);
+    ServerCliOptionTable::HelpOption.print_usage(std::cerr);
 }
 
 
 void ServerCliParser::handle_help_option(int argc, CliCursor& cursor)
 {
-    if (!cursor.has_option() || !ServerCliOption::HelpOption.matches(cursor.current_option()))
+    if (!cursor.has_option()
+        || !ServerCliOptionTable::HelpOption.matches(cursor.current_option())) {
         return;
+    }
 
     if (argc != 2)
         throw CliHelpNotAloneError{};
@@ -40,9 +42,9 @@ void ServerCliParser::handle_help_option(int argc, CliCursor& cursor)
 }
 
 
-void ServerCliParser::apply_cli_option(const CliOptionMatch& match)
+void ServerCliParser::apply_cli_option(const CliOptionMatch<ServerOption>& match)
 try {
-    static_cast<const ServerCliOption&>(match.option()).apply(server_config_, match.value());
+    match.visit_option([&](const auto& option) { option.apply(server_config_, match.value()); });
 } catch (const ServerConfigError& error) {
     throw CliInvalidOptionError(match.primary_flag(), error.what());
 }
@@ -56,7 +58,7 @@ try {
     handle_help_option(argc, cursor);
 
     while (cursor.has_option()) {
-        apply_cli_option(CliOptionMatch{cursor, ServerCliOption::ServerOptions});
+        apply_cli_option(CliOptionMatch<ServerOption>{cursor, ServerCliOptionTable::ServerOptions});
         cursor.next_option();
     }
 }

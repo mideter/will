@@ -3,24 +3,23 @@
 #include "clicursor.h"
 
 #include <array>
-#include <concepts>
 #include <cstddef>
 #include <functional>
 #include <iosfwd>
 #include <span>
 #include <stdexcept>
 #include <string_view>
+#include <type_traits>
+#include <utility>
 #include <variant>
 
 
 namespace will {
 
 
-enum class CliValueType {
-    None,
-    Int,
-    Size,
-};
+struct IntValue {};
+struct SizeValue {};
+struct NoneValue {};
 
 
 class CliError : public std::runtime_error {
@@ -47,60 +46,101 @@ public:
 };
 
 
-class CliOption {
-public:
-    using UsagePrinter = std::function<void(std::ostream&)>;
-
-    CliOption(std::string_view flag, CliValueType value_type, UsagePrinter print_usage,
-              std::span<const std::string_view> aliases = {});
-
-    bool matches(std::string_view text) const;
-    std::string_view primary_flag() const noexcept;
-    void print_usage(std::ostream& os) const;
-    CliValueType value_type() const noexcept;
-
-private:
-    std::string_view flag_;
-    CliValueType value_type_;
-    UsagePrinter print_usage_;
-    std::span<const std::string_view> aliases_;
-};
+using CliUsagePrinter = std::function<void(std::ostream&)>;
+using CliParsedValue = std::variant<std::monostate, int, std::size_t>;
 
 
+template<typename OptionVariant>
 class CliOptionMatch {
 public:
-    using Value = std::variant<std::monostate, int, std::size_t>;
+    using Value = CliParsedValue;
 
-    template<std::derived_from<CliOption> Option, std::size_t N>
-    CliOptionMatch(CliCursor& cursor, const std::array<Option, N>& options);
+    template<std::size_t N>
+    CliOptionMatch(CliCursor& cursor, const std::array<OptionVariant, N>& options);
 
-    std::string_view primary_flag() const { return option_->primary_flag(); }
-    const CliOption& option() const noexcept { return *option_; }
+    std::string_view primary_flag() const;
     const Value& value() const noexcept { return value_; }
 
-private:
-    void read_value(CliCursor& cursor);
+    template<typename Func>
+    decltype(auto) visit_option(Func&& func) const
+    {
+        return std::visit(std::forward<Func>(func), *option_);
+    }
 
-    const CliOption* option_;
+private:
+    const OptionVariant* option_ = nullptr;
     Value value_;
 };
 
 
-template<std::derived_from<CliOption> Option, std::size_t N>
-CliOptionMatch::CliOptionMatch(CliCursor& cursor, const std::array<Option, N>& options)
+class CliOptionBase {
+public:
+    virtual ~CliOptionBase() = default;
+
+    bool matches(std::string_view text) const;
+    std::string_view primary_flag() const noexcept;
+    void print_usage(std::ostream& os) const;
+
+protected:
+    CliOptionBase(std::string_view flag, CliUsagePrinter print_usage,
+                  std::span<const std::string_view> aliases = {});
+
+    std::string_view flag_;
+    CliUsagePrinter print_usage_;
+    std::span<const std::string_view> aliases_;
+};
+
+
+template<typename ValueTag>
+class CliOption : public CliOptionBase {
+public:
+    CliOption(std::string_view flag, CliUsagePrinter print_usage,
+              std::span<const std::string_view> aliases = {})
+        : CliOptionBase(flag, std::move(print_usage), aliases)
+    {}
+
+    CliParsedValue read_value(CliCursor& cursor) const
+    {
+        const std::string_view flag = primary_flag();
+
+        if constexpr (std::is_same_v<ValueTag, NoneValue>)
+            return std::monostate{};
+        else if constexpr (std::is_same_v<ValueTag, IntValue>)
+            return cursor.require_int(flag);
+        else
+            return cursor.require_size(flag);
+    }
+};
+
+
+template<typename OptionVariant>
+template<std::size_t N>
+CliOptionMatch<OptionVariant>::CliOptionMatch(CliCursor& cursor,
+                                              const std::array<OptionVariant, N>& options)
 {
     const std::string_view text = cursor.current_option();
 
-    for (const Option& option : options) {
-        if (!option.matches(text))
+    for (const OptionVariant& option : options) {
+        const bool matched =
+            std::visit([&](const auto& candidate) { return candidate.matches(text); }, option);
+
+        if (!matched)
             continue;
 
-        option_ = &static_cast<const CliOption&>(option);
-        read_value(cursor);
+        option_ = &option;
+        value_ = std::visit([&](const auto& candidate) { return candidate.read_value(cursor); },
+                            option);
         return;
     }
 
     throw CliUnknownOptionError(text);
+}
+
+
+template<typename OptionVariant>
+std::string_view CliOptionMatch<OptionVariant>::primary_flag() const
+{
+    return std::visit([](const auto& option) { return option.primary_flag(); }, *option_);
 }
 
 

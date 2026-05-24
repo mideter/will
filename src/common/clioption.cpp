@@ -1,6 +1,7 @@
 #include "clioption.h"
 
 #include <format>
+#include <ostream>
 
 
 namespace will {
@@ -22,16 +23,7 @@ CliInvalidOptionError::CliInvalidOptionError(const std::string_view flag,
 {}
 
 
-CliOption::CliOption(const std::string_view flag, const CliValueType value_type,
-                     UsagePrinter print_usage, const std::span<const std::string_view> aliases)
-    : flag_(flag)
-    , value_type_(value_type)
-    , print_usage_(std::move(print_usage))
-    , aliases_(aliases)
-{}
-
-
-bool CliOption::matches(std::string_view text) const
+bool CliOptionBase::matches(std::string_view text) const
 {
     if (text == flag_)
         return true;
@@ -45,39 +37,23 @@ bool CliOption::matches(std::string_view text) const
 }
 
 
-std::string_view CliOption::primary_flag() const noexcept
+CliOptionBase::CliOptionBase(const std::string_view flag, CliUsagePrinter print_usage,
+                             const std::span<const std::string_view> aliases)
+    : flag_(flag)
+    , print_usage_(std::move(print_usage))
+    , aliases_(aliases)
+{}
+
+
+std::string_view CliOptionBase::primary_flag() const noexcept
 {
     return flag_;
 }
 
 
-void CliOption::print_usage(std::ostream& os) const
+void CliOptionBase::print_usage(std::ostream& os) const
 {
     print_usage_(os);
-}
-
-
-CliValueType CliOption::value_type() const noexcept
-{
-    return value_type_;
-}
-
-
-void CliOptionMatch::read_value(CliCursor& cursor)
-{
-    const std::string_view flag = option_->primary_flag();
-
-    switch (option_->value_type()) {
-    case CliValueType::Int:
-        value_.emplace<int>(cursor.require_int(flag));
-        break;
-    case CliValueType::Size:
-        value_.emplace<std::size_t>(cursor.require_size(flag));
-        break;
-    case CliValueType::None:
-        value_ = std::monostate{};
-        break;
-    }
 }
 
 

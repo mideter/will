@@ -7,25 +7,34 @@
 #include <functional>
 #include <span>
 #include <string_view>
+#include <variant>
 
 
 namespace will {
 
 
-class ServerCliOption : public CliOption {
+template<typename ValueTag>
+class ServerCliOption : public CliOption<ValueTag> {
 public:
-    using Applier = std::function<void(ServerConfig&, const CliOptionMatch::Value&)>;
+    using Value = std::variant<std::monostate, int, std::size_t>;
+    using Applier = std::function<void(ServerConfig&, const Value&)>;
 
-    ServerCliOption(Applier applier, std::string_view flag, CliValueType value_type,
-                    UsagePrinter print_usage, std::span<const std::string_view> aliases = {});
+    ServerCliOption(Applier applier, std::string_view flag, CliUsagePrinter print_usage,
+                    std::span<const std::string_view> aliases = {});
 
-    void apply(ServerConfig& config, const CliOptionMatch::Value& value) const;
-
-    static const std::array<ServerCliOption, 5> ServerOptions;
-    static const CliOption HelpOption;
+    void apply(ServerConfig& config, const Value& value) const { applier_(config, value); }
 
 private:
     Applier applier_;
+};
+
+
+using ServerOption = std::variant<ServerCliOption<IntValue>, ServerCliOption<SizeValue>>;
+
+
+struct ServerCliOptionTable {
+    static const std::array<ServerOption, 5> ServerOptions;
+    static const CliOption<NoneValue> HelpOption;
 };
 
 

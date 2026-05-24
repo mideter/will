@@ -53,31 +53,31 @@ void PrintHelpUsage(std::ostream& os)
 constexpr std::string_view HelpOptionAliases[] = {"-h"};
 
 
-void ApplyPort(ServerConfig& config, const CliOptionMatch::Value& value)
+void ApplyPort(ServerConfig& config, const ServerCliOption<IntValue>::Value& value)
 {
     config.set_listen_port(std::get<int>(value));
 }
 
 
-void ApplyIoThreads(ServerConfig& config, const CliOptionMatch::Value& value)
+void ApplyIoThreads(ServerConfig& config, const ServerCliOption<IntValue>::Value& value)
 {
     config.set_io_threads(std::get<int>(value));
 }
 
 
-void ApplyListenBacklog(ServerConfig& config, const CliOptionMatch::Value& value)
+void ApplyListenBacklog(ServerConfig& config, const ServerCliOption<IntValue>::Value& value)
 {
     config.set_listen_backlog(std::get<int>(value));
 }
 
 
-void ApplyMaxClients(ServerConfig& config, const CliOptionMatch::Value& value)
+void ApplyMaxClients(ServerConfig& config, const ServerCliOption<SizeValue>::Value& value)
 {
     config.set_max_connections(std::get<std::size_t>(value));
 }
 
 
-void ApplyMaxOutboundQueue(ServerConfig& config, const CliOptionMatch::Value& value)
+void ApplyMaxOutboundQueue(ServerConfig& config, const ServerCliOption<SizeValue>::Value& value)
 {
     config.set_max_outbound_queue_bytes(std::get<std::size_t>(value));
 }
@@ -86,32 +86,30 @@ void ApplyMaxOutboundQueue(ServerConfig& config, const CliOptionMatch::Value& va
 } // namespace
 
 
-const CliOption ServerCliOption::HelpOption{
-    "--help", CliValueType::None, PrintHelpUsage, HelpOptionAliases};
+const CliOption<NoneValue> ServerCliOptionTable::HelpOption{
+    "--help", PrintHelpUsage, HelpOptionAliases};
 
 
-const std::array<ServerCliOption, 5> ServerCliOption::ServerOptions = {
-    ServerCliOption{ApplyPort, "--port", CliValueType::Int, PrintPortUsage},
-    ServerCliOption{ApplyIoThreads, "--io-threads", CliValueType::Int, PrintIoThreadsUsage},
-    ServerCliOption{ApplyListenBacklog, "--listen-backlog", CliValueType::Int, PrintListenBacklogUsage},
-    ServerCliOption{ApplyMaxClients, "--max-clients", CliValueType::Size, PrintMaxClientsUsage},
-    ServerCliOption{ApplyMaxOutboundQueue, "--max-outbound-queue-bytes", CliValueType::Size,
-                    PrintMaxOutboundQueueUsage},
+const std::array<ServerOption, 5> ServerCliOptionTable::ServerOptions = {
+    ServerCliOption<IntValue>{ApplyPort, "--port", PrintPortUsage},
+    ServerCliOption<IntValue>{ApplyIoThreads, "--io-threads", PrintIoThreadsUsage},
+    ServerCliOption<IntValue>{ApplyListenBacklog, "--listen-backlog", PrintListenBacklogUsage},
+    ServerCliOption<SizeValue>{ApplyMaxClients, "--max-clients", PrintMaxClientsUsage},
+    ServerCliOption<SizeValue>{ApplyMaxOutboundQueue, "--max-outbound-queue-bytes",
+                             PrintMaxOutboundQueueUsage},
 };
 
 
-ServerCliOption::ServerCliOption(Applier applier, const std::string_view flag,
-                                 const CliValueType value_type, UsagePrinter print_usage,
-                                 const std::span<const std::string_view> aliases)
-    : CliOption(flag, value_type, std::move(print_usage), aliases)
+template<typename ValueTag>
+ServerCliOption<ValueTag>::ServerCliOption(Applier applier, std::string_view flag,
+                                           CliUsagePrinter print_usage,
+                                           std::span<const std::string_view> aliases)
+    : CliOption<ValueTag>(flag, std::move(print_usage), aliases)
     , applier_(std::move(applier))
 {}
 
 
-void ServerCliOption::apply(ServerConfig& config, const CliOptionMatch::Value& value) const
-{
-    applier_(config, value);
-}
-
+template class ServerCliOption<IntValue>;
+template class ServerCliOption<SizeValue>;
 
 } // namespace will

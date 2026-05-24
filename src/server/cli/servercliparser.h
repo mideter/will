@@ -1,6 +1,7 @@
 #pragma once
 
 #include "clioption.h"
+#include "serverclioption.h"
 #include "serverconfig.h"
 
 
@@ -18,7 +19,7 @@ private:
 
     static void handle_help_option(int argc, CliCursor& cursor);
     static void print_usage();
-    void apply_cli_option(const CliOptionMatch& match);
+    void apply_cli_option(const CliOptionMatch<ServerOption>& match);
 
     ServerConfig server_config_;
 };
