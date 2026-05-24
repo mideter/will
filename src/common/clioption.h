@@ -2,7 +2,9 @@
 
 #include "clicursor.h"
 
+#include <array>
 #include <concepts>
+#include <cstddef>
 #include <iosfwd>
 #include <span>
 #include <stdexcept>
@@ -68,8 +70,8 @@ class CliOptionMatch {
 public:
     using Value = std::variant<std::monostate, int, std::size_t>;
 
-    template<std::derived_from<CliOption> Option>
-    CliOptionMatch(CliCursor& cursor, std::span<const Option> options);
+    template<std::derived_from<CliOption> Option, std::size_t N>
+    CliOptionMatch(CliCursor& cursor, const std::array<Option, N>& options);
 
     std::string_view primary_flag() const { return option_->primary_flag(); }
     const Value& value() const noexcept { return value_; }
@@ -82,8 +84,8 @@ private:
 };
 
 
-template<std::derived_from<CliOption> Option>
-CliOptionMatch::CliOptionMatch(CliCursor& cursor, const std::span<const Option> options)
+template<std::derived_from<CliOption> Option, std::size_t N>
+CliOptionMatch::CliOptionMatch(CliCursor& cursor, const std::array<Option, N>& options)
 {
     const std::string_view text = cursor.current_option();
 

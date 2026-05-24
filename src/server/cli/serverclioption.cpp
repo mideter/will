@@ -86,7 +86,7 @@ constexpr std::string_view HelpCliOptionAliases[] = {"-h"};
 } // namespace
 
 
-const ServerCliOption ServerCliOption::ServerOptions[] = {
+const std::array<ServerCliOption, 5> ServerCliOption::ServerOptions = {
     ServerCliOption{ApplyPort, "--port", CliValueType::Int, PrintPortUsage},
     ServerCliOption{ApplyIoThreads, "--io-threads", CliValueType::Int, PrintIoThreadsUsage},
     ServerCliOption{ApplyListenBacklog, "--listen-backlog", CliValueType::Int, PrintListenBacklogUsage},

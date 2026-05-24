@@ -3,6 +3,7 @@
 #include "clioption.h"
 #include "serverconfig.h"
 
+#include <array>
 #include <functional>
 #include <span>
 #include <string_view>
@@ -20,8 +21,7 @@ public:
 
     void apply(ServerConfig& config, const CliOptionMatch::Value& value) const;
 
-    static constexpr std::size_t ServerOptionCount = 5;
-    static const ServerCliOption ServerOptions[ServerOptionCount];
+    static const std::array<ServerCliOption, 5> ServerOptions;
 
 private:
     Applier applier_;

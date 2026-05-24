@@ -62,8 +62,7 @@ try {
     handle_help_option(argc, cursor);
 
     while (cursor.has_option()) {
-        apply_cli_option(
-            CliOptionMatch{cursor, std::span<const ServerCliOption>{ServerCliOption::ServerOptions}});
+        apply_cli_option(CliOptionMatch{cursor, ServerCliOption::ServerOptions});
         cursor.next_option();
     }
 }
