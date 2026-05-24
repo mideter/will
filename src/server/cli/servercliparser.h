@@ -22,8 +22,6 @@ private:
     static void handle_help_option(int argc, CliCursor& cursor);
     static void print_usage();
 
-    [[noreturn]] static void exit_with_help();
-
     ServerConfig server_config_;
 };
 

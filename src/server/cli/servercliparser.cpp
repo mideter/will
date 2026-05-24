@@ -27,13 +27,6 @@ void ServerCliParser::print_usage()
 }
 
 
-void ServerCliParser::exit_with_help()
-{
-    print_usage();
-    std::exit(0);
-}
-
-
 void ServerCliParser::handle_help_option(int argc, CliCursor& cursor)
 {
     if (!cursor.has_option() || !HelpCliOption.matches(cursor.current_option()))
@@ -42,7 +35,8 @@ void ServerCliParser::handle_help_option(int argc, CliCursor& cursor)
     if (argc != 2)
         throw CliHelpNotAloneError{};
 
-    exit_with_help();
+    print_usage();
+    std::exit(0);
 }
 
 
