@@ -40,13 +40,13 @@ std::string_view CliCursor::current_option() const
 }
 
 
-CliOptionMatch CliCursor::get_option(const std::span<const CliOption* const> options)
+CliOptionMatch CliCursor::get_option(const std::span<const CliOption> options)
 {
     const std::string_view text = current_option();
 
-    for (const CliOption* option : options) {
-        if (option->matches(text)) {
-            CliOptionMatch match(option, text);
+    for (const CliOption& option : options) {
+        if (option.matches(text)) {
+            CliOptionMatch match(&option, text);
             match.read_value(*this);
             return match;
         }

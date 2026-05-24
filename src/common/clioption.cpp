@@ -6,35 +6,44 @@
 namespace will {
 
 
-CliOption::CliOption(const std::string_view flag, const CliValueType value_type)
+CliOption::CliOption(const std::string_view flag, const CliValueType value_type,
+                     const UsagePrinter print_usage, const std::span<const std::string_view> aliases)
     : flag_(flag)
     , value_type_(value_type)
-{
-    registered_options_.push_back(this);
-}
+    , print_usage_(print_usage)
+    , aliases_(aliases)
+{}
 
 
 bool CliOption::matches(std::string_view text) const
 {
-    return text == flag_;
+    if (text == flag_)
+        return true;
+
+    for (const std::string_view alias : aliases_) {
+        if (text == alias)
+            return true;
+    }
+
+    return false;
 }
 
 
-std::string_view CliOption::primary_flag() const
+std::string_view CliOption::primary_flag() const noexcept
 {
     return flag_;
 }
 
 
-std::string_view CliOption::flag() const noexcept
+void CliOption::print_usage(std::ostream& os) const
 {
-    return flag_;
+    print_usage_(os);
 }
 
 
-std::span<const CliOption* const> CliOption::all_options()
+CliValueType CliOption::value_type() const noexcept
 {
-    return registered_options_;
+    return value_type_;
 }
 
 

@@ -21,7 +21,7 @@ public:
 
     std::string_view current_option() const;
 
-    CliOptionMatch get_option(std::span<const CliOption* const> options);
+    CliOptionMatch get_option(std::span<const CliOption> options);
 
     std::string_view need_value(std::string_view flag);
     int require_int(std::string_view flag);

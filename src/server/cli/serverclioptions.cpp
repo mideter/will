@@ -1,5 +1,6 @@
 #include "serverclioptions.h"
 
+#include "clioption.h"
 #include "serverconfig.h"
 
 #include <iostream>
@@ -8,145 +9,69 @@
 namespace will {
 
 
-PortCliOption::PortCliOption()
-    : CliOption("--port", CliValueType::Int)
-{}
+namespace {
 
 
-const PortCliOption& PortCliOption::instance()
-{
-    static const PortCliOption option;
-    return option;
-}
-
-
-void PortCliOption::print_usage(std::ostream& os) const
+void PrintPortUsage(std::ostream& os)
 {
     os << "  --port PORT                 Listen port " << ServerConfig::MinListenPort << '-'
        << ServerConfig::MaxListenPort << " (default " << ServerConfig::DefaultListenPort << ")\n";
 }
 
 
-IoThreadsCliOption::IoThreadsCliOption()
-    : CliOption("--io-threads", CliValueType::Int)
-{}
-
-
-const IoThreadsCliOption& IoThreadsCliOption::instance()
-{
-    static const IoThreadsCliOption option;
-    return option;
-}
-
-
-void IoThreadsCliOption::print_usage(std::ostream& os) const
+void PrintIoThreadsUsage(std::ostream& os)
 {
     os << "  --io-threads N              io_context worker threads (default "
        << ServerConfig::DefaultIoThreads << ")\n";
 }
 
 
-ListenBacklogCliOption::ListenBacklogCliOption()
-    : CliOption("--listen-backlog", CliValueType::Int)
-{}
-
-
-const ListenBacklogCliOption& ListenBacklogCliOption::instance()
-{
-    static const ListenBacklogCliOption option;
-    return option;
-}
-
-
-void ListenBacklogCliOption::print_usage(std::ostream& os) const
+void PrintListenBacklogUsage(std::ostream& os)
 {
     os << "  --listen-backlog N          listen() backlog (default "
        << ServerConfig::DefaultListenBacklog << ")\n";
 }
 
 
-MaxClientsCliOption::MaxClientsCliOption()
-    : CliOption("--max-clients", CliValueType::Size)
-{}
-
-
-const MaxClientsCliOption& MaxClientsCliOption::instance()
-{
-    static const MaxClientsCliOption option;
-    return option;
-}
-
-
-void MaxClientsCliOption::print_usage(std::ostream& os) const
+void PrintMaxClientsUsage(std::ostream& os)
 {
     os << "  --max-clients N             Max concurrent connections (default "
        << ServerConfig::DefaultMaxConnections << ")\n";
 }
 
 
-MaxOutboundQueueCliOption::MaxOutboundQueueCliOption()
-    : CliOption("--max-outbound-queue-bytes", CliValueType::Size)
-{}
-
-
-const MaxOutboundQueueCliOption& MaxOutboundQueueCliOption::instance()
-{
-    static const MaxOutboundQueueCliOption option;
-    return option;
-}
-
-
-void MaxOutboundQueueCliOption::print_usage(std::ostream& os) const
+void PrintMaxOutboundQueueUsage(std::ostream& os)
 {
     os << "  --max-outbound-queue-bytes N  Per-session write queue cap (default "
        << ServerConfig::DefaultMaxOutboundQueueBytes << ")\n";
 }
 
 
-HelpCliOption::HelpCliOption()
-    : CliOption("--help", CliValueType::None)
-{}
-
-
-const HelpCliOption& HelpCliOption::instance()
-{
-    static const HelpCliOption option;
-    return option;
-}
-
-
-bool HelpCliOption::matches(std::string_view text) const
-{
-    return text == flag() || text == "-h";
-}
-
-
-void HelpCliOption::print_usage(std::ostream& os) const
+void PrintHelpUsage(std::ostream& os)
 {
     os << "  --help, -h                  Show this help\n";
 }
 
 
-namespace {
-
-
-struct ServerCliOptionsRegistrar {
-    ServerCliOptionsRegistrar()
-    {
-        (void)PortCliOption::instance();
-        (void)IoThreadsCliOption::instance();
-        (void)ListenBacklogCliOption::instance();
-        (void)MaxClientsCliOption::instance();
-        (void)MaxOutboundQueueCliOption::instance();
-        (void)HelpCliOption::instance();
-    }
-};
-
-
-const ServerCliOptionsRegistrar server_cli_options_registrar;
+constexpr std::string_view HelpOptionAliases[] = {"-h"};
 
 
 } // namespace
+
+
+std::span<const CliOption> AllServerCliOptions()
+{
+    static const CliOption Options[] = {
+        {"--port", CliValueType::Int, PrintPortUsage},
+        {"--io-threads", CliValueType::Int, PrintIoThreadsUsage},
+        {"--listen-backlog", CliValueType::Int, PrintListenBacklogUsage},
+        {"--max-clients", CliValueType::Size, PrintMaxClientsUsage},
+        {"--max-outbound-queue-bytes", CliValueType::Size, PrintMaxOutboundQueueUsage},
+        {"--help", CliValueType::None, PrintHelpUsage, HelpOptionAliases},
+    };
+
+    return Options;
+}
 
 
 } // namespace will

@@ -4,7 +4,6 @@
 #include <optional>
 #include <span>
 #include <string_view>
-#include <vector>
 
 
 namespace will {
@@ -22,26 +21,21 @@ enum class CliValueType {
 
 class CliOption {
 public:
-    virtual ~CliOption() = default;
+    using UsagePrinter = void (*)(std::ostream&);
 
-    virtual bool matches(std::string_view text) const;
-    virtual std::string_view primary_flag() const;
-    virtual void print_usage(std::ostream& os) const = 0;
+    CliOption(std::string_view flag, CliValueType value_type, UsagePrinter print_usage,
+              std::span<const std::string_view> aliases = {});
 
-    CliValueType value_type() const noexcept { return value_type_; }
-
-    static std::span<const CliOption* const> all_options();
-
-protected:
-    explicit CliOption(std::string_view flag, CliValueType value_type);
-
-    std::string_view flag() const noexcept;
+    bool matches(std::string_view text) const;
+    std::string_view primary_flag() const noexcept;
+    void print_usage(std::ostream& os) const;
+    CliValueType value_type() const noexcept;
 
 private:
-    inline static std::vector<const CliOption*> registered_options_{};
-
     std::string_view flag_;
     CliValueType value_type_;
+    UsagePrinter print_usage_;
+    std::span<const std::string_view> aliases_;
 };
 
 
