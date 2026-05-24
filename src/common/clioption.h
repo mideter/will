@@ -66,7 +66,7 @@ private:
 
 class CliOptionMatch {
 public:
-    static CliOptionMatch parse(CliCursor& cursor, std::span<const CliOption> options);
+    CliOptionMatch(CliCursor& cursor, std::span<const CliOption> options);
 
     std::string_view token() const noexcept { return token_; }
     std::string_view primary_flag() const { return option_->primary_flag(); }
@@ -75,8 +75,6 @@ public:
     std::optional<std::size_t> size_value() const noexcept { return size_value_; }
 
 private:
-    CliOptionMatch(const CliOption& option, std::string_view token);
-
     void read_value(CliCursor& cursor);
 
     const CliOption* option_;

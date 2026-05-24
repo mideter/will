@@ -48,7 +48,7 @@ try {
     handle_help_option(argc, cursor);
 
     while (cursor.has_option()) {
-        server_config_.apply_cli_option(CliOptionMatch::parse(cursor, ServerCliOptions()));
+        server_config_.apply_cli_option(CliOptionMatch{cursor, ServerCliOptions()});
         cursor.next_option();
     }
 }

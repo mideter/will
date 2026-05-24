@@ -65,13 +65,7 @@ CliValueType CliOption::value_type() const noexcept
 }
 
 
-CliOptionMatch::CliOptionMatch(const CliOption& option, const std::string_view token)
-    : option_(&option)
-    , token_(token)
-{}
-
-
-CliOptionMatch CliOptionMatch::parse(CliCursor& cursor, const std::span<const CliOption> options)
+CliOptionMatch::CliOptionMatch(CliCursor& cursor, const std::span<const CliOption> options)
 {
     const std::string_view text = cursor.current_option();
 
@@ -79,9 +73,10 @@ CliOptionMatch CliOptionMatch::parse(CliCursor& cursor, const std::span<const Cl
         if (!option.matches(text))
             continue;
 
-        CliOptionMatch match(option, text);
-        match.read_value(cursor);
-        return match;
+        option_ = &option;
+        token_ = text;
+        read_value(cursor);
+        return;
     }
 
     throw CliUnknownOptionError(text);
