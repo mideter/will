@@ -16,28 +16,28 @@ namespace cli {
 
 template<typename ValueTag>
     requires(std::derived_from<ValueTag, Value> && !std::is_same_v<ValueTag, NoneValue>)
-class ServerCliOption : public CliOption<ValueTag> {
+class ConfigOption : public Option<ValueTag> {
 public:
-    using Applier = std::function<void(ServerConfig&, const CliParsedValue&)>;
+    using Applier = std::function<void(ServerConfig&, const ParsedValue&)>;
 
-    ServerCliOption(Applier applier, 
+    ConfigOption(Applier applier, 
                     std::string_view flag, 
-                    CliUsagePrinter print_usage,
+                    UsagePrinter print_usage,
                     std::span<const std::string_view> aliases = {});
 
-    void apply(ServerConfig& config, const CliParsedValue& value) const;
+    void apply(ServerConfig& config, const ParsedValue& value) const;
 
 private:
     Applier applier_;
 };
 
 
-using ServerOption = std::variant<ServerCliOption<IntValue>, ServerCliOption<SizeValue>>;
+using ServerOption = std::variant<ConfigOption<IntValue>, ConfigOption<SizeValue>>;
 
 
-struct ServerCliOptionTable {
+struct ServerOptionTable {
     static const std::array<ServerOption, 5> ServerOptions;
-    static const CliOption<NoneValue> HelpOption;
+    static const Option<NoneValue> HelpOption;
 };
 
 

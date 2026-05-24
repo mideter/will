@@ -10,18 +10,18 @@ namespace will {
 namespace cli {
 
 
-class ServerCliParser {
+class ServerParser {
 public:
-    ServerCliParser(int argc, char* argv[]);
+    ServerParser(int argc, char* argv[]);
 
     const ServerConfig& server_config() const noexcept;
 
 private:
     void parse_command_line(int argc, char* argv[]);
 
-    static void handle_help_option(int argc, ServerCliOptionCursor& cursor);
+    static void handle_help_option(int argc, ServerOptionCursor& cursor);
     static void print_usage();
-    void apply_cli_option(const CliOptionMatch<ServerOption>& match);
+    void apply_option(const OptionMatch<ServerOption>& match);
 
     ServerConfig server_config_;
 };

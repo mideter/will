@@ -54,31 +54,31 @@ void PrintHelpUsage(std::ostream& os)
 constexpr std::string_view HelpOptionAliases[] = {"-h"};
 
 
-void ApplyPort(ServerConfig& config, const CliParsedValue& value)
+void ApplyPort(ServerConfig& config, const ParsedValue& value)
 {
     config.set_listen_port(std::get<int>(value));
 }
 
 
-void ApplyIoThreads(ServerConfig& config, const CliParsedValue& value)
+void ApplyIoThreads(ServerConfig& config, const ParsedValue& value)
 {
     config.set_io_threads(std::get<int>(value));
 }
 
 
-void ApplyListenBacklog(ServerConfig& config, const CliParsedValue& value)
+void ApplyListenBacklog(ServerConfig& config, const ParsedValue& value)
 {
     config.set_listen_backlog(std::get<int>(value));
 }
 
 
-void ApplyMaxClients(ServerConfig& config, const CliParsedValue& value)
+void ApplyMaxClients(ServerConfig& config, const ParsedValue& value)
 {
     config.set_max_connections(std::get<std::size_t>(value));
 }
 
 
-void ApplyMaxOutboundQueue(ServerConfig& config, const CliParsedValue& value)
+void ApplyMaxOutboundQueue(ServerConfig& config, const ParsedValue& value)
 {
     config.set_max_outbound_queue_bytes(std::get<std::size_t>(value));
 }
@@ -87,40 +87,40 @@ void ApplyMaxOutboundQueue(ServerConfig& config, const CliParsedValue& value)
 } // namespace
 
 
-const CliOption<NoneValue> ServerCliOptionTable::HelpOption{
+const Option<NoneValue> ServerOptionTable::HelpOption{
     "--help", PrintHelpUsage, HelpOptionAliases};
 
 
-const std::array<ServerOption, 5> ServerCliOptionTable::ServerOptions = {
-    ServerCliOption<IntValue>{ApplyPort, "--port", PrintPortUsage},
-    ServerCliOption<IntValue>{ApplyIoThreads, "--io-threads", PrintIoThreadsUsage},
-    ServerCliOption<IntValue>{ApplyListenBacklog, "--listen-backlog", PrintListenBacklogUsage},
-    ServerCliOption<SizeValue>{ApplyMaxClients, "--max-clients", PrintMaxClientsUsage},
-    ServerCliOption<SizeValue>{ApplyMaxOutboundQueue, "--max-outbound-queue-bytes",
+const std::array<ServerOption, 5> ServerOptionTable::ServerOptions = {
+    ConfigOption<IntValue>{ApplyPort, "--port", PrintPortUsage},
+    ConfigOption<IntValue>{ApplyIoThreads, "--io-threads", PrintIoThreadsUsage},
+    ConfigOption<IntValue>{ApplyListenBacklog, "--listen-backlog", PrintListenBacklogUsage},
+    ConfigOption<SizeValue>{ApplyMaxClients, "--max-clients", PrintMaxClientsUsage},
+    ConfigOption<SizeValue>{ApplyMaxOutboundQueue, "--max-outbound-queue-bytes",
                              PrintMaxOutboundQueueUsage},
 };
 
 
 template<typename ValueTag>
     requires(std::derived_from<ValueTag, Value> && !std::is_same_v<ValueTag, NoneValue>)
-ServerCliOption<ValueTag>::ServerCliOption(Applier applier, std::string_view flag,
-                                           CliUsagePrinter print_usage,
+ConfigOption<ValueTag>::ConfigOption(Applier applier, std::string_view flag,
+                                           UsagePrinter print_usage,
                                            std::span<const std::string_view> aliases)
-    : CliOption<ValueTag>(flag, std::move(print_usage), aliases)
+    : Option<ValueTag>(flag, std::move(print_usage), aliases)
     , applier_(std::move(applier))
 {}
 
 
 template<typename ValueTag>
     requires(std::derived_from<ValueTag, Value> && !std::is_same_v<ValueTag, NoneValue>)
-void ServerCliOption<ValueTag>::apply(ServerConfig& config, const CliParsedValue& value) const
+void ConfigOption<ValueTag>::apply(ServerConfig& config, const ParsedValue& value) const
 {
     applier_(config, value);
 }
 
 
-template class ServerCliOption<IntValue>;
-template class ServerCliOption<SizeValue>;
+template class ConfigOption<IntValue>;
+template class ConfigOption<SizeValue>;
 
 } // namespace cli
 } // namespace will

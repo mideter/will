@@ -23,57 +23,57 @@ class Value {};
 
 class IntValue : public Value {
 public:
-    static int read(CliOptionCursor& cursor, std::string_view flag);
+    static int read(OptionCursor& cursor, std::string_view flag);
 };
 
 
 class SizeValue : public Value {
 public:
-    static std::size_t read(CliOptionCursor& cursor, std::string_view flag);
+    static std::size_t read(OptionCursor& cursor, std::string_view flag);
 };
 
 
 class NoneValue : public Value {
 public:
-    static std::monostate read(CliOptionCursor& cursor, std::string_view flag);
+    static std::monostate read(OptionCursor& cursor, std::string_view flag);
 };
 
 
-class CliError : public std::runtime_error {
+class Error : public std::runtime_error {
 public:
     using std::runtime_error::runtime_error;
 };
 
 
-class CliUnknownOptionError : public CliError {
+class UnknownOptionError : public Error {
 public:
-    explicit CliUnknownOptionError(std::string_view token);
+    explicit UnknownOptionError(std::string_view token);
 };
 
 
-class CliHelpNotAloneError : public CliError {
+class HelpNotAloneError : public Error {
 public:
-    CliHelpNotAloneError();
+    HelpNotAloneError();
 };
 
 
-class CliInvalidOptionError : public CliError {
+class InvalidOptionError : public Error {
 public:
-    CliInvalidOptionError(std::string_view flag, std::string_view reason);
+    InvalidOptionError(std::string_view flag, std::string_view reason);
 };
 
 
-using CliUsagePrinter = std::function<void(std::ostream&)>;
-using CliParsedValue = std::variant<std::monostate, int, std::size_t>;
+using UsagePrinter = std::function<void(std::ostream&)>;
+using ParsedValue = std::variant<std::monostate, int, std::size_t>;
 
 
 template<typename OptionVariant>
-class CliOptionMatch {
+class OptionMatch {
 public:
-    using Value = CliParsedValue;
+    using Value = ParsedValue;
 
     template<std::size_t N>
-    CliOptionMatch(CliOptionCursor& cursor, const std::array<OptionVariant, N>& options);
+    OptionMatch(OptionCursor& cursor, const std::array<OptionVariant, N>& options);
 
     std::string_view primary_flag() const;
     const Value& value() const noexcept { return value_; }
@@ -85,43 +85,43 @@ private:
 };
 
 
-class CliOptionBase {
+class OptionBase {
 public:
-    virtual ~CliOptionBase() = default;
+    virtual ~OptionBase() = default;
 
     bool matches(std::string_view text) const;
     std::string_view primary_flag() const noexcept;
     void print_usage(std::ostream& os) const;
 
 protected:
-    CliOptionBase(std::string_view flag, CliUsagePrinter print_usage,
+    OptionBase(std::string_view flag, UsagePrinter print_usage,
                   std::span<const std::string_view> aliases = {});
 
     std::string_view flag_;
-    CliUsagePrinter print_usage_;
+    UsagePrinter print_usage_;
     std::span<const std::string_view> aliases_;
 };
 
 
 template<typename ValueTag>
     requires std::derived_from<ValueTag, Value>
-class CliOption : public CliOptionBase {
+class Option : public OptionBase {
 public:
-    CliOption(std::string_view flag, CliUsagePrinter print_usage,
+    Option(std::string_view flag, UsagePrinter print_usage,
               std::span<const std::string_view> aliases = {})
-        : CliOptionBase(flag, std::move(print_usage), aliases)
+        : OptionBase(flag, std::move(print_usage), aliases)
     {}
 
-    CliParsedValue read_value(CliOptionCursor& cursor) const
+    ParsedValue read_value(OptionCursor& cursor) const
     {
-        return CliParsedValue{ValueTag::read(cursor, primary_flag())};
+        return ParsedValue{ValueTag::read(cursor, primary_flag())};
     }
 };
 
 
 template<typename OptionVariant>
 template<std::size_t N>
-CliOptionMatch<OptionVariant>::CliOptionMatch(CliOptionCursor& cursor,
+OptionMatch<OptionVariant>::OptionMatch(OptionCursor& cursor,
                                               const std::array<OptionVariant, N>& options)
 {
     const std::string_view text = cursor.current_option();
@@ -139,12 +139,12 @@ CliOptionMatch<OptionVariant>::CliOptionMatch(CliOptionCursor& cursor,
         return;
     }
 
-    throw CliUnknownOptionError(text);
+    throw UnknownOptionError(text);
 }
 
 
 template<typename OptionVariant>
-std::string_view CliOptionMatch<OptionVariant>::primary_flag() const
+std::string_view OptionMatch<OptionVariant>::primary_flag() const
 {
     return std::visit([](const auto& option) { return option.primary_flag(); }, *option_);
 }

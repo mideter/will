@@ -9,12 +9,12 @@ namespace cli {
 
 
 /** Cursor over argv option flags with value parsing helpers. */
-class CliOptionCursor {
+class OptionCursor {
 public:
-    CliOptionCursor(int argc, char* argv[]);
+    OptionCursor(int argc, char* argv[]);
 
     bool has_option() const noexcept;
-    CliOptionCursor operator++(int) noexcept;
+    OptionCursor operator++(int) noexcept;
 
     std::string_view current_option() const;
 
@@ -22,7 +22,7 @@ public:
     int require_int(std::string_view flag);
     std::size_t require_size(std::string_view flag);
 
-    [[noreturn]] void cli_fail_flag(std::string_view flag) const;
+    [[noreturn]] void fail_flag(std::string_view flag) const;
 
 private:
     static std::optional<std::size_t> parse_size(std::string_view text);

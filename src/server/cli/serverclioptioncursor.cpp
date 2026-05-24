@@ -5,18 +5,18 @@ namespace will {
 namespace cli {
 
 
-ServerCliOptionCursor::ServerCliOptionCursor(int argc, char* argv[])
-    : CliOptionCursor(argc, argv)
+ServerOptionCursor::ServerOptionCursor(int argc, char* argv[])
+    : OptionCursor(argc, argv)
 {}
 
 
-CliOptionMatch<ServerOption> ServerCliOptionCursor::match()
+OptionMatch<ServerOption> ServerOptionCursor::match()
 {
-    return CliOptionMatch<ServerOption>{*this, ServerCliOptionTable::ServerOptions};
+    return OptionMatch<ServerOption>{*this, ServerOptionTable::ServerOptions};
 }
 
 
-void ServerCliOptionCursor::advance()
+void ServerOptionCursor::advance()
 {
     (*this)++;
 }

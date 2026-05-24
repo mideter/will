@@ -8,19 +8,19 @@ namespace will {
 namespace cli {
 
 
-int IntValue::read(CliOptionCursor& cursor, const std::string_view flag)
+int IntValue::read(OptionCursor& cursor, const std::string_view flag)
 {
     return cursor.require_int(flag);
 }
 
 
-std::size_t SizeValue::read(CliOptionCursor& cursor, const std::string_view flag)
+std::size_t SizeValue::read(OptionCursor& cursor, const std::string_view flag)
 {
     return cursor.require_size(flag);
 }
 
 
-std::monostate NoneValue::read(CliOptionCursor& cursor, const std::string_view flag)
+std::monostate NoneValue::read(OptionCursor& cursor, const std::string_view flag)
 {
     (void)cursor;
     (void)flag;
@@ -28,23 +28,23 @@ std::monostate NoneValue::read(CliOptionCursor& cursor, const std::string_view f
 }
 
 
-CliUnknownOptionError::CliUnknownOptionError(const std::string_view token)
-    : CliError(std::format("Unknown option: {}", token))
+UnknownOptionError::UnknownOptionError(const std::string_view token)
+    : Error(std::format("Unknown option: {}", token))
 {}
 
 
-CliHelpNotAloneError::CliHelpNotAloneError()
-    : CliError("--help must be the only option")
+HelpNotAloneError::HelpNotAloneError()
+    : Error("--help must be the only option")
 {}
 
 
-CliInvalidOptionError::CliInvalidOptionError(const std::string_view flag,
+InvalidOptionError::InvalidOptionError(const std::string_view flag,
                                              const std::string_view reason)
-    : CliError(std::format("Invalid {}: {}", flag, reason))
+    : Error(std::format("Invalid {}: {}", flag, reason))
 {}
 
 
-bool CliOptionBase::matches(std::string_view text) const
+bool OptionBase::matches(std::string_view text) const
 {
     if (text == flag_)
         return true;
@@ -58,7 +58,7 @@ bool CliOptionBase::matches(std::string_view text) const
 }
 
 
-CliOptionBase::CliOptionBase(const std::string_view flag, CliUsagePrinter print_usage,
+OptionBase::OptionBase(const std::string_view flag, UsagePrinter print_usage,
                              const std::span<const std::string_view> aliases)
     : flag_(flag)
     , print_usage_(std::move(print_usage))
@@ -66,13 +66,13 @@ CliOptionBase::CliOptionBase(const std::string_view flag, CliUsagePrinter print_
 {}
 
 
-std::string_view CliOptionBase::primary_flag() const noexcept
+std::string_view OptionBase::primary_flag() const noexcept
 {
     return flag_;
 }
 
 
-void CliOptionBase::print_usage(std::ostream& os) const
+void OptionBase::print_usage(std::ostream& os) const
 {
     print_usage_(os);
 }

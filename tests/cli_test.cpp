@@ -45,9 +45,9 @@ void assert_help_matches()
 {
     using namespace will::cli;
 
-    assert(ServerCliOptionTable::HelpOption.matches("--help"));
-    assert(ServerCliOptionTable::HelpOption.matches("-h"));
-    assert(!ServerCliOptionTable::HelpOption.matches("--port"));
+    assert(ServerOptionTable::HelpOption.matches("--help"));
+    assert(ServerOptionTable::HelpOption.matches("-h"));
+    assert(!ServerOptionTable::HelpOption.matches("--port"));
 }
 
 
@@ -56,12 +56,12 @@ void assert_unknown_option()
     using namespace will::cli;
 
     Argv args{"will-server", "--unknown"};
-    ServerCliOptionCursor cursor(args.argc(), args.argv());
+    ServerOptionCursor cursor(args.argc(), args.argv());
 
     bool threw = false;
     try {
         (void)cursor.match();
-    } catch (const CliUnknownOptionError& error) {
+    } catch (const UnknownOptionError& error) {
         threw = true;
         assert(std::string_view{error.what()}.find("--unknown") != std::string_view::npos);
     }
@@ -77,7 +77,7 @@ void assert_help_not_alone()
     bool threw = false;
     try {
         (void)parse_server_options(args.argc(), args.argv());
-    } catch (const CliHelpNotAloneError&) {
+    } catch (const HelpNotAloneError&) {
         threw = true;
     }
     assert(threw);
@@ -107,7 +107,7 @@ void assert_help_after_other_option_is_unknown()
     bool threw = false;
     try {
         (void)parse_server_options(args.argc(), args.argv());
-    } catch (const CliUnknownOptionError& error) {
+    } catch (const UnknownOptionError& error) {
         threw = true;
         assert(std::string_view{error.what()}.find("--help") != std::string_view::npos);
     }
@@ -120,22 +120,22 @@ will::ServerConfig parse_server_options(int argc, char* argv[])
     using namespace will::cli;
 
     will::ServerConfig config;
-    ServerCliOptionCursor cursor(argc, argv);
+    ServerOptionCursor cursor(argc, argv);
 
     if (cursor.has_option()
-        && ServerCliOptionTable::HelpOption.matches(cursor.current_option())) {
+        && ServerOptionTable::HelpOption.matches(cursor.current_option())) {
         if (argc != 2)
-            throw CliHelpNotAloneError{};
+            throw HelpNotAloneError{};
 
         throw HelpRequested{};
     }
 
     while (cursor.has_option()) {
-        const CliOptionMatch<ServerOption> match = cursor.match();
+        const OptionMatch<ServerOption> match = cursor.match();
         try {
             std::visit([&](const auto& option) { option.apply(config, match.value()); }, match.option());
         } catch (const will::ServerConfigError& error) {
-            throw CliInvalidOptionError(match.primary_flag(), error.what());
+            throw InvalidOptionError(match.primary_flag(), error.what());
         }
         cursor.advance();
     }
@@ -192,7 +192,7 @@ void assert_invalid_port()
     bool threw = false;
     try {
         (void)parse_server_options(args.argc(), args.argv());
-    } catch (const CliInvalidOptionError& error) {
+    } catch (const InvalidOptionError& error) {
         threw = true;
         const std::string_view message{error.what()};
         assert(message.find("--port") != std::string_view::npos);
@@ -210,7 +210,7 @@ void assert_missing_value()
     bool threw = false;
     try {
         (void)parse_server_options(args.argc(), args.argv());
-    } catch (const CliInvalidOptionError& error) {
+    } catch (const InvalidOptionError& error) {
         threw = true;
         const std::string_view message{error.what()};
         assert(message.find("--port") != std::string_view::npos);
@@ -228,7 +228,7 @@ void assert_invalid_numeric_value()
     bool threw = false;
     try {
         (void)parse_server_options(args.argc(), args.argv());
-    } catch (const CliInvalidOptionError& error) {
+    } catch (const InvalidOptionError& error) {
         threw = true;
         const std::string_view message{error.what()};
         assert(message.find("--io-threads") != std::string_view::npos);
@@ -243,9 +243,9 @@ void assert_cli_option_read_value()
     using namespace will::cli;
 
     Argv args{"will-server", "--port", "1234"};
-    ServerCliOptionCursor cursor(args.argc(), args.argv());
+    ServerOptionCursor cursor(args.argc(), args.argv());
 
-    const CliOptionMatch<ServerOption> match = cursor.match();
+    const OptionMatch<ServerOption> match = cursor.match();
     assert(match.primary_flag() == "--port");
     assert(std::holds_alternative<int>(match.value()));
     assert(std::get<int>(match.value()) == 1234);

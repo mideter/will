@@ -10,11 +10,11 @@ namespace cli {
 
 
 /** argv cursor with server option table matching built in. */
-class ServerCliOptionCursor : public CliOptionCursor {
+class ServerOptionCursor : public OptionCursor {
 public:
-    explicit ServerCliOptionCursor(int argc, char* argv[]);
+    explicit ServerOptionCursor(int argc, char* argv[]);
 
-    CliOptionMatch<ServerOption> match();
+    OptionMatch<ServerOption> match();
     void advance();
 };
 
