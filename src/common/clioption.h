@@ -5,6 +5,7 @@
 #include <array>
 #include <concepts>
 #include <cstddef>
+#include <functional>
 #include <iosfwd>
 #include <span>
 #include <stdexcept>
@@ -48,7 +49,7 @@ public:
 
 class CliOption {
 public:
-    using UsagePrinter = void (*)(std::ostream&);
+    using UsagePrinter = std::function<void(std::ostream&)>;
 
     CliOption(std::string_view flag, CliValueType value_type, UsagePrinter print_usage,
               std::span<const std::string_view> aliases = {});

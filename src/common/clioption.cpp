@@ -25,10 +25,10 @@ CliInvalidOptionError::CliInvalidOptionError(const std::string_view flag,
 
 
 CliOption::CliOption(const std::string_view flag, const CliValueType value_type,
-                     const UsagePrinter print_usage, const std::span<const std::string_view> aliases)
+                     UsagePrinter print_usage, const std::span<const std::string_view> aliases)
     : flag_(flag)
     , value_type_(value_type)
-    , print_usage_(print_usage)
+    , print_usage_(std::move(print_usage))
     , aliases_(aliases)
 {}
 

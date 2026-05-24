@@ -97,9 +97,9 @@ const std::array<ServerCliOption, 5> ServerCliOption::ServerOptions = {
 
 
 ServerCliOption::ServerCliOption(Applier applier, const std::string_view flag,
-                                 const CliValueType value_type, const UsagePrinter print_usage,
+                                 const CliValueType value_type, UsagePrinter print_usage,
                                  const std::span<const std::string_view> aliases)
-    : CliOption(flag, value_type, print_usage, aliases)
+    : CliOption(flag, value_type, std::move(print_usage), aliases)
     , applier_(std::move(applier))
 {}
 
