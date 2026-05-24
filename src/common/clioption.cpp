@@ -33,7 +33,7 @@ std::optional<std::size_t> SizeValue::parse(std::string_view text)
 }
 
 
-int IntValue::read(OptionCursor& cursor, const std::string_view flag)
+int IntValue::read(OptionCursorCore& cursor, const std::string_view flag)
 {
     const auto value = parse(cursor.need_value(flag));
 
@@ -44,7 +44,7 @@ int IntValue::read(OptionCursor& cursor, const std::string_view flag)
 }
 
 
-std::size_t SizeValue::read(OptionCursor& cursor, const std::string_view flag)
+std::size_t SizeValue::read(OptionCursorCore& cursor, const std::string_view flag)
 {
     const auto value = parse(cursor.need_value(flag));
 
@@ -55,7 +55,7 @@ std::size_t SizeValue::read(OptionCursor& cursor, const std::string_view flag)
 }
 
 
-std::monostate NoneValue::read(OptionCursor& cursor, const std::string_view flag)
+std::monostate NoneValue::read(OptionCursorCore& cursor, const std::string_view flag)
 {
     (void)cursor;
     (void)flag;

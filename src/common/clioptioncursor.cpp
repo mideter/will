@@ -7,21 +7,21 @@ namespace will {
 namespace cli {
 
 
-OptionCursor::OptionCursor(int argc, char* argv[])
+OptionCursorCore::OptionCursorCore(int argc, char* argv[])
     : argc_(argc)
     , argv_(argv)
 {}
 
 
-bool OptionCursor::has_option() const noexcept
+bool OptionCursorCore::has_option() const noexcept
 {
     return index_ < argc_;
 }
 
 
-OptionCursor OptionCursor::operator++(int) noexcept
+OptionCursorCore OptionCursorCore::operator++(int) noexcept
 {
-    OptionCursor before{*this};
+    OptionCursorCore before{*this};
 
     ++index_;
 
@@ -33,13 +33,13 @@ OptionCursor OptionCursor::operator++(int) noexcept
 }
 
 
-std::string_view OptionCursor::current_option() const
+std::string_view OptionCursorCore::current_option() const
 {
     return std::string_view{argv_[index_]};
 }
 
 
-std::string_view OptionCursor::need_value(std::string_view flag)
+std::string_view OptionCursorCore::need_value(std::string_view flag)
 {
     if (index_ + 1 >= argc_)
         throw InvalidOptionError(flag, "requires a value");

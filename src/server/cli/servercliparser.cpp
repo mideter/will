@@ -32,7 +32,7 @@ void ServerParser::print_usage()
 }
 
 
-void ServerParser::handle_help_option(int argc, ServerOptionCursor& cursor)
+void ServerParser::handle_help_option(int argc, OptionCursorCore& cursor)
 {
     if (!cursor.has_option()
         || !ServerOptionTable::HelpOption.matches(cursor.current_option())) {
@@ -57,7 +57,7 @@ try {
 
 void ServerParser::parse_command_line(int argc, char* argv[])
 try {
-    ServerOptionCursor cursor(argc, argv);
+    OptionCursor cursor(argc, argv, ServerOptionTable::ServerOptions);
 
     handle_help_option(argc, cursor);
 

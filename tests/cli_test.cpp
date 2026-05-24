@@ -1,6 +1,6 @@
 #include "clioption.h"
+#include "clioptioncursor.h"
 #include "serverclioption.h"
-#include "serverclioptioncursor.h"
 #include "serverconfig.h"
 
 #include <cassert>
@@ -56,7 +56,7 @@ void assert_unknown_option()
     using namespace will::cli;
 
     Argv args{"will-server", "--unknown"};
-    ServerOptionCursor cursor(args.argc(), args.argv());
+    OptionCursor cursor(args.argc(), args.argv(), ServerOptionTable::ServerOptions);
 
     bool threw = false;
     try {
@@ -120,7 +120,7 @@ will::ServerConfig parse_server_options(int argc, char* argv[])
     using namespace will::cli;
 
     will::ServerConfig config;
-    ServerOptionCursor cursor(argc, argv);
+    OptionCursor cursor(argc, argv, ServerOptionTable::ServerOptions);
 
     if (cursor.has_option()
         && ServerOptionTable::HelpOption.matches(cursor.current_option())) {
@@ -243,7 +243,7 @@ void assert_cli_option_read_value()
     using namespace will::cli;
 
     Argv args{"will-server", "--port", "1234"};
-    ServerOptionCursor cursor(args.argc(), args.argv());
+    OptionCursor cursor(args.argc(), args.argv(), ServerOptionTable::ServerOptions);
 
     const OptionMatch<ServerOption> match = cursor.match();
     assert(match.primary_flag() == "--port");

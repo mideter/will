@@ -1,8 +1,8 @@
 #pragma once
 
 #include "clioption.h"
+#include "clioptioncursor.h"
 #include "serverclioption.h"
-#include "serverclioptioncursor.h"
 #include "serverconfig.h"
 
 
@@ -19,7 +19,7 @@ public:
 private:
     void parse_command_line(int argc, char* argv[]);
 
-    static void handle_help_option(int argc, ServerOptionCursor& cursor);
+    static void handle_help_option(int argc, OptionCursorCore& cursor);
     static void print_usage();
     void apply_option(const OptionMatch<ServerOption>& match);
 

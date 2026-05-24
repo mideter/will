@@ -24,7 +24,7 @@ class Value {};
 
 class IntValue : public Value {
 public:
-    static int read(OptionCursor& cursor, std::string_view flag);
+    static int read(OptionCursorCore& cursor, std::string_view flag);
 
 private:
     static std::optional<int> parse(std::string_view text);
@@ -33,7 +33,7 @@ private:
 
 class SizeValue : public Value {
 public:
-    static std::size_t read(OptionCursor& cursor, std::string_view flag);
+    static std::size_t read(OptionCursorCore& cursor, std::string_view flag);
 
 private:
     static std::optional<std::size_t> parse(std::string_view text);
@@ -42,7 +42,7 @@ private:
 
 class NoneValue : public Value {
 public:
-    static std::monostate read(OptionCursor& cursor, std::string_view flag);
+    static std::monostate read(OptionCursorCore& cursor, std::string_view flag);
 };
 
 
@@ -80,7 +80,7 @@ public:
     using Value = ParsedValue;
 
     template<std::size_t N>
-    OptionMatch(OptionCursor& cursor, const std::array<OptionVariant, N>& options);
+    OptionMatch(OptionCursorCore& cursor, const std::array<OptionVariant, N>& options);
 
     std::string_view primary_flag() const;
     const Value& value() const noexcept { return value_; }
@@ -119,7 +119,7 @@ public:
         : OptionBase(flag, std::move(print_usage), aliases)
     {}
 
-    ParsedValue read_value(OptionCursor& cursor) const
+    ParsedValue read_value(OptionCursorCore& cursor) const
     {
         return ParsedValue{ValueTag::read(cursor, primary_flag())};
     }
@@ -128,7 +128,7 @@ public:
 
 template<typename OptionVariant>
 template<std::size_t N>
-OptionMatch<OptionVariant>::OptionMatch(OptionCursor& cursor,
+OptionMatch<OptionVariant>::OptionMatch(OptionCursorCore& cursor,
                                               const std::array<OptionVariant, N>& options)
 {
     const std::string_view text = cursor.current_option();
@@ -154,6 +154,13 @@ template<typename OptionVariant>
 std::string_view OptionMatch<OptionVariant>::primary_flag() const
 {
     return std::visit([](const auto& option) { return option.primary_flag(); }, *option_);
+}
+
+
+template<typename OptionVariant, std::size_t N>
+OptionMatch<OptionVariant> OptionCursor<OptionVariant, N>::match()
+{
+    return OptionMatch<OptionVariant>{*this, options_};
 }
 
 
