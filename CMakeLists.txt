@@ -36,7 +36,7 @@ add_executable(will-server
   src/server/server.cpp
   src/server/serverconfig.cpp
   src/server/cli/servercliparser.cpp
-  src/server/cli/serverclioptions.cpp
+  src/server/cli/serverclioption.cpp
   src/server/sessionregistry.cpp
   src/server/willserver.cpp
   src/server/asioserver.cpp

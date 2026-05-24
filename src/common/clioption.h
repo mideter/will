@@ -70,7 +70,6 @@ public:
 
     CliOptionMatch(CliCursor& cursor, std::span<const CliOption> options);
 
-    std::string_view token() const noexcept { return token_; }
     std::string_view primary_flag() const { return option_->primary_flag(); }
     const Value& value() const noexcept { return value_; }
 
@@ -78,7 +77,6 @@ private:
     void read_value(CliCursor& cursor);
 
     const CliOption* option_;
-    std::string_view token_;
     Value value_;
 };
 

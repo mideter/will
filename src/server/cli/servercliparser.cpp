@@ -1,7 +1,7 @@
 #include "servercliparser.h"
 
 #include "clicursor.h"
-#include "serverclioptions.h"
+#include "serverclioption.h"
 
 #include <cstdlib>
 #include <iostream>
@@ -20,8 +20,8 @@ void ServerCliParser::print_usage()
 {
     std::cerr << "Usage: will-server [options]\n";
 
-    for (const CliOption& option : ServerCliOptions())
-        option.print_usage(std::cerr);
+    for (const ServerCliOption& option : ServerCliOptions())
+        option.cli.print_usage(std::cerr);
 
     HelpCliOption.print_usage(std::cerr);
 }
@@ -48,7 +48,7 @@ try {
     handle_help_option(argc, cursor);
 
     while (cursor.has_option()) {
-        server_config_.apply_cli_option(CliOptionMatch{cursor, ServerCliOptions()});
+        ApplyServerCliOption(server_config_, CliOptionMatch{cursor, ServerCliOptionCliOptions()});
         cursor.next_option();
     }
 }

@@ -74,7 +74,6 @@ CliOptionMatch::CliOptionMatch(CliCursor& cursor, const std::span<const CliOptio
             continue;
 
         option_ = &option;
-        token_ = text;
         read_value(cursor);
         return;
     }

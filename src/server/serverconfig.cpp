@@ -1,12 +1,8 @@
 #include "serverconfig.h"
 
-#include "clioption.h"
-
 #include <format>
 #include <optional>
 #include <string_view>
-#include <type_traits>
-#include <variant>
 
 
 namespace will {
@@ -117,52 +113,6 @@ void ServerConfig::set_max_outbound_queue_bytes(std::size_t max_bytes)
         throw ServerConfigError("max_outbound_queue_bytes", *reason);
 
     max_outbound_queue_bytes_ = max_bytes;
-}
-
-
-void ServerConfig::apply_cli_option(const CliOptionMatch& option)
-try {
-    std::visit([&](const auto& value) {
-        using T = std::decay_t<decltype(value)>;
-
-        if constexpr (std::is_same_v<T, std::monostate>)
-            return;
-        else if constexpr (std::is_same_v<T, int>)
-            apply_cli_option(option.primary_flag(), value);
-        else if constexpr (std::is_same_v<T, std::size_t>)
-            apply_cli_option(option.primary_flag(), value);
-    }, option.value());
-} catch (const ServerConfigError& error) {
-    throw CliInvalidOptionError(option.primary_flag(), error.what());
-}
-
-
-void ServerConfig::apply_cli_option(std::string_view flag, int value)
-{
-    if (flag == "--port") {
-        set_listen_port(value);
-        return;
-    }
-
-    if (flag == "--io-threads") {
-        set_io_threads(value);
-        return;
-    }
-
-    if (flag == "--listen-backlog")
-        set_listen_backlog(value);
-}
-
-
-void ServerConfig::apply_cli_option(std::string_view flag, std::size_t value)
-{
-    if (flag == "--max-clients") {
-        set_max_connections(value);
-        return;
-    }
-
-    if (flag == "--max-outbound-queue-bytes")
-        set_max_outbound_queue_bytes(value);
 }
 
 
