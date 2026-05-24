@@ -38,6 +38,12 @@ public:
 };
 
 
+class CliInvalidOptionError : public std::runtime_error {
+public:
+    CliInvalidOptionError(std::string_view flag, std::string_view reason);
+};
+
+
 class CliOption {
 public:
     using UsagePrinter = void (*)(std::ostream&);

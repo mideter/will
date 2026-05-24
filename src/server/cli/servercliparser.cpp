@@ -4,7 +4,6 @@
 #include "serverclioptions.h"
 
 #include <cstdlib>
-#include <exception>
 #include <iostream>
 
 
@@ -20,7 +19,7 @@ ServerCliParser::ServerCliParser(int argc, char* argv[])
 void ServerCliParser::print_usage()
 {
     std::cerr << "Usage: will-server [options]\n";
-    
+
     for (const CliOption& option : ServerCliOptions())
         option.print_usage(std::cerr);
 
@@ -28,26 +27,10 @@ void ServerCliParser::print_usage()
 }
 
 
-void ServerCliParser::apply_matched_option(const CliOptionMatch& option)
-try {
-    server_config_.apply_cli_option(option);
-}
-catch (const std::exception& error) {
-    cli_fail_option(option.primary_flag(), error);
-}
-
-
 void ServerCliParser::exit_with_help()
 {
     print_usage();
     std::exit(0);
-}
-
-
-void ServerCliParser::cli_fail_option(std::string_view flag, const std::exception& error)
-{
-    std::cerr << "Invalid " << flag << ": " << error.what() << '\n';
-    std::exit(2);
 }
 
 
@@ -71,9 +54,13 @@ try {
     handle_help_option(argc, cursor);
 
     while (cursor.has_option()) {
-        apply_matched_option(CliOptionMatch::parse(cursor, ServerCliOptions()));
+        server_config_.apply_cli_option(CliOptionMatch::parse(cursor, ServerCliOptions()));
         cursor.next_option();
     }
+}
+catch (const CliInvalidOptionError& error) {
+    std::cerr << error.what() << '\n';
+    std::exit(2);
 }
 catch (const CliError& error) {
     std::cerr << error.what() << '\n';

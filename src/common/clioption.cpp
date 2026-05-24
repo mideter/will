@@ -2,19 +2,25 @@
 
 #include "clicursor.h"
 
-#include <string>
+#include <format>
 
 
 namespace will {
 
 
 CliUnknownOptionError::CliUnknownOptionError(const std::string_view token)
-    : CliError(std::string("Unknown option: ").append(token))
+    : CliError(std::format("Unknown option: {}", token))
 {}
 
 
 CliHelpNotAloneError::CliHelpNotAloneError()
     : CliError("--help must be the only option")
+{}
+
+
+CliInvalidOptionError::CliInvalidOptionError(const std::string_view flag,
+                                             const std::string_view reason)
+    : std::runtime_error(std::format("Invalid {}: {}", flag, reason))
 {}
 
 

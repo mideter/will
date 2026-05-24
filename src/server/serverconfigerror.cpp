@@ -1,13 +1,13 @@
 #include "serverconfigerror.h"
 
-#include <string>
+#include <format>
 
 
 namespace will {
 
 
-ServerConfigError::ServerConfigError(const char* field, const char* reason)
-    : std::invalid_argument(std::string(field) + ": " + reason)
+ServerConfigError::ServerConfigError(const std::string_view field, const std::string_view reason)
+    : std::invalid_argument(std::format("{}: {}", field, reason))
 {}
 
 
