@@ -73,3 +73,14 @@ enable_testing()
 add_executable(will-message-test tests/will_message_test.cpp)
 target_link_libraries(will-message-test PRIVATE common)
 add_test(NAME will-message COMMAND will-message-test)
+
+add_executable(will-cli-test tests/cli_test.cpp
+  src/server/serverconfig.cpp
+  src/server/cli/serverclioption.cpp
+)
+target_include_directories(will-cli-test PRIVATE
+  src/server
+  src/server/cli
+)
+target_link_libraries(will-cli-test PRIVATE common)
+add_test(NAME will-cli COMMAND will-cli-test)

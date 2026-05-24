@@ -1,8 +1,8 @@
 #include "clicursor.h"
 
+#include "clioption.h"
+
 #include <charconv>
-#include <cstdlib>
-#include <iostream>
 
 
 namespace will {
@@ -40,10 +40,8 @@ std::string_view CliCursor::current_option() const
 
 std::string_view CliCursor::need_value(std::string_view flag)
 {
-    if (index_ + 1 >= argc_) {
-        std::cerr << flag << " requires a value\n";
-        std::exit(2);
-    }
+    if (index_ + 1 >= argc_)
+        throw CliInvalidOptionError(flag, "requires a value");
 
     return std::string_view{argv_[++index_]};
 }
@@ -75,8 +73,7 @@ std::optional<int> CliCursor::parse_int(std::string_view text)
 
 void CliCursor::cli_fail_flag(std::string_view flag) const
 {
-    std::cerr << "Invalid " << flag << '\n';
-    std::exit(2);
+    throw CliInvalidOptionError(flag, "invalid value");
 }
 
 
