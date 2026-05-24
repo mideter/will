@@ -1,10 +1,10 @@
 #pragma once
 
 #include <iosfwd>
-#include <optional>
 #include <span>
 #include <stdexcept>
 #include <string_view>
+#include <variant>
 
 
 namespace will {
@@ -66,21 +66,20 @@ private:
 
 class CliOptionMatch {
 public:
+    using Value = std::variant<std::monostate, int, std::size_t>;
+
     CliOptionMatch(CliCursor& cursor, std::span<const CliOption> options);
 
     std::string_view token() const noexcept { return token_; }
     std::string_view primary_flag() const { return option_->primary_flag(); }
-
-    std::optional<int> int_value() const noexcept { return int_value_; }
-    std::optional<std::size_t> size_value() const noexcept { return size_value_; }
+    const Value& value() const noexcept { return value_; }
 
 private:
     void read_value(CliCursor& cursor);
 
     const CliOption* option_;
     std::string_view token_;
-    std::optional<int> int_value_;
-    std::optional<std::size_t> size_value_;
+    Value value_;
 };
 
 

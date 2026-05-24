@@ -5,6 +5,8 @@
 #include <format>
 #include <optional>
 #include <string_view>
+#include <type_traits>
+#include <variant>
 
 
 namespace will {
@@ -120,10 +122,16 @@ void ServerConfig::set_max_outbound_queue_bytes(std::size_t max_bytes)
 
 void ServerConfig::apply_cli_option(const CliOptionMatch& option)
 try {
-    if (const std::optional<int> value = option.int_value())
-        apply_cli_option(option.primary_flag(), *value);
-    else if (const std::optional<std::size_t> value = option.size_value())
-        apply_cli_option(option.primary_flag(), *value);
+    std::visit([&](const auto& value) {
+        using T = std::decay_t<decltype(value)>;
+
+        if constexpr (std::is_same_v<T, std::monostate>)
+            return;
+        else if constexpr (std::is_same_v<T, int>)
+            apply_cli_option(option.primary_flag(), value);
+        else if constexpr (std::is_same_v<T, std::size_t>)
+            apply_cli_option(option.primary_flag(), value);
+    }, option.value());
 } catch (const ServerConfigError& error) {
     throw CliInvalidOptionError(option.primary_flag(), error.what());
 }

@@ -89,12 +89,13 @@ void CliOptionMatch::read_value(CliCursor& cursor)
 
     switch (option_->value_type()) {
     case CliValueType::Int:
-        int_value_ = cursor.require_int(flag);
+        value_.emplace<int>(cursor.require_int(flag));
         break;
     case CliValueType::Size:
-        size_value_ = cursor.require_size(flag);
+        value_.emplace<std::size_t>(cursor.require_size(flag));
         break;
     case CliValueType::None:
+        value_ = std::monostate{};
         break;
     }
 }
