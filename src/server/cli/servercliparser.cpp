@@ -62,10 +62,6 @@ try {
         cursor.next_option();
     }
 }
-catch (const CliInvalidOptionError& error) {
-    std::cerr << error.what() << '\n';
-    std::exit(2);
-}
 catch (const CliError& error) {
     std::cerr << error.what() << '\n';
     print_usage();
