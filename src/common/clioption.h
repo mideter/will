@@ -5,6 +5,7 @@
 #include <array>
 #include <concepts>
 #include <cstddef>
+#include <optional>
 #include <functional>
 #include <iosfwd>
 #include <span>
@@ -24,12 +25,18 @@ class Value {};
 class IntValue : public Value {
 public:
     static int read(OptionCursor& cursor, std::string_view flag);
+
+private:
+    static std::optional<int> parse(std::string_view text);
 };
 
 
 class SizeValue : public Value {
 public:
     static std::size_t read(OptionCursor& cursor, std::string_view flag);
+
+private:
+    static std::optional<std::size_t> parse(std::string_view text);
 };
 
 

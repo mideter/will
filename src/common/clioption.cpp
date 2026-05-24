@@ -1,5 +1,6 @@
 #include "clioption.h"
 
+#include <charconv>
 #include <format>
 #include <ostream>
 
@@ -8,15 +9,49 @@ namespace will {
 namespace cli {
 
 
+std::optional<int> IntValue::parse(std::string_view text)
+{
+    int value = 0;
+    const auto [ptr, ec] = std::from_chars(text.data(), text.data() + text.size(), value);
+
+    if (ec != std::errc{} || ptr != text.data() + text.size())
+        return std::nullopt;
+
+    return value;
+}
+
+
+std::optional<std::size_t> SizeValue::parse(std::string_view text)
+{
+    std::size_t value = 0;
+    const auto [ptr, ec] = std::from_chars(text.data(), text.data() + text.size(), value);
+
+    if (ec != std::errc{} || ptr != text.data() + text.size())
+        return std::nullopt;
+
+    return value;
+}
+
+
 int IntValue::read(OptionCursor& cursor, const std::string_view flag)
 {
-    return cursor.require_int(flag);
+    const auto value = parse(cursor.need_value(flag));
+
+    if (!value)
+        throw InvalidOptionError(flag, "invalid value");
+
+    return *value;
 }
 
 
 std::size_t SizeValue::read(OptionCursor& cursor, const std::string_view flag)
 {
-    return cursor.require_size(flag);
+    const auto value = parse(cursor.need_value(flag));
+
+    if (!value)
+        throw InvalidOptionError(flag, "invalid value");
+
+    return *value;
 }
 
 
