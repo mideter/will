@@ -53,31 +53,31 @@ void PrintHelpUsage(std::ostream& os)
 constexpr std::string_view HelpOptionAliases[] = {"-h"};
 
 
-void ApplyPort(ServerConfig& config, const ServerCliOption<IntValue>::Value& value)
+void ApplyPort(ServerConfig& config, const CliParsedValue& value)
 {
     config.set_listen_port(std::get<int>(value));
 }
 
 
-void ApplyIoThreads(ServerConfig& config, const ServerCliOption<IntValue>::Value& value)
+void ApplyIoThreads(ServerConfig& config, const CliParsedValue& value)
 {
     config.set_io_threads(std::get<int>(value));
 }
 
 
-void ApplyListenBacklog(ServerConfig& config, const ServerCliOption<IntValue>::Value& value)
+void ApplyListenBacklog(ServerConfig& config, const CliParsedValue& value)
 {
     config.set_listen_backlog(std::get<int>(value));
 }
 
 
-void ApplyMaxClients(ServerConfig& config, const ServerCliOption<SizeValue>::Value& value)
+void ApplyMaxClients(ServerConfig& config, const CliParsedValue& value)
 {
     config.set_max_connections(std::get<std::size_t>(value));
 }
 
 
-void ApplyMaxOutboundQueue(ServerConfig& config, const ServerCliOption<SizeValue>::Value& value)
+void ApplyMaxOutboundQueue(ServerConfig& config, const CliParsedValue& value)
 {
     config.set_max_outbound_queue_bytes(std::get<std::size_t>(value));
 }
@@ -101,12 +101,21 @@ const std::array<ServerOption, 5> ServerCliOptionTable::ServerOptions = {
 
 
 template<typename ValueTag>
+    requires(std::derived_from<ValueTag, Value> && !std::is_same_v<ValueTag, NoneValue>)
 ServerCliOption<ValueTag>::ServerCliOption(Applier applier, std::string_view flag,
                                            CliUsagePrinter print_usage,
                                            std::span<const std::string_view> aliases)
     : CliOption<ValueTag>(flag, std::move(print_usage), aliases)
     , applier_(std::move(applier))
 {}
+
+
+template<typename ValueTag>
+    requires(std::derived_from<ValueTag, Value> && !std::is_same_v<ValueTag, NoneValue>)
+void ServerCliOption<ValueTag>::apply(ServerConfig& config, const CliParsedValue& value) const
+{
+    applier_(config, value);
+}
 
 
 template class ServerCliOption<IntValue>;

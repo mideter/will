@@ -135,8 +135,7 @@ will::ServerConfig parse_server_options(int argc, char* argv[])
     while (cursor.has_option()) {
         const CliOptionMatch<ServerOption> match{cursor, ServerCliOptionTable::ServerOptions};
         try {
-            match.visit_option(
-                [&](const auto& option) { option.apply(config, match.value()); });
+            std::visit([&](const auto& option) { option.apply(config, match.value()); }, match.option());
         } catch (const ServerConfigError& error) {
             throw CliInvalidOptionError(match.primary_flag(), error.what());
         }

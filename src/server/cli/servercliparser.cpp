@@ -26,7 +26,7 @@ void ServerCliParser::print_usage()
     std::cerr << "Usage: will-server [options]\n";
 
     for (const ServerOption& option : ServerCliOptionTable::ServerOptions) {
-        std::visit([&](const auto& entry) { entry.print_usage(std::cerr); }, option);
+        std::visit([](const auto& entry) { entry.print_usage(std::cerr); }, option);
     }
 
     ServerCliOptionTable::HelpOption.print_usage(std::cerr);
@@ -50,7 +50,7 @@ void ServerCliParser::handle_help_option(int argc, CliCursor& cursor)
 
 void ServerCliParser::apply_cli_option(const CliOptionMatch<ServerOption>& match)
 try {
-    match.visit_option([&](const auto& option) { option.apply(server_config_, match.value()); });
+    std::visit([&](const auto& option) { option.apply(server_config_, match.value()); }, match.option());
 } catch (const ServerConfigError& error) {
     throw CliInvalidOptionError(match.primary_flag(), error.what());
 }

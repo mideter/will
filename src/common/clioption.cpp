@@ -7,6 +7,26 @@
 namespace will {
 
 
+int IntValue::read(CliCursor& cursor, const std::string_view flag)
+{
+    return cursor.require_int(flag);
+}
+
+
+std::size_t SizeValue::read(CliCursor& cursor, const std::string_view flag)
+{
+    return cursor.require_size(flag);
+}
+
+
+std::monostate NoneValue::read(CliCursor& cursor, const std::string_view flag)
+{
+    (void)cursor;
+    (void)flag;
+    return std::monostate{};
+}
+
+
 CliUnknownOptionError::CliUnknownOptionError(const std::string_view token)
     : CliError(std::format("Unknown option: {}", token))
 {}

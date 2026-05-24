@@ -14,15 +14,17 @@ namespace will {
 
 
 template<typename ValueTag>
+    requires(std::derived_from<ValueTag, Value> && !std::is_same_v<ValueTag, NoneValue>)
 class ServerCliOption : public CliOption<ValueTag> {
 public:
-    using Value = std::variant<std::monostate, int, std::size_t>;
-    using Applier = std::function<void(ServerConfig&, const Value&)>;
+    using Applier = std::function<void(ServerConfig&, const CliParsedValue&)>;
 
-    ServerCliOption(Applier applier, std::string_view flag, CliUsagePrinter print_usage,
+    ServerCliOption(Applier applier, 
+                    std::string_view flag, 
+                    CliUsagePrinter print_usage,
                     std::span<const std::string_view> aliases = {});
 
-    void apply(ServerConfig& config, const Value& value) const { applier_(config, value); }
+    void apply(ServerConfig& config, const CliParsedValue& value) const;
 
 private:
     Applier applier_;

@@ -3,13 +3,13 @@
 #include "clicursor.h"
 
 #include <array>
+#include <concepts>
 #include <cstddef>
 #include <functional>
 #include <iosfwd>
 #include <span>
 #include <stdexcept>
 #include <string_view>
-#include <type_traits>
 #include <utility>
 #include <variant>
 
@@ -17,9 +17,25 @@
 namespace will {
 
 
-struct IntValue {};
-struct SizeValue {};
-struct NoneValue {};
+class Value {};
+
+
+class IntValue : public Value {
+public:
+    static int read(CliCursor& cursor, std::string_view flag);
+};
+
+
+class SizeValue : public Value {
+public:
+    static std::size_t read(CliCursor& cursor, std::string_view flag);
+};
+
+
+class NoneValue : public Value {
+public:
+    static std::monostate read(CliCursor& cursor, std::string_view flag);
+};
 
 
 class CliError : public std::runtime_error {
@@ -60,12 +76,7 @@ public:
 
     std::string_view primary_flag() const;
     const Value& value() const noexcept { return value_; }
-
-    template<typename Func>
-    decltype(auto) visit_option(Func&& func) const
-    {
-        return std::visit(std::forward<Func>(func), *option_);
-    }
+    const OptionVariant& option() const noexcept { return *option_; }
 
 private:
     const OptionVariant* option_ = nullptr;
@@ -92,6 +103,7 @@ protected:
 
 
 template<typename ValueTag>
+    requires std::derived_from<ValueTag, Value>
 class CliOption : public CliOptionBase {
 public:
     CliOption(std::string_view flag, CliUsagePrinter print_usage,
@@ -101,14 +113,7 @@ public:
 
     CliParsedValue read_value(CliCursor& cursor) const
     {
-        const std::string_view flag = primary_flag();
-
-        if constexpr (std::is_same_v<ValueTag, NoneValue>)
-            return std::monostate{};
-        else if constexpr (std::is_same_v<ValueTag, IntValue>)
-            return cursor.require_int(flag);
-        else
-            return cursor.require_size(flag);
+        return CliParsedValue{ValueTag::read(cursor, primary_flag())};
     }
 };
 
