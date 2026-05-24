@@ -27,16 +27,8 @@ std::optional<std::string_view> ListenPortReason(const int port)
 }
 
 
-std::optional<std::string_view> PositiveIntReason(const int value)
-{
-    if (value < 1)
-        return "must be at least 1";
-
-    return std::nullopt;
-}
-
-
-std::optional<std::string_view> PositiveSizeReason(const std::size_t value)
+template<typename T>
+std::optional<std::string_view> PositiveReason(const T value)
 {
     if (value < 1)
         return "must be at least 1";
@@ -92,7 +84,7 @@ void ServerConfig::set_listen_port(int port)
 
 void ServerConfig::set_io_threads(int threads)
 {
-    if (const std::optional<std::string_view> reason = PositiveIntReason(threads))
+    if (const std::optional<std::string_view> reason = PositiveReason(threads))
         throw ServerConfigError("io_threads", *reason);
 
     io_threads_ = threads;
@@ -101,7 +93,7 @@ void ServerConfig::set_io_threads(int threads)
 
 void ServerConfig::set_listen_backlog(int backlog)
 {
-    if (const std::optional<std::string_view> reason = PositiveIntReason(backlog))
+    if (const std::optional<std::string_view> reason = PositiveReason(backlog))
         throw ServerConfigError("listen_backlog", *reason);
 
     listen_backlog_ = backlog;
@@ -110,7 +102,7 @@ void ServerConfig::set_listen_backlog(int backlog)
 
 void ServerConfig::set_max_connections(std::size_t max_connections)
 {
-    if (const std::optional<std::string_view> reason = PositiveSizeReason(max_connections))
+    if (const std::optional<std::string_view> reason = PositiveReason(max_connections))
         throw ServerConfigError("max_connections", *reason);
 
     max_connections_ = max_connections;
@@ -119,7 +111,7 @@ void ServerConfig::set_max_connections(std::size_t max_connections)
 
 void ServerConfig::set_max_outbound_queue_bytes(std::size_t max_bytes)
 {
-    if (const std::optional<std::string_view> reason = PositiveSizeReason(max_bytes))
+    if (const std::optional<std::string_view> reason = PositiveReason(max_bytes))
         throw ServerConfigError("max_outbound_queue_bytes", *reason);
 
     max_outbound_queue_bytes_ = max_bytes;
@@ -146,7 +138,7 @@ void ServerConfig::apply_cli_option(std::string_view flag, int value)
     }
 
     if (flag == "--io-threads") {
-        if (const std::optional<std::string_view> reason = PositiveIntReason(value))
+        if (const std::optional<std::string_view> reason = PositiveReason(value))
             throw CliInvalidOptionError(flag, std::format("io_threads: {}", *reason));
 
         io_threads_ = value;
@@ -154,7 +146,7 @@ void ServerConfig::apply_cli_option(std::string_view flag, int value)
     }
 
     if (flag == "--listen-backlog") {
-        if (const std::optional<std::string_view> reason = PositiveIntReason(value))
+        if (const std::optional<std::string_view> reason = PositiveReason(value))
             throw CliInvalidOptionError(flag, std::format("listen_backlog: {}", *reason));
 
         listen_backlog_ = value;
@@ -165,7 +157,7 @@ void ServerConfig::apply_cli_option(std::string_view flag, int value)
 void ServerConfig::apply_cli_option(std::string_view flag, std::size_t value)
 {
     if (flag == "--max-clients") {
-        if (const std::optional<std::string_view> reason = PositiveSizeReason(value))
+        if (const std::optional<std::string_view> reason = PositiveReason(value))
             throw CliInvalidOptionError(flag, std::format("max_connections: {}", *reason));
 
         max_connections_ = value;
@@ -173,7 +165,7 @@ void ServerConfig::apply_cli_option(std::string_view flag, std::size_t value)
     }
 
     if (flag == "--max-outbound-queue-bytes") {
-        if (const std::optional<std::string_view> reason = PositiveSizeReason(value))
+        if (const std::optional<std::string_view> reason = PositiveReason(value))
             throw CliInvalidOptionError(flag, std::format("max_outbound_queue_bytes: {}", *reason));
 
         max_outbound_queue_bytes_ = value;
