@@ -12,7 +12,7 @@ class ServerCliParser {
 public:
     ServerCliParser(int argc, char* argv[]);
 
-    const ServerConfig& server_config() const noexcept { return server_config_; }
+    const ServerConfig& server_config() const noexcept;
 
 private:
     void parse_command_line(int argc, char* argv[]);

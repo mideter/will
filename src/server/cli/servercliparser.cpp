@@ -15,6 +15,12 @@ ServerCliParser::ServerCliParser(int argc, char* argv[])
 }
 
 
+const ServerConfig& ServerCliParser::server_config() const noexcept
+{
+    return server_config_;
+}
+
+
 void ServerCliParser::print_usage()
 {
     std::cerr << "Usage: will-server [options]\n";
