@@ -1,6 +1,6 @@
 #pragma once
 
-#include "clicursor.h"
+#include "clioptioncursor.h"
 
 #include <array>
 #include <concepts>
@@ -22,19 +22,19 @@ class Value {};
 
 class IntValue : public Value {
 public:
-    static int read(CliCursor& cursor, std::string_view flag);
+    static int read(CliOptionCursor& cursor, std::string_view flag);
 };
 
 
 class SizeValue : public Value {
 public:
-    static std::size_t read(CliCursor& cursor, std::string_view flag);
+    static std::size_t read(CliOptionCursor& cursor, std::string_view flag);
 };
 
 
 class NoneValue : public Value {
 public:
-    static std::monostate read(CliCursor& cursor, std::string_view flag);
+    static std::monostate read(CliOptionCursor& cursor, std::string_view flag);
 };
 
 
@@ -72,7 +72,7 @@ public:
     using Value = CliParsedValue;
 
     template<std::size_t N>
-    CliOptionMatch(CliCursor& cursor, const std::array<OptionVariant, N>& options);
+    CliOptionMatch(CliOptionCursor& cursor, const std::array<OptionVariant, N>& options);
 
     std::string_view primary_flag() const;
     const Value& value() const noexcept { return value_; }
@@ -111,7 +111,7 @@ public:
         : CliOptionBase(flag, std::move(print_usage), aliases)
     {}
 
-    CliParsedValue read_value(CliCursor& cursor) const
+    CliParsedValue read_value(CliOptionCursor& cursor) const
     {
         return CliParsedValue{ValueTag::read(cursor, primary_flag())};
     }
@@ -120,7 +120,7 @@ public:
 
 template<typename OptionVariant>
 template<std::size_t N>
-CliOptionMatch<OptionVariant>::CliOptionMatch(CliCursor& cursor,
+CliOptionMatch<OptionVariant>::CliOptionMatch(CliOptionCursor& cursor,
                                               const std::array<OptionVariant, N>& options)
 {
     const std::string_view text = cursor.current_option();

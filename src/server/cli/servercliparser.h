@@ -17,7 +17,7 @@ public:
 private:
     void parse_command_line(int argc, char* argv[]);
 
-    static void handle_help_option(int argc, CliCursor& cursor);
+    static void handle_help_option(int argc, CliOptionCursor& cursor);
     static void print_usage();
     void apply_cli_option(const CliOptionMatch<ServerOption>& match);
 

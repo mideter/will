@@ -1,5 +1,5 @@
 #include "clioption.h"
-#include "clicursor.h"
+#include "clioptioncursor.h"
 #include "serverclioption.h"
 #include "serverconfig.h"
 
@@ -56,8 +56,7 @@ void assert_unknown_option()
     using namespace will;
 
     Argv args{"will-server", "--unknown"};
-    CliCursor cursor(args.argc(), args.argv());
-    cursor.begin_options();
+    CliOptionCursor cursor(args.argc(), args.argv());
 
     bool threw = false;
     try {
@@ -121,8 +120,7 @@ will::ServerConfig parse_server_options(int argc, char* argv[])
     using namespace will;
 
     ServerConfig config;
-    CliCursor cursor(argc, argv);
-    cursor.begin_options();
+    CliOptionCursor cursor(argc, argv);
 
     if (cursor.has_option()
         && ServerCliOptionTable::HelpOption.matches(cursor.current_option())) {
@@ -139,7 +137,7 @@ will::ServerConfig parse_server_options(int argc, char* argv[])
         } catch (const ServerConfigError& error) {
             throw CliInvalidOptionError(match.primary_flag(), error.what());
         }
-        cursor.next_option();
+        cursor++;
     }
 
     return config;
@@ -245,8 +243,7 @@ void assert_cli_option_read_value()
     using namespace will;
 
     Argv args{"will-server", "--port", "1234"};
-    CliCursor cursor(args.argc(), args.argv());
-    cursor.begin_options();
+    CliOptionCursor cursor(args.argc(), args.argv());
 
     const CliOptionMatch<ServerOption> match{cursor, ServerCliOptionTable::ServerOptions};
     assert(match.primary_flag() == "--port");

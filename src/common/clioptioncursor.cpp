@@ -1,4 +1,4 @@
-#include "clicursor.h"
+#include "clioptioncursor.h"
 
 #include "clioption.h"
 
@@ -8,46 +8,49 @@
 namespace will {
 
 
-CliCursor::CliCursor(int argc, char* argv[])
+CliOptionCursor::CliOptionCursor(int argc, char* argv[])
     : argc_(argc)
     , argv_(argv)
 {}
 
 
-void CliCursor::begin_options() noexcept
-{
-    index_ = 1;
-}
-
-
-bool CliCursor::has_option() const noexcept
+bool CliOptionCursor::has_option() const noexcept
 {
     return index_ < argc_;
 }
 
 
-void CliCursor::next_option() noexcept
+CliOptionCursor CliOptionCursor::operator++(int) noexcept
 {
+    CliOptionCursor before{*this};
+
     ++index_;
+
+    if (current_option_has_value_)
+        ++index_;
+
+    current_option_has_value_ = false;
+    return before;
 }
 
 
-std::string_view CliCursor::current_option() const
+std::string_view CliOptionCursor::current_option() const
 {
     return std::string_view{argv_[index_]};
 }
 
 
-std::string_view CliCursor::need_value(std::string_view flag)
+std::string_view CliOptionCursor::need_value(std::string_view flag)
 {
     if (index_ + 1 >= argc_)
         throw CliInvalidOptionError(flag, "requires a value");
 
-    return std::string_view{argv_[++index_]};
+    current_option_has_value_ = true;
+    return std::string_view{argv_[index_ + 1]};
 }
 
 
-std::optional<std::size_t> CliCursor::parse_size(std::string_view text)
+std::optional<std::size_t> CliOptionCursor::parse_size(std::string_view text)
 {
     std::size_t value = 0;
     const auto [ptr, ec] = std::from_chars(text.data(), text.data() + text.size(), value);
@@ -59,7 +62,7 @@ std::optional<std::size_t> CliCursor::parse_size(std::string_view text)
 }
 
 
-std::optional<int> CliCursor::parse_int(std::string_view text)
+std::optional<int> CliOptionCursor::parse_int(std::string_view text)
 {
     int value = 0;
     const auto [ptr, ec] = std::from_chars(text.data(), text.data() + text.size(), value);
@@ -71,13 +74,13 @@ std::optional<int> CliCursor::parse_int(std::string_view text)
 }
 
 
-void CliCursor::cli_fail_flag(std::string_view flag) const
+void CliOptionCursor::cli_fail_flag(std::string_view flag) const
 {
     throw CliInvalidOptionError(flag, "invalid value");
 }
 
 
-int CliCursor::require_int(std::string_view flag)
+int CliOptionCursor::require_int(std::string_view flag)
 {
     const auto value = parse_int(need_value(flag));
 
@@ -88,7 +91,7 @@ int CliCursor::require_int(std::string_view flag)
 }
 
 
-std::size_t CliCursor::require_size(std::string_view flag)
+std::size_t CliOptionCursor::require_size(std::string_view flag)
 {
     const auto value = parse_size(need_value(flag));
 

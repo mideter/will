@@ -7,19 +7,19 @@
 namespace will {
 
 
-int IntValue::read(CliCursor& cursor, const std::string_view flag)
+int IntValue::read(CliOptionCursor& cursor, const std::string_view flag)
 {
     return cursor.require_int(flag);
 }
 
 
-std::size_t SizeValue::read(CliCursor& cursor, const std::string_view flag)
+std::size_t SizeValue::read(CliOptionCursor& cursor, const std::string_view flag)
 {
     return cursor.require_size(flag);
 }
 
 
-std::monostate NoneValue::read(CliCursor& cursor, const std::string_view flag)
+std::monostate NoneValue::read(CliOptionCursor& cursor, const std::string_view flag)
 {
     (void)cursor;
     (void)flag;

@@ -7,14 +7,13 @@
 namespace will {
 
 
-/** Cursor over argv with value parsing helpers. */
-class CliCursor {
+/** Cursor over argv option flags with value parsing helpers. */
+class CliOptionCursor {
 public:
-    CliCursor(int argc, char* argv[]);
+    CliOptionCursor(int argc, char* argv[]);
 
-    void begin_options() noexcept;
     bool has_option() const noexcept;
-    void next_option() noexcept;
+    CliOptionCursor operator++(int) noexcept;
 
     std::string_view current_option() const;
 
@@ -30,7 +29,8 @@ private:
 
     int argc_;
     char** argv_;
-    int index_ = 0;
+    int index_ = 1;
+    bool current_option_has_value_ = false;
 };
 
 
