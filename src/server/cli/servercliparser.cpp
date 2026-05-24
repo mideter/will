@@ -1,7 +1,5 @@
 #include "servercliparser.h"
 
-#include "clioptioncursor.h"
-
 #include <cstdlib>
 #include <iostream>
 
@@ -33,7 +31,7 @@ void ServerCliParser::print_usage()
 }
 
 
-void ServerCliParser::handle_help_option(int argc, CliOptionCursor& cursor)
+void ServerCliParser::handle_help_option(int argc, ServerCliOptionCursor& cursor)
 {
     if (!cursor.has_option()
         || !ServerCliOptionTable::HelpOption.matches(cursor.current_option())) {
@@ -58,13 +56,13 @@ try {
 
 void ServerCliParser::parse_command_line(int argc, char* argv[])
 try {
-    CliOptionCursor cursor(argc, argv);
+    ServerCliOptionCursor cursor(argc, argv);
 
     handle_help_option(argc, cursor);
 
     while (cursor.has_option()) {
-        apply_cli_option(CliOptionMatch<ServerOption>{cursor, ServerCliOptionTable::ServerOptions});
-        cursor++;
+        apply_cli_option(cursor.match());
+        cursor.advance();
     }
 }
 catch (const CliError& error) {

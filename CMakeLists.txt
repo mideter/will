@@ -37,6 +37,7 @@ add_executable(will-server
   src/server/serverconfig.cpp
   src/server/cli/servercliparser.cpp
   src/server/cli/serverclioption.cpp
+  src/server/cli/serverclioptioncursor.cpp
   src/server/sessionregistry.cpp
   src/server/willserver.cpp
   src/server/asioserver.cpp
@@ -77,6 +78,7 @@ add_test(NAME will-message COMMAND will-message-test)
 add_executable(will-cli-test tests/cli_test.cpp
   src/server/serverconfig.cpp
   src/server/cli/serverclioption.cpp
+  src/server/cli/serverclioptioncursor.cpp
 )
 target_include_directories(will-cli-test PRIVATE
   src/server
