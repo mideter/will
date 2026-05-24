@@ -18,8 +18,6 @@ struct ServerCliOption {
 std::span<const ServerCliOption> ServerCliOptions();
 std::span<const CliOption> ServerCliOptionCliOptions();
 
-void ApplyServerCliOption(ServerConfig& config, const CliOptionMatch& match);
-
 extern const CliOption HelpCliOption;
 
 

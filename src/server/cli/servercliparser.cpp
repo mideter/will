@@ -40,6 +40,23 @@ void ServerCliParser::handle_help_option(int argc, CliCursor& cursor)
 }
 
 
+void ServerCliParser::apply_cli_option(const CliOptionMatch& match)
+{
+    for (const ServerCliOption& option : ServerCliOptions()) {
+        if (option.cli.primary_flag() != match.primary_flag())
+            continue;
+
+        try {
+            option.apply(server_config_, match.value());
+        } catch (const ServerConfigError& error) {
+            throw CliInvalidOptionError(match.primary_flag(), error.what());
+        }
+
+        return;
+    }
+}
+
+
 void ServerCliParser::parse_command_line(int argc, char* argv[])
 try {
     CliCursor cursor(argc, argv);
@@ -48,7 +65,7 @@ try {
     handle_help_option(argc, cursor);
 
     while (cursor.has_option()) {
-        ApplyServerCliOption(server_config_, CliOptionMatch{cursor, ServerCliOptionCliOptions()});
+        apply_cli_option(CliOptionMatch{cursor, ServerCliOptionCliOptions()});
         cursor.next_option();
     }
 }

@@ -119,21 +119,4 @@ std::span<const CliOption> ServerCliOptionCliOptions()
 }
 
 
-void ApplyServerCliOption(ServerConfig& config, const CliOptionMatch& match)
-{
-    for (const ServerCliOption& option : ServerCliOptions()) {
-        if (option.cli.primary_flag() != match.primary_flag())
-            continue;
-
-        try {
-            option.apply(config, match.value());
-        } catch (const ServerConfigError& error) {
-            throw CliInvalidOptionError(match.primary_flag(), error.what());
-        }
-
-        return;
-    }
-}
-
-
 } // namespace will

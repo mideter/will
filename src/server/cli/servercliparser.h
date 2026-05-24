@@ -21,6 +21,7 @@ private:
 
     static void handle_help_option(int argc, CliCursor& cursor);
     static void print_usage();
+    void apply_cli_option(const CliOptionMatch& match);
 
     ServerConfig server_config_;
 };
