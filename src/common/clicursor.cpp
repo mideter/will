@@ -1,7 +1,5 @@
 #include "clicursor.h"
 
-#include <span>
-
 #include <charconv>
 #include <cstdlib>
 #include <iostream>
@@ -37,22 +35,6 @@ void CliCursor::next_option() noexcept
 std::string_view CliCursor::current_option() const
 {
     return std::string_view{argv_[index_]};
-}
-
-
-CliOptionMatch CliCursor::get_option(const std::span<const CliOption> options)
-{
-    const std::string_view text = current_option();
-
-    for (const CliOption& option : options) {
-        if (option.matches(text)) {
-            CliOptionMatch match(&option, text);
-            match.read_value(*this);
-            return match;
-        }
-    }
-
-    return CliOptionMatch(nullptr, text);
 }
 
 

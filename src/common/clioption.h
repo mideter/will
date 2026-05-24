@@ -3,6 +3,7 @@
 #include <iosfwd>
 #include <optional>
 #include <span>
+#include <stdexcept>
 #include <string_view>
 
 
@@ -16,6 +17,12 @@ enum class CliValueType {
     None,
     Int,
     Size,
+};
+
+
+class CliUnknownOptionError : public std::runtime_error {
+public:
+    explicit CliUnknownOptionError(std::string_view token);
 };
 
 
@@ -41,14 +48,7 @@ private:
 
 class CliOptionMatch {
 public:
-    CliOptionMatch(const CliOption* option, std::string_view token) noexcept
-        : option_(option)
-        , token_(token)
-    {}
-
-    explicit operator bool() const noexcept { return option_ != nullptr; }
-
-    void read_value(CliCursor& cursor);
+    static CliOptionMatch parse(CliCursor& cursor, std::span<const CliOption> options);
 
     std::string_view token() const noexcept { return token_; }
     std::string_view primary_flag() const { return option_->primary_flag(); }
@@ -57,6 +57,10 @@ public:
     std::optional<std::size_t> size_value() const noexcept { return size_value_; }
 
 private:
+    CliOptionMatch(const CliOption& option, std::string_view token);
+
+    void read_value(CliCursor& cursor);
+
     const CliOption* option_;
     std::string_view token_;
     std::optional<int> int_value_;

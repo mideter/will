@@ -1,9 +1,6 @@
 #pragma once
 
-#include "clioption.h"
-
 #include <optional>
-#include <span>
 #include <string_view>
 
 
@@ -20,8 +17,6 @@ public:
     void next_option() noexcept;
 
     std::string_view current_option() const;
-
-    CliOptionMatch get_option(std::span<const CliOption> options);
 
     std::string_view need_value(std::string_view flag);
     int require_int(std::string_view flag);

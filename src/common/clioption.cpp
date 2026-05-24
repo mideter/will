@@ -2,8 +2,15 @@
 
 #include "clicursor.h"
 
+#include <string>
+
 
 namespace will {
+
+
+CliUnknownOptionError::CliUnknownOptionError(const std::string_view token)
+    : std::runtime_error(std::string("Unknown option: ").append(token))
+{}
 
 
 CliOption::CliOption(const std::string_view flag, const CliValueType value_type,
@@ -47,11 +54,31 @@ CliValueType CliOption::value_type() const noexcept
 }
 
 
+CliOptionMatch::CliOptionMatch(const CliOption& option, const std::string_view token)
+    : option_(&option)
+    , token_(token)
+{}
+
+
+CliOptionMatch CliOptionMatch::parse(CliCursor& cursor, const std::span<const CliOption> options)
+{
+    const std::string_view text = cursor.current_option();
+
+    for (const CliOption& option : options) {
+        if (!option.matches(text))
+            continue;
+
+        CliOptionMatch match(option, text);
+        match.read_value(cursor);
+        return match;
+    }
+
+    throw CliUnknownOptionError(text);
+}
+
+
 void CliOptionMatch::read_value(CliCursor& cursor)
 {
-    if (!option_)
-        return;
-
     const std::string_view flag = option_->primary_flag();
 
     switch (option_->value_type()) {

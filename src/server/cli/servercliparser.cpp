@@ -37,14 +37,6 @@ catch (const std::exception& error) {
 }
 
 
-void ServerCliParser::fail_unknown_option(const CliOptionMatch& option)
-{
-    std::cerr << "Unknown option: " << option.token() << '\n';
-    print_usage();
-    std::exit(2);
-}
-
-
 void ServerCliParser::fail_help_not_alone()
 {
     std::cerr << "--help must be the only option\n";
@@ -80,21 +72,21 @@ void ServerCliParser::handle_help_option(int argc, CliCursor& cursor)
 
 
 void ServerCliParser::parse_command_line(int argc, char* argv[])
-{
+try {
     CliCursor cursor(argc, argv);
 
     cursor.begin_options();
     handle_help_option(argc, cursor);
 
     while (cursor.has_option()) {
-        const CliOptionMatch option = cursor.get_option(ServerCliOptions());
-
-        if (!option)
-            fail_unknown_option(option);
-
-        apply_matched_option(option);
+        apply_matched_option(CliOptionMatch::parse(cursor, ServerCliOptions()));
         cursor.next_option();
     }
+}
+catch (const CliUnknownOptionError& error) {
+    std::cerr << error.what() << '\n';
+    print_usage();
+    std::exit(2);
 }
 
 
