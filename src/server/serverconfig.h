@@ -7,7 +7,7 @@
 namespace will {
 
 
-/** Server configuration (no invariants; validated by WillServer::validate_config). */
+/** Server configuration (no invariants; validated by ServerConfigValidator). */
 struct ServerConfig {
     static constexpr int MinListenPort = 1;
     static constexpr int MaxListenPort = 65535;

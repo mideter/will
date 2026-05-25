@@ -43,6 +43,7 @@ add_executable(will-server
   src/server/cli/servercliapp.cpp
   src/server/cli/serverconfigparser.cpp
   src/server/sessionregistry.cpp
+  src/server/serverconfigvalidator.cpp
   src/server/willserver.cpp
   src/server/asioserver.cpp
   src/server/session.cpp
@@ -82,6 +83,12 @@ enable_testing()
 add_executable(will-message-test tests/will_message_test.cpp)
 target_link_libraries(will-message-test PRIVATE common)
 add_test(NAME will-message COMMAND will-message-test)
+
+add_executable(will-server-config-test tests/server_config_test.cpp
+  src/server/serverconfigvalidator.cpp
+)
+target_include_directories(will-server-config-test PRIVATE src/server)
+add_test(NAME will-server-config COMMAND will-server-config-test)
 
 add_executable(will-cli-test tests/cli_test.cpp
   src/server/cli/servercliapp.cpp
