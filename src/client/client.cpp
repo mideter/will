@@ -18,6 +18,6 @@ try {
     return 0;
 }
 catch (const std::exception& e) {
-    std::cerr << e.what() << '\n';
+    std::cerr << "Client error: " << e.what() << '\n';
     return 1;
 }

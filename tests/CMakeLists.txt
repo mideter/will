@@ -22,8 +22,17 @@ target_include_directories(will-cli-test PRIVATE
 target_link_libraries(will-cli-test PRIVATE common CLI11::CLI11)
 add_test(NAME will-cli COMMAND will-cli-test)
 
+add_executable(will-client-config-test client_config_test.cpp
+  ${CMAKE_SOURCE_DIR}/src/client/clientconfigvalidator.cpp
+)
+target_include_directories(will-client-config-test PRIVATE
+  ${CMAKE_SOURCE_DIR}/src/client
+  ${asio_SOURCE_DIR}/asio/include
+)
+target_compile_definitions(will-client-config-test PRIVATE ASIO_STANDALONE)
+add_test(NAME will-client-config COMMAND will-client-config-test)
+
 add_executable(will-client-cli-test client_cli_test.cpp
-  ${CMAKE_SOURCE_DIR}/src/client/clientconfig.cpp
   ${CMAKE_SOURCE_DIR}/src/client/cli/clientcliapp.cpp
 )
 target_include_directories(will-client-cli-test PRIVATE
@@ -32,6 +41,12 @@ target_include_directories(will-client-cli-test PRIVATE
 )
 target_link_libraries(will-client-cli-test PRIVATE common CLI11::CLI11)
 add_test(NAME will-client-cli COMMAND will-client-cli-test)
+
+add_executable(will-client-cli-integration-test client_cli_integration_test.cpp)
+target_link_libraries(will-client-cli-integration-test PRIVATE CLI11::CLI11)
+add_dependencies(will-client-cli-integration-test will-client)
+add_test(NAME will-client-cli-integration
+  COMMAND will-client-cli-integration-test $<TARGET_FILE:will-client>)
 
 add_executable(will-server-cli-integration-test server_cli_integration_test.cpp)
 target_link_libraries(will-server-cli-integration-test PRIVATE CLI11::CLI11)

@@ -3,35 +3,17 @@
 #include <cstdlib>
 #include <format>
 #include <iostream>
-#include <string_view>
 
 
 namespace will {
 namespace cli {
 
 
-namespace {
-
-
-template<typename Fn>
-void apply_cli_field(std::string_view flag, Fn&& apply)
-{
-    try {
-        apply();
-    } catch (const ClientConfigError& error) {
-        throw CLI::ValidationError(std::format("Invalid {}: {}", flag, error.what()), 2);
-    }
-}
-
-
-} // namespace
-
-
 ClientCliApp::ClientCliApp(const ClientConfig& defaults)
     : app_{"will-client"}
-    , host_(defaults.host())
-    , port_(static_cast<int>(defaults.port()))
-    , quiet_receipts_(defaults.quiet_receipts())
+    , host_(defaults.host)
+    , port_(static_cast<int>(defaults.port))
+    , quiet_receipts_(defaults.quiet_receipts)
 {
     app_.allow_extras(false);
 
@@ -72,9 +54,9 @@ void ClientCliApp::exit_on_parse_error(const CLI::ParseError& error) const
 
 void ClientCliApp::apply_to(ClientConfig& config) const
 {
-    apply_cli_field("--host", [&] { config.set_host(host_); });
-    apply_cli_field("--port", [&] { config.set_port(port_); });
-    apply_cli_field("--quiet", [&] { config.set_quiet_receipts(quiet_receipts_); });
+    config.host = host_;
+    config.port = static_cast<std::uint16_t>(port_);
+    config.quiet_receipts = quiet_receipts_;
 }
 
 

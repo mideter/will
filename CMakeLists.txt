@@ -59,9 +59,9 @@ target_link_libraries(will-server PRIVATE common CLI11::CLI11 Threads::Threads)
 
 add_executable(will-client
   src/client/client.cpp
-  src/client/clientconfig.cpp
   src/client/chatsession.cpp
   src/client/willclient.cpp
+  src/client/clientconfigvalidator.cpp
   src/client/cli/clientcliapp.cpp
   src/client/cli/clientconfigparser.cpp
 )
@@ -75,8 +75,16 @@ target_link_libraries(will-client PRIVATE common CLI11::CLI11 Threads::Threads)
 
 add_executable(will-load-clients
   tools/load_clients.cpp
+  tools/cli/loadclientscliapp.cpp
+  tools/cli/loadclientsconfigparser.cpp
+  src/client/clientconfigvalidator.cpp
 )
-target_include_directories(will-load-clients PRIVATE src/client src/common)
-target_link_libraries(will-load-clients PRIVATE common Threads::Threads)
+target_include_directories(will-load-clients PRIVATE
+  src/client
+  tools
+  tools/cli
+)
+target_link_libraries(will-load-clients PRIVATE common CLI11::CLI11 Threads::Threads)
 
+enable_testing()
 add_subdirectory(tests)

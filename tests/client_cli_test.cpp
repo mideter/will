@@ -53,23 +53,6 @@ void assert_parse_error(std::initializer_list<const char*> args)
 }
 
 
-void assert_runtime_error(std::initializer_list<const char*> args, std::string_view fragment)
-{
-    using namespace will::cli;
-
-    Argv argv{args};
-    ClientCliApp cli;
-    bool threw = false;
-    try {
-        (void)cli.parse(argv.argc(), argv.argv());
-    } catch (const std::runtime_error& error) {
-        threw = true;
-        assert(std::string_view{error.what()}.find(fragment) != std::string_view::npos);
-    }
-    assert(threw);
-}
-
-
 void assert_help_requested(std::initializer_list<const char*> args)
 {
     using namespace will::cli;
@@ -110,9 +93,9 @@ void assert_defaults()
     Argv args{"will-client"};
     const will::ClientConfig config = ClientCliApp{}.parse(args.argc(), args.argv());
 
-    assert(config.host() == will::ClientConfig::DefaultHost);
-    assert(config.port() == will::ClientConfig::DefaultPort);
-    assert(config.quiet_receipts() == will::ClientConfig::DefaultQuietReceipts);
+    assert(config.host == will::ClientConfig::DefaultHost);
+    assert(config.port == will::ClientConfig::DefaultPort);
+    assert(config.quiet_receipts == will::ClientConfig::DefaultQuietReceipts);
 }
 
 
@@ -123,9 +106,19 @@ void assert_all_options()
     Argv args{"will-client", "--host", "192.168.1.10", "--port", "9000", "--quiet"};
     const will::ClientConfig config = ClientCliApp{}.parse(args.argc(), args.argv());
 
-    assert(config.host() == "192.168.1.10");
-    assert(config.port() == 9000);
-    assert(config.quiet_receipts());
+    assert(config.host == "192.168.1.10");
+    assert(config.port == 9000);
+    assert(config.quiet_receipts);
+}
+
+
+void assert_port_zero_parses()
+{
+    using namespace will::cli;
+
+    Argv args{"will-client", "--port", "0"};
+    const will::ClientConfig config = ClientCliApp{}.parse(args.argc(), args.argv());
+    assert(config.port == 0);
 }
 
 
@@ -142,8 +135,7 @@ int main()
     assert_help_requested({"will-client", "--port", "8080", "--help"});
     assert_defaults();
     assert_all_options();
-    assert_runtime_error({"will-client", "--port", "0"}, "Invalid --port:");
-    assert_runtime_error({"will-client", "--port", "0"}, "port");
+    assert_port_zero_parses();
     assert_parse_error({"will-client", "--port"});
 
     return EXIT_SUCCESS;

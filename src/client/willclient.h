@@ -26,7 +26,7 @@ using InboundMessage = std::variant<ServerReceiptAck, std::string>;
 class WillClient {
 public:
     WillClient();
-    explicit WillClient(const ClientConfig& config);
+    explicit WillClient(ClientConfig config);
 
     void connect();
 
@@ -38,7 +38,7 @@ public:
 
     void shutdown() const;
 
-    [[nodiscard]] const ClientConfig& config() const noexcept;
+    const ClientConfig& config() const noexcept;
 
 private:
     asio::io_context ioc_;

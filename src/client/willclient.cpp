@@ -1,5 +1,8 @@
 #include "willclient.h"
 
+#include "clientconfigvalidator.h"
+#include "hostaddress.h"
+
 #include <arpa/inet.h>
 
 #include <cstdint>
@@ -65,9 +68,9 @@ WillClient::WillClient()
 {}
 
 
-WillClient::WillClient(const ClientConfig& config)
+WillClient::WillClient(ClientConfig config)
     : socket_(ioc_)
-    , config_(config)
+    , config_(ClientConfigValidator::accept(std::move(config)))
 {
     connect();
 }
@@ -81,7 +84,7 @@ const ClientConfig& WillClient::config() const noexcept
 
 void WillClient::connect()
 {
-    socket_.connect(config_.server_address().endpoint());
+    socket_.connect(HostAddress{config_.host, config_.port}.endpoint());
     socket_.set_option(asio::socket_base::keep_alive(true));
 }
 
