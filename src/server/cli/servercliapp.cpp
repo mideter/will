@@ -1,5 +1,7 @@
 #include "servercliapp.h"
 
+#include "serverconfig.h"
+
 #include <cstdlib>
 #include <format>
 #include <iostream>
@@ -48,13 +50,28 @@ ServerCliApp::ServerCliApp(const ServerConfig& defaults)
 
 void ServerCliApp::print_help(std::ostream& os) const
 {
-    os << app_.help();
+    os << std::format(
+        "Usage: will-server [options]\n"
+        "\n"
+        "Options:\n"
+        "  -h, --help                      Print usage and exit\n"
+        "  --port PORT                     Listen port (default {})\n"
+        "  --io-threads N                  io_context worker threads (default {})\n"
+        "  --listen-backlog N              listen() backlog (default {})\n"
+        "  --max-clients N                 Max concurrent connections (default {})\n"
+        "  --max-outbound-queue-bytes N    Per-session write queue cap (default {})\n",
+        ServerConfig::DefaultListenPort,
+        ServerConfig::DefaultIoThreads,
+        ServerConfig::DefaultListenBacklog,
+        ServerConfig::DefaultMaxConnections,
+        ServerConfig::DefaultMaxOutboundQueueBytes);
 }
 
 
 void ServerCliApp::exit_on_help(const CLI::CallForHelp& error) const
 {
-    std::exit(app_.exit(error, std::cerr));
+    print_help(std::cerr);
+    std::exit(error.get_exit_code());
 }
 
 

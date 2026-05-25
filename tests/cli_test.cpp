@@ -5,6 +5,7 @@
 
 #include <cassert>
 #include <cstdlib>
+#include <sstream>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -85,6 +86,24 @@ void assert_help_requested(std::initializer_list<const char*> args)
 }
 
 
+void assert_help_output()
+{
+    using namespace will::cli;
+
+    std::ostringstream out;
+    ServerCliApp{}.print_help(out);
+    const std::string help = out.str();
+
+    assert(help.find("Usage: will-server") != std::string::npos);
+    assert(help.find("--port") != std::string::npos);
+    assert(help.find("-h, --help") != std::string::npos);
+    assert(help.find("OPTIONS:") == std::string::npos);
+    assert(help.find(" INT") == std::string::npos);
+    assert(help.find(" UINT") == std::string::npos);
+    assert(help.find("[OPTIONS]") == std::string::npos);
+}
+
+
 void assert_defaults()
 {
     using namespace will::cli;
@@ -130,6 +149,7 @@ void assert_all_options()
 
 int main()
 {
+    assert_help_output();
     assert_parse_error({"will-server", "--unknown"});
     assert_help_requested({"will-server", "--help"});
     assert_help_requested({"will-server", "-h"});
