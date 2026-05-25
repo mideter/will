@@ -1,3 +1,5 @@
+#include <CLI/CLI.hpp>
+
 #include <cassert>
 #include <cstdlib>
 #include <fcntl.h>
@@ -95,12 +97,13 @@ void run_case(std::string_view name, const auto& test_fn)
 }
 
 
-void check_help(const char* server_exe, const char* flag)
+void check_help(const char* server_exe, const std::vector<std::string>& args)
 {
-    const RunResult result = run_will_server(server_exe, {flag});
+    const RunResult result = run_will_server(server_exe, args);
     assert(result.exit_code == 0);
-    assert_contains(result.stderr_output, "Usage: will-server [options]");
-    assert_contains(result.stderr_output, "--port PORT");
+    assert_contains(result.stderr_output, "will-server");
+    assert_contains(result.stderr_output, "--port");
+    assert_contains(result.stderr_output, "--help");
 }
 
 
@@ -110,7 +113,7 @@ void check_cli_error(const char* server_exe, const std::vector<std::string>& arg
     const RunResult result = run_will_server(server_exe, args);
     assert(result.exit_code == expected_exit_code);
     assert_contains(result.stderr_output, error_fragment);
-    assert_contains(result.stderr_output, "Usage: will-server [options]");
+    assert_contains(result.stderr_output, "help");
 }
 
 
@@ -118,7 +121,7 @@ void print_usage(const char* program)
 {
     std::cerr << "Usage: " << program << " <path-to-will-server>\n"
               << "\n"
-              << "Integration tests for ServerParser / will-server CLI behavior.\n"
+              << "Integration tests for ServerConfigParser / will-server CLI behavior.\n"
               << "Example:\n"
               << "  " << program << " ./build/will-server\n"
               << "\n"
@@ -144,34 +147,35 @@ int main(int argc, char* argv[])
               << '\n';
 
     run_case("--help prints usage and exits 0",
-             [&] { check_help(server_exe, "--help"); });
+             [&] { check_help(server_exe, {"--help"}); });
 
-    run_case("-h prints usage and exits 0", [&] { check_help(server_exe, "-h"); });
+    run_case("-h prints usage and exits 0", [&] { check_help(server_exe, {"-h"}); });
 
-    run_case("--unknown prints error and usage, exits 2", [&] {
-        check_cli_error(server_exe, {"--unknown"}, 2, "Unknown option: --unknown");
+    run_case("--help with other options still prints help and exits 0", [&] {
+        check_help(server_exe, {"--help", "--port", "8080"});
     });
 
-    run_case("--port without value prints error and usage, exits 2", [&] {
-        check_cli_error(server_exe, {"--port"}, 2, "Invalid --port: requires a value");
+    run_case("--help after other options prints help and exits 0", [&] {
+        check_help(server_exe, {"--port", "8080", "--help"});
+    });
+
+    run_case("--unknown prints error and usage, exits ExtrasError", [&] {
+        check_cli_error(server_exe, {"--unknown"},
+                        static_cast<int>(CLI::ExitCodes::ExtrasError), "--unknown");
+    });
+
+    run_case("--port without value prints error and usage, exits ArgumentMismatch", [&] {
+        check_cli_error(server_exe, {"--port"},
+                        static_cast<int>(CLI::ExitCodes::ArgumentMismatch), "--port");
     });
 
     run_case("--port 0 prints error and usage, exits 2", [&] {
         check_cli_error(server_exe, {"--port", "0"}, 2, "Invalid --port:");
     });
 
-    run_case("--io-threads abc prints error and usage, exits 2", [&] {
-        check_cli_error(server_exe, {"--io-threads", "abc"}, 2,
-                        "Invalid --io-threads: invalid value");
-    });
-
-    run_case("--help with other options prints error and usage, exits 2", [&] {
-        check_cli_error(server_exe, {"--help", "--port", "8080"}, 2,
-                        "--help must be the only option");
-    });
-
-    run_case("--help after other option is unknown, exits 2", [&] {
-        check_cli_error(server_exe, {"--port", "8080", "--help"}, 2, "Unknown option: --help");
+    run_case("--io-threads abc prints error and usage, exits ConversionError", [&] {
+        check_cli_error(server_exe, {"--io-threads", "abc"},
+                        static_cast<int>(CLI::ExitCodes::ConversionError), "--io-threads");
     });
 
     std::cout << "\nAll tests passed.\n";

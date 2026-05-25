@@ -1,0 +1,41 @@
+#pragma once
+
+#include "serverconfig.h"
+
+#include <CLI/CLI.hpp>
+
+#include <cstddef>
+#include <iosfwd>
+
+
+namespace will {
+namespace cli {
+
+
+class ServerCliApp {
+public:
+    explicit ServerCliApp(const ServerConfig& defaults = ServerConfig{});
+
+    void print_help(std::ostream& os) const;
+
+    [[noreturn]] void exit_on_help(const CLI::CallForHelp& error) const;
+
+    [[noreturn]] void exit_on_parse_error(const CLI::ParseError& error) const;
+
+    ServerConfig parse(int argc, char* argv[]);
+
+private:
+    void apply_to(ServerConfig& config) const;
+
+    CLI::App app_;
+
+    int port_;
+    int io_threads_;
+    int listen_backlog_;
+    std::size_t max_clients_;
+    std::size_t max_outbound_queue_bytes_;
+};
+
+
+} // namespace cli
+} // namespace will

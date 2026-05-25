@@ -17,11 +17,17 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(asio)
 
+FetchContent_Declare(
+  cli11
+  GIT_REPOSITORY https://github.com/CLIUtils/CLI11.git
+  GIT_TAG v2.5.0
+  GIT_SHALLOW TRUE
+)
+FetchContent_MakeAvailable(cli11)
+
 find_package(Threads REQUIRED)
 
 add_library(common
-  src/common/clioption.cpp
-  src/common/clioptioncursor.cpp
   src/common/hostaddress.cpp
   src/common/willprotocol.cpp
   src/common/willmessage.cpp
@@ -35,8 +41,8 @@ target_compile_definitions(common PUBLIC ASIO_STANDALONE)
 add_executable(will-server
   src/server/server.cpp
   src/server/serverconfig.cpp
-  src/server/cli/servercliparser.cpp
-  src/server/cli/serverclioption.cpp
+  src/server/cli/servercliapp.cpp
+  src/server/cli/serverconfigparser.cpp
   src/server/sessionregistry.cpp
   src/server/willserver.cpp
   src/server/asioserver.cpp
@@ -49,7 +55,7 @@ target_include_directories(will-server PRIVATE
   ${asio_SOURCE_DIR}/asio/include
 )
 target_compile_definitions(will-server PRIVATE ASIO_STANDALONE)
-target_link_libraries(will-server PRIVATE common Threads::Threads)
+target_link_libraries(will-server PRIVATE common CLI11::CLI11 Threads::Threads)
 
 add_executable(will-client
   src/client/client.cpp
@@ -76,16 +82,17 @@ add_test(NAME will-message COMMAND will-message-test)
 
 add_executable(will-cli-test tests/cli_test.cpp
   src/server/serverconfig.cpp
-  src/server/cli/serverclioption.cpp
+  src/server/cli/servercliapp.cpp
 )
 target_include_directories(will-cli-test PRIVATE
   src/server
   src/server/cli
 )
-target_link_libraries(will-cli-test PRIVATE common)
+target_link_libraries(will-cli-test PRIVATE common CLI11::CLI11)
 add_test(NAME will-cli COMMAND will-cli-test)
 
 add_executable(will-server-cli-integration-test tests/server_cli_integration_test.cpp)
+target_link_libraries(will-server-cli-integration-test PRIVATE CLI11::CLI11)
 add_dependencies(will-server-cli-integration-test will-server)
 add_test(NAME will-server-cli-integration
   COMMAND will-server-cli-integration-test $<TARGET_FILE:will-server>)

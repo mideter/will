@@ -1,12 +1,12 @@
 #include <iostream>
 
 #include "willserver.h"
-#include "servercliparser.h"
+#include "serverconfigparser.h"
 
 
 int main(int argc, char* argv[])
 try {
-    const will::cli::ServerParser cli(argc, argv);
+    const will::cli::ServerConfigParser cli(argc, argv);
 
     will::WillServer server(cli.server_config());
     server.run();
