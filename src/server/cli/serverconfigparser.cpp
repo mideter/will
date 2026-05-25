@@ -3,7 +3,6 @@
 #include "servercliapp.h"
 
 #include <cstdlib>
-#include <iostream>
 
 
 namespace will {
@@ -20,10 +19,6 @@ ServerConfigParser::ServerConfigParser(int argc, char* argv[])
         cli.exit_on_help(error);
     } catch (const CLI::ParseError& error) {
         cli.exit_on_parse_error(error);
-    } catch (const std::runtime_error& error) {
-        std::cerr << error.what() << '\n';
-        cli.print_help(std::cerr);
-        std::exit(2);
     }
 }
 

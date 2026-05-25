@@ -19,7 +19,7 @@ void apply_cli_field(std::string_view flag, Fn&& apply)
     try {
         apply();
     } catch (const ServerConfigError& error) {
-        throw std::runtime_error(std::format("Invalid {}: {}", flag, error.what()));
+        throw CLI::ValidationError(std::format("Invalid {}: {}", flag, error.what()), 2);
     }
 }
 
