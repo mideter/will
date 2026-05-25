@@ -3,10 +3,28 @@
 #include <cstdlib>
 #include <format>
 #include <iostream>
+#include <string_view>
 
 
 namespace will {
 namespace cli {
+
+
+namespace {
+
+
+template<typename Fn>
+void apply_cli_field(std::string_view flag, Fn&& apply)
+{
+    try {
+        apply();
+    } catch (const ServerConfigError& error) {
+        throw std::runtime_error(std::format("Invalid {}: {}", flag, error.what()));
+    }
+}
+
+
+} // namespace
 
 
 ServerCliApp::ServerCliApp(const ServerConfig& defaults)
@@ -48,36 +66,12 @@ void ServerCliApp::exit_on_parse_error(const CLI::ParseError& error) const
 
 void ServerCliApp::apply_to(ServerConfig& config) const
 {
-    try {
-        config.set_listen_port(port_);
-    } catch (const ServerConfigError& error) {
-        throw std::runtime_error(std::format("Invalid --port: {}", error.what()));
-    }
-
-    try {
-        config.set_io_threads(io_threads_);
-    } catch (const ServerConfigError& error) {
-        throw std::runtime_error(std::format("Invalid --io-threads: {}", error.what()));
-    }
-
-    try {
-        config.set_listen_backlog(listen_backlog_);
-    } catch (const ServerConfigError& error) {
-        throw std::runtime_error(std::format("Invalid --listen-backlog: {}", error.what()));
-    }
-
-    try {
-        config.set_max_connections(max_clients_);
-    } catch (const ServerConfigError& error) {
-        throw std::runtime_error(std::format("Invalid --max-clients: {}", error.what()));
-    }
-
-    try {
-        config.set_max_outbound_queue_bytes(max_outbound_queue_bytes_);
-    } catch (const ServerConfigError& error) {
-        throw std::runtime_error(
-            std::format("Invalid --max-outbound-queue-bytes: {}", error.what()));
-    }
+    apply_cli_field("--port", [&] { config.set_listen_port(port_); });
+    apply_cli_field("--io-threads", [&] { config.set_io_threads(io_threads_); });
+    apply_cli_field("--listen-backlog", [&] { config.set_listen_backlog(listen_backlog_); });
+    apply_cli_field("--max-clients", [&] { config.set_max_connections(max_clients_); });
+    apply_cli_field("--max-outbound-queue-bytes",
+                    [&] { config.set_max_outbound_queue_bytes(max_outbound_queue_bytes_); });
 }
 
 
