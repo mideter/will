@@ -13,13 +13,18 @@ template<typename OptionVariant>
 class OptionMatch;
 
 
-/** Cursor over argv option flags. */
+class IntValue;
+class SizeValue;
+
+
+/** argv walker; use OptionCursor with an option table. */
 class OptionCursorCore {
 public:
     OptionCursorCore(int argc, char* argv[]);
 
     bool has_option() const noexcept;
     OptionCursorCore operator++(int) noexcept;
+    void advance() { (*this)++; }
 
     std::string_view current_option() const;
 
@@ -45,7 +50,6 @@ public:
     {}
 
     OptionMatch<OptionVariant> match();
-    void advance() { (*this)++; }
 
 private:
     const std::array<OptionVariant, N>& options_;
