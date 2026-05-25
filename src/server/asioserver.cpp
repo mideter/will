@@ -19,12 +19,12 @@ AsioMessengerServer::AsioMessengerServer(ServerConfig config)
 void AsioMessengerServer::open_acceptor()
 {
     using asio::ip::tcp;
-    tcp::endpoint endpoint(tcp::v4(), config_.listen_port());
+    tcp::endpoint endpoint(tcp::v4(), config_.listen_port);
 
     acceptor_.open(endpoint.protocol());
     acceptor_.set_option(tcp::acceptor::reuse_address(true));
     acceptor_.bind(endpoint);
-    acceptor_.listen(config_.listen_backlog());
+    acceptor_.listen(config_.listen_backlog);
 }
 
 
@@ -40,7 +40,7 @@ void AsioMessengerServer::run()
 {
     do_accept();
 
-    const int thread_count = config_.io_threads();
+    const int thread_count = config_.io_threads;
     io_threads_.reserve(static_cast<std::size_t>(thread_count));
 
     for (int i = 0; i < thread_count; ++i) {
@@ -78,8 +78,8 @@ void AsioMessengerServer::on_accept(const asio::error_code& ec, asio::ip::tcp::s
     }
 
     if (!ec) {
-        if (registry_.at_capacity(config_.max_connections())) {
-            std::cerr << "Max connections (" << config_.max_connections() << ") reached, rejecting peer\n";
+        if (registry_.at_capacity(config_.max_connections)) {
+            std::cerr << "Max connections (" << config_.max_connections << ") reached, rejecting peer\n";
             asio::error_code ignored;
             socket.close(ignored);
         }
@@ -89,7 +89,7 @@ void AsioMessengerServer::on_accept(const asio::error_code& ec, asio::ip::tcp::s
 
                 const HostAddress peer_address = address_from_socket(socket);
                 registry_.accept_session(ioc_, std::move(socket), peer_address,
-                                         config_.max_outbound_queue_bytes());
+                                         config_.max_outbound_queue_bytes);
             }
             catch (const std::exception& e) {
                 std::cerr << "Accept session error: " << e.what() << '\n';

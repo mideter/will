@@ -169,8 +169,11 @@ int main(int argc, char* argv[])
                         static_cast<int>(CLI::ExitCodes::ArgumentMismatch), "--port");
     });
 
-    run_case("--port 0 prints error and usage, exits 2", [&] {
-        check_cli_error(server_exe, {"--port", "0"}, 2, "Invalid --port:");
+    run_case("--port 0 fails at server startup, exits 1", [&] {
+        const RunResult result = run_will_server(server_exe, {"--port", "0"});
+        assert(result.exit_code == 1);
+        assert_contains(result.stderr_output, "Server error:");
+        assert_contains(result.stderr_output, "listen_port");
     });
 
     run_case("--io-threads abc prints error and usage, exits ConversionError", [&] {

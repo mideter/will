@@ -111,11 +111,11 @@ void assert_defaults()
     Argv args{"will-server"};
     const will::ServerConfig config = ServerCliApp{}.parse(args.argc(), args.argv());
 
-    assert(config.listen_port() == will::ServerConfig::DefaultListenPort);
-    assert(config.io_threads() == will::ServerConfig::DefaultIoThreads);
-    assert(config.listen_backlog() == will::ServerConfig::DefaultListenBacklog);
-    assert(config.max_connections() == will::ServerConfig::DefaultMaxConnections);
-    assert(config.max_outbound_queue_bytes() == will::ServerConfig::DefaultMaxOutboundQueueBytes);
+    assert(config.listen_port == will::ServerConfig::DefaultListenPort);
+    assert(config.io_threads == will::ServerConfig::DefaultIoThreads);
+    assert(config.listen_backlog == will::ServerConfig::DefaultListenBacklog);
+    assert(config.max_connections == will::ServerConfig::DefaultMaxConnections);
+    assert(config.max_outbound_queue_bytes == will::ServerConfig::DefaultMaxOutboundQueueBytes);
 }
 
 
@@ -136,11 +136,11 @@ void assert_all_options()
               "4096"};
     const will::ServerConfig config = ServerCliApp{}.parse(args.argc(), args.argv());
 
-    assert(config.listen_port() == 9000);
-    assert(config.io_threads() == 2);
-    assert(config.listen_backlog() == 512);
-    assert(config.max_connections() == 128);
-    assert(config.max_outbound_queue_bytes() == 4096);
+    assert(config.listen_port == 9000);
+    assert(config.io_threads == 2);
+    assert(config.listen_backlog == 512);
+    assert(config.max_connections == 128);
+    assert(config.max_outbound_queue_bytes == 4096);
 }
 
 
@@ -157,8 +157,6 @@ int main()
     assert_help_requested({"will-server", "--port", "8080", "--help"});
     assert_defaults();
     assert_all_options();
-    assert_runtime_error({"will-server", "--port", "0"}, "Invalid --port:");
-    assert_runtime_error({"will-server", "--port", "0"}, "listen_port");
     assert_parse_error({"will-server", "--port"});
     assert_parse_error({"will-server", "--io-threads", "abc"});
 

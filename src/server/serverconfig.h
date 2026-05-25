@@ -2,22 +2,13 @@
 
 #include <cstddef>
 #include <cstdint>
-#include <stdexcept>
-#include <string_view>
 
 
 namespace will {
 
 
-class ServerConfigError : public std::invalid_argument {
-public:
-    ServerConfigError(std::string_view field, std::string_view reason);
-};
-
-
-/** Server configuration with enforced field invariants. */
-class ServerConfig {
-public:
+/** Server configuration (no invariants; validated by WillServer::validate_config). */
+struct ServerConfig {
     static constexpr int MinListenPort = 1;
     static constexpr int MaxListenPort = 65535;
     static constexpr std::uint16_t DefaultListenPort = 7770;
@@ -26,26 +17,11 @@ public:
     static constexpr std::size_t DefaultMaxConnections = 4096;
     static constexpr std::size_t DefaultMaxOutboundQueueBytes = 1u << 20; // 1 MiB per session
 
-    ServerConfig();
-
-    std::uint16_t listen_port() const noexcept;
-    int io_threads() const noexcept;
-    int listen_backlog() const noexcept;
-    std::size_t max_connections() const noexcept;
-    std::size_t max_outbound_queue_bytes() const noexcept;
-
-    void set_listen_port(int port);
-    void set_io_threads(int threads);
-    void set_listen_backlog(int backlog);
-    void set_max_connections(std::size_t max_connections);
-    void set_max_outbound_queue_bytes(std::size_t max_bytes);
-
-private:
-    std::uint16_t listen_port_ = DefaultListenPort;
-    int io_threads_ = DefaultIoThreads;
-    int listen_backlog_ = DefaultListenBacklog;
-    std::size_t max_connections_ = DefaultMaxConnections;
-    std::size_t max_outbound_queue_bytes_ = DefaultMaxOutboundQueueBytes;
+    std::uint16_t listen_port = DefaultListenPort;
+    int io_threads = DefaultIoThreads;
+    int listen_backlog = DefaultListenBacklog;
+    std::size_t max_connections = DefaultMaxConnections;
+    std::size_t max_outbound_queue_bytes = DefaultMaxOutboundQueueBytes;
 };
 
 

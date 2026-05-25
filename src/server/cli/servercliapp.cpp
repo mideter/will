@@ -5,37 +5,19 @@
 #include <cstdlib>
 #include <format>
 #include <iostream>
-#include <string_view>
 
 
 namespace will {
 namespace cli {
 
 
-namespace {
-
-
-template<typename Fn>
-void apply_cli_field(std::string_view flag, Fn&& apply)
-{
-    try {
-        apply();
-    } catch (const ServerConfigError& error) {
-        throw CLI::ValidationError(std::format("Invalid {}: {}", flag, error.what()), 2);
-    }
-}
-
-
-} // namespace
-
-
 ServerCliApp::ServerCliApp(const ServerConfig& defaults)
     : app_{"will-server"}
-    , port_(static_cast<int>(defaults.listen_port()))
-    , io_threads_(defaults.io_threads())
-    , listen_backlog_(defaults.listen_backlog())
-    , max_clients_(defaults.max_connections())
-    , max_outbound_queue_bytes_(defaults.max_outbound_queue_bytes())
+    , port_(static_cast<int>(defaults.listen_port))
+    , io_threads_(defaults.io_threads)
+    , listen_backlog_(defaults.listen_backlog)
+    , max_clients_(defaults.max_connections)
+    , max_outbound_queue_bytes_(defaults.max_outbound_queue_bytes)
 {
     app_.allow_extras(false);
 
@@ -83,12 +65,11 @@ void ServerCliApp::exit_on_parse_error(const CLI::ParseError& error) const
 
 void ServerCliApp::apply_to(ServerConfig& config) const
 {
-    apply_cli_field("--port", [&] { config.set_listen_port(port_); });
-    apply_cli_field("--io-threads", [&] { config.set_io_threads(io_threads_); });
-    apply_cli_field("--listen-backlog", [&] { config.set_listen_backlog(listen_backlog_); });
-    apply_cli_field("--max-clients", [&] { config.set_max_connections(max_clients_); });
-    apply_cli_field("--max-outbound-queue-bytes",
-                    [&] { config.set_max_outbound_queue_bytes(max_outbound_queue_bytes_); });
+    config.listen_port = static_cast<std::uint16_t>(port_);
+    config.io_threads = io_threads_;
+    config.listen_backlog = listen_backlog_;
+    config.max_connections = max_clients_;
+    config.max_outbound_queue_bytes = max_outbound_queue_bytes_;
 }
 
 

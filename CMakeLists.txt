@@ -40,7 +40,6 @@ target_compile_definitions(common PUBLIC ASIO_STANDALONE)
 
 add_executable(will-server
   src/server/server.cpp
-  src/server/serverconfig.cpp
   src/server/cli/servercliapp.cpp
   src/server/cli/serverconfigparser.cpp
   src/server/sessionregistry.cpp
@@ -85,7 +84,6 @@ target_link_libraries(will-message-test PRIVATE common)
 add_test(NAME will-message COMMAND will-message-test)
 
 add_executable(will-cli-test tests/cli_test.cpp
-  src/server/serverconfig.cpp
   src/server/cli/servercliapp.cpp
 )
 target_include_directories(will-cli-test PRIVATE
