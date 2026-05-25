@@ -59,15 +59,19 @@ target_link_libraries(will-server PRIVATE common CLI11::CLI11 Threads::Threads)
 
 add_executable(will-client
   src/client/client.cpp
+  src/client/clientconfig.cpp
   src/client/chatsession.cpp
   src/client/willclient.cpp
+  src/client/cli/clientcliapp.cpp
+  src/client/cli/clientconfigparser.cpp
 )
 target_include_directories(will-client PRIVATE
   src/client
+  src/client/cli
   ${asio_SOURCE_DIR}/asio/include
 )
 target_compile_definitions(will-client PRIVATE ASIO_STANDALONE)
-target_link_libraries(will-client PRIVATE common Threads::Threads)
+target_link_libraries(will-client PRIVATE common CLI11::CLI11 Threads::Threads)
 
 add_executable(will-load-clients
   tools/load_clients.cpp
@@ -90,6 +94,17 @@ target_include_directories(will-cli-test PRIVATE
 )
 target_link_libraries(will-cli-test PRIVATE common CLI11::CLI11)
 add_test(NAME will-cli COMMAND will-cli-test)
+
+add_executable(will-client-cli-test tests/client_cli_test.cpp
+  src/client/clientconfig.cpp
+  src/client/cli/clientcliapp.cpp
+)
+target_include_directories(will-client-cli-test PRIVATE
+  src/client
+  src/client/cli
+)
+target_link_libraries(will-client-cli-test PRIVATE common CLI11::CLI11)
+add_test(NAME will-client-cli COMMAND will-client-cli-test)
 
 add_executable(will-server-cli-integration-test tests/server_cli_integration_test.cpp)
 target_link_libraries(will-server-cli-integration-test PRIVATE CLI11::CLI11)

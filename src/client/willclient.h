@@ -7,6 +7,7 @@
 #include <string_view>
 #include <variant>
 
+#include "clientconfig.h"
 #include "hostaddress.h"
 
 
@@ -25,8 +26,9 @@ using InboundMessage = std::variant<ServerReceiptAck, std::string>;
 class WillClient {
 public:
     WillClient();
+    explicit WillClient(const ClientConfig& config);
 
-    void connect(HostAddress host);
+    void connect();
 
     /** Sends {@code UserChat} with UTF-8 body. */
     void send(std::string_view utf8_chat_body) const;
@@ -36,9 +38,12 @@ public:
 
     void shutdown() const;
 
+    [[nodiscard]] const ClientConfig& config() const noexcept;
+
 private:
     asio::io_context ioc_;
     mutable asio::ip::tcp::socket socket_;
+    ClientConfig config_;
 };
 
 

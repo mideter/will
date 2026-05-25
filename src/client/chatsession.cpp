@@ -47,7 +47,8 @@ void ChatSession::receiveLoop() const
             }
 
             if (std::holds_alternative<ServerReceiptAck>(*incoming)) {
-                std::cerr << "[server] ваше сообщение принято\n";
+                if (!client_.config().quiet_receipts())
+                    std::cerr << "[server] ваше сообщение принято\n";
                 continue;
             }
 

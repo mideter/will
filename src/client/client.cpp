@@ -1,22 +1,22 @@
 #include <iostream>
 
 #include "chatsession.h"
-#include "hostaddress.h"
+#include "clientconfigparser.h"
 #include "willclient.h"
 
 
-int main()
+int main(int argc, char* argv[])
 try {
-    const will::HostAddress server_address{"127.0.0.1", 7770};
-    
-    will::WillClient client;
-    client.connect(server_address);
+    const will::cli::ClientConfigParser cli(argc, argv);
+    const will::ClientConfig& cfg = cli.client_config();
+
+    will::WillClient client(cfg);
 
     will::ChatSession chat_session(client);
     chat_session.run();
 
     return 0;
-} 
+}
 catch (const std::exception& e) {
     std::cerr << e.what() << '\n';
     return 1;

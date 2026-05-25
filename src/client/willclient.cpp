@@ -65,9 +65,23 @@ WillClient::WillClient()
 {}
 
 
-void WillClient::connect(HostAddress host)
+WillClient::WillClient(const ClientConfig& config)
+    : socket_(ioc_)
+    , config_(config)
 {
-    socket_.connect(host.endpoint());
+    connect();
+}
+
+
+const ClientConfig& WillClient::config() const noexcept
+{
+    return config_;
+}
+
+
+void WillClient::connect()
+{
+    socket_.connect(config_.server_address().endpoint());
     socket_.set_option(asio::socket_base::keep_alive(true));
 }
 

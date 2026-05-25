@@ -16,10 +16,6 @@ namespace will {
 class HostAddress {
 public:
     HostAddress(std::string_view host, std::uint16_t port);
-    HostAddress(const HostAddress&) = default;
-    HostAddress& operator=(const HostAddress&) = default;
-    HostAddress(HostAddress&&) = default;
-    HostAddress& operator=(HostAddress&&) = default;
 
     static HostAddress from_endpoint(asio::ip::tcp::endpoint endpoint);
     static HostAddress any(std::uint16_t port);
