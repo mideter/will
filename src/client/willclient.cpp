@@ -26,6 +26,18 @@ void write_all(asio::ip::tcp::socket& socket, const void* data, std::size_t len)
 }
 
 
+void send_payload(asio::ip::tcp::socket& socket, const std::vector<char>& payload)
+{
+    if (payload.size() > TcpFrame::MaxPayloadBytes)
+        throw std::runtime_error("message exceeds TcpFrame::MaxPayloadBytes");
+
+    unsigned char header[4];
+    TcpFrame::append_u32_be(header, payload.size());
+    write_all(socket, header, sizeof(header));
+    write_all(socket, payload.data(), payload.size());
+}
+
+
 /** Exactly {@code len} bytes, or EOF before/on first byte ({@code true}), or protocol error after partial read. */
 bool read_exact_or_eof_before_first_byte(asio::ip::tcp::socket& socket, unsigned char* data,
                                          std::size_t len)
@@ -91,15 +103,13 @@ void WillClient::connect()
 
 void WillClient::send(std::string_view utf8_chat_body) const
 {
-    const std::vector<char> payload = WillMessage::encode_user_chat(utf8_chat_body);
+    send_payload(socket_, WillMessage::encode_user_chat(utf8_chat_body));
+}
 
-    if (payload.size() > TcpFrame::MaxPayloadBytes)
-        throw std::runtime_error("message exceeds TcpFrame::MaxPayloadBytes");
 
-    unsigned char header[4];
-    TcpFrame::append_u32_be(header, payload.size());
-    write_all(socket_, header, sizeof(header));
-    write_all(socket_, payload.data(), payload.size());
+void WillClient::requestHistory(const std::uint32_t limit) const
+{
+    send_payload(socket_, WillMessage::encode_history_request(limit));
 }
 
 
@@ -126,6 +136,16 @@ std::optional<InboundMessage> WillClient::receiveMessage() const
 
     if (WillMessage::is_user_chat(payload))
         return InboundMessage{std::in_place_type<std::string>, std::string(payload.begin() + 1, payload.end())};
+
+    if (WillMessage::is_history_item(payload)) {
+        const auto item = WillMessage::parse_history_item(payload);
+        if (!item)
+            throw std::runtime_error("Will protocol: invalid HistoryItem payload");
+        return InboundMessage{std::in_place_type<HistoryItemPayload>, *item};
+    }
+
+    if (WillMessage::is_history_end(payload))
+        return InboundMessage{std::in_place_type<HistoryEnd>};
 
     throw std::runtime_error("Will protocol: unknown message type");
 }

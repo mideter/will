@@ -116,6 +116,7 @@ void assert_defaults()
     assert(config.listen_backlog == will::ServerConfig::DefaultListenBacklog);
     assert(config.max_connections == will::ServerConfig::DefaultMaxConnections);
     assert(config.max_outbound_queue_bytes == will::ServerConfig::DefaultMaxOutboundQueueBytes);
+    assert(config.db_path == will::ServerConfig::DefaultDbPath);
 }
 
 
@@ -133,7 +134,9 @@ void assert_all_options()
               "--max-clients",
               "128",
               "--max-outbound-queue-bytes",
-              "4096"};
+              "4096",
+              "--db-path",
+              "/tmp/custom.db"};
     const will::ServerConfig config = ServerCliApp{}.parse(args.argc(), args.argv());
 
     assert(config.listen_port == 9000);
@@ -141,6 +144,7 @@ void assert_all_options()
     assert(config.listen_backlog == 512);
     assert(config.max_connections == 128);
     assert(config.max_outbound_queue_bytes == 4096);
+    assert(config.db_path == "/tmp/custom.db");
 }
 
 

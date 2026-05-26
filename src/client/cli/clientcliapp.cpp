@@ -19,6 +19,8 @@ ClientCliApp::ClientCliApp(const ClientConfig& defaults)
     app_.add_option("--host", host_)->description("Server IPv4 address");
     app_.add_option("--port", port_)->description("Server TCP port");
     app_.add_flag("--quiet", quiet_receipts_)->description("Suppress server receipt messages on stderr");
+    app_.add_option("--history", history_limit_)
+        ->description("Request last N messages on connect");
 }
 
 
@@ -31,7 +33,8 @@ void ClientCliApp::print_help(std::ostream& os) const
         "  -h, --help                      Print usage and exit\n"
         "  --host HOST                     Server IPv4 address (default {}; Novosibirsk: {})\n"
         "  --port PORT                     Server TCP port (default {})\n"
-        "  --quiet                         Suppress server receipt messages on stderr\n",
+        "  --quiet                         Suppress server receipt messages on stderr\n"
+        "  --history N                     Request last N messages on connect\n",
         ClientConfig::DefaultHost,
         ClientConfig::NovosibirskHost,
         ClientConfig::DefaultPort);
@@ -56,6 +59,7 @@ void ClientCliApp::apply_to(ClientConfig& config) const
     config.host = host_;
     config.port = static_cast<std::uint16_t>(port_);
     config.quiet_receipts = quiet_receipts_;
+    config.history_limit = history_limit_;
 }
 
 

@@ -4,7 +4,10 @@
 
 #include <CLI/CLI.hpp>
 
+#include <cstdint>
 #include <iosfwd>
+#include <optional>
+#include <string>
 
 
 namespace will {
@@ -30,6 +33,7 @@ private:
     std::string host_;
     int port_;
     bool quiet_receipts_;
+    std::optional<std::uint32_t> history_limit_;
 };
 
 

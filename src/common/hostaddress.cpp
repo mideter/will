@@ -28,6 +28,12 @@ HostAddress HostAddress::any(std::uint16_t port)
 }
 
 
+std::string HostAddress::ip_string() const
+{
+    return endpoint_.address().to_string();
+}
+
+
 std::ostream& operator<<(std::ostream& os, const HostAddress& address)
 {
     return os << address.endpoint_.address().to_string() << ':' << address.endpoint_.port();

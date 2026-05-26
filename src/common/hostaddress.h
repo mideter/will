@@ -6,6 +6,7 @@
 #include <format>
 #include <iosfwd>
 #include <sstream>
+#include <string>
 #include <string_view>
 
 
@@ -20,7 +21,8 @@ public:
     static HostAddress from_endpoint(asio::ip::tcp::endpoint endpoint);
     static HostAddress any(std::uint16_t port);
 
-    [[nodiscard]] const asio::ip::tcp::endpoint& endpoint() const noexcept { return endpoint_; }
+    const asio::ip::tcp::endpoint& endpoint() const noexcept { return endpoint_; }
+    std::string ip_string() const;
 
 private:
     friend std::ostream& operator<<(std::ostream& os, const HostAddress& address);

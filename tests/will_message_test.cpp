@@ -36,6 +36,28 @@ int main()
 	assert(!WillMessage::is_valid_client_to_server_payload({'\0'}));
 
 	{
+		const auto request = WillMessage::encode_history_request(50);
+		assert(WillMessage::is_history_request(request));
+		assert(WillMessage::is_valid_client_to_server_payload(request));
+		assert(WillMessage::parse_history_request_limit(request) == 50u);
+	}
+
+	{
+		const auto item = WillMessage::encode_history_item(42, true, "stored");
+		assert(WillMessage::is_history_item(item));
+		const auto parsed = WillMessage::parse_history_item(item);
+		assert(parsed);
+		assert(parsed->message_id == 42u);
+		assert(parsed->is_mine);
+		assert(parsed->body == "stored");
+	}
+
+	{
+		const auto end = WillMessage::encode_history_end();
+		assert(WillMessage::is_history_end(end));
+	}
+
+	{
 		const auto v = WillMessage::encode_user_chat("hi");
 		const std::string line = WillMessage::format_payload_for_log(v);
 		assert(line.find("UserChat") != std::string::npos);
@@ -43,6 +65,7 @@ int main()
 	}
 
 	assert(WillMessage::format_payload_for_log(WillMessage::encode_server_receipt_ack()) == "ServerReceiptAck");
+	assert(WillMessage::format_payload_for_log(WillMessage::encode_history_end()) == "HistoryEnd");
 
 	return EXIT_SUCCESS;
 }

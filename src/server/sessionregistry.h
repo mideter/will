@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "hostaddress.h"
+#include "messagestore.h"
 
 
 namespace will {
@@ -24,8 +25,7 @@ class Session;
  */
 class SessionRegistry {
 public:
-    SessionRegistry() = default;
-    ~SessionRegistry() = default;
+    explicit SessionRegistry(MessageStore& message_store);
 
     SessionRegistry(const SessionRegistry&) = delete;
     SessionRegistry& operator=(const SessionRegistry&) = delete;
@@ -47,6 +47,7 @@ public:
     bool at_capacity(std::size_t max_connections) const noexcept;
 
 private:
+    MessageStore& message_store_;
     mutable std::mutex mutex_;
     std::unordered_map<std::uint64_t, std::shared_ptr<Session>> sessions_;
 };

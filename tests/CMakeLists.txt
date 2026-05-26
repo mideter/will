@@ -53,3 +53,18 @@ target_link_libraries(will-server-cli-integration-test PRIVATE CLI11::CLI11)
 add_dependencies(will-server-cli-integration-test will-server)
 add_test(NAME will-server-cli-integration
   COMMAND will-server-cli-integration-test $<TARGET_FILE:will-server>)
+
+add_executable(will-history-integration-test history_integration_test.cpp)
+target_link_libraries(will-history-integration-test PRIVATE common)
+add_dependencies(will-history-integration-test will-server)
+add_test(NAME will-history-integration
+  COMMAND will-history-integration-test $<TARGET_FILE:will-server>)
+
+add_executable(will-messagestore-test messagestore_test.cpp
+  ${CMAKE_SOURCE_DIR}/src/server/messagestore.cpp
+)
+target_include_directories(will-messagestore-test PRIVATE
+  ${CMAKE_SOURCE_DIR}/src/server
+)
+target_link_libraries(will-messagestore-test PRIVATE SQLite::SQLite3)
+add_test(NAME will-messagestore COMMAND will-messagestore-test)

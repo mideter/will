@@ -28,6 +28,15 @@ std::optional<std::string_view> ServerConfigValidator::listen_port_reason(const 
 }
 
 
+std::optional<std::string_view> ServerConfigValidator::db_path_reason(const std::string_view db_path)
+{
+    if (db_path.empty())
+        return "must not be empty";
+
+    return std::nullopt;
+}
+
+
 template<typename T>
 std::optional<std::string_view> ServerConfigValidator::positive_reason(const T value)
 {
@@ -45,6 +54,7 @@ void ServerConfigValidator::validate(const ServerConfig& config)
     require("listen_backlog", positive_reason(config.listen_backlog));
     require("max_connections", positive_reason(config.max_connections));
     require("max_outbound_queue_bytes", positive_reason(config.max_outbound_queue_bytes));
+    require("db_path", db_path_reason(config.db_path));
 }
 
 

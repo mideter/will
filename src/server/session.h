@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "hostaddress.h"
+#include "messagestore.h"
 
 
 namespace will {
@@ -32,7 +33,7 @@ public:
 
 private:
     Session(asio::io_context& ioc, TcpSocket socket, HostAddress address, SessionRegistry& registry,
-            std::size_t max_outbound_queue_bytes);
+            MessageStore& message_store, std::size_t max_outbound_queue_bytes);
 
     void begin();
     void shutdown();
@@ -52,6 +53,7 @@ private:
 
     const std::uint64_t id_;
     SessionRegistry& registry_;
+    MessageStore& message_store_;
     const std::size_t max_outbound_queue_bytes_;
 
     TcpSocket socket_;

@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "hostaddress.h"
+#include "messagestore.h"
 #include "sessionregistry.h"
 #include "serverconfig.h"
 
@@ -37,6 +38,7 @@ private:
     asio::ip::tcp::acceptor acceptor_;
     asio::signal_set signals_;
 
+    MessageStore message_store_;
     SessionRegistry registry_;
     
     std::vector<std::thread> io_threads_;

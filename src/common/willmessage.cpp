@@ -8,6 +8,44 @@
 namespace will {
 
 
+namespace {
+
+
+void append_u32_be(std::vector<char>& out, std::uint32_t value)
+{
+    out.push_back(static_cast<char>((value >> 24u) & 0xffu));
+    out.push_back(static_cast<char>((value >> 16u) & 0xffu));
+    out.push_back(static_cast<char>((value >> 8u) & 0xffu));
+    out.push_back(static_cast<char>(value & 0xffu));
+}
+
+
+void append_u64_be(std::vector<char>& out, std::uint64_t value)
+{
+    for (int shift = 56; shift >= 0; shift -= 8)
+        out.push_back(static_cast<char>((value >> shift) & 0xffu));
+}
+
+
+std::uint32_t read_u32_be(const unsigned char* data) noexcept
+{
+    return (std::uint32_t(data[0]) << 24u) | (std::uint32_t(data[1]) << 16u) |
+           (std::uint32_t(data[2]) << 8u) | std::uint32_t(data[3]);
+}
+
+
+std::uint64_t read_u64_be(const unsigned char* data) noexcept
+{
+    std::uint64_t value = 0;
+    for (int i = 0; i < 8; ++i)
+        value = (value << 8u) | std::uint64_t(data[i]);
+    return value;
+}
+
+
+} // namespace
+
+
 std::vector<char> WillMessage::encode_user_chat(std::string_view utf8_body)
 {
     const std::size_t total = 1u + utf8_body.size();
@@ -28,6 +66,44 @@ std::vector<char> WillMessage::encode_server_receipt_ack()
 }
 
 
+std::vector<char> WillMessage::encode_history_request(const std::uint32_t limit)
+{
+    if (limit < 1u)
+        throw std::runtime_error("WillMessage::encode_history_request: limit must be at least 1");
+
+    std::vector<char> out;
+    out.reserve(5);
+    out.push_back(static_cast<char>(HistoryRequest));
+    append_u32_be(out, limit);
+    return out;
+}
+
+
+std::vector<char> WillMessage::encode_history_item(const std::uint64_t message_id, const bool is_mine,
+                                                   const std::string_view utf8_body)
+{
+    const std::size_t total = 1u + 8u + 1u + 4u + utf8_body.size();
+    if (total > TcpFrame::MaxPayloadBytes)
+        throw std::runtime_error("WillMessage::encode_history_item: payload exceeds TcpFrame::MaxPayloadBytes");
+
+    std::vector<char> out;
+    out.reserve(total);
+    out.push_back(static_cast<char>(HistoryItem));
+    append_u64_be(out, message_id);
+    out.push_back(is_mine ? '\1' : '\0');
+    append_u32_be(out, static_cast<std::uint32_t>(utf8_body.size()));
+    if (!utf8_body.empty())
+        out.insert(out.end(), utf8_body.begin(), utf8_body.end());
+    return out;
+}
+
+
+std::vector<char> WillMessage::encode_history_end()
+{
+    return std::vector<char>{static_cast<char>(HistoryEnd)};
+}
+
+
 bool WillMessage::is_valid_client_to_server_payload(const std::vector<char>& payload) noexcept
 {
     if (payload.empty())
@@ -35,6 +111,8 @@ bool WillMessage::is_valid_client_to_server_payload(const std::vector<char>& pay
     const auto t = static_cast<std::uint8_t>(payload[0]);
     if (t == UserChat)
         return true;
+    if (t == HistoryRequest)
+        return payload.size() == 5u && parse_history_request_limit(payload).has_value();
     return false;
 }
 
@@ -51,6 +129,58 @@ bool WillMessage::is_server_receipt_ack(const std::vector<char>& payload) noexce
 }
 
 
+bool WillMessage::is_history_request(const std::vector<char>& payload) noexcept
+{
+    return !payload.empty() && static_cast<std::uint8_t>(payload[0]) == HistoryRequest;
+}
+
+
+bool WillMessage::is_history_item(const std::vector<char>& payload) noexcept
+{
+    return !payload.empty() && static_cast<std::uint8_t>(payload[0]) == HistoryItem;
+}
+
+
+bool WillMessage::is_history_end(const std::vector<char>& payload) noexcept
+{
+    return payload.size() == 1u && static_cast<std::uint8_t>(payload[0]) == HistoryEnd;
+}
+
+
+std::optional<std::uint32_t> WillMessage::parse_history_request_limit(const std::vector<char>& payload)
+{
+    if (!is_history_request(payload) || payload.size() != 5u)
+        return std::nullopt;
+
+    const auto limit = read_u32_be(reinterpret_cast<const unsigned char*>(payload.data() + 1));
+    if (limit < 1u)
+        return std::nullopt;
+
+    return limit;
+}
+
+
+std::optional<HistoryItemPayload> WillMessage::parse_history_item(const std::vector<char>& payload)
+{
+    if (!is_history_item(payload) || payload.size() < 14u)
+        return std::nullopt;
+
+    const auto* data = reinterpret_cast<const unsigned char*>(payload.data());
+    const std::uint64_t message_id = read_u64_be(data + 1);
+    const bool is_mine = data[9] != 0u;
+    const std::uint32_t body_len = read_u32_be(data + 10);
+
+    if (14u + body_len != payload.size())
+        return std::nullopt;
+
+    HistoryItemPayload item;
+    item.message_id = message_id;
+    item.is_mine = is_mine;
+    item.body.assign(payload.begin() + 14, payload.end());
+    return item;
+}
+
+
 std::string WillMessage::format_payload_for_log(const std::vector<char>& payload)
 {
     if (payload.empty())
@@ -58,6 +188,35 @@ std::string WillMessage::format_payload_for_log(const std::vector<char>& payload
 
     if (is_server_receipt_ack(payload))
         return "ServerReceiptAck";
+
+    if (is_history_end(payload))
+        return "HistoryEnd";
+
+    if (is_history_request(payload)) {
+        const auto limit = parse_history_request_limit(payload);
+        std::string out = "HistoryRequest(";
+        out += limit ? std::to_string(*limit) : "?";
+        out += ')';
+        return out;
+    }
+
+    if (is_history_item(payload)) {
+        const auto item = parse_history_item(payload);
+        std::string out = "HistoryItem(";
+        if (item) {
+            out += "id=";
+            out += std::to_string(item->message_id);
+            out += item->is_mine ? ", mine" : ", peer";
+            out += ", ";
+            out += std::to_string(item->body.size());
+            out += " bytes";
+        }
+        else {
+            out += "invalid";
+        }
+        out += ')';
+        return out;
+    }
 
     if (is_user_chat(payload)) {
         std::string out = "UserChat(";

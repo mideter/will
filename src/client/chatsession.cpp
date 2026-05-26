@@ -3,6 +3,7 @@
 #include <atomic>
 #include <iostream>
 #include <optional>
+#include <stdexcept>
 #include <string>
 #include <thread>
 #include <variant>
@@ -18,6 +19,11 @@ ChatSession::ChatSession(WillClient& client)
 
 void ChatSession::run()
 {
+    if (client_.config().history_limit) {
+        client_.requestHistory(*client_.config().history_limit);
+        loadHistory();
+    }
+
     std::cout << "Connected to Will chat. Type messages and press Enter.\n";
     std::cout << "Press Ctrl+D to exit.\n";
 
@@ -32,6 +38,35 @@ void ChatSession::run()
         client_.send(line);
 
     client_.shutdown();
+}
+
+
+void ChatSession::loadHistory() const
+{
+    while (true) {
+        const std::optional<InboundMessage> incoming = client_.receiveMessage();
+        if (!incoming.has_value())
+            throw std::runtime_error("Disconnected while loading history");
+
+        if (std::holds_alternative<HistoryEnd>(*incoming))
+            break;
+
+        if (const auto* item = std::get_if<HistoryItemPayload>(&*incoming)) {
+            printHistoryItem(*item);
+            continue;
+        }
+
+        throw std::runtime_error("Unexpected message while loading history");
+    }
+}
+
+
+void ChatSession::printHistoryItem(const HistoryItemPayload& item)
+{
+    if (item.is_mine)
+        std::cout << "[me] " << item.body << '\n';
+    else
+        std::cout << "[peer] " << item.body << '\n';
 }
 
 
@@ -51,6 +86,14 @@ void ChatSession::receiveLoop() const
                     std::cerr << "[server] ваше сообщение принято" << std::endl;
                 continue;
             }
+
+            if (const auto* item = std::get_if<HistoryItemPayload>(&*incoming)) {
+                printHistoryItem(*item);
+                continue;
+            }
+
+            if (std::holds_alternative<HistoryEnd>(*incoming))
+                continue;
 
             std::cout << std::get<std::string>(*incoming) << std::endl;
             std::cout.flush();

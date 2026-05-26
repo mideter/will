@@ -26,6 +26,7 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(cli11)
 
 find_package(Threads REQUIRED)
+find_package(SQLite3 REQUIRED)
 
 add_library(common
   src/common/hostaddress.cpp
@@ -48,6 +49,7 @@ add_executable(will-server
   src/server/asioserver.cpp
   src/server/session.cpp
   src/server/tcpframereader.cpp
+  src/server/messagestore.cpp
 )
 target_include_directories(will-server PRIVATE
   src/server
@@ -56,7 +58,7 @@ target_include_directories(will-server PRIVATE
   ${asio_SOURCE_DIR}/asio/include
 )
 target_compile_definitions(will-server PRIVATE ASIO_STANDALONE)
-target_link_libraries(will-server PRIVATE common CLI11::CLI11 Threads::Threads)
+target_link_libraries(will-server PRIVATE common CLI11::CLI11 Threads::Threads SQLite::SQLite3)
 
 add_executable(will-client
   src/client/client.cpp

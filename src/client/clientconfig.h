@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <optional>
 #include <string>
 #include <string_view>
 
@@ -20,6 +21,7 @@ struct ClientConfig {
     std::string host = std::string{DefaultHost};
     std::uint16_t port = DefaultPort;
     bool quiet_receipts = DefaultQuietReceipts;
+    std::optional<std::uint32_t> history_limit;
 };
 
 

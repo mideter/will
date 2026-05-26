@@ -10,11 +10,17 @@
 namespace will {
 
 
+SessionRegistry::SessionRegistry(MessageStore& message_store)
+    : message_store_(message_store)
+{}
+
+
 void SessionRegistry::accept_session(asio::io_context& ioc, asio::ip::tcp::socket socket,
                                      HostAddress address, std::size_t max_outbound_queue_bytes)
 {
     auto session = std::shared_ptr<Session>(
-        new Session(ioc, std::move(socket), std::move(address), *this, max_outbound_queue_bytes));
+        new Session(ioc, std::move(socket), std::move(address), *this, message_store_,
+                    max_outbound_queue_bytes));
 
     {
         std::lock_guard lock(mutex_);
