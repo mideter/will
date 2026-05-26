@@ -6,7 +6,7 @@
 
 int main(int argc, char* argv[])
 try {
-    const will::cli::ServerConfigParser cli(argc, argv);
+    const will::ServerConfigParser cli(argc, argv);
 
     will::WillServer server(cli.server_config());
     server.run();

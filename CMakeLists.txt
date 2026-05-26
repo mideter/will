@@ -41,9 +41,9 @@ target_compile_definitions(common PUBLIC ASIO_STANDALONE)
 add_executable(will-server
   src/server/server.cpp
   src/server/cli/servercliapp.cpp
-  src/server/cli/serverconfigparser.cpp
+  src/server/config/serverconfigparser.cpp
   src/server/sessionregistry.cpp
-  src/server/serverconfigvalidator.cpp
+  src/server/config/serverconfigvalidator.cpp
   src/server/willserver.cpp
   src/server/asioserver.cpp
   src/server/session.cpp
@@ -52,6 +52,7 @@ add_executable(will-server
 target_include_directories(will-server PRIVATE
   src/server
   src/server/cli
+  src/server/config
   ${asio_SOURCE_DIR}/asio/include
 )
 target_compile_definitions(will-server PRIVATE ASIO_STANDALONE)

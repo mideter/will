@@ -5,10 +5,10 @@ target_link_libraries(will-message-test PRIVATE common)
 add_test(NAME will-message COMMAND will-message-test)
 
 add_executable(will-server-config-test server_config_test.cpp
-  ${CMAKE_SOURCE_DIR}/src/server/serverconfigvalidator.cpp
+  ${CMAKE_SOURCE_DIR}/src/server/config/serverconfigvalidator.cpp
 )
 target_include_directories(will-server-config-test PRIVATE
-  ${CMAKE_SOURCE_DIR}/src/server
+  ${CMAKE_SOURCE_DIR}/src/server/config
 )
 add_test(NAME will-server-config COMMAND will-server-config-test)
 
@@ -16,7 +16,7 @@ add_executable(will-cli-test cli_test.cpp
   ${CMAKE_SOURCE_DIR}/src/server/cli/servercliapp.cpp
 )
 target_include_directories(will-cli-test PRIVATE
-  ${CMAKE_SOURCE_DIR}/src/server
+  ${CMAKE_SOURCE_DIR}/src/server/config
   ${CMAKE_SOURCE_DIR}/src/server/cli
 )
 target_link_libraries(will-cli-test PRIVATE common CLI11::CLI11)

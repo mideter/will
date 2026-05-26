@@ -6,12 +6,11 @@
 
 
 namespace will {
-namespace cli {
 
 
 ServerConfigParser::ServerConfigParser(int argc, char* argv[])
 {
-    ServerCliApp cli;
+    cli::ServerCliApp cli;
 
     try {
         server_config_ = cli.parse(argc, argv);
@@ -29,5 +28,4 @@ const ServerConfig& ServerConfigParser::server_config() const noexcept
 }
 
 
-} // namespace cli
 } // namespace will
