@@ -6,7 +6,6 @@
 
 
 namespace will {
-namespace cli {
 
 
 LoadClientsCliApp::LoadClientsCliApp(const LoadClientsConfig& defaults)
@@ -79,5 +78,4 @@ LoadClientsConfig LoadClientsCliApp::parse(int argc, char* argv[])
 }
 
 
-} // namespace cli
 } // namespace will

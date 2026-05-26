@@ -6,7 +6,6 @@
 
 
 namespace will {
-namespace cli {
 
 
 LoadClientsConfigParser::LoadClientsConfigParser(int argc, char* argv[])
@@ -29,5 +28,4 @@ const LoadClientsConfig& LoadClientsConfigParser::load_config() const noexcept
 }
 
 
-} // namespace cli
 } // namespace will

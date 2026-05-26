@@ -39,7 +39,7 @@ struct Argv {
 
 void assert_parse_error(std::initializer_list<const char*> args)
 {
-    using namespace will::cli;
+    using namespace will;
 
     Argv argv{args};
     ClientCliApp cli;
@@ -55,7 +55,7 @@ void assert_parse_error(std::initializer_list<const char*> args)
 
 void assert_help_requested(std::initializer_list<const char*> args)
 {
-    using namespace will::cli;
+    using namespace will;
 
     Argv argv{args};
     ClientCliApp cli;
@@ -71,7 +71,7 @@ void assert_help_requested(std::initializer_list<const char*> args)
 
 void assert_help_output()
 {
-    using namespace will::cli;
+    using namespace will;
 
     std::ostringstream out;
     ClientCliApp{}.print_help(out);
@@ -88,7 +88,7 @@ void assert_help_output()
 
 void assert_defaults()
 {
-    using namespace will::cli;
+    using namespace will;
 
     Argv args{"will-client"};
     const will::ClientConfig config = ClientCliApp{}.parse(args.argc(), args.argv());
@@ -101,7 +101,7 @@ void assert_defaults()
 
 void assert_all_options()
 {
-    using namespace will::cli;
+    using namespace will;
 
     Argv args{"will-client", "--host", "192.168.1.10", "--port", "9000", "--quiet"};
     const will::ClientConfig config = ClientCliApp{}.parse(args.argc(), args.argv());
@@ -114,7 +114,7 @@ void assert_all_options()
 
 void assert_port_zero_parses()
 {
-    using namespace will::cli;
+    using namespace will;
 
     Argv args{"will-client", "--port", "0"};
     const will::ClientConfig config = ClientCliApp{}.parse(args.argc(), args.argv());

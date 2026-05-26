@@ -7,7 +7,7 @@
 
 int main(int argc, char* argv[])
 try {
-    const will::cli::ClientConfigParser cli(argc, argv);
+    const will::ClientConfigParser cli(argc, argv);
     const will::ClientConfig& cfg = cli.client_config();
 
     will::WillClient client(cfg);

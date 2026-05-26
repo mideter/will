@@ -10,7 +10,7 @@ namespace will {
 
 ServerConfigParser::ServerConfigParser(int argc, char* argv[])
 {
-    cli::ServerCliApp cli;
+    ServerCliApp cli;
 
     try {
         server_config_ = cli.parse(argc, argv);

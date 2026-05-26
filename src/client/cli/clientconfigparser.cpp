@@ -6,7 +6,6 @@
 
 
 namespace will {
-namespace cli {
 
 
 ClientConfigParser::ClientConfigParser(int argc, char* argv[])
@@ -29,5 +28,4 @@ const ClientConfig& ClientConfigParser::client_config() const noexcept
 }
 
 
-} // namespace cli
 } // namespace will

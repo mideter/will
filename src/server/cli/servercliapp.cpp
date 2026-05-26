@@ -8,7 +8,6 @@
 
 
 namespace will {
-namespace cli {
 
 
 ServerCliApp::ServerCliApp(const ServerConfig& defaults)
@@ -82,5 +81,4 @@ ServerConfig ServerCliApp::parse(int argc, char* argv[])
 }
 
 
-} // namespace cli
 } // namespace will

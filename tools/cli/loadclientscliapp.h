@@ -8,7 +8,6 @@
 
 
 namespace will {
-namespace cli {
 
 
 class LoadClientsCliApp {
@@ -36,5 +35,4 @@ private:
 };
 
 
-} // namespace cli
 } // namespace will

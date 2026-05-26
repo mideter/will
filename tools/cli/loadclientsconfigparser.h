@@ -4,7 +4,6 @@
 
 
 namespace will {
-namespace cli {
 
 
 class LoadClientsConfigParser {
@@ -18,5 +17,4 @@ private:
 };
 
 
-} // namespace cli
 } // namespace will

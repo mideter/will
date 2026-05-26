@@ -95,7 +95,7 @@ void client_worker(const will::LoadClientsConfig& config, std::atomic<std::size_
 
 int main(int argc, char* argv[])
 try {
-    const will::cli::LoadClientsConfigParser cli(argc, argv);
+    const will::LoadClientsConfigParser cli(argc, argv);
     will::LoadClientsConfig config = cli.load_config();
     config.connection = will::ClientConfigValidator::accept(std::move(config.connection));
 

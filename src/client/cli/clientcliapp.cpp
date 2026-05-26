@@ -6,7 +6,6 @@
 
 
 namespace will {
-namespace cli {
 
 
 ClientCliApp::ClientCliApp(const ClientConfig& defaults)
@@ -69,5 +68,4 @@ ClientConfig ClientCliApp::parse(int argc, char* argv[])
 }
 
 
-} // namespace cli
 } // namespace will

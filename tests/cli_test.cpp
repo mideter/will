@@ -39,7 +39,7 @@ struct Argv {
 
 void assert_parse_error(std::initializer_list<const char*> args)
 {
-    using namespace will::cli;
+    using namespace will;
 
     Argv argv{args};
     ServerCliApp cli;
@@ -55,7 +55,7 @@ void assert_parse_error(std::initializer_list<const char*> args)
 
 void assert_runtime_error(std::initializer_list<const char*> args, std::string_view fragment)
 {
-    using namespace will::cli;
+    using namespace will;
 
     Argv argv{args};
     ServerCliApp cli;
@@ -72,7 +72,7 @@ void assert_runtime_error(std::initializer_list<const char*> args, std::string_v
 
 void assert_help_requested(std::initializer_list<const char*> args)
 {
-    using namespace will::cli;
+    using namespace will;
 
     Argv argv{args};
     ServerCliApp cli;
@@ -88,7 +88,7 @@ void assert_help_requested(std::initializer_list<const char*> args)
 
 void assert_help_output()
 {
-    using namespace will::cli;
+    using namespace will;
 
     std::ostringstream out;
     ServerCliApp{}.print_help(out);
@@ -106,7 +106,7 @@ void assert_help_output()
 
 void assert_defaults()
 {
-    using namespace will::cli;
+    using namespace will;
 
     Argv args{"will-server"};
     const will::ServerConfig config = ServerCliApp{}.parse(args.argc(), args.argv());
@@ -121,7 +121,7 @@ void assert_defaults()
 
 void assert_all_options()
 {
-    using namespace will::cli;
+    using namespace will;
 
     Argv args{"will-server",
               "--port",

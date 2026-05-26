@@ -9,7 +9,6 @@
 
 
 namespace will {
-namespace cli {
 
 
 class ServerCliApp {
@@ -37,5 +36,4 @@ private:
 };
 
 
-} // namespace cli
 } // namespace will
