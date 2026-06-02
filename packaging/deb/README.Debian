@@ -7,7 +7,7 @@ After installation the systemd unit `will-server.service` is enabled.
 Logs: journalctl -u will-server -f
 
 The daemon runs as the unprivileged system user `will-server`.
-Message history is stored in /var/lib/will-server/will.db (override with --db-path).
+Message history is stored in /var/lib/will-server/will.db (set by will-server.service).
 
 Scaling (single process)
 ------------------------

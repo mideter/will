@@ -17,7 +17,7 @@ struct ServerConfig {
     static constexpr int DefaultListenBacklog = 1024;
     static constexpr std::size_t DefaultMaxConnections = 4096;
     static constexpr std::size_t DefaultMaxOutboundQueueBytes = 1u << 20; // 1 MiB per session
-    static constexpr const char* DefaultDbPath = "/var/lib/will-server/will.db";
+    static constexpr const char* DefaultDbPath = "will.db";
 
     std::uint16_t listen_port = DefaultListenPort;
     int io_threads = DefaultIoThreads;
