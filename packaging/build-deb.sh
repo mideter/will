@@ -51,7 +51,7 @@ Section: net
 Priority: optional
 Architecture: ${ARCH}
 Maintainer: Unmaintained snapshot <root@localhost>
-Depends: adduser, libc6, libgcc-s1 | libgcc1, libstdc++6
+Depends: adduser, libc6, libgcc-s1 | libgcc1, libsqlite3-0, libstdc++6
 Description: Will Messenger TCP server
  Standalone server binary for the Will messenger protocol.
  Installs systemd unit will-server.service (user will-server).
@@ -66,6 +66,7 @@ case "$1" in
 			adduser --quiet --system --group --no-create-home \
 				--shell /usr/sbin/nologin --disabled-login will-server
 		fi
+		install -d -o will-server -g will-server -m 0750 /var/lib/will-server
 		if [ -d /run/systemd/system ] && [ -x "$(command -v systemctl)" ]; then
 			systemctl daemon-reload
 			systemctl enable will-server.service >/dev/null 2>&1 || true

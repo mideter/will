@@ -6,6 +6,7 @@ Wants=network-online.target
 
 [Service]
 Type=simple
+WorkingDirectory=/var/lib/will-server
 ExecStart=/usr/bin/will-server
 User=will-server
 Group=will-server
