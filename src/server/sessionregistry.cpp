@@ -3,6 +3,7 @@
 #include <iostream>
 #include <utility>
 
+#include "messagestore.h"
 #include "session.h"
 #include "willmessage.h"
 
@@ -10,17 +11,12 @@
 namespace will {
 
 
-SessionRegistry::SessionRegistry(MessageStore& message_store)
-    : message_store_(message_store)
-{}
-
-
 void SessionRegistry::accept_session(asio::io_context& ioc, asio::ip::tcp::socket socket,
-                                     asio::ip::tcp::endpoint peer_endpoint,
+                                     asio::ip::tcp::endpoint peer_endpoint, MessageStore& message_store,
                                      std::size_t max_outbound_queue_bytes)
 {
     auto session = std::shared_ptr<Session>(
-        new Session(ioc, std::move(socket), std::move(peer_endpoint), *this, message_store_,
+        new Session(ioc, std::move(socket), std::move(peer_endpoint), *this, message_store,
                     max_outbound_queue_bytes));
 
     {
