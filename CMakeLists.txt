@@ -49,6 +49,7 @@ add_executable(will-server
   src/server/session.cpp
   src/server/chatservice.cpp
   src/server/tcpframereader.cpp
+  src/server/tcpframewriter.cpp
   src/server/messagestore.cpp
 )
 target_include_directories(will-server PRIVATE

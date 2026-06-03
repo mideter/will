@@ -5,7 +5,6 @@
 #include <atomic>
 #include <cstddef>
 #include <cstdint>
-#include <deque>
 #include <memory>
 #include <string>
 #include <string_view>
@@ -17,6 +16,7 @@ namespace will {
 class ChatService;
 class SessionRegistry;
 class TcpFrameReader;
+class TcpFrameWriter;
 
 
 class Session : public std::enable_shared_from_this<Session> {
@@ -44,13 +44,11 @@ private:
 
     void on_frame(std::vector<char> payload);
     void on_read_error(const char* context, const asio::error_code& ec);
+    void on_write_queue_full();
+    void on_write_error(const char* context, const asio::error_code& ec);
     void fail(const char* context, const asio::error_code& ec);
 
-    void enqueue_frame_bytes(std::vector<char> frame_bytes);
     void enqueue_payload_broadcast(const std::vector<char>& payload);
-
-    void pump_writes();
-    void on_write(const asio::error_code& ec, std::size_t n);
 
     const std::uint64_t id_;
     SessionRegistry& registry_;
@@ -63,10 +61,7 @@ private:
     std::string peer_label_;
 
     std::shared_ptr<TcpFrameReader> frame_reader_;
-
-    std::deque<std::vector<char>> write_queue_;
-    std::size_t queued_bytes_ = 0;
-    bool write_in_progress_ = false;
+    std::shared_ptr<TcpFrameWriter> frame_writer_;
     bool closed_ = false;
 
     static std::atomic<std::uint64_t> next_id_;

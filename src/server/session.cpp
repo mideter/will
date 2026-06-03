@@ -3,6 +3,7 @@
 #include "chatservice.h"
 #include "sessionregistry.h"
 #include "tcpframereader.h"
+#include "tcpframewriter.h"
 
 #include <format>
 #include <iostream>
@@ -33,6 +34,14 @@ Session::Session(asio::io_context& ioc, TcpSocket socket, asio::ip::tcp::endpoin
 
 void Session::begin()
 {
+    frame_writer_ = std::make_shared<TcpFrameWriter>(
+        socket_, strand_, max_outbound_queue_bytes_,
+        [self = shared_from_this()] { self->on_write_queue_full(); },
+        [self = shared_from_this()](const char* message) { self->fail_protocol(message); },
+        [self = shared_from_this()](const char* context, const asio::error_code& ec) {
+            self->on_write_error(context, ec);
+        });
+
     frame_reader_ = std::make_shared<TcpFrameReader>(
         socket_, strand_,
         [self = shared_from_this()](std::vector<char> payload) { self->on_frame(std::move(payload)); },
@@ -51,9 +60,11 @@ void Session::shutdown()
         if (self->closed_)
             return;
         self->closed_ = true;
-        
+
         if (self->frame_reader_)
             self->frame_reader_->stop();
+        if (self->frame_writer_)
+            self->frame_writer_->stop();
 
         asio::error_code ignored;
         self->socket_.shutdown(TcpSocket::shutdown_both, ignored);
@@ -86,7 +97,10 @@ void Session::on_frame(std::vector<char> payload)
 
 void Session::send_will_payload(const std::vector<char>& payload)
 {
-    enqueue_frame_bytes(TcpFrame::encode(payload));
+    if (closed_ || !frame_writer_)
+        return;
+
+    frame_writer_->enqueue(TcpFrame::encode(payload));
 }
 
 
@@ -97,7 +111,7 @@ void Session::on_read_error(const char* context, const asio::error_code& ec)
 
     if (ec != asio::error::eof)
         fail(context, ec);
-    
+
     registry_.close_session(id_);
 }
 
@@ -105,76 +119,27 @@ void Session::on_read_error(const char* context, const asio::error_code& ec)
 void Session::enqueue_payload_broadcast(const std::vector<char>& payload)
 {
     asio::post(strand_, [self = shared_from_this(), frame = TcpFrame::encode(payload)]() mutable {
-        self->enqueue_frame_bytes(std::move(frame));
+        if (self->closed_ || !self->frame_writer_)
+            return;
+        self->frame_writer_->enqueue(std::move(frame));
     });
 }
 
 
-void Session::enqueue_frame_bytes(std::vector<char> frame_bytes)
+void Session::on_write_queue_full()
+{
+    std::cerr << "Write queue limit exceeded for " << peer_label_ << ", disconnecting\n";
+    registry_.close_session(id_);
+}
+
+
+void Session::on_write_error(const char* context, const asio::error_code& ec)
 {
     if (closed_)
         return;
 
-    const std::size_t frame_len = frame_bytes.size();
-    if (queued_bytes_ + frame_len > max_outbound_queue_bytes_) {
-        std::cerr << "Write queue limit exceeded for " << peer_label_ << ", disconnecting\n";
-        registry_.close_session(id_);
-        return;
-    }
-
-    queued_bytes_ += frame_len;
-    write_queue_.push_back(std::move(frame_bytes));
-
-    if (!write_in_progress_)
-        pump_writes();
-}
-
-
-void Session::pump_writes()
-{
-    if (closed_ || write_queue_.empty()) {
-        write_in_progress_ = false;
-        return;
-    }
-
-    write_in_progress_ = true;
-    const std::vector<char>& front = write_queue_.front();
-
-    asio::async_write(
-        socket_, asio::buffer(front),
-        asio::bind_executor(strand_, [self = shared_from_this()](const asio::error_code& ec, std::size_t n) {
-            self->on_write(ec, n);
-        }));
-}
-
-
-void Session::on_write(const asio::error_code& ec, std::size_t n)
-{
-    if (closed_)
-        return;
-
-    if (ec) {
-        fail("write", ec);
-        registry_.close_session(id_);
-        return;
-    }
-
-    if (write_queue_.empty())
-        return;
-
-    const std::size_t written = write_queue_.front().size();
-    if (n != written) {
-        fail_protocol("partial write");
-        return;
-    }
-
-    queued_bytes_ -= written;
-    write_queue_.pop_front();
-
-    if (write_queue_.empty())
-        write_in_progress_ = false;
-    else
-        pump_writes();
+    fail(context, ec);
+    registry_.close_session(id_);
 }
 
 
