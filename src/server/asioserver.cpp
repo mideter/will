@@ -10,6 +10,7 @@ AsioMessengerServer::AsioMessengerServer(ServerConfig config)
     : config_(config)
     , message_store_(config.db_path)
     , registry_()
+    , chat_service_(message_store_, registry_)
     , acceptor_(ioc_)
     , signals_(ioc_)
 {
@@ -90,7 +91,7 @@ void AsioMessengerServer::on_accept(const asio::error_code& ec, asio::ip::tcp::s
                 socket.set_option(asio::socket_base::keep_alive(true));
 
                 registry_.accept_session(ioc_, std::move(socket), socket.remote_endpoint(),
-                                         message_store_, config_.max_outbound_queue_bytes);
+                                         chat_service_, config_.max_outbound_queue_bytes);
             }
             catch (const std::exception& e) {
                 std::cerr << "Accept session error: " << e.what() << '\n';

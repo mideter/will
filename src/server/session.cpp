@@ -1,10 +1,9 @@
 #include "session.h"
 
+#include "chatservice.h"
 #include "sessionregistry.h"
 #include "tcpframereader.h"
 
-#include <algorithm>
-#include <chrono>
 #include <format>
 #include <iostream>
 
@@ -19,11 +18,11 @@ std::atomic<std::uint64_t> Session::next_id_{1};
 
 
 Session::Session(asio::io_context& ioc, TcpSocket socket, asio::ip::tcp::endpoint peer_endpoint,
-                 SessionRegistry& registry, MessageStore& message_store,
+                 SessionRegistry& registry, ChatService& chat_service,
                  std::size_t max_outbound_queue_bytes)
     : id_(next_id_.fetch_add(1, std::memory_order_relaxed))
     , registry_(registry)
-    , message_store_(message_store)
+    , chat_service_(chat_service)
     , max_outbound_queue_bytes_(max_outbound_queue_bytes)
     , socket_(std::move(socket))
     , strand_(asio::make_strand(ioc))
@@ -75,36 +74,19 @@ void Session::on_frame(std::vector<char> payload)
     }
 
     if (WillMessage::is_user_chat(payload)) {
-        const std::string body(payload.begin() + 1, payload.end());
-        const auto now_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
-                                std::chrono::system_clock::now().time_since_epoch())
-                                .count();
-        message_store_.insert_message(body, peer_ip_, now_ms);
-
-        enqueue_frame_bytes(TcpFrame::encode(WillMessage::encode_server_receipt_ack()));
-        registry_.broadcast_except(*this, payload);
+        chat_service_.handle_user_chat(*this, payload);
         return;
     }
 
     if (WillMessage::is_history_request(payload)) {
-        const auto limit = WillMessage::parse_history_request_limit(payload);
-        if (!limit) {
-            fail_protocol("Protocol error: invalid HistoryRequest");
-            return;
-        }
-
-        const std::uint32_t capped_limit = std::min(*limit, WillMessage::MaxHistoryRequestLimit);
-        const auto rows = message_store_.load_last(capped_limit);
-        const std::string_view viewer_ip = peer_ip_;
-
-        for (const StoredMessage& row : rows) {
-            const bool is_mine = row.sender_ip == viewer_ip;
-            enqueue_frame_bytes(TcpFrame::encode(
-                WillMessage::encode_history_item(row.id, is_mine, row.body)));
-        }
-
-        enqueue_frame_bytes(TcpFrame::encode(WillMessage::encode_history_end()));
+        chat_service_.handle_history_request(*this, payload);
     }
+}
+
+
+void Session::send_will_payload(const std::vector<char>& payload)
+{
+    enqueue_frame_bytes(TcpFrame::encode(payload));
 }
 
 

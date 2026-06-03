@@ -6,6 +6,7 @@
 #include <thread>
 #include <vector>
 
+#include "chatservice.h"
 #include "messagestore.h"
 #include "sessionregistry.h"
 #include "serverconfig.h"
@@ -37,6 +38,7 @@ private:
 
     MessageStore message_store_;
     SessionRegistry registry_;
+    ChatService chat_service_;
     
     std::vector<std::thread> io_threads_;
     std::atomic<bool> stopping_{false};

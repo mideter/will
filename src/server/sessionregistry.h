@@ -13,7 +13,7 @@
 namespace will {
 
 
-class MessageStore;
+class ChatService;
 class Session;
 
 
@@ -31,7 +31,7 @@ public:
     SessionRegistry& operator=(SessionRegistry&&) = delete;
 
     void accept_session(asio::io_context& ioc, asio::ip::tcp::socket socket,
-                        asio::ip::tcp::endpoint peer_endpoint, MessageStore& message_store,
+                        asio::ip::tcp::endpoint peer_endpoint, ChatService& chat_service,
                         std::size_t max_outbound_queue_bytes);
 
     void close_session(std::uint64_t session_id);

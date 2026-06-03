@@ -11,12 +11,10 @@
 #include <string_view>
 #include <vector>
 
-#include "messagestore.h"
-
-
 namespace will {
 
 
+class ChatService;
 class SessionRegistry;
 class TcpFrameReader;
 
@@ -33,9 +31,12 @@ public:
     bool operator==(const Session& other) const noexcept { return id_ == other.id_; }
     bool operator!=(const Session& other) const noexcept { return !(*this == other); }
 
+    void send_will_payload(const std::vector<char>& payload);
+    void fail_protocol(const char* message);
+
 private:
     Session(asio::io_context& ioc, TcpSocket socket, asio::ip::tcp::endpoint peer_endpoint,
-            SessionRegistry& registry, MessageStore& message_store,
+            SessionRegistry& registry, ChatService& chat_service,
             std::size_t max_outbound_queue_bytes);
 
     void begin();
@@ -44,7 +45,6 @@ private:
     void on_frame(std::vector<char> payload);
     void on_read_error(const char* context, const asio::error_code& ec);
     void fail(const char* context, const asio::error_code& ec);
-    void fail_protocol(const char* message);
 
     void enqueue_frame_bytes(std::vector<char> frame_bytes);
     void enqueue_payload_broadcast(const std::vector<char>& payload);
@@ -54,7 +54,7 @@ private:
 
     const std::uint64_t id_;
     SessionRegistry& registry_;
-    MessageStore& message_store_;
+    ChatService& chat_service_;
     const std::size_t max_outbound_queue_bytes_;
 
     TcpSocket socket_;
