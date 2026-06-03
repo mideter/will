@@ -18,15 +18,17 @@ namespace will {
 std::atomic<std::uint64_t> Session::next_id_{1};
 
 
-Session::Session(asio::io_context& ioc, TcpSocket socket, HostAddress address, SessionRegistry& registry,
-                 MessageStore& message_store, std::size_t max_outbound_queue_bytes)
+Session::Session(asio::io_context& ioc, TcpSocket socket, asio::ip::tcp::endpoint peer_endpoint,
+                 SessionRegistry& registry, MessageStore& message_store,
+                 std::size_t max_outbound_queue_bytes)
     : id_(next_id_.fetch_add(1, std::memory_order_relaxed))
     , registry_(registry)
     , message_store_(message_store)
     , max_outbound_queue_bytes_(max_outbound_queue_bytes)
     , socket_(std::move(socket))
     , strand_(asio::make_strand(ioc))
-    , address_(std::move(address))
+    , peer_ip_(peer_endpoint.address().to_string())
+    , peer_label_(std::format("{}:{}", peer_ip_, peer_endpoint.port()))
 {}
 
 
@@ -67,7 +69,7 @@ void Session::on_frame(std::vector<char> payload)
         return;
 
     if (!WillMessage::is_valid_client_to_server_payload(payload)) {
-        const std::string msg = std::format("Protocol error: invalid frame from {}", address_);
+        const std::string msg = std::format("Protocol error: invalid frame from {}", peer_label_);
         fail_protocol(msg.c_str());
         return;
     }
@@ -77,7 +79,7 @@ void Session::on_frame(std::vector<char> payload)
         const auto now_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
                                 std::chrono::system_clock::now().time_since_epoch())
                                 .count();
-        message_store_.insert_message(body, address_.ip_string(), now_ms);
+        message_store_.insert_message(body, peer_ip_, now_ms);
 
         enqueue_frame_bytes(encode_frame(WillMessage::encode_server_receipt_ack()));
         registry_.broadcast_except(*this, payload);
@@ -93,7 +95,7 @@ void Session::on_frame(std::vector<char> payload)
 
         const std::uint32_t capped_limit = std::min(*limit, WillMessage::MaxHistoryRequestLimit);
         const auto rows = message_store_.load_last(capped_limit);
-        const std::string viewer_ip = address_.ip_string();
+        const std::string_view viewer_ip = peer_ip_;
 
         for (const StoredMessage& row : rows) {
             const bool is_mine = row.sender_ip == viewer_ip;
@@ -147,7 +149,7 @@ void Session::enqueue_frame_bytes(std::vector<char> frame_bytes)
 
     const std::size_t frame_len = frame_bytes.size();
     if (queued_bytes_ + frame_len > max_outbound_queue_bytes_) {
-        std::cerr << "Write queue limit exceeded for " << address_ << ", disconnecting\n";
+        std::cerr << "Write queue limit exceeded for " << peer_label_ << ", disconnecting\n";
         registry_.close_session(id_);
         return;
     }
@@ -212,13 +214,13 @@ void Session::fail(const char* context, const asio::error_code& ec)
 {
     if (ec == asio::error::operation_aborted)
         return;
-    std::cerr << "Session " << address_ << " " << context << ": " << ec.message() << '\n';
+    std::cerr << "Session " << peer_label_ << " " << context << ": " << ec.message() << '\n';
 }
 
 
 void Session::fail_protocol(const char* message)
 {
-    std::cerr << "Session " << address_ << ": " << message << '\n';
+    std::cerr << "Session " << peer_label_ << ": " << message << '\n';
     registry_.close_session(id_);
 }
 

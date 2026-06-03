@@ -1,7 +1,6 @@
 #include "willclient.h"
 
 #include "clientconfigvalidator.h"
-#include "hostaddress.h"
 
 #include <arpa/inet.h>
 
@@ -96,7 +95,8 @@ const ClientConfig& WillClient::config() const noexcept
 
 void WillClient::connect()
 {
-    socket_.connect(HostAddress{config_.host, config_.port}.endpoint());
+    socket_.connect(
+        asio::ip::tcp::endpoint(asio::ip::make_address_v4(config_.host), config_.port));
     socket_.set_option(asio::socket_base::keep_alive(true));
 }
 

@@ -9,7 +9,6 @@
 #include <variant>
 
 #include "clientconfig.h"
-#include "hostaddress.h"
 #include "willmessage.h"
 
 

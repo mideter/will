@@ -16,15 +16,16 @@ SessionRegistry::SessionRegistry(MessageStore& message_store)
 
 
 void SessionRegistry::accept_session(asio::io_context& ioc, asio::ip::tcp::socket socket,
-                                     HostAddress address, std::size_t max_outbound_queue_bytes)
+                                     asio::ip::tcp::endpoint peer_endpoint,
+                                     std::size_t max_outbound_queue_bytes)
 {
     auto session = std::shared_ptr<Session>(
-        new Session(ioc, std::move(socket), std::move(address), *this, message_store_,
+        new Session(ioc, std::move(socket), std::move(peer_endpoint), *this, message_store_,
                     max_outbound_queue_bytes));
 
     {
         std::lock_guard lock(mutex_);
-        std::cout << "Client " << session->address() << " connected" << std::endl;
+        std::cout << "Client " << session->peer_label() << " connected" << std::endl;
         sessions_.emplace(session->id(), session);
     }
 
@@ -47,7 +48,7 @@ void SessionRegistry::close_session(std::uint64_t session_id)
         sessions_.erase(it);
     }
 
-    std::cout << "Client " << session->address() << " disconnected" << std::endl;
+    std::cout << "Client " << session->peer_label() << " disconnected" << std::endl;
     session->shutdown();
 }
 
@@ -78,7 +79,7 @@ std::size_t SessionRegistry::count() const noexcept
 
 void SessionRegistry::broadcast_except(const Session& sender, const std::vector<char>& payload)
 {
-    std::cout << "Broadcast from " << sender.address() << ": "
+    std::cout << "Broadcast from " << sender.peer_label() << ": "
               << WillMessage::format_payload_for_log(payload) << std::endl;
 
     std::vector<std::shared_ptr<Session>> peers;

@@ -29,7 +29,6 @@ find_package(Threads REQUIRED)
 find_package(SQLite3 REQUIRED)
 
 add_library(common
-  src/common/hostaddress.cpp
   src/common/willprotocol.cpp
   src/common/willmessage.cpp
 )

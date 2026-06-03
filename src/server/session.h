@@ -7,9 +7,10 @@
 #include <cstdint>
 #include <deque>
 #include <memory>
+#include <string>
+#include <string_view>
 #include <vector>
 
-#include "hostaddress.h"
 #include "messagestore.h"
 
 
@@ -26,14 +27,16 @@ public:
     using Strand = asio::strand<asio::io_context::executor_type>;
 
     std::uint64_t id() const noexcept { return id_; }
-    const HostAddress& address() const noexcept { return address_; }
+    std::string_view peer_label() const noexcept { return peer_label_; }
+    std::string_view peer_ip() const noexcept { return peer_ip_; }
 
     bool operator==(const Session& other) const noexcept { return id_ == other.id_; }
     bool operator!=(const Session& other) const noexcept { return !(*this == other); }
 
 private:
-    Session(asio::io_context& ioc, TcpSocket socket, HostAddress address, SessionRegistry& registry,
-            MessageStore& message_store, std::size_t max_outbound_queue_bytes);
+    Session(asio::io_context& ioc, TcpSocket socket, asio::ip::tcp::endpoint peer_endpoint,
+            SessionRegistry& registry, MessageStore& message_store,
+            std::size_t max_outbound_queue_bytes);
 
     void begin();
     void shutdown();
@@ -58,7 +61,8 @@ private:
 
     TcpSocket socket_;
     Strand strand_;
-    HostAddress address_;
+    std::string peer_ip_;
+    std::string peer_label_;
 
     std::shared_ptr<TcpFrameReader> frame_reader_;
 
