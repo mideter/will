@@ -1,4 +1,5 @@
 #include "willmessage.h"
+#include "willprotocol.h"
 
 #include <cassert>
 #include <cstdlib>
@@ -66,6 +67,15 @@ int main()
 
 	assert(WillMessage::format_payload_for_log(WillMessage::encode_server_receipt_ack()) == "ServerReceiptAck");
 	assert(WillMessage::format_payload_for_log(WillMessage::encode_history_end()) == "HistoryEnd");
+
+	{
+		const auto payload = WillMessage::encode_user_chat("ping");
+		const auto frame = TcpFrame::encode(payload);
+		assert(frame.size() == 4 + payload.size());
+		const auto len = TcpFrame::read_u32_be(reinterpret_cast<const unsigned char*>(frame.data()));
+		assert(len == payload.size());
+		assert(frame[4] == payload[0]);
+	}
 
 	return EXIT_SUCCESS;
 }

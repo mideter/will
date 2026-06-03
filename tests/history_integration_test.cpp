@@ -56,11 +56,8 @@ void send_all(int fd, const char* data, std::size_t len)
 
 void send_frame(int fd, const std::vector<char>& payload)
 {
-    unsigned char header[4];
-    will::TcpFrame::append_u32_be(header, payload.size());
-    send_all(fd, reinterpret_cast<const char*>(header), 4);
-    if (!payload.empty())
-        send_all(fd, payload.data(), payload.size());
+    const std::vector<char> frame = will::TcpFrame::encode(payload);
+    send_all(fd, frame.data(), frame.size());
 }
 
 

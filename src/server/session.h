@@ -52,8 +52,6 @@ private:
     void pump_writes();
     void on_write(const asio::error_code& ec, std::size_t n);
 
-    static std::vector<char> encode_frame(const std::vector<char>& payload);
-
     const std::uint64_t id_;
     SessionRegistry& registry_;
     MessageStore& message_store_;

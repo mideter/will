@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <vector>
 
 
 namespace will {
@@ -15,6 +16,9 @@ public:
 
     static std::uint32_t read_u32_be(const unsigned char b[4]) noexcept;
     static void append_u32_be(unsigned char b[4], std::size_t payload_len) noexcept;
+
+    /** 4-byte BE length prefix + {@code payload}. Throws if payload is too large. */
+    static std::vector<char> encode(const std::vector<char>& payload);
 
     TcpFrame() = delete;
 };

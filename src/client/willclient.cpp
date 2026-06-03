@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "willmessage.h"
+#include "willprotocol.h"
 
 
 namespace will {
@@ -27,13 +28,8 @@ void write_all(asio::ip::tcp::socket& socket, const void* data, std::size_t len)
 
 void send_payload(asio::ip::tcp::socket& socket, const std::vector<char>& payload)
 {
-    if (payload.size() > TcpFrame::MaxPayloadBytes)
-        throw std::runtime_error("message exceeds TcpFrame::MaxPayloadBytes");
-
-    unsigned char header[4];
-    TcpFrame::append_u32_be(header, payload.size());
-    write_all(socket, header, sizeof(header));
-    write_all(socket, payload.data(), payload.size());
+    const std::vector<char> frame = TcpFrame::encode(payload);
+    write_all(socket, frame.data(), frame.size());
 }
 
 

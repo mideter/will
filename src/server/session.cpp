@@ -81,7 +81,7 @@ void Session::on_frame(std::vector<char> payload)
                                 .count();
         message_store_.insert_message(body, peer_ip_, now_ms);
 
-        enqueue_frame_bytes(encode_frame(WillMessage::encode_server_receipt_ack()));
+        enqueue_frame_bytes(TcpFrame::encode(WillMessage::encode_server_receipt_ack()));
         registry_.broadcast_except(*this, payload);
         return;
     }
@@ -99,11 +99,11 @@ void Session::on_frame(std::vector<char> payload)
 
         for (const StoredMessage& row : rows) {
             const bool is_mine = row.sender_ip == viewer_ip;
-            enqueue_frame_bytes(
-                encode_frame(WillMessage::encode_history_item(row.id, is_mine, row.body)));
+            enqueue_frame_bytes(TcpFrame::encode(
+                WillMessage::encode_history_item(row.id, is_mine, row.body)));
         }
 
-        enqueue_frame_bytes(encode_frame(WillMessage::encode_history_end()));
+        enqueue_frame_bytes(TcpFrame::encode(WillMessage::encode_history_end()));
     }
 }
 
@@ -122,23 +122,9 @@ void Session::on_read_error(const char* context, const asio::error_code& ec)
 
 void Session::enqueue_payload_broadcast(const std::vector<char>& payload)
 {
-    asio::post(strand_, [self = shared_from_this(), frame = encode_frame(payload)]() mutable {
+    asio::post(strand_, [self = shared_from_this(), frame = TcpFrame::encode(payload)]() mutable {
         self->enqueue_frame_bytes(std::move(frame));
     });
-}
-
-
-std::vector<char> Session::encode_frame(const std::vector<char>& payload)
-{
-    unsigned char header_buf[4];
-    TcpFrame::append_u32_be(header_buf, payload.size());
-
-    std::vector<char> frame;
-    frame.reserve(4 + payload.size());
-    frame.insert(frame.end(), reinterpret_cast<char*>(header_buf),
-                 reinterpret_cast<char*>(header_buf) + 4);
-    frame.insert(frame.end(), payload.begin(), payload.end());
-    return frame;
 }
 
 
