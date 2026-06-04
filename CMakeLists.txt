@@ -27,6 +27,7 @@ FetchContent_MakeAvailable(cli11)
 
 find_package(Threads REQUIRED)
 find_package(SQLite3 REQUIRED)
+find_package(OpenSSL REQUIRED)
 
 # Domain layer: stdlib only (no ASIO, SQLite, or wire protocol).
 add_library(will-domain
@@ -55,21 +56,26 @@ add_executable(will-server
   src/server/asioserver.cpp
   src/server/session.cpp
   src/server/willprotocoladapter.cpp
-  src/server/message_store_repository_impl.cpp
   src/server/session_participant_notifier_impl.cpp
   src/server/tcpframereader.cpp
   src/server/tcpframewriter.cpp
-  src/server/messagestore.cpp
+  src/infra/persistence/sqlite_database.cpp
+  src/infra/persistence/password_hash.cpp
+  src/infra/persistence/sqlite_message_repository_impl.cpp
+  src/infra/persistence/sqlite_user_repository_impl.cpp
+  src/infra/persistence/sqlite_auth_session_store_impl.cpp
 )
 target_include_directories(will-server PRIVATE
   src/server
   src/server/cli
   src/server/config
+  src/domain
+  src/infra/persistence
   ${asio_SOURCE_DIR}/asio/include
 )
 target_compile_definitions(will-server PRIVATE ASIO_STANDALONE)
 target_link_libraries(will-server PRIVATE will-domain will-protocol CLI11::CLI11 Threads::Threads
-                                             SQLite::SQLite3)
+                                             SQLite::SQLite3 OpenSSL::Crypto)
 
 add_executable(will-client
   src/client/client.cpp

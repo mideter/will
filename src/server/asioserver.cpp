@@ -8,9 +8,12 @@ namespace will {
 
 AsioMessengerServer::AsioMessengerServer(ServerConfig config)
     : config_(config)
-    , message_store_(config.db_path)
+    , database_(config.db_path)
+    , message_repository_(database_)
+    , user_repository_(database_)
+    , auth_session_store_(database_)
     , registry_()
-    , protocol_adapter_(message_store_, registry_)
+    , protocol_adapter_(message_repository_, registry_)
     , acceptor_(ioc_)
     , signals_(ioc_)
 {

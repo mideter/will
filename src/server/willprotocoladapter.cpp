@@ -13,8 +13,9 @@
 namespace will {
 
 
-WillProtocolAdapter::WillProtocolAdapter(MessageStore& message_store, SessionRegistry& registry)
-    : message_repository_(message_store)
+WillProtocolAdapter::WillProtocolAdapter(domain::MessageRepository& message_repository,
+                                         SessionRegistry& registry)
+    : message_repository_(message_repository)
     , participant_notifier_(registry)
     , send_chat_message_(message_repository_, participant_notifier_)
     , fetch_chat_history_(message_repository_)
@@ -46,8 +47,6 @@ void WillProtocolAdapter::handle_user_chat(Session& sender, const std::vector<ch
                             std::chrono::system_clock::now().time_since_epoch())
                             .count();
 
-    message_repository_.bind_sender(sender.peer_ip());
-
     const domain::Account account =
         domain::anonymous_account_for_peer(sender.peer_ip(), now_ms);
 
@@ -75,8 +74,6 @@ void WillProtocolAdapter::handle_history_request(Session& sender, const std::vec
     const auto now_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
                             std::chrono::system_clock::now().time_since_epoch())
                             .count();
-
-    message_repository_.bind_sender(sender.peer_ip());
 
     const domain::Account account =
         domain::anonymous_account_for_peer(sender.peer_ip(), now_ms);

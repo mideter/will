@@ -7,8 +7,12 @@
 #include <vector>
 
 #include "willprotocoladapter.h"
-#include "messagestore.h"
 #include "sessionregistry.h"
+
+#include "sqlite_auth_session_store_impl.h"
+#include "sqlite_database.h"
+#include "sqlite_message_repository_impl.h"
+#include "sqlite_user_repository_impl.h"
 #include "serverconfig.h"
 
 
@@ -36,7 +40,10 @@ private:
     asio::ip::tcp::acceptor acceptor_;
     asio::signal_set signals_;
 
-    MessageStore message_store_;
+    SqliteDatabase database_;
+    SqliteMessageRepositoryImpl message_repository_;
+    SqliteUserRepositoryImpl user_repository_;
+    SqliteAuthSessionStoreImpl auth_session_store_;
     SessionRegistry registry_;
     WillProtocolAdapter protocol_adapter_;
     

@@ -60,11 +60,17 @@ add_dependencies(will-history-integration-test will-server)
 add_test(NAME will-history-integration
   COMMAND will-history-integration-test $<TARGET_FILE:will-server>)
 
-add_executable(will-messagestore-test messagestore_test.cpp
-  ${CMAKE_SOURCE_DIR}/src/server/messagestore.cpp
+add_executable(will-sqlite-persistence-test sqlite_persistence_test.cpp
+  ${CMAKE_SOURCE_DIR}/src/infra/persistence/sqlite_database.cpp
+  ${CMAKE_SOURCE_DIR}/src/infra/persistence/password_hash.cpp
+  ${CMAKE_SOURCE_DIR}/src/infra/persistence/sqlite_message_repository_impl.cpp
+  ${CMAKE_SOURCE_DIR}/src/infra/persistence/sqlite_user_repository_impl.cpp
+  ${CMAKE_SOURCE_DIR}/src/infra/persistence/sqlite_auth_session_store_impl.cpp
 )
-target_include_directories(will-messagestore-test PRIVATE
-  ${CMAKE_SOURCE_DIR}/src/server
+target_include_directories(will-sqlite-persistence-test PRIVATE
+  ${CMAKE_SOURCE_DIR}/src/infra/persistence
+  ${CMAKE_SOURCE_DIR}/src/domain
 )
-target_link_libraries(will-messagestore-test PRIVATE SQLite::SQLite3)
-add_test(NAME will-messagestore COMMAND will-messagestore-test)
+target_link_libraries(will-sqlite-persistence-test PRIVATE will-domain SQLite::SQLite3
+                                                       OpenSSL::Crypto)
+add_test(NAME will-sqlite-persistence COMMAND will-sqlite-persistence-test)
