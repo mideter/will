@@ -28,15 +28,18 @@ FetchContent_MakeAvailable(cli11)
 find_package(Threads REQUIRED)
 find_package(SQLite3 REQUIRED)
 
-add_library(common
-  src/common/willprotocol.cpp
-  src/common/willmessage.cpp
+# Domain layer: stdlib only (no ASIO, SQLite, or wire protocol).
+add_library(will-domain INTERFACE)
+target_include_directories(will-domain INTERFACE src/domain)
+target_compile_features(will-domain INTERFACE cxx_std_20)
+
+# Wire codec (former src/common).
+add_library(will-protocol
+  src/infra/protocol/willprotocol.cpp
+  src/infra/protocol/willmessage.cpp
 )
-target_include_directories(common PUBLIC
-  src/common
-  ${asio_SOURCE_DIR}/asio/include
-)
-target_compile_definitions(common PUBLIC ASIO_STANDALONE)
+target_include_directories(will-protocol PUBLIC src/infra/protocol)
+target_compile_features(will-protocol PUBLIC cxx_std_20)
 
 add_executable(will-server
   src/server/server.cpp
@@ -59,7 +62,7 @@ target_include_directories(will-server PRIVATE
   ${asio_SOURCE_DIR}/asio/include
 )
 target_compile_definitions(will-server PRIVATE ASIO_STANDALONE)
-target_link_libraries(will-server PRIVATE common CLI11::CLI11 Threads::Threads SQLite::SQLite3)
+target_link_libraries(will-server PRIVATE will-protocol CLI11::CLI11 Threads::Threads SQLite::SQLite3)
 
 add_executable(will-client
   src/client/client.cpp
@@ -75,7 +78,7 @@ target_include_directories(will-client PRIVATE
   ${asio_SOURCE_DIR}/asio/include
 )
 target_compile_definitions(will-client PRIVATE ASIO_STANDALONE)
-target_link_libraries(will-client PRIVATE common CLI11::CLI11 Threads::Threads)
+target_link_libraries(will-client PRIVATE will-protocol CLI11::CLI11 Threads::Threads)
 
 add_executable(will-load-clients
   tools/load_clients.cpp
@@ -88,7 +91,7 @@ target_include_directories(will-load-clients PRIVATE
   tools
   tools/cli
 )
-target_link_libraries(will-load-clients PRIVATE common CLI11::CLI11 Threads::Threads)
+target_link_libraries(will-load-clients PRIVATE will-protocol CLI11::CLI11 Threads::Threads)
 
 enable_testing()
 add_subdirectory(tests)
