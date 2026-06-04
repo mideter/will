@@ -13,7 +13,7 @@ AsioMessengerServer::AsioMessengerServer(ServerConfig config)
     , user_repository_(database_)
     , auth_session_store_(database_)
     , registry_()
-    , protocol_adapter_(message_repository_, registry_)
+    , protocol_adapter_(message_repository_, user_repository_, auth_session_store_, registry_)
     , acceptor_(ioc_)
     , signals_(ioc_)
 {

@@ -32,6 +32,8 @@ private:
 
     std::string host_;
     int port_;
+    std::string login_;
+    std::string password_;
     bool quiet_receipts_;
     std::optional<std::uint32_t> history_limit_;
 };

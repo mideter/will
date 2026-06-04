@@ -65,6 +65,47 @@ void send_frame(int fd, const std::vector<char>& payload)
 }
 
 
+std::vector<char> read_frame(int fd)
+{
+    unsigned char header[4];
+    std::size_t got = 0;
+    while (got < 4) {
+        const ssize_t n = ::recv(fd, header + got, 4 - got, 0);
+        if (n <= 0)
+            throw std::runtime_error("read frame header failed");
+        got += static_cast<std::size_t>(n);
+    }
+
+    const std::size_t plen = will::TcpFrame::read_u32_be(header);
+    if (plen == 0)
+        throw std::runtime_error("empty payload");
+
+    std::vector<char> payload(plen);
+    got = 0;
+    while (got < plen) {
+        const ssize_t n = ::recv(fd, payload.data() + got, plen - got, 0);
+        if (n <= 0)
+            throw std::runtime_error("read frame payload failed");
+        got += static_cast<std::size_t>(n);
+    }
+
+    return payload;
+}
+
+
+void login_and_bind(int fd, const will::ClientConfig& connection)
+{
+    send_frame(fd, will::WillMessage::encode_login_request(connection.login, connection.password));
+
+    const auto response = read_frame(fd);
+    const auto parsed = will::WillMessage::parse_login_response(response);
+    if (!parsed || !parsed->success)
+        throw std::runtime_error("login failed");
+
+    send_frame(fd, will::WillMessage::encode_bind_token(parsed->token));
+}
+
+
 void client_worker(const will::LoadClientsConfig& config, std::atomic<std::size_t>& connect_failures)
 {
     const int fd = connect_tcp(config.connection);
@@ -74,6 +115,8 @@ void client_worker(const will::LoadClientsConfig& config, std::atomic<std::size_
     }
 
     try {
+        login_and_bind(fd, config.connection);
+
         for (std::size_t i = 0; i < config.messages_per_client; ++i) {
             const std::string body = "load-" + std::to_string(i);
             send_frame(fd, will::WillMessage::encode_user_chat(body));

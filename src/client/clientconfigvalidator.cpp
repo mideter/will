@@ -45,10 +45,21 @@ std::optional<std::string_view> ClientConfigValidator::port_reason(const std::ui
 }
 
 
+std::optional<std::string_view> ClientConfigValidator::credentials_reason(const std::string& value)
+{
+    if (value.empty())
+        return "must not be empty";
+
+    return std::nullopt;
+}
+
+
 void ClientConfigValidator::validate(const ClientConfig& config)
 {
     require("host", host_reason(config.host));
     require("port", port_reason(config.port));
+    require("login", credentials_reason(config.login));
+    require("password", credentials_reason(config.password));
 }
 
 

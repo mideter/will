@@ -37,6 +37,45 @@ int main()
 	assert(!WillMessage::is_valid_client_to_server_payload({'\0'}));
 
 	{
+		const auto login = WillMessage::encode_login_request("alice", "secret");
+		assert(WillMessage::is_login_request(login));
+		assert(WillMessage::is_valid_client_to_server_payload(login));
+		const auto parsed_login = WillMessage::parse_login_request(login);
+		assert(parsed_login);
+		assert(parsed_login->login == "alice");
+		assert(parsed_login->password == "secret");
+	}
+
+	{
+		const auto ok = WillMessage::encode_login_response_success("session-token");
+		assert(WillMessage::is_login_response(ok));
+		const auto parsed_ok = WillMessage::parse_login_response(ok);
+		assert(parsed_ok);
+		assert(parsed_ok->success);
+		assert(parsed_ok->token == "session-token");
+	}
+
+	{
+		const auto fail = WillMessage::encode_login_response_failure(WillMessage::LoginErrorInvalidCredentials);
+		const auto parsed_fail = WillMessage::parse_login_response(fail);
+		assert(parsed_fail);
+		assert(!parsed_fail->success);
+		assert(parsed_fail->error_code == WillMessage::LoginErrorInvalidCredentials);
+	}
+
+	{
+		const auto bind = WillMessage::encode_bind_token("session-token");
+		assert(WillMessage::is_bind_token(bind));
+		assert(WillMessage::is_valid_client_to_server_payload(bind));
+		assert(WillMessage::parse_bind_token(bind) == "session-token");
+	}
+
+	{
+		const auto auth_required = WillMessage::encode_auth_required();
+		assert(WillMessage::is_auth_required(auth_required));
+	}
+
+	{
 		const auto request = WillMessage::encode_history_request(50);
 		assert(WillMessage::is_history_request(request));
 		assert(WillMessage::is_valid_client_to_server_payload(request));

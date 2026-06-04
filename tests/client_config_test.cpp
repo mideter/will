@@ -49,6 +49,18 @@ int main()
 
     {
         ClientConfig config;
+        config.login = "";
+        assert_throws_field(config, "login");
+    }
+
+    {
+        ClientConfig config;
+        config.password = "";
+        assert_throws_field(config, "password");
+    }
+
+    {
+        ClientConfig config;
         config.host = "192.168.1.10";
         config.port = 9000;
         const ClientConfig accepted = ClientConfigValidator::accept(std::move(config));

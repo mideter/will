@@ -82,6 +82,8 @@ void assert_help_output()
     assert(help.find(will::ClientConfig::NovosibirskHost) != std::string::npos);
     assert(help.find("--port") != std::string::npos);
     assert(help.find("--quiet") != std::string::npos);
+    assert(help.find("--user") != std::string::npos);
+    assert(help.find("--password") != std::string::npos);
     assert(help.find("-h, --help") != std::string::npos);
 }
 
@@ -95,6 +97,8 @@ void assert_defaults()
 
     assert(config.host == will::ClientConfig::DefaultHost);
     assert(config.port == will::ClientConfig::DefaultPort);
+    assert(config.login == will::ClientConfig::DefaultLogin);
+    assert(config.password == will::ClientConfig::DefaultPassword);
     assert(config.quiet_receipts == will::ClientConfig::DefaultQuietReceipts);
     assert(!config.history_limit.has_value());
 }
@@ -104,11 +108,14 @@ void assert_all_options()
 {
     using namespace will;
 
-    Argv args{"will-client", "--host", "192.168.1.10", "--port", "9000", "--quiet", "--history", "25"};
+    Argv args{"will-client", "--host", "192.168.1.10", "--port", "9000", "--user", "bob",
+              "--password", "pw", "--quiet", "--history", "25"};
     const will::ClientConfig config = ClientCliApp{}.parse(args.argc(), args.argv());
 
     assert(config.host == "192.168.1.10");
     assert(config.port == 9000);
+    assert(config.login == "bob");
+    assert(config.password == "pw");
     assert(config.quiet_receipts);
     assert(config.history_limit == 25u);
 }

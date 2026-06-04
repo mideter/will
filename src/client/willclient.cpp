@@ -80,6 +80,7 @@ WillClient::WillClient(ClientConfig config)
     , config_(ClientConfigValidator::accept(std::move(config)))
 {
     connect();
+    authenticate(config_.login, config_.password);
 }
 
 
@@ -94,6 +95,40 @@ void WillClient::connect()
     socket_.connect(
         asio::ip::tcp::endpoint(asio::ip::make_address_v4(config_.host), config_.port));
     socket_.set_option(asio::socket_base::keep_alive(true));
+}
+
+
+void WillClient::authenticate(const std::string_view login, const std::string_view password) const
+{
+    send_payload(socket_, WillMessage::encode_login_request(login, password));
+
+    const std::vector<char> response = receivePayload();
+    const auto parsed = WillMessage::parse_login_response(response);
+    if (!parsed || !parsed->success)
+        throw std::runtime_error("Will protocol: login failed");
+
+    send_payload(socket_, WillMessage::encode_bind_token(parsed->token));
+}
+
+
+std::vector<char> WillClient::receivePayload() const
+{
+    unsigned char len_bytes[4];
+    if (read_exact_or_eof_before_first_byte(socket_, len_bytes, sizeof(len_bytes)))
+        throw std::runtime_error("Will protocol: unexpected end of stream");
+
+    const std::uint32_t len_u32 = TcpFrame::read_u32_be(len_bytes);
+    const std::size_t plen = static_cast<std::size_t>(len_u32);
+
+    if (plen > TcpFrame::MaxPayloadBytes)
+        throw std::runtime_error("Will protocol: frame exceeds TcpFrame::MaxPayloadBytes");
+
+    if (plen == 0)
+        throw std::runtime_error("Will protocol: empty typed payload is invalid");
+
+    std::vector<char> payload(plen);
+    read_exact(socket_, reinterpret_cast<unsigned char*>(payload.data()), plen);
+    return payload;
 }
 
 
@@ -129,6 +164,9 @@ std::optional<InboundMessage> WillClient::receiveMessage() const
 
     if (WillMessage::is_server_receipt_ack(payload))
         return InboundMessage{std::in_place_type<ServerReceiptAck>};
+
+    if (WillMessage::is_auth_required(payload))
+        return InboundMessage{std::in_place_type<AuthRequired>};
 
     if (WillMessage::is_user_chat(payload))
         return InboundMessage{std::in_place_type<std::string>, std::string(payload.begin() + 1, payload.end())};

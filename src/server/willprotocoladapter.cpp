@@ -6,17 +6,38 @@
 #include <string_view>
 #include <variant>
 
-#include "support/anonymous_identity.h"
 #include "willmessage.h"
 
 
 namespace will {
 
 
+namespace {
+
+
+std::uint8_t login_error_code_for(const domain::AuthResult result)
+{
+    switch (result) {
+    case domain::AuthResult::ExpiredToken:
+        return WillMessage::LoginErrorExpiredToken;
+    case domain::AuthResult::InvalidCredentials:
+    default:
+        return WillMessage::LoginErrorInvalidCredentials;
+    }
+}
+
+
+} // namespace
+
+
 WillProtocolAdapter::WillProtocolAdapter(domain::MessageRepository& message_repository,
-                                         SessionRegistry& registry)
+                                         domain::UserRepository& users,
+                                         domain::AuthSessionStore& sessions, SessionRegistry& registry)
     : message_repository_(message_repository)
+    , user_repository_(users)
+    , auth_session_store_(sessions)
     , participant_notifier_(registry)
+    , authenticate_user_(users, sessions)
     , send_chat_message_(message_repository_, participant_notifier_)
     , fetch_chat_history_(message_repository_)
 {}
@@ -24,19 +45,89 @@ WillProtocolAdapter::WillProtocolAdapter(domain::MessageRepository& message_repo
 
 void WillProtocolAdapter::on_client_frame(Session& session, const std::vector<char>& payload)
 {
+    if (WillMessage::is_login_request(payload)) {
+        handle_login(session, payload);
+        return;
+    }
+
+    if (WillMessage::is_bind_token(payload)) {
+        handle_bind_token(session, payload);
+        return;
+    }
+
+    if (WillMessage::is_user_chat(payload) || WillMessage::is_history_request(payload)) {
+        if (!session.has_account()) {
+            send_auth_required(session);
+            return;
+        }
+
+        if (WillMessage::is_user_chat(payload)) {
+            handle_user_chat(session, payload);
+            return;
+        }
+
+        handle_history_request(session, payload);
+        return;
+    }
+
     if (!WillMessage::is_valid_client_to_server_payload(payload)) {
         session.fail_protocol("Protocol error: invalid client frame");
         return;
     }
 
-    if (WillMessage::is_user_chat(payload)) {
-        handle_user_chat(session, payload);
+    session.fail_protocol("Protocol error: invalid client frame");
+}
+
+
+void WillProtocolAdapter::handle_login(Session& session, const std::vector<char>& payload)
+{
+    const auto request = WillMessage::parse_login_request(payload);
+    if (!request) {
+        session.fail_protocol("Protocol error: invalid LoginRequest");
         return;
     }
 
-    if (WillMessage::is_history_request(payload)) {
-        handle_history_request(session, payload);
+    const auto now_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+                            std::chrono::system_clock::now().time_since_epoch())
+                            .count();
+
+    const domain::AuthenticateUserInput input{request->login, request->password, now_ms};
+    const auto outcome = authenticate_user_.execute(input);
+
+    if (const auto* failure = std::get_if<domain::AuthResult>(&outcome)) {
+        session.send_will_payload(
+            WillMessage::encode_login_response_failure(login_error_code_for(*failure)));
+        return;
     }
+
+    const auto& success = std::get<domain::AuthenticateUserSuccess>(outcome);
+    session.send_will_payload(
+        WillMessage::encode_login_response_success(success.account.session_token.value));
+}
+
+
+void WillProtocolAdapter::handle_bind_token(Session& session, const std::vector<char>& payload)
+{
+    const auto token = WillMessage::parse_bind_token(payload);
+    if (!token) {
+        session.fail_protocol("Protocol error: invalid BindToken");
+        return;
+    }
+
+    const auto account = auth_session_store_.resolve_token(domain::AuthToken{*token});
+    if (!account) {
+        session.send_will_payload(
+            WillMessage::encode_login_response_failure(WillMessage::LoginErrorExpiredToken));
+        return;
+    }
+
+    session.set_account(*account);
+}
+
+
+void WillProtocolAdapter::send_auth_required(Session& session)
+{
+    session.send_will_payload(WillMessage::encode_auth_required());
 }
 
 
@@ -47,11 +138,8 @@ void WillProtocolAdapter::handle_user_chat(Session& sender, const std::vector<ch
                             std::chrono::system_clock::now().time_since_epoch())
                             .count();
 
-    const domain::Account account =
-        domain::anonymous_account_for_peer(sender.peer_ip(), now_ms);
-
     const domain::SendChatMessageInput input{
-        account,
+        *sender.account(),
         domain::ParticipantId{sender.id()},
         domain::ChatId::global(),
         body,
@@ -71,14 +159,7 @@ void WillProtocolAdapter::handle_history_request(Session& sender, const std::vec
         return;
     }
 
-    const auto now_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
-                            std::chrono::system_clock::now().time_since_epoch())
-                            .count();
-
-    const domain::Account account =
-        domain::anonymous_account_for_peer(sender.peer_ip(), now_ms);
-
-    const domain::FetchChatHistoryInput input{account, domain::ChatId::global(), *limit};
+    const domain::FetchChatHistoryInput input{*sender.account(), domain::ChatId::global(), *limit};
 
     const auto outcome = fetch_chat_history_.execute(input);
     if (const auto* error = std::get_if<domain::DomainError>(&outcome)) {

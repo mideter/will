@@ -93,6 +93,20 @@ void drain_receipt_ack(int fd)
 }
 
 
+void login_and_bind(int fd, const char* login, const char* password)
+{
+    send_frame(fd, will::WillMessage::encode_login_request(login, password));
+
+    const auto login_response = read_frame(fd);
+    assert(will::WillMessage::is_login_response(login_response));
+    const auto parsed = will::WillMessage::parse_login_response(login_response);
+    assert(parsed);
+    assert(parsed->success);
+
+    send_frame(fd, will::WillMessage::encode_bind_token(parsed->token));
+}
+
+
 std::uint16_t pick_port()
 {
     return static_cast<std::uint16_t>(20000 + (getpid() % 10000));
@@ -162,11 +176,13 @@ int main(int argc, char* argv[])
 
     const int sender_fd = connect_tcp("127.0.0.1", port);
     assert(sender_fd >= 0);
+    login_and_bind(sender_fd, "admin", "admin");
     send_frame(sender_fd, will::WillMessage::encode_user_chat("hello-from-sender"));
     drain_receipt_ack(sender_fd);
 
     const int viewer_fd = connect_tcp("127.0.0.1", port);
     assert(viewer_fd >= 0);
+    login_and_bind(viewer_fd, "admin", "admin");
     send_frame(viewer_fd, will::WillMessage::encode_history_request(10));
 
     const auto first_item = read_frame(viewer_fd);

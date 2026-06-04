@@ -43,6 +43,36 @@ std::uint64_t read_u64_be(const unsigned char* data) noexcept
 }
 
 
+void append_length_prefixed_string(std::vector<char>& out, std::string_view value)
+{
+    if (value.size() > WillMessage::MaxAuthFieldBytes)
+        throw std::runtime_error("WillMessage: auth field exceeds MaxAuthFieldBytes");
+
+    append_u32_be(out, static_cast<std::uint32_t>(value.size()));
+    if (!value.empty())
+        out.insert(out.end(), value.begin(), value.end());
+}
+
+
+bool read_length_prefixed_string(std::string_view& field, const std::vector<char>& payload,
+                                 std::size_t& offset)
+{
+    if (offset + 4u > payload.size())
+        return false;
+
+    const auto* data = reinterpret_cast<const unsigned char*>(payload.data());
+    const std::uint32_t len = read_u32_be(data + offset);
+    offset += 4u;
+
+    if (len == 0u || len > WillMessage::MaxAuthFieldBytes || offset + len > payload.size())
+        return false;
+
+    field = std::string_view(payload.data() + offset, len);
+    offset += len;
+    return true;
+}
+
+
 } // namespace
 
 
@@ -104,6 +134,67 @@ std::vector<char> WillMessage::encode_history_end()
 }
 
 
+std::vector<char> WillMessage::encode_login_request(const std::string_view login,
+                                                    const std::string_view password)
+{
+    if (login.empty() || password.empty())
+        throw std::runtime_error("WillMessage::encode_login_request: login and password required");
+
+    std::vector<char> out;
+    out.reserve(1u + 8u + login.size() + password.size());
+    out.push_back(static_cast<char>(LoginRequest));
+    append_length_prefixed_string(out, login);
+    append_length_prefixed_string(out, password);
+
+    if (out.size() > TcpFrame::MaxPayloadBytes)
+        throw std::runtime_error("WillMessage::encode_login_request: payload exceeds TcpFrame::MaxPayloadBytes");
+
+    return out;
+}
+
+
+std::vector<char> WillMessage::encode_login_response_success(const std::string_view token)
+{
+    if (token.empty())
+        throw std::runtime_error("WillMessage::encode_login_response_success: token required");
+
+    std::vector<char> out;
+    out.reserve(1u + 1u + 4u + token.size());
+    out.push_back(static_cast<char>(LoginResponse));
+    out.push_back('\1');
+    append_length_prefixed_string(out, token);
+    return out;
+}
+
+
+std::vector<char> WillMessage::encode_login_response_failure(const std::uint8_t error_code)
+{
+    if (error_code == 0u)
+        throw std::runtime_error("WillMessage::encode_login_response_failure: error_code required");
+
+    return std::vector<char>{static_cast<char>(LoginResponse), '\0', static_cast<char>(error_code)};
+}
+
+
+std::vector<char> WillMessage::encode_bind_token(const std::string_view token)
+{
+    if (token.empty())
+        throw std::runtime_error("WillMessage::encode_bind_token: token required");
+
+    std::vector<char> out;
+    out.reserve(1u + 4u + token.size());
+    out.push_back(static_cast<char>(BindToken));
+    append_length_prefixed_string(out, token);
+    return out;
+}
+
+
+std::vector<char> WillMessage::encode_auth_required()
+{
+    return std::vector<char>{static_cast<char>(AuthRequired)};
+}
+
+
 bool WillMessage::is_valid_client_to_server_payload(const std::vector<char>& payload) noexcept
 {
     if (payload.empty())
@@ -113,6 +204,10 @@ bool WillMessage::is_valid_client_to_server_payload(const std::vector<char>& pay
         return true;
     if (t == HistoryRequest)
         return payload.size() == 5u && parse_history_request_limit(payload).has_value();
+    if (t == LoginRequest)
+        return parse_login_request(payload).has_value();
+    if (t == BindToken)
+        return parse_bind_token(payload).has_value();
     return false;
 }
 
@@ -144,6 +239,30 @@ bool WillMessage::is_history_item(const std::vector<char>& payload) noexcept
 bool WillMessage::is_history_end(const std::vector<char>& payload) noexcept
 {
     return payload.size() == 1u && static_cast<std::uint8_t>(payload[0]) == HistoryEnd;
+}
+
+
+bool WillMessage::is_login_request(const std::vector<char>& payload) noexcept
+{
+    return !payload.empty() && static_cast<std::uint8_t>(payload[0]) == LoginRequest;
+}
+
+
+bool WillMessage::is_login_response(const std::vector<char>& payload) noexcept
+{
+    return !payload.empty() && static_cast<std::uint8_t>(payload[0]) == LoginResponse;
+}
+
+
+bool WillMessage::is_bind_token(const std::vector<char>& payload) noexcept
+{
+    return !payload.empty() && static_cast<std::uint8_t>(payload[0]) == BindToken;
+}
+
+
+bool WillMessage::is_auth_required(const std::vector<char>& payload) noexcept
+{
+    return payload.size() == 1u && static_cast<std::uint8_t>(payload[0]) == AuthRequired;
 }
 
 
@@ -181,6 +300,68 @@ std::optional<HistoryItemPayload> WillMessage::parse_history_item(const std::vec
 }
 
 
+std::optional<LoginRequestPayload> WillMessage::parse_login_request(const std::vector<char>& payload)
+{
+    if (!is_login_request(payload))
+        return std::nullopt;
+
+    std::size_t offset = 1u;
+    std::string_view login;
+    std::string_view password;
+    if (!read_length_prefixed_string(login, payload, offset))
+        return std::nullopt;
+    if (!read_length_prefixed_string(password, payload, offset))
+        return std::nullopt;
+    if (offset != payload.size())
+        return std::nullopt;
+
+    LoginRequestPayload parsed;
+    parsed.login.assign(login);
+    parsed.password.assign(password);
+    return parsed;
+}
+
+
+std::optional<LoginResponsePayload> WillMessage::parse_login_response(const std::vector<char>& payload)
+{
+    if (!is_login_response(payload) || payload.size() < 2u)
+        return std::nullopt;
+
+    LoginResponsePayload parsed;
+    const bool success = static_cast<unsigned char>(payload[1]) != 0u;
+    parsed.success = success;
+
+    if (success) {
+        std::size_t offset = 2u;
+        std::string_view token;
+        if (!read_length_prefixed_string(token, payload, offset) || offset != payload.size())
+            return std::nullopt;
+        parsed.token.assign(token);
+        return parsed;
+    }
+
+    if (payload.size() != 3u || payload[2] == '\0')
+        return std::nullopt;
+
+    parsed.error_code = static_cast<std::uint8_t>(payload[2]);
+    return parsed;
+}
+
+
+std::optional<std::string> WillMessage::parse_bind_token(const std::vector<char>& payload)
+{
+    if (!is_bind_token(payload))
+        return std::nullopt;
+
+    std::size_t offset = 1u;
+    std::string_view token;
+    if (!read_length_prefixed_string(token, payload, offset) || offset != payload.size())
+        return std::nullopt;
+
+    return std::string(token);
+}
+
+
 std::string WillMessage::format_payload_for_log(const std::vector<char>& payload)
 {
     if (payload.empty())
@@ -189,8 +370,32 @@ std::string WillMessage::format_payload_for_log(const std::vector<char>& payload
     if (is_server_receipt_ack(payload))
         return "ServerReceiptAck";
 
+    if (is_auth_required(payload))
+        return "AuthRequired";
+
     if (is_history_end(payload))
         return "HistoryEnd";
+
+    if (is_login_response(payload)) {
+        const auto response = parse_login_response(payload);
+        if (!response)
+            return "LoginResponse(invalid)";
+        if (response->success)
+            return "LoginResponse(ok, token_len=" + std::to_string(response->token.size()) + ')';
+        return "LoginResponse(error=" + std::to_string(response->error_code) + ')';
+    }
+
+    if (is_login_request(payload)) {
+        const auto request = parse_login_request(payload);
+        if (!request)
+            return "LoginRequest(invalid)";
+        return "LoginRequest(login=" + request->login + ')';
+    }
+
+    if (is_bind_token(payload)) {
+        const auto token = parse_bind_token(payload);
+        return token ? "BindToken(len=" + std::to_string(token->size()) + ')' : "BindToken(invalid)";
+    }
 
     if (is_history_request(payload)) {
         const auto limit = parse_history_request_limit(payload);
