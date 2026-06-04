@@ -29,9 +29,13 @@ find_package(Threads REQUIRED)
 find_package(SQLite3 REQUIRED)
 
 # Domain layer: stdlib only (no ASIO, SQLite, or wire protocol).
-add_library(will-domain INTERFACE)
-target_include_directories(will-domain INTERFACE src/domain)
-target_compile_features(will-domain INTERFACE cxx_std_20)
+add_library(will-domain
+  src/domain/usecases/send_chat_message.cpp
+  src/domain/usecases/fetch_chat_history.cpp
+  src/domain/usecases/authenticate_user.cpp
+)
+target_include_directories(will-domain PUBLIC src/domain)
+target_compile_features(will-domain PUBLIC cxx_std_20)
 
 # Wire codec (former src/common).
 add_library(will-protocol
@@ -51,6 +55,8 @@ add_executable(will-server
   src/server/asioserver.cpp
   src/server/session.cpp
   src/server/chatservice.cpp
+  src/server/message_store_repository_impl.cpp
+  src/server/session_participant_notifier_impl.cpp
   src/server/tcpframereader.cpp
   src/server/tcpframewriter.cpp
   src/server/messagestore.cpp
@@ -62,7 +68,8 @@ target_include_directories(will-server PRIVATE
   ${asio_SOURCE_DIR}/asio/include
 )
 target_compile_definitions(will-server PRIVATE ASIO_STANDALONE)
-target_link_libraries(will-server PRIVATE will-protocol CLI11::CLI11 Threads::Threads SQLite::SQLite3)
+target_link_libraries(will-server PRIVATE will-domain will-protocol CLI11::CLI11 Threads::Threads
+                                             SQLite::SQLite3)
 
 add_executable(will-client
   src/client/client.cpp

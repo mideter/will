@@ -10,6 +10,15 @@
 #include <vector>
 
 
+namespace will::domain {
+
+
+struct ParticipantId;
+
+
+} // namespace will::domain
+
+
 namespace will {
 
 
@@ -40,8 +49,9 @@ public:
 
     std::size_t count() const noexcept;
 
-    /** Logs and fan-out of {@code payload} to every session except {@code sender}. */
-    void broadcast_except(const Session& sender, const std::vector<char>& payload);
+    /** Logs and fan-out of {@code payload} to every session except {@code except_participant}. */
+    void broadcast_except_participant(domain::ParticipantId except_participant,
+                                      const std::vector<char>& payload);
 
     bool at_capacity(std::size_t max_connections) const noexcept;
 

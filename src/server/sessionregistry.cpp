@@ -5,6 +5,8 @@
 
 #include "chatservice.h"
 #include "session.h"
+
+#include "entities/participant_id.h"
 #include "willmessage.h"
 
 
@@ -73,21 +75,28 @@ std::size_t SessionRegistry::count() const noexcept
 }
 
 
-void SessionRegistry::broadcast_except(const Session& sender, const std::vector<char>& payload)
+void SessionRegistry::broadcast_except_participant(const domain::ParticipantId except_participant,
+                                                   const std::vector<char>& payload)
 {
-    std::cout << "Broadcast from " << sender.peer_label() << ": "
-              << WillMessage::format_payload_for_log(payload) << std::endl;
-
     std::vector<std::shared_ptr<Session>> peers;
+    std::string sender_label;
 
     {
         std::lock_guard lock(mutex_);
         peers.reserve(sessions_.size());
 
-        for (const auto& entry : sessions_) {
-            if (*entry.second != sender)
-                peers.push_back(entry.second);
+        for (const auto& [id, session] : sessions_) {
+            if (domain::ParticipantId{id} == except_participant) {
+                sender_label = session->peer_label();
+                continue;
+            }
+            peers.push_back(session);
         }
+    }
+
+    if (!sender_label.empty()) {
+        std::cout << "Broadcast from " << sender_label << ": "
+                  << WillMessage::format_payload_for_log(payload) << std::endl;
     }
 
     for (const std::shared_ptr<Session>& peer : peers)
