@@ -13,7 +13,7 @@
 namespace will {
 
 
-class ChatService;
+class WillProtocolAdapter;
 class SessionRegistry;
 class TcpFrameReader;
 class TcpFrameWriter;
@@ -36,7 +36,7 @@ public:
 
 private:
     Session(asio::io_context& ioc, TcpSocket socket, asio::ip::tcp::endpoint peer_endpoint,
-            SessionRegistry& registry, ChatService& chat_service,
+            SessionRegistry& registry, WillProtocolAdapter& protocol_adapter,
             std::size_t max_outbound_queue_bytes);
 
     void begin();
@@ -52,7 +52,7 @@ private:
 
     const std::uint64_t id_;
     SessionRegistry& registry_;
-    ChatService& chat_service_;
+    WillProtocolAdapter& protocol_adapter_;
     const std::size_t max_outbound_queue_bytes_;
 
     TcpSocket socket_;

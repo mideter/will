@@ -3,22 +3,22 @@
 #include <iostream>
 #include <utility>
 
-#include "chatservice.h"
 #include "session.h"
+#include "willprotocoladapter.h"
 
 #include "entities/participant_id.h"
-#include "willmessage.h"
 
 
 namespace will {
 
 
 void SessionRegistry::accept_session(asio::io_context& ioc, asio::ip::tcp::socket socket,
-                                     asio::ip::tcp::endpoint peer_endpoint, ChatService& chat_service,
+                                     asio::ip::tcp::endpoint peer_endpoint,
+                                     WillProtocolAdapter& protocol_adapter,
                                      std::size_t max_outbound_queue_bytes)
 {
     auto session = std::shared_ptr<Session>(
-        new Session(ioc, std::move(socket), std::move(peer_endpoint), *this, chat_service,
+        new Session(ioc, std::move(socket), std::move(peer_endpoint), *this, protocol_adapter,
                     max_outbound_queue_bytes));
 
     {
@@ -96,7 +96,7 @@ void SessionRegistry::broadcast_except_participant(const domain::ParticipantId e
 
     if (!sender_label.empty()) {
         std::cout << "Broadcast from " << sender_label << ": "
-                  << WillMessage::format_payload_for_log(payload) << std::endl;
+                  << WillProtocolAdapter::format_payload_for_log(payload) << std::endl;
     }
 
     for (const std::shared_ptr<Session>& peer : peers)

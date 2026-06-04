@@ -54,7 +54,7 @@ add_executable(will-server
   src/server/willserver.cpp
   src/server/asioserver.cpp
   src/server/session.cpp
-  src/server/chatservice.cpp
+  src/server/willprotocoladapter.cpp
   src/server/message_store_repository_impl.cpp
   src/server/session_participant_notifier_impl.cpp
   src/server/tcpframereader.cpp

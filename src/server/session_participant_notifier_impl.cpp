@@ -1,8 +1,7 @@
 #include "session_participant_notifier_impl.h"
 
 #include "sessionregistry.h"
-
-#include "willmessage.h"
+#include "willprotocoladapter.h"
 
 
 namespace will {
@@ -18,7 +17,7 @@ void SessionParticipantNotifierImpl::notify_chat_message(const domain::ChatId ch
                                                          const domain::ParticipantId except_participant)
 {
     (void)chat;
-    const std::vector<char> payload = WillMessage::encode_user_chat(msg.body);
+    const std::vector<char> payload = WillProtocolAdapter::encode_user_chat(msg.body);
     registry_.broadcast_except_participant(except_participant, payload);
 }
 

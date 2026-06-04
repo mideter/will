@@ -1,14 +1,13 @@
 #include "session.h"
 
-#include "chatservice.h"
 #include "sessionregistry.h"
+#include "willprotocoladapter.h"
 #include "tcpframereader.h"
 #include "tcpframewriter.h"
 
 #include <format>
 #include <iostream>
 
-#include "willmessage.h"
 #include "willprotocol.h"
 
 
@@ -19,11 +18,11 @@ std::atomic<std::uint64_t> Session::next_id_{1};
 
 
 Session::Session(asio::io_context& ioc, TcpSocket socket, asio::ip::tcp::endpoint peer_endpoint,
-                 SessionRegistry& registry, ChatService& chat_service,
+                 SessionRegistry& registry, WillProtocolAdapter& protocol_adapter,
                  std::size_t max_outbound_queue_bytes)
     : id_(next_id_.fetch_add(1, std::memory_order_relaxed))
     , registry_(registry)
-    , chat_service_(chat_service)
+    , protocol_adapter_(protocol_adapter)
     , max_outbound_queue_bytes_(max_outbound_queue_bytes)
     , socket_(std::move(socket))
     , strand_(asio::make_strand(ioc))
@@ -78,20 +77,7 @@ void Session::on_frame(std::vector<char> payload)
     if (closed_)
         return;
 
-    if (!WillMessage::is_valid_client_to_server_payload(payload)) {
-        const std::string msg = std::format("Protocol error: invalid frame from {}", peer_label_);
-        fail_protocol(msg.c_str());
-        return;
-    }
-
-    if (WillMessage::is_user_chat(payload)) {
-        chat_service_.handle_user_chat(*this, payload);
-        return;
-    }
-
-    if (WillMessage::is_history_request(payload)) {
-        chat_service_.handle_history_request(*this, payload);
-    }
+    protocol_adapter_.on_client_frame(*this, payload);
 }
 
 
