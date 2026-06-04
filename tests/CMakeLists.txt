@@ -60,6 +60,14 @@ add_dependencies(will-history-integration-test will-server)
 add_test(NAME will-history-integration
   COMMAND will-history-integration-test $<TARGET_FILE:will-server>)
 
+add_executable(will-domain-test domain_test.cpp)
+target_include_directories(will-domain-test PRIVATE
+  ${CMAKE_SOURCE_DIR}/src/domain
+  ${CMAKE_CURRENT_SOURCE_DIR}
+)
+target_link_libraries(will-domain-test PRIVATE will-domain)
+add_test(NAME will-domain COMMAND will-domain-test)
+
 add_executable(will-sqlite-persistence-test sqlite_persistence_test.cpp
   ${CMAKE_SOURCE_DIR}/src/infra/persistence/sqlite_database.cpp
   ${CMAKE_SOURCE_DIR}/src/infra/persistence/password_hash.cpp
