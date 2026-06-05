@@ -27,6 +27,8 @@ private:
 
     void handle_accept(const asio::error_code& ec, asio::ip::tcp::socket socket);
 
+    void accept_client(asio::ip::tcp::socket socket);
+
     void on_signal(const asio::error_code& ec, int signal_number);
 
     ServerConfig config_;

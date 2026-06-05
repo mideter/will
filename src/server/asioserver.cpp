@@ -6,6 +6,26 @@
 namespace will {
 
 
+namespace {
+
+
+void close_quietly(asio::ip::tcp::socket& socket)
+{
+    asio::error_code ignored;
+    socket.close(ignored);
+}
+
+
+void log_accept_error(const asio::error_code& ec)
+{
+    if (ec != asio::error::operation_aborted)
+        std::cerr << "accept error: " << ec.message() << '\n';
+}
+
+
+} // namespace
+
+
 AsioMessengerServer::AsioMessengerServer(ServerConfig config, domain::MessengerPersistence persistence)
     : config_(config)
     , io_(config_.listen_port, config_.listen_backlog,
@@ -32,35 +52,37 @@ void AsioMessengerServer::start_accept()
 void AsioMessengerServer::handle_accept(const asio::error_code& ec, asio::ip::tcp::socket socket)
 {
     if (stopping_) {
-        asio::error_code ignored;
-        socket.close(ignored);
+        close_quietly(socket);
         return;
     }
 
-    if (!ec) {
-        if (registry_.at_capacity(config_.max_connections)) {
-            std::cerr << "Max connections (" << config_.max_connections << ") reached, rejecting peer\n";
-            asio::error_code ignored;
-            socket.close(ignored);
-        }
-        else {
-            try {
-                socket.set_option(asio::socket_base::keep_alive(true));
-
-                registry_.accept_session(io_.ioc(), std::move(socket), socket.remote_endpoint(),
-                                         protocol_adapter_, config_.max_outbound_queue_bytes);
-            }
-            catch (const std::exception& e) {
-                std::cerr << "Accept session error: " << e.what() << '\n';
-            }
-        }
-    }
-    else if (ec != asio::error::operation_aborted) {
-        std::cerr << "accept error: " << ec.message() << '\n';
-    }
+    if (ec)
+        log_accept_error(ec);
+    else
+        accept_client(std::move(socket));
 
     if (!stopping_)
         start_accept();
+}
+
+
+void AsioMessengerServer::accept_client(asio::ip::tcp::socket socket)
+{
+    if (registry_.at_capacity(config_.max_connections)) {
+        std::cerr << "Max connections (" << config_.max_connections << ") reached, rejecting peer\n";
+        close_quietly(socket);
+        return;
+    }
+
+    try {
+        socket.set_option(asio::socket_base::keep_alive(true));
+
+        registry_.accept_session(io_.ioc(), std::move(socket), socket.remote_endpoint(),
+                                 protocol_adapter_, config_.max_outbound_queue_bytes);
+    }
+    catch (const std::exception& e) {
+        std::cerr << "Accept session error: " << e.what() << '\n';
+    }
 }
 
 
