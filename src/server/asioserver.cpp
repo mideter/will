@@ -42,13 +42,14 @@ void AsioMessengerServer::setup_signals()
 }
 
 
-void AsioMessengerServer::start_io_threads()
+std::vector<std::jthread> AsioMessengerServer::start_io_threads()
 {
     const int thread_count = config_.io_threads;
-    io_threads_.reserve(static_cast<std::size_t>(thread_count));
+    std::vector<std::jthread> threads;
+    threads.reserve(static_cast<std::size_t>(thread_count));
 
     for (int i = 0; i < thread_count; ++i) {
-        io_threads_.emplace_back([this] {
+        threads.emplace_back([this] {
             try {
                 ioc_.run();
             }
@@ -57,23 +58,15 @@ void AsioMessengerServer::start_io_threads()
             }
         });
     }
-}
 
-
-void AsioMessengerServer::join_io_threads()
-{
-    for (std::thread& t : io_threads_)
-        t.join();
-
-    io_threads_.clear();
+    return threads;
 }
 
 
 void AsioMessengerServer::run()
 {
     do_accept();
-    start_io_threads();
-    join_io_threads();
+    const auto io_threads = start_io_threads();
 }
 
 
