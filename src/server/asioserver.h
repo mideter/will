@@ -23,9 +23,9 @@ public:
     void request_stop();
 
 private:
-    void do_accept();
+    void start_accept();
 
-    void on_accept(const asio::error_code& ec, asio::ip::tcp::socket socket);
+    void handle_accept(const asio::error_code& ec, asio::ip::tcp::socket socket);
 
     void on_signal(const asio::error_code& ec, int signal_number);
 

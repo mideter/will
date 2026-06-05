@@ -11,26 +11,25 @@ AsioMessengerServer::AsioMessengerServer(ServerConfig config, domain::MessengerP
     , io_(config_.listen_port, config_.listen_backlog,
           [this](const asio::error_code& ec, int signo) { on_signal(ec, signo); })
     , protocol_adapter_(persistence, registry_)
-{
-}
+{}
 
 
 void AsioMessengerServer::run()
 {
-    do_accept();
+    start_accept();
     const IoContextThreadPool io_threads(io_.ioc(), config_.io_threads);
 }
 
 
-void AsioMessengerServer::do_accept()
+void AsioMessengerServer::start_accept()
 {
     io_.acceptor().async_accept([this](const asio::error_code& ec, asio::ip::tcp::socket socket) {
-        on_accept(ec, std::move(socket));
+        handle_accept(ec, std::move(socket));
     });
 }
 
 
-void AsioMessengerServer::on_accept(const asio::error_code& ec, asio::ip::tcp::socket socket)
+void AsioMessengerServer::handle_accept(const asio::error_code& ec, asio::ip::tcp::socket socket)
 {
     if (stopping_) {
         asio::error_code ignored;
@@ -61,7 +60,7 @@ void AsioMessengerServer::on_accept(const asio::error_code& ec, asio::ip::tcp::s
     }
 
     if (!stopping_)
-        do_accept();
+        start_accept();
 }
 
 

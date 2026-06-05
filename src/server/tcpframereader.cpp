@@ -19,7 +19,7 @@ TcpFrameReader::TcpFrameReader(TcpSocket& socket, Strand& strand, FrameHandler o
 
 void TcpFrameReader::start()
 {
-    asio::dispatch(strand_, [self = shared_from_this()] { self->do_read_header(); });
+    asio::dispatch(strand_, [self = shared_from_this()] { self->start_read_header(); });
 }
 
 
@@ -29,7 +29,7 @@ void TcpFrameReader::stop()
 }
 
 
-void TcpFrameReader::do_read_header()
+void TcpFrameReader::start_read_header()
 {
     if (stopped_)
         return;
@@ -38,12 +38,12 @@ void TcpFrameReader::do_read_header()
                      asio::bind_executor(strand_,
                                          [self = shared_from_this()](const asio::error_code& ec,
                                                                      std::size_t n) {
-                                             self->on_read_header(ec, n);
+                                             self->handle_read_header(ec, n);
                                          }));
 }
 
 
-void TcpFrameReader::on_read_header(const asio::error_code& ec, std::size_t n)
+void TcpFrameReader::handle_read_header(const asio::error_code& ec, std::size_t n)
 {
     if (stopped_)
         return;
@@ -69,15 +69,15 @@ void TcpFrameReader::on_read_header(const asio::error_code& ec, std::size_t n)
     body_buf_.assign(expected_body_len_, '\0');
     if (expected_body_len_ == 0) {
         on_frame_(body_buf_);
-        do_read_header();
+        start_read_header();
         return;
     }
 
-    do_read_body();
+    start_read_body();
 }
 
 
-void TcpFrameReader::do_read_body()
+void TcpFrameReader::start_read_body()
 {
     if (stopped_)
         return;
@@ -86,12 +86,12 @@ void TcpFrameReader::do_read_body()
                      asio::bind_executor(strand_,
                                          [self = shared_from_this()](const asio::error_code& ec,
                                                                      std::size_t n) {
-                                             self->on_read_body(ec, n);
+                                             self->handle_read_body(ec, n);
                                          }));
 }
 
 
-void TcpFrameReader::on_read_body(const asio::error_code& ec, std::size_t n)
+void TcpFrameReader::handle_read_body(const asio::error_code& ec, std::size_t n)
 {
     if (stopped_)
         return;
@@ -107,7 +107,7 @@ void TcpFrameReader::on_read_body(const asio::error_code& ec, std::size_t n)
     }
 
     on_frame_(body_buf_);
-    do_read_header();
+    start_read_header();
 }
 
 

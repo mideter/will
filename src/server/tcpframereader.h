@@ -28,10 +28,10 @@ public:
     void stop();
 
 private:
-    void do_read_header();
-    void on_read_header(const asio::error_code& ec, std::size_t n);
-    void do_read_body();
-    void on_read_body(const asio::error_code& ec, std::size_t n);
+    void start_read_header();
+    void handle_read_header(const asio::error_code& ec, std::size_t n);
+    void start_read_body();
+    void handle_read_body(const asio::error_code& ec, std::size_t n);
 
     TcpSocket& socket_;
     Strand& strand_;
