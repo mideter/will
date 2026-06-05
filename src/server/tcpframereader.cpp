@@ -58,8 +58,7 @@ void TcpFrameReader::on_read_header(const asio::error_code& ec, std::size_t n)
         return;
     }
 
-    const unsigned char* const header_u = reinterpret_cast<const unsigned char*>(header_buf_.data());
-    const std::uint32_t len_u32 = TcpFrame::read_u32_be(header_u);
+    const std::uint32_t len_u32 = TcpFrame::read_u32_be(header_buf_);
     expected_body_len_ = static_cast<std::size_t>(len_u32);
 
     if (expected_body_len_ > TcpFrame::MaxPayloadBytes) {

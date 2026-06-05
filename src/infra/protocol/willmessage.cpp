@@ -11,12 +11,19 @@ namespace will {
 namespace {
 
 
-void append_u32_be(std::vector<char>& out, std::uint32_t value)
+void append_u32_be(std::vector<char>& out, const std::uint32_t value)
 {
-    out.push_back(static_cast<char>((value >> 24u) & 0xffu));
-    out.push_back(static_cast<char>((value >> 16u) & 0xffu));
-    out.push_back(static_cast<char>((value >> 8u) & 0xffu));
-    out.push_back(static_cast<char>(value & 0xffu));
+    const auto bytes = TcpFrame::u32_be(value);
+    out.insert(out.end(), reinterpret_cast<const char*>(bytes.data()),
+               reinterpret_cast<const char*>(bytes.data()) + bytes.size());
+}
+
+
+std::uint32_t read_u32_be_at(const unsigned char* data) noexcept
+{
+    std::array<unsigned char, 4> buf{};
+    std::memcpy(buf.data(), data, buf.size());
+    return TcpFrame::read_u32_be(buf);
 }
 
 
@@ -24,13 +31,6 @@ void append_u64_be(std::vector<char>& out, std::uint64_t value)
 {
     for (int shift = 56; shift >= 0; shift -= 8)
         out.push_back(static_cast<char>((value >> shift) & 0xffu));
-}
-
-
-std::uint32_t read_u32_be(const unsigned char* data) noexcept
-{
-    return (std::uint32_t(data[0]) << 24u) | (std::uint32_t(data[1]) << 16u) |
-           (std::uint32_t(data[2]) << 8u) | std::uint32_t(data[3]);
 }
 
 
@@ -61,7 +61,7 @@ bool read_length_prefixed_string(std::string_view& field, const std::vector<char
         return false;
 
     const auto* data = reinterpret_cast<const unsigned char*>(payload.data());
-    const std::uint32_t len = read_u32_be(data + offset);
+    const std::uint32_t len = read_u32_be_at(data + offset);
     offset += 4u;
 
     if (len == 0u || len > WillMessage::MaxAuthFieldBytes || offset + len > payload.size())
@@ -271,7 +271,7 @@ std::optional<std::uint32_t> WillMessage::parse_history_request_limit(const std:
     if (!is_history_request(payload) || payload.size() != 5u)
         return std::nullopt;
 
-    const auto limit = read_u32_be(reinterpret_cast<const unsigned char*>(payload.data() + 1));
+    const auto limit = read_u32_be_at(reinterpret_cast<const unsigned char*>(payload.data() + 1));
     if (limit < 1u)
         return std::nullopt;
 
@@ -287,7 +287,7 @@ std::optional<HistoryItemPayload> WillMessage::parse_history_item(const std::vec
     const auto* data = reinterpret_cast<const unsigned char*>(payload.data());
     const std::uint64_t message_id = read_u64_be(data + 1);
     const bool is_mine = data[9] != 0u;
-    const std::uint32_t body_len = read_u32_be(data + 10);
+    const std::uint32_t body_len = read_u32_be_at(data + 10);
 
     if (14u + body_len != payload.size())
         return std::nullopt;

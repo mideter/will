@@ -3,6 +3,7 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
+#include <array>
 #include <atomic>
 #include <chrono>
 #include <cstdlib>
@@ -57,9 +58,8 @@ void send_all(int fd, const char* data, std::size_t len)
 
 void send_frame(int fd, const std::vector<char>& payload)
 {
-    unsigned char header[4];
-    will::TcpFrame::append_u32_be(header, payload.size());
-    send_all(fd, reinterpret_cast<const char*>(header), 4);
+    const auto header = will::TcpFrame::u32_be(static_cast<std::uint32_t>(payload.size()));
+    send_all(fd, reinterpret_cast<const char*>(header.data()), header.size());
     if (!payload.empty())
         send_all(fd, payload.data(), payload.size());
 }
@@ -67,10 +67,10 @@ void send_frame(int fd, const std::vector<char>& payload)
 
 std::vector<char> read_frame(int fd)
 {
-    unsigned char header[4];
+    std::array<unsigned char, 4> header{};
     std::size_t got = 0;
     while (got < 4) {
-        const ssize_t n = ::recv(fd, header + got, 4 - got, 0);
+        const ssize_t n = ::recv(fd, header.data() + got, 4 - got, 0);
         if (n <= 0)
             throw std::runtime_error("read frame header failed");
         got += static_cast<std::size_t>(n);

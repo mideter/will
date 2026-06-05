@@ -1,8 +1,10 @@
 #include "willmessage.h"
 #include "willprotocol.h"
 
+#include <array>
 #include <cassert>
 #include <cstdlib>
+#include <cstring>
 #include <string>
 #include <vector>
 
@@ -111,7 +113,9 @@ int main()
 		const auto payload = WillMessage::encode_user_chat("ping");
 		const auto frame = TcpFrame::encode(payload);
 		assert(frame.size() == 4 + payload.size());
-		const auto len = TcpFrame::read_u32_be(reinterpret_cast<const unsigned char*>(frame.data()));
+		std::array<unsigned char, 4> header{};
+		std::memcpy(header.data(), frame.data(), header.size());
+		const auto len = TcpFrame::read_u32_be(header);
 		assert(len == payload.size());
 		assert(frame[4] == payload[0]);
 	}

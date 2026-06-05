@@ -41,7 +41,7 @@ private:
 
     bool stopped_ = false;
 
-    std::array<char, 4> header_buf_{};
+    std::array<unsigned char, 4> header_buf_{};
     std::vector<char> body_buf_;
     std::size_t expected_body_len_ = 0;
 };

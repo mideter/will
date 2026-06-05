@@ -4,6 +4,7 @@
 
 #include <arpa/inet.h>
 
+#include <array>
 #include <cstdint>
 #include <stdexcept>
 #include <string>
@@ -113,8 +114,8 @@ void WillClient::authenticate(const std::string_view login, const std::string_vi
 
 std::vector<char> WillClient::receivePayload() const
 {
-    unsigned char len_bytes[4];
-    if (read_exact_or_eof_before_first_byte(socket_, len_bytes, sizeof(len_bytes)))
+    std::array<unsigned char, 4> len_bytes{};
+    if (read_exact_or_eof_before_first_byte(socket_, len_bytes.data(), len_bytes.size()))
         throw std::runtime_error("Will protocol: unexpected end of stream");
 
     const std::uint32_t len_u32 = TcpFrame::read_u32_be(len_bytes);
@@ -150,8 +151,8 @@ bool WillClient::requestHistory(const std::uint32_t limit) const
 
 std::optional<InboundMessage> WillClient::receiveMessage() const
 {
-    unsigned char len_bytes[4];
-    if (read_exact_or_eof_before_first_byte(socket_, len_bytes, sizeof(len_bytes)))
+    std::array<unsigned char, 4> len_bytes{};
+    if (read_exact_or_eof_before_first_byte(socket_, len_bytes.data(), len_bytes.size()))
         return std::nullopt;
 
     const std::uint32_t len_u32 = TcpFrame::read_u32_be(len_bytes);
