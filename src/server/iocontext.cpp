@@ -1,4 +1,4 @@
-#include "ioresources.h"
+#include "iocontext.h"
 
 #include <csignal>
 
@@ -6,7 +6,7 @@
 namespace will {
 
 
-IoResources::IoResources(std::uint16_t listen_port, int listen_backlog, SignalHandler on_signal)
+IoContext::IoContext(std::uint16_t listen_port, int listen_backlog, SignalHandler on_signal)
     : acceptor_(ioc_)
     , signals_(ioc_)
 {
@@ -15,19 +15,19 @@ IoResources::IoResources(std::uint16_t listen_port, int listen_backlog, SignalHa
 }
 
 
-asio::io_context& IoResources::ioc() noexcept
+asio::io_context& IoContext::ioc() noexcept
 {
     return ioc_;
 }
 
 
-asio::ip::tcp::acceptor& IoResources::acceptor() noexcept
+asio::ip::tcp::acceptor& IoContext::acceptor() noexcept
 {
     return acceptor_;
 }
 
 
-void IoResources::open_acceptor(std::uint16_t listen_port, int listen_backlog)
+void IoContext::open_acceptor(std::uint16_t listen_port, int listen_backlog)
 {
     using asio::ip::tcp;
     const tcp::endpoint endpoint(tcp::v4(), listen_port);
@@ -39,7 +39,7 @@ void IoResources::open_acceptor(std::uint16_t listen_port, int listen_backlog)
 }
 
 
-void IoResources::setup_signals(SignalHandler on_signal)
+void IoContext::setup_signals(SignalHandler on_signal)
 {
     signals_.add(SIGINT);
     signals_.add(SIGTERM);
@@ -47,14 +47,14 @@ void IoResources::setup_signals(SignalHandler on_signal)
 }
 
 
-void IoResources::close_acceptor()
+void IoContext::close_acceptor()
 {
     asio::error_code ignored;
     acceptor_.close(ignored);
 }
 
 
-void IoResources::stop() noexcept
+void IoContext::stop() noexcept
 {
     ioc_.stop();
 }

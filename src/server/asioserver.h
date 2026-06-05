@@ -3,7 +3,7 @@
 #include <atomic>
 
 #include "iocontextthreadpool.h"
-#include "ioresources.h"
+#include "iocontext.h"
 #include "willprotocoladapter.h"
 #include "sessionregistry.h"
 
@@ -33,7 +33,7 @@ private:
 
     ServerConfig config_;
 
-    IoResources io_;
+    IoContext io_;
     SessionRegistry registry_;
     WillProtocolAdapter protocol_adapter_;
 

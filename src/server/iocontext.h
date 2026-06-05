@@ -10,11 +10,11 @@ namespace will {
 
 
 /** io_context with bound TCP acceptor and POSIX shutdown signals. */
-class IoResources {
+class IoContext {
 public:
     using SignalHandler = std::function<void(const asio::error_code&, int)>;
 
-    IoResources(std::uint16_t listen_port, int listen_backlog, SignalHandler on_signal);
+    IoContext(std::uint16_t listen_port, int listen_backlog, SignalHandler on_signal);
 
     asio::io_context& ioc() noexcept;
     asio::ip::tcp::acceptor& acceptor() noexcept;
