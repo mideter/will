@@ -29,7 +29,7 @@ void log_accept_error(const asio::error_code& ec)
 AsioMessengerServer::AsioMessengerServer(ServerConfig config, domain::MessengerPersistence persistence)
     : config_(config)
     , io_(config_.listen_port, config_.listen_backlog,
-          [this](const asio::error_code& ec, int signo) { on_signal(ec, signo); })
+          [this](const asio::error_code& ec, int signo) { handle_shutdown_signal(ec, signo); })
     , protocol_adapter_(persistence, registry_)
 {}
 
@@ -86,7 +86,7 @@ void AsioMessengerServer::accept_client(asio::ip::tcp::socket socket)
 }
 
 
-void AsioMessengerServer::on_signal(const asio::error_code& ec, int signal_number)
+void AsioMessengerServer::handle_shutdown_signal(const asio::error_code& ec, int signal_number)
 {
     if (ec == asio::error::operation_aborted)
         return;

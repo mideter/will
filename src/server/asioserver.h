@@ -29,7 +29,7 @@ private:
 
     void accept_client(asio::ip::tcp::socket socket);
 
-    void on_signal(const asio::error_code& ec, int signal_number);
+    void handle_shutdown_signal(const asio::error_code& ec, int signal_number);
 
     ServerConfig config_;
 
