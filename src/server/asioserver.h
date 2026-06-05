@@ -24,6 +24,7 @@ public:
     explicit AsioMessengerServer(ServerConfig config = {});
 
     void run();
+    
     void request_stop();
 
 protected:
@@ -31,9 +32,17 @@ protected:
 
 private:
     void open_acceptor();
+
+    void start_io_threads();
+    
+    void join_io_threads();
+    
     void do_accept();
+    
     void on_accept(const asio::error_code& ec, asio::ip::tcp::socket socket);
+    
     void setup_signals();
+    
     void on_signal(const asio::error_code& ec, int signal_number);
 
     asio::io_context ioc_;
