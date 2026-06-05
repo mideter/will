@@ -43,8 +43,8 @@ public:
     /** Sends {@code UserChat} with UTF-8 body (requires prior {@link #authenticate}). */
     void send(std::string_view utf8_chat_body) const;
 
-    /** Sends {@code HistoryRequest} with the given limit. */
-    void requestHistory(std::uint32_t limit) const;
+    /** Sends {@code HistoryRequest} with the given limit; returns false when limit is 0. */
+    bool requestHistory(std::uint32_t limit) const;
 
     /** std::nullopt = peer closed before next frame header; otherwise typed inbound message. */
     std::optional<InboundMessage> receiveMessage() const;

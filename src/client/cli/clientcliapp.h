@@ -6,7 +6,6 @@
 
 #include <cstdint>
 #include <iosfwd>
-#include <optional>
 #include <string>
 
 
@@ -35,7 +34,7 @@ private:
     std::string login_;
     std::string password_;
     bool quiet_receipts_;
-    std::optional<std::uint32_t> history_limit_;
+    std::uint32_t history_limit_;
 };
 
 

@@ -138,9 +138,13 @@ void WillClient::send(std::string_view utf8_chat_body) const
 }
 
 
-void WillClient::requestHistory(const std::uint32_t limit) const
+bool WillClient::requestHistory(const std::uint32_t limit) const
 {
+    if (limit == 0)
+        return false;
+
     send_payload(socket_, WillMessage::encode_history_request(limit));
+    return true;
 }
 
 

@@ -19,10 +19,7 @@ ChatSession::ChatSession(WillClient& client)
 
 void ChatSession::run()
 {
-    if (client_.config().history_limit) {
-        client_.requestHistory(*client_.config().history_limit);
-        loadHistory();
-    }
+    loadHistory();
 
     std::cout << "Connected to Will chat. Type messages and press Enter.\n";
     std::cout << "Press Ctrl+D to exit.\n";
@@ -43,6 +40,9 @@ void ChatSession::run()
 
 void ChatSession::loadHistory() const
 {
+    if (!client_.requestHistory(client_.config().history_limit))
+        return;
+
     while (true) {
         const std::optional<InboundMessage> incoming = client_.receiveMessage();
         if (!incoming.has_value())

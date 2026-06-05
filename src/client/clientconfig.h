@@ -1,7 +1,6 @@
 #pragma once
 
 #include <cstdint>
-#include <optional>
 #include <string>
 #include <string_view>
 
@@ -26,7 +25,7 @@ struct ClientConfig {
     std::string login = std::string{DefaultLogin};
     std::string password = std::string{DefaultPassword};
     bool quiet_receipts = DefaultQuietReceipts;
-    std::optional<std::uint32_t> history_limit = DefaultHistoryLimit;
+    std::uint32_t history_limit = DefaultHistoryLimit;
 };
 
 

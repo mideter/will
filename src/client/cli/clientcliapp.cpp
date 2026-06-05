@@ -26,7 +26,7 @@ ClientCliApp::ClientCliApp(const ClientConfig& defaults)
     app_.add_flag("--quiet", quiet_receipts_)->description("Suppress server receipt messages on stderr");
     app_.add_option("--history", history_limit_)
         ->description("Request last N messages on connect");
-    app_.add_flag_callback("--no-history", [this]() { history_limit_ = std::nullopt; })
+    app_.add_flag_callback("--no-history", [this]() { history_limit_ = 0; })
         ->description("Do not request chat history on connect");
 }
 

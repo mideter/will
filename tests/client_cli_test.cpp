@@ -112,7 +112,7 @@ void assert_no_history()
     Argv args{"will-client", "--no-history"};
     const will::ClientConfig config = ClientCliApp{}.parse(args.argc(), args.argv());
 
-    assert(!config.history_limit.has_value());
+    assert(config.history_limit == 0);
 }
 
 
