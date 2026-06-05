@@ -54,6 +54,7 @@ add_executable(will-server
   src/server/config/serverconfigvalidator.cpp
   src/server/willserver.cpp
   src/server/asioserver.cpp
+  src/server/iocontextthreadpool.cpp
   src/server/session.cpp
   src/server/willprotocoladapter.cpp
   src/server/session_participant_notifier_impl.cpp

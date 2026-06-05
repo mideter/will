@@ -3,9 +3,8 @@
 #include <asio.hpp>
 
 #include <atomic>
-#include <thread>
-#include <vector>
 
+#include "iocontextthreadpool.h"
 #include "willprotocoladapter.h"
 #include "sessionregistry.h"
 
@@ -32,8 +31,6 @@ protected:
 
 private:
     void open_acceptor();
-
-    std::vector<std::jthread> start_io_threads();
 
     void do_accept();
     

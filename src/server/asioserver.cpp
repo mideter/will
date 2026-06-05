@@ -42,31 +42,10 @@ void AsioMessengerServer::setup_signals()
 }
 
 
-std::vector<std::jthread> AsioMessengerServer::start_io_threads()
-{
-    const int thread_count = config_.io_threads;
-    std::vector<std::jthread> threads;
-    threads.reserve(static_cast<std::size_t>(thread_count));
-
-    for (int i = 0; i < thread_count; ++i) {
-        threads.emplace_back([this] {
-            try {
-                ioc_.run();
-            }
-            catch (const std::exception& e) {
-                std::cerr << "io_context worker error: " << e.what() << '\n';
-            }
-        });
-    }
-
-    return threads;
-}
-
-
 void AsioMessengerServer::run()
 {
     do_accept();
-    const auto io_threads = start_io_threads();
+    const IoContextThreadPool io_threads(ioc_, config_.io_threads);
 }
 
 
