@@ -19,13 +19,14 @@ struct ClientConfig {
     static constexpr std::string_view DefaultLogin = "admin";
     static constexpr std::string_view DefaultPassword = "admin";
     static constexpr bool DefaultQuietReceipts = false;
+    static constexpr std::uint32_t DefaultHistoryLimit = 50;
 
     std::string host = std::string{DefaultHost};
     std::uint16_t port = DefaultPort;
     std::string login = std::string{DefaultLogin};
     std::string password = std::string{DefaultPassword};
     bool quiet_receipts = DefaultQuietReceipts;
-    std::optional<std::uint32_t> history_limit;
+    std::optional<std::uint32_t> history_limit = DefaultHistoryLimit;
 };
 
 

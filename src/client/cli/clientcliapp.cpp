@@ -15,6 +15,7 @@ ClientCliApp::ClientCliApp(const ClientConfig& defaults)
     , login_(defaults.login)
     , password_(defaults.password)
     , quiet_receipts_(defaults.quiet_receipts)
+    , history_limit_(defaults.history_limit)
 {
     app_.allow_extras(false);
 
@@ -25,6 +26,8 @@ ClientCliApp::ClientCliApp(const ClientConfig& defaults)
     app_.add_flag("--quiet", quiet_receipts_)->description("Suppress server receipt messages on stderr");
     app_.add_option("--history", history_limit_)
         ->description("Request last N messages on connect");
+    app_.add_flag_callback("--no-history", [this]() { history_limit_ = std::nullopt; })
+        ->description("Do not request chat history on connect");
 }
 
 
@@ -40,11 +43,13 @@ void ClientCliApp::print_help(std::ostream& os) const
         "  --user LOGIN                    Login (default {})\n"
         "  --password PASSWORD             Password (default: dev seed)\n"
         "  --quiet                         Suppress server receipt messages on stderr\n"
-        "  --history N                     Request last N messages on connect\n",
+        "  --history N                     Request last N messages on connect (default {})\n"
+        "  --no-history                    Do not request chat history on connect\n",
         ClientConfig::DefaultHost,
         ClientConfig::NovosibirskHost,
         ClientConfig::DefaultPort,
-        ClientConfig::DefaultLogin);
+        ClientConfig::DefaultLogin,
+        ClientConfig::DefaultHistoryLimit);
 }
 
 

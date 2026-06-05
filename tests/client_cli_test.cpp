@@ -84,6 +84,7 @@ void assert_help_output()
     assert(help.find("--quiet") != std::string::npos);
     assert(help.find("--user") != std::string::npos);
     assert(help.find("--password") != std::string::npos);
+    assert(help.find("--no-history") != std::string::npos);
     assert(help.find("-h, --help") != std::string::npos);
 }
 
@@ -100,6 +101,17 @@ void assert_defaults()
     assert(config.login == will::ClientConfig::DefaultLogin);
     assert(config.password == will::ClientConfig::DefaultPassword);
     assert(config.quiet_receipts == will::ClientConfig::DefaultQuietReceipts);
+    assert(config.history_limit == will::ClientConfig::DefaultHistoryLimit);
+}
+
+
+void assert_no_history()
+{
+    using namespace will;
+
+    Argv args{"will-client", "--no-history"};
+    const will::ClientConfig config = ClientCliApp{}.parse(args.argc(), args.argv());
+
     assert(!config.history_limit.has_value());
 }
 
@@ -143,6 +155,7 @@ int main()
     assert_help_requested({"will-client", "--help", "--port", "8080"});
     assert_help_requested({"will-client", "--port", "8080", "--help"});
     assert_defaults();
+    assert_no_history();
     assert_all_options();
     assert_port_zero_parses();
     assert_parse_error({"will-client", "--port"});
