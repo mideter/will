@@ -65,6 +65,7 @@ add_executable(will-server
   src/infra/persistence/sqlite_message_repository_impl.cpp
   src/infra/persistence/sqlite_user_repository_impl.cpp
   src/infra/persistence/sqlite_auth_session_store_impl.cpp
+  src/infra/persistence/sqlite_persistence_bundle.cpp
 )
 target_include_directories(will-server PRIVATE
   src/server

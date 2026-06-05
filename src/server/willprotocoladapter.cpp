@@ -30,16 +30,12 @@ std::uint8_t login_error_code_for(const domain::AuthResult result)
 } // namespace
 
 
-WillProtocolAdapter::WillProtocolAdapter(domain::MessageRepository& message_repository,
-                                         domain::UserRepository& users,
-                                         domain::AuthSessionStore& sessions, SessionRegistry& registry)
-    : message_repository_(message_repository)
-    , user_repository_(users)
-    , auth_session_store_(sessions)
+WillProtocolAdapter::WillProtocolAdapter(domain::MessengerPersistence persistence, SessionRegistry& registry)
+    : persistence_(persistence)
     , participant_notifier_(registry)
-    , authenticate_user_(users, sessions)
-    , send_chat_message_(message_repository_, participant_notifier_)
-    , fetch_chat_history_(message_repository_)
+    , authenticate_user_(persistence.users, persistence.sessions)
+    , send_chat_message_(persistence.messages, participant_notifier_)
+    , fetch_chat_history_(persistence.messages)
 {}
 
 
@@ -114,7 +110,7 @@ void WillProtocolAdapter::handle_bind_token(Session& session, const std::vector<
         return;
     }
 
-    const auto account = auth_session_store_.resolve_token(domain::AuthToken{*token});
+    const auto account = persistence_.sessions.resolve_token(domain::AuthToken{*token});
     if (!account) {
         session.send_will_payload(
             WillMessage::encode_login_response_failure(WillMessage::LoginErrorExpiredToken));

@@ -2,11 +2,12 @@
 
 #include "asioserver.h"
 #include "serverconfig.h"
+#include "sqlite_persistence_bundle.h"
 
 namespace will {
 
 
-class WillServer : private AsioMessengerServer {
+class WillServer {
 public:
     static constexpr const char* Version = "4.2.0";
 
@@ -16,6 +17,10 @@ public:
 
 private:
     static void log_startup(const ServerConfig& config);
+
+    ServerConfig config_;
+    SqlitePersistenceBundle persistence_;
+    AsioMessengerServer server_;
 };
 
 

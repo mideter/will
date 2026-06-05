@@ -1,5 +1,4 @@
 #include "willserver.h"
-#include "asioserver.h"
 #include "serverconfigvalidator.h"
 
 #include <iostream>
@@ -9,14 +8,16 @@ namespace will {
 
 
 WillServer::WillServer(ServerConfig config)
-    : AsioMessengerServer(ServerConfigValidator::accept(std::move(config)))
+    : config_(ServerConfigValidator::accept(std::move(config)))
+    , persistence_(config_.db_path)
+    , server_(config_, persistence_.ports())
 {}
 
 
 void WillServer::run()
 {
     log_startup(config_);
-    AsioMessengerServer::run();
+    server_.run();
 }
 
 

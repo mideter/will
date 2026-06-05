@@ -6,16 +6,11 @@
 namespace will {
 
 
-AsioMessengerServer::AsioMessengerServer(ServerConfig config)
+AsioMessengerServer::AsioMessengerServer(ServerConfig config, domain::MessengerPersistence persistence)
     : config_(config)
-    , database_(config.db_path)
-    , message_repository_(database_)
-    , user_repository_(database_)
-    , auth_session_store_(database_)
-    , registry_()
-    , protocol_adapter_(message_repository_, user_repository_, auth_session_store_, registry_)
     , acceptor_(ioc_)
     , signals_(ioc_)
+    , protocol_adapter_(persistence, registry_)
 {
     open_acceptor();
     setup_signals();
