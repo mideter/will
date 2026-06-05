@@ -36,8 +36,6 @@ public:
 
     SessionRegistry(const SessionRegistry&) = delete;
     SessionRegistry& operator=(const SessionRegistry&) = delete;
-    SessionRegistry(SessionRegistry&&) = delete;
-    SessionRegistry& operator=(SessionRegistry&&) = delete;
 
     void accept_session(asio::io_context& ioc, asio::ip::tcp::socket socket,
                         asio::ip::tcp::endpoint peer_endpoint,
