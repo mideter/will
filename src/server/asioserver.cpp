@@ -8,45 +8,23 @@ namespace will {
 
 AsioMessengerServer::AsioMessengerServer(ServerConfig config, domain::MessengerPersistence persistence)
     : config_(config)
-    , acceptor_(ioc_)
-    , signals_(ioc_)
+    , io_(config_.listen_port, config_.listen_backlog,
+          [this](const asio::error_code& ec, int signo) { on_signal(ec, signo); })
     , protocol_adapter_(persistence, registry_)
 {
-    open_acceptor();
-    setup_signals();
-}
-
-
-void AsioMessengerServer::open_acceptor()
-{
-    using asio::ip::tcp;
-    tcp::endpoint endpoint(tcp::v4(), config_.listen_port);
-
-    acceptor_.open(endpoint.protocol());
-    acceptor_.set_option(tcp::acceptor::reuse_address(true));
-    acceptor_.bind(endpoint);
-    acceptor_.listen(config_.listen_backlog);
-}
-
-
-void AsioMessengerServer::setup_signals()
-{
-    signals_.add(SIGINT);
-    signals_.add(SIGTERM);
-    signals_.async_wait([this](const asio::error_code& ec, int signo) { on_signal(ec, signo); });
 }
 
 
 void AsioMessengerServer::run()
 {
     do_accept();
-    const IoContextThreadPool io_threads(ioc_, config_.io_threads);
+    const IoContextThreadPool io_threads(io_.ioc(), config_.io_threads);
 }
 
 
 void AsioMessengerServer::do_accept()
 {
-    acceptor_.async_accept([this](const asio::error_code& ec, asio::ip::tcp::socket socket) {
+    io_.acceptor().async_accept([this](const asio::error_code& ec, asio::ip::tcp::socket socket) {
         on_accept(ec, std::move(socket));
     });
 }
@@ -70,7 +48,7 @@ void AsioMessengerServer::on_accept(const asio::error_code& ec, asio::ip::tcp::s
             try {
                 socket.set_option(asio::socket_base::keep_alive(true));
 
-                registry_.accept_session(ioc_, std::move(socket), socket.remote_endpoint(),
+                registry_.accept_session(io_.ioc(), std::move(socket), socket.remote_endpoint(),
                                          protocol_adapter_, config_.max_outbound_queue_bytes);
             }
             catch (const std::exception& e) {
@@ -102,12 +80,11 @@ void AsioMessengerServer::request_stop()
     if (stopping_.exchange(true))
         return;
 
-    asio::error_code ignored;
-    acceptor_.close(ignored);
+    io_.close_acceptor();
 
     registry_.close_all_sessions();
 
-    ioc_.stop();
+    io_.stop();
 }
 
 
