@@ -4,9 +4,7 @@
 
 #include <CLI/CLI.hpp>
 
-#include <cstdint>
 #include <iosfwd>
-#include <string>
 
 
 namespace will {
@@ -14,7 +12,7 @@ namespace will {
 
 class ClientCliApp {
 public:
-    explicit ClientCliApp(const ClientConfig& defaults = ClientConfig{});
+    ClientCliApp();
 
     void print_help(std::ostream& os) const;
 
@@ -25,16 +23,8 @@ public:
     ClientConfig parse(int argc, char* argv[]);
 
 private:
-    void apply_to(ClientConfig& config) const;
-
     CLI::App app_;
-
-    std::string host_;
-    int port_;
-    std::string login_;
-    std::string password_;
-    bool quiet_receipts_;
-    std::uint32_t history_limit_;
+    ClientConfig config_;
 };
 
 

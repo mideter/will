@@ -8,25 +8,20 @@
 namespace will {
 
 
-ClientCliApp::ClientCliApp(const ClientConfig& defaults)
+ClientCliApp::ClientCliApp()
     : app_{"will-client"}
-    , host_(defaults.host)
-    , port_(static_cast<int>(defaults.port))
-    , login_(defaults.login)
-    , password_(defaults.password)
-    , quiet_receipts_(defaults.quiet_receipts)
-    , history_limit_(defaults.history_limit)
 {
     app_.allow_extras(false);
 
-    app_.add_option("--host", host_)->description("Server IPv4 address");
-    app_.add_option("--port", port_)->description("Server TCP port");
-    app_.add_option("--user", login_)->description("Login for server authentication");
-    app_.add_option("--password", password_)->description("Password for server authentication");
-    app_.add_flag("--quiet", quiet_receipts_)->description("Suppress server receipt messages on stderr");
-    app_.add_option("--history", history_limit_)
+    app_.add_option("--host", config_.host)->description("Server IPv4 address");
+    app_.add_option("--port", config_.port)->description("Server TCP port");
+    app_.add_option("--user", config_.login)->description("Login for server authentication");
+    app_.add_option("--password", config_.password)->description("Password for server authentication");
+    app_.add_flag("--quiet", config_.quiet_receipts)
+        ->description("Suppress server receipt messages on stderr");
+    app_.add_option("--history", config_.history_limit)
         ->description("Request last N messages on connect");
-    app_.add_flag_callback("--no-history", [this]() { history_limit_ = 0; })
+    app_.add_flag_callback("--no-history", [this]() { config_.history_limit = 0; })
         ->description("Do not request chat history on connect");
 }
 
@@ -66,23 +61,10 @@ void ClientCliApp::exit_on_parse_error(const CLI::ParseError& error) const
 }
 
 
-void ClientCliApp::apply_to(ClientConfig& config) const
-{
-    config.host = host_;
-    config.port = static_cast<std::uint16_t>(port_);
-    config.login = login_;
-    config.password = password_;
-    config.quiet_receipts = quiet_receipts_;
-    config.history_limit = history_limit_;
-}
-
-
 ClientConfig ClientCliApp::parse(int argc, char* argv[])
 {
-    ClientConfig config;
     app_.parse(argc, argv);
-    apply_to(config);
-    return config;
+    return config_;
 }
 
 
