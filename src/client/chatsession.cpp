@@ -44,7 +44,7 @@ void ChatSession::loadHistory() const
         return;
 
     while (true) {
-        const std::optional<WireMessageEntity> incoming = client_.receiveMessage();
+        const std::optional<WireMessage> incoming = client_.receiveMessage();
         if (!incoming.has_value())
             throw std::runtime_error("Disconnected while loading history");
 
@@ -74,7 +74,7 @@ void ChatSession::receiveLoop() const
 {
     try {
         while (true) {
-            const std::optional<WireMessageEntity> incoming = client_.receiveMessage();
+            const std::optional<WireMessage> incoming = client_.receiveMessage();
 
             if (!incoming.has_value()) {
                 std::cout << std::endl << "Disconnected from chat." << std::endl;

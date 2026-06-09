@@ -32,7 +32,7 @@ public:
     bool requestHistory(std::uint32_t limit) const;
 
     /** std::nullopt = peer closed before next frame header; otherwise decoded server message. */
-    std::optional<WireMessageEntity> receiveMessage() const;
+    std::optional<WireMessage> receiveMessage() const;
 
     void shutdown() const;
 

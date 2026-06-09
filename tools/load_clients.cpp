@@ -10,6 +10,7 @@
 #include <iostream>
 #include <string>
 #include <thread>
+#include <variant>
 #include <vector>
 
 #include "clientconfigvalidator.h"
@@ -95,14 +96,18 @@ std::vector<char> read_frame(int fd)
 
 void login_and_bind(int fd, const will::ClientConfig& connection)
 {
-    send_frame(fd, will::WireMessage::encode_login_request(connection.login, connection.password));
+    send_frame(fd, will::encode(will::LoginRequestPayload{connection.login, connection.password}));
 
     const auto response = read_frame(fd);
-    const auto parsed = will::WireMessage::parse_login_response(response);
+    const auto message = will::decode(response);
+    if (!message)
+        throw std::runtime_error("login failed");
+
+    const auto* parsed = std::get_if<will::LoginResponsePayload>(&*message);
     if (!parsed || !parsed->success)
         throw std::runtime_error("login failed");
 
-    send_frame(fd, will::WireMessage::encode_bind_token(parsed->token));
+    send_frame(fd, will::encode(will::BindToken{parsed->token}));
 }
 
 
@@ -119,7 +124,7 @@ void client_worker(const will::LoadClientsConfig& config, std::atomic<std::size_
 
         for (std::size_t i = 0; i < config.messages_per_client; ++i) {
             const std::string body = "load-" + std::to_string(i);
-            send_frame(fd, will::WireMessage::encode_user_chat(body));
+            send_frame(fd, will::encode(will::UserChat{body}));
         }
 
         if (config.hold_seconds > 0)

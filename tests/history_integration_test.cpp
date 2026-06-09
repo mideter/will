@@ -15,6 +15,7 @@
 #include <iostream>
 #include <string>
 #include <thread>
+#include <variant>
 #include <vector>
 
 
@@ -90,21 +91,25 @@ std::vector<char> read_frame(int fd)
 void drain_receipt_ack(int fd)
 {
     const auto payload = read_frame(fd);
-    assert(will::WireMessage::is_server_receipt_ack(payload));
+    const auto message = will::decode(payload);
+    assert(message);
+    assert(std::holds_alternative<will::ServerReceiptAck>(*message));
 }
 
 
 void login_and_bind(int fd, const char* login, const char* password)
 {
-    send_frame(fd, will::WireMessage::encode_login_request(login, password));
+    send_frame(fd, will::encode(will::LoginRequestPayload{login, password}));
 
     const auto login_response = read_frame(fd);
-    assert(will::WireMessage::is_login_response(login_response));
-    const auto parsed = will::WireMessage::parse_login_response(login_response);
+    const auto message = will::decode(login_response);
+    assert(message);
+
+    const auto* parsed = std::get_if<will::LoginResponsePayload>(&*message);
     assert(parsed);
     assert(parsed->success);
 
-    send_frame(fd, will::WireMessage::encode_bind_token(parsed->token));
+    send_frame(fd, will::encode(will::BindToken{parsed->token}));
 }
 
 
@@ -178,44 +183,51 @@ int main(int argc, char* argv[])
     const int sender_fd = connect_tcp("127.0.0.1", port);
     assert(sender_fd >= 0);
     login_and_bind(sender_fd, "admin", "admin");
-    send_frame(sender_fd, will::WireMessage::encode_user_chat("hello-from-sender"));
+    send_frame(sender_fd, will::encode(will::UserChat{"hello-from-sender"}));
     drain_receipt_ack(sender_fd);
 
     const int viewer_fd = connect_tcp("127.0.0.1", port);
     assert(viewer_fd >= 0);
     login_and_bind(viewer_fd, "admin", "admin");
-    send_frame(viewer_fd, will::WireMessage::encode_history_request(10));
+    send_frame(viewer_fd, will::encode(will::HistoryRequest{10}));
 
     const auto first_item = read_frame(viewer_fd);
-    assert(will::WireMessage::is_history_item(first_item));
-    const auto parsed_first = will::WireMessage::parse_history_item(first_item);
+    const auto parsed_first_message = will::decode(first_item);
+    assert(parsed_first_message);
+    const auto* parsed_first = std::get_if<will::HistoryItemPayload>(&*parsed_first_message);
     assert(parsed_first);
     assert(parsed_first->body == "hello-from-sender");
     assert(parsed_first->is_mine);
 
     const auto end = read_frame(viewer_fd);
-    assert(will::WireMessage::is_history_end(end));
+    const auto end_message = will::decode(end);
+    assert(end_message);
+    assert(std::holds_alternative<will::HistoryEnd>(*end_message));
 
-    send_frame(sender_fd, will::WireMessage::encode_user_chat("hello-again"));
+    send_frame(sender_fd, will::encode(will::UserChat{"hello-again"}));
     drain_receipt_ack(sender_fd);
-    send_frame(sender_fd, will::WireMessage::encode_history_request(10));
+    send_frame(sender_fd, will::encode(will::HistoryRequest{10}));
 
     const auto own_item = read_frame(sender_fd);
-    assert(will::WireMessage::is_history_item(own_item));
-    const auto parsed_own = will::WireMessage::parse_history_item(own_item);
+    const auto parsed_own_message = will::decode(own_item);
+    assert(parsed_own_message);
+    const auto* parsed_own = std::get_if<will::HistoryItemPayload>(&*parsed_own_message);
     assert(parsed_own);
     assert(parsed_own->body == "hello-from-sender");
     assert(parsed_own->is_mine);
 
     const auto own_second = read_frame(sender_fd);
-    assert(will::WireMessage::is_history_item(own_second));
-    const auto parsed_second = will::WireMessage::parse_history_item(own_second);
+    const auto parsed_second_message = will::decode(own_second);
+    assert(parsed_second_message);
+    const auto* parsed_second = std::get_if<will::HistoryItemPayload>(&*parsed_second_message);
     assert(parsed_second);
     assert(parsed_second->body == "hello-again");
     assert(parsed_second->is_mine);
 
     const auto sender_end = read_frame(sender_fd);
-    assert(will::WireMessage::is_history_end(sender_end));
+    const auto sender_end_message = will::decode(sender_end);
+    assert(sender_end_message);
+    assert(std::holds_alternative<will::HistoryEnd>(*sender_end_message));
 
     ::close(sender_fd);
     ::close(viewer_fd);

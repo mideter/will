@@ -68,7 +68,7 @@ void read_exact(asio::ip::tcp::socket& socket, unsigned char* data, std::size_t 
 }
 
 
-bool is_post_auth_server_message(const WireMessageEntity& message) noexcept
+bool is_post_auth_server_message(const WireMessage& message) noexcept
 {
     return std::holds_alternative<ServerReceiptAck>(message)
            || std::holds_alternative<AuthRequired>(message) || std::holds_alternative<UserChat>(message)
@@ -158,7 +158,7 @@ bool WillClient::requestHistory(const std::uint32_t limit) const
 }
 
 
-std::optional<WireMessageEntity> WillClient::receiveMessage() const
+std::optional<WireMessage> WillClient::receiveMessage() const
 {
     std::array<unsigned char, 4> len_bytes{};
     if (read_exact_or_eof_before_first_byte(socket_, len_bytes.data(), len_bytes.size()))

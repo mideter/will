@@ -6,6 +6,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <string>
+#include <variant>
 #include <vector>
 
 
@@ -15,13 +16,21 @@ namespace {
 template<typename T>
 void assert_roundtrip(const T& message)
 {
-	const will::WireMessageEntity original{message};
+	const will::WireMessage original{message};
 	const auto encoded = will::encode(original);
 	const auto decoded = will::decode(encoded);
 	assert(decoded);
 	const auto* roundtripped = std::get_if<T>(&*decoded);
 	assert(roundtripped);
 	assert(*roundtripped == message);
+}
+
+
+template<typename T>
+bool decodes_as(const std::vector<char>& payload)
+{
+	const auto message = will::decode(payload);
+	return message && std::holds_alternative<T>(*message);
 }
 
 
@@ -33,80 +42,97 @@ int main()
 	using namespace will;
 
 	{
-		const auto v = WireMessage::encode_user_chat("hi");
+		const auto v = encode(UserChat{"hi"});
 		assert(v.size() == 3);
-		assert(static_cast<unsigned char>(v[0]) == WireMessage::UserChat);
+		assert(static_cast<unsigned char>(v[0]) == static_cast<unsigned char>(WireMessageType::UserChat));
 		assert(v[1] == 'h' && v[2] == 'i');
 	}
 
 	{
-		const auto v = WireMessage::encode_user_chat("");
+		const auto v = encode(UserChat{""});
 		assert(v.size() == 1);
-		assert(static_cast<unsigned char>(v[0]) == WireMessage::UserChat);
+		assert(static_cast<unsigned char>(v[0]) == static_cast<unsigned char>(WireMessageType::UserChat));
 	}
 
 	{
-		const auto a = WireMessage::encode_server_receipt_ack();
-		assert(WireMessage::is_server_receipt_ack(a));
+		const auto a = encode(ServerReceiptAck{});
+		assert(decodes_as<ServerReceiptAck>(a));
 		assert(a.size() == 1);
 	}
 
-	assert(!WireMessage::is_valid_client_to_server_payload({}));
-	assert(WireMessage::is_valid_client_to_server_payload({'\1'}));
-	assert(WireMessage::is_valid_client_to_server_payload({'\1', 'x'}));
-	assert(!WireMessage::is_valid_client_to_server_payload({'\2'}));
-	assert(!WireMessage::is_valid_client_to_server_payload({'\0'}));
+	assert(!is_valid_client_to_server_payload({}));
+	assert(is_valid_client_to_server_payload(encode(UserChat{"x"})));
+	assert(is_valid_client_to_server_payload(encode(UserChat{""})));
+	assert(!is_valid_client_to_server_payload(encode(ServerReceiptAck{})));
+	assert(!is_valid_client_to_server_payload({'\0'}));
 
 	{
-		const auto login = WireMessage::encode_login_request("alice", "secret");
-		assert(WireMessage::is_login_request(login));
-		assert(WireMessage::is_valid_client_to_server_payload(login));
-		const auto parsed_login = WireMessage::parse_login_request(login);
+		const auto login = encode(LoginRequestPayload{"alice", "secret"});
+		assert(decodes_as<LoginRequestPayload>(login));
+		assert(is_valid_client_to_server_payload(login));
+		const auto login_message = decode(login);
+		assert(login_message);
+		const auto* parsed_login = std::get_if<LoginRequestPayload>(&*login_message);
 		assert(parsed_login);
 		assert(parsed_login->login == "alice");
 		assert(parsed_login->password == "secret");
 	}
 
 	{
-		const auto ok = WireMessage::encode_login_response_success("session-token");
-		assert(WireMessage::is_login_response(ok));
-		const auto parsed_ok = WireMessage::parse_login_response(ok);
+		const auto ok = encode(LoginResponsePayload{true, "session-token", 0});
+		assert(decodes_as<LoginResponsePayload>(ok));
+		const auto ok_message = decode(ok);
+		assert(ok_message);
+		const auto* parsed_ok = std::get_if<LoginResponsePayload>(&*ok_message);
 		assert(parsed_ok);
 		assert(parsed_ok->success);
 		assert(parsed_ok->token == "session-token");
 	}
 
 	{
-		const auto fail = WireMessage::encode_login_response_failure(WireMessage::LoginErrorInvalidCredentials);
-		const auto parsed_fail = WireMessage::parse_login_response(fail);
+		const auto fail = encode(LoginResponsePayload{
+		    false, "", static_cast<std::uint8_t>(LoginError::InvalidCredentials)});
+		const auto fail_message = decode(fail);
+		assert(fail_message);
+		const auto* parsed_fail = std::get_if<LoginResponsePayload>(&*fail_message);
 		assert(parsed_fail);
 		assert(!parsed_fail->success);
-		assert(parsed_fail->error_code == WireMessage::LoginErrorInvalidCredentials);
+		assert(parsed_fail->error_code == static_cast<std::uint8_t>(LoginError::InvalidCredentials));
 	}
 
 	{
-		const auto bind = WireMessage::encode_bind_token("session-token");
-		assert(WireMessage::is_bind_token(bind));
-		assert(WireMessage::is_valid_client_to_server_payload(bind));
-		assert(WireMessage::parse_bind_token(bind) == "session-token");
+		const auto bind = encode(BindToken{"session-token"});
+		assert(decodes_as<BindToken>(bind));
+		assert(is_valid_client_to_server_payload(bind));
+		const auto bind_message = decode(bind);
+		assert(bind_message);
+		const auto* parsed_bind = std::get_if<BindToken>(&*bind_message);
+		assert(parsed_bind);
+		assert(parsed_bind->token == "session-token");
 	}
 
 	{
-		const auto auth_required = WireMessage::encode_auth_required();
-		assert(WireMessage::is_auth_required(auth_required));
+		const auto auth_required = encode(AuthRequired{});
+		assert(decodes_as<AuthRequired>(auth_required));
 	}
 
 	{
-		const auto request = WireMessage::encode_history_request(50);
-		assert(WireMessage::is_history_request(request));
-		assert(WireMessage::is_valid_client_to_server_payload(request));
-		assert(WireMessage::parse_history_request_limit(request) == 50u);
+		const auto request = encode(HistoryRequest{50});
+		assert(decodes_as<HistoryRequest>(request));
+		assert(is_valid_client_to_server_payload(request));
+		const auto request_message = decode(request);
+		assert(request_message);
+		const auto* parsed_request = std::get_if<HistoryRequest>(&*request_message);
+		assert(parsed_request);
+		assert(parsed_request->limit == 50u);
 	}
 
 	{
-		const auto item = WireMessage::encode_history_item(42, true, "stored");
-		assert(WireMessage::is_history_item(item));
-		const auto parsed = WireMessage::parse_history_item(item);
+		const auto item = encode(HistoryItemPayload{42, true, "stored"});
+		assert(decodes_as<HistoryItemPayload>(item));
+		const auto item_message = decode(item);
+		assert(item_message);
+		const auto* parsed = std::get_if<HistoryItemPayload>(&*item_message);
 		assert(parsed);
 		assert(parsed->message_id == 42u);
 		assert(parsed->is_mine);
@@ -114,22 +140,22 @@ int main()
 	}
 
 	{
-		const auto end = WireMessage::encode_history_end();
-		assert(WireMessage::is_history_end(end));
+		const auto end = encode(HistoryEnd{});
+		assert(decodes_as<HistoryEnd>(end));
 	}
 
 	{
-		const auto v = WireMessage::encode_user_chat("hi");
-		const std::string line = WireMessage::format_payload_for_log(v);
+		const auto v = encode(UserChat{"hi"});
+		const std::string line = format_for_log(v);
 		assert(line.find("UserChat") != std::string::npos);
 		assert(line.find("hi") != std::string::npos);
 	}
 
-	assert(WireMessage::format_payload_for_log(WireMessage::encode_server_receipt_ack()) == "ServerReceiptAck");
-	assert(WireMessage::format_payload_for_log(WireMessage::encode_history_end()) == "HistoryEnd");
+	assert(format_for_log(encode(ServerReceiptAck{})) == "ServerReceiptAck");
+	assert(format_for_log(encode(HistoryEnd{})) == "HistoryEnd");
 
 	{
-		const auto payload = WireMessage::encode_user_chat("ping");
+		const auto payload = encode(UserChat{"ping"});
 		const auto frame = TcpFrame::encode(payload);
 		assert(frame.size() == 4 + payload.size());
 		std::array<unsigned char, 4> header{};
@@ -139,7 +165,6 @@ int main()
 		assert(frame[4] == payload[0]);
 	}
 
-	// WireMessageEntity roundtrip: encode → decode → == for all 9 wire types.
 	assert_roundtrip(UserChat{"roundtrip"});
 	assert_roundtrip(UserChat{""});
 	assert_roundtrip(ServerReceiptAck{});
@@ -149,8 +174,10 @@ int main()
 	assert_roundtrip(HistoryEnd{});
 	assert_roundtrip(LoginRequestPayload{"alice", "secret"});
 	assert_roundtrip(LoginResponsePayload{true, "session-token", 0});
-	assert_roundtrip(LoginResponsePayload{false, "", WireMessage::LoginErrorInvalidCredentials});
-	assert_roundtrip(LoginResponsePayload{false, "", WireMessage::LoginErrorExpiredToken});
+	assert_roundtrip(LoginResponsePayload{
+	    false, "", static_cast<std::uint8_t>(LoginError::InvalidCredentials)});
+	assert_roundtrip(LoginResponsePayload{
+	    false, "", static_cast<std::uint8_t>(LoginError::ExpiredToken)});
 	assert_roundtrip(BindToken{"session-token"});
 	assert_roundtrip(AuthRequired{});
 
