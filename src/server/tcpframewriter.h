@@ -31,7 +31,7 @@ public:
 
 private:
     void pump_writes();
-    void on_write(const asio::error_code& ec, std::size_t n);
+    void handle_write(const asio::error_code& ec, std::size_t n);
 
     TcpSocket& socket_;
     Strand& strand_;

@@ -55,12 +55,12 @@ void TcpFrameWriter::pump_writes()
     asio::async_write(
         socket_, asio::buffer(front),
         asio::bind_executor(strand_, [self = shared_from_this()](const asio::error_code& ec, std::size_t n) {
-            self->on_write(ec, n);
+            self->handle_write(ec, n);
         }));
 }
 
 
-void TcpFrameWriter::on_write(const asio::error_code& ec, std::size_t n)
+void TcpFrameWriter::handle_write(const asio::error_code& ec, std::size_t n)
 {
     if (stopped_)
         return;

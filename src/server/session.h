@@ -50,10 +50,10 @@ private:
     void begin();
     void shutdown();
 
-    void on_frame(std::vector<char> payload);
-    void on_read_error(const char* context, const asio::error_code& ec);
-    void on_write_queue_full();
-    void on_write_error(const char* context, const asio::error_code& ec);
+    void handle_frame(std::vector<char> payload);
+    void handle_read_error(const char* context, const asio::error_code& ec);
+    void handle_write_queue_full();
+    void handle_write_error(const char* context, const asio::error_code& ec);
     void fail(const char* context, const asio::error_code& ec);
 
     void enqueue_payload_broadcast(const std::vector<char>& payload);
