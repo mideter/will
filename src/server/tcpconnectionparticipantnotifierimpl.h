@@ -6,20 +6,20 @@
 namespace will {
 
 
-class SessionRegistry;
+class TcpConnectionRegistry;
 
 
-class SessionParticipantNotifierImpl final : public domain::ParticipantNotifier {
+class TcpConnectionParticipantNotifierImpl final : public domain::ParticipantNotifier {
 public:
-    explicit SessionParticipantNotifierImpl(SessionRegistry& registry);
+    explicit TcpConnectionParticipantNotifierImpl(TcpConnectionRegistry& registry);
 
     void notify_chat_message(domain::ChatId chat, const domain::Message& msg,
                              domain::ParticipantId except_participant) override;
-                             
+
     void send_to_participant(domain::ParticipantId id, const domain::OutboundEvent& ev) override;
 
 private:
-    SessionRegistry& registry_;
+    TcpConnectionRegistry& registry_;
 };
 
 

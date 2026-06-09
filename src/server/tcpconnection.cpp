@@ -1,6 +1,6 @@
-#include "session.h"
+#include "tcpconnection.h"
 
-#include "sessionregistry.h"
+#include "tcpconnectionregistry.h"
 #include "willprotocoladapter.h"
 #include "tcpframereader.h"
 #include "tcpframewriter.h"
@@ -14,12 +14,12 @@
 namespace will {
 
 
-std::atomic<std::uint64_t> Session::next_id_{1};
+std::atomic<std::uint64_t> TcpConnection::next_id_{1};
 
 
-Session::Session(asio::io_context& ioc, TcpSocket socket, asio::ip::tcp::endpoint peer_endpoint,
-                 SessionRegistry& registry, WillProtocolAdapter& protocol_adapter,
-                 std::size_t max_outbound_queue_bytes)
+TcpConnection::TcpConnection(asio::io_context& ioc, TcpSocket socket, asio::ip::tcp::endpoint peer_endpoint,
+                             TcpConnectionRegistry& registry, WillProtocolAdapter& protocol_adapter,
+                             std::size_t max_outbound_queue_bytes)
     : id_(next_id_.fetch_add(1, std::memory_order_relaxed))
     , registry_(registry)
     , protocol_adapter_(protocol_adapter)
@@ -31,7 +31,7 @@ Session::Session(asio::io_context& ioc, TcpSocket socket, asio::ip::tcp::endpoin
 {}
 
 
-void Session::begin()
+void TcpConnection::begin()
 {
     frame_writer_ = std::make_shared<TcpFrameWriter>(
         socket_, strand_, max_outbound_queue_bytes_,
@@ -53,7 +53,7 @@ void Session::begin()
 }
 
 
-void Session::shutdown()
+void TcpConnection::shutdown()
 {
     asio::post(strand_, [self = shared_from_this()] {
         if (self->closed_)
@@ -72,7 +72,7 @@ void Session::shutdown()
 }
 
 
-void Session::handle_frame(std::vector<char> payload)
+void TcpConnection::handle_frame(std::vector<char> payload)
 {
     if (closed_)
         return;
@@ -81,7 +81,7 @@ void Session::handle_frame(std::vector<char> payload)
 }
 
 
-void Session::send_will_payload(const std::vector<char>& payload)
+void TcpConnection::send_will_payload(const std::vector<char>& payload)
 {
     if (closed_ || !frame_writer_)
         return;
@@ -90,7 +90,7 @@ void Session::send_will_payload(const std::vector<char>& payload)
 }
 
 
-void Session::handle_read_error(std::string_view context, const asio::error_code& ec)
+void TcpConnection::handle_read_error(std::string_view context, const asio::error_code& ec)
 {
     if (closed_)
         return;
@@ -98,11 +98,11 @@ void Session::handle_read_error(std::string_view context, const asio::error_code
     if (ec != asio::error::eof)
         fail(context, ec);
 
-    registry_.close_session(id_);
+    registry_.close_connection(id_);
 }
 
 
-void Session::enqueue_payload_broadcast(const std::vector<char>& payload)
+void TcpConnection::enqueue_payload_broadcast(const std::vector<char>& payload)
 {
     asio::post(strand_, [self = shared_from_this(), frame = TcpFrame::encode(payload)]() mutable {
         if (self->closed_ || !self->frame_writer_)
@@ -112,35 +112,35 @@ void Session::enqueue_payload_broadcast(const std::vector<char>& payload)
 }
 
 
-void Session::handle_write_queue_full()
+void TcpConnection::handle_write_queue_full()
 {
     std::cerr << "Write queue limit exceeded for " << peer_label_ << ", disconnecting\n";
-    registry_.close_session(id_);
+    registry_.close_connection(id_);
 }
 
 
-void Session::handle_write_error(std::string_view context, const asio::error_code& ec)
+void TcpConnection::handle_write_error(std::string_view context, const asio::error_code& ec)
 {
     if (closed_)
         return;
 
     fail(context, ec);
-    registry_.close_session(id_);
+    registry_.close_connection(id_);
 }
 
 
-void Session::fail(std::string_view context, const asio::error_code& ec)
+void TcpConnection::fail(std::string_view context, const asio::error_code& ec)
 {
     if (ec == asio::error::operation_aborted)
         return;
-    std::cerr << "Session " << peer_label_ << " " << context << ": " << ec.message() << '\n';
+    std::cerr << "TcpConnection " << peer_label_ << " " << context << ": " << ec.message() << '\n';
 }
 
 
-void Session::fail_protocol(std::string_view message)
+void TcpConnection::fail_protocol(std::string_view message)
 {
-    std::cerr << "Session " << peer_label_ << ": " << message << '\n';
-    registry_.close_session(id_);
+    std::cerr << "TcpConnection " << peer_label_ << ": " << message << '\n';
+    registry_.close_connection(id_);
 }
 
 

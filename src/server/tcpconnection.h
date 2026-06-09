@@ -18,12 +18,12 @@ namespace will {
 
 
 class WillProtocolAdapter;
-class SessionRegistry;
+class TcpConnectionRegistry;
 class TcpFrameReader;
 class TcpFrameWriter;
 
 
-class Session : public std::enable_shared_from_this<Session> {
+class TcpConnection : public std::enable_shared_from_this<TcpConnection> {
 public:
     using TcpSocket = asio::ip::tcp::socket;
     using Strand = asio::strand<asio::io_context::executor_type>;
@@ -36,16 +36,16 @@ public:
     [[nodiscard]] const std::optional<domain::Account>& account() const noexcept { return account_; }
     void set_account(domain::Account account) { account_ = std::move(account); }
 
-    bool operator==(const Session& other) const noexcept { return id_ == other.id_; }
-    bool operator!=(const Session& other) const noexcept { return !(*this == other); }
+    bool operator==(const TcpConnection& other) const noexcept { return id_ == other.id_; }
+    bool operator!=(const TcpConnection& other) const noexcept { return !(*this == other); }
 
     void send_will_payload(const std::vector<char>& payload);
     void fail_protocol(std::string_view message);
 
 private:
-    Session(asio::io_context& ioc, TcpSocket socket, asio::ip::tcp::endpoint peer_endpoint,
-            SessionRegistry& registry, WillProtocolAdapter& protocol_adapter,
-            std::size_t max_outbound_queue_bytes);
+    TcpConnection(asio::io_context& ioc, TcpSocket socket, asio::ip::tcp::endpoint peer_endpoint,
+                  TcpConnectionRegistry& registry, WillProtocolAdapter& protocol_adapter,
+                  std::size_t max_outbound_queue_bytes);
 
     void begin();
     void shutdown();
@@ -59,7 +59,7 @@ private:
     void enqueue_payload_broadcast(const std::vector<char>& payload);
 
     const std::uint64_t id_;
-    SessionRegistry& registry_;
+    TcpConnectionRegistry& registry_;
     WillProtocolAdapter& protocol_adapter_;
     const std::size_t max_outbound_queue_bytes_;
 
@@ -75,7 +75,7 @@ private:
 
     static std::atomic<std::uint64_t> next_id_;
 
-    friend class SessionRegistry;
+    friend class TcpConnectionRegistry;
 };
 
 

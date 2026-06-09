@@ -77,11 +77,11 @@ void AsioMessengerServer::accept_client(asio::ip::tcp::socket socket)
     try {
         socket.set_option(asio::socket_base::keep_alive(true));
 
-        registry_.accept_session(io_.ioc(), std::move(socket), socket.remote_endpoint(),
-                                 protocol_adapter_, config_.max_outbound_queue_bytes);
+        registry_.accept_connection(io_.ioc(), std::move(socket), socket.remote_endpoint(),
+                                    protocol_adapter_, config_.max_outbound_queue_bytes);
     }
     catch (const std::exception& e) {
-        std::cerr << "Accept session error: " << e.what() << '\n';
+        std::cerr << "Accept connection error: " << e.what() << '\n';
     }
 }
 
@@ -103,7 +103,7 @@ void AsioMessengerServer::request_stop()
 
     io_.close_acceptor();
 
-    registry_.close_all_sessions();
+    registry_.close_all_connections();
 
     io_.stop();
 }

@@ -50,15 +50,15 @@ add_executable(will-server
   src/server/server.cpp
   src/server/cli/servercliapp.cpp
   src/server/config/serverconfigparser.cpp
-  src/server/sessionregistry.cpp
+  src/server/tcpconnectionregistry.cpp
   src/server/config/serverconfigvalidator.cpp
   src/server/willserver.cpp
   src/server/asioserver.cpp
   src/server/iocontext.cpp
   src/server/iocontextthreadpool.cpp
-  src/server/session.cpp
+  src/server/tcpconnection.cpp
   src/server/willprotocoladapter.cpp
-  src/server/session_participant_notifier_impl.cpp
+  src/server/tcpconnectionparticipantnotifierimpl.cpp
   src/server/tcpframereader.cpp
   src/server/tcpframewriter.cpp
   src/infra/persistence/sqlite_database.cpp

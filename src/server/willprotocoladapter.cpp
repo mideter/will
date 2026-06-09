@@ -1,6 +1,6 @@
 #include "willprotocoladapter.h"
 
-#include "session.h"
+#include "tcpconnection.h"
 
 #include <chrono>
 #include <string_view>
@@ -30,7 +30,7 @@ std::uint8_t login_error_code_for(const domain::AuthResult result)
 } // namespace
 
 
-WillProtocolAdapter::WillProtocolAdapter(domain::MessengerPersistence persistence, SessionRegistry& registry)
+WillProtocolAdapter::WillProtocolAdapter(domain::MessengerPersistence persistence, TcpConnectionRegistry& registry)
     : persistence_(persistence)
     , participant_notifier_(registry)
     , authenticate_user_(persistence.users, persistence.sessions)
@@ -39,47 +39,47 @@ WillProtocolAdapter::WillProtocolAdapter(domain::MessengerPersistence persistenc
 {}
 
 
-void WillProtocolAdapter::on_client_frame(Session& session, const std::vector<char>& payload)
+void WillProtocolAdapter::on_client_frame(TcpConnection& connection, const std::vector<char>& payload)
 {
     if (WillMessage::is_login_request(payload)) {
-        handle_login(session, payload);
+        handle_login(connection, payload);
         return;
     }
 
     if (WillMessage::is_bind_token(payload)) {
-        handle_bind_token(session, payload);
+        handle_bind_token(connection, payload);
         return;
     }
 
     if (WillMessage::is_user_chat(payload) || WillMessage::is_history_request(payload)) {
-        if (!session.has_account()) {
-            send_auth_required(session);
+        if (!connection.has_account()) {
+            send_auth_required(connection);
             return;
         }
 
         if (WillMessage::is_user_chat(payload)) {
-            handle_user_chat(session, payload);
+            handle_user_chat(connection, payload);
             return;
         }
 
-        handle_history_request(session, payload);
+        handle_history_request(connection, payload);
         return;
     }
 
     if (!WillMessage::is_valid_client_to_server_payload(payload)) {
-        session.fail_protocol("Protocol error: invalid client frame");
+        connection.fail_protocol("Protocol error: invalid client frame");
         return;
     }
 
-    session.fail_protocol("Protocol error: invalid client frame");
+    connection.fail_protocol("Protocol error: invalid client frame");
 }
 
 
-void WillProtocolAdapter::handle_login(Session& session, const std::vector<char>& payload)
+void WillProtocolAdapter::handle_login(TcpConnection& connection, const std::vector<char>& payload)
 {
     const auto request = WillMessage::parse_login_request(payload);
     if (!request) {
-        session.fail_protocol("Protocol error: invalid LoginRequest");
+        connection.fail_protocol("Protocol error: invalid LoginRequest");
         return;
     }
 
@@ -91,43 +91,43 @@ void WillProtocolAdapter::handle_login(Session& session, const std::vector<char>
     const auto outcome = authenticate_user_.execute(input);
 
     if (const auto* failure = std::get_if<domain::AuthResult>(&outcome)) {
-        session.send_will_payload(
+        connection.send_will_payload(
             WillMessage::encode_login_response_failure(login_error_code_for(*failure)));
         return;
     }
 
     const auto& success = std::get<domain::AuthenticateUserSuccess>(outcome);
-    session.send_will_payload(
+    connection.send_will_payload(
         WillMessage::encode_login_response_success(success.account.session_token.value));
 }
 
 
-void WillProtocolAdapter::handle_bind_token(Session& session, const std::vector<char>& payload)
+void WillProtocolAdapter::handle_bind_token(TcpConnection& connection, const std::vector<char>& payload)
 {
     const auto token = WillMessage::parse_bind_token(payload);
     if (!token) {
-        session.fail_protocol("Protocol error: invalid BindToken");
+        connection.fail_protocol("Protocol error: invalid BindToken");
         return;
     }
 
     const auto account = persistence_.sessions.resolve_token(domain::AuthToken{*token});
     if (!account) {
-        session.send_will_payload(
+        connection.send_will_payload(
             WillMessage::encode_login_response_failure(WillMessage::LoginErrorExpiredToken));
         return;
     }
 
-    session.set_account(*account);
+    connection.set_account(*account);
 }
 
 
-void WillProtocolAdapter::send_auth_required(Session& session)
+void WillProtocolAdapter::send_auth_required(TcpConnection& connection)
 {
-    session.send_will_payload(WillMessage::encode_auth_required());
+    connection.send_will_payload(WillMessage::encode_auth_required());
 }
 
 
-void WillProtocolAdapter::handle_user_chat(Session& sender, const std::vector<char>& payload)
+void WillProtocolAdapter::handle_user_chat(TcpConnection& sender, const std::vector<char>& payload)
 {
     const std::string body(payload.begin() + 1, payload.end());
     const auto now_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
@@ -147,7 +147,7 @@ void WillProtocolAdapter::handle_user_chat(Session& sender, const std::vector<ch
 }
 
 
-void WillProtocolAdapter::handle_history_request(Session& sender, const std::vector<char>& payload)
+void WillProtocolAdapter::handle_history_request(TcpConnection& sender, const std::vector<char>& payload)
 {
     const auto limit = WillMessage::parse_history_request_limit(payload);
     if (!limit) {
