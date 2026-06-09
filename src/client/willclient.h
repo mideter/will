@@ -6,18 +6,12 @@
 #include <optional>
 #include <string>
 #include <string_view>
-#include <variant>
 
 #include "clientconfig.h"
 #include "wiremessage.h"
 
 
 namespace will {
-
-
-/** Peer chat text (UTF-8) after stripping {@link WireMessage::UserChat} prefix. */
-using InboundMessage =
-    std::variant<ServerReceiptAck, std::string, HistoryItemPayload, HistoryEnd, AuthRequired>;
 
 
 // TCP: TcpFrame; payload is typed wire message (see wiremessage.h).
@@ -28,17 +22,17 @@ public:
 
     void connect();
 
-    /** Login + {@link WireMessage::BindToken} on the current TCP session. */
+    /** Login + {@link BindToken} on the current TCP session. */
     void authenticate(std::string_view login, std::string_view password) const;
 
-    /** Sends {@code UserChat} with UTF-8 body (requires prior {@link #authenticate}). */
+    /** Sends {@link UserChat} with UTF-8 body (requires prior {@link #authenticate}). */
     void send(std::string_view utf8_chat_body) const;
 
-    /** Sends {@code HistoryRequest} with the given limit; returns false when limit is 0. */
+    /** Sends {@link HistoryRequest} with the given limit; returns false when limit is 0. */
     bool requestHistory(std::uint32_t limit) const;
 
-    /** std::nullopt = peer closed before next frame header; otherwise typed inbound message. */
-    std::optional<InboundMessage> receiveMessage() const;
+    /** std::nullopt = peer closed before next frame header; otherwise decoded server message. */
+    std::optional<WireMessageEntity> receiveMessage() const;
 
     void shutdown() const;
 
