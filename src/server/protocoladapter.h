@@ -1,5 +1,6 @@
 #pragma once
 
+#include "connectionaccountstore.h"
 #include "tcpconnectionparticipantnotifierimpl.h"
 
 #include "ports/messenger_persistence.h"
@@ -8,6 +9,7 @@
 #include "usecases/fetch_chat_history.h"
 #include "usecases/send_chat_message.h"
 
+#include <cstdint>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -16,28 +18,32 @@
 namespace will {
 
 
-class TcpConnection;
 class TcpConnectionRegistry;
 
 
 /** Maps wire payloads to domain use cases and encodes outbound frames. */
 class ProtocolAdapter {
 public:
-    ProtocolAdapter(domain::MessengerPersistence persistence, TcpConnectionRegistry& registry);
+    ProtocolAdapter(domain::MessengerPersistence persistence, TcpConnectionRegistry& registry,
+                    ConnectionAccountStore& account_store);
 
-    void on_client_frame(TcpConnection& connection, const std::vector<char>& payload);
+    void on_client_frame(std::uint64_t connection_id, const std::vector<char>& payload);
 
     static std::vector<char> encode_user_chat(std::string_view utf8_body);
     static std::string format_payload_for_log(const std::vector<char>& payload);
 
 private:
-    void handle_login(TcpConnection& connection, const std::vector<char>& payload);
-    void handle_bind_token(TcpConnection& connection, const std::vector<char>& payload);
-    void handle_user_chat(TcpConnection& sender, const std::vector<char>& payload);
-    void handle_history_request(TcpConnection& sender, const std::vector<char>& payload);
-    void send_auth_required(TcpConnection& connection);
+    void handle_login(std::uint64_t connection_id, const std::vector<char>& payload);
+    void handle_bind_token(std::uint64_t connection_id, const std::vector<char>& payload);
+    void handle_user_chat(std::uint64_t connection_id, const std::vector<char>& payload);
+    void handle_history_request(std::uint64_t connection_id, const std::vector<char>& payload);
+    void send_auth_required(std::uint64_t connection_id);
+    void send_payload(std::uint64_t connection_id, const std::vector<char>& app_payload);
+    void close_with_protocol_error(std::uint64_t connection_id, std::string_view message);
 
     domain::MessengerPersistence persistence_;
+    TcpConnectionRegistry& registry_;
+    ConnectionAccountStore& account_store_;
     TcpConnectionParticipantNotifierImpl participant_notifier_;
     domain::AuthenticateUser authenticate_user_;
     domain::SendChatMessage send_chat_message_;
