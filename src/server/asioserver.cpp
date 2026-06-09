@@ -30,8 +30,12 @@ AsioMessengerServer::AsioMessengerServer(ServerConfig config, domain::MessengerP
     : config_(config)
     , io_(config_.listen_port, config_.listen_backlog,
           [this](const asio::error_code& ec, int signo) { handle_shutdown_signal(ec, signo); })
-    , protocol_adapter_(persistence, registry_)
-{}
+    , protocol_adapter_(persistence, registry_, account_store_)
+{
+    registry_.set_frame_handler([this](const std::uint64_t id, const std::vector<char>& payload) {
+        protocol_adapter_.on_client_frame(id, payload);
+    });
+}
 
 
 void AsioMessengerServer::run()
@@ -77,8 +81,9 @@ void AsioMessengerServer::accept_client(asio::ip::tcp::socket socket)
     try {
         socket.set_option(asio::socket_base::keep_alive(true));
 
-        registry_.accept_connection(io_.ioc(), std::move(socket), socket.remote_endpoint(),
-                                    protocol_adapter_, config_.max_outbound_queue_bytes);
+        const auto peer_endpoint = socket.remote_endpoint();
+        registry_.accept_connection(io_.ioc(), std::move(socket), peer_endpoint,
+                                    config_.max_outbound_queue_bytes);
     }
     catch (const std::exception& e) {
         std::cerr << "Accept connection error: " << e.what() << '\n';

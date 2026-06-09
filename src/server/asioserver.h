@@ -2,6 +2,7 @@
 
 #include <atomic>
 
+#include "connectionaccountstore.h"
 #include "iocontextthreadpool.h"
 #include "iocontext.h"
 #include "protocoladapter.h"
@@ -33,8 +34,9 @@ private:
 
     ServerConfig config_;
 
+    ConnectionAccountStore account_store_;
     IoContext io_;
-    TcpConnectionRegistry registry_;
+    TcpConnectionRegistry registry_{account_store_};
     ProtocolAdapter protocol_adapter_;
 
     std::atomic<bool> stopping_{false};
