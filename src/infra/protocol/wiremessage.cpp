@@ -3,6 +3,7 @@
 #include <cstring>
 #include <stdexcept>
 #include <string>
+#include <type_traits>
 
 
 namespace will {
@@ -73,54 +74,52 @@ bool read_length_prefixed_string(std::string_view& field, const std::vector<char
 }
 
 
-} // namespace
-
-
-std::vector<char> WireMessage::encode_user_chat(std::string_view utf8_body)
+std::vector<char> encode_user_chat_body(const UserChat& message)
 {
+    const std::string_view utf8_body = message.body;
     const std::size_t total = 1u + utf8_body.size();
     if (total > TcpFrame::MaxPayloadBytes)
         throw std::runtime_error("WireMessage::encode_user_chat: payload exceeds TcpFrame::MaxPayloadBytes");
 
     std::vector<char> out(total);
-    out[0] = static_cast<char>(UserChat);
+    out[0] = static_cast<char>(WireMessageType::UserChat);
     if (!utf8_body.empty())
         std::memcpy(out.data() + 1, utf8_body.data(), utf8_body.size());
     return out;
 }
 
 
-std::vector<char> WireMessage::encode_server_receipt_ack()
+std::vector<char> encode_server_receipt_ack_body(const ServerReceiptAck&)
 {
-    return std::vector<char>{static_cast<char>(ServerReceiptAck)};
+    return std::vector<char>{static_cast<char>(WireMessageType::ServerReceiptAck)};
 }
 
 
-std::vector<char> WireMessage::encode_history_request(const std::uint32_t limit)
+std::vector<char> encode_history_request_body(const HistoryRequest& message)
 {
-    if (limit < 1u)
+    if (message.limit < 1u)
         throw std::runtime_error("WireMessage::encode_history_request: limit must be at least 1");
 
     std::vector<char> out;
     out.reserve(5);
-    out.push_back(static_cast<char>(HistoryRequest));
-    append_u32_be(out, limit);
+    out.push_back(static_cast<char>(WireMessageType::HistoryRequest));
+    append_u32_be(out, message.limit);
     return out;
 }
 
 
-std::vector<char> WireMessage::encode_history_item(const std::uint64_t message_id, const bool is_mine,
-                                                   const std::string_view utf8_body)
+std::vector<char> encode_history_item_body(const HistoryItemPayload& message)
 {
+    const std::string_view utf8_body = message.body;
     const std::size_t total = 1u + 8u + 1u + 4u + utf8_body.size();
     if (total > TcpFrame::MaxPayloadBytes)
         throw std::runtime_error("WireMessage::encode_history_item: payload exceeds TcpFrame::MaxPayloadBytes");
 
     std::vector<char> out;
     out.reserve(total);
-    out.push_back(static_cast<char>(HistoryItem));
-    append_u64_be(out, message_id);
-    out.push_back(is_mine ? '\1' : '\0');
+    out.push_back(static_cast<char>(WireMessageType::HistoryItem));
+    append_u64_be(out, message.message_id);
+    out.push_back(message.is_mine ? '\1' : '\0');
     append_u32_be(out, static_cast<std::uint32_t>(utf8_body.size()));
     if (!utf8_body.empty())
         out.insert(out.end(), utf8_body.begin(), utf8_body.end());
@@ -128,23 +127,22 @@ std::vector<char> WireMessage::encode_history_item(const std::uint64_t message_i
 }
 
 
-std::vector<char> WireMessage::encode_history_end()
+std::vector<char> encode_history_end_body(const HistoryEnd&)
 {
-    return std::vector<char>{static_cast<char>(HistoryEnd)};
+    return std::vector<char>{static_cast<char>(WireMessageType::HistoryEnd)};
 }
 
 
-std::vector<char> WireMessage::encode_login_request(const std::string_view login,
-                                                    const std::string_view password)
+std::vector<char> encode_login_request_body(const LoginRequestPayload& message)
 {
-    if (login.empty() || password.empty())
+    if (message.login.empty() || message.password.empty())
         throw std::runtime_error("WireMessage::encode_login_request: login and password required");
 
     std::vector<char> out;
-    out.reserve(1u + 8u + login.size() + password.size());
-    out.push_back(static_cast<char>(LoginRequest));
-    append_length_prefixed_string(out, login);
-    append_length_prefixed_string(out, password);
+    out.reserve(1u + 8u + message.login.size() + message.password.size());
+    out.push_back(static_cast<char>(WireMessageType::LoginRequest));
+    append_length_prefixed_string(out, message.login);
+    append_length_prefixed_string(out, message.password);
 
     if (out.size() > TcpFrame::MaxPayloadBytes)
         throw std::runtime_error("WireMessage::encode_login_request: payload exceeds TcpFrame::MaxPayloadBytes");
@@ -153,135 +151,85 @@ std::vector<char> WireMessage::encode_login_request(const std::string_view login
 }
 
 
-std::vector<char> WireMessage::encode_login_response_success(const std::string_view token)
+std::vector<char> encode_login_response_body(const LoginResponsePayload& message)
 {
-    if (token.empty())
-        throw std::runtime_error("WireMessage::encode_login_response_success: token required");
+    if (message.success) {
+        if (message.token.empty())
+            throw std::runtime_error("WireMessage::encode_login_response_success: token required");
 
-    std::vector<char> out;
-    out.reserve(1u + 1u + 4u + token.size());
-    out.push_back(static_cast<char>(LoginResponse));
-    out.push_back('\1');
-    append_length_prefixed_string(out, token);
-    return out;
-}
+        std::vector<char> out;
+        out.reserve(1u + 1u + 4u + message.token.size());
+        out.push_back(static_cast<char>(WireMessageType::LoginResponse));
+        out.push_back('\1');
+        append_length_prefixed_string(out, message.token);
+        return out;
+    }
 
-
-std::vector<char> WireMessage::encode_login_response_failure(const std::uint8_t error_code)
-{
-    if (error_code == 0u)
+    if (message.error_code == 0u)
         throw std::runtime_error("WireMessage::encode_login_response_failure: error_code required");
 
-    return std::vector<char>{static_cast<char>(LoginResponse), '\0', static_cast<char>(error_code)};
+    return std::vector<char>{static_cast<char>(WireMessageType::LoginResponse), '\0',
+                             static_cast<char>(message.error_code)};
 }
 
 
-std::vector<char> WireMessage::encode_bind_token(const std::string_view token)
+std::vector<char> encode_bind_token_body(const BindToken& message)
 {
-    if (token.empty())
+    if (message.token.empty())
         throw std::runtime_error("WireMessage::encode_bind_token: token required");
 
     std::vector<char> out;
-    out.reserve(1u + 4u + token.size());
-    out.push_back(static_cast<char>(BindToken));
-    append_length_prefixed_string(out, token);
+    out.reserve(1u + 4u + message.token.size());
+    out.push_back(static_cast<char>(WireMessageType::BindToken));
+    append_length_prefixed_string(out, message.token);
     return out;
 }
 
 
-std::vector<char> WireMessage::encode_auth_required()
+std::vector<char> encode_auth_required_body(const AuthRequired&)
 {
-    return std::vector<char>{static_cast<char>(AuthRequired)};
+    return std::vector<char>{static_cast<char>(WireMessageType::AuthRequired)};
 }
 
 
-bool WireMessage::is_valid_client_to_server_payload(const std::vector<char>& payload) noexcept
+std::optional<UserChat> decode_user_chat(const std::vector<char>& payload)
 {
-    if (payload.empty())
-        return false;
-    const auto t = static_cast<std::uint8_t>(payload[0]);
-    if (t == UserChat)
-        return true;
-    if (t == HistoryRequest)
-        return payload.size() == 5u && parse_history_request_limit(payload).has_value();
-    if (t == LoginRequest)
-        return parse_login_request(payload).has_value();
-    if (t == BindToken)
-        return parse_bind_token(payload).has_value();
-    return false;
+    if (payload.empty() || static_cast<std::uint8_t>(payload[0]) != WireMessage::UserChat)
+        return std::nullopt;
+
+    UserChat message;
+    message.body.assign(payload.begin() + 1, payload.end());
+    return message;
 }
 
 
-bool WireMessage::is_user_chat(const std::vector<char>& payload) noexcept
+std::optional<ServerReceiptAck> decode_server_receipt_ack(const std::vector<char>& payload)
 {
-    return !payload.empty() && static_cast<std::uint8_t>(payload[0]) == UserChat;
+    if (payload.size() != 1u || static_cast<std::uint8_t>(payload[0]) != WireMessage::ServerReceiptAck)
+        return std::nullopt;
+
+    return ServerReceiptAck{};
 }
 
 
-bool WireMessage::is_server_receipt_ack(const std::vector<char>& payload) noexcept
+std::optional<HistoryRequest> decode_history_request(const std::vector<char>& payload)
 {
-    return payload.size() == 1u && static_cast<std::uint8_t>(payload[0]) == ServerReceiptAck;
-}
-
-
-bool WireMessage::is_history_request(const std::vector<char>& payload) noexcept
-{
-    return !payload.empty() && static_cast<std::uint8_t>(payload[0]) == HistoryRequest;
-}
-
-
-bool WireMessage::is_history_item(const std::vector<char>& payload) noexcept
-{
-    return !payload.empty() && static_cast<std::uint8_t>(payload[0]) == HistoryItem;
-}
-
-
-bool WireMessage::is_history_end(const std::vector<char>& payload) noexcept
-{
-    return payload.size() == 1u && static_cast<std::uint8_t>(payload[0]) == HistoryEnd;
-}
-
-
-bool WireMessage::is_login_request(const std::vector<char>& payload) noexcept
-{
-    return !payload.empty() && static_cast<std::uint8_t>(payload[0]) == LoginRequest;
-}
-
-
-bool WireMessage::is_login_response(const std::vector<char>& payload) noexcept
-{
-    return !payload.empty() && static_cast<std::uint8_t>(payload[0]) == LoginResponse;
-}
-
-
-bool WireMessage::is_bind_token(const std::vector<char>& payload) noexcept
-{
-    return !payload.empty() && static_cast<std::uint8_t>(payload[0]) == BindToken;
-}
-
-
-bool WireMessage::is_auth_required(const std::vector<char>& payload) noexcept
-{
-    return payload.size() == 1u && static_cast<std::uint8_t>(payload[0]) == AuthRequired;
-}
-
-
-std::optional<std::uint32_t> WireMessage::parse_history_request_limit(const std::vector<char>& payload)
-{
-    if (!is_history_request(payload) || payload.size() != 5u)
+    if (payload.empty() || static_cast<std::uint8_t>(payload[0]) != WireMessage::HistoryRequest
+        || payload.size() != 5u)
         return std::nullopt;
 
     const auto limit = read_u32_be_at(reinterpret_cast<const unsigned char*>(payload.data() + 1));
     if (limit < 1u)
         return std::nullopt;
 
-    return limit;
+    return HistoryRequest{limit};
 }
 
 
-std::optional<HistoryItemPayload> WireMessage::parse_history_item(const std::vector<char>& payload)
+std::optional<HistoryItemPayload> decode_history_item(const std::vector<char>& payload)
 {
-    if (!is_history_item(payload) || payload.size() < 14u)
+    if (payload.empty() || static_cast<std::uint8_t>(payload[0]) != WireMessage::HistoryItem
+        || payload.size() < 14u)
         return std::nullopt;
 
     const auto* data = reinterpret_cast<const unsigned char*>(payload.data());
@@ -300,9 +248,18 @@ std::optional<HistoryItemPayload> WireMessage::parse_history_item(const std::vec
 }
 
 
-std::optional<LoginRequestPayload> WireMessage::parse_login_request(const std::vector<char>& payload)
+std::optional<HistoryEnd> decode_history_end(const std::vector<char>& payload)
 {
-    if (!is_login_request(payload))
+    if (payload.size() != 1u || static_cast<std::uint8_t>(payload[0]) != WireMessage::HistoryEnd)
+        return std::nullopt;
+
+    return HistoryEnd{};
+}
+
+
+std::optional<LoginRequestPayload> decode_login_request(const std::vector<char>& payload)
+{
+    if (payload.empty() || static_cast<std::uint8_t>(payload[0]) != WireMessage::LoginRequest)
         return std::nullopt;
 
     std::size_t offset = 1u;
@@ -322,9 +279,10 @@ std::optional<LoginRequestPayload> WireMessage::parse_login_request(const std::v
 }
 
 
-std::optional<LoginResponsePayload> WireMessage::parse_login_response(const std::vector<char>& payload)
+std::optional<LoginResponsePayload> decode_login_response(const std::vector<char>& payload)
 {
-    if (!is_login_response(payload) || payload.size() < 2u)
+    if (payload.empty() || static_cast<std::uint8_t>(payload[0]) != WireMessage::LoginResponse
+        || payload.size() < 2u)
         return std::nullopt;
 
     LoginResponsePayload parsed;
@@ -348,9 +306,9 @@ std::optional<LoginResponsePayload> WireMessage::parse_login_response(const std:
 }
 
 
-std::optional<std::string> WireMessage::parse_bind_token(const std::vector<char>& payload)
+std::optional<BindToken> decode_bind_token(const std::vector<char>& payload)
 {
-    if (!is_bind_token(payload))
+    if (payload.empty() || static_cast<std::uint8_t>(payload[0]) != WireMessage::BindToken)
         return std::nullopt;
 
     std::size_t offset = 1u;
@@ -358,112 +316,420 @@ std::optional<std::string> WireMessage::parse_bind_token(const std::vector<char>
     if (!read_length_prefixed_string(token, payload, offset) || offset != payload.size())
         return std::nullopt;
 
-    return std::string(token);
+    return BindToken{std::string(token)};
+}
+
+
+std::optional<AuthRequired> decode_auth_required(const std::vector<char>& payload)
+{
+    if (payload.size() != 1u || static_cast<std::uint8_t>(payload[0]) != WireMessage::AuthRequired)
+        return std::nullopt;
+
+    return AuthRequired{};
+}
+
+
+std::string format_user_chat_for_log(const UserChat& message)
+{
+    std::string out = "UserChat(";
+    out += std::to_string(message.body.size());
+    out += " bytes): ";
+
+    static constexpr const char* HexDigits = "0123456789abcdef";
+    for (const unsigned char c : message.body) {
+        if (c == '\n') {
+            out += "\\n";
+            continue;
+        }
+        if (c == '\r') {
+            out += "\\r";
+            continue;
+        }
+        if (c == '\t') {
+            out += "\\t";
+            continue;
+        }
+        if (c == '\\') {
+            out += "\\\\";
+            continue;
+        }
+        if (c < 32u) {
+            out += "\\x";
+            out += HexDigits[c >> 4u];
+            out += HexDigits[c & 15u];
+            continue;
+        }
+        out += static_cast<char>(c);
+    }
+    return out;
+}
+
+
+} // namespace
+
+
+std::vector<char> encode(const WireMessageEntity& message)
+{
+    return std::visit(
+        [](const auto& typed_message) -> std::vector<char> {
+            using T = std::decay_t<decltype(typed_message)>;
+            if constexpr (std::is_same_v<T, UserChat>)
+                return encode_user_chat_body(typed_message);
+            else if constexpr (std::is_same_v<T, ServerReceiptAck>)
+                return encode_server_receipt_ack_body(typed_message);
+            else if constexpr (std::is_same_v<T, HistoryRequest>)
+                return encode_history_request_body(typed_message);
+            else if constexpr (std::is_same_v<T, HistoryItemPayload>)
+                return encode_history_item_body(typed_message);
+            else if constexpr (std::is_same_v<T, HistoryEnd>)
+                return encode_history_end_body(typed_message);
+            else if constexpr (std::is_same_v<T, LoginRequestPayload>)
+                return encode_login_request_body(typed_message);
+            else if constexpr (std::is_same_v<T, LoginResponsePayload>)
+                return encode_login_response_body(typed_message);
+            else if constexpr (std::is_same_v<T, BindToken>)
+                return encode_bind_token_body(typed_message);
+            else if constexpr (std::is_same_v<T, AuthRequired>)
+                return encode_auth_required_body(typed_message);
+        },
+        message);
+}
+
+
+std::optional<WireMessageEntity> decode(const std::vector<char>& payload)
+{
+    if (payload.empty())
+        return std::nullopt;
+
+    switch (static_cast<WireMessageType>(static_cast<std::uint8_t>(payload[0]))) {
+    case WireMessageType::UserChat: {
+        const auto message = decode_user_chat(payload);
+        return message ? std::optional<WireMessageEntity>{*message} : std::nullopt;
+    }
+    case WireMessageType::ServerReceiptAck: {
+        const auto message = decode_server_receipt_ack(payload);
+        return message ? std::optional<WireMessageEntity>{*message} : std::nullopt;
+    }
+    case WireMessageType::HistoryRequest: {
+        const auto message = decode_history_request(payload);
+        return message ? std::optional<WireMessageEntity>{*message} : std::nullopt;
+    }
+    case WireMessageType::HistoryItem: {
+        const auto message = decode_history_item(payload);
+        return message ? std::optional<WireMessageEntity>{*message} : std::nullopt;
+    }
+    case WireMessageType::HistoryEnd: {
+        const auto message = decode_history_end(payload);
+        return message ? std::optional<WireMessageEntity>{*message} : std::nullopt;
+    }
+    case WireMessageType::LoginRequest: {
+        const auto message = decode_login_request(payload);
+        return message ? std::optional<WireMessageEntity>{*message} : std::nullopt;
+    }
+    case WireMessageType::LoginResponse: {
+        const auto message = decode_login_response(payload);
+        return message ? std::optional<WireMessageEntity>{*message} : std::nullopt;
+    }
+    case WireMessageType::BindToken: {
+        const auto message = decode_bind_token(payload);
+        return message ? std::optional<WireMessageEntity>{*message} : std::nullopt;
+    }
+    case WireMessageType::AuthRequired: {
+        const auto message = decode_auth_required(payload);
+        return message ? std::optional<WireMessageEntity>{*message} : std::nullopt;
+    }
+    }
+
+    return std::nullopt;
+}
+
+
+bool is_client_to_server(const WireMessageEntity& message) noexcept
+{
+    return std::holds_alternative<UserChat>(message) || std::holds_alternative<HistoryRequest>(message)
+           || std::holds_alternative<LoginRequestPayload>(message)
+           || std::holds_alternative<BindToken>(message);
+}
+
+
+std::string format_for_log(const WireMessageEntity& message)
+{
+    return std::visit(
+        [](const auto& typed_message) -> std::string {
+            using T = std::decay_t<decltype(typed_message)>;
+
+            if constexpr (std::is_same_v<T, UserChat>)
+                return format_user_chat_for_log(typed_message);
+            else if constexpr (std::is_same_v<T, ServerReceiptAck>)
+                return "ServerReceiptAck";
+            else if constexpr (std::is_same_v<T, HistoryRequest>)
+                return "HistoryRequest(" + std::to_string(typed_message.limit) + ')';
+            else if constexpr (std::is_same_v<T, HistoryItemPayload>) {
+                std::string out = "HistoryItem(id=";
+                out += std::to_string(typed_message.message_id);
+                out += typed_message.is_mine ? ", mine" : ", peer";
+                out += ", ";
+                out += std::to_string(typed_message.body.size());
+                out += " bytes)";
+                return out;
+            }
+            else if constexpr (std::is_same_v<T, HistoryEnd>)
+                return "HistoryEnd";
+            else if constexpr (std::is_same_v<T, LoginRequestPayload>)
+                return "LoginRequest(login=" + typed_message.login + ')';
+            else if constexpr (std::is_same_v<T, LoginResponsePayload>) {
+                if (typed_message.success)
+                    return "LoginResponse(ok, token_len=" + std::to_string(typed_message.token.size()) + ')';
+                return "LoginResponse(error=" + std::to_string(typed_message.error_code) + ')';
+            }
+            else if constexpr (std::is_same_v<T, BindToken>)
+                return "BindToken(len=" + std::to_string(typed_message.token.size()) + ')';
+            else if constexpr (std::is_same_v<T, AuthRequired>)
+                return "AuthRequired";
+        },
+        message);
+}
+
+
+std::string format_for_log(const std::vector<char>& payload)
+{
+    if (payload.empty())
+        return "<empty>";
+
+    const auto message = decode(payload);
+    if (!message)
+        return "<unknown type=" + std::to_string(static_cast<unsigned int>(static_cast<unsigned char>(payload[0])))
+               + " len=" + std::to_string(payload.size()) + ">";
+
+    return format_for_log(*message);
+}
+
+
+std::vector<char> WireMessage::encode_user_chat(const std::string_view utf8_body)
+{
+    return will::encode(::will::UserChat{std::string(utf8_body)});
+}
+
+
+std::vector<char> WireMessage::encode_server_receipt_ack()
+{
+    return will::encode(::will::ServerReceiptAck{});
+}
+
+
+std::vector<char> WireMessage::encode_history_request(const std::uint32_t limit)
+{
+    return will::encode(::will::HistoryRequest{limit});
+}
+
+
+std::vector<char> WireMessage::encode_history_item(const std::uint64_t message_id, const bool is_mine,
+                                                   const std::string_view utf8_body)
+{
+    ::will::HistoryItemPayload item;
+    item.message_id = message_id;
+    item.is_mine = is_mine;
+    item.body.assign(utf8_body);
+    return will::encode(item);
+}
+
+
+std::vector<char> WireMessage::encode_history_end()
+{
+    return will::encode(::will::HistoryEnd{});
+}
+
+
+std::vector<char> WireMessage::encode_login_request(const std::string_view login,
+                                                    const std::string_view password)
+{
+    ::will::LoginRequestPayload request;
+    request.login.assign(login);
+    request.password.assign(password);
+    return will::encode(request);
+}
+
+
+std::vector<char> WireMessage::encode_login_response_success(const std::string_view token)
+{
+    ::will::LoginResponsePayload response;
+    response.success = true;
+    response.token.assign(token);
+    return will::encode(response);
+}
+
+
+std::vector<char> WireMessage::encode_login_response_failure(const std::uint8_t error_code)
+{
+    ::will::LoginResponsePayload response;
+    response.success = false;
+    response.error_code = error_code;
+    return will::encode(response);
+}
+
+
+std::vector<char> WireMessage::encode_bind_token(const std::string_view token)
+{
+    return will::encode(::will::BindToken{std::string(token)});
+}
+
+
+std::vector<char> WireMessage::encode_auth_required()
+{
+    return will::encode(::will::AuthRequired{});
+}
+
+
+bool WireMessage::is_valid_client_to_server_payload(const std::vector<char>& payload) noexcept
+{
+    const auto message = will::decode(payload);
+    if (!message)
+        return false;
+
+    if (!is_client_to_server(*message))
+        return false;
+
+    if (std::holds_alternative<::will::UserChat>(*message))
+        return true;
+
+    if (const auto* request = std::get_if<::will::HistoryRequest>(&*message))
+        return request->limit >= 1u;
+
+    return true;
+}
+
+
+bool WireMessage::is_user_chat(const std::vector<char>& payload) noexcept
+{
+    const auto message = will::decode(payload);
+    return message && std::holds_alternative<::will::UserChat>(*message);
+}
+
+
+bool WireMessage::is_server_receipt_ack(const std::vector<char>& payload) noexcept
+{
+    const auto message = will::decode(payload);
+    return message && std::holds_alternative<::will::ServerReceiptAck>(*message);
+}
+
+
+bool WireMessage::is_history_request(const std::vector<char>& payload) noexcept
+{
+    const auto message = will::decode(payload);
+    return message && std::holds_alternative<::will::HistoryRequest>(*message);
+}
+
+
+bool WireMessage::is_history_item(const std::vector<char>& payload) noexcept
+{
+    const auto message = will::decode(payload);
+    return message && std::holds_alternative<::will::HistoryItemPayload>(*message);
+}
+
+
+bool WireMessage::is_history_end(const std::vector<char>& payload) noexcept
+{
+    const auto message = will::decode(payload);
+    return message && std::holds_alternative<::will::HistoryEnd>(*message);
+}
+
+
+bool WireMessage::is_login_request(const std::vector<char>& payload) noexcept
+{
+    const auto message = will::decode(payload);
+    return message && std::holds_alternative<::will::LoginRequestPayload>(*message);
+}
+
+
+bool WireMessage::is_login_response(const std::vector<char>& payload) noexcept
+{
+    const auto message = will::decode(payload);
+    return message && std::holds_alternative<::will::LoginResponsePayload>(*message);
+}
+
+
+bool WireMessage::is_bind_token(const std::vector<char>& payload) noexcept
+{
+    const auto message = will::decode(payload);
+    return message && std::holds_alternative<::will::BindToken>(*message);
+}
+
+
+bool WireMessage::is_auth_required(const std::vector<char>& payload) noexcept
+{
+    const auto message = will::decode(payload);
+    return message && std::holds_alternative<::will::AuthRequired>(*message);
+}
+
+
+std::optional<std::uint32_t> WireMessage::parse_history_request_limit(const std::vector<char>& payload)
+{
+    const auto message = will::decode(payload);
+    if (!message)
+        return std::nullopt;
+
+    if (const auto* request = std::get_if<::will::HistoryRequest>(&*message))
+        return request->limit;
+
+    return std::nullopt;
+}
+
+
+std::optional<HistoryItemPayload> WireMessage::parse_history_item(const std::vector<char>& payload)
+{
+    const auto message = will::decode(payload);
+    if (!message)
+        return std::nullopt;
+
+    if (const auto* item = std::get_if<::will::HistoryItemPayload>(&*message))
+        return *item;
+
+    return std::nullopt;
+}
+
+
+std::optional<LoginRequestPayload> WireMessage::parse_login_request(const std::vector<char>& payload)
+{
+    const auto message = will::decode(payload);
+    if (!message)
+        return std::nullopt;
+
+    if (const auto* request = std::get_if<::will::LoginRequestPayload>(&*message))
+        return *request;
+
+    return std::nullopt;
+}
+
+
+std::optional<LoginResponsePayload> WireMessage::parse_login_response(const std::vector<char>& payload)
+{
+    const auto message = will::decode(payload);
+    if (!message)
+        return std::nullopt;
+
+    if (const auto* response = std::get_if<::will::LoginResponsePayload>(&*message))
+        return *response;
+
+    return std::nullopt;
+}
+
+
+std::optional<std::string> WireMessage::parse_bind_token(const std::vector<char>& payload)
+{
+    const auto message = will::decode(payload);
+    if (!message)
+        return std::nullopt;
+
+    if (const auto* token = std::get_if<::will::BindToken>(&*message))
+        return token->token;
+
+    return std::nullopt;
 }
 
 
 std::string WireMessage::format_payload_for_log(const std::vector<char>& payload)
 {
-    if (payload.empty())
-        return "<empty>";
-
-    if (is_server_receipt_ack(payload))
-        return "ServerReceiptAck";
-
-    if (is_auth_required(payload))
-        return "AuthRequired";
-
-    if (is_history_end(payload))
-        return "HistoryEnd";
-
-    if (is_login_response(payload)) {
-        const auto response = parse_login_response(payload);
-        if (!response)
-            return "LoginResponse(invalid)";
-        if (response->success)
-            return "LoginResponse(ok, token_len=" + std::to_string(response->token.size()) + ')';
-        return "LoginResponse(error=" + std::to_string(response->error_code) + ')';
-    }
-
-    if (is_login_request(payload)) {
-        const auto request = parse_login_request(payload);
-        if (!request)
-            return "LoginRequest(invalid)";
-        return "LoginRequest(login=" + request->login + ')';
-    }
-
-    if (is_bind_token(payload)) {
-        const auto token = parse_bind_token(payload);
-        return token ? "BindToken(len=" + std::to_string(token->size()) + ')' : "BindToken(invalid)";
-    }
-
-    if (is_history_request(payload)) {
-        const auto limit = parse_history_request_limit(payload);
-        std::string out = "HistoryRequest(";
-        out += limit ? std::to_string(*limit) : "?";
-        out += ')';
-        return out;
-    }
-
-    if (is_history_item(payload)) {
-        const auto item = parse_history_item(payload);
-        std::string out = "HistoryItem(";
-        if (item) {
-            out += "id=";
-            out += std::to_string(item->message_id);
-            out += item->is_mine ? ", mine" : ", peer";
-            out += ", ";
-            out += std::to_string(item->body.size());
-            out += " bytes";
-        }
-        else {
-            out += "invalid";
-        }
-        out += ')';
-        return out;
-    }
-
-    if (is_user_chat(payload)) {
-        std::string out = "UserChat(";
-        out += std::to_string(payload.size() > 0 ? payload.size() - 1u : 0u);
-        out += " bytes): ";
-
-        static constexpr const char* HexDigits = "0123456789abcdef";
-        for (std::size_t i = 1; i < payload.size(); ++i) {
-            const unsigned char c = static_cast<unsigned char>(payload[i]);
-            if (c == '\n') {
-                out += "\\n";
-                continue;
-            }
-            if (c == '\r') {
-                out += "\\r";
-                continue;
-            }
-            if (c == '\t') {
-                out += "\\t";
-                continue;
-            }
-            if (c == '\\') {
-                out += "\\\\";
-                continue;
-            }
-            if (c < 32u) {
-                out += "\\x";
-                out += HexDigits[c >> 4u];
-                out += HexDigits[c & 15u];
-                continue;
-            }
-            out += static_cast<char>(c);
-        }
-        return out;
-    }
-
-    std::string out = "<unknown type=";
-    out += std::to_string(static_cast<unsigned int>(static_cast<unsigned char>(payload[0])));
-    out += " len=";
-    out += std::to_string(payload.size());
-    out += ">";
-    return out;
+    return will::format_for_log(payload);
 }
 
 

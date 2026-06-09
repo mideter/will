@@ -15,15 +15,6 @@
 namespace will {
 
 
-/** Server → client: single-byte {@link WireMessage::ServerReceiptAck} frame. */
-struct ServerReceiptAck {};
-
-/** Server → client: end of history batch. */
-struct HistoryEnd {};
-
-/** Server → client: chat/history requires BindToken on this connection. */
-struct AuthRequired {};
-
 /** Peer chat text (UTF-8) after stripping {@link WireMessage::UserChat} prefix. */
 using InboundMessage =
     std::variant<ServerReceiptAck, std::string, HistoryItemPayload, HistoryEnd, AuthRequired>;
