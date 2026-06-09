@@ -1,4 +1,4 @@
-#include "willmessage.h"
+#include "wiremessage.h"
 
 #include <cstring>
 #include <stdexcept>
@@ -45,8 +45,8 @@ std::uint64_t read_u64_be(const unsigned char* data) noexcept
 
 void append_length_prefixed_string(std::vector<char>& out, std::string_view value)
 {
-    if (value.size() > WillMessage::MaxAuthFieldBytes)
-        throw std::runtime_error("WillMessage: auth field exceeds MaxAuthFieldBytes");
+    if (value.size() > WireMessage::MaxAuthFieldBytes)
+        throw std::runtime_error("WireMessage: auth field exceeds MaxAuthFieldBytes");
 
     append_u32_be(out, static_cast<std::uint32_t>(value.size()));
     if (!value.empty())
@@ -64,7 +64,7 @@ bool read_length_prefixed_string(std::string_view& field, const std::vector<char
     const std::uint32_t len = read_u32_be_at(data + offset);
     offset += 4u;
 
-    if (len == 0u || len > WillMessage::MaxAuthFieldBytes || offset + len > payload.size())
+    if (len == 0u || len > WireMessage::MaxAuthFieldBytes || offset + len > payload.size())
         return false;
 
     field = std::string_view(payload.data() + offset, len);
@@ -76,11 +76,11 @@ bool read_length_prefixed_string(std::string_view& field, const std::vector<char
 } // namespace
 
 
-std::vector<char> WillMessage::encode_user_chat(std::string_view utf8_body)
+std::vector<char> WireMessage::encode_user_chat(std::string_view utf8_body)
 {
     const std::size_t total = 1u + utf8_body.size();
     if (total > TcpFrame::MaxPayloadBytes)
-        throw std::runtime_error("WillMessage::encode_user_chat: payload exceeds TcpFrame::MaxPayloadBytes");
+        throw std::runtime_error("WireMessage::encode_user_chat: payload exceeds TcpFrame::MaxPayloadBytes");
 
     std::vector<char> out(total);
     out[0] = static_cast<char>(UserChat);
@@ -90,16 +90,16 @@ std::vector<char> WillMessage::encode_user_chat(std::string_view utf8_body)
 }
 
 
-std::vector<char> WillMessage::encode_server_receipt_ack()
+std::vector<char> WireMessage::encode_server_receipt_ack()
 {
     return std::vector<char>{static_cast<char>(ServerReceiptAck)};
 }
 
 
-std::vector<char> WillMessage::encode_history_request(const std::uint32_t limit)
+std::vector<char> WireMessage::encode_history_request(const std::uint32_t limit)
 {
     if (limit < 1u)
-        throw std::runtime_error("WillMessage::encode_history_request: limit must be at least 1");
+        throw std::runtime_error("WireMessage::encode_history_request: limit must be at least 1");
 
     std::vector<char> out;
     out.reserve(5);
@@ -109,12 +109,12 @@ std::vector<char> WillMessage::encode_history_request(const std::uint32_t limit)
 }
 
 
-std::vector<char> WillMessage::encode_history_item(const std::uint64_t message_id, const bool is_mine,
+std::vector<char> WireMessage::encode_history_item(const std::uint64_t message_id, const bool is_mine,
                                                    const std::string_view utf8_body)
 {
     const std::size_t total = 1u + 8u + 1u + 4u + utf8_body.size();
     if (total > TcpFrame::MaxPayloadBytes)
-        throw std::runtime_error("WillMessage::encode_history_item: payload exceeds TcpFrame::MaxPayloadBytes");
+        throw std::runtime_error("WireMessage::encode_history_item: payload exceeds TcpFrame::MaxPayloadBytes");
 
     std::vector<char> out;
     out.reserve(total);
@@ -128,17 +128,17 @@ std::vector<char> WillMessage::encode_history_item(const std::uint64_t message_i
 }
 
 
-std::vector<char> WillMessage::encode_history_end()
+std::vector<char> WireMessage::encode_history_end()
 {
     return std::vector<char>{static_cast<char>(HistoryEnd)};
 }
 
 
-std::vector<char> WillMessage::encode_login_request(const std::string_view login,
+std::vector<char> WireMessage::encode_login_request(const std::string_view login,
                                                     const std::string_view password)
 {
     if (login.empty() || password.empty())
-        throw std::runtime_error("WillMessage::encode_login_request: login and password required");
+        throw std::runtime_error("WireMessage::encode_login_request: login and password required");
 
     std::vector<char> out;
     out.reserve(1u + 8u + login.size() + password.size());
@@ -147,16 +147,16 @@ std::vector<char> WillMessage::encode_login_request(const std::string_view login
     append_length_prefixed_string(out, password);
 
     if (out.size() > TcpFrame::MaxPayloadBytes)
-        throw std::runtime_error("WillMessage::encode_login_request: payload exceeds TcpFrame::MaxPayloadBytes");
+        throw std::runtime_error("WireMessage::encode_login_request: payload exceeds TcpFrame::MaxPayloadBytes");
 
     return out;
 }
 
 
-std::vector<char> WillMessage::encode_login_response_success(const std::string_view token)
+std::vector<char> WireMessage::encode_login_response_success(const std::string_view token)
 {
     if (token.empty())
-        throw std::runtime_error("WillMessage::encode_login_response_success: token required");
+        throw std::runtime_error("WireMessage::encode_login_response_success: token required");
 
     std::vector<char> out;
     out.reserve(1u + 1u + 4u + token.size());
@@ -167,19 +167,19 @@ std::vector<char> WillMessage::encode_login_response_success(const std::string_v
 }
 
 
-std::vector<char> WillMessage::encode_login_response_failure(const std::uint8_t error_code)
+std::vector<char> WireMessage::encode_login_response_failure(const std::uint8_t error_code)
 {
     if (error_code == 0u)
-        throw std::runtime_error("WillMessage::encode_login_response_failure: error_code required");
+        throw std::runtime_error("WireMessage::encode_login_response_failure: error_code required");
 
     return std::vector<char>{static_cast<char>(LoginResponse), '\0', static_cast<char>(error_code)};
 }
 
 
-std::vector<char> WillMessage::encode_bind_token(const std::string_view token)
+std::vector<char> WireMessage::encode_bind_token(const std::string_view token)
 {
     if (token.empty())
-        throw std::runtime_error("WillMessage::encode_bind_token: token required");
+        throw std::runtime_error("WireMessage::encode_bind_token: token required");
 
     std::vector<char> out;
     out.reserve(1u + 4u + token.size());
@@ -189,13 +189,13 @@ std::vector<char> WillMessage::encode_bind_token(const std::string_view token)
 }
 
 
-std::vector<char> WillMessage::encode_auth_required()
+std::vector<char> WireMessage::encode_auth_required()
 {
     return std::vector<char>{static_cast<char>(AuthRequired)};
 }
 
 
-bool WillMessage::is_valid_client_to_server_payload(const std::vector<char>& payload) noexcept
+bool WireMessage::is_valid_client_to_server_payload(const std::vector<char>& payload) noexcept
 {
     if (payload.empty())
         return false;
@@ -212,61 +212,61 @@ bool WillMessage::is_valid_client_to_server_payload(const std::vector<char>& pay
 }
 
 
-bool WillMessage::is_user_chat(const std::vector<char>& payload) noexcept
+bool WireMessage::is_user_chat(const std::vector<char>& payload) noexcept
 {
     return !payload.empty() && static_cast<std::uint8_t>(payload[0]) == UserChat;
 }
 
 
-bool WillMessage::is_server_receipt_ack(const std::vector<char>& payload) noexcept
+bool WireMessage::is_server_receipt_ack(const std::vector<char>& payload) noexcept
 {
     return payload.size() == 1u && static_cast<std::uint8_t>(payload[0]) == ServerReceiptAck;
 }
 
 
-bool WillMessage::is_history_request(const std::vector<char>& payload) noexcept
+bool WireMessage::is_history_request(const std::vector<char>& payload) noexcept
 {
     return !payload.empty() && static_cast<std::uint8_t>(payload[0]) == HistoryRequest;
 }
 
 
-bool WillMessage::is_history_item(const std::vector<char>& payload) noexcept
+bool WireMessage::is_history_item(const std::vector<char>& payload) noexcept
 {
     return !payload.empty() && static_cast<std::uint8_t>(payload[0]) == HistoryItem;
 }
 
 
-bool WillMessage::is_history_end(const std::vector<char>& payload) noexcept
+bool WireMessage::is_history_end(const std::vector<char>& payload) noexcept
 {
     return payload.size() == 1u && static_cast<std::uint8_t>(payload[0]) == HistoryEnd;
 }
 
 
-bool WillMessage::is_login_request(const std::vector<char>& payload) noexcept
+bool WireMessage::is_login_request(const std::vector<char>& payload) noexcept
 {
     return !payload.empty() && static_cast<std::uint8_t>(payload[0]) == LoginRequest;
 }
 
 
-bool WillMessage::is_login_response(const std::vector<char>& payload) noexcept
+bool WireMessage::is_login_response(const std::vector<char>& payload) noexcept
 {
     return !payload.empty() && static_cast<std::uint8_t>(payload[0]) == LoginResponse;
 }
 
 
-bool WillMessage::is_bind_token(const std::vector<char>& payload) noexcept
+bool WireMessage::is_bind_token(const std::vector<char>& payload) noexcept
 {
     return !payload.empty() && static_cast<std::uint8_t>(payload[0]) == BindToken;
 }
 
 
-bool WillMessage::is_auth_required(const std::vector<char>& payload) noexcept
+bool WireMessage::is_auth_required(const std::vector<char>& payload) noexcept
 {
     return payload.size() == 1u && static_cast<std::uint8_t>(payload[0]) == AuthRequired;
 }
 
 
-std::optional<std::uint32_t> WillMessage::parse_history_request_limit(const std::vector<char>& payload)
+std::optional<std::uint32_t> WireMessage::parse_history_request_limit(const std::vector<char>& payload)
 {
     if (!is_history_request(payload) || payload.size() != 5u)
         return std::nullopt;
@@ -279,7 +279,7 @@ std::optional<std::uint32_t> WillMessage::parse_history_request_limit(const std:
 }
 
 
-std::optional<HistoryItemPayload> WillMessage::parse_history_item(const std::vector<char>& payload)
+std::optional<HistoryItemPayload> WireMessage::parse_history_item(const std::vector<char>& payload)
 {
     if (!is_history_item(payload) || payload.size() < 14u)
         return std::nullopt;
@@ -300,7 +300,7 @@ std::optional<HistoryItemPayload> WillMessage::parse_history_item(const std::vec
 }
 
 
-std::optional<LoginRequestPayload> WillMessage::parse_login_request(const std::vector<char>& payload)
+std::optional<LoginRequestPayload> WireMessage::parse_login_request(const std::vector<char>& payload)
 {
     if (!is_login_request(payload))
         return std::nullopt;
@@ -322,7 +322,7 @@ std::optional<LoginRequestPayload> WillMessage::parse_login_request(const std::v
 }
 
 
-std::optional<LoginResponsePayload> WillMessage::parse_login_response(const std::vector<char>& payload)
+std::optional<LoginResponsePayload> WireMessage::parse_login_response(const std::vector<char>& payload)
 {
     if (!is_login_response(payload) || payload.size() < 2u)
         return std::nullopt;
@@ -348,7 +348,7 @@ std::optional<LoginResponsePayload> WillMessage::parse_login_response(const std:
 }
 
 
-std::optional<std::string> WillMessage::parse_bind_token(const std::vector<char>& payload)
+std::optional<std::string> WireMessage::parse_bind_token(const std::vector<char>& payload)
 {
     if (!is_bind_token(payload))
         return std::nullopt;
@@ -362,7 +362,7 @@ std::optional<std::string> WillMessage::parse_bind_token(const std::vector<char>
 }
 
 
-std::string WillMessage::format_payload_for_log(const std::vector<char>& payload)
+std::string WireMessage::format_payload_for_log(const std::vector<char>& payload)
 {
     if (payload.empty())
         return "<empty>";

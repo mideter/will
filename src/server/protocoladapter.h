@@ -20,10 +20,10 @@ class TcpConnection;
 class TcpConnectionRegistry;
 
 
-/** Maps Will wire payloads to domain use cases and encodes outbound frames. */
-class WillProtocolAdapter {
+/** Maps wire payloads to domain use cases and encodes outbound frames. */
+class ProtocolAdapter {
 public:
-    WillProtocolAdapter(domain::MessengerPersistence persistence, TcpConnectionRegistry& registry);
+    ProtocolAdapter(domain::MessengerPersistence persistence, TcpConnectionRegistry& registry);
 
     void on_client_frame(TcpConnection& connection, const std::vector<char>& payload);
 

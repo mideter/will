@@ -1,4 +1,4 @@
-#include "willmessage.h"
+#include "wiremessage.h"
 #include "willprotocol.h"
 
 #include <arpa/inet.h>
@@ -90,21 +90,21 @@ std::vector<char> read_frame(int fd)
 void drain_receipt_ack(int fd)
 {
     const auto payload = read_frame(fd);
-    assert(will::WillMessage::is_server_receipt_ack(payload));
+    assert(will::WireMessage::is_server_receipt_ack(payload));
 }
 
 
 void login_and_bind(int fd, const char* login, const char* password)
 {
-    send_frame(fd, will::WillMessage::encode_login_request(login, password));
+    send_frame(fd, will::WireMessage::encode_login_request(login, password));
 
     const auto login_response = read_frame(fd);
-    assert(will::WillMessage::is_login_response(login_response));
-    const auto parsed = will::WillMessage::parse_login_response(login_response);
+    assert(will::WireMessage::is_login_response(login_response));
+    const auto parsed = will::WireMessage::parse_login_response(login_response);
     assert(parsed);
     assert(parsed->success);
 
-    send_frame(fd, will::WillMessage::encode_bind_token(parsed->token));
+    send_frame(fd, will::WireMessage::encode_bind_token(parsed->token));
 }
 
 
@@ -178,44 +178,44 @@ int main(int argc, char* argv[])
     const int sender_fd = connect_tcp("127.0.0.1", port);
     assert(sender_fd >= 0);
     login_and_bind(sender_fd, "admin", "admin");
-    send_frame(sender_fd, will::WillMessage::encode_user_chat("hello-from-sender"));
+    send_frame(sender_fd, will::WireMessage::encode_user_chat("hello-from-sender"));
     drain_receipt_ack(sender_fd);
 
     const int viewer_fd = connect_tcp("127.0.0.1", port);
     assert(viewer_fd >= 0);
     login_and_bind(viewer_fd, "admin", "admin");
-    send_frame(viewer_fd, will::WillMessage::encode_history_request(10));
+    send_frame(viewer_fd, will::WireMessage::encode_history_request(10));
 
     const auto first_item = read_frame(viewer_fd);
-    assert(will::WillMessage::is_history_item(first_item));
-    const auto parsed_first = will::WillMessage::parse_history_item(first_item);
+    assert(will::WireMessage::is_history_item(first_item));
+    const auto parsed_first = will::WireMessage::parse_history_item(first_item);
     assert(parsed_first);
     assert(parsed_first->body == "hello-from-sender");
     assert(parsed_first->is_mine);
 
     const auto end = read_frame(viewer_fd);
-    assert(will::WillMessage::is_history_end(end));
+    assert(will::WireMessage::is_history_end(end));
 
-    send_frame(sender_fd, will::WillMessage::encode_user_chat("hello-again"));
+    send_frame(sender_fd, will::WireMessage::encode_user_chat("hello-again"));
     drain_receipt_ack(sender_fd);
-    send_frame(sender_fd, will::WillMessage::encode_history_request(10));
+    send_frame(sender_fd, will::WireMessage::encode_history_request(10));
 
     const auto own_item = read_frame(sender_fd);
-    assert(will::WillMessage::is_history_item(own_item));
-    const auto parsed_own = will::WillMessage::parse_history_item(own_item);
+    assert(will::WireMessage::is_history_item(own_item));
+    const auto parsed_own = will::WireMessage::parse_history_item(own_item);
     assert(parsed_own);
     assert(parsed_own->body == "hello-from-sender");
     assert(parsed_own->is_mine);
 
     const auto own_second = read_frame(sender_fd);
-    assert(will::WillMessage::is_history_item(own_second));
-    const auto parsed_second = will::WillMessage::parse_history_item(own_second);
+    assert(will::WireMessage::is_history_item(own_second));
+    const auto parsed_second = will::WireMessage::parse_history_item(own_second);
     assert(parsed_second);
     assert(parsed_second->body == "hello-again");
     assert(parsed_second->is_mine);
 
     const auto sender_end = read_frame(sender_fd);
-    assert(will::WillMessage::is_history_end(sender_end));
+    assert(will::WireMessage::is_history_end(sender_end));
 
     ::close(sender_fd);
     ::close(viewer_fd);

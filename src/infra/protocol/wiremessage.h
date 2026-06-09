@@ -34,7 +34,7 @@ struct LoginResponsePayload {
 
 
 /** Typed payload inside {@link TcpFrame}: first byte {@code MessageType}, then type-specific body. */
-class WillMessage {
+class WireMessage {
 public:
     static constexpr std::uint8_t UserChat = 1;
     static constexpr std::uint8_t ServerReceiptAck = 2;
@@ -86,7 +86,7 @@ public:
     /** Single-line UTF-8 safe for journald/terminals: never dumps raw framing bytes. */
     static std::string format_payload_for_log(const std::vector<char>& payload);
 
-    WillMessage() = delete;
+    WireMessage() = delete;
 };
 
 

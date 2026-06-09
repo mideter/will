@@ -41,7 +41,7 @@ target_compile_features(will-domain PUBLIC cxx_std_20)
 # Wire codec (former src/common).
 add_library(will-protocol
   src/infra/protocol/willprotocol.cpp
-  src/infra/protocol/willmessage.cpp
+  src/infra/protocol/wiremessage.cpp
 )
 target_include_directories(will-protocol PUBLIC src/infra/protocol)
 target_compile_features(will-protocol PUBLIC cxx_std_20)
@@ -58,7 +58,7 @@ add_executable(will-server
   src/server/iocontextthreadpool.cpp
   src/server/tcpconnection.cpp
   src/server/connectionaccountstore.cpp
-  src/server/willprotocoladapter.cpp
+  src/server/protocoladapter.cpp
   src/server/tcpconnectionparticipantnotifierimpl.cpp
   src/server/tcpframereader.cpp
   src/server/tcpframewriter.cpp

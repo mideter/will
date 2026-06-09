@@ -4,7 +4,7 @@
 
 #include "iocontextthreadpool.h"
 #include "iocontext.h"
-#include "willprotocoladapter.h"
+#include "protocoladapter.h"
 #include "tcpconnectionregistry.h"
 
 #include "ports/messenger_persistence.h"
@@ -35,7 +35,7 @@ private:
 
     IoContext io_;
     TcpConnectionRegistry registry_;
-    WillProtocolAdapter protocol_adapter_;
+    ProtocolAdapter protocol_adapter_;
 
     std::atomic<bool> stopping_{false};
 };

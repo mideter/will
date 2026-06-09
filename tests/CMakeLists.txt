@@ -1,8 +1,8 @@
 enable_testing()
 
-add_executable(will-message-test will_message_test.cpp)
-target_link_libraries(will-message-test PRIVATE will-protocol)
-add_test(NAME will-message COMMAND will-message-test)
+add_executable(wire-message-test wire_message_test.cpp)
+target_link_libraries(wire-message-test PRIVATE will-protocol)
+add_test(NAME wire-message COMMAND wire-message-test)
 
 add_executable(will-server-config-test server_config_test.cpp
   ${CMAKE_SOURCE_DIR}/src/server/config/serverconfigvalidator.cpp

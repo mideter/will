@@ -9,13 +9,13 @@
 #include <variant>
 
 #include "clientconfig.h"
-#include "willmessage.h"
+#include "wiremessage.h"
 
 
 namespace will {
 
 
-/** Server → client: single-byte {@link WillMessage::ServerReceiptAck} frame. */
+/** Server → client: single-byte {@link WireMessage::ServerReceiptAck} frame. */
 struct ServerReceiptAck {};
 
 /** Server → client: end of history batch. */
@@ -24,12 +24,12 @@ struct HistoryEnd {};
 /** Server → client: chat/history requires BindToken on this connection. */
 struct AuthRequired {};
 
-/** Peer chat text (UTF-8) after stripping {@link WillMessage::UserChat} prefix. */
+/** Peer chat text (UTF-8) after stripping {@link WireMessage::UserChat} prefix. */
 using InboundMessage =
     std::variant<ServerReceiptAck, std::string, HistoryItemPayload, HistoryEnd, AuthRequired>;
 
 
-// TCP: TcpFrame; payload is typed Will message (see willmessage.h).
+// TCP: TcpFrame; payload is typed wire message (see wiremessage.h).
 class WillClient {
 public:
     WillClient();
@@ -37,7 +37,7 @@ public:
 
     void connect();
 
-    /** Login + {@link WillMessage::BindToken} on the current TCP session. */
+    /** Login + {@link WireMessage::BindToken} on the current TCP session. */
     void authenticate(std::string_view login, std::string_view password) const;
 
     /** Sends {@code UserChat} with UTF-8 body (requires prior {@link #authenticate}). */

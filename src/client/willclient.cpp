@@ -11,7 +11,7 @@
 #include <system_error>
 #include <vector>
 
-#include "willmessage.h"
+#include "wiremessage.h"
 #include "willprotocol.h"
 
 
@@ -101,14 +101,14 @@ void WillClient::connect()
 
 void WillClient::authenticate(const std::string_view login, const std::string_view password) const
 {
-    send_payload(socket_, WillMessage::encode_login_request(login, password));
+    send_payload(socket_, WireMessage::encode_login_request(login, password));
 
     const std::vector<char> response = receivePayload();
-    const auto parsed = WillMessage::parse_login_response(response);
+    const auto parsed = WireMessage::parse_login_response(response);
     if (!parsed || !parsed->success)
         throw std::runtime_error("Will protocol: login failed");
 
-    send_payload(socket_, WillMessage::encode_bind_token(parsed->token));
+    send_payload(socket_, WireMessage::encode_bind_token(parsed->token));
 }
 
 
@@ -135,7 +135,7 @@ std::vector<char> WillClient::receivePayload() const
 
 void WillClient::send(std::string_view utf8_chat_body) const
 {
-    send_payload(socket_, WillMessage::encode_user_chat(utf8_chat_body));
+    send_payload(socket_, WireMessage::encode_user_chat(utf8_chat_body));
 }
 
 
@@ -144,7 +144,7 @@ bool WillClient::requestHistory(const std::uint32_t limit) const
     if (limit == 0)
         return false;
 
-    send_payload(socket_, WillMessage::encode_history_request(limit));
+    send_payload(socket_, WireMessage::encode_history_request(limit));
     return true;
 }
 
@@ -167,23 +167,23 @@ std::optional<InboundMessage> WillClient::receiveMessage() const
     std::vector<char> payload(plen);
     read_exact(socket_, reinterpret_cast<unsigned char*>(payload.data()), plen);
 
-    if (WillMessage::is_server_receipt_ack(payload))
+    if (WireMessage::is_server_receipt_ack(payload))
         return InboundMessage{std::in_place_type<ServerReceiptAck>};
 
-    if (WillMessage::is_auth_required(payload))
+    if (WireMessage::is_auth_required(payload))
         return InboundMessage{std::in_place_type<AuthRequired>};
 
-    if (WillMessage::is_user_chat(payload))
+    if (WireMessage::is_user_chat(payload))
         return InboundMessage{std::in_place_type<std::string>, std::string(payload.begin() + 1, payload.end())};
 
-    if (WillMessage::is_history_item(payload)) {
-        const auto item = WillMessage::parse_history_item(payload);
+    if (WireMessage::is_history_item(payload)) {
+        const auto item = WireMessage::parse_history_item(payload);
         if (!item)
             throw std::runtime_error("Will protocol: invalid HistoryItem payload");
         return InboundMessage{std::in_place_type<HistoryItemPayload>, *item};
     }
 
-    if (WillMessage::is_history_end(payload))
+    if (WireMessage::is_history_end(payload))
         return InboundMessage{std::in_place_type<HistoryEnd>};
 
     throw std::runtime_error("Will protocol: unknown message type");
