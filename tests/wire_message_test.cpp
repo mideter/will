@@ -9,6 +9,25 @@
 #include <vector>
 
 
+namespace {
+
+
+template<typename T>
+void assert_roundtrip(const T& message)
+{
+	const will::WireMessageEntity original{message};
+	const auto encoded = will::encode(original);
+	const auto decoded = will::decode(encoded);
+	assert(decoded);
+	const auto* roundtripped = std::get_if<T>(&*decoded);
+	assert(roundtripped);
+	assert(*roundtripped == message);
+}
+
+
+} // namespace
+
+
 int main()
 {
 	using namespace will;
@@ -120,75 +139,20 @@ int main()
 		assert(frame[4] == payload[0]);
 	}
 
-	{
-		const UserChat chat{"roundtrip"};
-		const auto encoded = encode(chat);
-		const auto decoded = decode(encoded);
-		assert(decoded && std::get<UserChat>(*decoded) == chat);
-	}
-
-	{
-		const ServerReceiptAck ack{};
-		const auto encoded = encode(ack);
-		const auto decoded = decode(encoded);
-		assert(decoded && std::get<ServerReceiptAck>(*decoded) == ack);
-	}
-
-	{
-		const HistoryRequest request{50};
-		const auto encoded = encode(request);
-		const auto decoded = decode(encoded);
-		assert(decoded && std::get<HistoryRequest>(*decoded) == request);
-	}
-
-	{
-		const HistoryItemPayload item{42, true, "stored"};
-		const auto encoded = encode(item);
-		const auto decoded = decode(encoded);
-		assert(decoded && std::get<HistoryItemPayload>(*decoded) == item);
-	}
-
-	{
-		const HistoryEnd end{};
-		const auto encoded = encode(end);
-		const auto decoded = decode(encoded);
-		assert(decoded && std::get<HistoryEnd>(*decoded) == end);
-	}
-
-	{
-		const LoginRequestPayload login{"alice", "secret"};
-		const auto encoded = encode(login);
-		const auto decoded = decode(encoded);
-		assert(decoded && std::get<LoginRequestPayload>(*decoded) == login);
-	}
-
-	{
-		const LoginResponsePayload ok_response{true, "session-token", 0};
-		const auto encoded = encode(ok_response);
-		const auto decoded = decode(encoded);
-		assert(decoded && std::get<LoginResponsePayload>(*decoded) == ok_response);
-	}
-
-	{
-		const LoginResponsePayload fail_response{false, "", WireMessage::LoginErrorInvalidCredentials};
-		const auto encoded = encode(fail_response);
-		const auto decoded = decode(encoded);
-		assert(decoded && std::get<LoginResponsePayload>(*decoded) == fail_response);
-	}
-
-	{
-		const BindToken bind{"session-token"};
-		const auto encoded = encode(bind);
-		const auto decoded = decode(encoded);
-		assert(decoded && std::get<BindToken>(*decoded) == bind);
-	}
-
-	{
-		const AuthRequired auth_required{};
-		const auto encoded = encode(auth_required);
-		const auto decoded = decode(encoded);
-		assert(decoded && std::get<AuthRequired>(*decoded) == auth_required);
-	}
+	// WireMessageEntity roundtrip: encode → decode → == for all 9 wire types.
+	assert_roundtrip(UserChat{"roundtrip"});
+	assert_roundtrip(UserChat{""});
+	assert_roundtrip(ServerReceiptAck{});
+	assert_roundtrip(HistoryRequest{50});
+	assert_roundtrip(HistoryItemPayload{42, true, "stored"});
+	assert_roundtrip(HistoryItemPayload{7, false, ""});
+	assert_roundtrip(HistoryEnd{});
+	assert_roundtrip(LoginRequestPayload{"alice", "secret"});
+	assert_roundtrip(LoginResponsePayload{true, "session-token", 0});
+	assert_roundtrip(LoginResponsePayload{false, "", WireMessage::LoginErrorInvalidCredentials});
+	assert_roundtrip(LoginResponsePayload{false, "", WireMessage::LoginErrorExpiredToken});
+	assert_roundtrip(BindToken{"session-token"});
+	assert_roundtrip(AuthRequired{});
 
 	return EXIT_SUCCESS;
 }
