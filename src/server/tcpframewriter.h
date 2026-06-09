@@ -5,6 +5,7 @@
 #include <cstddef>
 #include <deque>
 #include <functional>
+#include <string_view>
 #include <vector>
 
 
@@ -17,9 +18,9 @@ public:
     using TcpSocket = asio::ip::tcp::socket;
     using Strand = asio::strand<asio::io_context::executor_type>;
     using QueueFullHandler = std::function<void()>;
-    using ProtocolErrorHandler = std::function<void(const char* message)>;
+    using ProtocolErrorHandler = std::function<void(std::string_view message)>;
     using WriteErrorHandler =
-        std::function<void(const char* context, const asio::error_code& ec)>;
+        std::function<void(std::string_view context, const asio::error_code& ec)>;
 
     TcpFrameWriter(TcpSocket& socket, Strand& strand, std::size_t max_queued_bytes,
                    QueueFullHandler on_queue_full, ProtocolErrorHandler on_protocol_error,

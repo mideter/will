@@ -40,7 +40,7 @@ public:
     bool operator!=(const Session& other) const noexcept { return !(*this == other); }
 
     void send_will_payload(const std::vector<char>& payload);
-    void fail_protocol(const char* message);
+    void fail_protocol(std::string_view message);
 
 private:
     Session(asio::io_context& ioc, TcpSocket socket, asio::ip::tcp::endpoint peer_endpoint,
@@ -51,10 +51,10 @@ private:
     void shutdown();
 
     void handle_frame(std::vector<char> payload);
-    void handle_read_error(const char* context, const asio::error_code& ec);
+    void handle_read_error(std::string_view context, const asio::error_code& ec);
     void handle_write_queue_full();
-    void handle_write_error(const char* context, const asio::error_code& ec);
-    void fail(const char* context, const asio::error_code& ec);
+    void handle_write_error(std::string_view context, const asio::error_code& ec);
+    void fail(std::string_view context, const asio::error_code& ec);
 
     void enqueue_payload_broadcast(const std::vector<char>& payload);
 

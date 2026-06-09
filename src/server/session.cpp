@@ -36,16 +36,16 @@ void Session::begin()
     frame_writer_ = std::make_shared<TcpFrameWriter>(
         socket_, strand_, max_outbound_queue_bytes_,
         [self = shared_from_this()] { self->handle_write_queue_full(); },
-        [self = shared_from_this()](const char* message) { self->fail_protocol(message); },
-        [self = shared_from_this()](const char* context, const asio::error_code& ec) {
+        [self = shared_from_this()](std::string_view message) { self->fail_protocol(message); },
+        [self = shared_from_this()](std::string_view context, const asio::error_code& ec) {
             self->handle_write_error(context, ec);
         });
 
     frame_reader_ = std::make_shared<TcpFrameReader>(
         socket_, strand_,
         [self = shared_from_this()](std::vector<char> payload) { self->handle_frame(std::move(payload)); },
-        [self = shared_from_this()](const char* message) { self->fail_protocol(message); },
-        [self = shared_from_this()](const char* context, const asio::error_code& ec) {
+        [self = shared_from_this()](std::string_view message) { self->fail_protocol(message); },
+        [self = shared_from_this()](std::string_view context, const asio::error_code& ec) {
             self->handle_read_error(context, ec);
         });
 
@@ -90,7 +90,7 @@ void Session::send_will_payload(const std::vector<char>& payload)
 }
 
 
-void Session::handle_read_error(const char* context, const asio::error_code& ec)
+void Session::handle_read_error(std::string_view context, const asio::error_code& ec)
 {
     if (closed_)
         return;
@@ -119,7 +119,7 @@ void Session::handle_write_queue_full()
 }
 
 
-void Session::handle_write_error(const char* context, const asio::error_code& ec)
+void Session::handle_write_error(std::string_view context, const asio::error_code& ec)
 {
     if (closed_)
         return;
@@ -129,7 +129,7 @@ void Session::handle_write_error(const char* context, const asio::error_code& ec
 }
 
 
-void Session::fail(const char* context, const asio::error_code& ec)
+void Session::fail(std::string_view context, const asio::error_code& ec)
 {
     if (ec == asio::error::operation_aborted)
         return;
@@ -137,7 +137,7 @@ void Session::fail(const char* context, const asio::error_code& ec)
 }
 
 
-void Session::fail_protocol(const char* message)
+void Session::fail_protocol(std::string_view message)
 {
     std::cerr << "Session " << peer_label_ << ": " << message << '\n';
     registry_.close_session(id_);

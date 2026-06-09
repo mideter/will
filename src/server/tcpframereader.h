@@ -5,6 +5,7 @@
 #include <array>
 #include <cstddef>
 #include <functional>
+#include <string_view>
 #include <vector>
 
 
@@ -17,9 +18,9 @@ public:
     using TcpSocket = asio::ip::tcp::socket;
     using Strand = asio::strand<asio::io_context::executor_type>;
     using FrameHandler = std::function<void(std::vector<char> payload)>;
-    using ProtocolErrorHandler = std::function<void(const char* message)>;
+    using ProtocolErrorHandler = std::function<void(std::string_view message)>;
     using ReadErrorHandler =
-        std::function<void(const char* context, const asio::error_code& ec)>;
+        std::function<void(std::string_view context, const asio::error_code& ec)>;
 
     TcpFrameReader(TcpSocket& socket, Strand& strand, FrameHandler on_frame,
                    ProtocolErrorHandler on_protocol_error, ReadErrorHandler on_read_error);
