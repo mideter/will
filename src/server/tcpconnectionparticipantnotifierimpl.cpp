@@ -1,7 +1,10 @@
 #include "tcpconnectionparticipantnotifierimpl.h"
 
+#include <iostream>
+
 #include "tcpconnectionregistry.h"
-#include "willprotocoladapter.h"
+#include "willmessage.h"
+#include "willprotocol.h"
 
 
 namespace will {
@@ -17,8 +20,16 @@ void TcpConnectionParticipantNotifierImpl::notify_chat_message(const domain::Cha
                                                                  const domain::ParticipantId except_participant)
 {
     (void)chat;
-    const std::vector<char> payload = WillProtocolAdapter::encode_user_chat(msg.body);
-    registry_.broadcast_except_participant(except_participant, payload);
+
+    const std::vector<char> payload = WillMessage::encode_user_chat(msg.body);
+
+    if (const std::string_view sender_label = registry_.peer_label(except_participant.value);
+        !sender_label.empty()) {
+        std::cout << "Broadcast from " << sender_label << ": "
+                  << WillMessage::format_payload_for_log(payload) << std::endl;
+    }
+
+    registry_.broadcast_wire_except(except_participant.value, TcpFrame::encode(payload));
 }
 
 

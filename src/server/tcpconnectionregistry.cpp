@@ -4,35 +4,31 @@
 #include <utility>
 
 #include "tcpconnection.h"
-#include "willprotocol.h"
-#include "willprotocoladapter.h"
-
-#include "entities/participant_id.h"
 
 
 namespace will {
 
 
+TcpConnectionRegistry::TcpConnectionRegistry(ConnectionAccountStore& account_store)
+    : account_store_(account_store)
+{}
+
+
+void TcpConnectionRegistry::set_frame_handler(
+    std::function<void(std::uint64_t, const std::vector<char>&)> handler)
+{
+    frame_handler_ = std::move(handler);
+}
+
+
 void TcpConnectionRegistry::accept_connection(asio::io_context& ioc, asio::ip::tcp::socket socket,
                                               asio::ip::tcp::endpoint peer_endpoint,
-                                              WillProtocolAdapter& protocol_adapter,
                                               const std::size_t max_outbound_queue_bytes)
 {
     TcpConnectionHandlers handlers{
-        [&protocol_adapter, this](const std::uint64_t connection_id, std::vector<char> payload) {
-            std::shared_ptr<TcpConnection> connection;
-
-            {
-                std::lock_guard lock(mutex_);
-                const auto it = connections_.find(connection_id);
-
-                if (it == connections_.end())
-                    return;
-                
-                connection = it->second;
-            }
-
-            protocol_adapter.on_client_frame(*connection, payload);
+        [this](const std::uint64_t connection_id, std::vector<char> payload) {
+            if (frame_handler_)
+                frame_handler_(connection_id, payload);
         },
         [this](const std::uint64_t connection_id) { close_connection(connection_id); },
     };
@@ -65,8 +61,63 @@ void TcpConnectionRegistry::close_connection(const std::uint64_t connection_id)
         connections_.erase(it);
     }
 
+    account_store_.remove(connection_id);
+
     std::cout << "Client " << connection->peer_label() << " disconnected" << std::endl;
     connection->shutdown();
+}
+
+
+void TcpConnectionRegistry::enqueue_wire_frame(const std::uint64_t connection_id,
+                                               std::vector<char> wire_bytes)
+{
+    std::shared_ptr<TcpConnection> connection;
+
+    {
+        std::lock_guard lock(mutex_);
+        const auto it = connections_.find(connection_id);
+
+        if (it == connections_.end())
+            return;
+
+        connection = it->second;
+    }
+
+    connection->enqueue_frame(std::move(wire_bytes));
+}
+
+
+void TcpConnectionRegistry::broadcast_wire_except(const std::uint64_t except_connection_id,
+                                                  const std::vector<char>& wire_bytes)
+{
+    std::vector<std::shared_ptr<TcpConnection>> peers;
+
+    {
+        std::lock_guard lock(mutex_);
+        peers.reserve(connections_.size());
+
+        for (const auto& [id, connection] : connections_) {
+            if (id == except_connection_id)
+                continue;
+
+            peers.push_back(connection);
+        }
+    }
+
+    for (const std::shared_ptr<TcpConnection>& peer : peers)
+        peer->enqueue_frame(wire_bytes);
+}
+
+
+std::string_view TcpConnectionRegistry::peer_label(const std::uint64_t connection_id) const
+{
+    std::lock_guard lock(mutex_);
+    const auto it = connections_.find(connection_id);
+
+    if (it == connections_.end())
+        return {};
+
+    return it->second->peer_label();
 }
 
 
@@ -91,35 +142,6 @@ std::size_t TcpConnectionRegistry::count() const noexcept
 {
     std::lock_guard lock(mutex_);
     return connections_.size();
-}
-
-
-void TcpConnectionRegistry::broadcast_except_participant(const domain::ParticipantId except_participant,
-                                                         const std::vector<char>& payload)
-{
-    std::vector<std::shared_ptr<TcpConnection>> peers;
-    std::string sender_label;
-
-    {
-        std::lock_guard lock(mutex_);
-        peers.reserve(connections_.size());
-
-        for (const auto& [id, connection] : connections_) {
-            if (domain::ParticipantId{id} == except_participant) {
-                sender_label = connection->peer_label();
-                continue;
-            }
-            peers.push_back(connection);
-        }
-    }
-
-    if (!sender_label.empty()) {
-        std::cout << "Broadcast from " << sender_label << ": "
-                  << WillProtocolAdapter::format_payload_for_log(payload) << std::endl;
-    }
-
-    for (const std::shared_ptr<TcpConnection>& peer : peers)
-        peer->enqueue_frame(TcpFrame::encode(payload));
 }
 
 
