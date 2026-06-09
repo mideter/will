@@ -21,12 +21,11 @@ void TcpConnectionParticipantNotifierImpl::notify_chat_message(const domain::Cha
 {
     (void)chat;
 
-    const std::vector<char> payload = WireMessage::encode_user_chat(msg.body);
+    const std::vector<char> payload = encode(UserChat{msg.body});
 
     if (const std::string_view sender_label = registry_.peer_label(except_participant.value);
         !sender_label.empty()) {
-        std::cout << "Broadcast from " << sender_label << ": "
-                  << WireMessage::format_payload_for_log(payload) << std::endl;
+        std::cout << "Broadcast from " << sender_label << ": " << format_for_log(payload) << std::endl;
     }
 
     registry_.broadcast_wire_except(except_participant.value, TcpFrame::encode(payload));

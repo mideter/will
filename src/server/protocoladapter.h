@@ -9,6 +9,8 @@
 #include "usecases/fetch_chat_history.h"
 #include "usecases/send_chat_message.h"
 
+#include "wiremessage.h"
+
 #include <cstdint>
 #include <string>
 #include <string_view>
@@ -33,10 +35,10 @@ public:
     static std::string format_payload_for_log(const std::vector<char>& payload);
 
 private:
-    void handle_login(std::uint64_t connection_id, const std::vector<char>& payload);
-    void handle_bind_token(std::uint64_t connection_id, const std::vector<char>& payload);
-    void handle_user_chat(std::uint64_t connection_id, const std::vector<char>& payload);
-    void handle_history_request(std::uint64_t connection_id, const std::vector<char>& payload);
+    void handle_login(std::uint64_t connection_id, const LoginRequestPayload& request);
+    void handle_bind_token(std::uint64_t connection_id, const BindToken& token);
+    void handle_user_chat(std::uint64_t connection_id, const UserChat& chat);
+    void handle_history_request(std::uint64_t connection_id, const HistoryRequest& request);
     void send_auth_required(std::uint64_t connection_id);
     void send_payload(std::uint64_t connection_id, const std::vector<char>& app_payload);
     void close_with_protocol_error(std::uint64_t connection_id, std::string_view message);
