@@ -4,6 +4,7 @@
 #include <utility>
 
 #include "tcpconnection.h"
+#include "willprotocol.h"
 #include "willprotocoladapter.h"
 
 #include "entities/participant_id.h"
@@ -15,11 +16,29 @@ namespace will {
 void TcpConnectionRegistry::accept_connection(asio::io_context& ioc, asio::ip::tcp::socket socket,
                                               asio::ip::tcp::endpoint peer_endpoint,
                                               WillProtocolAdapter& protocol_adapter,
-                                              std::size_t max_outbound_queue_bytes)
+                                              const std::size_t max_outbound_queue_bytes)
 {
+    TcpConnectionHandlers handlers{
+        [&protocol_adapter, this](const std::uint64_t connection_id, std::vector<char> payload) {
+            std::shared_ptr<TcpConnection> connection;
+
+            {
+                std::lock_guard lock(mutex_);
+                const auto it = connections_.find(connection_id);
+
+                if (it == connections_.end())
+                    return;
+                
+                connection = it->second;
+            }
+
+            protocol_adapter.on_client_frame(*connection, payload);
+        },
+        [this](const std::uint64_t connection_id) { close_connection(connection_id); },
+    };
+
     auto connection = std::shared_ptr<TcpConnection>(
-        new TcpConnection(ioc, std::move(socket), std::move(peer_endpoint), *this, protocol_adapter,
-                          max_outbound_queue_bytes));
+        new TcpConnection(ioc, std::move(socket), std::move(peer_endpoint), std::move(handlers)));
 
     {
         std::lock_guard lock(mutex_);
@@ -27,7 +46,7 @@ void TcpConnectionRegistry::accept_connection(asio::io_context& ioc, asio::ip::t
         connections_.emplace(connection->id(), connection);
     }
 
-    connection->begin();
+    connection->begin(max_outbound_queue_bytes);
 }
 
 
@@ -100,7 +119,7 @@ void TcpConnectionRegistry::broadcast_except_participant(const domain::Participa
     }
 
     for (const std::shared_ptr<TcpConnection>& peer : peers)
-        peer->enqueue_payload_broadcast(payload);
+        peer->enqueue_frame(TcpFrame::encode(payload));
 }
 
 
