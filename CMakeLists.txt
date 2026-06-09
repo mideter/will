@@ -57,6 +57,7 @@ add_executable(will-server
   src/server/iocontext.cpp
   src/server/iocontextthreadpool.cpp
   src/server/tcpconnection.cpp
+  src/server/connectionaccountstore.cpp
   src/server/willprotocoladapter.cpp
   src/server/tcpconnectionparticipantnotifierimpl.cpp
   src/server/tcpframereader.cpp
