@@ -46,7 +46,7 @@ std::unique_ptr<WireMessage> WireMessageCodec::decode(const std::vector<char>& p
 
 std::unique_ptr<ClientMessage> WireMessageCodec::decode_client(const std::vector<char>& payload)
 {
-    auto message = decode_message(payload);
+    auto message = decode(payload);
     return std::unique_ptr<ClientMessage>(dynamic_cast<ClientMessage*>(message.release()));
 }
 

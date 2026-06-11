@@ -31,7 +31,7 @@ void assert_roundtrip(const MessageType& original)
 template<typename MessageType>
 bool decodes_as_client(const std::vector<char>& payload)
 {
-	const auto message = will::decode_client_message(payload);
+	const auto message = will::WireMessageCodec::decode_client(payload);
 	return message && dynamic_cast<const MessageType*>(message.get()) != nullptr;
 }
 
