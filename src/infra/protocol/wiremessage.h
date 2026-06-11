@@ -13,8 +13,8 @@
 namespace will {
 
 
-std::vector<char> encode(const WireMessageBase& message);
-std::unique_ptr<WireMessageBase> decode_message(const std::vector<char>& payload);
+std::vector<char> encode(const WireMessage& message);
+std::unique_ptr<WireMessage> decode_message(const std::vector<char>& payload);
 std::unique_ptr<ClientMessage> decode_client_message(const std::vector<char>& payload);
 std::unique_ptr<ServerMessage> decode_server_message(const std::vector<char>& payload);
 

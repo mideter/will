@@ -9,10 +9,10 @@
 namespace will {
 
 
-std::vector<char> encode(const WireMessageBase& message) { return message.encode(); }
+std::vector<char> encode(const WireMessage& message) { return message.encode(); }
 
 
-std::unique_ptr<WireMessageBase> decode_message(const std::vector<char>& payload)
+std::unique_ptr<WireMessage> decode_message(const std::vector<char>& payload)
 {
     if (payload.empty())
         return nullptr;

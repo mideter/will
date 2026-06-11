@@ -67,9 +67,9 @@ struct ServerMessageVisitor {
 };
 
 
-class WireMessageBase {
+class WireMessage {
 public:
-    virtual ~WireMessageBase() = default;
+    virtual ~WireMessage() = default;
 
     virtual WireMessageType type() const noexcept = 0;
     virtual std::vector<char> encode() const = 0;
@@ -77,13 +77,13 @@ public:
 };
 
 
-class ClientMessage : public virtual WireMessageBase {
+class ClientMessage : public virtual WireMessage {
 public:
     virtual void accept(ClientMessageVisitor& visitor) const = 0;
 };
 
 
-class ServerMessage : public virtual WireMessageBase {
+class ServerMessage : public virtual WireMessage {
 public:
     virtual void accept(ServerMessageVisitor& visitor) const = 0;
 };
