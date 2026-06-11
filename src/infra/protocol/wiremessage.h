@@ -12,12 +12,6 @@
 namespace will {
 
 
-enum class LoginError : std::uint8_t {
-    InvalidCredentials = 1,
-    ExpiredToken = 2,
-};
-
-
 class LoginRequestMessage;
 class BindTokenMessage;
 class HistoryRequestMessage;

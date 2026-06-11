@@ -53,10 +53,10 @@ std::uint8_t login_error_code_for(const domain::AuthResult result)
 {
     switch (result) {
     case domain::AuthResult::ExpiredToken:
-        return static_cast<std::uint8_t>(LoginError::ExpiredToken);
+        return static_cast<std::uint8_t>(LoginResponseMessage::Error::ExpiredToken);
     case domain::AuthResult::InvalidCredentials:
     default:
-        return static_cast<std::uint8_t>(LoginError::InvalidCredentials);
+        return static_cast<std::uint8_t>(LoginResponseMessage::Error::InvalidCredentials);
     }
 }
 
@@ -133,7 +133,7 @@ void ProtocolAdapter::handle_bind_token(const std::uint64_t connection_id, const
     if (!account) {
         send_payload(connection_id,
                      encode(LoginResponseMessage{
-                         false, "", static_cast<std::uint8_t>(LoginError::ExpiredToken)}));
+                         false, "", static_cast<std::uint8_t>(LoginResponseMessage::Error::ExpiredToken)}));
         return;
     }
 

@@ -94,13 +94,13 @@ int main()
 
 	{
 		const auto fail = encode(LoginResponseMessage{
-		    false, "", static_cast<std::uint8_t>(LoginError::InvalidCredentials)});
+		    false, "", static_cast<std::uint8_t>(LoginResponseMessage::Error::InvalidCredentials)});
 		const auto fail_message = decode_server_message(fail);
 		assert(fail_message);
 		const auto* parsed_fail = dynamic_cast<const LoginResponseMessage*>(fail_message.get());
 		assert(parsed_fail);
 		assert(!parsed_fail->success());
-		assert(parsed_fail->error_code() == static_cast<std::uint8_t>(LoginError::InvalidCredentials));
+		assert(parsed_fail->error_code() == static_cast<std::uint8_t>(LoginResponseMessage::Error::InvalidCredentials));
 	}
 
 	{
@@ -176,9 +176,9 @@ int main()
 	assert_roundtrip(LoginRequestMessage{"alice", "secret"});
 	assert_roundtrip(LoginResponseMessage{true, "session-token", 0});
 	assert_roundtrip(LoginResponseMessage{
-	    false, "", static_cast<std::uint8_t>(LoginError::InvalidCredentials)});
+	    false, "", static_cast<std::uint8_t>(LoginResponseMessage::Error::InvalidCredentials)});
 	assert_roundtrip(LoginResponseMessage{
-	    false, "", static_cast<std::uint8_t>(LoginError::ExpiredToken)});
+	    false, "", static_cast<std::uint8_t>(LoginResponseMessage::Error::ExpiredToken)});
 	assert_roundtrip(BindTokenMessage{"session-token"});
 	assert_roundtrip(AuthRequiredMessage{});
 

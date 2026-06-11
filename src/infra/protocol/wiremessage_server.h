@@ -12,6 +12,11 @@ namespace will {
 
 class LoginResponseMessage final : public ServerMessage {
 public:
+    enum class Error : std::uint8_t {
+        InvalidCredentials = 1,
+        ExpiredToken = 2,
+    };
+
     LoginResponseMessage() = default;
     LoginResponseMessage(bool success, std::string token, std::uint8_t error_code);
 
