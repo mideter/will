@@ -12,36 +12,23 @@
 namespace will {
 
 
-class LoginRequestMessage;
-class BindTokenMessage;
-class HistoryRequestMessage;
-class LoginResponseMessage;
-class AuthRequiredMessage;
-class ServerReceiptAckMessage;
-class HistoryItemMessage;
-class HistoryEndMessage;
-class UserChatMessage;
+class ClientMessage;
+class ServerMessage;
 
 
-struct ClientMessageVisitor {
+class ClientMessageVisitor {
+public:
     virtual ~ClientMessageVisitor() = default;
 
-    virtual void on(const LoginRequestMessage& message) = 0;
-    virtual void on(const BindTokenMessage& message) = 0;
-    virtual void on(const HistoryRequestMessage& message) = 0;
-    virtual void on(const UserChatMessage& message) = 0;
+    virtual void on(const ClientMessage& message) = 0;
 };
 
 
-struct ServerMessageVisitor {
+class ServerMessageVisitor {
+public:
     virtual ~ServerMessageVisitor() = default;
 
-    virtual void on(const LoginResponseMessage& message) = 0;
-    virtual void on(const AuthRequiredMessage& message) = 0;
-    virtual void on(const ServerReceiptAckMessage& message) = 0;
-    virtual void on(const HistoryItemMessage& message) = 0;
-    virtual void on(const HistoryEndMessage& message) = 0;
-    virtual void on(const UserChatMessage& message) = 0;
+    virtual void on(const ServerMessage& message) = 0;
 };
 
 

@@ -1,8 +1,6 @@
 #pragma once
 
 #include "wiremessage.h"
-#include "wiremessage_server.h"
-#include "wiremessage_user_chat.h"
 
 
 namespace will {
@@ -19,12 +17,7 @@ public:
 
     bool history_finished() const noexcept { return history_finished_; }
 
-    void on(const LoginResponseMessage& message) override;
-    void on(const AuthRequiredMessage& message) override;
-    void on(const ServerReceiptAckMessage& message) override;
-    void on(const HistoryItemMessage& message) override;
-    void on(const HistoryEndMessage& message) override;
-    void on(const UserChatMessage& message) override;
+    void on(const ServerMessage& message) override;
 
 private:
     void throw_unexpected_history() const;

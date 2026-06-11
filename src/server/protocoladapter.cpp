@@ -7,8 +7,10 @@
 #include <string_view>
 
 #include "tcpframe.h"
+#include "wiremessage_client.h"
 #include "wiremessage_codec.h"
 #include "wiremessage_server.h"
+#include "wiremessage_user_chat.h"
 
 
 namespace will {
@@ -23,26 +25,37 @@ struct InboundClientFrameHandler final : ClientMessageVisitor {
         , connection_id(connection_id_in)
     {}
 
-    void on(const LoginRequestMessage& message) override { adapter.handle_login(connection_id, message); }
-
-    void on(const BindTokenMessage& message) override { adapter.handle_bind_token(connection_id, message); }
-
-    void on(const UserChatMessage& message) override
+    void on(const ClientMessage& message) override
     {
-        if (!adapter.account_store_.has(connection_id)) {
-            adapter.send_auth_required(connection_id);
+        if (const auto* login = dynamic_cast<const LoginRequestMessage*>(&message)) {
+            adapter.handle_login(connection_id, *login);
             return;
         }
-        adapter.handle_user_chat(connection_id, message);
-    }
 
-    void on(const HistoryRequestMessage& message) override
-    {
-        if (!adapter.account_store_.has(connection_id)) {
-            adapter.send_auth_required(connection_id);
+        if (const auto* token = dynamic_cast<const BindTokenMessage*>(&message)) {
+            adapter.handle_bind_token(connection_id, *token);
             return;
         }
-        adapter.handle_history_request(connection_id, message);
+
+        if (const auto* chat = dynamic_cast<const UserChatMessage*>(&message)) {
+            if (!adapter.account_store_.has(connection_id)) {
+                adapter.send_auth_required(connection_id);
+                return;
+            }
+            adapter.handle_user_chat(connection_id, *chat);
+            return;
+        }
+
+        if (const auto* history = dynamic_cast<const HistoryRequestMessage*>(&message)) {
+            if (!adapter.account_store_.has(connection_id)) {
+                adapter.send_auth_required(connection_id);
+                return;
+            }
+            adapter.handle_history_request(connection_id, *history);
+            return;
+        }
+
+        adapter.close_with_protocol_error(connection_id, "Protocol error: unhandled client message type");
     }
 };
 
