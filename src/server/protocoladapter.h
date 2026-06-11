@@ -10,6 +10,8 @@
 #include "usecases/send_chat_message.h"
 
 #include "wiremessage.h"
+#include "wiremessage_client.h"
+#include "wiremessage_user_chat.h"
 
 #include <cstdint>
 #include <string>

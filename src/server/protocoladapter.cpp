@@ -7,7 +7,7 @@
 #include <string_view>
 
 #include "tcpframe.h"
-#include "wiremessage.h"
+#include "wiremessage_server.h"
 
 
 namespace will {

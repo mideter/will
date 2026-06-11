@@ -99,8 +99,3 @@ std::string format_for_log(const std::vector<char>& payload);
 
 
 } // namespace will
-
-
-#include "wiremessage_client.h"
-#include "wiremessage_server.h"
-#include "wiremessage_user_chat.h"

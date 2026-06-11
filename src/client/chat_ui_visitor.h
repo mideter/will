@@ -1,6 +1,8 @@
 #pragma once
 
 #include "wiremessage.h"
+#include "wiremessage_server.h"
+#include "wiremessage_user_chat.h"
 
 
 namespace will {

@@ -3,7 +3,7 @@
 #include <iostream>
 
 #include "tcpconnectionregistry.h"
-#include "wiremessage.h"
+#include "wiremessage_user_chat.h"
 #include "tcpframe.h"
 
 

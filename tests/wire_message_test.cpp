@@ -1,4 +1,7 @@
 #include "wiremessage.h"
+#include "wiremessage_client.h"
+#include "wiremessage_server.h"
+#include "wiremessage_user_chat.h"
 #include "tcpframe.h"
 
 #include <array>

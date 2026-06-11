@@ -15,6 +15,9 @@
 #include "clientconfigvalidator.h"
 #include "loadclientsconfigparser.h"
 #include "wiremessage.h"
+#include "wiremessage_client.h"
+#include "wiremessage_server.h"
+#include "wiremessage_user_chat.h"
 #include "tcpframe.h"
 
 
