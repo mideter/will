@@ -1,4 +1,5 @@
 #include "wiremessage.h"
+#include "wiremessage_codec.h"
 #include "wiremessage_client.h"
 #include "wiremessage_server.h"
 #include "wiremessage_user_chat.h"
@@ -18,8 +19,8 @@ namespace {
 template<typename MessageType>
 void assert_roundtrip(const MessageType& original)
 {
-	const auto encoded = will::encode(original);
-	const auto decoded = will::decode_message(encoded);
+	const auto encoded = will::WireMessageCodec::encode(original);
+	const auto decoded = will::WireMessageCodec::decode(encoded);
 	assert(decoded);
 	const auto* roundtripped = dynamic_cast<const MessageType*>(decoded.get());
 	assert(roundtripped);
@@ -38,7 +39,7 @@ bool decodes_as_client(const std::vector<char>& payload)
 template<typename MessageType>
 bool decodes_as_server(const std::vector<char>& payload)
 {
-	const auto message = will::decode_server_message(payload);
+	const auto message = will::WireMessageCodec::decode_server(payload);
 	return message && dynamic_cast<const MessageType*>(message.get()) != nullptr;
 }
 
@@ -52,28 +53,28 @@ int main()
 
 	{
 		const UserChatMessage chat{"hi"};
-		const auto v = encode(chat);
+		const auto v = WireMessageCodec::encode(chat);
 		assert(v.size() == 3);
 		assert(static_cast<unsigned char>(v[0]) == static_cast<unsigned char>(WireMessage::Type::UserChat));
 		assert(v[1] == 'h' && v[2] == 'i');
 	}
 
 	{
-		const auto v = encode(UserChatMessage{""});
+		const auto v = WireMessageCodec::encode(UserChatMessage{""});
 		assert(v.size() == 1);
 		assert(static_cast<unsigned char>(v[0]) == static_cast<unsigned char>(WireMessage::Type::UserChat));
 	}
 
 	{
-		const auto a = encode(ServerReceiptAckMessage{});
+		const auto a = WireMessageCodec::encode(ServerReceiptAckMessage{});
 		assert(decodes_as_server<ServerReceiptAckMessage>(a));
 		assert(a.size() == 1);
 	}
 
 	{
-		const auto login = encode(LoginRequestMessage{"alice", "secret"});
+		const auto login = WireMessageCodec::encode(LoginRequestMessage{"alice", "secret"});
 		assert(decodes_as_client<LoginRequestMessage>(login));
-		const auto login_message = decode_client_message(login);
+		const auto login_message = WireMessageCodec::decode_client(login);
 		assert(login_message);
 		const auto* parsed_login = dynamic_cast<const LoginRequestMessage*>(login_message.get());
 		assert(parsed_login);
@@ -82,9 +83,9 @@ int main()
 	}
 
 	{
-		const auto ok = encode(LoginResponseMessage{true, "session-token", 0});
+		const auto ok = WireMessageCodec::encode(LoginResponseMessage{true, "session-token", 0});
 		assert(decodes_as_server<LoginResponseMessage>(ok));
-		const auto ok_message = decode_server_message(ok);
+		const auto ok_message = WireMessageCodec::decode_server(ok);
 		assert(ok_message);
 		const auto* parsed_ok = dynamic_cast<const LoginResponseMessage*>(ok_message.get());
 		assert(parsed_ok);
@@ -93,9 +94,9 @@ int main()
 	}
 
 	{
-		const auto fail = encode(LoginResponseMessage{
+		const auto fail = WireMessageCodec::encode(LoginResponseMessage{
 		    false, "", static_cast<std::uint8_t>(LoginResponseMessage::Error::InvalidCredentials)});
-		const auto fail_message = decode_server_message(fail);
+		const auto fail_message = WireMessageCodec::decode_server(fail);
 		assert(fail_message);
 		const auto* parsed_fail = dynamic_cast<const LoginResponseMessage*>(fail_message.get());
 		assert(parsed_fail);
@@ -104,9 +105,9 @@ int main()
 	}
 
 	{
-		const auto bind = encode(BindTokenMessage{"session-token"});
+		const auto bind = WireMessageCodec::encode(BindTokenMessage{"session-token"});
 		assert(decodes_as_client<BindTokenMessage>(bind));
-		const auto bind_message = decode_client_message(bind);
+		const auto bind_message = WireMessageCodec::decode_client(bind);
 		assert(bind_message);
 		const auto* parsed_bind = dynamic_cast<const BindTokenMessage*>(bind_message.get());
 		assert(parsed_bind);
@@ -114,14 +115,14 @@ int main()
 	}
 
 	{
-		const auto auth_required = encode(AuthRequiredMessage{});
+		const auto auth_required = WireMessageCodec::encode(AuthRequiredMessage{});
 		assert(decodes_as_server<AuthRequiredMessage>(auth_required));
 	}
 
 	{
-		const auto request = encode(HistoryRequestMessage{50});
+		const auto request = WireMessageCodec::encode(HistoryRequestMessage{50});
 		assert(decodes_as_client<HistoryRequestMessage>(request));
-		const auto request_message = decode_client_message(request);
+		const auto request_message = WireMessageCodec::decode_client(request);
 		assert(request_message);
 		const auto* parsed_request = dynamic_cast<const HistoryRequestMessage*>(request_message.get());
 		assert(parsed_request);
@@ -129,9 +130,9 @@ int main()
 	}
 
 	{
-		const auto item = encode(HistoryItemMessage{42, true, "stored"});
+		const auto item = WireMessageCodec::encode(HistoryItemMessage{42, true, "stored"});
 		assert(decodes_as_server<HistoryItemMessage>(item));
-		const auto item_message = decode_server_message(item);
+		const auto item_message = WireMessageCodec::decode_server(item);
 		assert(item_message);
 		const auto* parsed = dynamic_cast<const HistoryItemMessage*>(item_message.get());
 		assert(parsed);
@@ -141,22 +142,22 @@ int main()
 	}
 
 	{
-		const auto end = encode(HistoryEndMessage{});
+		const auto end = WireMessageCodec::encode(HistoryEndMessage{});
 		assert(decodes_as_server<HistoryEndMessage>(end));
 	}
 
 	{
-		const auto v = encode(UserChatMessage{"hi"});
-		const std::string line = format_for_log(v);
+		const auto v = WireMessageCodec::encode(UserChatMessage{"hi"});
+		const std::string line = WireMessageCodec::format_for_log(v);
 		assert(line.find("UserChat") != std::string::npos);
 		assert(line.find("hi") != std::string::npos);
 	}
 
-	assert(format_for_log(encode(ServerReceiptAckMessage{})) == "ServerReceiptAck");
-	assert(format_for_log(encode(HistoryEndMessage{})) == "HistoryEnd");
+	assert(WireMessageCodec::format_for_log(WireMessageCodec::encode(ServerReceiptAckMessage{})) == "ServerReceiptAck");
+	assert(WireMessageCodec::format_for_log(WireMessageCodec::encode(HistoryEndMessage{})) == "HistoryEnd");
 
 	{
-		const auto payload = encode(UserChatMessage{"ping"});
+		const auto payload = WireMessageCodec::encode(UserChatMessage{"ping"});
 		const auto frame = TcpFrame::encode(payload);
 		assert(frame.size() == 4 + payload.size());
 		std::array<unsigned char, 4> header{};
@@ -184,9 +185,9 @@ int main()
 
 	{
 		const UserChatMessage chat{"bidirectional"};
-		const auto encoded = encode(chat);
-		const auto client_decoded = decode_client_message(encoded);
-		const auto server_decoded = decode_server_message(encoded);
+		const auto encoded = WireMessageCodec::encode(chat);
+		const auto client_decoded = WireMessageCodec::decode_client(encoded);
+		const auto server_decoded = WireMessageCodec::decode_server(encoded);
 		assert(client_decoded);
 		assert(server_decoded);
 		const auto* client_chat = dynamic_cast<const UserChatMessage*>(client_decoded.get());

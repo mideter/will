@@ -10,7 +10,7 @@
 namespace will {
 
 
-void WireMessageCodecInternal::append_u32_be(std::vector<char>& out, const std::uint32_t value)
+void WireMessageCodec::Internal::append_u32_be(std::vector<char>& out, const std::uint32_t value)
 {
     const auto bytes = TcpFrame::u32_be(value);
     out.insert(out.end(), reinterpret_cast<const char*>(bytes.data()),
@@ -18,7 +18,7 @@ void WireMessageCodecInternal::append_u32_be(std::vector<char>& out, const std::
 }
 
 
-std::uint32_t WireMessageCodecInternal::read_u32_be_at(const unsigned char* data) noexcept
+std::uint32_t WireMessageCodec::Internal::read_u32_be_at(const unsigned char* data) noexcept
 {
     std::array<unsigned char, 4> buf{};
     std::memcpy(buf.data(), data, buf.size());
@@ -26,14 +26,14 @@ std::uint32_t WireMessageCodecInternal::read_u32_be_at(const unsigned char* data
 }
 
 
-void WireMessageCodecInternal::append_u64_be(std::vector<char>& out, std::uint64_t value)
+void WireMessageCodec::Internal::append_u64_be(std::vector<char>& out, std::uint64_t value)
 {
     for (int shift = 56; shift >= 0; shift -= 8)
         out.push_back(static_cast<char>((value >> shift) & 0xffu));
 }
 
 
-std::uint64_t WireMessageCodecInternal::read_u64_be(const unsigned char* data) noexcept
+std::uint64_t WireMessageCodec::Internal::read_u64_be(const unsigned char* data) noexcept
 {
     std::uint64_t value = 0;
     for (int i = 0; i < 8; ++i)
@@ -42,10 +42,10 @@ std::uint64_t WireMessageCodecInternal::read_u64_be(const unsigned char* data) n
 }
 
 
-void WireMessageCodecInternal::append_length_prefixed_string(std::vector<char>& out, std::string_view value)
+void WireMessageCodec::Internal::append_length_prefixed_string(std::vector<char>& out, std::string_view value)
 {
     if (value.size() > MaxAuthFieldBytes)
-        throw std::runtime_error("WireMessageCodecInternal: auth field exceeds MaxAuthFieldBytes");
+        throw std::runtime_error("WireMessageCodec::Internal: auth field exceeds MaxAuthFieldBytes");
 
     append_u32_be(out, static_cast<std::uint32_t>(value.size()));
     if (!value.empty())
@@ -53,7 +53,7 @@ void WireMessageCodecInternal::append_length_prefixed_string(std::vector<char>& 
 }
 
 
-bool WireMessageCodecInternal::read_length_prefixed_string(std::string_view& field,
+bool WireMessageCodec::Internal::read_length_prefixed_string(std::string_view& field,
                                                            const std::vector<char>& payload,
                                                            std::size_t& offset)
 {
@@ -73,7 +73,7 @@ bool WireMessageCodecInternal::read_length_prefixed_string(std::string_view& fie
 }
 
 
-std::string WireMessageCodecInternal::format_user_chat_body_for_log(std::string_view body)
+std::string WireMessageCodec::Internal::format_user_chat_body_for_log(std::string_view body)
 {
     std::string out = "UserChat(";
     out += std::to_string(body.size());

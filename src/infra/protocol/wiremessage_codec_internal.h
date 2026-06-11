@@ -5,11 +5,13 @@
 #include <string_view>
 #include <vector>
 
+#include "wiremessage_codec.h"
+
+
 namespace will {
 
 
-/** Binary helpers shared by wire message encode/decode (library-internal). */
-class WireMessageCodecInternal {
+class WireMessageCodec::Internal {
 public:
     static constexpr std::uint32_t MaxAuthFieldBytes = 4096;
 
@@ -25,7 +27,7 @@ public:
 
     static std::string format_user_chat_body_for_log(std::string_view body);
 
-    WireMessageCodecInternal() = delete;
+    Internal() = delete;
 };
 
 

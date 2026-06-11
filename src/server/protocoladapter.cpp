@@ -7,6 +7,7 @@
 #include <string_view>
 
 #include "tcpframe.h"
+#include "wiremessage_codec.h"
 #include "wiremessage_server.h"
 
 
@@ -78,7 +79,7 @@ ProtocolAdapter::ProtocolAdapter(domain::MessengerPersistence persistence, TcpCo
 
 void ProtocolAdapter::on_client_frame(const std::uint64_t connection_id, const std::vector<char>& payload)
 {
-    const auto message = decode_client_message(payload);
+    const auto message = WireMessageCodec::decode_client(payload);
     if (!message) {
         close_with_protocol_error(connection_id, "Protocol error: invalid client frame");
         return;
@@ -118,12 +119,12 @@ void ProtocolAdapter::handle_login(const std::uint64_t connection_id, const Logi
 
     if (const auto* failure = std::get_if<domain::AuthResult>(&outcome)) {
         send_payload(connection_id,
-                     encode(LoginResponseMessage{false, "", login_error_code_for(*failure)}));
+                     WireMessageCodec::encode(LoginResponseMessage{false, "", login_error_code_for(*failure)}));
         return;
     }
 
     const auto& success = std::get<domain::AuthenticateUserSuccess>(outcome);
-    send_payload(connection_id, encode(LoginResponseMessage{true, success.account.session_token.value, 0}));
+    send_payload(connection_id, WireMessageCodec::encode(LoginResponseMessage{true, success.account.session_token.value, 0}));
 }
 
 
@@ -132,7 +133,7 @@ void ProtocolAdapter::handle_bind_token(const std::uint64_t connection_id, const
     const auto account = persistence_.sessions.resolve_token(domain::AuthToken{token.token()});
     if (!account) {
         send_payload(connection_id,
-                     encode(LoginResponseMessage{
+                     WireMessageCodec::encode(LoginResponseMessage{
                          false, "", static_cast<std::uint8_t>(LoginResponseMessage::Error::ExpiredToken)}));
         return;
     }
@@ -143,7 +144,7 @@ void ProtocolAdapter::handle_bind_token(const std::uint64_t connection_id, const
 
 void ProtocolAdapter::send_auth_required(const std::uint64_t connection_id)
 {
-    send_payload(connection_id, encode(AuthRequiredMessage{}));
+    send_payload(connection_id, WireMessageCodec::encode(AuthRequiredMessage{}));
 }
 
 
@@ -162,7 +163,7 @@ void ProtocolAdapter::handle_user_chat(const std::uint64_t connection_id, const 
     };
 
     (void)send_chat_message_.execute(input);
-    send_payload(connection_id, encode(ServerReceiptAckMessage{}));
+    send_payload(connection_id, WireMessageCodec::encode(ServerReceiptAckMessage{}));
 }
 
 
@@ -181,10 +182,10 @@ void ProtocolAdapter::handle_history_request(const std::uint64_t connection_id,
 
     const auto& history = std::get<domain::FetchChatHistoryResult>(outcome);
     for (const domain::FetchChatHistoryItem& item : history.items) {
-        send_payload(connection_id, encode(HistoryItemMessage{item.message.id, item.is_mine, item.message.body}));
+        send_payload(connection_id, WireMessageCodec::encode(HistoryItemMessage{item.message.id, item.is_mine, item.message.body}));
     }
 
-    send_payload(connection_id, encode(HistoryEndMessage{}));
+    send_payload(connection_id, WireMessageCodec::encode(HistoryEndMessage{}));
 }
 
 

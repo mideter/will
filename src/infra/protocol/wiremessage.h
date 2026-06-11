@@ -79,12 +79,4 @@ public:
 };
 
 
-std::vector<char> encode(const WireMessage& message);
-std::unique_ptr<WireMessage> decode_message(const std::vector<char>& payload);
-std::unique_ptr<ClientMessage> decode_client_message(const std::vector<char>& payload);
-std::unique_ptr<ServerMessage> decode_server_message(const std::vector<char>& payload);
-
-std::string format_for_log(const std::vector<char>& payload);
-
-
 } // namespace will

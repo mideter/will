@@ -35,7 +35,7 @@ std::vector<char> UserChatMessage::encode() const
 
 std::string UserChatMessage::format_for_log() const
 {
-    return WireMessageCodecInternal::format_user_chat_body_for_log(body_);
+    return WireMessageCodec::Internal::format_user_chat_body_for_log(body_);
 }
 
 
@@ -82,8 +82,8 @@ std::vector<char> LoginRequestMessage::encode() const
     std::vector<char> out;
     out.reserve(1u + 8u + login_.size() + password_.size());
     out.push_back(static_cast<char>(WireMessage::Type::LoginRequest));
-    WireMessageCodecInternal::append_length_prefixed_string(out, login_);
-    WireMessageCodecInternal::append_length_prefixed_string(out, password_);
+    WireMessageCodec::Internal::append_length_prefixed_string(out, login_);
+    WireMessageCodec::Internal::append_length_prefixed_string(out, password_);
 
     if (out.size() > TcpFrame::MaxPayloadBytes)
         throw std::runtime_error("WireMessage::Type::encode_login_request: payload exceeds TcpFrame::MaxPayloadBytes");
@@ -107,9 +107,9 @@ std::unique_ptr<LoginRequestMessage> LoginRequestMessage::from_bytes(const std::
     std::size_t offset = 1u;
     std::string_view login;
     std::string_view password;
-    if (!WireMessageCodecInternal::read_length_prefixed_string(login, payload, offset))
+    if (!WireMessageCodec::Internal::read_length_prefixed_string(login, payload, offset))
         return nullptr;
-    if (!WireMessageCodecInternal::read_length_prefixed_string(password, payload, offset))
+    if (!WireMessageCodec::Internal::read_length_prefixed_string(password, payload, offset))
         return nullptr;
     if (offset != payload.size())
         return nullptr;
@@ -140,7 +140,7 @@ std::vector<char> BindTokenMessage::encode() const
     std::vector<char> out;
     out.reserve(1u + 4u + token_.size());
     out.push_back(static_cast<char>(WireMessage::Type::BindToken));
-    WireMessageCodecInternal::append_length_prefixed_string(out, token_);
+    WireMessageCodec::Internal::append_length_prefixed_string(out, token_);
     return out;
 }
 
@@ -162,7 +162,7 @@ std::unique_ptr<BindTokenMessage> BindTokenMessage::from_bytes(const std::vector
 
     std::size_t offset = 1u;
     std::string_view token;
-    if (!WireMessageCodecInternal::read_length_prefixed_string(token, payload, offset)
+    if (!WireMessageCodec::Internal::read_length_prefixed_string(token, payload, offset)
         || offset != payload.size())
         return nullptr;
 
@@ -192,7 +192,7 @@ std::vector<char> HistoryRequestMessage::encode() const
     std::vector<char> out;
     out.reserve(5);
     out.push_back(static_cast<char>(WireMessage::Type::HistoryRequest));
-    WireMessageCodecInternal::append_u32_be(out, limit_);
+    WireMessageCodec::Internal::append_u32_be(out, limit_);
     return out;
 }
 
@@ -213,7 +213,7 @@ std::unique_ptr<HistoryRequestMessage> HistoryRequestMessage::from_bytes(const s
         || payload.size() != 5u)
         return nullptr;
 
-    const auto limit = WireMessageCodecInternal::read_u32_be_at(
+    const auto limit = WireMessageCodec::Internal::read_u32_be_at(
         reinterpret_cast<const unsigned char*>(payload.data() + 1));
     if (limit < 1u)
         return nullptr;
@@ -249,7 +249,7 @@ std::vector<char> LoginResponseMessage::encode() const
         out.reserve(1u + 1u + 4u + token_.size());
         out.push_back(static_cast<char>(WireMessage::Type::LoginResponse));
         out.push_back('\1');
-        WireMessageCodecInternal::append_length_prefixed_string(out, token_);
+        WireMessageCodec::Internal::append_length_prefixed_string(out, token_);
         return out;
     }
 
@@ -284,7 +284,7 @@ std::unique_ptr<LoginResponseMessage> LoginResponseMessage::from_bytes(const std
     if (success) {
         std::size_t offset = 2u;
         std::string_view token;
-        if (!WireMessageCodecInternal::read_length_prefixed_string(token, payload, offset)
+        if (!WireMessageCodec::Internal::read_length_prefixed_string(token, payload, offset)
         || offset != payload.size())
             return nullptr;
         return std::make_unique<LoginResponseMessage>(true, std::string(token), 0);
@@ -384,9 +384,9 @@ std::vector<char> HistoryItemMessage::encode() const
     std::vector<char> out;
     out.reserve(total);
     out.push_back(static_cast<char>(WireMessage::Type::HistoryItem));
-    WireMessageCodecInternal::append_u64_be(out, message_id_);
+    WireMessageCodec::Internal::append_u64_be(out, message_id_);
     out.push_back(is_mine_ ? '\1' : '\0');
-    WireMessageCodecInternal::append_u32_be(out, static_cast<std::uint32_t>(utf8_body.size()));
+    WireMessageCodec::Internal::append_u32_be(out, static_cast<std::uint32_t>(utf8_body.size()));
     if (!utf8_body.empty())
         out.insert(out.end(), utf8_body.begin(), utf8_body.end());
     return out;
@@ -416,9 +416,9 @@ std::unique_ptr<HistoryItemMessage> HistoryItemMessage::from_bytes(const std::ve
         return nullptr;
 
     const auto* data = reinterpret_cast<const unsigned char*>(payload.data());
-    const std::uint64_t message_id = WireMessageCodecInternal::read_u64_be(data + 1);
+    const std::uint64_t message_id = WireMessageCodec::Internal::read_u64_be(data + 1);
     const bool is_mine = data[9] != 0u;
-    const std::uint32_t body_len = WireMessageCodecInternal::read_u32_be_at(data + 10);
+    const std::uint32_t body_len = WireMessageCodec::Internal::read_u32_be_at(data + 10);
 
     if (14u + body_len != payload.size())
         return nullptr;

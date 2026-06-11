@@ -1,3 +1,5 @@
+#include "wiremessage_codec.h"
+
 #include "wiremessage_client.h"
 #include "wiremessage_server.h"
 #include "wiremessage_user_chat.h"
@@ -9,10 +11,10 @@
 namespace will {
 
 
-std::vector<char> encode(const WireMessage& message) { return message.encode(); }
+std::vector<char> WireMessageCodec::encode(const WireMessage& message) { return message.encode(); }
 
 
-std::unique_ptr<WireMessage> decode_message(const std::vector<char>& payload)
+std::unique_ptr<WireMessage> WireMessageCodec::decode(const std::vector<char>& payload)
 {
     if (payload.empty())
         return nullptr;
@@ -42,26 +44,26 @@ std::unique_ptr<WireMessage> decode_message(const std::vector<char>& payload)
 }
 
 
-std::unique_ptr<ClientMessage> decode_client_message(const std::vector<char>& payload)
+std::unique_ptr<ClientMessage> WireMessageCodec::decode_client(const std::vector<char>& payload)
 {
     auto message = decode_message(payload);
     return std::unique_ptr<ClientMessage>(dynamic_cast<ClientMessage*>(message.release()));
 }
 
 
-std::unique_ptr<ServerMessage> decode_server_message(const std::vector<char>& payload)
+std::unique_ptr<ServerMessage> WireMessageCodec::decode_server(const std::vector<char>& payload)
 {
-    auto message = decode_message(payload);
+    auto message = decode(payload);
     return std::unique_ptr<ServerMessage>(dynamic_cast<ServerMessage*>(message.release()));
 }
 
 
-std::string format_for_log(const std::vector<char>& payload)
+std::string WireMessageCodec::format_for_log(const std::vector<char>& payload)
 {
     if (payload.empty())
         return "<empty>";
 
-    const auto message = decode_message(payload);
+    const auto message = decode(payload);
     if (!message)
         return "<unknown type=" + std::to_string(static_cast<unsigned int>(static_cast<unsigned char>(payload[0])))
                + " len=" + std::to_string(payload.size()) + ">";

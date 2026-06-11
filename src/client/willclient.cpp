@@ -12,6 +12,7 @@
 #include <vector>
 
 #include "wiremessage_client.h"
+#include "wiremessage_codec.h"
 #include "wiremessage_server.h"
 #include "wiremessage_user_chat.h"
 #include "tcpframe.h"
@@ -118,15 +119,15 @@ void WillClient::connect()
 
 void WillClient::authenticate(const std::string_view login, const std::string_view password) const
 {
-    send_payload(socket_, encode(LoginRequestMessage{std::string(login), std::string(password)}));
+    send_payload(socket_, WireMessageCodec::encode(LoginRequestMessage{std::string(login), std::string(password)}));
 
     const std::vector<char> response = receivePayload();
-    const auto message = decode_server_message(response);
+    const auto message = WireMessageCodec::decode_server(response);
     const auto* parsed = dynamic_cast<const LoginResponseMessage*>(message.get());
     if (!parsed || !parsed->success())
         throw std::runtime_error("Will protocol: login failed");
 
-    send_payload(socket_, encode(BindTokenMessage{parsed->token()}));
+    send_payload(socket_, WireMessageCodec::encode(BindTokenMessage{parsed->token()}));
 }
 
 
@@ -153,7 +154,7 @@ std::vector<char> WillClient::receivePayload() const
 
 void WillClient::send(std::string_view utf8_chat_body) const
 {
-    send_payload(socket_, encode(UserChatMessage{std::string(utf8_chat_body)}));
+    send_payload(socket_, WireMessageCodec::encode(UserChatMessage{std::string(utf8_chat_body)}));
 }
 
 
@@ -162,7 +163,7 @@ bool WillClient::requestHistory(const std::uint32_t limit) const
     if (limit == 0)
         return false;
 
-    send_payload(socket_, encode(HistoryRequestMessage{limit}));
+    send_payload(socket_, WireMessageCodec::encode(HistoryRequestMessage{limit}));
     return true;
 }
 
@@ -185,7 +186,7 @@ std::optional<std::unique_ptr<ServerMessage>> WillClient::receiveMessage() const
     std::vector<char> payload(plen);
     read_exact(socket_, reinterpret_cast<unsigned char*>(payload.data()), plen);
 
-    auto message = decode_server_message(payload);
+    auto message = WireMessageCodec::decode_server(payload);
     if (!message || !is_post_auth_server_message(*message))
         throw std::runtime_error("Will protocol: unknown message type");
 
