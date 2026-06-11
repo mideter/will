@@ -188,16 +188,4 @@ void ProtocolAdapter::handle_history_request(const std::uint64_t connection_id,
 }
 
 
-std::vector<char> ProtocolAdapter::encode_user_chat(const std::string_view utf8_body)
-{
-    return encode(UserChatMessage{std::string(utf8_body)});
-}
-
-
-std::string ProtocolAdapter::format_payload_for_log(const std::vector<char>& payload)
-{
-    return format_for_log(payload);
-}
-
-
 } // namespace will

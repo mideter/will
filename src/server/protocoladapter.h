@@ -36,9 +36,6 @@ public:
 
     void on_client_frame(std::uint64_t connection_id, const std::vector<char>& payload);
 
-    static std::vector<char> encode_user_chat(std::string_view utf8_body);
-    static std::string format_payload_for_log(const std::vector<char>& payload);
-
 private:
     void handle_login(std::uint64_t connection_id, const LoginRequestMessage& request);
     void handle_bind_token(std::uint64_t connection_id, const BindTokenMessage& token);

@@ -67,16 +67,9 @@ int main()
 		assert(a.size() == 1);
 	}
 
-	assert(!is_valid_client_to_server_payload({}));
-	assert(is_valid_client_to_server_payload(encode(UserChatMessage{"x"})));
-	assert(is_valid_client_to_server_payload(encode(UserChatMessage{""})));
-	assert(!is_valid_client_to_server_payload(encode(ServerReceiptAckMessage{})));
-	assert(!is_valid_client_to_server_payload({'\0'}));
-
 	{
 		const auto login = encode(LoginRequestMessage{"alice", "secret"});
 		assert(decodes_as_client<LoginRequestMessage>(login));
-		assert(is_valid_client_to_server_payload(login));
 		const auto login_message = decode_client_message(login);
 		assert(login_message);
 		const auto* parsed_login = dynamic_cast<const LoginRequestMessage*>(login_message.get());
@@ -110,7 +103,6 @@ int main()
 	{
 		const auto bind = encode(BindTokenMessage{"session-token"});
 		assert(decodes_as_client<BindTokenMessage>(bind));
-		assert(is_valid_client_to_server_payload(bind));
 		const auto bind_message = decode_client_message(bind);
 		assert(bind_message);
 		const auto* parsed_bind = dynamic_cast<const BindTokenMessage*>(bind_message.get());
@@ -126,7 +118,6 @@ int main()
 	{
 		const auto request = encode(HistoryRequestMessage{50});
 		assert(decodes_as_client<HistoryRequestMessage>(request));
-		assert(is_valid_client_to_server_payload(request));
 		const auto request_message = decode_client_message(request);
 		assert(request_message);
 		const auto* parsed_request = dynamic_cast<const HistoryRequestMessage*>(request_message.get());

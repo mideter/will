@@ -2,7 +2,6 @@
 
 #include <cstddef>
 #include <cstdint>
-#include <memory>
 #include <string>
 #include <vector>
 
@@ -75,7 +74,6 @@ public:
     virtual WireMessageType type() const noexcept = 0;
     virtual std::vector<char> encode() const = 0;
     virtual std::string format_for_log() const = 0;
-    virtual std::unique_ptr<WireMessageBase> clone() const = 0;
 };
 
 

@@ -45,12 +45,6 @@ std::vector<char> UserChatMessage::encode() const
 std::string UserChatMessage::format_for_log() const { return format_user_chat_body_for_log(body_); }
 
 
-std::unique_ptr<WireMessageBase> UserChatMessage::clone() const
-{
-    return std::make_unique<UserChatMessage>(*this);
-}
-
-
 void UserChatMessage::accept(ClientMessageVisitor& visitor) const { visitor.on(*this); }
 
 
@@ -105,12 +99,6 @@ std::vector<char> LoginRequestMessage::encode() const
 
 
 std::string LoginRequestMessage::format_for_log() const { return "LoginRequest(login=" + login_ + ')'; }
-
-
-std::unique_ptr<WireMessageBase> LoginRequestMessage::clone() const
-{
-    return std::make_unique<LoginRequestMessage>(*this);
-}
 
 
 void LoginRequestMessage::accept(ClientMessageVisitor& visitor) const { visitor.on(*this); }
@@ -169,12 +157,6 @@ std::string BindTokenMessage::format_for_log() const
 }
 
 
-std::unique_ptr<WireMessageBase> BindTokenMessage::clone() const
-{
-    return std::make_unique<BindTokenMessage>(*this);
-}
-
-
 void BindTokenMessage::accept(ClientMessageVisitor& visitor) const { visitor.on(*this); }
 
 
@@ -223,12 +205,6 @@ std::vector<char> HistoryRequestMessage::encode() const
 std::string HistoryRequestMessage::format_for_log() const
 {
     return "HistoryRequest(" + std::to_string(limit_) + ')';
-}
-
-
-std::unique_ptr<WireMessageBase> HistoryRequestMessage::clone() const
-{
-    return std::make_unique<HistoryRequestMessage>(*this);
 }
 
 
@@ -297,12 +273,6 @@ std::string LoginResponseMessage::format_for_log() const
 }
 
 
-std::unique_ptr<WireMessageBase> LoginResponseMessage::clone() const
-{
-    return std::make_unique<LoginResponseMessage>(*this);
-}
-
-
 void LoginResponseMessage::accept(ServerMessageVisitor& visitor) const { visitor.on(*this); }
 
 
@@ -351,12 +321,6 @@ std::vector<char> AuthRequiredMessage::encode() const
 std::string AuthRequiredMessage::format_for_log() const { return "AuthRequired"; }
 
 
-std::unique_ptr<WireMessageBase> AuthRequiredMessage::clone() const
-{
-    return std::make_unique<AuthRequiredMessage>(*this);
-}
-
-
 void AuthRequiredMessage::accept(ServerMessageVisitor& visitor) const { visitor.on(*this); }
 
 
@@ -385,12 +349,6 @@ std::vector<char> ServerReceiptAckMessage::encode() const
 
 
 std::string ServerReceiptAckMessage::format_for_log() const { return "ServerReceiptAck"; }
-
-
-std::unique_ptr<WireMessageBase> ServerReceiptAckMessage::clone() const
-{
-    return std::make_unique<ServerReceiptAckMessage>(*this);
-}
 
 
 void ServerReceiptAckMessage::accept(ServerMessageVisitor& visitor) const { visitor.on(*this); }
@@ -450,12 +408,6 @@ std::string HistoryItemMessage::format_for_log() const
 }
 
 
-std::unique_ptr<WireMessageBase> HistoryItemMessage::clone() const
-{
-    return std::make_unique<HistoryItemMessage>(*this);
-}
-
-
 void HistoryItemMessage::accept(ServerMessageVisitor& visitor) const { visitor.on(*this); }
 
 
@@ -500,12 +452,6 @@ std::vector<char> HistoryEndMessage::encode() const
 
 
 std::string HistoryEndMessage::format_for_log() const { return "HistoryEnd"; }
-
-
-std::unique_ptr<WireMessageBase> HistoryEndMessage::clone() const
-{
-    return std::make_unique<HistoryEndMessage>(*this);
-}
 
 
 void HistoryEndMessage::accept(ServerMessageVisitor& visitor) const { visitor.on(*this); }

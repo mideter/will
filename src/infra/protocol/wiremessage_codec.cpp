@@ -56,9 +56,6 @@ std::unique_ptr<ServerMessage> decode_server_message(const std::vector<char>& pa
 }
 
 
-std::string format_for_log(const WireMessageBase& message) { return message.format_for_log(); }
-
-
 std::string format_for_log(const std::vector<char>& payload)
 {
     if (payload.empty())
@@ -70,19 +67,6 @@ std::string format_for_log(const std::vector<char>& payload)
                + " len=" + std::to_string(payload.size()) + ">";
 
     return message->format_for_log();
-}
-
-
-bool is_valid_client_to_server_payload(const std::vector<char>& payload) noexcept
-{
-    const auto message = decode_client_message(payload);
-    if (!message)
-        return false;
-
-    if (const auto* request = dynamic_cast<const HistoryRequestMessage*>(message.get()))
-        return request->limit() >= 1u;
-
-    return true;
 }
 
 

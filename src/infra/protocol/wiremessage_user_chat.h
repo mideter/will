@@ -18,7 +18,6 @@ public:
     WireMessageType type() const noexcept override;
     std::vector<char> encode() const override;
     std::string format_for_log() const override;
-    std::unique_ptr<WireMessageBase> clone() const override;
     void accept(ClientMessageVisitor& visitor) const override;
     void accept(ServerMessageVisitor& visitor) const override;
 

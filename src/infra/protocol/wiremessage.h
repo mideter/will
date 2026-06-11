@@ -18,10 +18,6 @@ std::unique_ptr<WireMessageBase> decode_message(const std::vector<char>& payload
 std::unique_ptr<ClientMessage> decode_client_message(const std::vector<char>& payload);
 std::unique_ptr<ServerMessage> decode_server_message(const std::vector<char>& payload);
 
-/** Structurally valid client → server types (auth gating is enforced in the adapter). */
-bool is_valid_client_to_server_payload(const std::vector<char>& payload) noexcept;
-
-std::string format_for_log(const WireMessageBase& message);
 std::string format_for_log(const std::vector<char>& payload);
 
 

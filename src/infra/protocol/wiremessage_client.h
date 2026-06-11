@@ -21,7 +21,6 @@ public:
     WireMessageType type() const noexcept override;
     std::vector<char> encode() const override;
     std::string format_for_log() const override;
-    std::unique_ptr<WireMessageBase> clone() const override;
     void accept(ClientMessageVisitor& visitor) const override;
 
     static std::unique_ptr<LoginRequestMessage> from_bytes(const std::vector<char>& payload);
@@ -43,7 +42,6 @@ public:
     WireMessageType type() const noexcept override;
     std::vector<char> encode() const override;
     std::string format_for_log() const override;
-    std::unique_ptr<WireMessageBase> clone() const override;
     void accept(ClientMessageVisitor& visitor) const override;
 
     static std::unique_ptr<BindTokenMessage> from_bytes(const std::vector<char>& payload);
@@ -64,7 +62,6 @@ public:
     WireMessageType type() const noexcept override;
     std::vector<char> encode() const override;
     std::string format_for_log() const override;
-    std::unique_ptr<WireMessageBase> clone() const override;
     void accept(ClientMessageVisitor& visitor) const override;
 
     static std::unique_ptr<HistoryRequestMessage> from_bytes(const std::vector<char>& payload);
