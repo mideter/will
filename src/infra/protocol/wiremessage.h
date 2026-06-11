@@ -106,6 +106,8 @@ std::optional<WireMessage> decode(const std::vector<char>& payload);
 
 std::vector<char> encode(const WireMessageBase& message);
 std::unique_ptr<WireMessageBase> decode_message(const std::vector<char>& payload);
+std::unique_ptr<ClientMessage> decode_client_message(const std::vector<char>& payload);
+std::unique_ptr<ServerMessage> decode_server_message(const std::vector<char>& payload);
 
 bool is_client_to_server(const WireMessage& message) noexcept;
 

@@ -23,8 +23,13 @@ namespace will {
 class TcpConnectionRegistry;
 
 
+struct InboundClientFrameHandler;
+
+
 /** Maps wire payloads to domain use cases and encodes outbound frames. */
 class ProtocolAdapter {
+    friend struct InboundClientFrameHandler;
+
 public:
     ProtocolAdapter(domain::MessengerPersistence persistence, TcpConnectionRegistry& registry,
                     ConnectionAccountStore& account_store);
@@ -35,10 +40,10 @@ public:
     static std::string format_payload_for_log(const std::vector<char>& payload);
 
 private:
-    void handle_login(std::uint64_t connection_id, const LoginRequestPayload& request);
-    void handle_bind_token(std::uint64_t connection_id, const BindToken& token);
-    void handle_user_chat(std::uint64_t connection_id, const UserChat& chat);
-    void handle_history_request(std::uint64_t connection_id, const HistoryRequest& request);
+    void handle_login(std::uint64_t connection_id, const LoginRequestMessage& request);
+    void handle_bind_token(std::uint64_t connection_id, const BindTokenMessage& token);
+    void handle_user_chat(std::uint64_t connection_id, const UserChatMessage& chat);
+    void handle_history_request(std::uint64_t connection_id, const HistoryRequestMessage& request);
     void send_auth_required(std::uint64_t connection_id);
     void send_payload(std::uint64_t connection_id, const std::vector<char>& app_payload);
     void close_with_protocol_error(std::uint64_t connection_id, std::string_view message);

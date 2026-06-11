@@ -42,6 +42,20 @@ std::unique_ptr<WireMessageBase> decode_message(const std::vector<char>& payload
 }
 
 
+std::unique_ptr<ClientMessage> decode_client_message(const std::vector<char>& payload)
+{
+    auto message = decode_message(payload);
+    return std::unique_ptr<ClientMessage>(dynamic_cast<ClientMessage*>(message.release()));
+}
+
+
+std::unique_ptr<ServerMessage> decode_server_message(const std::vector<char>& payload)
+{
+    auto message = decode_message(payload);
+    return std::unique_ptr<ServerMessage>(dynamic_cast<ServerMessage*>(message.release()));
+}
+
+
 std::string format_for_log(const WireMessageBase& message) { return message.format_for_log(); }
 
 

@@ -117,18 +117,12 @@ bool is_client_to_server(const WireMessage& message) noexcept
 
 bool is_valid_client_to_server_payload(const std::vector<char>& payload) noexcept
 {
-    const auto message = decode(payload);
+    const auto message = decode_client_message(payload);
     if (!message)
         return false;
 
-    if (!is_client_to_server(*message))
-        return false;
-
-    if (std::holds_alternative<UserChat>(*message))
-        return true;
-
-    if (const auto* request = std::get_if<HistoryRequest>(&*message))
-        return request->limit >= 1u;
+    if (const auto* request = dynamic_cast<const HistoryRequestMessage*>(message.get()))
+        return request->limit() >= 1u;
 
     return true;
 }

@@ -5,13 +5,45 @@
 #include <chrono>
 #include <iostream>
 #include <string_view>
-#include <variant>
 
 #include "willprotocol.h"
 #include "wiremessage.h"
 
 
 namespace will {
+
+
+struct InboundClientFrameHandler final : ClientMessageVisitor {
+    ProtocolAdapter& adapter;
+    std::uint64_t connection_id;
+
+    InboundClientFrameHandler(ProtocolAdapter& adapter_in, const std::uint64_t connection_id_in)
+        : adapter(adapter_in)
+        , connection_id(connection_id_in)
+    {}
+
+    void on(const LoginRequestMessage& message) override { adapter.handle_login(connection_id, message); }
+
+    void on(const BindTokenMessage& message) override { adapter.handle_bind_token(connection_id, message); }
+
+    void on(const UserChatMessage& message) override
+    {
+        if (!adapter.account_store_.has(connection_id)) {
+            adapter.send_auth_required(connection_id);
+            return;
+        }
+        adapter.handle_user_chat(connection_id, message);
+    }
+
+    void on(const HistoryRequestMessage& message) override
+    {
+        if (!adapter.account_store_.has(connection_id)) {
+            adapter.send_auth_required(connection_id);
+            return;
+        }
+        adapter.handle_history_request(connection_id, message);
+    }
+};
 
 
 namespace {
@@ -46,35 +78,14 @@ ProtocolAdapter::ProtocolAdapter(domain::MessengerPersistence persistence, TcpCo
 
 void ProtocolAdapter::on_client_frame(const std::uint64_t connection_id, const std::vector<char>& payload)
 {
-    const auto message = decode(payload);
-    if (!message || !is_client_to_server(*message)) {
+    const auto message = decode_client_message(payload);
+    if (!message) {
         close_with_protocol_error(connection_id, "Protocol error: invalid client frame");
         return;
     }
 
-    std::visit(
-        [this, connection_id](const auto& typed_message) {
-            using T = std::decay_t<decltype(typed_message)>;
-
-            if constexpr (std::is_same_v<T, LoginRequestPayload>) {
-                handle_login(connection_id, typed_message);
-            } else if constexpr (std::is_same_v<T, BindToken>) {
-                handle_bind_token(connection_id, typed_message);
-            } else if constexpr (std::is_same_v<T, UserChat>) {
-                if (!account_store_.has(connection_id)) {
-                    send_auth_required(connection_id);
-                    return;
-                }
-                handle_user_chat(connection_id, typed_message);
-            } else if constexpr (std::is_same_v<T, HistoryRequest>) {
-                if (!account_store_.has(connection_id)) {
-                    send_auth_required(connection_id);
-                    return;
-                }
-                handle_history_request(connection_id, typed_message);
-            }
-        },
-        *message);
+    InboundClientFrameHandler handler{*this, connection_id};
+    message->accept(handler);
 }
 
 
@@ -96,13 +107,13 @@ void ProtocolAdapter::close_with_protocol_error(const std::uint64_t connection_i
 }
 
 
-void ProtocolAdapter::handle_login(const std::uint64_t connection_id, const LoginRequestPayload& request)
+void ProtocolAdapter::handle_login(const std::uint64_t connection_id, const LoginRequestMessage& request)
 {
     const auto now_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
                             std::chrono::system_clock::now().time_since_epoch())
                             .count();
 
-    const domain::AuthenticateUserInput input{request.login, request.password, now_ms};
+    const domain::AuthenticateUserInput input{request.login(), request.password(), now_ms};
     const auto outcome = authenticate_user_.execute(input);
 
     if (const auto* failure = std::get_if<domain::AuthResult>(&outcome)) {
@@ -121,9 +132,9 @@ void ProtocolAdapter::handle_login(const std::uint64_t connection_id, const Logi
 }
 
 
-void ProtocolAdapter::handle_bind_token(const std::uint64_t connection_id, const BindToken& token)
+void ProtocolAdapter::handle_bind_token(const std::uint64_t connection_id, const BindTokenMessage& token)
 {
-    const auto account = persistence_.sessions.resolve_token(domain::AuthToken{token.token});
+    const auto account = persistence_.sessions.resolve_token(domain::AuthToken{token.token()});
     if (!account) {
         LoginResponsePayload response;
         response.success = false;
@@ -142,7 +153,7 @@ void ProtocolAdapter::send_auth_required(const std::uint64_t connection_id)
 }
 
 
-void ProtocolAdapter::handle_user_chat(const std::uint64_t connection_id, const UserChat& chat)
+void ProtocolAdapter::handle_user_chat(const std::uint64_t connection_id, const UserChatMessage& chat)
 {
     const auto now_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
                             std::chrono::system_clock::now().time_since_epoch())
@@ -152,7 +163,7 @@ void ProtocolAdapter::handle_user_chat(const std::uint64_t connection_id, const 
         *account_store_.get(connection_id),
         domain::ParticipantId{connection_id},
         domain::ChatId::global(),
-        chat.body,
+        chat.body(),
         now_ms,
     };
 
@@ -161,10 +172,11 @@ void ProtocolAdapter::handle_user_chat(const std::uint64_t connection_id, const 
 }
 
 
-void ProtocolAdapter::handle_history_request(const std::uint64_t connection_id, const HistoryRequest& request)
+void ProtocolAdapter::handle_history_request(const std::uint64_t connection_id,
+                                             const HistoryRequestMessage& request)
 {
     const domain::FetchChatHistoryInput input{*account_store_.get(connection_id), domain::ChatId::global(),
-                                              request.limit};
+                                              request.limit()};
 
     const auto outcome = fetch_chat_history_.execute(input);
     if (const auto* error = std::get_if<domain::DomainError>(&outcome)) {
