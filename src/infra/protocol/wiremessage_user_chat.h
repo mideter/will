@@ -15,7 +15,7 @@ public:
 
     const std::string& body() const noexcept { return body_; }
 
-    WireMessageType type() const noexcept override;
+    WireMessage::Type type() const noexcept override;
     std::vector<char> encode() const override;
     std::string format_for_log() const override;
     void accept(ClientMessageVisitor& visitor) const override;

@@ -73,11 +73,11 @@ void read_exact(asio::ip::tcp::socket& socket, unsigned char* data, std::size_t 
 bool is_post_auth_server_message(const ServerMessage& message) noexcept
 {
     switch (message.type()) {
-    case WireMessageType::ServerReceiptAck:
-    case WireMessageType::AuthRequired:
-    case WireMessageType::UserChat:
-    case WireMessageType::HistoryItem:
-    case WireMessageType::HistoryEnd:
+    case WireMessage::Type::ServerReceiptAck:
+    case WireMessage::Type::AuthRequired:
+    case WireMessage::Type::UserChat:
+    case WireMessage::Type::HistoryItem:
+    case WireMessage::Type::HistoryEnd:
         return true;
     default:
         return false;

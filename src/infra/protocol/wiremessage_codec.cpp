@@ -17,24 +17,24 @@ std::unique_ptr<WireMessage> decode_message(const std::vector<char>& payload)
     if (payload.empty())
         return nullptr;
 
-    switch (static_cast<WireMessageType>(static_cast<std::uint8_t>(payload[0]))) {
-    case WireMessageType::UserChat:
+    switch (static_cast<WireMessage::Type>(static_cast<std::uint8_t>(payload[0]))) {
+    case WireMessage::Type::UserChat:
         return UserChatMessage::from_bytes(payload);
-    case WireMessageType::ServerReceiptAck:
+    case WireMessage::Type::ServerReceiptAck:
         return ServerReceiptAckMessage::from_bytes(payload);
-    case WireMessageType::HistoryRequest:
+    case WireMessage::Type::HistoryRequest:
         return HistoryRequestMessage::from_bytes(payload);
-    case WireMessageType::HistoryItem:
+    case WireMessage::Type::HistoryItem:
         return HistoryItemMessage::from_bytes(payload);
-    case WireMessageType::HistoryEnd:
+    case WireMessage::Type::HistoryEnd:
         return HistoryEndMessage::from_bytes(payload);
-    case WireMessageType::LoginRequest:
+    case WireMessage::Type::LoginRequest:
         return LoginRequestMessage::from_bytes(payload);
-    case WireMessageType::LoginResponse:
+    case WireMessage::Type::LoginResponse:
         return LoginResponseMessage::from_bytes(payload);
-    case WireMessageType::BindToken:
+    case WireMessage::Type::BindToken:
         return BindTokenMessage::from_bytes(payload);
-    case WireMessageType::AuthRequired:
+    case WireMessage::Type::AuthRequired:
         return AuthRequiredMessage::from_bytes(payload);
     }
 

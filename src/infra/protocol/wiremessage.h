@@ -16,19 +16,6 @@ inline constexpr std::uint32_t MaxHistoryRequestLimit = 1000;
 inline constexpr std::uint32_t MaxAuthFieldBytes = 4096;
 
 
-enum class WireMessageType : std::uint8_t {
-    UserChat = 1,
-    ServerReceiptAck = 2,
-    HistoryRequest = 3,
-    HistoryItem = 4,
-    HistoryEnd = 5,
-    LoginRequest = 6,
-    LoginResponse = 7,
-    BindToken = 8,
-    AuthRequired = 9,
-};
-
-
 enum class LoginError : std::uint8_t {
     InvalidCredentials = 1,
     ExpiredToken = 2,
@@ -70,9 +57,21 @@ struct ServerMessageVisitor {
 
 class WireMessage {
 public:
+    enum class Type : std::uint8_t {
+        UserChat = 1,
+        ServerReceiptAck = 2,
+        HistoryRequest = 3,
+        HistoryItem = 4,
+        HistoryEnd = 5,
+        LoginRequest = 6,
+        LoginResponse = 7,
+        BindToken = 8,
+        AuthRequired = 9,
+    };
+
     virtual ~WireMessage() = default;
 
-    virtual WireMessageType type() const noexcept = 0;
+    virtual Type type() const noexcept = 0;
     virtual std::vector<char> encode() const = 0;
     virtual std::string format_for_log() const = 0;
 };

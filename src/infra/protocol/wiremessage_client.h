@@ -18,7 +18,7 @@ public:
     const std::string& login() const noexcept { return login_; }
     const std::string& password() const noexcept { return password_; }
 
-    WireMessageType type() const noexcept override;
+    WireMessage::Type type() const noexcept override;
     std::vector<char> encode() const override;
     std::string format_for_log() const override;
     void accept(ClientMessageVisitor& visitor) const override;
@@ -39,7 +39,7 @@ public:
 
     const std::string& token() const noexcept { return token_; }
 
-    WireMessageType type() const noexcept override;
+    WireMessage::Type type() const noexcept override;
     std::vector<char> encode() const override;
     std::string format_for_log() const override;
     void accept(ClientMessageVisitor& visitor) const override;
@@ -59,7 +59,7 @@ public:
 
     std::uint32_t limit() const noexcept { return limit_; }
 
-    WireMessageType type() const noexcept override;
+    WireMessage::Type type() const noexcept override;
     std::vector<char> encode() const override;
     std::string format_for_log() const override;
     void accept(ClientMessageVisitor& visitor) const override;

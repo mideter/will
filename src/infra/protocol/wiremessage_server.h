@@ -19,7 +19,7 @@ public:
     const std::string& token() const noexcept { return token_; }
     std::uint8_t error_code() const noexcept { return error_code_; }
 
-    WireMessageType type() const noexcept override;
+    WireMessage::Type type() const noexcept override;
     std::vector<char> encode() const override;
     std::string format_for_log() const override;
     void accept(ServerMessageVisitor& visitor) const override;
@@ -37,7 +37,7 @@ private:
 
 class AuthRequiredMessage final : public ServerMessage {
 public:
-    WireMessageType type() const noexcept override;
+    WireMessage::Type type() const noexcept override;
     std::vector<char> encode() const override;
     std::string format_for_log() const override;
     void accept(ServerMessageVisitor& visitor) const override;
@@ -50,7 +50,7 @@ public:
 
 class ServerReceiptAckMessage final : public ServerMessage {
 public:
-    WireMessageType type() const noexcept override;
+    WireMessage::Type type() const noexcept override;
     std::vector<char> encode() const override;
     std::string format_for_log() const override;
     void accept(ServerMessageVisitor& visitor) const override;
@@ -70,7 +70,7 @@ public:
     bool is_mine() const noexcept { return is_mine_; }
     const std::string& body() const noexcept { return body_; }
 
-    WireMessageType type() const noexcept override;
+    WireMessage::Type type() const noexcept override;
     std::vector<char> encode() const override;
     std::string format_for_log() const override;
     void accept(ServerMessageVisitor& visitor) const override;
@@ -88,7 +88,7 @@ private:
 
 class HistoryEndMessage final : public ServerMessage {
 public:
-    WireMessageType type() const noexcept override;
+    WireMessage::Type type() const noexcept override;
     std::vector<char> encode() const override;
     std::string format_for_log() const override;
     void accept(ServerMessageVisitor& visitor) const override;

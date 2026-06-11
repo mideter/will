@@ -15,7 +15,7 @@ namespace will {
 UserChatMessage::UserChatMessage(std::string body) : body_(std::move(body)) {}
 
 
-WireMessageType UserChatMessage::type() const noexcept { return WireMessageType::UserChat; }
+WireMessage::Type UserChatMessage::type() const noexcept { return WireMessage::Type::UserChat; }
 
 
 std::vector<char> UserChatMessage::encode() const
@@ -23,10 +23,10 @@ std::vector<char> UserChatMessage::encode() const
     const std::string_view utf8_body = body_;
     const std::size_t total = 1u + utf8_body.size();
     if (total > TcpFrame::MaxPayloadBytes)
-        throw std::runtime_error("WireMessageType::encode_user_chat: payload exceeds TcpFrame::MaxPayloadBytes");
+        throw std::runtime_error("WireMessage::Type::encode_user_chat: payload exceeds TcpFrame::MaxPayloadBytes");
 
     std::vector<char> out(total);
-    out[0] = static_cast<char>(WireMessageType::UserChat);
+    out[0] = static_cast<char>(WireMessage::Type::UserChat);
     if (!utf8_body.empty())
         std::memcpy(out.data() + 1, utf8_body.data(), utf8_body.size());
     return out;
@@ -48,7 +48,7 @@ void UserChatMessage::accept(ServerMessageVisitor& visitor) const { visitor.on(*
 std::unique_ptr<UserChatMessage> UserChatMessage::from_bytes(const std::vector<char>& payload)
 {
     if (payload.empty()
-        || static_cast<WireMessageType>(static_cast<std::uint8_t>(payload[0])) != WireMessageType::UserChat)
+        || static_cast<WireMessage::Type>(static_cast<std::uint8_t>(payload[0])) != WireMessage::Type::UserChat)
         return nullptr;
 
     auto message = std::make_unique<UserChatMessage>();
@@ -71,22 +71,22 @@ LoginRequestMessage::LoginRequestMessage(std::string login, std::string password
 }
 
 
-WireMessageType LoginRequestMessage::type() const noexcept { return WireMessageType::LoginRequest; }
+WireMessage::Type LoginRequestMessage::type() const noexcept { return WireMessage::Type::LoginRequest; }
 
 
 std::vector<char> LoginRequestMessage::encode() const
 {
     if (login_.empty() || password_.empty())
-        throw std::runtime_error("WireMessageType::encode_login_request: login and password required");
+        throw std::runtime_error("WireMessage::Type::encode_login_request: login and password required");
 
     std::vector<char> out;
     out.reserve(1u + 8u + login_.size() + password_.size());
-    out.push_back(static_cast<char>(WireMessageType::LoginRequest));
+    out.push_back(static_cast<char>(WireMessage::Type::LoginRequest));
     WireMessageCodecInternal::append_length_prefixed_string(out, login_);
     WireMessageCodecInternal::append_length_prefixed_string(out, password_);
 
     if (out.size() > TcpFrame::MaxPayloadBytes)
-        throw std::runtime_error("WireMessageType::encode_login_request: payload exceeds TcpFrame::MaxPayloadBytes");
+        throw std::runtime_error("WireMessage::Type::encode_login_request: payload exceeds TcpFrame::MaxPayloadBytes");
 
     return out;
 }
@@ -101,7 +101,7 @@ void LoginRequestMessage::accept(ClientMessageVisitor& visitor) const { visitor.
 std::unique_ptr<LoginRequestMessage> LoginRequestMessage::from_bytes(const std::vector<char>& payload)
 {
     if (payload.empty()
-        || static_cast<WireMessageType>(static_cast<std::uint8_t>(payload[0])) != WireMessageType::LoginRequest)
+        || static_cast<WireMessage::Type>(static_cast<std::uint8_t>(payload[0])) != WireMessage::Type::LoginRequest)
         return nullptr;
 
     std::size_t offset = 1u;
@@ -129,17 +129,17 @@ bool LoginRequestMessage::operator==(const LoginRequestMessage& other) const noe
 BindTokenMessage::BindTokenMessage(std::string token) : token_(std::move(token)) {}
 
 
-WireMessageType BindTokenMessage::type() const noexcept { return WireMessageType::BindToken; }
+WireMessage::Type BindTokenMessage::type() const noexcept { return WireMessage::Type::BindToken; }
 
 
 std::vector<char> BindTokenMessage::encode() const
 {
     if (token_.empty())
-        throw std::runtime_error("WireMessageType::encode_bind_token: token required");
+        throw std::runtime_error("WireMessage::Type::encode_bind_token: token required");
 
     std::vector<char> out;
     out.reserve(1u + 4u + token_.size());
-    out.push_back(static_cast<char>(WireMessageType::BindToken));
+    out.push_back(static_cast<char>(WireMessage::Type::BindToken));
     WireMessageCodecInternal::append_length_prefixed_string(out, token_);
     return out;
 }
@@ -157,7 +157,7 @@ void BindTokenMessage::accept(ClientMessageVisitor& visitor) const { visitor.on(
 std::unique_ptr<BindTokenMessage> BindTokenMessage::from_bytes(const std::vector<char>& payload)
 {
     if (payload.empty()
-        || static_cast<WireMessageType>(static_cast<std::uint8_t>(payload[0])) != WireMessageType::BindToken)
+        || static_cast<WireMessage::Type>(static_cast<std::uint8_t>(payload[0])) != WireMessage::Type::BindToken)
         return nullptr;
 
     std::size_t offset = 1u;
@@ -181,17 +181,17 @@ bool BindTokenMessage::operator==(const BindTokenMessage& other) const noexcept
 HistoryRequestMessage::HistoryRequestMessage(std::uint32_t limit) : limit_(limit) {}
 
 
-WireMessageType HistoryRequestMessage::type() const noexcept { return WireMessageType::HistoryRequest; }
+WireMessage::Type HistoryRequestMessage::type() const noexcept { return WireMessage::Type::HistoryRequest; }
 
 
 std::vector<char> HistoryRequestMessage::encode() const
 {
     if (limit_ < 1u)
-        throw std::runtime_error("WireMessageType::encode_history_request: limit must be at least 1");
+        throw std::runtime_error("WireMessage::Type::encode_history_request: limit must be at least 1");
 
     std::vector<char> out;
     out.reserve(5);
-    out.push_back(static_cast<char>(WireMessageType::HistoryRequest));
+    out.push_back(static_cast<char>(WireMessage::Type::HistoryRequest));
     WireMessageCodecInternal::append_u32_be(out, limit_);
     return out;
 }
@@ -209,7 +209,7 @@ void HistoryRequestMessage::accept(ClientMessageVisitor& visitor) const { visito
 std::unique_ptr<HistoryRequestMessage> HistoryRequestMessage::from_bytes(const std::vector<char>& payload)
 {
     if (payload.empty()
-        || static_cast<WireMessageType>(static_cast<std::uint8_t>(payload[0])) != WireMessageType::HistoryRequest
+        || static_cast<WireMessage::Type>(static_cast<std::uint8_t>(payload[0])) != WireMessage::Type::HistoryRequest
         || payload.size() != 5u)
         return nullptr;
 
@@ -236,27 +236,27 @@ LoginResponseMessage::LoginResponseMessage(bool success, std::string token, std:
 }
 
 
-WireMessageType LoginResponseMessage::type() const noexcept { return WireMessageType::LoginResponse; }
+WireMessage::Type LoginResponseMessage::type() const noexcept { return WireMessage::Type::LoginResponse; }
 
 
 std::vector<char> LoginResponseMessage::encode() const
 {
     if (success_) {
         if (token_.empty())
-            throw std::runtime_error("WireMessageType::encode_login_response_success: token required");
+            throw std::runtime_error("WireMessage::Type::encode_login_response_success: token required");
 
         std::vector<char> out;
         out.reserve(1u + 1u + 4u + token_.size());
-        out.push_back(static_cast<char>(WireMessageType::LoginResponse));
+        out.push_back(static_cast<char>(WireMessage::Type::LoginResponse));
         out.push_back('\1');
         WireMessageCodecInternal::append_length_prefixed_string(out, token_);
         return out;
     }
 
     if (error_code_ == 0u)
-        throw std::runtime_error("WireMessageType::encode_login_response_failure: error_code required");
+        throw std::runtime_error("WireMessage::Type::encode_login_response_failure: error_code required");
 
-    return std::vector<char>{static_cast<char>(WireMessageType::LoginResponse), '\0',
+    return std::vector<char>{static_cast<char>(WireMessage::Type::LoginResponse), '\0',
                              static_cast<char>(error_code_)};
 }
 
@@ -275,7 +275,7 @@ void LoginResponseMessage::accept(ServerMessageVisitor& visitor) const { visitor
 std::unique_ptr<LoginResponseMessage> LoginResponseMessage::from_bytes(const std::vector<char>& payload)
 {
     if (payload.empty()
-        || static_cast<WireMessageType>(static_cast<std::uint8_t>(payload[0])) != WireMessageType::LoginResponse
+        || static_cast<WireMessage::Type>(static_cast<std::uint8_t>(payload[0])) != WireMessage::Type::LoginResponse
         || payload.size() < 2u)
         return nullptr;
 
@@ -306,12 +306,12 @@ bool LoginResponseMessage::operator==(const LoginResponseMessage& other) const n
 
 // --- AuthRequiredMessage ---
 
-WireMessageType AuthRequiredMessage::type() const noexcept { return WireMessageType::AuthRequired; }
+WireMessage::Type AuthRequiredMessage::type() const noexcept { return WireMessage::Type::AuthRequired; }
 
 
 std::vector<char> AuthRequiredMessage::encode() const
 {
-    return std::vector<char>{static_cast<char>(WireMessageType::AuthRequired)};
+    return std::vector<char>{static_cast<char>(WireMessage::Type::AuthRequired)};
 }
 
 
@@ -324,7 +324,7 @@ void AuthRequiredMessage::accept(ServerMessageVisitor& visitor) const { visitor.
 std::unique_ptr<AuthRequiredMessage> AuthRequiredMessage::from_bytes(const std::vector<char>& payload)
 {
     if (payload.size() != 1u
-        || static_cast<WireMessageType>(static_cast<std::uint8_t>(payload[0])) != WireMessageType::AuthRequired)
+        || static_cast<WireMessage::Type>(static_cast<std::uint8_t>(payload[0])) != WireMessage::Type::AuthRequired)
         return nullptr;
 
     return std::make_unique<AuthRequiredMessage>();
@@ -333,15 +333,15 @@ std::unique_ptr<AuthRequiredMessage> AuthRequiredMessage::from_bytes(const std::
 
 // --- ServerReceiptAckMessage ---
 
-WireMessageType ServerReceiptAckMessage::type() const noexcept
+WireMessage::Type ServerReceiptAckMessage::type() const noexcept
 {
-    return WireMessageType::ServerReceiptAck;
+    return WireMessage::Type::ServerReceiptAck;
 }
 
 
 std::vector<char> ServerReceiptAckMessage::encode() const
 {
-    return std::vector<char>{static_cast<char>(WireMessageType::ServerReceiptAck)};
+    return std::vector<char>{static_cast<char>(WireMessage::Type::ServerReceiptAck)};
 }
 
 
@@ -355,8 +355,8 @@ std::unique_ptr<ServerReceiptAckMessage> ServerReceiptAckMessage::from_bytes(
     const std::vector<char>& payload)
 {
     if (payload.size() != 1u
-        || static_cast<WireMessageType>(static_cast<std::uint8_t>(payload[0]))
-               != WireMessageType::ServerReceiptAck)
+        || static_cast<WireMessage::Type>(static_cast<std::uint8_t>(payload[0]))
+               != WireMessage::Type::ServerReceiptAck)
         return nullptr;
 
     return std::make_unique<ServerReceiptAckMessage>();
@@ -371,7 +371,7 @@ HistoryItemMessage::HistoryItemMessage(std::uint64_t message_id, bool is_mine, s
 }
 
 
-WireMessageType HistoryItemMessage::type() const noexcept { return WireMessageType::HistoryItem; }
+WireMessage::Type HistoryItemMessage::type() const noexcept { return WireMessage::Type::HistoryItem; }
 
 
 std::vector<char> HistoryItemMessage::encode() const
@@ -379,11 +379,11 @@ std::vector<char> HistoryItemMessage::encode() const
     const std::string_view utf8_body = body_;
     const std::size_t total = 1u + 8u + 1u + 4u + utf8_body.size();
     if (total > TcpFrame::MaxPayloadBytes)
-        throw std::runtime_error("WireMessageType::encode_history_item: payload exceeds TcpFrame::MaxPayloadBytes");
+        throw std::runtime_error("WireMessage::Type::encode_history_item: payload exceeds TcpFrame::MaxPayloadBytes");
 
     std::vector<char> out;
     out.reserve(total);
-    out.push_back(static_cast<char>(WireMessageType::HistoryItem));
+    out.push_back(static_cast<char>(WireMessage::Type::HistoryItem));
     WireMessageCodecInternal::append_u64_be(out, message_id_);
     out.push_back(is_mine_ ? '\1' : '\0');
     WireMessageCodecInternal::append_u32_be(out, static_cast<std::uint32_t>(utf8_body.size()));
@@ -411,7 +411,7 @@ void HistoryItemMessage::accept(ServerMessageVisitor& visitor) const { visitor.o
 std::unique_ptr<HistoryItemMessage> HistoryItemMessage::from_bytes(const std::vector<char>& payload)
 {
     if (payload.empty()
-        || static_cast<WireMessageType>(static_cast<std::uint8_t>(payload[0])) != WireMessageType::HistoryItem
+        || static_cast<WireMessage::Type>(static_cast<std::uint8_t>(payload[0])) != WireMessage::Type::HistoryItem
         || payload.size() < 14u)
         return nullptr;
 
@@ -439,12 +439,12 @@ bool HistoryItemMessage::operator==(const HistoryItemMessage& other) const noexc
 
 // --- HistoryEndMessage ---
 
-WireMessageType HistoryEndMessage::type() const noexcept { return WireMessageType::HistoryEnd; }
+WireMessage::Type HistoryEndMessage::type() const noexcept { return WireMessage::Type::HistoryEnd; }
 
 
 std::vector<char> HistoryEndMessage::encode() const
 {
-    return std::vector<char>{static_cast<char>(WireMessageType::HistoryEnd)};
+    return std::vector<char>{static_cast<char>(WireMessage::Type::HistoryEnd)};
 }
 
 
@@ -457,7 +457,7 @@ void HistoryEndMessage::accept(ServerMessageVisitor& visitor) const { visitor.on
 std::unique_ptr<HistoryEndMessage> HistoryEndMessage::from_bytes(const std::vector<char>& payload)
 {
     if (payload.size() != 1u
-        || static_cast<WireMessageType>(static_cast<std::uint8_t>(payload[0])) != WireMessageType::HistoryEnd)
+        || static_cast<WireMessage::Type>(static_cast<std::uint8_t>(payload[0])) != WireMessage::Type::HistoryEnd)
         return nullptr;
 
     return std::make_unique<HistoryEndMessage>();

@@ -54,14 +54,14 @@ int main()
 		const UserChatMessage chat{"hi"};
 		const auto v = encode(chat);
 		assert(v.size() == 3);
-		assert(static_cast<unsigned char>(v[0]) == static_cast<unsigned char>(WireMessageType::UserChat));
+		assert(static_cast<unsigned char>(v[0]) == static_cast<unsigned char>(WireMessage::Type::UserChat));
 		assert(v[1] == 'h' && v[2] == 'i');
 	}
 
 	{
 		const auto v = encode(UserChatMessage{""});
 		assert(v.size() == 1);
-		assert(static_cast<unsigned char>(v[0]) == static_cast<unsigned char>(WireMessageType::UserChat));
+		assert(static_cast<unsigned char>(v[0]) == static_cast<unsigned char>(WireMessage::Type::UserChat));
 	}
 
 	{
