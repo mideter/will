@@ -1,12 +1,13 @@
 #include "chatsession.h"
 
+#include "chat_ui_visitor.h"
+
 #include <atomic>
 #include <iostream>
 #include <optional>
 #include <stdexcept>
 #include <string>
 #include <thread>
-#include <variant>
 
 
 namespace will {
@@ -44,29 +45,17 @@ void ChatSession::loadHistory() const
         return;
 
     while (true) {
-        const std::optional<WireMessage> incoming = client_.receiveMessage();
+        const std::optional<std::unique_ptr<ServerMessage>> incoming = client_.receiveMessage();
+
         if (!incoming.has_value())
             throw std::runtime_error("Disconnected while loading history");
 
-        if (std::holds_alternative<HistoryEnd>(*incoming))
+        ChatUiVisitor visitor{ChatUiVisitor::Context::LoadingHistory};
+        (*incoming)->accept(visitor);
+
+        if (visitor.history_finished())
             break;
-
-        if (const auto* item = std::get_if<HistoryItemPayload>(&*incoming)) {
-            printHistoryItem(*item);
-            continue;
-        }
-
-        throw std::runtime_error("Unexpected message while loading history");
     }
-}
-
-
-void ChatSession::printHistoryItem(const HistoryItemPayload& item)
-{
-    if (item.is_mine)
-        std::cout << "[me] " << item.body << '\n';
-    else
-        std::cout << "[peer] " << item.body << '\n';
 }
 
 
@@ -74,31 +63,15 @@ void ChatSession::receiveLoop() const
 {
     try {
         while (true) {
-            const std::optional<WireMessage> incoming = client_.receiveMessage();
+            const std::optional<std::unique_ptr<ServerMessage>> incoming = client_.receiveMessage();
 
             if (!incoming.has_value()) {
                 std::cout << std::endl << "Disconnected from chat." << std::endl;
                 break;
             }
 
-            if (std::holds_alternative<ServerReceiptAck>(*incoming)) {
-                if (!client_.config().quiet_receipts)
-                    std::cerr << "[server] ваше сообщение принято" << std::endl;
-                continue;
-            }
-
-            if (const auto* item = std::get_if<HistoryItemPayload>(&*incoming)) {
-                printHistoryItem(*item);
-                continue;
-            }
-
-            if (std::holds_alternative<HistoryEnd>(*incoming))
-                continue;
-
-            if (const auto* chat = std::get_if<UserChat>(&*incoming)) {
-                std::cout << chat->body << std::endl;
-                std::cout.flush();
-            }
+            ChatUiVisitor visitor{ChatUiVisitor::Context::Receiving, &client_};
+            (*incoming)->accept(visitor);
         }
     }
     catch (const std::exception& e) {

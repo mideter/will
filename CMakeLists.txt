@@ -86,6 +86,7 @@ target_link_libraries(will-server PRIVATE will-domain will-protocol CLI11::CLI11
 
 add_executable(will-client
   src/client/client.cpp
+  src/client/chat_ui_visitor.cpp
   src/client/chatsession.cpp
   src/client/willclient.cpp
   src/client/clientconfigvalidator.cpp

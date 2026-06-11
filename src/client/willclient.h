@@ -3,6 +3,7 @@
 #include <asio.hpp>
 
 #include <cstdint>
+#include <memory>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -32,7 +33,7 @@ public:
     bool requestHistory(std::uint32_t limit) const;
 
     /** std::nullopt = peer closed before next frame header; otherwise decoded server message. */
-    std::optional<WireMessage> receiveMessage() const;
+    std::optional<std::unique_ptr<ServerMessage>> receiveMessage() const;
 
     void shutdown() const;
 

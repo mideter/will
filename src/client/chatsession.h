@@ -15,7 +15,6 @@ public:
 private:
     void receiveLoop() const;
     void loadHistory() const;
-    static void printHistoryItem(const HistoryItemPayload& item);
 
     WillClient& client_;
 };
