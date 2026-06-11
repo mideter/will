@@ -5,15 +5,14 @@
 #include <string_view>
 #include <vector>
 
-#include "wiremessage.h"
-
-
 namespace will {
 
 
 /** Binary helpers shared by wire message encode/decode (library-internal). */
 class WireMessageCodecInternal {
 public:
+    static constexpr std::uint32_t MaxAuthFieldBytes = 4096;
+
     static void append_u32_be(std::vector<char>& out, std::uint32_t value);
     static std::uint32_t read_u32_be_at(const unsigned char* data) noexcept;
 

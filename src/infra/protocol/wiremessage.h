@@ -12,10 +12,6 @@
 namespace will {
 
 
-inline constexpr std::uint32_t MaxHistoryRequestLimit = 1000;
-inline constexpr std::uint32_t MaxAuthFieldBytes = 4096;
-
-
 enum class LoginError : std::uint8_t {
     InvalidCredentials = 1,
     ExpiredToken = 2,

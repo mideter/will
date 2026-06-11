@@ -1,5 +1,7 @@
 #include "wiremessage_codec_internal.h"
 
+#include "tcpframe.h"
+
 #include <array>
 #include <cstring>
 #include <stdexcept>
@@ -43,7 +45,7 @@ std::uint64_t WireMessageCodecInternal::read_u64_be(const unsigned char* data) n
 void WireMessageCodecInternal::append_length_prefixed_string(std::vector<char>& out, std::string_view value)
 {
     if (value.size() > MaxAuthFieldBytes)
-        throw std::runtime_error("WireMessage: auth field exceeds MaxAuthFieldBytes");
+        throw std::runtime_error("WireMessageCodecInternal: auth field exceeds MaxAuthFieldBytes");
 
     append_u32_be(out, static_cast<std::uint32_t>(value.size()));
     if (!value.empty())
