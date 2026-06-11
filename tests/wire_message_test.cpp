@@ -6,31 +6,37 @@
 #include <cstdlib>
 #include <cstring>
 #include <string>
-#include <variant>
 #include <vector>
 
 
 namespace {
 
 
-template<typename T>
-void assert_roundtrip(const T& message)
+template<typename MessageType>
+void assert_roundtrip(const MessageType& original)
 {
-	const will::WireMessage original{message};
 	const auto encoded = will::encode(original);
-	const auto decoded = will::decode(encoded);
+	const auto decoded = will::decode_message(encoded);
 	assert(decoded);
-	const auto* roundtripped = std::get_if<T>(&*decoded);
+	const auto* roundtripped = dynamic_cast<const MessageType*>(decoded.get());
 	assert(roundtripped);
-	assert(*roundtripped == message);
+	assert(*roundtripped == original);
 }
 
 
-template<typename T>
-bool decodes_as(const std::vector<char>& payload)
+template<typename MessageType>
+bool decodes_as_client(const std::vector<char>& payload)
 {
-	const auto message = will::decode(payload);
-	return message && std::holds_alternative<T>(*message);
+	const auto message = will::decode_client_message(payload);
+	return message && dynamic_cast<const MessageType*>(message.get()) != nullptr;
+}
+
+
+template<typename MessageType>
+bool decodes_as_server(const std::vector<char>& payload)
+{
+	const auto message = will::decode_server_message(payload);
+	return message && dynamic_cast<const MessageType*>(message.get()) != nullptr;
 }
 
 
@@ -42,120 +48,121 @@ int main()
 	using namespace will;
 
 	{
-		const auto v = encode(UserChat{"hi"});
+		const UserChatMessage chat{"hi"};
+		const auto v = encode(chat);
 		assert(v.size() == 3);
 		assert(static_cast<unsigned char>(v[0]) == static_cast<unsigned char>(WireMessageType::UserChat));
 		assert(v[1] == 'h' && v[2] == 'i');
 	}
 
 	{
-		const auto v = encode(UserChat{""});
+		const auto v = encode(UserChatMessage{""});
 		assert(v.size() == 1);
 		assert(static_cast<unsigned char>(v[0]) == static_cast<unsigned char>(WireMessageType::UserChat));
 	}
 
 	{
-		const auto a = encode(ServerReceiptAck{});
-		assert(decodes_as<ServerReceiptAck>(a));
+		const auto a = encode(ServerReceiptAckMessage{});
+		assert(decodes_as_server<ServerReceiptAckMessage>(a));
 		assert(a.size() == 1);
 	}
 
 	assert(!is_valid_client_to_server_payload({}));
-	assert(is_valid_client_to_server_payload(encode(UserChat{"x"})));
-	assert(is_valid_client_to_server_payload(encode(UserChat{""})));
-	assert(!is_valid_client_to_server_payload(encode(ServerReceiptAck{})));
+	assert(is_valid_client_to_server_payload(encode(UserChatMessage{"x"})));
+	assert(is_valid_client_to_server_payload(encode(UserChatMessage{""})));
+	assert(!is_valid_client_to_server_payload(encode(ServerReceiptAckMessage{})));
 	assert(!is_valid_client_to_server_payload({'\0'}));
 
 	{
-		const auto login = encode(LoginRequestPayload{"alice", "secret"});
-		assert(decodes_as<LoginRequestPayload>(login));
+		const auto login = encode(LoginRequestMessage{"alice", "secret"});
+		assert(decodes_as_client<LoginRequestMessage>(login));
 		assert(is_valid_client_to_server_payload(login));
-		const auto login_message = decode(login);
+		const auto login_message = decode_client_message(login);
 		assert(login_message);
-		const auto* parsed_login = std::get_if<LoginRequestPayload>(&*login_message);
+		const auto* parsed_login = dynamic_cast<const LoginRequestMessage*>(login_message.get());
 		assert(parsed_login);
-		assert(parsed_login->login == "alice");
-		assert(parsed_login->password == "secret");
+		assert(parsed_login->login() == "alice");
+		assert(parsed_login->password() == "secret");
 	}
 
 	{
-		const auto ok = encode(LoginResponsePayload{true, "session-token", 0});
-		assert(decodes_as<LoginResponsePayload>(ok));
-		const auto ok_message = decode(ok);
+		const auto ok = encode(LoginResponseMessage{true, "session-token", 0});
+		assert(decodes_as_server<LoginResponseMessage>(ok));
+		const auto ok_message = decode_server_message(ok);
 		assert(ok_message);
-		const auto* parsed_ok = std::get_if<LoginResponsePayload>(&*ok_message);
+		const auto* parsed_ok = dynamic_cast<const LoginResponseMessage*>(ok_message.get());
 		assert(parsed_ok);
-		assert(parsed_ok->success);
-		assert(parsed_ok->token == "session-token");
+		assert(parsed_ok->success());
+		assert(parsed_ok->token() == "session-token");
 	}
 
 	{
-		const auto fail = encode(LoginResponsePayload{
+		const auto fail = encode(LoginResponseMessage{
 		    false, "", static_cast<std::uint8_t>(LoginError::InvalidCredentials)});
-		const auto fail_message = decode(fail);
+		const auto fail_message = decode_server_message(fail);
 		assert(fail_message);
-		const auto* parsed_fail = std::get_if<LoginResponsePayload>(&*fail_message);
+		const auto* parsed_fail = dynamic_cast<const LoginResponseMessage*>(fail_message.get());
 		assert(parsed_fail);
-		assert(!parsed_fail->success);
-		assert(parsed_fail->error_code == static_cast<std::uint8_t>(LoginError::InvalidCredentials));
+		assert(!parsed_fail->success());
+		assert(parsed_fail->error_code() == static_cast<std::uint8_t>(LoginError::InvalidCredentials));
 	}
 
 	{
-		const auto bind = encode(BindToken{"session-token"});
-		assert(decodes_as<BindToken>(bind));
+		const auto bind = encode(BindTokenMessage{"session-token"});
+		assert(decodes_as_client<BindTokenMessage>(bind));
 		assert(is_valid_client_to_server_payload(bind));
-		const auto bind_message = decode(bind);
+		const auto bind_message = decode_client_message(bind);
 		assert(bind_message);
-		const auto* parsed_bind = std::get_if<BindToken>(&*bind_message);
+		const auto* parsed_bind = dynamic_cast<const BindTokenMessage*>(bind_message.get());
 		assert(parsed_bind);
-		assert(parsed_bind->token == "session-token");
+		assert(parsed_bind->token() == "session-token");
 	}
 
 	{
-		const auto auth_required = encode(AuthRequired{});
-		assert(decodes_as<AuthRequired>(auth_required));
+		const auto auth_required = encode(AuthRequiredMessage{});
+		assert(decodes_as_server<AuthRequiredMessage>(auth_required));
 	}
 
 	{
-		const auto request = encode(HistoryRequest{50});
-		assert(decodes_as<HistoryRequest>(request));
+		const auto request = encode(HistoryRequestMessage{50});
+		assert(decodes_as_client<HistoryRequestMessage>(request));
 		assert(is_valid_client_to_server_payload(request));
-		const auto request_message = decode(request);
+		const auto request_message = decode_client_message(request);
 		assert(request_message);
-		const auto* parsed_request = std::get_if<HistoryRequest>(&*request_message);
+		const auto* parsed_request = dynamic_cast<const HistoryRequestMessage*>(request_message.get());
 		assert(parsed_request);
-		assert(parsed_request->limit == 50u);
+		assert(parsed_request->limit() == 50u);
 	}
 
 	{
-		const auto item = encode(HistoryItemPayload{42, true, "stored"});
-		assert(decodes_as<HistoryItemPayload>(item));
-		const auto item_message = decode(item);
+		const auto item = encode(HistoryItemMessage{42, true, "stored"});
+		assert(decodes_as_server<HistoryItemMessage>(item));
+		const auto item_message = decode_server_message(item);
 		assert(item_message);
-		const auto* parsed = std::get_if<HistoryItemPayload>(&*item_message);
+		const auto* parsed = dynamic_cast<const HistoryItemMessage*>(item_message.get());
 		assert(parsed);
-		assert(parsed->message_id == 42u);
-		assert(parsed->is_mine);
-		assert(parsed->body == "stored");
+		assert(parsed->message_id() == 42u);
+		assert(parsed->is_mine());
+		assert(parsed->body() == "stored");
 	}
 
 	{
-		const auto end = encode(HistoryEnd{});
-		assert(decodes_as<HistoryEnd>(end));
+		const auto end = encode(HistoryEndMessage{});
+		assert(decodes_as_server<HistoryEndMessage>(end));
 	}
 
 	{
-		const auto v = encode(UserChat{"hi"});
+		const auto v = encode(UserChatMessage{"hi"});
 		const std::string line = format_for_log(v);
 		assert(line.find("UserChat") != std::string::npos);
 		assert(line.find("hi") != std::string::npos);
 	}
 
-	assert(format_for_log(encode(ServerReceiptAck{})) == "ServerReceiptAck");
-	assert(format_for_log(encode(HistoryEnd{})) == "HistoryEnd");
+	assert(format_for_log(encode(ServerReceiptAckMessage{})) == "ServerReceiptAck");
+	assert(format_for_log(encode(HistoryEndMessage{})) == "HistoryEnd");
 
 	{
-		const auto payload = encode(UserChat{"ping"});
+		const auto payload = encode(UserChatMessage{"ping"});
 		const auto frame = TcpFrame::encode(payload);
 		assert(frame.size() == 4 + payload.size());
 		std::array<unsigned char, 4> header{};
@@ -165,21 +172,36 @@ int main()
 		assert(frame[4] == payload[0]);
 	}
 
-	assert_roundtrip(UserChat{"roundtrip"});
-	assert_roundtrip(UserChat{""});
-	assert_roundtrip(ServerReceiptAck{});
-	assert_roundtrip(HistoryRequest{50});
-	assert_roundtrip(HistoryItemPayload{42, true, "stored"});
-	assert_roundtrip(HistoryItemPayload{7, false, ""});
-	assert_roundtrip(HistoryEnd{});
-	assert_roundtrip(LoginRequestPayload{"alice", "secret"});
-	assert_roundtrip(LoginResponsePayload{true, "session-token", 0});
-	assert_roundtrip(LoginResponsePayload{
+	assert_roundtrip(UserChatMessage{"roundtrip"});
+	assert_roundtrip(UserChatMessage{""});
+	assert_roundtrip(ServerReceiptAckMessage{});
+	assert_roundtrip(HistoryRequestMessage{50});
+	assert_roundtrip(HistoryItemMessage{42, true, "stored"});
+	assert_roundtrip(HistoryItemMessage{7, false, ""});
+	assert_roundtrip(HistoryEndMessage{});
+	assert_roundtrip(LoginRequestMessage{"alice", "secret"});
+	assert_roundtrip(LoginResponseMessage{true, "session-token", 0});
+	assert_roundtrip(LoginResponseMessage{
 	    false, "", static_cast<std::uint8_t>(LoginError::InvalidCredentials)});
-	assert_roundtrip(LoginResponsePayload{
+	assert_roundtrip(LoginResponseMessage{
 	    false, "", static_cast<std::uint8_t>(LoginError::ExpiredToken)});
-	assert_roundtrip(BindToken{"session-token"});
-	assert_roundtrip(AuthRequired{});
+	assert_roundtrip(BindTokenMessage{"session-token"});
+	assert_roundtrip(AuthRequiredMessage{});
+
+	{
+		const UserChatMessage chat{"bidirectional"};
+		const auto encoded = encode(chat);
+		const auto client_decoded = decode_client_message(encoded);
+		const auto server_decoded = decode_server_message(encoded);
+		assert(client_decoded);
+		assert(server_decoded);
+		const auto* client_chat = dynamic_cast<const UserChatMessage*>(client_decoded.get());
+		const auto* server_chat = dynamic_cast<const UserChatMessage*>(server_decoded.get());
+		assert(client_chat);
+		assert(server_chat);
+		assert(*client_chat == chat);
+		assert(*server_chat == chat);
+	}
 
 	return EXIT_SUCCESS;
 }

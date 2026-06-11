@@ -21,7 +21,7 @@ void TcpConnectionParticipantNotifierImpl::notify_chat_message(const domain::Cha
 {
     (void)chat;
 
-    const std::vector<char> payload = encode(UserChat{msg.body});
+    const std::vector<char> payload = encode(UserChatMessage{msg.body});
 
     if (const std::string_view sender_label = registry_.peer_label(except_participant.value);
         !sender_label.empty()) {

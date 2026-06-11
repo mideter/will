@@ -23,13 +23,13 @@ public:
 
     void connect();
 
-    /** Login + {@link BindToken} on the current TCP session. */
+    /** Login + {@link BindTokenMessage} on the current TCP session. */
     void authenticate(std::string_view login, std::string_view password) const;
 
-    /** Sends {@link UserChat} with UTF-8 body (requires prior {@link #authenticate}). */
+    /** Sends {@link UserChatMessage} with UTF-8 body (requires prior {@link #authenticate}). */
     void send(std::string_view utf8_chat_body) const;
 
-    /** Sends {@link HistoryRequest} with the given limit; returns false when limit is 0. */
+    /** Sends {@link HistoryRequestMessage} with the given limit; returns false when limit is 0. */
     bool requestHistory(std::uint32_t limit) const;
 
     /** std::nullopt = peer closed before next frame header; otherwise decoded server message. */
