@@ -25,12 +25,12 @@ namespace will {
 class TcpConnectionRegistry;
 
 
-struct InboundClientFrameHandler;
+class InboundClientMessageHandler;
 
 
 /** Maps wire payloads to domain use cases and encodes outbound frames. */
 class ProtocolAdapter {
-    friend struct InboundClientFrameHandler;
+    friend class InboundClientMessageHandler;
 
 public:
     ProtocolAdapter(domain::MessengerPersistence persistence, TcpConnectionRegistry& registry,

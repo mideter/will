@@ -60,6 +60,7 @@ add_executable(will-server
   src/server/iocontextthreadpool.cpp
   src/server/tcpconnection.cpp
   src/server/connectionaccountstore.cpp
+  src/server/inbound_client_message_handler.cpp
   src/server/protocoladapter.cpp
   src/server/tcpconnectionparticipantnotifierimpl.cpp
   src/server/tcpframereader.cpp
@@ -85,7 +86,7 @@ target_link_libraries(will-server PRIVATE will-domain will-protocol CLI11::CLI11
 
 add_executable(will-client
   src/client/client.cpp
-  src/client/chat_ui_visitor.cpp
+  src/client/inbound_server_message_handler.cpp
   src/client/chatsession.cpp
   src/client/willclient.cpp
   src/client/clientconfigvalidator.cpp

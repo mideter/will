@@ -39,12 +39,6 @@ std::string UserChatMessage::format_for_log() const
 }
 
 
-void UserChatMessage::accept(ClientMessageVisitor& visitor) const { visitor.on(*this); }
-
-
-void UserChatMessage::accept(ServerMessageVisitor& visitor) const { visitor.on(*this); }
-
-
 std::unique_ptr<UserChatMessage> UserChatMessage::from_bytes(const std::vector<char>& payload)
 {
     if (payload.empty()
@@ -93,9 +87,6 @@ std::vector<char> LoginRequestMessage::encode() const
 
 
 std::string LoginRequestMessage::format_for_log() const { return "LoginRequest(login=" + login_ + ')'; }
-
-
-void LoginRequestMessage::accept(ClientMessageVisitor& visitor) const { visitor.on(*this); }
 
 
 std::unique_ptr<LoginRequestMessage> LoginRequestMessage::from_bytes(const std::vector<char>& payload)
@@ -151,9 +142,6 @@ std::string BindTokenMessage::format_for_log() const
 }
 
 
-void BindTokenMessage::accept(ClientMessageVisitor& visitor) const { visitor.on(*this); }
-
-
 std::unique_ptr<BindTokenMessage> BindTokenMessage::from_bytes(const std::vector<char>& payload)
 {
     if (payload.empty()
@@ -201,9 +189,6 @@ std::string HistoryRequestMessage::format_for_log() const
 {
     return "HistoryRequest(" + std::to_string(limit_) + ')';
 }
-
-
-void HistoryRequestMessage::accept(ClientMessageVisitor& visitor) const { visitor.on(*this); }
 
 
 std::unique_ptr<HistoryRequestMessage> HistoryRequestMessage::from_bytes(const std::vector<char>& payload)
@@ -269,9 +254,6 @@ std::string LoginResponseMessage::format_for_log() const
 }
 
 
-void LoginResponseMessage::accept(ServerMessageVisitor& visitor) const { visitor.on(*this); }
-
-
 std::unique_ptr<LoginResponseMessage> LoginResponseMessage::from_bytes(const std::vector<char>& payload)
 {
     if (payload.empty()
@@ -318,9 +300,6 @@ std::vector<char> AuthRequiredMessage::encode() const
 std::string AuthRequiredMessage::format_for_log() const { return "AuthRequired"; }
 
 
-void AuthRequiredMessage::accept(ServerMessageVisitor& visitor) const { visitor.on(*this); }
-
-
 std::unique_ptr<AuthRequiredMessage> AuthRequiredMessage::from_bytes(const std::vector<char>& payload)
 {
     if (payload.size() != 1u
@@ -346,9 +325,6 @@ std::vector<char> ServerReceiptAckMessage::encode() const
 
 
 std::string ServerReceiptAckMessage::format_for_log() const { return "ServerReceiptAck"; }
-
-
-void ServerReceiptAckMessage::accept(ServerMessageVisitor& visitor) const { visitor.on(*this); }
 
 
 std::unique_ptr<ServerReceiptAckMessage> ServerReceiptAckMessage::from_bytes(
@@ -405,9 +381,6 @@ std::string HistoryItemMessage::format_for_log() const
 }
 
 
-void HistoryItemMessage::accept(ServerMessageVisitor& visitor) const { visitor.on(*this); }
-
-
 std::unique_ptr<HistoryItemMessage> HistoryItemMessage::from_bytes(const std::vector<char>& payload)
 {
     if (payload.empty()
@@ -449,9 +422,6 @@ std::vector<char> HistoryEndMessage::encode() const
 
 
 std::string HistoryEndMessage::format_for_log() const { return "HistoryEnd"; }
-
-
-void HistoryEndMessage::accept(ServerMessageVisitor& visitor) const { visitor.on(*this); }
 
 
 std::unique_ptr<HistoryEndMessage> HistoryEndMessage::from_bytes(const std::vector<char>& payload)

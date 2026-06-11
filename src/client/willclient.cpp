@@ -71,21 +71,6 @@ void read_exact(asio::ip::tcp::socket& socket, unsigned char* data, std::size_t 
 }
 
 
-bool is_post_auth_server_message(const ServerMessage& message) noexcept
-{
-    switch (message.type()) {
-    case WireMessage::Type::ServerReceiptAck:
-    case WireMessage::Type::AuthRequired:
-    case WireMessage::Type::UserChat:
-    case WireMessage::Type::HistoryItem:
-    case WireMessage::Type::HistoryEnd:
-        return true;
-    default:
-        return false;
-    }
-}
-
-
 } // namespace
 
 
@@ -168,7 +153,7 @@ bool WillClient::requestHistory(const std::uint32_t limit) const
 }
 
 
-std::optional<std::unique_ptr<ServerMessage>> WillClient::receiveMessage() const
+std::optional<std::vector<char>> WillClient::receiveFrame() const
 {
     std::array<unsigned char, 4> len_bytes{};
     if (read_exact_or_eof_before_first_byte(socket_, len_bytes.data(), len_bytes.size()))
@@ -185,12 +170,7 @@ std::optional<std::unique_ptr<ServerMessage>> WillClient::receiveMessage() const
 
     std::vector<char> payload(plen);
     read_exact(socket_, reinterpret_cast<unsigned char*>(payload.data()), plen);
-
-    auto message = WireMessageCodec::decode_server(payload);
-    if (!message || !is_post_auth_server_message(*message))
-        throw std::runtime_error("Will protocol: unknown message type");
-
-    return message;
+    return payload;
 }
 
 

@@ -3,8 +3,8 @@
 #include <asio.hpp>
 
 #include <cstdint>
-#include <memory>
 #include <optional>
+#include <vector>
 #include <string>
 #include <string_view>
 
@@ -32,8 +32,8 @@ public:
     /** Sends {@link HistoryRequestMessage} with the given limit; returns false when limit is 0. */
     bool requestHistory(std::uint32_t limit) const;
 
-    /** std::nullopt = peer closed before next frame header; otherwise decoded server message. */
-    std::optional<std::unique_ptr<ServerMessage>> receiveMessage() const;
+    /** std::nullopt = peer closed before next frame header; otherwise typed payload bytes. */
+    std::optional<std::vector<char>> receiveFrame() const;
 
     void shutdown() const;
 

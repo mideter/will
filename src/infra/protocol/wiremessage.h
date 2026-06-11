@@ -12,26 +12,6 @@
 namespace will {
 
 
-class ClientMessage;
-class ServerMessage;
-
-
-class ClientMessageVisitor {
-public:
-    virtual ~ClientMessageVisitor() = default;
-
-    virtual void on(const ClientMessage& message) = 0;
-};
-
-
-class ServerMessageVisitor {
-public:
-    virtual ~ServerMessageVisitor() = default;
-
-    virtual void on(const ServerMessage& message) = 0;
-};
-
-
 class WireMessage {
 public:
     enum class Type : std::uint8_t {
@@ -54,16 +34,10 @@ public:
 };
 
 
-class ClientMessage : public virtual WireMessage {
-public:
-    virtual void accept(ClientMessageVisitor& visitor) const = 0;
-};
+class ClientMessage : public virtual WireMessage {};
 
 
-class ServerMessage : public virtual WireMessage {
-public:
-    virtual void accept(ServerMessageVisitor& visitor) const = 0;
-};
+class ServerMessage : public virtual WireMessage {};
 
 
 } // namespace will

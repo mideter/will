@@ -1,6 +1,6 @@
 #include "chatsession.h"
 
-#include "chat_ui_visitor.h"
+#include "inbound_server_message_handler.h"
 
 #include <atomic>
 #include <iostream>
@@ -9,8 +9,31 @@
 #include <string>
 #include <thread>
 
+#include "wiremessage_codec.h"
+
 
 namespace will {
+
+
+namespace {
+
+
+bool is_post_auth_server_message(const ServerMessage& message) noexcept
+{
+    switch (message.type()) {
+    case WireMessage::Type::ServerReceiptAck:
+    case WireMessage::Type::AuthRequired:
+    case WireMessage::Type::UserChat:
+    case WireMessage::Type::HistoryItem:
+    case WireMessage::Type::HistoryEnd:
+        return true;
+    default:
+        return false;
+    }
+}
+
+
+} // namespace
 
 
 ChatSession::ChatSession(WillClient& client)
@@ -45,15 +68,15 @@ void ChatSession::loadHistory() const
         return;
 
     while (true) {
-        const std::optional<std::unique_ptr<ServerMessage>> incoming = client_.receiveMessage();
+        const std::optional<std::vector<char>> frame = client_.receiveFrame();
 
-        if (!incoming.has_value())
+        if (!frame.has_value())
             throw std::runtime_error("Disconnected while loading history");
 
-        ChatUiVisitor visitor{ChatUiVisitor::Context::LoadingHistory};
-        (*incoming)->accept(visitor);
+        LoadingHistoryMessageHandler handler;
+        on_server_frame(*frame, handler);
 
-        if (visitor.history_finished())
+        if (handler.history_finished())
             break;
     }
 }
@@ -63,21 +86,39 @@ void ChatSession::receiveLoop() const
 {
     try {
         while (true) {
-            const std::optional<std::unique_ptr<ServerMessage>> incoming = client_.receiveMessage();
+            const std::optional<std::vector<char>> frame = client_.receiveFrame();
 
-            if (!incoming.has_value()) {
+            if (!frame.has_value()) {
                 std::cout << std::endl << "Disconnected from chat." << std::endl;
                 break;
             }
 
-            ChatUiVisitor visitor{ChatUiVisitor::Context::Receiving, &client_};
-            (*incoming)->accept(visitor);
+            ReceivingMessageHandler handler{client_};
+            on_server_frame(*frame, handler);
         }
     }
     catch (const std::exception& e) {
         std::cerr << std::endl << "Receive error: " << e.what() << std::endl;
     }
 }
+
+
+template<typename Handler>
+void ChatSession::on_server_frame(const std::vector<char>& payload, Handler& handler) const
+{
+    const auto message = WireMessageCodec::decode_server(payload);
+    if (!message || !is_post_auth_server_message(*message)) {
+        throw std::runtime_error("Will protocol: invalid server frame");
+    }
+
+    handler.on(*message);
+}
+
+
+template void ChatSession::on_server_frame<LoadingHistoryMessageHandler>(const std::vector<char>&,
+                                                                           LoadingHistoryMessageHandler&) const;
+template void ChatSession::on_server_frame<ReceivingMessageHandler>(const std::vector<char>&,
+                                                                    ReceivingMessageHandler&) const;
 
 
 } // namespace will
