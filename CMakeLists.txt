@@ -42,6 +42,9 @@ target_compile_features(will-domain PUBLIC cxx_std_20)
 add_library(will-protocol
   src/infra/protocol/willprotocol.cpp
   src/infra/protocol/wiremessage.cpp
+  src/infra/protocol/wiremessage_codec.cpp
+  src/infra/protocol/wiremessage_codec_internal.cpp
+  src/infra/protocol/wiremessage_messages.cpp
 )
 target_include_directories(will-protocol PUBLIC src/infra/protocol)
 target_compile_features(will-protocol PUBLIC cxx_std_20)

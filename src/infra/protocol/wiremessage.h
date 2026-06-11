@@ -1,40 +1,18 @@
 #pragma once
 
-#include <cstddef>
-#include <cstdint>
+#include <memory>
 #include <optional>
 #include <string>
-#include <string_view>
 #include <variant>
 #include <vector>
 
-#include "willprotocol.h"
+#include "wiremessage_base.h"
+#include "wiremessage_client.h"
+#include "wiremessage_server.h"
+#include "wiremessage_user_chat.h"
 
 
 namespace will {
-
-
-inline constexpr std::uint32_t MaxHistoryRequestLimit = 1000;
-inline constexpr std::uint32_t MaxAuthFieldBytes = 4096;
-
-
-enum class WireMessageType : std::uint8_t {
-    UserChat = 1,
-    ServerReceiptAck = 2,
-    HistoryRequest = 3,
-    HistoryItem = 4,
-    HistoryEnd = 5,
-    LoginRequest = 6,
-    LoginResponse = 7,
-    BindToken = 8,
-    AuthRequired = 9,
-};
-
-
-enum class LoginError : std::uint8_t {
-    InvalidCredentials = 1,
-    ExpiredToken = 2,
-};
 
 
 struct UserChat {
@@ -124,12 +102,16 @@ using WireMessage = std::variant<
 std::vector<char> encode(const WireMessage& message);
 std::optional<WireMessage> decode(const std::vector<char>& payload);
 
+std::vector<char> encode(const WireMessageBase& message);
+std::unique_ptr<WireMessageBase> decode_message(const std::vector<char>& payload);
+
 bool is_client_to_server(const WireMessage& message) noexcept;
 
 /** Structurally valid client → server types (auth gating is enforced in the adapter). */
 bool is_valid_client_to_server_payload(const std::vector<char>& payload) noexcept;
 
 std::string format_for_log(const WireMessage& message);
+std::string format_for_log(const WireMessageBase& message);
 std::string format_for_log(const std::vector<char>& payload);
 
 

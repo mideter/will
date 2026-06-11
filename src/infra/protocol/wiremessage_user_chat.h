@@ -1,0 +1,34 @@
+#pragma once
+
+#include <memory>
+#include <string>
+
+#include "wiremessage_base.h"
+
+
+namespace will {
+
+
+class UserChatMessage final : public ClientMessage, public ServerMessage {
+public:
+    explicit UserChatMessage(std::string body = {});
+
+    const std::string& body() const noexcept { return body_; }
+
+    WireMessageType type() const noexcept override;
+    std::vector<char> encode() const override;
+    std::string format_for_log() const override;
+    std::unique_ptr<WireMessageBase> clone() const override;
+    void accept(ClientMessageVisitor& visitor) const override;
+    void accept(ServerMessageVisitor& visitor) const override;
+
+    static std::unique_ptr<UserChatMessage> from_bytes(const std::vector<char>& payload);
+
+    bool operator==(const UserChatMessage& other) const noexcept;
+
+private:
+    std::string body_;
+};
+
+
+} // namespace will
