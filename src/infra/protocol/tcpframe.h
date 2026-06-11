@@ -8,7 +8,7 @@
 
 namespace will {
 
-    
+
 /** Framing helpers: uint32 big-endian length prefix + payload. */
 class TcpFrame {
 public:

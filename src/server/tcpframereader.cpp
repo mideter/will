@@ -1,6 +1,6 @@
 #include "tcpframereader.h"
 
-#include "willprotocol.h"
+#include "tcpframe.h"
 
 
 namespace will {

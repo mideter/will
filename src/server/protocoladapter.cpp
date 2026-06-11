@@ -6,7 +6,7 @@
 #include <iostream>
 #include <string_view>
 
-#include "willprotocol.h"
+#include "tcpframe.h"
 #include "wiremessage.h"
 
 

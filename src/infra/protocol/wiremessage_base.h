@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 
-#include "willprotocol.h"
+#include "tcpframe.h"
 
 
 namespace will {

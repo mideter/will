@@ -40,7 +40,7 @@ target_compile_features(will-domain PUBLIC cxx_std_20)
 
 # Wire codec (former src/common).
 add_library(will-protocol
-  src/infra/protocol/willprotocol.cpp
+  src/infra/protocol/tcpframe.cpp
   src/infra/protocol/wiremessage_codec.cpp
   src/infra/protocol/wiremessage_codec_internal.cpp
   src/infra/protocol/wiremessage_messages.cpp

@@ -1,5 +1,5 @@
 #include "wiremessage.h"
-#include "willprotocol.h"
+#include "tcpframe.h"
 
 #include <array>
 #include <cassert>

@@ -15,7 +15,7 @@
 #include "clientconfigvalidator.h"
 #include "loadclientsconfigparser.h"
 #include "wiremessage.h"
-#include "willprotocol.h"
+#include "tcpframe.h"
 
 
 namespace {
