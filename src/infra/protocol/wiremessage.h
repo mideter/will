@@ -87,7 +87,7 @@ struct AuthRequired {
 
 
 /** Typed payload inside {@link TcpFrame}: first byte {@code WireMessageType}, then type-specific body. */
-using WireMessage = std::variant<
+using WireMessageVariant = std::variant<
     UserChat,
     ServerReceiptAck,
     HistoryRequest,
@@ -97,6 +97,8 @@ using WireMessage = std::variant<
     LoginResponsePayload,
     BindToken,
     AuthRequired>;
+
+using WireMessage = WireMessageVariant;
 
 
 std::vector<char> encode(const WireMessage& message);
