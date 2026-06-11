@@ -5,7 +5,7 @@
 #include <string_view>
 #include <vector>
 
-#include "wiremessage_base.h"
+#include "wiremessage.h"
 
 
 namespace will {

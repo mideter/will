@@ -1,16 +1,93 @@
 #pragma once
 
+#include <cstddef>
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <vector>
 
-#include "wiremessage_base.h"
-#include "wiremessage_client.h"
-#include "wiremessage_server.h"
-#include "wiremessage_user_chat.h"
+#include "tcpframe.h"
 
 
 namespace will {
+
+
+inline constexpr std::uint32_t MaxHistoryRequestLimit = 1000;
+inline constexpr std::uint32_t MaxAuthFieldBytes = 4096;
+
+
+enum class WireMessageType : std::uint8_t {
+    UserChat = 1,
+    ServerReceiptAck = 2,
+    HistoryRequest = 3,
+    HistoryItem = 4,
+    HistoryEnd = 5,
+    LoginRequest = 6,
+    LoginResponse = 7,
+    BindToken = 8,
+    AuthRequired = 9,
+};
+
+
+enum class LoginError : std::uint8_t {
+    InvalidCredentials = 1,
+    ExpiredToken = 2,
+};
+
+
+class LoginRequestMessage;
+class BindTokenMessage;
+class HistoryRequestMessage;
+class LoginResponseMessage;
+class AuthRequiredMessage;
+class ServerReceiptAckMessage;
+class HistoryItemMessage;
+class HistoryEndMessage;
+class UserChatMessage;
+
+
+struct ClientMessageVisitor {
+    virtual ~ClientMessageVisitor() = default;
+
+    virtual void on(const LoginRequestMessage& message) = 0;
+    virtual void on(const BindTokenMessage& message) = 0;
+    virtual void on(const HistoryRequestMessage& message) = 0;
+    virtual void on(const UserChatMessage& message) = 0;
+};
+
+
+struct ServerMessageVisitor {
+    virtual ~ServerMessageVisitor() = default;
+
+    virtual void on(const LoginResponseMessage& message) = 0;
+    virtual void on(const AuthRequiredMessage& message) = 0;
+    virtual void on(const ServerReceiptAckMessage& message) = 0;
+    virtual void on(const HistoryItemMessage& message) = 0;
+    virtual void on(const HistoryEndMessage& message) = 0;
+    virtual void on(const UserChatMessage& message) = 0;
+};
+
+
+class WireMessage {
+public:
+    virtual ~WireMessage() = default;
+
+    virtual WireMessageType type() const noexcept = 0;
+    virtual std::vector<char> encode() const = 0;
+    virtual std::string format_for_log() const = 0;
+};
+
+
+class ClientMessage : public virtual WireMessage {
+public:
+    virtual void accept(ClientMessageVisitor& visitor) const = 0;
+};
+
+
+class ServerMessage : public virtual WireMessage {
+public:
+    virtual void accept(ServerMessageVisitor& visitor) const = 0;
+};
 
 
 std::vector<char> encode(const WireMessage& message);
@@ -22,3 +99,8 @@ std::string format_for_log(const std::vector<char>& payload);
 
 
 } // namespace will
+
+
+#include "wiremessage_client.h"
+#include "wiremessage_server.h"
+#include "wiremessage_user_chat.h"

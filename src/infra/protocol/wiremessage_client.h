@@ -4,7 +4,7 @@
 #include <memory>
 #include <string>
 
-#include "wiremessage_base.h"
+#include "wiremessage.h"
 
 
 namespace will {
