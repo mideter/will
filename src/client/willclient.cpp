@@ -96,15 +96,14 @@ const ClientConfig& WillClient::config() const noexcept
 
 void WillClient::connect()
 {
-    socket_.connect(
-        asio::ip::tcp::endpoint(asio::ip::make_address_v4(config_.host), config_.port));
-    socket_.set_option(asio::socket_base::keep_alive(true));
+    socket_.connect(config_.host, config_.port);
 }
 
 
 void WillClient::authenticate(const std::string_view login, const std::string_view password) const
 {
-    send_payload(socket_, WireMessageCodec::encode(LoginRequestMessage{std::string(login), std::string(password)}));
+    send_payload(socket_.asio_socket(),
+                 WireMessageCodec::encode(LoginRequestMessage{std::string(login), std::string(password)}));
 
     const std::vector<char> response = receivePayload();
     const auto message = WireMessageCodec::decode_server(response);
@@ -112,14 +111,14 @@ void WillClient::authenticate(const std::string_view login, const std::string_vi
     if (!parsed || !parsed->success())
         throw std::runtime_error("Will protocol: login failed");
 
-    send_payload(socket_, WireMessageCodec::encode(BindTokenMessage{parsed->token()}));
+    send_payload(socket_.asio_socket(), WireMessageCodec::encode(BindTokenMessage{parsed->token()}));
 }
 
 
 std::vector<char> WillClient::receivePayload() const
 {
     std::array<unsigned char, 4> len_bytes{};
-    if (read_exact_or_eof_before_first_byte(socket_, len_bytes.data(), len_bytes.size()))
+    if (read_exact_or_eof_before_first_byte(socket_.asio_socket(), len_bytes.data(), len_bytes.size()))
         throw std::runtime_error("Will protocol: unexpected end of stream");
 
     const std::uint32_t len_u32 = TcpFrame::read_u32_be(len_bytes);
@@ -132,14 +131,14 @@ std::vector<char> WillClient::receivePayload() const
         throw std::runtime_error("Will protocol: empty typed payload is invalid");
 
     std::vector<char> payload(plen);
-    read_exact(socket_, reinterpret_cast<unsigned char*>(payload.data()), plen);
+    read_exact(socket_.asio_socket(), reinterpret_cast<unsigned char*>(payload.data()), plen);
     return payload;
 }
 
 
 void WillClient::send(std::string_view utf8_chat_body) const
 {
-    send_payload(socket_, WireMessageCodec::encode(UserChatMessage{std::string(utf8_chat_body)}));
+    send_payload(socket_.asio_socket(), WireMessageCodec::encode(UserChatMessage{std::string(utf8_chat_body)}));
 }
 
 
@@ -148,7 +147,7 @@ bool WillClient::requestHistory(const std::uint32_t limit) const
     if (limit == 0)
         return false;
 
-    send_payload(socket_, WireMessageCodec::encode(HistoryRequestMessage{limit}));
+    send_payload(socket_.asio_socket(), WireMessageCodec::encode(HistoryRequestMessage{limit}));
     return true;
 }
 
@@ -156,7 +155,7 @@ bool WillClient::requestHistory(const std::uint32_t limit) const
 std::optional<std::vector<char>> WillClient::receiveFrame() const
 {
     std::array<unsigned char, 4> len_bytes{};
-    if (read_exact_or_eof_before_first_byte(socket_, len_bytes.data(), len_bytes.size()))
+    if (read_exact_or_eof_before_first_byte(socket_.asio_socket(), len_bytes.data(), len_bytes.size()))
         return std::nullopt;
 
     const std::uint32_t len_u32 = TcpFrame::read_u32_be(len_bytes);
@@ -169,15 +168,14 @@ std::optional<std::vector<char>> WillClient::receiveFrame() const
         throw std::runtime_error("Will protocol: empty typed payload is invalid");
 
     std::vector<char> payload(plen);
-    read_exact(socket_, reinterpret_cast<unsigned char*>(payload.data()), plen);
+    read_exact(socket_.asio_socket(), reinterpret_cast<unsigned char*>(payload.data()), plen);
     return payload;
 }
 
 
 void WillClient::shutdown() const
 {
-    asio::error_code ignored;
-    socket_.shutdown(asio::ip::tcp::socket::shutdown_both, ignored);
+    socket_.shutdown_and_close();
 }
 
 

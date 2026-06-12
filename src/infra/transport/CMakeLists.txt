@@ -3,6 +3,7 @@ add_library(will-transport
   tcpframedchannel_state.cpp
   tcpframereader.cpp
   tcpframewriter.cpp
+  tcpstreamsocket.cpp
 )
 target_include_directories(will-transport PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
                                                  ${asio_SOURCE_DIR}/asio/include)

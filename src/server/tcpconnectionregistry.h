@@ -3,6 +3,7 @@
 #include <asio.hpp>
 
 #include "connectionaccountstore.h"
+#include "tcpstreamsocket.h"
 
 #include <cstddef>
 #include <cstdint>
@@ -33,7 +34,7 @@ public:
 
     void set_frame_handler(std::function<void(std::uint64_t, const std::vector<char>&)> handler);
 
-    void accept_connection(asio::io_context& ioc, asio::ip::tcp::socket socket,
+    void accept_connection(asio::io_context& ioc, TcpStreamSocket socket,
                            asio::ip::tcp::endpoint peer_endpoint,
                            std::size_t max_outbound_queue_bytes);
 

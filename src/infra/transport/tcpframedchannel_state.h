@@ -15,7 +15,7 @@ namespace will {
 
 class TcpFramedChannel::State : public std::enable_shared_from_this<State> {
 public:
-    State(TcpSocket& socket, Strand& strand, std::size_t max_outbound_queue_bytes);
+    State(TcpStreamSocket& stream, Strand& strand, std::size_t max_outbound_queue_bytes);
 
     Strand& strand() noexcept { return strand_; }
 
@@ -30,7 +30,7 @@ private:
     void handle_write_queue_full();
     void handle_write_error(std::string_view context, const asio::error_code& ec);
 
-    TcpSocket& socket_;
+    TcpStreamSocket& stream_;
     Strand& strand_;
     const std::size_t max_outbound_queue_bytes_;
 

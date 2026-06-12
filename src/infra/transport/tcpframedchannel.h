@@ -1,6 +1,7 @@
 #pragma once
 
 #include "tcpframereader.h"
+#include "tcpstreamsocket.h"
 
 #include <asio.hpp>
 
@@ -16,12 +17,11 @@ namespace will {
 /** Async length-prefixed TCP channel: wires {@link TcpFrameReader} and {@link TcpFrameWriter}. */
 class TcpFramedChannel {
 public:
-    using TcpSocket = asio::ip::tcp::socket;
     using Strand = asio::strand<asio::io_context::executor_type>;
     using FrameHandler = TcpFrameReader::FrameHandler;
     using ClosedHandler = std::function<void()>;
 
-    TcpFramedChannel(TcpSocket& socket, Strand& strand, std::size_t max_outbound_queue_bytes);
+    TcpFramedChannel(TcpStreamSocket& stream, Strand& strand, std::size_t max_outbound_queue_bytes);
 
     void start(FrameHandler on_frame, ClosedHandler on_closed);
     void stop();

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "tcpstreamsocket.h"
+
 #include <asio.hpp>
 
 #include <atomic>
@@ -27,7 +29,6 @@ struct TcpConnectionHandlers {
 
 class TcpConnection : public std::enable_shared_from_this<TcpConnection> {
 public:
-    using TcpSocket = asio::ip::tcp::socket;
     using Strand = asio::strand<asio::io_context::executor_type>;
 
     std::uint64_t id() const noexcept { return id_; }
@@ -37,7 +38,7 @@ public:
     void enqueue_frame(std::vector<char> wire_bytes);
 
 private:
-    TcpConnection(asio::io_context& ioc, TcpSocket socket, asio::ip::tcp::endpoint peer_endpoint,
+    TcpConnection(asio::io_context& ioc, TcpStreamSocket socket, asio::ip::tcp::endpoint peer_endpoint,
                   TcpConnectionHandlers handlers);
 
     void begin(std::size_t max_outbound_queue_bytes);
@@ -54,7 +55,7 @@ private:
     const std::uint64_t id_;
     TcpConnectionHandlers handlers_;
 
-    TcpSocket socket_;
+    TcpStreamSocket socket_;
     Strand strand_;
 
     std::string peer_label_;

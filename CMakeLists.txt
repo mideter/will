@@ -82,7 +82,7 @@ target_include_directories(will-client PRIVATE
   ${asio_SOURCE_DIR}/asio/include
 )
 target_compile_definitions(will-client PRIVATE ASIO_STANDALONE)
-target_link_libraries(will-client PRIVATE will-protocol CLI11::CLI11 Threads::Threads)
+target_link_libraries(will-client PRIVATE will-protocol will-transport CLI11::CLI11 Threads::Threads)
 
 add_executable(will-load-clients
   tools/load_clients.cpp

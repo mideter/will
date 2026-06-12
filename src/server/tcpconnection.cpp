@@ -14,8 +14,8 @@ namespace will {
 std::atomic<std::uint64_t> TcpConnection::next_id_{1};
 
 
-TcpConnection::TcpConnection(asio::io_context& ioc, TcpSocket socket, asio::ip::tcp::endpoint peer_endpoint,
-                             TcpConnectionHandlers handlers)
+TcpConnection::TcpConnection(asio::io_context& ioc, TcpStreamSocket socket,
+                             asio::ip::tcp::endpoint peer_endpoint, TcpConnectionHandlers handlers)
     : id_(next_id_.fetch_add(1, std::memory_order_relaxed))
     , handlers_(std::move(handlers))
     , socket_(std::move(socket))
@@ -27,7 +27,7 @@ TcpConnection::TcpConnection(asio::io_context& ioc, TcpSocket socket, asio::ip::
 void TcpConnection::begin(const std::size_t max_outbound_queue_bytes)
 {
     frame_writer_ = std::make_shared<TcpFrameWriter>(
-        socket_, strand_, max_outbound_queue_bytes,
+        socket_.asio_socket(), strand_, max_outbound_queue_bytes,
         [self = shared_from_this()] { self->handle_write_queue_full(); },
         [self = shared_from_this()](const std::string_view message) { self->handle_framing_error(message); },
         [self = shared_from_this()](const std::string_view context, const asio::error_code& ec) {
@@ -35,7 +35,7 @@ void TcpConnection::begin(const std::size_t max_outbound_queue_bytes)
         });
 
     frame_reader_ = std::make_shared<TcpFrameReader>(
-        socket_, strand_,
+        socket_.asio_socket(), strand_,
         [self = shared_from_this()](std::vector<char> payload) { self->handle_frame(std::move(payload)); },
         [self = shared_from_this()](const std::string_view message) { self->handle_framing_error(message); },
         [self = shared_from_this()](const std::string_view context, const asio::error_code& ec) {
@@ -60,9 +60,7 @@ void TcpConnection::shutdown()
         if (self->frame_writer_)
             self->frame_writer_->stop();
 
-        asio::error_code ignored;
-        self->socket_.shutdown(TcpSocket::shutdown_both, ignored);
-        self->socket_.close(ignored);
+        self->socket_.shutdown_and_close();
     });
 }
 

@@ -21,7 +21,7 @@ void TcpConnectionRegistry::set_frame_handler(
 }
 
 
-void TcpConnectionRegistry::accept_connection(asio::io_context& ioc, asio::ip::tcp::socket socket,
+void TcpConnectionRegistry::accept_connection(asio::io_context& ioc, TcpStreamSocket socket,
                                               asio::ip::tcp::endpoint peer_endpoint,
                                               const std::size_t max_outbound_queue_bytes)
 {

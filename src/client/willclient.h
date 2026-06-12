@@ -1,5 +1,7 @@
 #pragma once
 
+#include "tcpstreamsocket.h"
+
 #include <asio.hpp>
 
 #include <cstdint>
@@ -43,7 +45,7 @@ private:
     std::vector<char> receivePayload() const;
 
     asio::io_context ioc_;
-    mutable asio::ip::tcp::socket socket_;
+    mutable TcpStreamSocket socket_;
     ClientConfig config_;
 };
 
