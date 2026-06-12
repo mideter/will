@@ -1,5 +1,6 @@
 # Domain layer: stdlib only (no ASIO, SQLite, or wire protocol).
 add_library(will-domain
+  support/phone_number.cpp
   usecases/send_chat_message.cpp
   usecases/fetch_chat_history.cpp
   usecases/authenticate_user.cpp

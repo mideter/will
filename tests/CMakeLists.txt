@@ -4,6 +4,11 @@ add_executable(wire-message-test wire_message_test.cpp)
 target_link_libraries(wire-message-test PRIVATE will-protocol)
 add_test(NAME wire-message COMMAND wire-message-test)
 
+add_executable(phone-number-test phone_number_test.cpp)
+target_include_directories(phone-number-test PRIVATE ${CMAKE_SOURCE_DIR}/src/domain)
+target_link_libraries(phone-number-test PRIVATE will-domain)
+add_test(NAME phone-number COMMAND phone-number-test)
+
 add_executable(tcp-framed-channel-test tcp_framed_channel_test.cpp)
 target_link_libraries(tcp-framed-channel-test PRIVATE will-transport)
 add_test(NAME tcp-framed-channel COMMAND tcp-framed-channel-test)

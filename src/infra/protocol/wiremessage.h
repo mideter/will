@@ -20,10 +20,12 @@ public:
         HistoryRequest = 3,
         HistoryItem = 4,
         HistoryEnd = 5,
-        LoginRequest = 6,
-        LoginResponse = 7,
+        OtpPhoneRequest = 6,
+        OtpSent = 7,
         BindToken = 8,
         AuthRequired = 9,
+        OtpCodeSubmit = 10,
+        OtpVerifyResponse = 11,
     };
 
     virtual ~WireMessage() = default;
