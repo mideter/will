@@ -29,34 +29,9 @@ find_package(Threads REQUIRED)
 find_package(SQLite3 REQUIRED)
 find_package(OpenSSL REQUIRED)
 
-# Domain layer: stdlib only (no ASIO, SQLite, or wire protocol).
-add_library(will-domain
-  src/domain/usecases/send_chat_message.cpp
-  src/domain/usecases/fetch_chat_history.cpp
-  src/domain/usecases/authenticate_user.cpp
-)
-target_include_directories(will-domain PUBLIC src/domain)
-target_compile_features(will-domain PUBLIC cxx_std_20)
-
-# Wire codec (former src/common).
-add_library(will-protocol
-  src/infra/protocol/tcpframe.cpp
-  src/infra/protocol/wiremessage_codec.cpp
-  src/infra/protocol/wiremessage_codec_internal.cpp
-  src/infra/protocol/wiremessage_messages.cpp
-)
-target_include_directories(will-protocol PUBLIC src/infra/protocol)
-target_compile_features(will-protocol PUBLIC cxx_std_20)
-
-add_library(will-transport
-  src/infra/transport/tcpframereader.cpp
-  src/infra/transport/tcpframewriter.cpp
-)
-target_include_directories(will-transport PUBLIC src/infra/transport
-                                                 ${asio_SOURCE_DIR}/asio/include)
-target_compile_definitions(will-transport PUBLIC ASIO_STANDALONE)
-target_compile_features(will-transport PUBLIC cxx_std_20)
-target_link_libraries(will-transport PUBLIC will-protocol Threads::Threads)
+add_subdirectory(src/domain)
+add_subdirectory(src/infra/protocol)
+add_subdirectory(src/infra/transport)
 
 add_executable(will-server
   src/server/server.cpp
