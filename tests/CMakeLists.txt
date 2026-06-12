@@ -83,6 +83,7 @@ add_executable(will-sqlite-persistence-test sqlite_persistence_test.cpp
   ${CMAKE_SOURCE_DIR}/src/infra/persistence/sqlite_message_repository_impl.cpp
   ${CMAKE_SOURCE_DIR}/src/infra/persistence/sqlite_user_repository_impl.cpp
   ${CMAKE_SOURCE_DIR}/src/infra/persistence/sqlite_auth_session_store_impl.cpp
+  ${CMAKE_SOURCE_DIR}/src/infra/persistence/sqlite_otp_store_impl.cpp
 )
 target_include_directories(will-sqlite-persistence-test PRIVATE
   ${CMAKE_SOURCE_DIR}/src/infra/persistence

@@ -53,7 +53,9 @@ add_executable(will-server
   src/infra/persistence/sqlite_message_repository_impl.cpp
   src/infra/persistence/sqlite_user_repository_impl.cpp
   src/infra/persistence/sqlite_auth_session_store_impl.cpp
+  src/infra/persistence/sqlite_otp_store_impl.cpp
   src/infra/persistence/sqlite_persistence_bundle.cpp
+  src/infra/sms/logging_sms_sender.cpp
 )
 target_include_directories(will-server PRIVATE
   src/server
@@ -61,6 +63,7 @@ target_include_directories(will-server PRIVATE
   src/server/config
   src/domain
   src/infra/persistence
+  src/infra/sms
   ${asio_SOURCE_DIR}/asio/include
 )
 target_compile_definitions(will-server PRIVATE ASIO_STANDALONE)

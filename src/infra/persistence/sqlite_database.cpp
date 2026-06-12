@@ -86,6 +86,7 @@ void drop_legacy_tables(sqlite3* db)
     static constexpr const char* DropLegacyTablesSql = R"sql(
 DROP TABLE IF EXISTS messages;
 DROP TABLE IF EXISTS auth_sessions;
+DROP TABLE IF EXISTS otp_challenges;
 DROP TABLE IF EXISTS users;
 )sql";
     check_sqlite(sqlite3_exec(db, DropLegacyTablesSql, nullptr, nullptr, nullptr), db,
@@ -121,7 +122,16 @@ CREATE TABLE IF NOT EXISTS auth_sessions (
   expires_at_ms INTEGER NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS otp_challenges (
+  phone TEXT PRIMARY KEY,
+  code_hash TEXT NOT NULL,
+  expires_at_ms INTEGER NOT NULL,
+  attempts INTEGER NOT NULL,
+  peer_ip TEXT NOT NULL
+);
+
 CREATE INDEX IF NOT EXISTS idx_messages_created_at ON messages(created_at_ms);
+CREATE INDEX IF NOT EXISTS idx_otp_challenges_peer_ip ON otp_challenges(peer_ip);
 )sql";
 
     check_sqlite(sqlite3_exec(db_, InitSchemaSql, nullptr, nullptr, nullptr), db_, "init_schema");
