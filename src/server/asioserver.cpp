@@ -21,15 +21,19 @@ void log_accept_error(const asio::error_code& ec)
 } // namespace
 
 
-AsioMessengerServer::AsioMessengerServer(ServerConfig config, domain::MessengerPersistence persistence)
-    : config_(config)
+AsioMessengerServer::AsioMessengerServer(ServerConfig config, domain::MessengerPersistence persistence,
+                                         domain::OtpStore& otp_store)
+    : config_(std::move(config))
     , io_(config_.listen_port, config_.listen_backlog,
           [this](const asio::error_code& ec, int signo) { handle_shutdown_signal(ec, signo); })
-    , protocol_adapter_(persistence, registry_, account_store_)
+    , sms_sender_(config_.log_otp_for_dev)
+    , protocol_adapter_(config_, persistence, otp_store, sms_sender_, otp_hasher_, registry_, account_store_,
+                        otp_state_)
 {
     registry_.set_payload_handler([this](const std::uint64_t id, const std::vector<char>& payload) {
         protocol_adapter_.on_client_payload(id, payload);
     });
+    registry_.set_connection_closed_handler([this](const std::uint64_t id) { otp_state_.clear(id); });
 }
 
 

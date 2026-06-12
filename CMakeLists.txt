@@ -47,6 +47,7 @@ add_executable(will-server
   src/server/connectionaccountstore.cpp
   src/server/inbound_client_message_handler.cpp
   src/server/protocoladapter.cpp
+  src/server/otpconnectionstatestore.cpp
   src/server/tcpconnectionparticipantnotifierimpl.cpp
   src/infra/persistence/sqlite_database.cpp
   src/infra/persistence/password_hash.cpp
@@ -55,6 +56,7 @@ add_executable(will-server
   src/infra/persistence/sqlite_auth_session_store_impl.cpp
   src/infra/persistence/sqlite_otp_store_impl.cpp
   src/infra/persistence/sqlite_persistence_bundle.cpp
+  src/infra/persistence/sha256_otp_hasher.cpp
   src/infra/sms/logging_sms_sender.cpp
 )
 target_include_directories(will-server PRIVATE

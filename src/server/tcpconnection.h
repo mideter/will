@@ -33,6 +33,8 @@ public:
 
     void enqueue_wire_frame(std::vector<char> wire_bytes);
 
+    void schedule_on_strand(std::function<void(asio::any_io_executor)> fn);
+
 private:
     TcpConnection(asio::io_context& ioc, TcpStreamSocket socket, asio::ip::tcp::endpoint peer_endpoint,
                   TcpConnectionHandlers handlers);

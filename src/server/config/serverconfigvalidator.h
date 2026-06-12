@@ -25,6 +25,7 @@ private:
     static void require(std::string_view field, std::optional<std::string_view> reason);
     static std::optional<std::string_view> listen_port_reason(std::uint16_t port);
     static std::optional<std::string_view> db_path_reason(std::string_view db_path);
+    static std::optional<std::string_view> otp_hash_salt_reason(const ServerConfig& config);
 
     template<typename T>
     static std::optional<std::string_view> positive_reason(T value);

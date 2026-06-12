@@ -34,10 +34,15 @@ public:
 
     void set_payload_handler(std::function<void(std::uint64_t, const std::vector<char>&)> handler);
 
+    void set_connection_closed_handler(std::function<void(std::uint64_t)> handler);
+
     void accept_connection(asio::io_context& ioc, TcpStreamSocket socket,
                            asio::ip::tcp::endpoint peer_endpoint);
 
     void close_connection(std::uint64_t connection_id);
+
+    void schedule_on_connection(std::uint64_t connection_id,
+                              std::function<void(asio::any_io_executor)> fn);
 
     void enqueue_wire_frame(std::uint64_t connection_id, std::vector<char> wire_bytes);
 
@@ -52,6 +57,8 @@ public:
     bool at_capacity(std::size_t max_connections) const noexcept;
 
 private:
+    std::function<void(std::uint64_t)> on_connection_closed_;
+
     ConnectionAccountStore& account_store_;
     std::function<void(std::uint64_t, const std::vector<char>&)> payload_handler_;
 
