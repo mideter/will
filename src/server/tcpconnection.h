@@ -29,7 +29,7 @@ public:
     using Strand = asio::strand<asio::io_context::executor_type>;
 
     std::uint64_t id() const noexcept { return id_; }
-    std::string_view peer_label() const noexcept { return peer_label_; }
+    std::string_view peer_address() const noexcept { return peer_address_; }
 
     void enqueue_wire_frame(std::vector<char> wire_bytes);
 
@@ -49,7 +49,7 @@ private:
     TcpStreamSocket socket_;
     Strand strand_;
 
-    std::string peer_label_;
+    std::string peer_address_;
 
     std::shared_ptr<TcpFramedChannel> channel_;
 

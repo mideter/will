@@ -37,7 +37,7 @@ void TcpConnectionRegistry::accept_connection(asio::io_context& ioc, TcpStreamSo
 
     {
         std::lock_guard lock(mutex_);
-        std::cout << "Client " << connection->peer_label() << " connected" << std::endl;
+        std::cout << "Client " << connection->peer_address() << " connected" << std::endl;
         connections_.emplace(connection->id(), connection);
     }
 
@@ -62,7 +62,7 @@ void TcpConnectionRegistry::close_connection(const std::uint64_t connection_id)
 
     account_store_.remove(connection_id);
 
-    std::cout << "Client " << connection->peer_label() << " disconnected" << std::endl;
+    std::cout << "Client " << connection->peer_address() << " disconnected" << std::endl;
     connection->shutdown();
 }
 
@@ -108,7 +108,7 @@ void TcpConnectionRegistry::broadcast_wire_except(const std::uint64_t except_con
 }
 
 
-std::string_view TcpConnectionRegistry::peer_label(const std::uint64_t connection_id) const
+std::string_view TcpConnectionRegistry::peer_address(const std::uint64_t connection_id) const
 {
     std::lock_guard lock(mutex_);
     const auto it = connections_.find(connection_id);
@@ -116,7 +116,7 @@ std::string_view TcpConnectionRegistry::peer_label(const std::uint64_t connectio
     if (it == connections_.end())
         return {};
 
-    return it->second->peer_label();
+    return it->second->peer_address();
 }
 
 

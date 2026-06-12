@@ -16,7 +16,7 @@ TcpConnection::TcpConnection(asio::io_context& ioc, TcpStreamSocket socket,
     , handlers_(std::move(handlers))
     , socket_(std::move(socket))
     , strand_(asio::make_strand(ioc))
-    , peer_label_(std::format("{}:{}", peer_endpoint.address().to_string(), peer_endpoint.port()))
+    , peer_address_(std::format("{}:{}", peer_endpoint.address().to_string(), peer_endpoint.port()))
 {}
 
 

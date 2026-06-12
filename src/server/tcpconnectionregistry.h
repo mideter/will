@@ -43,7 +43,7 @@ public:
 
     void broadcast_wire_except(std::uint64_t except_connection_id, const std::vector<char>& wire_bytes);
 
-    [[nodiscard]] std::string_view peer_label(std::uint64_t connection_id) const;
+    [[nodiscard]] std::string_view peer_address(std::uint64_t connection_id) const;
 
     void close_all_connections();
 

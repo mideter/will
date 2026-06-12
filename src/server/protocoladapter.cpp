@@ -67,8 +67,8 @@ void ProtocolAdapter::send_payload(const std::uint64_t connection_id, const std:
 void ProtocolAdapter::close_with_protocol_error(const std::uint64_t connection_id,
                                                 const std::string_view message)
 {
-    if (const std::string_view label = registry_.peer_label(connection_id); !label.empty())
-        std::cerr << "Connection " << label << ": " << message << '\n';
+    if (const std::string_view peer_address = registry_.peer_address(connection_id); !peer_address.empty())
+        std::cerr << "Connection " << peer_address << ": " << message << '\n';
     else
         std::cerr << "Connection " << connection_id << ": " << message << '\n';
     
