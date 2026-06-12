@@ -7,7 +7,7 @@ Wants=network-online.target
 [Service]
 Type=simple
 WorkingDirectory=/var/lib/will-server
-ExecStart=/usr/bin/will-server --db-path /var/lib/will-server/will.db
+ExecStart=/usr/lib/will-server/will-server-start
 User=will-server
 Group=will-server
 Restart=on-failure

@@ -1,0 +1,20 @@
+#!/bin/sh
+set -eu
+
+ENV_FILE=/etc/will-server/environment
+if [ -f "$ENV_FILE" ]; then
+  set -a
+  # shellcheck disable=SC1090
+  . "$ENV_FILE"
+  set +a
+fi
+
+if [ -z "${WILL_OTP_HASH_SALT:-}" ]; then
+  echo "will-server-start: WILL_OTP_HASH_SALT is not set in $ENV_FILE" >&2
+  exit 1
+fi
+
+exec /usr/bin/will-server \
+  --db-path /var/lib/will-server/will.db \
+  --otp-hash-salt "$WILL_OTP_HASH_SALT" \
+  --log-otp-for-dev

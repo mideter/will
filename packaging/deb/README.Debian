@@ -9,6 +9,23 @@ Logs: journalctl -u will-server -f
 The daemon runs as the unprivileged system user `will-server`.
 Message history is stored in /var/lib/will-server/will.db (set by will-server.service).
 
+OTP authentication
+------------------
+
+On install, postinst generates a random OTP hash salt in
+/etc/will-server/environment (WILL_OTP_HASH_SALT). The systemd unit starts the
+server via /usr/lib/will-server/will-server-start, which passes the salt and
+enables --log-otp-for-dev.
+
+OTP codes are written to the journal (not sent via SMS):
+
+  journalctl -u will-server -f
+
+Look for lines like: [dev] OTP for +15551234567: 123456
+
+This is intended for staging and development deployments. For production with
+real users, disable --log-otp-for-dev and integrate a real SMS provider.
+
 Scaling (single process)
 ------------------------
 

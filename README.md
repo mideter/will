@@ -140,4 +140,16 @@ packaging/deb/       Debian package and systemd unit
 
 ## Debian packaging
 
-See [`packaging/deb/README.Debian`](packaging/deb/README.Debian) for production deployment notes, systemd service configuration, and scaling recommendations.
+Build and install:
+
+```bash
+./packaging/build-deb.sh
+sudo dpkg -i build/deb-packaging/will-server_*.deb
+```
+
+The package installs `will-server.service` (enabled on install). OTP hash salt is
+generated in `/etc/will-server/environment` on first install. The server logs OTP
+codes to the journal (`journalctl -u will-server -f`) — suitable for staging, not
+production with real SMS.
+
+See [`packaging/deb/README.Debian`](packaging/deb/README.Debian) for deployment notes and scaling recommendations.

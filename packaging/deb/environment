@@ -1,0 +1,2 @@
+# OTP hash salt (generated on first install by postinst)
+WILL_OTP_HASH_SALT=
