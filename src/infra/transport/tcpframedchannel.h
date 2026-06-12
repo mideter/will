@@ -21,7 +21,7 @@ public:
     using FrameHandler = TcpFrameReader::FrameHandler;
     using ClosedHandler = std::function<void()>;
 
-    TcpFramedChannel(TcpStreamSocket& stream, Strand& strand, std::size_t max_outbound_queue_bytes);
+    TcpFramedChannel(TcpStreamSocket& stream, Strand& strand);
 
     void start(FrameHandler on_frame, ClosedHandler on_closed);
     void stop();

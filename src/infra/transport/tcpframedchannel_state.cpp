@@ -7,11 +7,9 @@
 namespace will {
 
 
-TcpFramedChannel::State::State(TcpStreamSocket& stream, Strand& strand,
-                               const std::size_t max_outbound_queue_bytes)
+TcpFramedChannel::State::State(TcpStreamSocket& stream, Strand& strand)
     : stream_(stream)
     , strand_(strand)
-    , max_outbound_queue_bytes_(max_outbound_queue_bytes)
 {}
 
 
@@ -83,7 +81,7 @@ void TcpFramedChannel::State::start_on_strand(FrameHandler on_frame, ClosedHandl
     on_closed_ = std::move(on_closed);
 
     writer_ = std::make_shared<TcpFrameWriter>(
-        stream_.asio_socket(), strand_, max_outbound_queue_bytes_,
+        stream_.asio_socket(), strand_,
         [state = shared_from_this()] { state->handle_write_queue_full(); },
         [state = shared_from_this()](const std::string_view message) {
             state->handle_framing_error(message);

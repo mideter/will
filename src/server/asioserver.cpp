@@ -78,8 +78,7 @@ void AsioMessengerServer::accept_client(asio::ip::tcp::socket socket)
     try {
         TcpStreamSocket stream(std::move(socket));
         const auto peer_endpoint = stream.remote_endpoint();
-        registry_.accept_connection(io_.ioc(), std::move(stream), peer_endpoint,
-                                    config_.max_outbound_queue_bytes);
+        registry_.accept_connection(io_.ioc(), std::move(stream), peer_endpoint);
     }
     catch (const std::exception& e) {
         std::cerr << "Accept connection error: " << e.what() << '\n';

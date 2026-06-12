@@ -22,8 +22,7 @@ void TcpConnectionRegistry::set_payload_handler(
 
 
 void TcpConnectionRegistry::accept_connection(asio::io_context& ioc, TcpStreamSocket socket,
-                                              asio::ip::tcp::endpoint peer_endpoint,
-                                              const std::size_t max_outbound_queue_bytes)
+                                              asio::ip::tcp::endpoint peer_endpoint)
 {
     TcpConnectionHandlers handlers{
         [this](const std::uint64_t connection_id, std::vector<char> payload) {
@@ -42,7 +41,7 @@ void TcpConnectionRegistry::accept_connection(asio::io_context& ioc, TcpStreamSo
         connections_.emplace(connection->id(), connection);
     }
 
-    connection->begin(max_outbound_queue_bytes);
+    connection->begin();
 }
 
 

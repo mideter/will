@@ -20,9 +20,9 @@ TcpConnection::TcpConnection(asio::io_context& ioc, TcpStreamSocket socket,
 {}
 
 
-void TcpConnection::begin(const std::size_t max_outbound_queue_bytes)
+void TcpConnection::begin()
 {
-    channel_ = std::make_shared<TcpFramedChannel>(socket_, strand_, max_outbound_queue_bytes);
+    channel_ = std::make_shared<TcpFramedChannel>(socket_, strand_);
     channel_->start(
         [self = shared_from_this()](std::vector<char> payload) { self->handle_payload(std::move(payload)); },
         [self = shared_from_this()] { self->request_close(); });

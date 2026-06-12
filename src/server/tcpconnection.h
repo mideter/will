@@ -37,7 +37,7 @@ private:
     TcpConnection(asio::io_context& ioc, TcpStreamSocket socket, asio::ip::tcp::endpoint peer_endpoint,
                   TcpConnectionHandlers handlers);
 
-    void begin(std::size_t max_outbound_queue_bytes);
+    void begin();
     void shutdown();
 
     void handle_payload(std::vector<char> payload);

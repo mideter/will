@@ -9,9 +9,8 @@
 namespace will {
 
 
-TcpFramedChannel::TcpFramedChannel(TcpStreamSocket& stream, Strand& strand,
-                                   const std::size_t max_outbound_queue_bytes)
-    : state_(std::make_shared<State>(stream, strand, max_outbound_queue_bytes))
+TcpFramedChannel::TcpFramedChannel(TcpStreamSocket& stream, Strand& strand)
+    : state_(std::make_shared<State>(stream, strand))
 {}
 
 

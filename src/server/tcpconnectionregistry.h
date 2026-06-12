@@ -35,8 +35,7 @@ public:
     void set_payload_handler(std::function<void(std::uint64_t, const std::vector<char>&)> handler);
 
     void accept_connection(asio::io_context& ioc, TcpStreamSocket socket,
-                           asio::ip::tcp::endpoint peer_endpoint,
-                           std::size_t max_outbound_queue_bytes);
+                           asio::ip::tcp::endpoint peer_endpoint);
 
     void close_connection(std::uint64_t connection_id);
 

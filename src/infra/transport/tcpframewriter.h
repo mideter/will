@@ -15,6 +15,8 @@ namespace will {
 /** Async outbound TCP frame writer: bounded queue + async_write on a strand. */
 class TcpFrameWriter : public std::enable_shared_from_this<TcpFrameWriter> {
 public:
+    static constexpr std::size_t MaxQueuedBytes = 1u << 20; // 1 MiB per session
+
     using TcpSocket = asio::ip::tcp::socket;
     using Strand = asio::strand<asio::io_context::executor_type>;
     using QueueFullHandler = std::function<void()>;
@@ -22,9 +24,8 @@ public:
     using WriteErrorHandler =
         std::function<void(std::string_view context, const asio::error_code& ec)>;
 
-    TcpFrameWriter(TcpSocket& socket, Strand& strand, std::size_t max_queued_bytes,
-                   QueueFullHandler on_queue_full, ProtocolErrorHandler on_protocol_error,
-                   WriteErrorHandler on_write_error);
+    TcpFrameWriter(TcpSocket& socket, Strand& strand, QueueFullHandler on_queue_full,
+                   ProtocolErrorHandler on_protocol_error, WriteErrorHandler on_write_error);
 
     /** Must be called on {@code strand_}. */
     void enqueue(std::vector<char> frame_bytes);
@@ -36,7 +37,6 @@ private:
 
     TcpSocket& socket_;
     Strand& strand_;
-    const std::size_t max_queued_bytes_;
     QueueFullHandler on_queue_full_;
     ProtocolErrorHandler on_protocol_error_;
     WriteErrorHandler on_write_error_;
