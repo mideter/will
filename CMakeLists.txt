@@ -48,6 +48,16 @@ add_library(will-protocol
 target_include_directories(will-protocol PUBLIC src/infra/protocol)
 target_compile_features(will-protocol PUBLIC cxx_std_20)
 
+add_library(will-transport
+  src/infra/transport/tcpframereader.cpp
+  src/infra/transport/tcpframewriter.cpp
+)
+target_include_directories(will-transport PUBLIC src/infra/transport
+                                                 ${asio_SOURCE_DIR}/asio/include)
+target_compile_definitions(will-transport PUBLIC ASIO_STANDALONE)
+target_compile_features(will-transport PUBLIC cxx_std_20)
+target_link_libraries(will-transport PUBLIC will-protocol Threads::Threads)
+
 add_executable(will-server
   src/server/server.cpp
   src/server/cli/servercliapp.cpp
@@ -63,8 +73,6 @@ add_executable(will-server
   src/server/inbound_client_message_handler.cpp
   src/server/protocoladapter.cpp
   src/server/tcpconnectionparticipantnotifierimpl.cpp
-  src/server/tcpframereader.cpp
-  src/server/tcpframewriter.cpp
   src/infra/persistence/sqlite_database.cpp
   src/infra/persistence/password_hash.cpp
   src/infra/persistence/sqlite_message_repository_impl.cpp
@@ -81,8 +89,8 @@ target_include_directories(will-server PRIVATE
   ${asio_SOURCE_DIR}/asio/include
 )
 target_compile_definitions(will-server PRIVATE ASIO_STANDALONE)
-target_link_libraries(will-server PRIVATE will-domain will-protocol CLI11::CLI11 Threads::Threads
-                                             SQLite::SQLite3 OpenSSL::Crypto)
+target_link_libraries(will-server PRIVATE will-domain will-protocol will-transport CLI11::CLI11
+                                             Threads::Threads SQLite::SQLite3 OpenSSL::Crypto)
 
 add_executable(will-client
   src/client/client.cpp
