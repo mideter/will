@@ -55,16 +55,7 @@ void TcpConnection::handle_frame(std::vector<char> payload)
 }
 
 
-void TcpConnection::send_frame(std::vector<char> wire_bytes)
-{
-    if (closed_ || !channel_)
-        return;
-
-    channel_->send_frame(std::move(wire_bytes));
-}
-
-
-void TcpConnection::enqueue_frame(std::vector<char> wire_bytes)
+void TcpConnection::enqueue_wire_frame(std::vector<char> wire_bytes)
 {
     if (closed_ || !channel_)
         return;

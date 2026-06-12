@@ -83,7 +83,7 @@ void TcpConnectionRegistry::enqueue_wire_frame(const std::uint64_t connection_id
         connection = it->second;
     }
 
-    connection->enqueue_frame(std::move(wire_bytes));
+    connection->enqueue_wire_frame(std::move(wire_bytes));
 }
 
 
@@ -105,7 +105,7 @@ void TcpConnectionRegistry::broadcast_wire_except(const std::uint64_t except_con
     }
 
     for (const std::shared_ptr<TcpConnection>& peer : peers)
-        peer->enqueue_frame(wire_bytes);
+        peer->enqueue_wire_frame(wire_bytes);
 }
 
 

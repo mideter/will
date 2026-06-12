@@ -31,8 +31,7 @@ public:
     std::uint64_t id() const noexcept { return id_; }
     std::string_view peer_label() const noexcept { return peer_label_; }
 
-    void send_frame(std::vector<char> wire_bytes);
-    void enqueue_frame(std::vector<char> wire_bytes);
+    void enqueue_wire_frame(std::vector<char> wire_bytes);
 
 private:
     TcpConnection(asio::io_context& ioc, TcpStreamSocket socket, asio::ip::tcp::endpoint peer_endpoint,
