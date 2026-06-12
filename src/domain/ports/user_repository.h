@@ -14,8 +14,8 @@ class UserRepository {
 public:
     virtual ~UserRepository() = default;
 
-    virtual std::optional<User> find_by_login(std::string_view login) = 0;
-    virtual bool verify_password(UserId id, std::string_view password) = 0;
+    virtual std::optional<User> find_by_phone(std::string_view phone) = 0;
+    virtual User create_user(std::string_view phone) = 0;
 };
 
 

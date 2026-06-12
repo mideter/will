@@ -5,13 +5,11 @@
 
 #include "entities/chat_id.h"
 #include "entities/user_id.h"
-#include "usecases/authenticate_user.h"
 
 #include <cassert>
 #include <cstdlib>
 #include <string>
 #include <unistd.h>
-#include <variant>
 
 
 int main()
@@ -41,22 +39,20 @@ int main()
     assert(rows[1].body == "from-me");
     assert(rows[1].author_id == peer_b);
 
-    const std::optional<User> admin = users.find_by_login("admin");
-    assert(admin.has_value());
-    assert(admin->login == "admin");
-    assert(users.verify_password(admin->id, "admin"));
-    assert(!users.verify_password(admin->id, "wrong"));
+    const User created = users.create_user("+15551234567");
+    assert(created.id.value > 0);
+    assert(created.phone == "+15551234567");
 
-    AuthenticateUser authenticate(users, sessions);
-    const auto ok = authenticate.execute(AuthenticateUserInput{"admin", "admin", 3000});
-    assert(std::holds_alternative<AuthenticateUserSuccess>(ok));
-    const Account& account = std::get<AuthenticateUserSuccess>(ok).account;
-    assert(account.user_id == admin->id);
-    assert(!account.session_token.empty());
+    const std::optional<User> found = users.find_by_phone("+15551234567");
+    assert(found.has_value());
+    assert(found->id == created.id);
 
-    const std::optional<Account> resolved = sessions.resolve_token(account.session_token);
+    const AuthToken token = sessions.issue_session(created.id);
+    assert(!token.empty());
+
+    const std::optional<Account> resolved = sessions.resolve_token(token);
     assert(resolved.has_value());
-    assert(resolved->user_id == admin->id);
+    assert(resolved->user_id == created.id);
 
     ::unlink(db_path.c_str());
     return EXIT_SUCCESS;

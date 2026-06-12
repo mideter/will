@@ -4,13 +4,17 @@
 #include "entities/auth_token.h"
 #include "entities/chat_id.h"
 #include "entities/message.h"
+#include "entities/otp_challenge.h"
 #include "entities/participant_id.h"
 #include "entities/user.h"
 #include "entities/user_id.h"
 #include "events/outbound_event.h"
 #include "ports/auth_session_store.h"
 #include "ports/message_repository.h"
+#include "ports/otp_hasher.h"
+#include "ports/otp_store.h"
 #include "ports/participant_notifier.h"
+#include "ports/sms_sender.h"
 #include "ports/user_repository.h"
 
 #include <map>
@@ -24,38 +28,95 @@ namespace will::domain::test {
 
 class FakeUserRepository final : public UserRepository {
 public:
-    void add_user(User user, std::string password)
+    std::optional<User> find_by_phone(const std::string_view phone) override
     {
-        const UserId id = user.id;
-        const std::string login = user.login;
-        users_.emplace(id, UserRecord{std::move(user), std::move(password)});
-        by_login_[login] = id;
-    }
-
-    std::optional<User> find_by_login(std::string_view login) override
-    {
-        const auto it = by_login_.find(std::string(login));
-        if (it == by_login_.end())
+        const auto it = by_phone_.find(std::string(phone));
+        if (it == by_phone_.end())
             return std::nullopt;
-        return users_.at(it->second).user;
+        return users_.at(it->second);
     }
 
-    bool verify_password(UserId id, std::string_view password) override
+    User create_user(const std::string_view phone) override
     {
-        const auto it = users_.find(id);
-        if (it == users_.end())
-            return false;
-        return it->second.password == password;
+        const UserId id{++next_user_id_};
+        User user{id, std::string(phone)};
+        users_.emplace(id, user);
+        by_phone_[user.phone] = id;
+        return user;
+    }
+
+    void add_user(User user)
+    {
+        users_.emplace(user.id, user);
+        by_phone_[user.phone] = user.id;
     }
 
 private:
-    struct UserRecord {
-        User user;
-        std::string password;
+    std::uint64_t next_user_id_ = 0;
+    std::map<UserId, User> users_;
+    std::map<std::string, UserId> by_phone_;
+};
+
+
+class FakeOtpStore final : public OtpStore {
+public:
+    void save_challenge(OtpChallenge challenge) override { challenges_[challenge.phone] = std::move(challenge); }
+
+    std::optional<OtpChallenge> find_challenge(const std::string_view phone) override
+    {
+        const auto it = challenges_.find(std::string(phone));
+        if (it == challenges_.end())
+            return std::nullopt;
+        return it->second;
+    }
+
+    void increment_attempts(const std::string_view phone) override
+    {
+        const auto it = challenges_.find(std::string(phone));
+        if (it != challenges_.end())
+            ++it->second.attempts;
+    }
+
+    void invalidate(const std::string_view phone) override { challenges_.erase(std::string(phone)); }
+
+    std::size_t count_challenges_by_peer_ip(const std::string_view peer_ip, const TimestampMs since_ms) override
+    {
+        std::size_t count = 0;
+        for (const auto& [phone, challenge] : challenges_) {
+            (void)phone;
+            if (challenge.peer_ip == peer_ip && challenge.expires_at_ms >= since_ms)
+                ++count;
+        }
+        return count;
+    }
+
+private:
+    std::map<std::string, OtpChallenge> challenges_;
+};
+
+
+class FakeSmsSender final : public SmsSender {
+public:
+    void send_otp(const PhoneNumber& phone, const std::string_view code) override
+    {
+        sent_.push_back(Sent{phone.e164(), std::string(code)});
+    }
+
+    struct Sent {
+        std::string phone;
+        std::string code;
     };
 
-    std::map<UserId, UserRecord> users_;
-    std::map<std::string, UserId> by_login_;
+    std::vector<Sent> sent_;
+};
+
+
+class FakeOtpHasher final : public OtpHasher {
+public:
+    std::string hash(const std::string_view code, const std::string_view salt) const override
+    {
+        return std::string(salt) + ":" + std::string(code);
+    }
 };
 
 

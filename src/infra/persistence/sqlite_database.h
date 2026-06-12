@@ -10,7 +10,7 @@ struct sqlite3;
 namespace will {
 
 
-/** Owns the SQLite connection, schema, and dev seed data. */
+/** Owns the SQLite connection and schema. */
 class SqliteDatabase {
 public:
     explicit SqliteDatabase(std::string db_path);
@@ -25,7 +25,6 @@ public:
 private:
     void open_database();
     void init_schema();
-    void seed_dev_admin_user();
 
     std::string db_path_;
     sqlite3* db_ = nullptr;
