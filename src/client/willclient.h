@@ -30,14 +30,14 @@ public:
     /** Sync TCP connect; starts I/O thread and {@link TcpFramedChannel}. */
     void connect();
 
-    /** Login + {@link BindTokenMessage} on the current TCP session (requires prior {@link #connect}). */
-    void authenticate(std::string_view login, std::string_view password);
+    /** OTP phone auth + {@link BindTokenMessage} on the current TCP session (requires prior {@link #connect}). */
+    void authenticate_phone(std::string_view phone, std::string_view otp_code = {});
 
     /** Called on the channel strand; post to another executor if needed. */
     void set_inbound_handler(std::function<void(std::vector<char>)> handler);
     void set_closed_handler(std::function<void()> handler);
 
-    /** Sends {@link UserChatMessage} with UTF-8 body (requires prior {@link #authenticate}). */
+    /** Sends {@link UserChatMessage} with UTF-8 body (requires prior {@link #authenticate_phone}). */
     void send(std::string_view utf8_chat_body) const;
 
     /** Sends {@link HistoryRequestMessage} with the given limit; returns false when limit is 0. */
@@ -48,6 +48,7 @@ public:
     const ClientConfig& config() const noexcept;
 
 private:
+    std::vector<char> wait_for_auth_response();
     void dispatch_inbound(std::vector<char> payload);
     void dispatch_closed();
 

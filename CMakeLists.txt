@@ -84,10 +84,11 @@ add_executable(will-client
 target_include_directories(will-client PRIVATE
   src/client
   src/client/cli
+  src/domain
   ${asio_SOURCE_DIR}/asio/include
 )
 target_compile_definitions(will-client PRIVATE ASIO_STANDALONE)
-target_link_libraries(will-client PRIVATE will-protocol will-transport CLI11::CLI11 Threads::Threads)
+target_link_libraries(will-client PRIVATE will-domain will-protocol will-transport CLI11::CLI11 Threads::Threads)
 
 add_executable(will-load-clients
   tools/load_clients.cpp
@@ -97,10 +98,11 @@ add_executable(will-load-clients
 )
 target_include_directories(will-load-clients PRIVATE
   src/client
+  src/domain
   tools
   tools/cli
 )
-target_link_libraries(will-load-clients PRIVATE will-protocol CLI11::CLI11 Threads::Threads)
+target_link_libraries(will-load-clients PRIVATE will-domain will-protocol CLI11::CLI11 Threads::Threads)
 
 enable_testing()
 add_subdirectory(tests)

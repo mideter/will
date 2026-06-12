@@ -1,7 +1,10 @@
 #include "clientconfigvalidator.h"
 
+#include "support/phone_number.h"
+
 #include <asio.hpp>
 
+#include <cctype>
 #include <format>
 
 
@@ -45,10 +48,30 @@ std::optional<std::string_view> ClientConfigValidator::port_reason(const std::ui
 }
 
 
-std::optional<std::string_view> ClientConfigValidator::credentials_reason(const std::string& value)
+std::optional<std::string_view> ClientConfigValidator::phone_reason(const std::string& phone)
 {
-    if (value.empty())
+    if (phone.empty())
         return "must not be empty";
+
+    if (!domain::PhoneNumber::parse(phone))
+        return "must be a valid E.164 phone number";
+
+    return std::nullopt;
+}
+
+
+std::optional<std::string_view> ClientConfigValidator::otp_reason(const std::string& otp)
+{
+    if (otp.empty())
+        return std::nullopt;
+
+    if (otp.size() < 4u || otp.size() > 8u)
+        return "must be 4-8 ASCII digits when provided";
+
+    for (const char c : otp) {
+        if (!std::isdigit(static_cast<unsigned char>(c)))
+            return "must be 4-8 ASCII digits when provided";
+    }
 
     return std::nullopt;
 }
@@ -58,14 +81,18 @@ void ClientConfigValidator::validate(const ClientConfig& config)
 {
     require("host", host_reason(config.host));
     require("port", port_reason(config.port));
-    require("login", credentials_reason(config.login));
-    require("password", credentials_reason(config.password));
+    require("phone", phone_reason(config.phone));
+    require("otp", otp_reason(config.otp));
 }
 
 
 ClientConfig ClientConfigValidator::accept(ClientConfig config)
 {
     validate(config);
+
+    if (const auto parsed = domain::PhoneNumber::parse(config.phone))
+        config.phone = parsed->e164();
+
     return config;
 }
 

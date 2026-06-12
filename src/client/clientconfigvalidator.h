@@ -25,7 +25,8 @@ private:
     static void require(std::string_view field, std::optional<std::string_view> reason);
     static std::optional<std::string_view> host_reason(const std::string& host);
     static std::optional<std::string_view> port_reason(std::uint16_t port);
-    static std::optional<std::string_view> credentials_reason(const std::string& value);
+    static std::optional<std::string_view> phone_reason(const std::string& phone);
+    static std::optional<std::string_view> otp_reason(const std::string& otp);
 };
 
 

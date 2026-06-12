@@ -36,9 +36,11 @@ add_executable(will-client-config-test client_config_test.cpp
 )
 target_include_directories(will-client-config-test PRIVATE
   ${CMAKE_SOURCE_DIR}/src/client
+  ${CMAKE_SOURCE_DIR}/src/domain
   ${asio_SOURCE_DIR}/asio/include
 )
 target_compile_definitions(will-client-config-test PRIVATE ASIO_STANDALONE)
+target_link_libraries(will-client-config-test PRIVATE will-domain)
 add_test(NAME will-client-config COMMAND will-client-config-test)
 
 add_executable(will-client-cli-test client_cli_test.cpp

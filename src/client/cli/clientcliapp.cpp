@@ -15,8 +15,8 @@ ClientCliApp::ClientCliApp()
 
     app_.add_option("--host", config_.host)->description("Server IPv4 address");
     app_.add_option("--port", config_.port)->description("Server TCP port");
-    app_.add_option("--user", config_.login)->description("Login for server authentication");
-    app_.add_option("--password", config_.password)->description("Password for server authentication");
+    app_.add_option("--phone", config_.phone)->description("Phone number in E.164 for OTP authentication");
+    app_.add_option("--otp", config_.otp)->description("OTP code (read from stdin when omitted)");
     app_.add_flag("--quiet", config_.quiet_receipts)
         ->description("Suppress server receipt messages on stderr");
     app_.add_option("--history", config_.history_limit)
@@ -35,15 +35,15 @@ void ClientCliApp::print_help(std::ostream& os) const
         "  -h, --help                      Print usage and exit\n"
         "  --host HOST                     Server IPv4 address (default {}; Novosibirsk: {})\n"
         "  --port PORT                     Server TCP port (default {})\n"
-        "  --user LOGIN                    Login (default {})\n"
-        "  --password PASSWORD             Password (default: dev seed)\n"
+        "  --phone PHONE                   E.164 phone for OTP auth (default {})\n"
+        "  --otp CODE                      OTP code (prompt on stdin when omitted)\n"
         "  --quiet                         Suppress server receipt messages on stderr\n"
         "  --history N                     Request last N messages on connect (default {})\n"
         "  --no-history                    Do not request chat history on connect\n",
         ClientConfig::DefaultHost,
         ClientConfig::NovosibirskHost,
         ClientConfig::DefaultPort,
-        ClientConfig::DefaultLogin,
+        ClientConfig::DefaultPhone,
         ClientConfig::DefaultHistoryLimit);
 }
 

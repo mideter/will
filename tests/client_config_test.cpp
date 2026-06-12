@@ -49,23 +49,37 @@ int main()
 
     {
         ClientConfig config;
-        config.login = "";
-        assert_throws_field(config, "login");
+        config.phone = "";
+        assert_throws_field(config, "phone");
     }
 
     {
         ClientConfig config;
-        config.password = "";
-        assert_throws_field(config, "password");
+        config.phone = "not-a-phone";
+        assert_throws_field(config, "phone");
+    }
+
+    {
+        ClientConfig config;
+        config.otp = "12";
+        assert_throws_field(config, "otp");
+    }
+
+    {
+        ClientConfig config;
+        config.otp = "abcdef";
+        assert_throws_field(config, "otp");
     }
 
     {
         ClientConfig config;
         config.host = "192.168.1.10";
         config.port = 9000;
+        config.phone = "+1 (555) 123-4567";
         const ClientConfig accepted = ClientConfigValidator::accept(std::move(config));
         assert(accepted.host == "192.168.1.10");
         assert(accepted.port == 9000);
+        assert(accepted.phone == "+15551234567");
     }
 
     return EXIT_SUCCESS;
