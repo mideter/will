@@ -24,7 +24,7 @@ void TcpConnection::begin(const std::size_t max_outbound_queue_bytes)
 {
     channel_ = std::make_shared<TcpFramedChannel>(socket_, strand_, max_outbound_queue_bytes);
     channel_->start(
-        [self = shared_from_this()](std::vector<char> payload) { self->handle_frame(std::move(payload)); },
+        [self = shared_from_this()](std::vector<char> payload) { self->handle_payload(std::move(payload)); },
         [self = shared_from_this()] { self->request_close(); });
 }
 
@@ -45,13 +45,13 @@ void TcpConnection::shutdown()
 }
 
 
-void TcpConnection::handle_frame(std::vector<char> payload)
+void TcpConnection::handle_payload(std::vector<char> payload)
 {
     if (closed_)
         return;
 
-    if (handlers_.on_frame)
-        handlers_.on_frame(id_, std::move(payload));
+    if (handlers_.on_payload)
+        handlers_.on_payload(id_, std::move(payload));
 }
 
 
@@ -60,7 +60,7 @@ void TcpConnection::enqueue_wire_frame(std::vector<char> wire_bytes)
     if (closed_ || !channel_)
         return;
 
-    channel_->send_frame(std::move(wire_bytes));
+    channel_->enqueue_wire_frame(std::move(wire_bytes));
 }
 
 

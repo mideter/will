@@ -30,26 +30,26 @@ void TcpFramedChannel::stop()
 }
 
 
-void TcpFramedChannel::send_frame(std::vector<char>&& wire_bytes)
+void TcpFramedChannel::enqueue_wire_frame(std::vector<char>&& wire_bytes)
 {
-    asio::post(state_->strand(), [state = state_, frame = std::move(wire_bytes)]() mutable {
-        state->enqueue_frame_on_strand(std::move(frame));
+    asio::post(state_->strand(), [state = state_, wire_bytes = std::move(wire_bytes)]() mutable {
+        state->enqueue_wire_frame_on_strand(std::move(wire_bytes));
     });
 }
 
 
-void TcpFramedChannel::send_payload(const std::vector<char>& app_payload)
+void TcpFramedChannel::send_payload(const std::vector<char>& payload)
 {
-    send_payload(std::vector<char>(app_payload));
+    send_payload(std::vector<char>(payload));
 }
 
 
-void TcpFramedChannel::send_payload(std::vector<char>&& app_payload)
+void TcpFramedChannel::send_payload(std::vector<char>&& payload)
 {
-    std::vector<char> frame = TcpFrame::encode(app_payload);
+    std::vector<char> wire_bytes = TcpFrame::encode(payload);
 
-    asio::post(state_->strand(), [state = state_, frame = std::move(frame)]() mutable {
-        state->enqueue_frame_on_strand(std::move(frame));
+    asio::post(state_->strand(), [state = state_, wire_bytes = std::move(wire_bytes)]() mutable {
+        state->enqueue_wire_frame_on_strand(std::move(wire_bytes));
     });
 }
 

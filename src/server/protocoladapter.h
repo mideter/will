@@ -28,7 +28,7 @@ class TcpConnectionRegistry;
 class InboundClientMessageHandler;
 
 
-/** Maps wire payloads to domain use cases and encodes outbound frames. */
+/** Maps wire payloads to domain use cases and enqueues outbound wire frames. */
 class ProtocolAdapter {
     friend class InboundClientMessageHandler;
 
@@ -36,7 +36,7 @@ public:
     ProtocolAdapter(domain::MessengerPersistence persistence, TcpConnectionRegistry& registry,
                     ConnectionAccountStore& account_store);
 
-    void on_client_frame(std::uint64_t connection_id, const std::vector<char>& payload);
+    void on_client_payload(std::uint64_t connection_id, const std::vector<char>& payload);
 
 private:
     void handle_login(std::uint64_t connection_id, const LoginRequestMessage& request);
@@ -44,7 +44,7 @@ private:
     void handle_user_chat(std::uint64_t connection_id, const UserChatMessage& chat);
     void handle_history_request(std::uint64_t connection_id, const HistoryRequestMessage& request);
     void send_auth_required(std::uint64_t connection_id);
-    void send_payload(std::uint64_t connection_id, const std::vector<char>& app_payload);
+    void send_payload(std::uint64_t connection_id, const std::vector<char>& payload);
     void close_with_protocol_error(std::uint64_t connection_id, std::string_view message);
 
     domain::MessengerPersistence persistence_;

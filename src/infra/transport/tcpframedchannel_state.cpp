@@ -127,12 +127,12 @@ void TcpFramedChannel::State::stop_on_strand()
 }
 
 
-void TcpFramedChannel::State::enqueue_frame_on_strand(std::vector<char> frame)
+void TcpFramedChannel::State::enqueue_wire_frame_on_strand(std::vector<char> wire_bytes)
 {
     if (closed_ || stopped_ || !writer_)
         return;
 
-    writer_->enqueue(std::move(frame));
+    writer_->enqueue(std::move(wire_bytes));
 }
 
 

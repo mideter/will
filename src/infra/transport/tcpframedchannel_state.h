@@ -21,7 +21,7 @@ public:
 
     void start_on_strand(FrameHandler on_frame, ClosedHandler on_closed);
     void stop_on_strand();
-    void enqueue_frame_on_strand(std::vector<char> frame);
+    void enqueue_wire_frame_on_strand(std::vector<char> wire_bytes);
 
 private:
     void request_close();

@@ -14,10 +14,10 @@ TcpConnectionRegistry::TcpConnectionRegistry(ConnectionAccountStore& account_sto
 {}
 
 
-void TcpConnectionRegistry::set_frame_handler(
+void TcpConnectionRegistry::set_payload_handler(
     std::function<void(std::uint64_t, const std::vector<char>&)> handler)
 {
-    frame_handler_ = std::move(handler);
+    payload_handler_ = std::move(handler);
 }
 
 
@@ -27,8 +27,8 @@ void TcpConnectionRegistry::accept_connection(asio::io_context& ioc, TcpStreamSo
 {
     TcpConnectionHandlers handlers{
         [this](const std::uint64_t connection_id, std::vector<char> payload) {
-            if (frame_handler_)
-                frame_handler_(connection_id, payload);
+            if (payload_handler_)
+                payload_handler_(connection_id, payload);
         },
         [this](const std::uint64_t connection_id) { close_connection(connection_id); },
     };

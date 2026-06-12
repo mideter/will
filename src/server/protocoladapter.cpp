@@ -45,7 +45,7 @@ ProtocolAdapter::ProtocolAdapter(domain::MessengerPersistence persistence, TcpCo
 {}
 
 
-void ProtocolAdapter::on_client_frame(const std::uint64_t connection_id, const std::vector<char>& payload)
+void ProtocolAdapter::on_client_payload(const std::uint64_t connection_id, const std::vector<char>& payload)
 {
     const auto message = WireMessageCodec::decode_client(payload);
     if (!message) {
@@ -58,9 +58,9 @@ void ProtocolAdapter::on_client_frame(const std::uint64_t connection_id, const s
 }
 
 
-void ProtocolAdapter::send_payload(const std::uint64_t connection_id, const std::vector<char>& app_payload)
+void ProtocolAdapter::send_payload(const std::uint64_t connection_id, const std::vector<char>& payload)
 {
-    registry_.enqueue_wire_frame(connection_id, TcpFrame::encode(app_payload));
+    registry_.enqueue_wire_frame(connection_id, TcpFrame::encode(payload));
 }
 
 

@@ -68,13 +68,13 @@ void ChatSession::loadHistory() const
         return;
 
     while (true) {
-        const std::optional<std::vector<char>> frame = client_.receiveFrame();
+        const std::optional<std::vector<char>> payload = client_.receivePayload();
 
-        if (!frame.has_value())
+        if (!payload.has_value())
             throw std::runtime_error("Disconnected while loading history");
 
         LoadingHistoryMessageHandler handler;
-        on_server_frame(*frame, handler);
+        on_server_payload(*payload, handler);
 
         if (handler.history_finished())
             break;
@@ -86,15 +86,15 @@ void ChatSession::receiveLoop() const
 {
     try {
         while (true) {
-            const std::optional<std::vector<char>> frame = client_.receiveFrame();
+            const std::optional<std::vector<char>> payload = client_.receivePayload();
 
-            if (!frame.has_value()) {
+            if (!payload.has_value()) {
                 std::cout << std::endl << "Disconnected from chat." << std::endl;
                 break;
             }
 
             ReceivingMessageHandler handler{client_};
-            on_server_frame(*frame, handler);
+            on_server_payload(*payload, handler);
         }
     }
     catch (const std::exception& e) {
@@ -104,7 +104,7 @@ void ChatSession::receiveLoop() const
 
 
 template<typename Handler>
-void ChatSession::on_server_frame(const std::vector<char>& payload, Handler& handler) const
+void ChatSession::on_server_payload(const std::vector<char>& payload, Handler& handler) const
 {
     const auto message = WireMessageCodec::decode_server(payload);
     if (!message || !is_post_auth_server_message(*message)) {
@@ -115,10 +115,10 @@ void ChatSession::on_server_frame(const std::vector<char>& payload, Handler& han
 }
 
 
-template void ChatSession::on_server_frame<LoadingHistoryMessageHandler>(const std::vector<char>&,
+template void ChatSession::on_server_payload<LoadingHistoryMessageHandler>(const std::vector<char>&,
                                                                            LoadingHistoryMessageHandler&) const;
-template void ChatSession::on_server_frame<ReceivingMessageHandler>(const std::vector<char>&,
-                                                                    ReceivingMessageHandler&) const;
+template void ChatSession::on_server_payload<ReceivingMessageHandler>(const std::vector<char>&,
+                                                                      ReceivingMessageHandler&) const;
 
 
 } // namespace will

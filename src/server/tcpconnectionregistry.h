@@ -32,7 +32,7 @@ public:
     TcpConnectionRegistry(const TcpConnectionRegistry&) = delete;
     TcpConnectionRegistry& operator=(const TcpConnectionRegistry&) = delete;
 
-    void set_frame_handler(std::function<void(std::uint64_t, const std::vector<char>&)> handler);
+    void set_payload_handler(std::function<void(std::uint64_t, const std::vector<char>&)> handler);
 
     void accept_connection(asio::io_context& ioc, TcpStreamSocket socket,
                            asio::ip::tcp::endpoint peer_endpoint,
@@ -54,7 +54,7 @@ public:
 
 private:
     ConnectionAccountStore& account_store_;
-    std::function<void(std::uint64_t, const std::vector<char>&)> frame_handler_;
+    std::function<void(std::uint64_t, const std::vector<char>&)> payload_handler_;
 
     mutable std::mutex mutex_;
     std::unordered_map<std::uint64_t, std::shared_ptr<TcpConnection>> connections_;

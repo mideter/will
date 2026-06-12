@@ -105,34 +105,16 @@ void WillClient::authenticate(const std::string_view login, const std::string_vi
     send_payload(socket_.asio_socket(),
                  WireMessageCodec::encode(LoginRequestMessage{std::string(login), std::string(password)}));
 
-    const std::vector<char> response = receivePayload();
-    const auto message = WireMessageCodec::decode_server(response);
+    const std::optional<std::vector<char>> response = receivePayload();
+    if (!response)
+        throw std::runtime_error("Will protocol: unexpected end of stream");
+
+    const auto message = WireMessageCodec::decode_server(*response);
     const auto* parsed = dynamic_cast<const LoginResponseMessage*>(message.get());
     if (!parsed || !parsed->success())
         throw std::runtime_error("Will protocol: login failed");
 
     send_payload(socket_.asio_socket(), WireMessageCodec::encode(BindTokenMessage{parsed->token()}));
-}
-
-
-std::vector<char> WillClient::receivePayload() const
-{
-    std::array<unsigned char, 4> len_bytes{};
-    if (read_exact_or_eof_before_first_byte(socket_.asio_socket(), len_bytes.data(), len_bytes.size()))
-        throw std::runtime_error("Will protocol: unexpected end of stream");
-
-    const std::uint32_t len_u32 = TcpFrame::read_u32_be(len_bytes);
-    const std::size_t plen = static_cast<std::size_t>(len_u32);
-
-    if (plen > TcpFrame::MaxPayloadBytes)
-        throw std::runtime_error("Will protocol: frame exceeds TcpFrame::MaxPayloadBytes");
-
-    if (plen == 0)
-        throw std::runtime_error("Will protocol: empty typed payload is invalid");
-
-    std::vector<char> payload(plen);
-    read_exact(socket_.asio_socket(), reinterpret_cast<unsigned char*>(payload.data()), plen);
-    return payload;
 }
 
 
@@ -152,7 +134,7 @@ bool WillClient::requestHistory(const std::uint32_t limit) const
 }
 
 
-std::optional<std::vector<char>> WillClient::receiveFrame() const
+std::optional<std::vector<char>> WillClient::receivePayload() const
 {
     std::array<unsigned char, 4> len_bytes{};
     if (read_exact_or_eof_before_first_byte(socket_.asio_socket(), len_bytes.data(), len_bytes.size()))

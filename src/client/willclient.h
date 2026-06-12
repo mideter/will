@@ -35,15 +35,13 @@ public:
     bool requestHistory(std::uint32_t limit) const;
 
     /** std::nullopt = peer closed before next frame header; otherwise typed payload bytes. */
-    std::optional<std::vector<char>> receiveFrame() const;
+    std::optional<std::vector<char>> receivePayload() const;
 
     void shutdown() const;
 
     const ClientConfig& config() const noexcept;
 
 private:
-    std::vector<char> receivePayload() const;
-
     asio::io_context ioc_;
     mutable TcpStreamSocket socket_;
     ClientConfig config_;

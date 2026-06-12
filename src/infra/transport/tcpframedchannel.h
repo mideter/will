@@ -26,12 +26,12 @@ public:
     void start(FrameHandler on_frame, ClosedHandler on_closed);
     void stop();
 
-    /** Encodes {@code app_payload} and enqueues the wire frame on {@code strand_}. */
-    void send_payload(const std::vector<char>& app_payload);
-    void send_payload(std::vector<char>&& app_payload);
+    /** Encodes {@code payload} and enqueues the wire frame on {@code strand_}. */
+    void send_payload(const std::vector<char>& payload);
+    void send_payload(std::vector<char>&& payload);
 
     /** Enqueues pre-encoded wire bytes on {@code strand_}. */
-    void send_frame(std::vector<char>&& wire_bytes);
+    void enqueue_wire_frame(std::vector<char>&& wire_bytes);
 
 private:
     class State;

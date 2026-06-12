@@ -19,7 +19,7 @@ namespace will {
 
 
 struct TcpConnectionHandlers {
-    std::function<void(std::uint64_t connection_id, std::vector<char> payload)> on_frame;
+    std::function<void(std::uint64_t connection_id, std::vector<char> payload)> on_payload;
     std::function<void(std::uint64_t connection_id)> on_closed;
 };
 
@@ -40,7 +40,7 @@ private:
     void begin(std::size_t max_outbound_queue_bytes);
     void shutdown();
 
-    void handle_frame(std::vector<char> payload);
+    void handle_payload(std::vector<char> payload);
     void request_close();
 
     const std::uint64_t id_;

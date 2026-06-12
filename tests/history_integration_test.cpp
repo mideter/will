@@ -60,14 +60,14 @@ void send_all(int fd, const char* data, std::size_t len)
 }
 
 
-void send_frame(int fd, const std::vector<char>& payload)
+void send_payload(int fd, const std::vector<char>& payload)
 {
-    const std::vector<char> frame = will::TcpFrame::encode(payload);
-    send_all(fd, frame.data(), frame.size());
+    const std::vector<char> wire_bytes = will::TcpFrame::encode(payload);
+    send_all(fd, wire_bytes.data(), wire_bytes.size());
 }
 
 
-std::vector<char> read_frame(int fd)
+std::vector<char> read_payload(int fd)
 {
     std::array<unsigned char, 4> header{};
     std::size_t got = 0;
@@ -94,7 +94,7 @@ std::vector<char> read_frame(int fd)
 
 void drain_receipt_ack(int fd)
 {
-    const auto payload = read_frame(fd);
+    const auto payload = read_payload(fd);
     const auto message = will::WireMessageCodec::decode_server(payload);
     assert(message);
     assert(dynamic_cast<const will::ServerReceiptAckMessage*>(message.get()) != nullptr);
@@ -103,9 +103,9 @@ void drain_receipt_ack(int fd)
 
 void login_and_bind(int fd, const char* login, const char* password)
 {
-    send_frame(fd, will::WireMessageCodec::encode(will::LoginRequestMessage{login, password}));
+    send_payload(fd, will::WireMessageCodec::encode(will::LoginRequestMessage{login, password}));
 
-    const auto login_response = read_frame(fd);
+    const auto login_response = read_payload(fd);
     const auto message = will::WireMessageCodec::decode_server(login_response);
     assert(message);
 
@@ -113,7 +113,7 @@ void login_and_bind(int fd, const char* login, const char* password)
     assert(parsed);
     assert(parsed->success());
 
-    send_frame(fd, will::WireMessageCodec::encode(will::BindTokenMessage{parsed->token()}));
+    send_payload(fd, will::WireMessageCodec::encode(will::BindTokenMessage{parsed->token()}));
 }
 
 
@@ -187,15 +187,15 @@ int main(int argc, char* argv[])
     const int sender_fd = connect_tcp("127.0.0.1", port);
     assert(sender_fd >= 0);
     login_and_bind(sender_fd, "admin", "admin");
-    send_frame(sender_fd, will::WireMessageCodec::encode(will::UserChatMessage{"hello-from-sender"}));
+    send_payload(sender_fd, will::WireMessageCodec::encode(will::UserChatMessage{"hello-from-sender"}));
     drain_receipt_ack(sender_fd);
 
     const int viewer_fd = connect_tcp("127.0.0.1", port);
     assert(viewer_fd >= 0);
     login_and_bind(viewer_fd, "admin", "admin");
-    send_frame(viewer_fd, will::WireMessageCodec::encode(will::HistoryRequestMessage{10}));
+    send_payload(viewer_fd, will::WireMessageCodec::encode(will::HistoryRequestMessage{10}));
 
-    const auto first_item = read_frame(viewer_fd);
+    const auto first_item = read_payload(viewer_fd);
     const auto parsed_first_message = will::WireMessageCodec::decode_server(first_item);
     assert(parsed_first_message);
     const auto* parsed_first = dynamic_cast<const will::HistoryItemMessage*>(parsed_first_message.get());
@@ -203,16 +203,16 @@ int main(int argc, char* argv[])
     assert(parsed_first->body() == "hello-from-sender");
     assert(parsed_first->is_mine());
 
-    const auto end = read_frame(viewer_fd);
+    const auto end = read_payload(viewer_fd);
     const auto end_message = will::WireMessageCodec::decode_server(end);
     assert(end_message);
     assert(dynamic_cast<const will::HistoryEndMessage*>(end_message.get()) != nullptr);
 
-    send_frame(sender_fd, will::WireMessageCodec::encode(will::UserChatMessage{"hello-again"}));
+    send_payload(sender_fd, will::WireMessageCodec::encode(will::UserChatMessage{"hello-again"}));
     drain_receipt_ack(sender_fd);
-    send_frame(sender_fd, will::WireMessageCodec::encode(will::HistoryRequestMessage{10}));
+    send_payload(sender_fd, will::WireMessageCodec::encode(will::HistoryRequestMessage{10}));
 
-    const auto own_item = read_frame(sender_fd);
+    const auto own_item = read_payload(sender_fd);
     const auto parsed_own_message = will::WireMessageCodec::decode_server(own_item);
     assert(parsed_own_message);
     const auto* parsed_own = dynamic_cast<const will::HistoryItemMessage*>(parsed_own_message.get());
@@ -220,7 +220,7 @@ int main(int argc, char* argv[])
     assert(parsed_own->body() == "hello-from-sender");
     assert(parsed_own->is_mine());
 
-    const auto own_second = read_frame(sender_fd);
+    const auto own_second = read_payload(sender_fd);
     const auto parsed_second_message = will::WireMessageCodec::decode_server(own_second);
     assert(parsed_second_message);
     const auto* parsed_second = dynamic_cast<const will::HistoryItemMessage*>(parsed_second_message.get());
@@ -228,7 +228,7 @@ int main(int argc, char* argv[])
     assert(parsed_second->body() == "hello-again");
     assert(parsed_second->is_mine());
 
-    const auto sender_end = read_frame(sender_fd);
+    const auto sender_end = read_payload(sender_fd);
     const auto sender_end_message = will::WireMessageCodec::decode_server(sender_end);
     assert(sender_end_message);
     assert(dynamic_cast<const will::HistoryEndMessage*>(sender_end_message.get()) != nullptr);
