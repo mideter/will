@@ -1,10 +1,6 @@
 #include "tcpconnection.h"
 
-#include "tcpframereader.h"
-#include "tcpframewriter.h"
-
 #include <format>
-#include <iostream>
 #include <utility>
 
 
@@ -26,23 +22,10 @@ TcpConnection::TcpConnection(asio::io_context& ioc, TcpStreamSocket socket,
 
 void TcpConnection::begin(const std::size_t max_outbound_queue_bytes)
 {
-    frame_writer_ = std::make_shared<TcpFrameWriter>(
-        socket_.asio_socket(), strand_, max_outbound_queue_bytes,
-        [self = shared_from_this()] { self->handle_write_queue_full(); },
-        [self = shared_from_this()](const std::string_view message) { self->handle_framing_error(message); },
-        [self = shared_from_this()](const std::string_view context, const asio::error_code& ec) {
-            self->handle_write_error(context, ec);
-        });
-
-    frame_reader_ = std::make_shared<TcpFrameReader>(
-        socket_.asio_socket(), strand_,
+    channel_ = std::make_shared<TcpFramedChannel>(socket_, strand_, max_outbound_queue_bytes);
+    channel_->start(
         [self = shared_from_this()](std::vector<char> payload) { self->handle_frame(std::move(payload)); },
-        [self = shared_from_this()](const std::string_view message) { self->handle_framing_error(message); },
-        [self = shared_from_this()](const std::string_view context, const asio::error_code& ec) {
-            self->handle_read_error(context, ec);
-        });
-
-    frame_reader_->start();
+        [self = shared_from_this()] { self->request_close(); });
 }
 
 
@@ -54,11 +37,8 @@ void TcpConnection::shutdown()
 
         self->shutdown_done_ = true;
 
-        if (self->frame_reader_)
-            self->frame_reader_->stop();
-
-        if (self->frame_writer_)
-            self->frame_writer_->stop();
+        if (self->channel_)
+            self->channel_->stop();
 
         self->socket_.shutdown_and_close();
     });
@@ -77,69 +57,19 @@ void TcpConnection::handle_frame(std::vector<char> payload)
 
 void TcpConnection::send_frame(std::vector<char> wire_bytes)
 {
-    if (closed_ || !frame_writer_)
+    if (closed_ || !channel_)
         return;
 
-    frame_writer_->enqueue(std::move(wire_bytes));
+    channel_->send_frame(std::move(wire_bytes));
 }
 
 
 void TcpConnection::enqueue_frame(std::vector<char> wire_bytes)
 {
-    asio::post(strand_, [self = shared_from_this(), frame = std::move(wire_bytes)]() mutable {
-        if (self->closed_ || !self->frame_writer_)
-            return;
-
-        self->frame_writer_->enqueue(std::move(frame));
-    });
-}
-
-
-void TcpConnection::handle_read_error(const std::string_view context, const asio::error_code& ec)
-{
-    if (closed_)
+    if (closed_ || !channel_)
         return;
 
-    if (ec != asio::error::eof)
-        fail(context, ec);
-
-    request_close();
-}
-
-
-void TcpConnection::handle_write_queue_full()
-{
-    std::cerr << "Write queue limit exceeded for " << peer_label_ << ", disconnecting\n";
-    request_close();
-}
-
-
-void TcpConnection::handle_write_error(const std::string_view context, const asio::error_code& ec)
-{
-    if (closed_)
-        return;
-
-    fail(context, ec);
-    request_close();
-}
-
-
-void TcpConnection::handle_framing_error(const std::string_view message)
-{
-    if (closed_)
-        return;
-
-    std::cerr << "TcpConnection " << peer_label_ << ": " << message << std::endl;
-    request_close();
-}
-
-
-void TcpConnection::fail(const std::string_view context, const asio::error_code& ec)
-{
-    if (ec == asio::error::operation_aborted)
-        return;
-
-    std::cerr << "TcpConnection " << peer_label_ << " " << context << ": " << ec.message() << '\n';
+    channel_->send_frame(std::move(wire_bytes));
 }
 
 
@@ -147,7 +77,7 @@ void TcpConnection::request_close()
 {
     if (closed_)
         return;
-    
+
     closed_ = true;
 
     if (handlers_.on_closed)

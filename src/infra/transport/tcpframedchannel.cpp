@@ -26,7 +26,15 @@ void TcpFramedChannel::start(FrameHandler on_frame, ClosedHandler on_closed)
 
 void TcpFramedChannel::stop()
 {
-    asio::post(state_->strand(), [state = state_] { state->stop_on_strand(); });
+    asio::dispatch(state_->strand(), [state = state_] { state->stop_on_strand(); });
+}
+
+
+void TcpFramedChannel::send_frame(std::vector<char>&& wire_bytes)
+{
+    asio::post(state_->strand(), [state = state_, frame = std::move(wire_bytes)]() mutable {
+        state->enqueue_frame_on_strand(std::move(frame));
+    });
 }
 
 

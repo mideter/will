@@ -30,6 +30,9 @@ public:
     void send_payload(const std::vector<char>& app_payload);
     void send_payload(std::vector<char>&& app_payload);
 
+    /** Enqueues pre-encoded wire bytes on {@code strand_}. */
+    void send_frame(std::vector<char>&& wire_bytes);
+
 private:
     class State;
     std::shared_ptr<State> state_;

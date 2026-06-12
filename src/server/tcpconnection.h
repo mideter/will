@@ -1,5 +1,6 @@
 #pragma once
 
+#include "tcpframedchannel.h"
 #include "tcpstreamsocket.h"
 
 #include <asio.hpp>
@@ -15,10 +16,6 @@
 
 
 namespace will {
-
-
-class TcpFrameReader;
-class TcpFrameWriter;
 
 
 struct TcpConnectionHandlers {
@@ -45,11 +42,6 @@ private:
     void shutdown();
 
     void handle_frame(std::vector<char> payload);
-    void handle_read_error(std::string_view context, const asio::error_code& ec);
-    void handle_write_queue_full();
-    void handle_write_error(std::string_view context, const asio::error_code& ec);
-    void handle_framing_error(std::string_view message);
-    void fail(std::string_view context, const asio::error_code& ec);
     void request_close();
 
     const std::uint64_t id_;
@@ -60,8 +52,7 @@ private:
 
     std::string peer_label_;
 
-    std::shared_ptr<TcpFrameReader> frame_reader_;
-    std::shared_ptr<TcpFrameWriter> frame_writer_;
+    std::shared_ptr<TcpFramedChannel> channel_;
 
     bool closed_ = false;
     bool shutdown_done_ = false;
