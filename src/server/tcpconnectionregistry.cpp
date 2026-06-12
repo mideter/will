@@ -21,6 +21,12 @@ void TcpConnectionRegistry::set_payload_handler(
 }
 
 
+void TcpConnectionRegistry::set_connection_closed_handler(std::function<void(std::uint64_t)> handler)
+{
+    on_connection_closed_ = std::move(handler);
+}
+
+
 void TcpConnectionRegistry::accept_connection(asio::io_context& ioc, TcpStreamSocket socket,
                                               asio::ip::tcp::endpoint peer_endpoint)
 {
@@ -62,8 +68,29 @@ void TcpConnectionRegistry::close_connection(const std::uint64_t connection_id)
 
     account_store_.remove(connection_id);
 
+    if (on_connection_closed_)
+        on_connection_closed_(connection_id);
+
     std::cout << "Client " << connection->peer_address() << " disconnected" << std::endl;
     connection->shutdown();
+}
+
+
+void TcpConnectionRegistry::schedule_on_connection(const std::uint64_t connection_id,
+                                                   std::function<void(asio::any_io_executor)> fn)
+{
+    std::shared_ptr<TcpConnection> connection;
+
+    {
+        std::lock_guard lock(mutex_);
+        const auto it = connections_.find(connection_id);
+        if (it == connections_.end())
+            return;
+
+        connection = it->second;
+    }
+
+    connection->schedule_on_strand(std::move(fn));
 }
 
 

@@ -64,6 +64,17 @@ void TcpConnection::enqueue_wire_frame(std::vector<char> wire_bytes)
 }
 
 
+void TcpConnection::schedule_on_strand(std::function<void(asio::any_io_executor)> fn)
+{
+    asio::post(strand_, [self = shared_from_this(), fn = std::move(fn)]() mutable {
+        if (self->closed_)
+            return;
+
+        fn(self->strand_);
+    });
+}
+
+
 void TcpConnection::request_close()
 {
     if (closed_)

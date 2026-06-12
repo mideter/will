@@ -7,6 +7,7 @@
 #include <atomic>
 #include <chrono>
 #include <cstdlib>
+#include <format>
 #include <iostream>
 #include <string>
 #include <thread>
@@ -97,33 +98,55 @@ std::vector<char> read_payload(int fd)
 }
 
 
-void login_and_bind(int fd, const will::ClientConfig& connection)
+void otp_and_bind(int fd, const will::ClientConfig& connection)
 {
-    send_payload(fd, will::WireMessageCodec::encode(will::LoginRequestMessage{connection.login, connection.password}));
+    if (connection.otp.empty())
+        throw std::runtime_error("otp required for load_clients (pass --otp)");
 
-    const auto response = read_payload(fd);
-    const auto message = will::WireMessageCodec::decode_server(response);
-    if (!message)
-        throw std::runtime_error("login failed");
+    send_payload(fd, will::WireMessageCodec::encode(will::OtpPhoneRequestMessage{connection.phone}));
 
-    const auto* parsed = dynamic_cast<const will::LoginResponseMessage*>(message.get());
+    const auto otp_sent_payload = read_payload(fd);
+    const auto otp_sent_message = will::WireMessageCodec::decode_server(otp_sent_payload);
+    if (const auto* failure = dynamic_cast<const will::OtpVerifyResponseMessage*>(otp_sent_message.get())) {
+        if (!failure->success())
+            throw std::runtime_error("OTP request failed");
+    } else if (dynamic_cast<const will::OtpSentMessage*>(otp_sent_message.get()) == nullptr) {
+        throw std::runtime_error("OTP request failed");
+    }
+
+    send_payload(fd, will::WireMessageCodec::encode(will::OtpCodeSubmitMessage{connection.otp}));
+
+    const auto verify_payload = read_payload(fd);
+    const auto verify_message = will::WireMessageCodec::decode_server(verify_payload);
+    const auto* parsed = dynamic_cast<const will::OtpVerifyResponseMessage*>(verify_message.get());
     if (!parsed || !parsed->success())
-        throw std::runtime_error("login failed");
+        throw std::runtime_error("OTP verification failed");
 
     send_payload(fd, will::WireMessageCodec::encode(will::BindTokenMessage{parsed->token()}));
 }
 
 
-void client_worker(const will::LoadClientsConfig& config, std::atomic<std::size_t>& connect_failures)
+will::ClientConfig connection_for_client(const will::LoadClientsConfig& config, const std::size_t client_index)
 {
-    const int fd = connect_tcp(config.connection);
+    will::ClientConfig connection = config.connection;
+    if (config.clients > 1)
+        connection.phone = std::format("+1555{:07d}", client_index + 1);
+    return connection;
+}
+
+
+void client_worker(const will::LoadClientsConfig& config, const std::size_t client_index,
+                   std::atomic<std::size_t>& connect_failures)
+{
+    const will::ClientConfig connection = connection_for_client(config, client_index);
+    const int fd = connect_tcp(connection);
     if (fd < 0) {
         connect_failures.fetch_add(1, std::memory_order_relaxed);
         return;
     }
 
     try {
-        login_and_bind(fd, config.connection);
+        otp_and_bind(fd, connection);
 
         for (std::size_t i = 0; i < config.messages_per_client; ++i) {
             const std::string body = "load-" + std::to_string(i);
@@ -157,7 +180,7 @@ try {
     std::vector<std::thread> threads;
     threads.reserve(config.clients);
     for (std::size_t i = 0; i < config.clients; ++i)
-        threads.emplace_back(client_worker, std::cref(config), std::ref(failures));
+        threads.emplace_back(client_worker, std::cref(config), i, std::ref(failures));
 
     for (std::thread& t : threads)
         t.join();

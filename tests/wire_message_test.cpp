@@ -72,36 +72,52 @@ int main()
 	}
 
 	{
-		const auto login = WireMessageCodec::encode(LoginRequestMessage{"alice", "secret"});
-		assert(decodes_as_client<LoginRequestMessage>(login));
-		const auto login_message = WireMessageCodec::decode_client(login);
-		assert(login_message);
-		const auto* parsed_login = dynamic_cast<const LoginRequestMessage*>(login_message.get());
-		assert(parsed_login);
-		assert(parsed_login->login() == "alice");
-		assert(parsed_login->password() == "secret");
+		const auto otp_request = WireMessageCodec::encode(OtpPhoneRequestMessage{"+15551234567"});
+		assert(decodes_as_client<OtpPhoneRequestMessage>(otp_request));
+		const auto otp_request_message = WireMessageCodec::decode_client(otp_request);
+		assert(otp_request_message);
+		const auto* parsed_request = dynamic_cast<const OtpPhoneRequestMessage*>(otp_request_message.get());
+		assert(parsed_request);
+		assert(parsed_request->phone_e164() == "+15551234567");
 	}
 
 	{
-		const auto ok = WireMessageCodec::encode(LoginResponseMessage{true, "session-token", 0});
-		assert(decodes_as_server<LoginResponseMessage>(ok));
+		const auto otp_sent = WireMessageCodec::encode(OtpSentMessage{});
+		assert(decodes_as_server<OtpSentMessage>(otp_sent));
+		assert(otp_sent.size() == 1);
+		assert(static_cast<unsigned char>(otp_sent[0]) == static_cast<unsigned char>(WireMessage::Type::OtpSent));
+	}
+
+	{
+		const auto code_submit = WireMessageCodec::encode(OtpCodeSubmitMessage{"123456"});
+		assert(decodes_as_client<OtpCodeSubmitMessage>(code_submit));
+		const auto code_message = WireMessageCodec::decode_client(code_submit);
+		assert(code_message);
+		const auto* parsed_code = dynamic_cast<const OtpCodeSubmitMessage*>(code_message.get());
+		assert(parsed_code);
+		assert(parsed_code->code() == "123456");
+	}
+
+	{
+		const auto ok = WireMessageCodec::encode(OtpVerifyResponseMessage{true, "session-token", 0});
+		assert(decodes_as_server<OtpVerifyResponseMessage>(ok));
 		const auto ok_message = WireMessageCodec::decode_server(ok);
 		assert(ok_message);
-		const auto* parsed_ok = dynamic_cast<const LoginResponseMessage*>(ok_message.get());
+		const auto* parsed_ok = dynamic_cast<const OtpVerifyResponseMessage*>(ok_message.get());
 		assert(parsed_ok);
 		assert(parsed_ok->success());
 		assert(parsed_ok->token() == "session-token");
 	}
 
 	{
-		const auto fail = WireMessageCodec::encode(LoginResponseMessage{
-		    false, "", static_cast<std::uint8_t>(LoginResponseMessage::Error::InvalidCredentials)});
+		const auto fail = WireMessageCodec::encode(OtpVerifyResponseMessage{
+		    false, "", static_cast<std::uint8_t>(OtpVerifyResponseMessage::Error::InvalidCode)});
 		const auto fail_message = WireMessageCodec::decode_server(fail);
 		assert(fail_message);
-		const auto* parsed_fail = dynamic_cast<const LoginResponseMessage*>(fail_message.get());
+		const auto* parsed_fail = dynamic_cast<const OtpVerifyResponseMessage*>(fail_message.get());
 		assert(parsed_fail);
 		assert(!parsed_fail->success());
-		assert(parsed_fail->error_code() == static_cast<std::uint8_t>(LoginResponseMessage::Error::InvalidCredentials));
+		assert(parsed_fail->error_code() == static_cast<std::uint8_t>(OtpVerifyResponseMessage::Error::InvalidCode));
 	}
 
 	{
@@ -155,6 +171,7 @@ int main()
 
 	assert(WireMessageCodec::format_for_log(WireMessageCodec::encode(ServerReceiptAckMessage{})) == "ServerReceiptAck");
 	assert(WireMessageCodec::format_for_log(WireMessageCodec::encode(HistoryEndMessage{})) == "HistoryEnd");
+	assert(WireMessageCodec::format_for_log(WireMessageCodec::encode(OtpSentMessage{})) == "OtpSent");
 
 	{
 		const auto payload = WireMessageCodec::encode(UserChatMessage{"ping"});
@@ -174,14 +191,28 @@ int main()
 	assert_roundtrip(HistoryItemMessage{42, true, "stored"});
 	assert_roundtrip(HistoryItemMessage{7, false, ""});
 	assert_roundtrip(HistoryEndMessage{});
-	assert_roundtrip(LoginRequestMessage{"alice", "secret"});
-	assert_roundtrip(LoginResponseMessage{true, "session-token", 0});
-	assert_roundtrip(LoginResponseMessage{
-	    false, "", static_cast<std::uint8_t>(LoginResponseMessage::Error::InvalidCredentials)});
-	assert_roundtrip(LoginResponseMessage{
-	    false, "", static_cast<std::uint8_t>(LoginResponseMessage::Error::ExpiredToken)});
+	assert_roundtrip(OtpPhoneRequestMessage{"+15551234567"});
+	assert_roundtrip(OtpPhoneRequestMessage{"+447700900123"});
+	assert_roundtrip(OtpSentMessage{});
+	assert_roundtrip(OtpCodeSubmitMessage{"1234"});
+	assert_roundtrip(OtpCodeSubmitMessage{"12345678"});
+	assert_roundtrip(OtpVerifyResponseMessage{true, "session-token", 0});
+	assert_roundtrip(OtpVerifyResponseMessage{
+	    false, "", static_cast<std::uint8_t>(OtpVerifyResponseMessage::Error::InvalidCode)});
+	assert_roundtrip(OtpVerifyResponseMessage{
+	    false, "", static_cast<std::uint8_t>(OtpVerifyResponseMessage::Error::Expired)});
 	assert_roundtrip(BindTokenMessage{"session-token"});
 	assert_roundtrip(AuthRequiredMessage{});
+
+	{
+		const std::vector<char> invalid_phone{static_cast<char>(WireMessage::Type::OtpPhoneRequest), '+', '1'};
+		assert(!WireMessageCodec::decode_client(invalid_phone));
+	}
+
+	{
+		const std::vector<char> invalid_code{static_cast<char>(WireMessage::Type::OtpCodeSubmit), '1', '2', '3'};
+		assert(!WireMessageCodec::decode_client(invalid_code));
+	}
 
 	{
 		const UserChatMessage chat{"bidirectional"};

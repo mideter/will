@@ -4,6 +4,11 @@ add_executable(wire-message-test wire_message_test.cpp)
 target_link_libraries(wire-message-test PRIVATE will-protocol)
 add_test(NAME wire-message COMMAND wire-message-test)
 
+add_executable(phone-number-test phone_number_test.cpp)
+target_include_directories(phone-number-test PRIVATE ${CMAKE_SOURCE_DIR}/src/domain)
+target_link_libraries(phone-number-test PRIVATE will-domain)
+add_test(NAME phone-number COMMAND phone-number-test)
+
 add_executable(tcp-framed-channel-test tcp_framed_channel_test.cpp)
 target_link_libraries(tcp-framed-channel-test PRIVATE will-transport)
 add_test(NAME tcp-framed-channel COMMAND tcp-framed-channel-test)
@@ -31,9 +36,11 @@ add_executable(will-client-config-test client_config_test.cpp
 )
 target_include_directories(will-client-config-test PRIVATE
   ${CMAKE_SOURCE_DIR}/src/client
+  ${CMAKE_SOURCE_DIR}/src/domain
   ${asio_SOURCE_DIR}/asio/include
 )
 target_compile_definitions(will-client-config-test PRIVATE ASIO_STANDALONE)
+target_link_libraries(will-client-config-test PRIVATE will-domain)
 add_test(NAME will-client-config COMMAND will-client-config-test)
 
 add_executable(will-client-cli-test client_cli_test.cpp
@@ -78,6 +85,7 @@ add_executable(will-sqlite-persistence-test sqlite_persistence_test.cpp
   ${CMAKE_SOURCE_DIR}/src/infra/persistence/sqlite_message_repository_impl.cpp
   ${CMAKE_SOURCE_DIR}/src/infra/persistence/sqlite_user_repository_impl.cpp
   ${CMAKE_SOURCE_DIR}/src/infra/persistence/sqlite_auth_session_store_impl.cpp
+  ${CMAKE_SOURCE_DIR}/src/infra/persistence/sqlite_otp_store_impl.cpp
 )
 target_include_directories(will-sqlite-persistence-test PRIVATE
   ${CMAKE_SOURCE_DIR}/src/infra/persistence

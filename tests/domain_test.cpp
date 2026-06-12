@@ -3,9 +3,12 @@
 #include "entities/chat_id.h"
 #include "entities/participant_id.h"
 #include "errors/domain_error.h"
-#include "usecases/authenticate_user.h"
+#include "errors/otp_error.h"
+#include "support/phone_number.h"
 #include "usecases/fetch_chat_history.h"
+#include "usecases/request_otp.h"
 #include "usecases/send_chat_message.h"
+#include "usecases/verify_otp.h"
 
 #include <cassert>
 #include <cstdlib>
@@ -19,43 +22,159 @@ using namespace will::domain;
 using namespace will::domain::test;
 
 
-void test_authenticate_user_success()
+RequestOtpConfig test_request_otp_config()
 {
-    FakeUserRepository users;
-    FakeAuthSessionStore sessions;
-    const UserId alice_id{1};
-    users.add_user(User{alice_id, "alice", "Alice"}, "secret");
-
-    AuthenticateUser auth(users, sessions);
-    const auto result = auth.execute(AuthenticateUserInput{"alice", "secret", 1000});
-    assert(std::holds_alternative<AuthenticateUserSuccess>(result));
-
-    const Account& account = std::get<AuthenticateUserSuccess>(result).account;
-    assert(account.user_id == alice_id);
-    assert(!account.session_token.empty());
-    assert(account.authenticated_at == 1000);
-
-    const std::optional<Account> resolved = sessions.resolve_token(account.session_token);
-    assert(resolved.has_value());
-    assert(resolved->user_id == alice_id);
+    RequestOtpConfig config;
+    config.otp_ttl_sec = 300;
+    config.otp_length = 6;
+    config.otp_cooldown_sec = 60;
+    config.max_requests_per_ip = 2;
+    config.ip_rate_window_sec = 3600;
+    config.hash_salt = "test-salt";
+    config.dev_fixed_otp = "123456";
+    return config;
 }
 
 
-void test_authenticate_user_invalid_credentials()
+VerifyOtpConfig test_verify_otp_config()
+{
+    VerifyOtpConfig config;
+    config.max_verify_attempts = 3;
+    config.hash_salt = "test-salt";
+    return config;
+}
+
+
+void test_request_otp_success()
+{
+    FakeOtpStore otp_store;
+    FakeSmsSender sms_sender;
+    FakeOtpHasher hasher;
+
+    RequestOtp request_otp(otp_store, sms_sender, hasher, test_request_otp_config());
+    const auto result = request_otp.execute(RequestOtpInput{"+15551234567", "10.0.0.1", 1000});
+    assert(std::holds_alternative<RequestOtpSuccess>(result));
+
+    assert(sms_sender.sent_.size() == 1);
+    assert(sms_sender.sent_[0].phone == "+15551234567");
+    assert(sms_sender.sent_[0].code == "123456");
+
+    const std::optional<OtpChallenge> challenge = otp_store.find_challenge("+15551234567");
+    assert(challenge.has_value());
+    assert(challenge->code_hash == hasher.hash("123456", "test-salt"));
+    assert(challenge->expires_at_ms == 1000 + 300'000);
+    assert(challenge->peer_ip == "10.0.0.1");
+}
+
+
+void test_request_otp_invalid_phone()
+{
+    FakeOtpStore otp_store;
+    FakeSmsSender sms_sender;
+    FakeOtpHasher hasher;
+
+    RequestOtp request_otp(otp_store, sms_sender, hasher, test_request_otp_config());
+    const auto result = request_otp.execute(RequestOtpInput{"not-a-phone", "10.0.0.1", 1000});
+    assert(std::holds_alternative<OtpError>(result));
+    assert(std::get<OtpError>(result) == OtpError::InvalidPhone);
+    assert(sms_sender.sent_.empty());
+}
+
+
+void test_request_otp_rate_limited_by_cooldown()
+{
+    FakeOtpStore otp_store;
+    FakeSmsSender sms_sender;
+    FakeOtpHasher hasher;
+    RequestOtpConfig config = test_request_otp_config();
+
+    RequestOtp request_otp(otp_store, sms_sender, hasher, config);
+    assert(std::holds_alternative<RequestOtpSuccess>(
+        request_otp.execute(RequestOtpInput{"+15551234567", "10.0.0.1", 1000})));
+
+    const auto second = request_otp.execute(RequestOtpInput{"+15551234567", "10.0.0.1", 2000});
+    assert(std::holds_alternative<OtpError>(second));
+    assert(std::get<OtpError>(second) == OtpError::RateLimited);
+    assert(sms_sender.sent_.size() == 1);
+}
+
+
+void test_verify_otp_success_creates_user()
 {
     FakeUserRepository users;
+    FakeOtpStore otp_store;
     FakeAuthSessionStore sessions;
-    users.add_user(User{UserId{2}, "bob", "Bob"}, "pass");
+    FakeOtpHasher hasher;
+    FakeSmsSender sms_sender;
 
-    AuthenticateUser auth(users, sessions);
+    RequestOtp request_otp(otp_store, sms_sender, hasher, test_request_otp_config());
+    assert(std::holds_alternative<RequestOtpSuccess>(
+        request_otp.execute(RequestOtpInput{"+15551234567", "10.0.0.1", 1000})));
 
-    const auto unknown = auth.execute(AuthenticateUserInput{"nobody", "pass", 0});
-    assert(std::holds_alternative<AuthResult>(unknown));
-    assert(std::get<AuthResult>(unknown) == AuthResult::InvalidCredentials);
+    VerifyOtp verify_otp(users, otp_store, sessions, hasher, test_verify_otp_config());
+    const auto result = verify_otp.execute(
+        VerifyOtpInput{*PhoneNumber::parse("+15551234567"), "123456", 1500});
+    assert(std::holds_alternative<VerifyOtpSuccess>(result));
 
-    const auto wrong_pass = auth.execute(AuthenticateUserInput{"bob", "wrong", 0});
-    assert(std::holds_alternative<AuthResult>(wrong_pass));
-    assert(std::get<AuthResult>(wrong_pass) == AuthResult::InvalidCredentials);
+    const VerifyOtpSuccess& success = std::get<VerifyOtpSuccess>(result);
+    assert(success.user_id.value > 0);
+    assert(!success.token.empty());
+    assert(!otp_store.find_challenge("+15551234567").has_value());
+
+    const std::optional<User> user = users.find_by_phone("+15551234567");
+    assert(user.has_value());
+    assert(user->id == success.user_id);
+
+    const std::optional<Account> resolved = sessions.resolve_token(success.token);
+    assert(resolved.has_value());
+    assert(resolved->user_id == success.user_id);
+}
+
+
+void test_verify_otp_existing_user()
+{
+    FakeUserRepository users;
+    FakeOtpStore otp_store;
+    FakeAuthSessionStore sessions;
+    FakeOtpHasher hasher;
+    FakeSmsSender sms_sender;
+    users.add_user(User{UserId{42}, "+15551234567"});
+
+    RequestOtp request_otp(otp_store, sms_sender, hasher, test_request_otp_config());
+    assert(std::holds_alternative<RequestOtpSuccess>(
+        request_otp.execute(RequestOtpInput{"+15551234567", "10.0.0.1", 1000})));
+
+    VerifyOtp verify_otp(users, otp_store, sessions, hasher, test_verify_otp_config());
+    const auto result = verify_otp.execute(
+        VerifyOtpInput{*PhoneNumber::parse("+15551234567"), "123456", 1500});
+    assert(std::holds_alternative<VerifyOtpSuccess>(result));
+    assert(std::get<VerifyOtpSuccess>(result).user_id == UserId{42});
+}
+
+
+void test_verify_otp_invalid_and_expired()
+{
+    FakeUserRepository users;
+    FakeOtpStore otp_store;
+    FakeAuthSessionStore sessions;
+    FakeOtpHasher hasher;
+    FakeSmsSender sms_sender;
+
+    RequestOtp request_otp(otp_store, sms_sender, hasher, test_request_otp_config());
+    assert(std::holds_alternative<RequestOtpSuccess>(
+        request_otp.execute(RequestOtpInput{"+15551234567", "10.0.0.1", 1000})));
+
+    VerifyOtp verify_otp(users, otp_store, sessions, hasher, test_verify_otp_config());
+
+    const auto wrong_code = verify_otp.execute(
+        VerifyOtpInput{*PhoneNumber::parse("+15551234567"), "000000", 1500});
+    assert(std::holds_alternative<OtpError>(wrong_code));
+    assert(std::get<OtpError>(wrong_code) == OtpError::InvalidCode);
+
+    const auto expired = verify_otp.execute(
+        VerifyOtpInput{*PhoneNumber::parse("+15551234567"), "123456", 400'000});
+    assert(std::holds_alternative<OtpError>(expired));
+    assert(std::get<OtpError>(expired) == OtpError::Expired);
 }
 
 
@@ -136,8 +255,12 @@ void test_fetch_chat_history_caps_limit()
 
 int main()
 {
-    test_authenticate_user_success();
-    test_authenticate_user_invalid_credentials();
+    test_request_otp_success();
+    test_request_otp_invalid_phone();
+    test_request_otp_rate_limited_by_cooldown();
+    test_verify_otp_success_creates_user();
+    test_verify_otp_existing_user();
+    test_verify_otp_invalid_and_expired();
     test_send_chat_message_persists_and_notifies();
     test_fetch_chat_history_limit_and_is_mine();
     test_fetch_chat_history_caps_limit();

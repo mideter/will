@@ -47,6 +47,15 @@ std::optional<std::string_view> ServerConfigValidator::positive_reason(const T v
 }
 
 
+std::optional<std::string_view> ServerConfigValidator::otp_hash_salt_reason(const ServerConfig& config)
+{
+    if (!config.dev_fixed_otp && config.otp_hash_salt.empty())
+        return "must be set unless --dev-fixed-otp is provided";
+
+    return std::nullopt;
+}
+
+
 void ServerConfigValidator::validate(const ServerConfig& config)
 {
     require("listen_port", listen_port_reason(config.listen_port));
@@ -54,6 +63,15 @@ void ServerConfigValidator::validate(const ServerConfig& config)
     require("listen_backlog", positive_reason(config.listen_backlog));
     require("max_connections", positive_reason(config.max_connections));
     require("db_path", db_path_reason(config.db_path));
+    
+    require("otp_ttl_sec", positive_reason(config.otp_ttl_sec));
+    require("otp_length", positive_reason(config.otp_length));
+    require("max_verify_attempts", positive_reason(config.max_verify_attempts));
+    require("otp_cooldown_sec", positive_reason(config.otp_cooldown_sec));
+    require("max_requests_per_ip", positive_reason(config.max_requests_per_ip));
+    require("ip_rate_window_sec", positive_reason(config.ip_rate_window_sec));
+    require("auth_pending_timeout_sec", positive_reason(config.auth_pending_timeout_sec));
+    require("otp_hash_salt", otp_hash_salt_reason(config));
 }
 
 

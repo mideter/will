@@ -9,6 +9,7 @@ SqlitePersistenceBundle::SqlitePersistenceBundle(std::string db_path)
     , messages_(database_)
     , users_(database_)
     , sessions_(database_)
+    , otp_store_(database_)
 {}
 
 
@@ -33,6 +34,12 @@ domain::UserRepository& SqlitePersistenceBundle::users()
 domain::AuthSessionStore& SqlitePersistenceBundle::sessions()
 {
     return sessions_;
+}
+
+
+domain::OtpStore& SqlitePersistenceBundle::otp_store()
+{
+    return otp_store_;
 }
 
 

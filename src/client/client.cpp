@@ -10,7 +10,7 @@ try {
     const will::ClientConfigParser cli(argc, argv);
     will::WillClient client(cli.client_config());
     client.connect();
-    client.authenticate(client.config().login, client.config().password);
+    client.authenticate_phone(client.config().phone, client.config().otp);
 
     will::ChatSession chat_session(client);
     chat_session.run();

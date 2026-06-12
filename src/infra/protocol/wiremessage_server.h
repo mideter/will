@@ -10,15 +10,30 @@
 namespace will {
 
 
-class LoginResponseMessage final : public ServerMessage {
+class OtpSentMessage final : public ServerMessage {
+public:
+    WireMessage::Type type() const noexcept override;
+    std::vector<char> encode() const override;
+    std::string format_for_log() const override;
+
+    static std::unique_ptr<OtpSentMessage> from_bytes(const std::vector<char>& payload);
+
+    bool operator==(const OtpSentMessage&) const noexcept { return true; }
+};
+
+
+class OtpVerifyResponseMessage final : public ServerMessage {
 public:
     enum class Error : std::uint8_t {
-        InvalidCredentials = 1,
-        ExpiredToken = 2,
+        InvalidPhone = 1,
+        RateLimited = 2,
+        InvalidCode = 3,
+        Expired = 4,
+        Internal = 5,
     };
 
-    LoginResponseMessage() = default;
-    LoginResponseMessage(bool success, std::string token, std::uint8_t error_code);
+    OtpVerifyResponseMessage() = default;
+    OtpVerifyResponseMessage(bool success, std::string token, std::uint8_t error_code);
 
     bool success() const noexcept { return success_; }
     const std::string& token() const noexcept { return token_; }
@@ -28,9 +43,9 @@ public:
     std::vector<char> encode() const override;
     std::string format_for_log() const override;
 
-    static std::unique_ptr<LoginResponseMessage> from_bytes(const std::vector<char>& payload);
+    static std::unique_ptr<OtpVerifyResponseMessage> from_bytes(const std::vector<char>& payload);
 
-    bool operator==(const LoginResponseMessage& other) const noexcept;
+    bool operator==(const OtpVerifyResponseMessage& other) const noexcept;
 
 private:
     bool success_ = false;

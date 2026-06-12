@@ -5,6 +5,7 @@
 #include "sqlite_auth_session_store_impl.h"
 #include "sqlite_database.h"
 #include "sqlite_message_repository_impl.h"
+#include "sqlite_otp_store_impl.h"
 #include "sqlite_user_repository_impl.h"
 
 #include <string>
@@ -23,12 +24,14 @@ public:
     domain::MessageRepository& messages();
     domain::UserRepository& users();
     domain::AuthSessionStore& sessions();
+    domain::OtpStore& otp_store();
 
 private:
     SqliteDatabase database_;
     SqliteMessageRepositoryImpl messages_;
     SqliteUserRepositoryImpl users_;
     SqliteAuthSessionStoreImpl sessions_;
+    SqliteOtpStoreImpl otp_store_;
 };
 
 

@@ -101,15 +101,31 @@ void drain_receipt_ack(int fd)
 }
 
 
-void login_and_bind(int fd, const char* login, const char* password)
+constexpr const char* DevOtp = "123456";
+constexpr const char* OtpHashSalt = "test-salt";
+constexpr const char* SenderPhone = "+15551111111";
+constexpr const char* ViewerPhone = "+15552222222";
+
+
+void otp_and_bind(int fd, const char* phone, const char* otp_code)
 {
-    send_payload(fd, will::WireMessageCodec::encode(will::LoginRequestMessage{login, password}));
+    send_payload(fd, will::WireMessageCodec::encode(will::OtpPhoneRequestMessage{phone}));
 
-    const auto login_response = read_payload(fd);
-    const auto message = will::WireMessageCodec::decode_server(login_response);
-    assert(message);
+    const auto otp_sent_payload = read_payload(fd);
+    const auto otp_sent_message = will::WireMessageCodec::decode_server(otp_sent_payload);
+    assert(otp_sent_message);
+    if (const auto* failure = dynamic_cast<const will::OtpVerifyResponseMessage*>(otp_sent_message.get())) {
+        assert(!failure->success());
+    } else {
+        assert(dynamic_cast<const will::OtpSentMessage*>(otp_sent_message.get()) != nullptr);
+    }
 
-    const auto* parsed = dynamic_cast<const will::LoginResponseMessage*>(message.get());
+    send_payload(fd, will::WireMessageCodec::encode(will::OtpCodeSubmitMessage{otp_code}));
+
+    const auto verify_payload = read_payload(fd);
+    const auto verify_message = will::WireMessageCodec::decode_server(verify_payload);
+    assert(verify_message);
+    const auto* parsed = dynamic_cast<const will::OtpVerifyResponseMessage*>(verify_message.get());
     assert(parsed);
     assert(parsed->success());
 
@@ -131,7 +147,8 @@ pid_t start_server(const char* server_exe, std::uint16_t port, const std::string
 
     const std::string port_str = std::to_string(port);
     execl(server_exe, server_exe, "--port", port_str.c_str(), "--io-threads", "1", "--db-path",
-          db_path.c_str(), static_cast<char*>(nullptr));
+          db_path.c_str(), "--dev-fixed-otp", DevOtp, "--otp-hash-salt", OtpHashSalt,
+          static_cast<char*>(nullptr));
     _exit(127);
 }
 
@@ -186,13 +203,13 @@ int main(int argc, char* argv[])
 
     const int sender_fd = connect_tcp("127.0.0.1", port);
     assert(sender_fd >= 0);
-    login_and_bind(sender_fd, "admin", "admin");
+    otp_and_bind(sender_fd, SenderPhone, DevOtp);
     send_payload(sender_fd, will::WireMessageCodec::encode(will::UserChatMessage{"hello-from-sender"}));
     drain_receipt_ack(sender_fd);
 
     const int viewer_fd = connect_tcp("127.0.0.1", port);
     assert(viewer_fd >= 0);
-    login_and_bind(viewer_fd, "admin", "admin");
+    otp_and_bind(viewer_fd, ViewerPhone, DevOtp);
     send_payload(viewer_fd, will::WireMessageCodec::encode(will::HistoryRequestMessage{10}));
 
     const auto first_item = read_payload(viewer_fd);
@@ -201,7 +218,7 @@ int main(int argc, char* argv[])
     const auto* parsed_first = dynamic_cast<const will::HistoryItemMessage*>(parsed_first_message.get());
     assert(parsed_first);
     assert(parsed_first->body() == "hello-from-sender");
-    assert(parsed_first->is_mine());
+    assert(!parsed_first->is_mine());
 
     const auto end = read_payload(viewer_fd);
     const auto end_message = will::WireMessageCodec::decode_server(end);

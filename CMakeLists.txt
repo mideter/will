@@ -47,13 +47,17 @@ add_executable(will-server
   src/server/connectionaccountstore.cpp
   src/server/inbound_client_message_handler.cpp
   src/server/protocoladapter.cpp
+  src/server/otpconnectionstatestore.cpp
   src/server/tcpconnectionparticipantnotifierimpl.cpp
   src/infra/persistence/sqlite_database.cpp
   src/infra/persistence/password_hash.cpp
   src/infra/persistence/sqlite_message_repository_impl.cpp
   src/infra/persistence/sqlite_user_repository_impl.cpp
   src/infra/persistence/sqlite_auth_session_store_impl.cpp
+  src/infra/persistence/sqlite_otp_store_impl.cpp
   src/infra/persistence/sqlite_persistence_bundle.cpp
+  src/infra/persistence/sha256_otp_hasher.cpp
+  src/infra/sms/logging_sms_sender.cpp
 )
 target_include_directories(will-server PRIVATE
   src/server
@@ -61,6 +65,7 @@ target_include_directories(will-server PRIVATE
   src/server/config
   src/domain
   src/infra/persistence
+  src/infra/sms
   ${asio_SOURCE_DIR}/asio/include
 )
 target_compile_definitions(will-server PRIVATE ASIO_STANDALONE)
@@ -79,10 +84,11 @@ add_executable(will-client
 target_include_directories(will-client PRIVATE
   src/client
   src/client/cli
+  src/domain
   ${asio_SOURCE_DIR}/asio/include
 )
 target_compile_definitions(will-client PRIVATE ASIO_STANDALONE)
-target_link_libraries(will-client PRIVATE will-protocol will-transport CLI11::CLI11 Threads::Threads)
+target_link_libraries(will-client PRIVATE will-domain will-protocol will-transport CLI11::CLI11 Threads::Threads)
 
 add_executable(will-load-clients
   tools/load_clients.cpp
@@ -92,10 +98,11 @@ add_executable(will-load-clients
 )
 target_include_directories(will-load-clients PRIVATE
   src/client
+  src/domain
   tools
   tools/cli
 )
-target_link_libraries(will-load-clients PRIVATE will-protocol CLI11::CLI11 Threads::Threads)
+target_link_libraries(will-load-clients PRIVATE will-domain will-protocol CLI11::CLI11 Threads::Threads)
 
 enable_testing()
 add_subdirectory(tests)

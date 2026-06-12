@@ -3,6 +3,7 @@
 #include "clientconfigvalidator.h"
 
 #include <future>
+#include <iostream>
 #include <stdexcept>
 #include <utility>
 
@@ -81,6 +82,13 @@ void WillClient::dispatch_closed()
 }
 
 
+std::vector<char> WillClient::wait_for_auth_response()
+{
+    pending_auth_ = std::make_shared<std::promise<std::vector<char>>>();
+    return pending_auth_->get_future().get();
+}
+
+
 void WillClient::connect()
 {
     if (channel_)
@@ -108,7 +116,7 @@ void WillClient::connect()
 }
 
 
-void WillClient::authenticate(const std::string_view login, const std::string_view password)
+void WillClient::authenticate_phone(const std::string_view phone, const std::string_view otp_code)
 {
     if (!channel_)
         throw std::logic_error("WillClient: not connected");
@@ -116,18 +124,34 @@ void WillClient::authenticate(const std::string_view login, const std::string_vi
     if (authenticated_)
         throw std::logic_error("WillClient: already authenticated");
 
-    pending_auth_ = std::make_shared<std::promise<std::vector<char>>>();
-    std::future<std::vector<char>> login_future = pending_auth_->get_future();
-
     channel_->send_payload(
-        WireMessageCodec::encode(LoginRequestMessage{std::string(login), std::string(password)}));
+        WireMessageCodec::encode(OtpPhoneRequestMessage{std::string(phone)}));
 
-    const std::vector<char> response = login_future.get();
+    const std::vector<char> otp_request_response = wait_for_auth_response();
+    const auto otp_request_message = WireMessageCodec::decode_server(otp_request_response);
+    if (const auto* failure = dynamic_cast<const OtpVerifyResponseMessage*>(otp_request_message.get())) {
+        if (!failure->success())
+            throw std::runtime_error("Will protocol: OTP request failed");
+    } else if (dynamic_cast<const OtpSentMessage*>(otp_request_message.get()) == nullptr) {
+        throw std::runtime_error("Will protocol: expected OtpSent");
+    }
 
-    const auto message = WireMessageCodec::decode_server(response);
-    const auto* parsed = dynamic_cast<const LoginResponseMessage*>(message.get());
+    std::string code;
+    if (otp_code.empty()) {
+        std::cerr << "Enter OTP code: ";
+        if (!std::getline(std::cin, code) || code.empty())
+            throw std::runtime_error("OTP code required");
+    } else {
+        code.assign(otp_code);
+    }
+
+    channel_->send_payload(WireMessageCodec::encode(OtpCodeSubmitMessage{code}));
+
+    const std::vector<char> verify_response = wait_for_auth_response();
+    const auto verify_message = WireMessageCodec::decode_server(verify_response);
+    const auto* parsed = dynamic_cast<const OtpVerifyResponseMessage*>(verify_message.get());
     if (!parsed || !parsed->success())
-        throw std::runtime_error("Will protocol: login failed");
+        throw std::runtime_error("Will protocol: OTP verification failed");
 
     channel_->send_payload(WireMessageCodec::encode(BindTokenMessage{parsed->token()}));
     authenticated_ = true;
