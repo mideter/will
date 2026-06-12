@@ -33,7 +33,6 @@ private:
     int io_threads_;
     int listen_backlog_;
     std::size_t max_clients_;
-    std::size_t max_outbound_queue_bytes_;
     std::string db_path_;
 };
 

@@ -53,7 +53,6 @@ void ServerConfigValidator::validate(const ServerConfig& config)
     require("io_threads", positive_reason(config.io_threads));
     require("listen_backlog", positive_reason(config.listen_backlog));
     require("max_connections", positive_reason(config.max_connections));
-    require("max_outbound_queue_bytes", positive_reason(config.max_outbound_queue_bytes));
     require("db_path", db_path_reason(config.db_path));
 }
 

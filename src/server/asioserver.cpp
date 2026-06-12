@@ -1,5 +1,7 @@
 #include "asioserver.h"
 
+#include "tcpstreamsocket.h"
+
 #include <iostream>
 
 
@@ -7,13 +9,6 @@ namespace will {
 
 
 namespace {
-
-
-void close_quietly(asio::ip::tcp::socket& socket)
-{
-    asio::error_code ignored;
-    socket.close(ignored);
-}
 
 
 void log_accept_error(const asio::error_code& ec)
@@ -32,8 +27,8 @@ AsioMessengerServer::AsioMessengerServer(ServerConfig config, domain::MessengerP
           [this](const asio::error_code& ec, int signo) { handle_shutdown_signal(ec, signo); })
     , protocol_adapter_(persistence, registry_, account_store_)
 {
-    registry_.set_frame_handler([this](const std::uint64_t id, const std::vector<char>& payload) {
-        protocol_adapter_.on_client_frame(id, payload);
+    registry_.set_payload_handler([this](const std::uint64_t id, const std::vector<char>& payload) {
+        protocol_adapter_.on_client_payload(id, payload);
     });
 }
 
@@ -56,7 +51,8 @@ void AsioMessengerServer::start_accept()
 void AsioMessengerServer::handle_accept(const asio::error_code& ec, asio::ip::tcp::socket socket)
 {
     if (stopping_) {
-        close_quietly(socket);
+        TcpStreamSocket stream(std::move(socket));
+        stream.close_quietly();
         return;
     }
 
@@ -74,16 +70,15 @@ void AsioMessengerServer::accept_client(asio::ip::tcp::socket socket)
 {
     if (registry_.at_capacity(config_.max_connections)) {
         std::cerr << "Max connections (" << config_.max_connections << ") reached, rejecting peer\n";
-        close_quietly(socket);
+        TcpStreamSocket stream(std::move(socket));
+        stream.close_quietly();
         return;
     }
 
     try {
-        socket.set_option(asio::socket_base::keep_alive(true));
-
-        const auto peer_endpoint = socket.remote_endpoint();
-        registry_.accept_connection(io_.ioc(), std::move(socket), peer_endpoint,
-                                    config_.max_outbound_queue_bytes);
+        TcpStreamSocket stream(std::move(socket));
+        const auto peer_endpoint = stream.remote_endpoint();
+        registry_.accept_connection(io_.ioc(), std::move(stream), peer_endpoint);
     }
     catch (const std::exception& e) {
         std::cerr << "Accept connection error: " << e.what() << '\n';

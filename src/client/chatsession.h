@@ -8,7 +8,7 @@
 namespace will {
 
 
-/** Interactive chat session: loads history and runs send/receive loops. */
+/** Interactive chat session: loads history, then stdin send loop with inbound/closed handlers. */
 class ChatSession {
 public:
     explicit ChatSession(WillClient& client);
@@ -17,9 +17,8 @@ public:
 
 private:
     template<typename Handler>
-    void on_server_frame(const std::vector<char>& payload, Handler& handler) const;
+    void on_server_payload(const std::vector<char>& payload, Handler& handler) const;
 
-    void receiveLoop() const;
     void loadHistory() const;
 
     WillClient& client_;

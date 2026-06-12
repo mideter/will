@@ -29,24 +29,9 @@ find_package(Threads REQUIRED)
 find_package(SQLite3 REQUIRED)
 find_package(OpenSSL REQUIRED)
 
-# Domain layer: stdlib only (no ASIO, SQLite, or wire protocol).
-add_library(will-domain
-  src/domain/usecases/send_chat_message.cpp
-  src/domain/usecases/fetch_chat_history.cpp
-  src/domain/usecases/authenticate_user.cpp
-)
-target_include_directories(will-domain PUBLIC src/domain)
-target_compile_features(will-domain PUBLIC cxx_std_20)
-
-# Wire codec (former src/common).
-add_library(will-protocol
-  src/infra/protocol/tcpframe.cpp
-  src/infra/protocol/wiremessage_codec.cpp
-  src/infra/protocol/wiremessage_codec_internal.cpp
-  src/infra/protocol/wiremessage_messages.cpp
-)
-target_include_directories(will-protocol PUBLIC src/infra/protocol)
-target_compile_features(will-protocol PUBLIC cxx_std_20)
+add_subdirectory(src/domain)
+add_subdirectory(src/infra/protocol)
+add_subdirectory(src/infra/transport)
 
 add_executable(will-server
   src/server/server.cpp
@@ -63,8 +48,6 @@ add_executable(will-server
   src/server/inbound_client_message_handler.cpp
   src/server/protocoladapter.cpp
   src/server/tcpconnectionparticipantnotifierimpl.cpp
-  src/server/tcpframereader.cpp
-  src/server/tcpframewriter.cpp
   src/infra/persistence/sqlite_database.cpp
   src/infra/persistence/password_hash.cpp
   src/infra/persistence/sqlite_message_repository_impl.cpp
@@ -81,8 +64,8 @@ target_include_directories(will-server PRIVATE
   ${asio_SOURCE_DIR}/asio/include
 )
 target_compile_definitions(will-server PRIVATE ASIO_STANDALONE)
-target_link_libraries(will-server PRIVATE will-domain will-protocol CLI11::CLI11 Threads::Threads
-                                             SQLite::SQLite3 OpenSSL::Crypto)
+target_link_libraries(will-server PRIVATE will-domain will-protocol will-transport CLI11::CLI11
+                                             Threads::Threads SQLite::SQLite3 OpenSSL::Crypto)
 
 add_executable(will-client
   src/client/client.cpp
@@ -99,7 +82,7 @@ target_include_directories(will-client PRIVATE
   ${asio_SOURCE_DIR}/asio/include
 )
 target_compile_definitions(will-client PRIVATE ASIO_STANDALONE)
-target_link_libraries(will-client PRIVATE will-protocol CLI11::CLI11 Threads::Threads)
+target_link_libraries(will-client PRIVATE will-protocol will-transport CLI11::CLI11 Threads::Threads)
 
 add_executable(will-load-clients
   tools/load_clients.cpp

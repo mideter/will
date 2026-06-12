@@ -16,7 +16,6 @@ ServerCliApp::ServerCliApp(const ServerConfig& defaults)
     , io_threads_(defaults.io_threads)
     , listen_backlog_(defaults.listen_backlog)
     , max_clients_(defaults.max_connections)
-    , max_outbound_queue_bytes_(defaults.max_outbound_queue_bytes)
     , db_path_(defaults.db_path)
 {
     app_.allow_extras(false);
@@ -25,8 +24,6 @@ ServerCliApp::ServerCliApp(const ServerConfig& defaults)
     app_.add_option("--io-threads", io_threads_)->description("io_context worker threads");
     app_.add_option("--listen-backlog", listen_backlog_)->description("listen() backlog");
     app_.add_option("--max-clients", max_clients_)->description("Max concurrent connections");
-    app_.add_option("--max-outbound-queue-bytes", max_outbound_queue_bytes_)
-        ->description("Per-session write queue cap");
     app_.add_option("--db-path", db_path_)->description("SQLite database path");
 }
 
@@ -42,13 +39,11 @@ void ServerCliApp::print_help(std::ostream& os) const
         "  --io-threads N                  io_context worker threads (default {})\n"
         "  --listen-backlog N              listen() backlog (default {})\n"
         "  --max-clients N                 Max concurrent connections (default {})\n"
-        "  --max-outbound-queue-bytes N    Per-session write queue cap (default {})\n"
         "  --db-path PATH                  SQLite database path (default {})\n",
         ServerConfig::DefaultListenPort,
         ServerConfig::DefaultIoThreads,
         ServerConfig::DefaultListenBacklog,
         ServerConfig::DefaultMaxConnections,
-        ServerConfig::DefaultMaxOutboundQueueBytes,
         ServerConfig::DefaultDbPath);
 }
 
@@ -72,7 +67,6 @@ void ServerCliApp::apply_to(ServerConfig& config) const
     config.io_threads = io_threads_;
     config.listen_backlog = listen_backlog_;
     config.max_connections = max_clients_;
-    config.max_outbound_queue_bytes = max_outbound_queue_bytes_;
     config.db_path = db_path_;
 }
 

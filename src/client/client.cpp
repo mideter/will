@@ -9,6 +9,8 @@ int main(int argc, char* argv[])
 try {
     const will::ClientConfigParser cli(argc, argv);
     will::WillClient client(cli.client_config());
+    client.connect();
+    client.authenticate(client.config().login, client.config().password);
 
     will::ChatSession chat_session(client);
     chat_session.run();

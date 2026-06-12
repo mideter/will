@@ -14,21 +14,20 @@ TcpConnectionRegistry::TcpConnectionRegistry(ConnectionAccountStore& account_sto
 {}
 
 
-void TcpConnectionRegistry::set_frame_handler(
+void TcpConnectionRegistry::set_payload_handler(
     std::function<void(std::uint64_t, const std::vector<char>&)> handler)
 {
-    frame_handler_ = std::move(handler);
+    payload_handler_ = std::move(handler);
 }
 
 
-void TcpConnectionRegistry::accept_connection(asio::io_context& ioc, asio::ip::tcp::socket socket,
-                                              asio::ip::tcp::endpoint peer_endpoint,
-                                              const std::size_t max_outbound_queue_bytes)
+void TcpConnectionRegistry::accept_connection(asio::io_context& ioc, TcpStreamSocket socket,
+                                              asio::ip::tcp::endpoint peer_endpoint)
 {
     TcpConnectionHandlers handlers{
         [this](const std::uint64_t connection_id, std::vector<char> payload) {
-            if (frame_handler_)
-                frame_handler_(connection_id, payload);
+            if (payload_handler_)
+                payload_handler_(connection_id, payload);
         },
         [this](const std::uint64_t connection_id) { close_connection(connection_id); },
     };
@@ -38,11 +37,11 @@ void TcpConnectionRegistry::accept_connection(asio::io_context& ioc, asio::ip::t
 
     {
         std::lock_guard lock(mutex_);
-        std::cout << "Client " << connection->peer_label() << " connected" << std::endl;
+        std::cout << "Client " << connection->peer_address() << " connected" << std::endl;
         connections_.emplace(connection->id(), connection);
     }
 
-    connection->begin(max_outbound_queue_bytes);
+    connection->begin();
 }
 
 
@@ -63,7 +62,7 @@ void TcpConnectionRegistry::close_connection(const std::uint64_t connection_id)
 
     account_store_.remove(connection_id);
 
-    std::cout << "Client " << connection->peer_label() << " disconnected" << std::endl;
+    std::cout << "Client " << connection->peer_address() << " disconnected" << std::endl;
     connection->shutdown();
 }
 
@@ -83,7 +82,7 @@ void TcpConnectionRegistry::enqueue_wire_frame(const std::uint64_t connection_id
         connection = it->second;
     }
 
-    connection->enqueue_frame(std::move(wire_bytes));
+    connection->enqueue_wire_frame(std::move(wire_bytes));
 }
 
 
@@ -105,11 +104,11 @@ void TcpConnectionRegistry::broadcast_wire_except(const std::uint64_t except_con
     }
 
     for (const std::shared_ptr<TcpConnection>& peer : peers)
-        peer->enqueue_frame(wire_bytes);
+        peer->enqueue_wire_frame(wire_bytes);
 }
 
 
-std::string_view TcpConnectionRegistry::peer_label(const std::uint64_t connection_id) const
+std::string_view TcpConnectionRegistry::peer_address(const std::uint64_t connection_id) const
 {
     std::lock_guard lock(mutex_);
     const auto it = connections_.find(connection_id);
@@ -117,7 +116,7 @@ std::string_view TcpConnectionRegistry::peer_label(const std::uint64_t connectio
     if (it == connections_.end())
         return {};
 
-    return it->second->peer_label();
+    return it->second->peer_address();
 }
 
 

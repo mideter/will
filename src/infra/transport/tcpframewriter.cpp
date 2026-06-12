@@ -4,13 +4,11 @@
 namespace will {
 
 
-TcpFrameWriter::TcpFrameWriter(TcpSocket& socket, Strand& strand, std::size_t max_queued_bytes,
-                               QueueFullHandler on_queue_full,
+TcpFrameWriter::TcpFrameWriter(TcpSocket& socket, Strand& strand, QueueFullHandler on_queue_full,
                                ProtocolErrorHandler on_protocol_error,
                                WriteErrorHandler on_write_error)
     : socket_(socket)
     , strand_(strand)
-    , max_queued_bytes_(max_queued_bytes)
     , on_queue_full_(std::move(on_queue_full))
     , on_protocol_error_(std::move(on_protocol_error))
     , on_write_error_(std::move(on_write_error))
@@ -29,7 +27,7 @@ void TcpFrameWriter::enqueue(std::vector<char> frame_bytes)
         return;
 
     const std::size_t frame_len = frame_bytes.size();
-    if (queued_bytes_ + frame_len > max_queued_bytes_) {
+    if (queued_bytes_ + frame_len > MaxQueuedBytes) {
         on_queue_full_();
         return;
     }

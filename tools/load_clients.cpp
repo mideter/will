@@ -60,7 +60,7 @@ void send_all(int fd, const char* data, std::size_t len)
 }
 
 
-void send_frame(int fd, const std::vector<char>& payload)
+void send_payload(int fd, const std::vector<char>& payload)
 {
     const auto header = will::TcpFrame::u32_be(static_cast<std::uint32_t>(payload.size()));
     send_all(fd, reinterpret_cast<const char*>(header.data()), header.size());
@@ -69,7 +69,7 @@ void send_frame(int fd, const std::vector<char>& payload)
 }
 
 
-std::vector<char> read_frame(int fd)
+std::vector<char> read_payload(int fd)
 {
     std::array<unsigned char, 4> header{};
     std::size_t got = 0;
@@ -99,9 +99,9 @@ std::vector<char> read_frame(int fd)
 
 void login_and_bind(int fd, const will::ClientConfig& connection)
 {
-    send_frame(fd, will::WireMessageCodec::encode(will::LoginRequestMessage{connection.login, connection.password}));
+    send_payload(fd, will::WireMessageCodec::encode(will::LoginRequestMessage{connection.login, connection.password}));
 
-    const auto response = read_frame(fd);
+    const auto response = read_payload(fd);
     const auto message = will::WireMessageCodec::decode_server(response);
     if (!message)
         throw std::runtime_error("login failed");
@@ -110,7 +110,7 @@ void login_and_bind(int fd, const will::ClientConfig& connection)
     if (!parsed || !parsed->success())
         throw std::runtime_error("login failed");
 
-    send_frame(fd, will::WireMessageCodec::encode(will::BindTokenMessage{parsed->token()}));
+    send_payload(fd, will::WireMessageCodec::encode(will::BindTokenMessage{parsed->token()}));
 }
 
 
@@ -127,7 +127,7 @@ void client_worker(const will::LoadClientsConfig& config, std::atomic<std::size_
 
         for (std::size_t i = 0; i < config.messages_per_client; ++i) {
             const std::string body = "load-" + std::to_string(i);
-            send_frame(fd, will::WireMessageCodec::encode(will::UserChatMessage{body}));
+            send_payload(fd, will::WireMessageCodec::encode(will::UserChatMessage{body}));
         }
 
         if (config.hold_seconds > 0)

@@ -45,7 +45,7 @@ ProtocolAdapter::ProtocolAdapter(domain::MessengerPersistence persistence, TcpCo
 {}
 
 
-void ProtocolAdapter::on_client_frame(const std::uint64_t connection_id, const std::vector<char>& payload)
+void ProtocolAdapter::on_client_payload(const std::uint64_t connection_id, const std::vector<char>& payload)
 {
     const auto message = WireMessageCodec::decode_client(payload);
     if (!message) {
@@ -58,17 +58,17 @@ void ProtocolAdapter::on_client_frame(const std::uint64_t connection_id, const s
 }
 
 
-void ProtocolAdapter::send_payload(const std::uint64_t connection_id, const std::vector<char>& app_payload)
+void ProtocolAdapter::send_payload(const std::uint64_t connection_id, const std::vector<char>& payload)
 {
-    registry_.enqueue_wire_frame(connection_id, TcpFrame::encode(app_payload));
+    registry_.enqueue_wire_frame(connection_id, TcpFrame::encode(payload));
 }
 
 
 void ProtocolAdapter::close_with_protocol_error(const std::uint64_t connection_id,
                                                 const std::string_view message)
 {
-    if (const std::string_view label = registry_.peer_label(connection_id); !label.empty())
-        std::cerr << "Connection " << label << ": " << message << '\n';
+    if (const std::string_view peer_address = registry_.peer_address(connection_id); !peer_address.empty())
+        std::cerr << "Connection " << peer_address << ": " << message << '\n';
     else
         std::cerr << "Connection " << connection_id << ": " << message << '\n';
     

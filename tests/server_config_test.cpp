@@ -55,12 +55,6 @@ int main()
 
     {
         ServerConfig config;
-        config.max_outbound_queue_bytes = 0;
-        assert_throws_field(config, "max_outbound_queue_bytes");
-    }
-
-    {
-        ServerConfig config;
         config.listen_port = 9000;
         config.io_threads = 2;
         const ServerConfig accepted = ServerConfigValidator::accept(std::move(config));

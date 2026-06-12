@@ -3,6 +3,7 @@
 #include <asio.hpp>
 
 #include "connectionaccountstore.h"
+#include "tcpstreamsocket.h"
 
 #include <cstddef>
 #include <cstdint>
@@ -31,11 +32,10 @@ public:
     TcpConnectionRegistry(const TcpConnectionRegistry&) = delete;
     TcpConnectionRegistry& operator=(const TcpConnectionRegistry&) = delete;
 
-    void set_frame_handler(std::function<void(std::uint64_t, const std::vector<char>&)> handler);
+    void set_payload_handler(std::function<void(std::uint64_t, const std::vector<char>&)> handler);
 
-    void accept_connection(asio::io_context& ioc, asio::ip::tcp::socket socket,
-                           asio::ip::tcp::endpoint peer_endpoint,
-                           std::size_t max_outbound_queue_bytes);
+    void accept_connection(asio::io_context& ioc, TcpStreamSocket socket,
+                           asio::ip::tcp::endpoint peer_endpoint);
 
     void close_connection(std::uint64_t connection_id);
 
@@ -43,7 +43,7 @@ public:
 
     void broadcast_wire_except(std::uint64_t except_connection_id, const std::vector<char>& wire_bytes);
 
-    [[nodiscard]] std::string_view peer_label(std::uint64_t connection_id) const;
+    [[nodiscard]] std::string_view peer_address(std::uint64_t connection_id) const;
 
     void close_all_connections();
 
@@ -53,7 +53,7 @@ public:
 
 private:
     ConnectionAccountStore& account_store_;
-    std::function<void(std::uint64_t, const std::vector<char>&)> frame_handler_;
+    std::function<void(std::uint64_t, const std::vector<char>&)> payload_handler_;
 
     mutable std::mutex mutex_;
     std::unordered_map<std::uint64_t, std::shared_ptr<TcpConnection>> connections_;

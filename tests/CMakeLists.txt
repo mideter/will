@@ -4,6 +4,10 @@ add_executable(wire-message-test wire_message_test.cpp)
 target_link_libraries(wire-message-test PRIVATE will-protocol)
 add_test(NAME wire-message COMMAND wire-message-test)
 
+add_executable(tcp-framed-channel-test tcp_framed_channel_test.cpp)
+target_link_libraries(tcp-framed-channel-test PRIVATE will-transport)
+add_test(NAME tcp-framed-channel COMMAND tcp-framed-channel-test)
+
 add_executable(will-server-config-test server_config_test.cpp
   ${CMAKE_SOURCE_DIR}/src/server/config/serverconfigvalidator.cpp
 )
