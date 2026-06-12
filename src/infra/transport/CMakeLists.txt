@@ -1,4 +1,6 @@
 add_library(will-transport
+  tcpframedchannel.cpp
+  tcpframedchannel_state.cpp
   tcpframereader.cpp
   tcpframewriter.cpp
 )
