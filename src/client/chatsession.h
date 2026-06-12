@@ -8,7 +8,7 @@
 namespace will {
 
 
-/** Interactive chat session: loads history and runs send/receive loops. */
+/** Interactive chat session: loads history, then stdin send loop with inbound/closed handlers. */
 class ChatSession {
 public:
     explicit ChatSession(WillClient& client);

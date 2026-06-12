@@ -45,9 +45,6 @@ void ChatSession::run()
 {
     loadHistory();
 
-    std::cout << "Connected to Will chat. Type messages and press Enter.\n";
-    std::cout << "Press Ctrl+D to exit.\n";
-
     std::atomic<bool> disconnected{false};
 
     client_.set_closed_handler([&disconnected] { disconnected.store(true); });
@@ -65,6 +62,9 @@ void ChatSession::run()
         }
     });
 
+    std::cout << "Connected to Will chat. Type messages and press Enter.\n";
+    std::cout << "Press Ctrl+D to exit.\n";
+
     std::string line;
     while (!disconnected.load() && std::getline(std::cin, line))
         client_.send(line);
@@ -78,7 +78,7 @@ void ChatSession::run()
 
 void ChatSession::loadHistory() const
 {
-    if (!client_.requestHistory(client_.config().history_limit))
+    if (client_.config().history_limit == 0)
         return;
 
     std::mutex mutex;
@@ -113,8 +113,13 @@ void ChatSession::loadHistory() const
         }
     });
 
+    client_.requestHistory(client_.config().history_limit);
+
     std::unique_lock lock(mutex);
     cv.wait(lock, [&] { return finished || disconnected; });
+
+    client_.set_closed_handler(nullptr);
+    client_.set_inbound_handler(nullptr);
 
     if (!finished)
         throw std::runtime_error(disconnected && !error_message.empty() ? error_message
