@@ -4,12 +4,13 @@
 #include "serverconfig.h"
 #include "sqlite_persistence_bundle.h"
 
+
 namespace will {
 
 
 class WillServer {
 public:
-    static constexpr const char* Version = "4.2.0";
+    static constexpr const char* Version = "4.3.0";
 
     explicit WillServer(ServerConfig config = {});
 
