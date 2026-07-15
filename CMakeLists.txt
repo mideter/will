@@ -101,7 +101,9 @@ target_include_directories(will-load-clients PRIVATE
   src/domain
   tools
   tools/cli
+  ${asio_SOURCE_DIR}/asio/include
 )
+target_compile_definitions(will-load-clients PRIVATE ASIO_STANDALONE)
 target_link_libraries(will-load-clients PRIVATE will-domain will-protocol CLI11::CLI11 Threads::Threads)
 
 enable_testing()
