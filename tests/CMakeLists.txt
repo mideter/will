@@ -71,6 +71,22 @@ add_dependencies(will-history-integration-test will-server)
 add_test(NAME will-history-integration
   COMMAND will-history-integration-test $<TARGET_FILE:will-server>)
 
+add_executable(will-connection-account-store-test connection_account_store_test.cpp
+  ${CMAKE_SOURCE_DIR}/src/server/connectionaccountstore.cpp
+)
+target_include_directories(will-connection-account-store-test PRIVATE
+  ${CMAKE_SOURCE_DIR}/src/server
+  ${CMAKE_SOURCE_DIR}/src/domain
+)
+target_link_libraries(will-connection-account-store-test PRIVATE will-domain)
+add_test(NAME will-connection-account-store COMMAND will-connection-account-store-test)
+
+add_executable(will-session-takeover-integration-test session_takeover_integration_test.cpp)
+target_link_libraries(will-session-takeover-integration-test PRIVATE will-protocol)
+add_dependencies(will-session-takeover-integration-test will-server)
+add_test(NAME will-session-takeover-integration
+  COMMAND will-session-takeover-integration-test $<TARGET_FILE:will-server>)
+
 add_executable(will-domain-test domain_test.cpp)
 target_include_directories(will-domain-test PRIVATE
   ${CMAKE_SOURCE_DIR}/src/domain
