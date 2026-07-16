@@ -4,10 +4,10 @@ add_executable(wire-message-test wire_message_test.cpp)
 target_link_libraries(wire-message-test PRIVATE will-protocol)
 add_test(NAME wire-message COMMAND wire-message-test)
 
-add_executable(phone-number-test phone_number_test.cpp)
-target_include_directories(phone-number-test PRIVATE ${CMAKE_SOURCE_DIR}/src/domain)
-target_link_libraries(phone-number-test PRIVATE will-domain)
-add_test(NAME phone-number COMMAND phone-number-test)
+add_executable(device-token-test device_token_test.cpp)
+target_include_directories(device-token-test PRIVATE ${CMAKE_SOURCE_DIR}/src/domain)
+target_link_libraries(device-token-test PRIVATE will-domain)
+add_test(NAME device-token COMMAND device-token-test)
 
 add_executable(tcp-framed-channel-test tcp_framed_channel_test.cpp)
 target_link_libraries(tcp-framed-channel-test PRIVATE will-transport)
@@ -84,8 +84,6 @@ add_executable(will-sqlite-persistence-test sqlite_persistence_test.cpp
   ${CMAKE_SOURCE_DIR}/src/infra/persistence/password_hash.cpp
   ${CMAKE_SOURCE_DIR}/src/infra/persistence/sqlite_message_repository_impl.cpp
   ${CMAKE_SOURCE_DIR}/src/infra/persistence/sqlite_user_repository_impl.cpp
-  ${CMAKE_SOURCE_DIR}/src/infra/persistence/sqlite_auth_session_store_impl.cpp
-  ${CMAKE_SOURCE_DIR}/src/infra/persistence/sqlite_otp_store_impl.cpp
 )
 target_include_directories(will-sqlite-persistence-test PRIVATE
   ${CMAKE_SOURCE_DIR}/src/infra/persistence

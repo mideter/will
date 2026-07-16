@@ -29,8 +29,6 @@ private:
 
     std::string host_;
     int port_;
-    std::string phone_;
-    std::string otp_;
     std::size_t clients_;
     std::size_t messages_per_client_;
     int hold_seconds_;

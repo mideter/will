@@ -67,6 +67,8 @@ bool needs_schema_reset(sqlite3* db)
         return true;
     if (table_has_column(db, "users", "password_hash"))
         return true;
+    if (table_has_column(db, "users", "phone"))
+        return true;
 
     sqlite3_stmt* stmt = nullptr;
     check_sqlite(sqlite3_prepare_v2(db, "SELECT name FROM sqlite_master WHERE type='table' AND name='users';",
@@ -105,7 +107,7 @@ void SqliteDatabase::init_schema()
     static constexpr const char* InitSchemaSql = R"sql(
 CREATE TABLE IF NOT EXISTS users (
   id INTEGER PRIMARY KEY,
-  phone TEXT UNIQUE NOT NULL
+  device_token TEXT UNIQUE NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS messages (
@@ -116,22 +118,7 @@ CREATE TABLE IF NOT EXISTS messages (
   created_at_ms INTEGER NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS auth_sessions (
-  token TEXT PRIMARY KEY,
-  user_id INTEGER NOT NULL,
-  expires_at_ms INTEGER NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS otp_challenges (
-  phone TEXT PRIMARY KEY,
-  code_hash TEXT NOT NULL,
-  expires_at_ms INTEGER NOT NULL,
-  attempts INTEGER NOT NULL,
-  peer_ip TEXT NOT NULL
-);
-
 CREATE INDEX IF NOT EXISTS idx_messages_created_at ON messages(created_at_ms);
-CREATE INDEX IF NOT EXISTS idx_otp_challenges_peer_ip ON otp_challenges(peer_ip);
 )sql";
 
     check_sqlite(sqlite3_exec(db_, InitSchemaSql, nullptr, nullptr, nullptr), db_, "init_schema");

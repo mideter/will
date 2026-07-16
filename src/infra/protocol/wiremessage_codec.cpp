@@ -30,18 +30,12 @@ std::unique_ptr<WireMessage> WireMessageCodec::decode(const std::vector<char>& p
         return HistoryItemMessage::from_bytes(payload);
     case WireMessage::Type::HistoryEnd:
         return HistoryEndMessage::from_bytes(payload);
-    case WireMessage::Type::OtpPhoneRequest:
-        return OtpPhoneRequestMessage::from_bytes(payload);
-    case WireMessage::Type::OtpSent:
-        return OtpSentMessage::from_bytes(payload);
-    case WireMessage::Type::OtpCodeSubmit:
-        return OtpCodeSubmitMessage::from_bytes(payload);
-    case WireMessage::Type::OtpVerifyResponse:
-        return OtpVerifyResponseMessage::from_bytes(payload);
     case WireMessage::Type::BindToken:
         return BindTokenMessage::from_bytes(payload);
     case WireMessage::Type::AuthRequired:
         return AuthRequiredMessage::from_bytes(payload);
+    case WireMessage::Type::AuthOk:
+        return AuthOkMessage::from_bytes(payload);
     }
 
     return nullptr;

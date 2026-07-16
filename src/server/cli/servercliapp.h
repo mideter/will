@@ -6,7 +6,6 @@
 
 #include <cstddef>
 #include <iosfwd>
-#include <optional>
 #include <string>
 
 
@@ -35,16 +34,6 @@ private:
     int listen_backlog_;
     std::size_t max_clients_;
     std::string db_path_;
-    int otp_ttl_sec_;
-    int otp_length_;
-    int max_verify_attempts_;
-    int otp_cooldown_sec_;
-    int max_requests_per_ip_;
-    int ip_rate_window_sec_;
-    std::string otp_hash_salt_;
-    std::optional<std::string> dev_fixed_otp_;
-    bool log_otp_for_dev_;
-    int auth_pending_timeout_sec_;
 };
 
 

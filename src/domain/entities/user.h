@@ -8,10 +8,10 @@
 namespace will::domain {
 
 
-/// Registered user account (no password material in the domain surface).
+/// Registered user account bound to a single device token.
 struct User {
     UserId id{};
-    std::string phone;
+    std::string device_token;
 };
 
 

@@ -13,8 +13,8 @@ class SqliteUserRepositoryImpl final : public domain::UserRepository {
 public:
     explicit SqliteUserRepositoryImpl(SqliteDatabase& database);
 
-    std::optional<domain::User> find_by_phone(std::string_view phone) override;
-    domain::User create_user(std::string_view phone) override;
+    std::optional<domain::User> find_by_device_token(std::string_view device_token) override;
+    domain::User create_user(std::string_view device_token) override;
 
 private:
     SqliteDatabase& database_;

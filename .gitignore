@@ -6,7 +6,7 @@ compile_commands.json
 Makefile
 cmake_install.cmake
 install_manifest.txt
-will.db
+will.db*
 
 *.o
 *.obj

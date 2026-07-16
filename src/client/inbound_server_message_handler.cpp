@@ -61,8 +61,7 @@ ReceivingMessageHandler::ReceivingMessageHandler(const WillClient& client)
 
 void ReceivingMessageHandler::on(const ServerMessage& message)
 {
-    if (dynamic_cast<const OtpSentMessage*>(&message) != nullptr
-        || dynamic_cast<const OtpVerifyResponseMessage*>(&message) != nullptr
+    if (dynamic_cast<const AuthOkMessage*>(&message) != nullptr
         || dynamic_cast<const AuthRequiredMessage*>(&message) != nullptr)
         return;
 

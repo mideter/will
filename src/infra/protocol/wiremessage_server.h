@@ -10,50 +10,6 @@
 namespace will {
 
 
-class OtpSentMessage final : public ServerMessage {
-public:
-    WireMessage::Type type() const noexcept override;
-    std::vector<char> encode() const override;
-    std::string format_for_log() const override;
-
-    static std::unique_ptr<OtpSentMessage> from_bytes(const std::vector<char>& payload);
-
-    bool operator==(const OtpSentMessage&) const noexcept { return true; }
-};
-
-
-class OtpVerifyResponseMessage final : public ServerMessage {
-public:
-    enum class Error : std::uint8_t {
-        InvalidPhone = 1,
-        RateLimited = 2,
-        InvalidCode = 3,
-        Expired = 4,
-        Internal = 5,
-    };
-
-    OtpVerifyResponseMessage() = default;
-    OtpVerifyResponseMessage(bool success, std::string token, std::uint8_t error_code);
-
-    bool success() const noexcept { return success_; }
-    const std::string& token() const noexcept { return token_; }
-    std::uint8_t error_code() const noexcept { return error_code_; }
-
-    WireMessage::Type type() const noexcept override;
-    std::vector<char> encode() const override;
-    std::string format_for_log() const override;
-
-    static std::unique_ptr<OtpVerifyResponseMessage> from_bytes(const std::vector<char>& payload);
-
-    bool operator==(const OtpVerifyResponseMessage& other) const noexcept;
-
-private:
-    bool success_ = false;
-    std::string token_;
-    std::uint8_t error_code_ = 0;
-};
-
-
 class AuthRequiredMessage final : public ServerMessage {
 public:
     WireMessage::Type type() const noexcept override;
@@ -63,6 +19,18 @@ public:
     static std::unique_ptr<AuthRequiredMessage> from_bytes(const std::vector<char>& payload);
 
     bool operator==(const AuthRequiredMessage&) const noexcept { return true; }
+};
+
+
+class AuthOkMessage final : public ServerMessage {
+public:
+    WireMessage::Type type() const noexcept override;
+    std::vector<char> encode() const override;
+    std::string format_for_log() const override;
+
+    static std::unique_ptr<AuthOkMessage> from_bytes(const std::vector<char>& payload);
+
+    bool operator==(const AuthOkMessage&) const noexcept { return true; }
 };
 
 

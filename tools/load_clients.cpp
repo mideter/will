@@ -15,6 +15,7 @@
 
 #include "clientconfigvalidator.h"
 #include "loadclientsconfigparser.h"
+#include "support/device_token.h"
 #include "wiremessage.h"
 #include "wiremessage_codec.h"
 #include "wiremessage_client.h"
@@ -98,47 +99,27 @@ std::vector<char> read_payload(int fd)
 }
 
 
-void otp_and_bind(int fd, const will::ClientConfig& connection)
+void bind_device_token(int fd, const std::string& device_token)
 {
-    if (connection.otp.empty())
-        throw std::runtime_error("otp required for load_clients (pass --otp)");
+    send_payload(fd, will::WireMessageCodec::encode(will::BindTokenMessage{device_token}));
 
-    send_payload(fd, will::WireMessageCodec::encode(will::OtpPhoneRequestMessage{connection.phone}));
-
-    const auto otp_sent_payload = read_payload(fd);
-    const auto otp_sent_message = will::WireMessageCodec::decode_server(otp_sent_payload);
-    if (const auto* failure = dynamic_cast<const will::OtpVerifyResponseMessage*>(otp_sent_message.get())) {
-        if (!failure->success())
-            throw std::runtime_error("OTP request failed");
-    } else if (dynamic_cast<const will::OtpSentMessage*>(otp_sent_message.get()) == nullptr) {
-        throw std::runtime_error("OTP request failed");
-    }
-
-    send_payload(fd, will::WireMessageCodec::encode(will::OtpCodeSubmitMessage{connection.otp}));
-
-    const auto verify_payload = read_payload(fd);
-    const auto verify_message = will::WireMessageCodec::decode_server(verify_payload);
-    const auto* parsed = dynamic_cast<const will::OtpVerifyResponseMessage*>(verify_message.get());
-    if (!parsed || !parsed->success())
-        throw std::runtime_error("OTP verification failed");
-
-    send_payload(fd, will::WireMessageCodec::encode(will::BindTokenMessage{parsed->token()}));
+    const auto auth_payload = read_payload(fd);
+    const auto auth_message = will::WireMessageCodec::decode_server(auth_payload);
+    if (dynamic_cast<const will::AuthOkMessage*>(auth_message.get()) == nullptr)
+        throw std::runtime_error("device authentication failed");
 }
 
 
-will::ClientConfig connection_for_client(const will::LoadClientsConfig& config, const std::size_t client_index)
+std::string device_token_for_client(const std::size_t client_index)
 {
-    will::ClientConfig connection = config.connection;
-    if (config.clients > 1)
-        connection.phone = std::format("+1555{:07d}", client_index + 1);
-    return connection;
+    return std::format("{:032x}", client_index + 1);
 }
 
 
 void client_worker(const will::LoadClientsConfig& config, const std::size_t client_index,
                    std::atomic<std::size_t>& connect_failures)
 {
-    const will::ClientConfig connection = connection_for_client(config, client_index);
+    const will::ClientConfig connection = config.connection;
     const int fd = connect_tcp(connection);
     if (fd < 0) {
         connect_failures.fetch_add(1, std::memory_order_relaxed);
@@ -146,7 +127,7 @@ void client_worker(const will::LoadClientsConfig& config, const std::size_t clie
     }
 
     try {
-        otp_and_bind(fd, connection);
+        bind_device_token(fd, device_token_for_client(client_index));
 
         for (std::size_t i = 0; i < config.messages_per_client; ++i) {
             const std::string body = "load-" + std::to_string(i);

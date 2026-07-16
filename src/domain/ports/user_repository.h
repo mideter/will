@@ -14,8 +14,8 @@ class UserRepository {
 public:
     virtual ~UserRepository() = default;
 
-    virtual std::optional<User> find_by_phone(std::string_view phone) = 0;
-    virtual User create_user(std::string_view phone) = 0;
+    virtual std::optional<User> find_by_device_token(std::string_view device_token) = 0;
+    virtual User create_user(std::string_view device_token) = 0;
 };
 
 

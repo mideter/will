@@ -10,7 +10,7 @@ namespace will {
 WillServer::WillServer(ServerConfig config)
     : config_(ServerConfigValidator::accept(std::move(config)))
     , persistence_(config_.db_path)
-    , server_(config_, persistence_.ports(), persistence_.otp_store())
+    , server_(config_, persistence_.ports())
 {}
 
 

@@ -74,18 +74,6 @@ case "$1" in
 				--shell /usr/sbin/nologin --disabled-login will-server
 		fi
 		install -d -o will-server -g will-server -m 0750 /var/lib/will-server
-		ENV_FILE=/etc/will-server/environment
-		install -d -m 0750 -o root -g will-server /etc/will-server
-		if [ ! -s "$ENV_FILE" ] || ! grep -q '^WILL_OTP_HASH_SALT=.\+' "$ENV_FILE" 2>/dev/null; then
-			SALT=$(head -c 32 /dev/urandom | od -An -tx1 | tr -d ' \n')
-			if grep -q '^WILL_OTP_HASH_SALT=' "$ENV_FILE" 2>/dev/null; then
-				sed -i "s/^WILL_OTP_HASH_SALT=.*/WILL_OTP_HASH_SALT=${SALT}/" "$ENV_FILE"
-			else
-				printf 'WILL_OTP_HASH_SALT=%s\n' "$SALT" >>"$ENV_FILE"
-			fi
-			chown root:will-server "$ENV_FILE"
-			chmod 640 "$ENV_FILE"
-		fi
 		if [ -d /run/systemd/system ] && [ -x "$(command -v systemctl)" ]; then
 			systemctl daemon-reload
 			systemctl enable will-server.service >/dev/null 2>&1 || true

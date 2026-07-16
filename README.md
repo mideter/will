@@ -1,10 +1,10 @@
 # Will
 
-Will is a C++20 TCP messenger with a dedicated server and chat client. Clients authenticate by phone number and OTP, exchange messages in real time, and can load recent chat history from SQLite on connect.
+Will is a C++20 TCP messenger with a dedicated server and chat client. Clients authenticate with a persistent device token (one user per device), exchange messages in real time, and can load recent chat history from SQLite on connect.
 
 ## Features
 
-- **OTP authentication** — phone number in E.164 format, one-time codes with rate limiting and configurable TTL
+- **Device-token authentication** — each client generates a persistent token on first run; one token maps to one user account
 - **Persistent chat** — messages stored in SQLite (`will.db` by default)
 - **Chat history** — clients can request the last *N* messages on connect (`--history`, default 50)
 - **Load testing** — `will-load-clients` opens many concurrent authenticated connections
@@ -37,32 +37,30 @@ All binaries are written to `build/`:
 
 | Binary | Description |
 |--------|-------------|
-| `will-server` | TCP server with OTP auth and message persistence |
+| `will-server` | TCP server with device-token auth and message persistence |
 | `will-client` | Interactive chat client |
 | `will-load-clients` | Concurrent connection / message load generator |
 
 ## Quick start (local development)
 
-For local testing, run the server with a fixed OTP so you do not need SMS delivery:
-
 **Terminal 1 — server:**
 
 ```bash
-./build/will-server --dev-fixed-otp 123456 --otp-hash-salt dev --log-otp-for-dev
+./build/will-server
 ```
 
 **Terminal 2 — client:**
 
 ```bash
-./build/will-client --host 127.0.0.1 --port 7770 --phone +15551234567 --otp 123456
+./build/will-client --host 127.0.0.1 --port 7770
 ```
 
-Type messages in the client terminal; incoming messages from other connected clients appear in real time. On connect the client requests the last 50 messages by default.
+On first run the client creates `will.device_token` in the current directory and registers with the server. Type messages in the client terminal; incoming messages from other connected clients appear in real time. On connect the client requests the last 50 messages by default.
 
-Open a second client with a different phone number to chat between two users:
+Open a second client with a different token file to chat between two users:
 
 ```bash
-./build/will-client --phone +15559876543 --otp 123456
+./build/will-client --device-token-path will.device_token.user2
 ```
 
 ## CLI reference
@@ -79,9 +77,6 @@ Listens on TCP port **7770** by default. Key options:
 | `--db-path` | `will.db` | SQLite database file |
 | `--max-clients` | `4096` | Max concurrent connections |
 | `--io-threads` | `4` | `io_context` worker threads |
-| `--dev-fixed-otp` | — | Fixed OTP code for development |
-| `--log-otp-for-dev` | off | Log generated OTP codes to stderr |
-| `--otp-hash-salt` | — | Salt for OTP hashing (required in production) |
 
 ### will-client
 
@@ -89,8 +84,7 @@ Listens on TCP port **7770** by default. Key options:
 |--------|---------|-------------|
 | `--host` | `127.0.0.1` | Server IPv4 address |
 | `--port` | `7770` | Server TCP port |
-| `--phone` | `+15551234567` | E.164 phone for OTP auth |
-| `--otp` | prompt on stdin | OTP code |
+| `--device-token-path` | `will.device_token` | Path to persistent device token file |
 | `--history` | `50` | Request last *N* messages on connect |
 | `--no-history` | — | Skip history request |
 | `--quiet` | off | Suppress server receipt messages on stderr |
@@ -102,13 +96,12 @@ Listens on TCP port **7770** by default. Key options:
 | `--clients` | `100` | Concurrent connections |
 | `--messages` | `0` | Chat messages per client (`0` = idle only) |
 | `--hold-seconds` | `30` | Keep connections open |
-| `--otp` | — | OTP code (required for non-interactive runs) |
 
 Example — 2000 idle connections for 10 seconds:
 
 ```bash
-./build/will-server --dev-fixed-otp 123456 --otp-hash-salt dev &
-./build/will-load-clients --host 127.0.0.1 --port 7770 --otp 123456 --clients 2000 --hold-seconds 10
+./build/will-server &
+./build/will-load-clients --host 127.0.0.1 --port 7770 --clients 2000 --hold-seconds 10
 ```
 
 ## Tests
@@ -124,12 +117,11 @@ The test suite covers wire protocol encoding, domain logic, SQLite persistence, 
 
 ```
 src/
-  domain/          Entities, ports, and use cases (OTP, chat, history)
+  domain/          Entities, ports, and use cases (auth, chat, history)
   infra/
     protocol/      Wire message codec and framing
-    persistence/   SQLite repositories and OTP storage
+    persistence/   SQLite repositories
     transport/     TCP framed channel (Asio)
-    sms/           SMS sender port (logging implementation for dev)
   server/          will-server: connections, auth, protocol adapter
   client/          will-client: session, inbound handler, CLI
 tools/
@@ -147,9 +139,6 @@ Build and install:
 sudo dpkg -i build/deb-packaging/will-server_*.deb
 ```
 
-The package installs `will-server.service` (enabled on install). OTP hash salt is
-generated in `/etc/will-server/environment` on first install. The server logs OTP
-codes to the journal (`journalctl -u will-server -f`) — suitable for staging, not
-production with real SMS.
+The package installs `will-server.service` (enabled on install). Message history is stored in `/var/lib/will-server/will.db`.
 
 See [`packaging/deb/README.Debian`](packaging/deb/README.Debian) for deployment notes and scaling recommendations.

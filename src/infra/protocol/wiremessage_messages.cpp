@@ -3,9 +3,6 @@
 #include "wiremessage_server.h"
 #include "wiremessage_user_chat.h"
 
-#include "support/phone_number.h"
-
-#include <algorithm>
 #include <cstring>
 #include <stdexcept>
 
@@ -57,132 +54,6 @@ std::unique_ptr<UserChatMessage> UserChatMessage::from_bytes(const std::vector<c
 bool UserChatMessage::operator==(const UserChatMessage& other) const noexcept
 {
     return body_ == other.body_;
-}
-
-
-namespace {
-
-
-bool is_valid_otp_code(std::string_view code) noexcept
-{
-    if (code.size() < 4u || code.size() > 8u)
-        return false;
-    return std::all_of(code.begin(), code.end(),
-                       [](const char c) noexcept { return c >= '0' && c <= '9'; });
-}
-
-
-} // namespace
-
-
-// --- OtpPhoneRequestMessage ---
-
-OtpPhoneRequestMessage::OtpPhoneRequestMessage(std::string phone_e164) : phone_e164_(std::move(phone_e164)) {}
-
-
-WireMessage::Type OtpPhoneRequestMessage::type() const noexcept
-{
-    return WireMessage::Type::OtpPhoneRequest;
-}
-
-
-std::vector<char> OtpPhoneRequestMessage::encode() const
-{
-    const auto parsed = domain::PhoneNumber::parse(phone_e164_);
-
-    if (!parsed)
-        throw std::runtime_error("WireMessage::Type::encode_otp_phone_request: invalid E.164 phone");
-
-    const std::string_view utf8_phone = parsed->e164();
-    const std::size_t total = 1u + utf8_phone.size();
-
-    if (total > TcpFrame::MaxPayloadBytes)
-        throw std::runtime_error("WireMessage::Type::encode_otp_phone_request: payload exceeds TcpFrame::MaxPayloadBytes");
-
-    std::vector<char> out(total);
-    out[0] = static_cast<char>(WireMessage::Type::OtpPhoneRequest);
-
-    if (!utf8_phone.empty())
-        std::memcpy(out.data() + 1, utf8_phone.data(), utf8_phone.size());
-    
-    return out;
-}
-
-
-std::string OtpPhoneRequestMessage::format_for_log() const
-{
-    return "OtpPhoneRequest(phone=" + phone_e164_ + ')';
-}
-
-
-std::unique_ptr<OtpPhoneRequestMessage> OtpPhoneRequestMessage::from_bytes(const std::vector<char>& payload)
-{
-    if (payload.empty()
-        || static_cast<WireMessage::Type>(static_cast<std::uint8_t>(payload[0]))
-               != WireMessage::Type::OtpPhoneRequest)
-        return nullptr;
-
-    const std::string_view raw_phone{payload.data() + 1, payload.size() - 1};
-    const auto parsed = domain::PhoneNumber::parse(raw_phone);
-    if (!parsed)
-        return nullptr;
-
-    return std::make_unique<OtpPhoneRequestMessage>(parsed->e164());
-}
-
-
-bool OtpPhoneRequestMessage::operator==(const OtpPhoneRequestMessage& other) const noexcept
-{
-    return phone_e164_ == other.phone_e164_;
-}
-
-
-// --- OtpCodeSubmitMessage ---
-
-OtpCodeSubmitMessage::OtpCodeSubmitMessage(std::string code) : code_(std::move(code)) {}
-
-
-WireMessage::Type OtpCodeSubmitMessage::type() const noexcept { return WireMessage::Type::OtpCodeSubmit; }
-
-
-std::vector<char> OtpCodeSubmitMessage::encode() const
-{
-    if (!is_valid_otp_code(code_))
-        throw std::runtime_error("WireMessage::Type::encode_otp_code_submit: code must be 4-8 ASCII digits");
-
-    const std::string_view ascii_code = code_;
-    const std::size_t total = 1u + ascii_code.size();
-    if (total > TcpFrame::MaxPayloadBytes)
-        throw std::runtime_error("WireMessage::Type::encode_otp_code_submit: payload exceeds TcpFrame::MaxPayloadBytes");
-
-    std::vector<char> out(total);
-    out[0] = static_cast<char>(WireMessage::Type::OtpCodeSubmit);
-    if (!ascii_code.empty())
-        std::memcpy(out.data() + 1, ascii_code.data(), ascii_code.size());
-    return out;
-}
-
-
-std::string OtpCodeSubmitMessage::format_for_log() const { return "OtpCodeSubmit(len=" + std::to_string(code_.size()) + ')'; }
-
-
-std::unique_ptr<OtpCodeSubmitMessage> OtpCodeSubmitMessage::from_bytes(const std::vector<char>& payload)
-{
-    if (payload.empty()
-        || static_cast<WireMessage::Type>(static_cast<std::uint8_t>(payload[0])) != WireMessage::Type::OtpCodeSubmit)
-        return nullptr;
-
-    const std::string_view code{payload.data() + 1, payload.size() - 1};
-    if (!is_valid_otp_code(code))
-        return nullptr;
-
-    return std::make_unique<OtpCodeSubmitMessage>(std::string(code));
-}
-
-
-bool OtpCodeSubmitMessage::operator==(const OtpCodeSubmitMessage& other) const noexcept
-{
-    return code_ == other.code_;
 }
 
 
@@ -284,107 +155,6 @@ bool HistoryRequestMessage::operator==(const HistoryRequestMessage& other) const
 }
 
 
-// --- OtpSentMessage ---
-
-WireMessage::Type OtpSentMessage::type() const noexcept { return WireMessage::Type::OtpSent; }
-
-
-std::vector<char> OtpSentMessage::encode() const
-{
-    return std::vector<char>{static_cast<char>(WireMessage::Type::OtpSent)};
-}
-
-
-std::string OtpSentMessage::format_for_log() const { return "OtpSent"; }
-
-
-std::unique_ptr<OtpSentMessage> OtpSentMessage::from_bytes(const std::vector<char>& payload)
-{
-    if (payload.size() != 1u
-        || static_cast<WireMessage::Type>(static_cast<std::uint8_t>(payload[0])) != WireMessage::Type::OtpSent)
-        return nullptr;
-
-    return std::make_unique<OtpSentMessage>();
-}
-
-
-// --- OtpVerifyResponseMessage ---
-
-OtpVerifyResponseMessage::OtpVerifyResponseMessage(bool success, std::string token, std::uint8_t error_code)
-    : success_(success), token_(std::move(token)), error_code_(error_code)
-{
-}
-
-
-WireMessage::Type OtpVerifyResponseMessage::type() const noexcept
-{
-    return WireMessage::Type::OtpVerifyResponse;
-}
-
-
-std::vector<char> OtpVerifyResponseMessage::encode() const
-{
-    if (success_) {
-        if (token_.empty())
-            throw std::runtime_error("WireMessage::Type::encode_otp_verify_response_success: token required");
-
-        std::vector<char> out;
-        out.reserve(1u + 1u + 4u + token_.size());
-        out.push_back(static_cast<char>(WireMessage::Type::OtpVerifyResponse));
-        out.push_back('\1');
-        WireMessageCodec::Internal::append_length_prefixed_string(out, token_);
-        return out;
-    }
-
-    if (error_code_ == 0u)
-        throw std::runtime_error("WireMessage::Type::encode_otp_verify_response_failure: error_code required");
-
-    return std::vector<char>{static_cast<char>(WireMessage::Type::OtpVerifyResponse), '\0',
-                             static_cast<char>(error_code_)};
-}
-
-
-std::string OtpVerifyResponseMessage::format_for_log() const
-{
-    if (success_)
-        return "OtpVerifyResponse(ok, token_len=" + std::to_string(token_.size()) + ')';
-    return "OtpVerifyResponse(error=" + std::to_string(error_code_) + ')';
-}
-
-
-std::unique_ptr<OtpVerifyResponseMessage> OtpVerifyResponseMessage::from_bytes(const std::vector<char>& payload)
-{
-    if (payload.empty()
-        || static_cast<WireMessage::Type>(static_cast<std::uint8_t>(payload[0]))
-               != WireMessage::Type::OtpVerifyResponse
-        || payload.size() < 2u)
-        return nullptr;
-
-    const bool success = static_cast<unsigned char>(payload[1]) != 0u;
-
-    if (success) {
-        std::size_t offset = 2u;
-        std::string_view token;
-        if (!WireMessageCodec::Internal::read_length_prefixed_string(token, payload, offset)
-            || offset != payload.size())
-            return nullptr;
-        return std::make_unique<OtpVerifyResponseMessage>(true, std::string(token), 0);
-    }
-
-    if (payload.size() != 3u || payload[2] == '\0')
-        return nullptr;
-
-    return std::make_unique<OtpVerifyResponseMessage>(false, std::string{},
-                                                      static_cast<std::uint8_t>(payload[2]));
-}
-
-
-bool OtpVerifyResponseMessage::operator==(const OtpVerifyResponseMessage& other) const noexcept
-{
-    return success_ == other.success_ && token_ == other.token_ && error_code_ == other.error_code_;
-}
-
-
 // --- AuthRequiredMessage ---
 
 WireMessage::Type AuthRequiredMessage::type() const noexcept { return WireMessage::Type::AuthRequired; }
@@ -406,6 +176,30 @@ std::unique_ptr<AuthRequiredMessage> AuthRequiredMessage::from_bytes(const std::
         return nullptr;
 
     return std::make_unique<AuthRequiredMessage>();
+}
+
+
+// --- AuthOkMessage ---
+
+WireMessage::Type AuthOkMessage::type() const noexcept { return WireMessage::Type::AuthOk; }
+
+
+std::vector<char> AuthOkMessage::encode() const
+{
+    return std::vector<char>{static_cast<char>(WireMessage::Type::AuthOk)};
+}
+
+
+std::string AuthOkMessage::format_for_log() const { return "AuthOk"; }
+
+
+std::unique_ptr<AuthOkMessage> AuthOkMessage::from_bytes(const std::vector<char>& payload)
+{
+    if (payload.size() != 1u
+        || static_cast<WireMessage::Type>(static_cast<std::uint8_t>(payload[0])) != WireMessage::Type::AuthOk)
+        return nullptr;
+
+    return std::make_unique<AuthOkMessage>();
 }
 
 

@@ -23,19 +23,11 @@ void assert_throws_field(const will::ServerConfig& config, const char* field)
 } // namespace
 
 
-will::ServerConfig dev_config()
-{
-    will::ServerConfig config;
-    config.dev_fixed_otp = "123456";
-    return config;
-}
-
-
 int main()
 {
     using namespace will;
 
-    ServerConfigValidator::validate(dev_config());
+    ServerConfigValidator::validate({});
 
     {
         ServerConfig config;
@@ -62,17 +54,12 @@ int main()
     }
 
     {
-        ServerConfig config = dev_config();
+        ServerConfig config;
         config.listen_port = 9000;
         config.io_threads = 2;
         const ServerConfig accepted = ServerConfigValidator::accept(std::move(config));
         assert(accepted.listen_port == 9000);
         assert(accepted.io_threads == 2);
-    }
-
-    {
-        ServerConfig config;
-        assert_throws_field(config, "otp_hash_salt");
     }
 
     return EXIT_SUCCESS;
