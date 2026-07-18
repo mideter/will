@@ -73,6 +73,26 @@ bool WireMessageCodec::Internal::read_length_prefixed_string(std::string_view& f
 }
 
 
+bool WireMessageCodec::Internal::read_length_prefixed_string_allow_empty(std::string_view& field,
+                                                                         const std::vector<char>& payload,
+                                                                         std::size_t& offset)
+{
+    if (offset + 4u > payload.size())
+        return false;
+
+    const auto* data = reinterpret_cast<const unsigned char*>(payload.data());
+    const std::uint32_t len = read_u32_be_at(data + offset);
+    offset += 4u;
+
+    if (len > MaxAuthFieldBytes || offset + len > payload.size())
+        return false;
+
+    field = std::string_view(payload.data() + offset, len);
+    offset += len;
+    return true;
+}
+
+
 std::string WireMessageCodec::Internal::format_user_chat_body_for_log(std::string_view body)
 {
     std::string out = "UserChat(";

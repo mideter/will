@@ -54,14 +54,26 @@ int main()
 	{
 		const UserChatMessage chat{"hi"};
 		const auto v = WireMessageCodec::encode(chat);
-		assert(v.size() == 3);
+		assert(v.size() == 7); // type + u32 name_len(0) + "hi"
 		assert(static_cast<unsigned char>(v[0]) == static_cast<unsigned char>(WireMessage::Type::UserChat));
-		assert(v[1] == 'h' && v[2] == 'i');
+		assert(chat.name().empty());
+		assert(chat.body() == "hi");
+	}
+
+	{
+		const UserChatMessage chat{"alice123", "hi"};
+		const auto v = WireMessageCodec::encode(chat);
+		assert(decodes_as_server<UserChatMessage>(v));
+		const auto decoded = WireMessageCodec::decode_server(v);
+		const auto* parsed = dynamic_cast<const UserChatMessage*>(decoded.get());
+		assert(parsed);
+		assert(parsed->name() == "alice123");
+		assert(parsed->body() == "hi");
 	}
 
 	{
 		const auto v = WireMessageCodec::encode(UserChatMessage{""});
-		assert(v.size() == 1);
+		assert(v.size() == 5); // type + u32 name_len(0)
 		assert(static_cast<unsigned char>(v[0]) == static_cast<unsigned char>(WireMessage::Type::UserChat));
 	}
 
@@ -102,7 +114,7 @@ int main()
 	}
 
 	{
-		const auto item = WireMessageCodec::encode(HistoryItemMessage{42, true, "stored"});
+		const auto item = WireMessageCodec::encode(HistoryItemMessage{42, true, "abcdefgh", "stored"});
 		assert(decodes_as_server<HistoryItemMessage>(item));
 		const auto item_message = WireMessageCodec::decode_server(item);
 		assert(item_message);
@@ -110,6 +122,7 @@ int main()
 		assert(parsed);
 		assert(parsed->message_id() == 42u);
 		assert(parsed->is_mine());
+		assert(parsed->name() == "abcdefgh");
 		assert(parsed->body() == "stored");
 	}
 
@@ -158,10 +171,11 @@ int main()
 
 	assert_roundtrip(UserChatMessage{"roundtrip"});
 	assert_roundtrip(UserChatMessage{""});
+	assert_roundtrip(UserChatMessage{"namehere", "with-body"});
 	assert_roundtrip(ServerReceiptAckMessage{});
 	assert_roundtrip(HistoryRequestMessage{50});
-	assert_roundtrip(HistoryItemMessage{42, true, "stored"});
-	assert_roundtrip(HistoryItemMessage{7, false, ""});
+	assert_roundtrip(HistoryItemMessage{42, true, "abcdefgh", "stored"});
+	assert_roundtrip(HistoryItemMessage{7, false, "", ""});
 	assert_roundtrip(HistoryEndMessage{});
 	assert_roundtrip(BindTokenMessage{"device-token-32chars-long-enough"});
 	assert_roundtrip(AuthRequiredMessage{});

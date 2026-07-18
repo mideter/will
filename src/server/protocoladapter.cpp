@@ -125,7 +125,9 @@ void ProtocolAdapter::handle_history_request(const std::uint64_t connection_id,
 
     const auto& history = std::get<domain::FetchChatHistoryResult>(outcome);
     for (const domain::FetchChatHistoryItem& item : history.items) {
-        send_payload(connection_id, WireMessageCodec::encode(HistoryItemMessage{item.message.id, item.is_mine, item.message.body}));
+        send_payload(connection_id,
+                     WireMessageCodec::encode(HistoryItemMessage{item.message.id, item.is_mine,
+                                                                 item.message.author_name, item.message.body}));
     }
 
     send_payload(connection_id, WireMessageCodec::encode(HistoryEndMessage{}));

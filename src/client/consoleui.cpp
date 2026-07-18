@@ -110,20 +110,22 @@ void ConsoleUi::print_mine(const std::string_view body,
 }
 
 
-void ConsoleUi::print_peer(const std::string_view body, const bool dim) const
+void ConsoleUi::print_peer(const std::string_view name, const std::string_view body, const bool dim) const
 {
     std::lock_guard lock(console_mutex());
 
     if (live_prompt_)
         std::cout << "\r\033[2K";
 
+    const std::string_view tag = name.empty() ? "peer" : name;
+
     if (color_) {
         if (dim)
-            std::cout << AnsiDim << "[peer] " << body << AnsiReset;
+            std::cout << AnsiDim << '[' << tag << "] " << body << AnsiReset;
         else
-            std::cout << AnsiYellow << "[peer]" << AnsiReset << ' ' << body;
+            std::cout << AnsiYellow << '[' << tag << ']' << AnsiReset << ' ' << body;
     } else {
-        std::cout << "[peer] " << body;
+        std::cout << '[' << tag << "] " << body;
     }
     std::cout << std::endl;
 

@@ -19,6 +19,7 @@ struct Message {
     UserId author_id{};
     std::string body;
     TimestampMs created_at = 0;
+    std::string author_name; // filled at send/load time; not a messages column
 };
 
 

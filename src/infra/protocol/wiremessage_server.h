@@ -49,10 +49,11 @@ public:
 class HistoryItemMessage final : public ServerMessage {
 public:
     HistoryItemMessage() = default;
-    HistoryItemMessage(std::uint64_t message_id, bool is_mine, std::string body);
+    HistoryItemMessage(std::uint64_t message_id, bool is_mine, std::string name, std::string body);
 
     std::uint64_t message_id() const noexcept { return message_id_; }
     bool is_mine() const noexcept { return is_mine_; }
+    const std::string& name() const noexcept { return name_; }
     const std::string& body() const noexcept { return body_; }
 
     WireMessage::Type type() const noexcept override;
@@ -66,6 +67,7 @@ public:
 private:
     std::uint64_t message_id_ = 0;
     bool is_mine_ = false;
+    std::string name_;
     std::string body_;
 };
 

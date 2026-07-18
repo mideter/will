@@ -13,6 +13,7 @@ struct Account {
     UserId user_id{};
     AuthToken session_token;
     TimestampMs authenticated_at = 0;
+    std::string name;
 };
 
 

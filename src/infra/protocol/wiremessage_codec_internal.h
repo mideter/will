@@ -24,6 +24,8 @@ public:
     static void append_length_prefixed_string(std::vector<char>& out, std::string_view value);
     static bool read_length_prefixed_string(std::string_view& field, const std::vector<char>& payload,
                                             std::size_t& offset);
+    static bool read_length_prefixed_string_allow_empty(std::string_view& field, const std::vector<char>& payload,
+                                                        std::size_t& offset);
 
     static std::string format_user_chat_body_for_log(std::string_view body);
 

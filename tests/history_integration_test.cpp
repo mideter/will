@@ -200,6 +200,8 @@ int main(int argc, char* argv[])
     assert(parsed_first);
     assert(parsed_first->body() == "hello-from-sender");
     assert(!parsed_first->is_mine());
+    assert(!parsed_first->name().empty());
+    assert(parsed_first->name().size() == 8);
 
     const auto end = read_payload(viewer_fd);
     const auto end_message = will::WireMessageCodec::decode_server(end);
@@ -217,6 +219,7 @@ int main(int argc, char* argv[])
     assert(parsed_own);
     assert(parsed_own->body() == "hello-from-sender");
     assert(parsed_own->is_mine());
+    assert(!parsed_own->name().empty());
 
     const auto own_second = read_payload(sender_fd);
     const auto parsed_second_message = will::WireMessageCodec::decode_server(own_second);
@@ -225,6 +228,8 @@ int main(int argc, char* argv[])
     assert(parsed_second);
     assert(parsed_second->body() == "hello-again");
     assert(parsed_second->is_mine());
+    assert(!parsed_second->name().empty());
+    assert(parsed_second->name() == parsed_own->name());
 
     const auto sender_end = read_payload(sender_fd);
     const auto sender_end_message = will::WireMessageCodec::decode_server(sender_end);

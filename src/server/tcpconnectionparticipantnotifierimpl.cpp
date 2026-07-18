@@ -22,7 +22,7 @@ void TcpConnectionParticipantNotifierImpl::notify_chat_message(const domain::Cha
 {
     (void)chat;
 
-    const std::vector<char> payload = WireMessageCodec::encode(UserChatMessage{msg.body});
+    const std::vector<char> payload = WireMessageCodec::encode(UserChatMessage{msg.author_name, msg.body});
 
     if (const std::string_view sender_address = registry_.peer_address(except_participant.value);
         !sender_address.empty()) {

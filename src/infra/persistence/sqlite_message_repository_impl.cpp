@@ -38,7 +38,7 @@ domain::Message SqliteMessageRepositoryImpl::append(const domain::ChatId chat, c
     sqlite3_finalize(stmt);
 
     const std::uint64_t id = static_cast<std::uint64_t>(sqlite3_last_insert_rowid(db));
-    return domain::Message{id, chat, author, std::string(body), ts};
+    return domain::Message{id, chat, author, std::string(body), ts, {}};
 }
 
 
@@ -50,8 +50,10 @@ std::vector<domain::Message> SqliteMessageRepositoryImpl::load_last(const domain
     sqlite3* const db = database_.db();
     sqlite3_stmt* stmt = nullptr;
     check_sqlite(sqlite3_prepare_v2(db,
-                                    "SELECT id, chat_id, author_user_id, body, created_at_ms FROM messages "
-                                    "WHERE chat_id = ? ORDER BY id DESC LIMIT ?;",
+                                    "SELECT m.id, m.chat_id, m.author_user_id, m.body, m.created_at_ms, u.name "
+                                    "FROM messages m "
+                                    "JOIN users u ON u.id = m.author_user_id "
+                                    "WHERE m.chat_id = ? ORDER BY m.id DESC LIMIT ?;",
                                     -1, &stmt, nullptr),
                  db, "prepare load_last messages");
 
@@ -69,6 +71,8 @@ std::vector<domain::Message> SqliteMessageRepositoryImpl::load_last(const domain
         row.author_id = domain::UserId{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 2))};
         row.body = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3));
         row.created_at = sqlite3_column_int64(stmt, 4);
+        if (const unsigned char* name = sqlite3_column_text(stmt, 5))
+            row.author_name = reinterpret_cast<const char*>(name);
         rows.push_back(std::move(row));
         rc = sqlite3_step(stmt);
     }

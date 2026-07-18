@@ -23,19 +23,21 @@ int main()
     SqliteMessageRepositoryImpl messages(database);
     SqliteUserRepositoryImpl users(database);
 
-    const UserId peer_a{42};
-    const UserId peer_b{99};
+    const User user_a = users.create_user("aaaa1234aaaa1234aaaa1234aaaa1234", "nameaaaa");
+    const User user_b = users.create_user("bbbb1234bbbb1234bbbb1234bbbb1234", "namebbbb");
     const ChatId chat = ChatId::global();
 
-    messages.append(chat, peer_a, "from-peer", 1000);
-    messages.append(chat, peer_b, "from-me", 2000);
+    messages.append(chat, user_a.id, "from-peer", 1000);
+    messages.append(chat, user_b.id, "from-me", 2000);
 
     const auto rows = messages.load_last(chat, 10);
     assert(rows.size() == 2);
     assert(rows[0].body == "from-peer");
-    assert(rows[0].author_id == peer_a);
+    assert(rows[0].author_id == user_a.id);
+    assert(rows[0].author_name == "nameaaaa");
     assert(rows[1].body == "from-me");
-    assert(rows[1].author_id == peer_b);
+    assert(rows[1].author_id == user_b.id);
+    assert(rows[1].author_name == "namebbbb");
 
     const std::string token = "abcd1234abcd1234abcd1234abcd1234";
     const User created = users.create_user(token, "abcdefgh");

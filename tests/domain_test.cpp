@@ -34,11 +34,12 @@ void test_authenticate_device_creates_user()
     const AuthenticateDeviceSuccess& success = std::get<AuthenticateDeviceSuccess>(result);
     assert(success.account.user_id.value > 0);
     assert(success.account.session_token == token);
+    assert(UserName::is_valid(success.account.name));
 
     const std::optional<User> user = users.find_by_device_token(token.value);
     assert(user.has_value());
     assert(user->id == success.account.user_id);
-    assert(UserName::is_valid(user->name));
+    assert(user->name == success.account.name);
 }
 
 
@@ -91,7 +92,7 @@ void test_send_chat_message_persists_and_notifies()
     InMemoryMessageRepository messages;
     FakeParticipantNotifier notifier;
 
-    const Account account{UserId{7}, AuthToken{"tok"}, 500};
+    const Account account{UserId{7}, AuthToken{"tok"}, 500, "sendname"};
     const ParticipantId sender{42};
 
     SendChatMessage send(messages, notifier);
@@ -101,6 +102,7 @@ void test_send_chat_message_persists_and_notifies()
     assert(saved.author_id == account.user_id);
     assert(saved.body == "hello");
     assert(saved.created_at == 900);
+    assert(saved.author_name == "sendname");
 
     const auto loaded = messages.load_last(ChatId::global(), 10);
     assert(loaded.size() == 1);
@@ -109,6 +111,7 @@ void test_send_chat_message_persists_and_notifies()
     assert(notifier.notifications_.size() == 1);
     assert(notifier.notifications_[0].except == sender);
     assert(notifier.notifications_[0].message.id == saved.id);
+    assert(notifier.notifications_[0].message.author_name == "sendname");
 }
 
 

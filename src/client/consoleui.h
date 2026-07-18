@@ -18,7 +18,7 @@ public:
     bool color_enabled() const noexcept { return color_; }
 
     void print_mine(std::string_view body, bool dim = false, bool await_receipt = true) const;
-    void print_peer(std::string_view body, bool dim = false) const;
+    void print_peer(std::string_view name, std::string_view body, bool dim = false) const;
     void print_receipt() const;
     void print_status(std::string_view text) const;
     void print_error(std::string_view text) const;

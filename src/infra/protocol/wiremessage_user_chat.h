@@ -11,8 +11,11 @@ namespace will {
 
 class UserChatMessage final : public ClientMessage, public ServerMessage {
 public:
-    explicit UserChatMessage(std::string body = {});
+    UserChatMessage() = default;
+    explicit UserChatMessage(std::string body);
+    UserChatMessage(std::string name, std::string body);
 
+    const std::string& name() const noexcept { return name_; }
     const std::string& body() const noexcept { return body_; }
 
     WireMessage::Type type() const noexcept override;
@@ -24,6 +27,7 @@ public:
     bool operator==(const UserChatMessage& other) const noexcept;
 
 private:
+    std::string name_;
     std::string body_;
 };
 

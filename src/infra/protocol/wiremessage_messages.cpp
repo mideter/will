@@ -3,7 +3,6 @@
 #include "wiremessage_server.h"
 #include "wiremessage_user_chat.h"
 
-#include <cstring>
 #include <stdexcept>
 
 
@@ -15,20 +14,27 @@ namespace will {
 UserChatMessage::UserChatMessage(std::string body) : body_(std::move(body)) {}
 
 
+UserChatMessage::UserChatMessage(std::string name, std::string body)
+    : name_(std::move(name))
+    , body_(std::move(body))
+{}
+
+
 WireMessage::Type UserChatMessage::type() const noexcept { return WireMessage::Type::UserChat; }
 
 
 std::vector<char> UserChatMessage::encode() const
 {
-    const std::string_view utf8_body = body_;
-    const std::size_t total = 1u + utf8_body.size();
+    const std::size_t total = 1u + 4u + name_.size() + body_.size();
     if (total > TcpFrame::MaxPayloadBytes)
         throw std::runtime_error("WireMessage::Type::encode_user_chat: payload exceeds TcpFrame::MaxPayloadBytes");
 
-    std::vector<char> out(total);
-    out[0] = static_cast<char>(WireMessage::Type::UserChat);
-    if (!utf8_body.empty())
-        std::memcpy(out.data() + 1, utf8_body.data(), utf8_body.size());
+    std::vector<char> out;
+    out.reserve(total);
+    out.push_back(static_cast<char>(WireMessage::Type::UserChat));
+    WireMessageCodec::Internal::append_length_prefixed_string(out, name_);
+    if (!body_.empty())
+        out.insert(out.end(), body_.begin(), body_.end());
     return out;
 }
 
@@ -45,15 +51,21 @@ std::unique_ptr<UserChatMessage> UserChatMessage::from_bytes(const std::vector<c
         || static_cast<WireMessage::Type>(static_cast<std::uint8_t>(payload[0])) != WireMessage::Type::UserChat)
         return nullptr;
 
+    std::size_t offset = 1u;
+    std::string_view name;
+    if (!WireMessageCodec::Internal::read_length_prefixed_string_allow_empty(name, payload, offset))
+        return nullptr;
+
     auto message = std::make_unique<UserChatMessage>();
-    message->body_.assign(payload.begin() + 1, payload.end());
+    message->name_.assign(name);
+    message->body_.assign(payload.begin() + static_cast<std::ptrdiff_t>(offset), payload.end());
     return message;
 }
 
 
 bool UserChatMessage::operator==(const UserChatMessage& other) const noexcept
 {
-    return body_ == other.body_;
+    return name_ == other.name_ && body_ == other.body_;
 }
 
 
@@ -234,10 +246,12 @@ std::unique_ptr<ServerReceiptAckMessage> ServerReceiptAckMessage::from_bytes(
 
 // --- HistoryItemMessage ---
 
-HistoryItemMessage::HistoryItemMessage(std::uint64_t message_id, bool is_mine, std::string body)
-    : message_id_(message_id), is_mine_(is_mine), body_(std::move(body))
-{
-}
+HistoryItemMessage::HistoryItemMessage(std::uint64_t message_id, bool is_mine, std::string name, std::string body)
+    : message_id_(message_id)
+    , is_mine_(is_mine)
+    , name_(std::move(name))
+    , body_(std::move(body))
+{}
 
 
 WireMessage::Type HistoryItemMessage::type() const noexcept { return WireMessage::Type::HistoryItem; }
@@ -245,8 +259,7 @@ WireMessage::Type HistoryItemMessage::type() const noexcept { return WireMessage
 
 std::vector<char> HistoryItemMessage::encode() const
 {
-    const std::string_view utf8_body = body_;
-    const std::size_t total = 1u + 8u + 1u + 4u + utf8_body.size();
+    const std::size_t total = 1u + 8u + 1u + 4u + name_.size() + 4u + body_.size();
     if (total > TcpFrame::MaxPayloadBytes)
         throw std::runtime_error("WireMessage::Type::encode_history_item: payload exceeds TcpFrame::MaxPayloadBytes");
 
@@ -255,9 +268,10 @@ std::vector<char> HistoryItemMessage::encode() const
     out.push_back(static_cast<char>(WireMessage::Type::HistoryItem));
     WireMessageCodec::Internal::append_u64_be(out, message_id_);
     out.push_back(is_mine_ ? '\1' : '\0');
-    WireMessageCodec::Internal::append_u32_be(out, static_cast<std::uint32_t>(utf8_body.size()));
-    if (!utf8_body.empty())
-        out.insert(out.end(), utf8_body.begin(), utf8_body.end());
+    WireMessageCodec::Internal::append_length_prefixed_string(out, name_);
+    WireMessageCodec::Internal::append_u32_be(out, static_cast<std::uint32_t>(body_.size()));
+    if (!body_.empty())
+        out.insert(out.end(), body_.begin(), body_.end());
     return out;
 }
 
@@ -267,6 +281,8 @@ std::string HistoryItemMessage::format_for_log() const
     std::string out = "HistoryItem(id=";
     out += std::to_string(message_id_);
     out += is_mine_ ? ", mine" : ", peer";
+    out += ", name=";
+    out += name_;
     out += ", ";
     out += std::to_string(body_.size());
     out += " bytes)";
@@ -284,22 +300,33 @@ std::unique_ptr<HistoryItemMessage> HistoryItemMessage::from_bytes(const std::ve
     const auto* data = reinterpret_cast<const unsigned char*>(payload.data());
     const std::uint64_t message_id = WireMessageCodec::Internal::read_u64_be(data + 1);
     const bool is_mine = data[9] != 0u;
-    const std::uint32_t body_len = WireMessageCodec::Internal::read_u32_be_at(data + 10);
 
-    if (14u + body_len != payload.size())
+    std::size_t offset = 10u;
+    std::string_view name;
+    if (!WireMessageCodec::Internal::read_length_prefixed_string_allow_empty(name, payload, offset))
+        return nullptr;
+
+    if (offset + 4u > payload.size())
+        return nullptr;
+    const std::uint32_t body_len =
+        WireMessageCodec::Internal::read_u32_be_at(reinterpret_cast<const unsigned char*>(payload.data()) + offset);
+    offset += 4u;
+    if (offset + body_len != payload.size())
         return nullptr;
 
     auto item = std::make_unique<HistoryItemMessage>();
     item->message_id_ = message_id;
     item->is_mine_ = is_mine;
-    item->body_.assign(payload.begin() + 14, payload.end());
+    item->name_.assign(name);
+    item->body_.assign(payload.begin() + static_cast<std::ptrdiff_t>(offset), payload.end());
     return item;
 }
 
 
 bool HistoryItemMessage::operator==(const HistoryItemMessage& other) const noexcept
 {
-    return message_id_ == other.message_id_ && is_mine_ == other.is_mine_ && body_ == other.body_;
+    return message_id_ == other.message_id_ && is_mine_ == other.is_mine_ && name_ == other.name_
+        && body_ == other.body_;
 }
 
 

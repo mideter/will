@@ -19,7 +19,7 @@ void print_history_item(ConsoleUi& ui, const HistoryItemMessage& item)
     if (item.is_mine())
         ui.print_mine(item.body(), true);
     else
-        ui.print_peer(item.body(), true);
+        ui.print_peer(item.name(), item.body(), true);
 }
 
 
@@ -86,7 +86,7 @@ void ReceivingMessageHandler::on(const ServerMessage& message)
     }
 
     if (const auto* chat = dynamic_cast<const UserChatMessage*>(&message)) {
-        ui_.print_peer(chat->body());
+        ui_.print_peer(chat->name(), chat->body());
         return;
     }
 
