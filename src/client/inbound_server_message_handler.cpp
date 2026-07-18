@@ -1,10 +1,10 @@
 #include "inbound_server_message_handler.h"
 
+#include "consoleui.h"
 #include "willclient.h"
 #include "wiremessage_server.h"
 #include "wiremessage_user_chat.h"
 
-#include <iostream>
 #include <stdexcept>
 
 
@@ -14,12 +14,12 @@ namespace will {
 namespace {
 
 
-void print_history_item(const HistoryItemMessage& item)
+void print_history_item(ConsoleUi& ui, const HistoryItemMessage& item)
 {
     if (item.is_mine())
-        std::cout << "[me] " << item.body() << '\n';
+        ui.print_mine(item.body(), true);
     else
-        std::cout << "[peer] " << item.body() << '\n';
+        ui.print_peer(item.body(), true);
 }
 
 
@@ -38,10 +38,15 @@ void print_history_item(const HistoryItemMessage& item)
 } // namespace
 
 
+LoadingHistoryMessageHandler::LoadingHistoryMessageHandler(ConsoleUi& ui)
+    : ui_(ui)
+{}
+
+
 void LoadingHistoryMessageHandler::on(const ServerMessage& message)
 {
     if (const auto* item = dynamic_cast<const HistoryItemMessage*>(&message)) {
-        print_history_item(*item);
+        print_history_item(ui_, *item);
         return;
     }
 
@@ -54,8 +59,9 @@ void LoadingHistoryMessageHandler::on(const ServerMessage& message)
 }
 
 
-ReceivingMessageHandler::ReceivingMessageHandler(const WillClient& client)
+ReceivingMessageHandler::ReceivingMessageHandler(const WillClient& client, ConsoleUi& ui)
     : client_(client)
+    , ui_(ui)
 {}
 
 
@@ -67,7 +73,7 @@ void ReceivingMessageHandler::on(const ServerMessage& message)
 
     if (dynamic_cast<const ServerReceiptAckMessage*>(&message) != nullptr) {
         if (!client_.config().quiet_receipts)
-            std::cerr << "[server] ваше сообщение принято" << std::endl;
+            ui_.print_server("message accepted");
         return;
     }
 
@@ -75,13 +81,12 @@ void ReceivingMessageHandler::on(const ServerMessage& message)
         return;
 
     if (const auto* item = dynamic_cast<const HistoryItemMessage*>(&message)) {
-        print_history_item(*item);
+        print_history_item(ui_, *item);
         return;
     }
 
     if (const auto* chat = dynamic_cast<const UserChatMessage*>(&message)) {
-        std::cout << chat->body() << std::endl;
-        std::cout.flush();
+        ui_.print_peer(chat->body());
         return;
     }
 

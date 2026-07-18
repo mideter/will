@@ -3,6 +3,8 @@
 #include <cstdlib>
 #include <format>
 #include <iostream>
+#include <map>
+#include <string>
 
 
 namespace will {
@@ -23,6 +25,13 @@ ClientCliApp::ClientCliApp()
         ->description("Request last N messages on connect");
     app_.add_flag_callback("--no-history", [this]() { config_.history_limit = 0; })
         ->description("Do not request chat history on connect");
+    app_.add_option("--color", config_.color)
+        ->description("Color output: auto, always, or never (default auto)")
+        ->transform(CLI::CheckedTransformer(std::map<std::string, ColorMode>{
+            {"auto", ColorMode::Auto},
+            {"always", ColorMode::Always},
+            {"never", ColorMode::Never},
+        }));
 }
 
 
@@ -38,7 +47,8 @@ void ClientCliApp::print_help(std::ostream& os) const
         "  --device-token-path PATH        Device token file (default {})\n"
         "  --quiet                         Suppress server receipt messages on stderr\n"
         "  --history N                     Request last N messages on connect (default {})\n"
-        "  --no-history                    Do not request chat history on connect\n",
+        "  --no-history                    Do not request chat history on connect\n"
+        "  --color WHEN                    Color output: auto, always, never (default auto)\n",
         ClientConfig::DefaultHost,
         ClientConfig::NovosibirskHost,
         ClientConfig::DefaultPort,

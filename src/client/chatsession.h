@@ -1,5 +1,6 @@
 #pragma once
 
+#include "consoleui.h"
 #include "willclient.h"
 
 #include <vector>
@@ -11,7 +12,7 @@ namespace will {
 /** Interactive chat session: loads history, then stdin send loop with inbound/closed handlers. */
 class ChatSession {
 public:
-    explicit ChatSession(WillClient& client);
+    ChatSession(WillClient& client, ConsoleUi& ui);
 
     void run();
 
@@ -22,6 +23,7 @@ private:
     void loadHistory() const;
 
     WillClient& client_;
+    ConsoleUi& ui_;
 };
 
 

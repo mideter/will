@@ -84,6 +84,7 @@ void assert_help_output()
     assert(help.find("--quiet") != std::string::npos);
     assert(help.find("--device-token-path") != std::string::npos);
     assert(help.find("--no-history") != std::string::npos);
+    assert(help.find("--color") != std::string::npos);
     assert(help.find("-h, --help") != std::string::npos);
 }
 
@@ -100,6 +101,7 @@ void assert_defaults()
     assert(config.device_token_path == will::ClientConfig::DefaultDeviceTokenPath);
     assert(config.quiet_receipts == will::ClientConfig::DefaultQuietReceipts);
     assert(config.history_limit == will::ClientConfig::DefaultHistoryLimit);
+    assert(config.color == will::ClientConfig::DefaultColor);
 }
 
 
@@ -119,7 +121,7 @@ void assert_all_options()
     using namespace will;
 
     Argv args{"will-client", "--host", "192.168.1.10", "--port", "9000", "--device-token-path",
-              "/tmp/token", "--quiet", "--history", "25"};
+              "/tmp/token", "--quiet", "--history", "25", "--color", "never"};
     const will::ClientConfig config = ClientCliApp{}.parse(args.argc(), args.argv());
 
     assert(config.host == "192.168.1.10");
@@ -127,6 +129,17 @@ void assert_all_options()
     assert(config.device_token_path == "/tmp/token");
     assert(config.quiet_receipts);
     assert(config.history_limit == 25u);
+    assert(config.color == ColorMode::Never);
+}
+
+
+void assert_color_always()
+{
+    using namespace will;
+
+    Argv args{"will-client", "--color", "always"};
+    const will::ClientConfig config = ClientCliApp{}.parse(args.argc(), args.argv());
+    assert(config.color == ColorMode::Always);
 }
 
 
@@ -154,8 +167,10 @@ int main()
     assert_defaults();
     assert_no_history();
     assert_all_options();
+    assert_color_always();
     assert_port_zero_parses();
     assert_parse_error({"will-client", "--port"});
+    assert_parse_error({"will-client", "--color", "rainbow"});
 
     return EXIT_SUCCESS;
 }

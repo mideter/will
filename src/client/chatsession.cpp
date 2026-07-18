@@ -37,8 +37,9 @@ bool is_post_auth_server_message(const ServerMessage& message) noexcept
 } // namespace
 
 
-ChatSession::ChatSession(WillClient& client)
+ChatSession::ChatSession(WillClient& client, ConsoleUi& ui)
     : client_(client)
+    , ui_(ui)
 {}
 
 
@@ -54,24 +55,32 @@ void ChatSession::run()
             return;
 
         try {
-            ReceivingMessageHandler handler{client_};
+            ReceivingMessageHandler handler{client_, ui_};
             on_server_payload(payload, handler);
         }
         catch (const std::exception& e) {
-            std::cerr << std::endl << "Receive error: " << e.what() << std::endl;
+            ui_.set_live_prompt(false);
+            ui_.print_error(std::string("Receive error: ") + e.what());
             disconnected.store(true);
         }
     });
 
-    std::cout << "Connected to Will chat. Type messages and press Enter.\n";
-    std::cout << "Press Ctrl+D to exit.\n";
+    ui_.print_status("Connected to Will chat. Type messages and press Enter.");
+    ui_.print_status("Press Ctrl+D to exit.");
+    ui_.set_live_prompt(true);
+    ui_.print_prompt();
 
     std::string line;
-    while (!disconnected.load() && std::getline(std::cin, line))
+    while (!disconnected.load() && std::getline(std::cin, line)) {
         client_.send(line);
+        ui_.print_mine(line);
+        ui_.print_prompt();
+    }
+
+    ui_.set_live_prompt(false);
 
     if (disconnected.load())
-        std::cout << std::endl << "Disconnected from chat." << std::endl;
+        ui_.print_status("Disconnected from chat.");
 
     client_.shutdown();
 }
@@ -88,6 +97,8 @@ void ChatSession::loadHistory() const
     bool disconnected = false;
     std::string error_message;
 
+    ui_.print_history_begin();
+
     client_.set_closed_handler([&] {
         std::lock_guard lock(mutex);
         if (!finished) {
@@ -98,7 +109,7 @@ void ChatSession::loadHistory() const
 
     client_.set_inbound_handler([&](std::vector<char> payload) {
         try {
-            LoadingHistoryMessageHandler handler;
+            LoadingHistoryMessageHandler handler{ui_};
             on_server_payload(payload, handler);
 
             std::lock_guard lock(mutex);
@@ -125,6 +136,8 @@ void ChatSession::loadHistory() const
     if (!finished)
         throw std::runtime_error(disconnected && !error_message.empty() ? error_message
                                                                         : "Disconnected while loading history");
+
+    ui_.print_history_end();
 }
 
 

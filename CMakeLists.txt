@@ -68,6 +68,7 @@ target_link_libraries(will-server PRIVATE will-domain will-protocol will-transpo
 
 add_executable(will-client
   src/client/client.cpp
+  src/client/consoleui.cpp
   src/client/inbound_server_message_handler.cpp
   src/client/chatsession.cpp
   src/client/willclient.cpp
