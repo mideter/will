@@ -17,7 +17,6 @@ constexpr char AnsiDim[] = "\033[2m";
 constexpr char AnsiBold[] = "\033[1m";
 constexpr char AnsiRed[] = "\033[31m";
 constexpr char AnsiGreen[] = "\033[32m";
-constexpr char AnsiCyan[] = "\033[36m";
 constexpr char AnsiYellow[] = "\033[33m";
 constexpr char CheckMark[] = "✓";
 
@@ -52,7 +51,7 @@ ConsoleUi::ConsoleUi(const ColorMode mode)
 void ConsoleUi::print_prompt_unlocked() const
 {
     if (color_)
-        std::cout << AnsiCyan << AnsiBold << "> " << AnsiReset;
+        std::cout << AnsiGreen << AnsiBold << "> " << AnsiReset;
     else
         std::cout << "> ";
     std::cout.flush();
