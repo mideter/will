@@ -2,6 +2,7 @@
 
 #include "tcpstreamsocket.h"
 
+#include <chrono>
 #include <iostream>
 
 
@@ -27,6 +28,8 @@ AsioMessengerServer::AsioMessengerServer(ServerConfig config, domain::MessengerP
           [this](const asio::error_code& ec, int signo) { handle_shutdown_signal(ec, signo); })
     , protocol_adapter_(persistence, registry_, account_store_)
 {
+    registry_.set_heartbeat_settings(std::chrono::seconds{config_.heartbeat_interval_seconds},
+                                     std::chrono::seconds{config_.heartbeat_timeout_seconds});
     registry_.set_payload_handler([this](const std::uint64_t id, const std::vector<char>& payload) {
         protocol_adapter_.on_client_payload(id, payload);
     });

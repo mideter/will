@@ -43,6 +43,9 @@ void InboundClientMessageHandler::on_bound_message(const ClientMessage& message)
         return;
     }
 
+    if (dynamic_cast<const PongMessage*>(&message) != nullptr)
+        return;
+
     adapter_.close_with_protocol_error(connection_id_, "Protocol error: unhandled client message type");
 }
 

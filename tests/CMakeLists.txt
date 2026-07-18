@@ -87,6 +87,12 @@ add_dependencies(will-session-takeover-integration-test will-server)
 add_test(NAME will-session-takeover-integration
   COMMAND will-session-takeover-integration-test $<TARGET_FILE:will-server>)
 
+add_executable(will-heartbeat-integration-test heartbeat_integration_test.cpp)
+target_link_libraries(will-heartbeat-integration-test PRIVATE will-protocol)
+add_dependencies(will-heartbeat-integration-test will-server)
+add_test(NAME will-heartbeat-integration
+  COMMAND will-heartbeat-integration-test $<TARGET_FILE:will-server>)
+
 add_executable(will-domain-test domain_test.cpp)
 target_include_directories(will-domain-test PRIVATE
   ${CMAKE_SOURCE_DIR}/src/domain

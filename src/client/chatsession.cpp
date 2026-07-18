@@ -26,6 +26,7 @@ bool is_post_auth_server_message(const ServerMessage& message) noexcept
     case WireMessage::Type::UserChat:
     case WireMessage::Type::HistoryItem:
     case WireMessage::Type::HistoryEnd:
+    case WireMessage::Type::Ping:
         return true;
     default:
         return false;

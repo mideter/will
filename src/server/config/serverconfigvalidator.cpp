@@ -54,6 +54,8 @@ void ServerConfigValidator::validate(const ServerConfig& config)
     require("listen_backlog", positive_reason(config.listen_backlog));
     require("max_connections", positive_reason(config.max_connections));
     require("db_path", db_path_reason(config.db_path));
+    require("heartbeat_interval_seconds", positive_reason(config.heartbeat_interval_seconds));
+    require("heartbeat_timeout_seconds", positive_reason(config.heartbeat_timeout_seconds));
 }
 
 

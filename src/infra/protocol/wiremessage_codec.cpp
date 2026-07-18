@@ -30,6 +30,10 @@ std::unique_ptr<WireMessage> WireMessageCodec::decode(const std::vector<char>& p
         return HistoryItemMessage::from_bytes(payload);
     case WireMessage::Type::HistoryEnd:
         return HistoryEndMessage::from_bytes(payload);
+    case WireMessage::Type::Ping:
+        return PingMessage::from_bytes(payload);
+    case WireMessage::Type::Pong:
+        return PongMessage::from_bytes(payload);
     case WireMessage::Type::BindToken:
         return BindTokenMessage::from_bytes(payload);
     case WireMessage::Type::AuthRequired:

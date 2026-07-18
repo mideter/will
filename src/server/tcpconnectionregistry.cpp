@@ -27,6 +27,14 @@ void TcpConnectionRegistry::set_connection_closed_handler(std::function<void(std
 }
 
 
+void TcpConnectionRegistry::set_heartbeat_settings(const std::chrono::milliseconds interval,
+                                                   const std::chrono::milliseconds timeout)
+{
+    heartbeat_interval_ = interval;
+    heartbeat_timeout_ = timeout;
+}
+
+
 void TcpConnectionRegistry::accept_connection(asio::io_context& ioc, TcpStreamSocket socket,
                                               asio::ip::tcp::endpoint peer_endpoint)
 {
@@ -38,8 +46,10 @@ void TcpConnectionRegistry::accept_connection(asio::io_context& ioc, TcpStreamSo
         [this](const std::uint64_t connection_id) { close_connection(connection_id); },
     };
 
-    auto connection = std::shared_ptr<TcpConnection>(
-        new TcpConnection(ioc, std::move(socket), std::move(peer_endpoint), std::move(handlers)));
+    HeartbeatSettings heartbeat{heartbeat_interval_, heartbeat_timeout_};
+
+    auto connection = std::shared_ptr<TcpConnection>(new TcpConnection(
+        ioc, std::move(socket), std::move(peer_endpoint), std::move(handlers), heartbeat));
 
     {
         std::lock_guard lock(mutex_);
@@ -73,6 +83,23 @@ void TcpConnectionRegistry::close_connection(const std::uint64_t connection_id)
 
     std::cout << "Client " << connection->peer_address() << " disconnected" << std::endl;
     connection->shutdown();
+}
+
+
+void TcpConnectionRegistry::start_heartbeat(const std::uint64_t connection_id)
+{
+    std::shared_ptr<TcpConnection> connection;
+
+    {
+        std::lock_guard lock(mutex_);
+        const auto it = connections_.find(connection_id);
+        if (it == connections_.end())
+            return;
+
+        connection = it->second;
+    }
+
+    connection->start_heartbeat();
 }
 
 

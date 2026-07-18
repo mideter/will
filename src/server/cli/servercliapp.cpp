@@ -17,6 +17,8 @@ ServerCliApp::ServerCliApp(const ServerConfig& defaults)
     , listen_backlog_(defaults.listen_backlog)
     , max_clients_(defaults.max_connections)
     , db_path_(defaults.db_path)
+    , heartbeat_interval_seconds_(defaults.heartbeat_interval_seconds)
+    , heartbeat_timeout_seconds_(defaults.heartbeat_timeout_seconds)
 {
     app_.allow_extras(false);
 
@@ -25,6 +27,10 @@ ServerCliApp::ServerCliApp(const ServerConfig& defaults)
     app_.add_option("--listen-backlog", listen_backlog_)->description("listen() backlog");
     app_.add_option("--max-clients", max_clients_)->description("Max concurrent connections");
     app_.add_option("--db-path", db_path_)->description("SQLite database path");
+    app_.add_option("--heartbeat-interval", heartbeat_interval_seconds_)
+        ->description("Seconds between server Ping messages after auth");
+    app_.add_option("--heartbeat-timeout", heartbeat_timeout_seconds_)
+        ->description("Seconds to wait for Pong (or any inbound) after Ping");
 }
 
 
@@ -39,12 +45,16 @@ void ServerCliApp::print_help(std::ostream& os) const
         "  --io-threads N                  io_context worker threads (default {})\n"
         "  --listen-backlog N              listen() backlog (default {})\n"
         "  --max-clients N                 Max concurrent connections (default {})\n"
-        "  --db-path PATH                  SQLite database path (default {})\n",
+        "  --db-path PATH                  SQLite database path (default {})\n"
+        "  --heartbeat-interval SECONDS    Seconds between Ping after auth (default {})\n"
+        "  --heartbeat-timeout SECONDS     Seconds to wait for Pong after Ping (default {})\n",
         ServerConfig::DefaultListenPort,
         ServerConfig::DefaultIoThreads,
         ServerConfig::DefaultListenBacklog,
         ServerConfig::DefaultMaxConnections,
-        ServerConfig::DefaultDbPath);
+        ServerConfig::DefaultDbPath,
+        ServerConfig::DefaultHeartbeatIntervalSeconds,
+        ServerConfig::DefaultHeartbeatTimeoutSeconds);
 }
 
 
@@ -68,6 +78,8 @@ void ServerCliApp::apply_to(ServerConfig& config) const
     config.listen_backlog = listen_backlog_;
     config.max_connections = max_clients_;
     config.db_path = db_path_;
+    config.heartbeat_interval_seconds = heartbeat_interval_seconds_;
+    config.heartbeat_timeout_seconds = heartbeat_timeout_seconds_;
 }
 
 

@@ -34,6 +34,8 @@ private:
     int listen_backlog_;
     std::size_t max_clients_;
     std::string db_path_;
+    int heartbeat_interval_seconds_;
+    int heartbeat_timeout_seconds_;
 };
 
 

@@ -96,6 +96,8 @@ void assert_help_output()
 
     assert(help.find("Usage: will-server") != std::string::npos);
     assert(help.find("--port") != std::string::npos);
+    assert(help.find("--heartbeat-interval") != std::string::npos);
+    assert(help.find("--heartbeat-timeout") != std::string::npos);
     assert(help.find("-h, --help") != std::string::npos);
     assert(help.find("OPTIONS:") == std::string::npos);
     assert(help.find(" INT") == std::string::npos);
@@ -116,6 +118,8 @@ void assert_defaults()
     assert(config.listen_backlog == will::ServerConfig::DefaultListenBacklog);
     assert(config.max_connections == will::ServerConfig::DefaultMaxConnections);
     assert(config.db_path == will::ServerConfig::DefaultDbPath);
+    assert(config.heartbeat_interval_seconds == will::ServerConfig::DefaultHeartbeatIntervalSeconds);
+    assert(config.heartbeat_timeout_seconds == will::ServerConfig::DefaultHeartbeatTimeoutSeconds);
 }
 
 
@@ -133,7 +137,11 @@ void assert_all_options()
               "--max-clients",
               "128",
               "--db-path",
-              "/tmp/custom.db"};
+              "/tmp/custom.db",
+              "--heartbeat-interval",
+              "15",
+              "--heartbeat-timeout",
+              "5"};
     const will::ServerConfig config = ServerCliApp{}.parse(args.argc(), args.argv());
 
     assert(config.listen_port == 9000);
@@ -141,6 +149,8 @@ void assert_all_options()
     assert(config.listen_backlog == 512);
     assert(config.max_connections == 128);
     assert(config.db_path == "/tmp/custom.db");
+    assert(config.heartbeat_interval_seconds == 15);
+    assert(config.heartbeat_timeout_seconds == 5);
 }
 
 

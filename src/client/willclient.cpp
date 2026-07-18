@@ -60,6 +60,19 @@ void WillClient::dispatch_inbound(std::vector<char> payload)
 }
 
 
+bool WillClient::try_handle_ping(const std::vector<char>& payload)
+{
+    const auto message = WireMessageCodec::decode_server(payload);
+    if (dynamic_cast<const PingMessage*>(message.get()) == nullptr)
+        return false;
+
+    if (channel_)
+        channel_->send_payload(WireMessageCodec::encode(PongMessage{}));
+
+    return true;
+}
+
+
 void WillClient::dispatch_closed()
 {
     if (pending_auth_) {
@@ -99,6 +112,9 @@ void WillClient::connect()
     channel_ = std::make_shared<TcpFramedChannel>(socket_, strand_);
     channel_->start(
         [this](std::vector<char> payload) {
+            if (try_handle_ping(payload))
+                return;
+
             if (pending_auth_) {
                 try {
                     pending_auth_->set_value(std::move(payload));

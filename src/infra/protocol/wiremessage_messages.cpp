@@ -327,4 +327,52 @@ std::unique_ptr<HistoryEndMessage> HistoryEndMessage::from_bytes(const std::vect
 }
 
 
+// --- PingMessage ---
+
+WireMessage::Type PingMessage::type() const noexcept { return WireMessage::Type::Ping; }
+
+
+std::vector<char> PingMessage::encode() const
+{
+    return std::vector<char>{static_cast<char>(WireMessage::Type::Ping)};
+}
+
+
+std::string PingMessage::format_for_log() const { return "Ping"; }
+
+
+std::unique_ptr<PingMessage> PingMessage::from_bytes(const std::vector<char>& payload)
+{
+    if (payload.size() != 1u
+        || static_cast<WireMessage::Type>(static_cast<std::uint8_t>(payload[0])) != WireMessage::Type::Ping)
+        return nullptr;
+
+    return std::make_unique<PingMessage>();
+}
+
+
+// --- PongMessage ---
+
+WireMessage::Type PongMessage::type() const noexcept { return WireMessage::Type::Pong; }
+
+
+std::vector<char> PongMessage::encode() const
+{
+    return std::vector<char>{static_cast<char>(WireMessage::Type::Pong)};
+}
+
+
+std::string PongMessage::format_for_log() const { return "Pong"; }
+
+
+std::unique_ptr<PongMessage> PongMessage::from_bytes(const std::vector<char>& payload)
+{
+    if (payload.size() != 1u
+        || static_cast<WireMessage::Type>(static_cast<std::uint8_t>(payload[0])) != WireMessage::Type::Pong)
+        return nullptr;
+
+    return std::make_unique<PongMessage>();
+}
+
+
 } // namespace will

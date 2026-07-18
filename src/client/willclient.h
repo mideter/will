@@ -51,6 +51,7 @@ private:
     std::vector<char> wait_for_auth_response();
     void dispatch_inbound(std::vector<char> payload);
     void dispatch_closed();
+    bool try_handle_ping(const std::vector<char>& payload);
 
     mutable asio::io_context ioc_;
     mutable TcpStreamSocket socket_;

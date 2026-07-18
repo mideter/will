@@ -20,6 +20,8 @@ public:
         HistoryRequest = 3,
         HistoryItem = 4,
         HistoryEnd = 5,
+        Ping = 6,
+        Pong = 7,
         BindToken = 8,
         AuthRequired = 9,
         AuthOk = 12,

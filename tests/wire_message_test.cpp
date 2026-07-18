@@ -119,6 +119,20 @@ int main()
 	}
 
 	{
+		const auto ping = WireMessageCodec::encode(PingMessage{});
+		assert(decodes_as_server<PingMessage>(ping));
+		assert(ping.size() == 1);
+		assert(!decodes_as_client<PingMessage>(ping));
+	}
+
+	{
+		const auto pong = WireMessageCodec::encode(PongMessage{});
+		assert(decodes_as_client<PongMessage>(pong));
+		assert(pong.size() == 1);
+		assert(!decodes_as_server<PongMessage>(pong));
+	}
+
+	{
 		const auto v = WireMessageCodec::encode(UserChatMessage{"hi"});
 		const std::string line = WireMessageCodec::format_for_log(v);
 		assert(line.find("UserChat") != std::string::npos);
@@ -128,6 +142,8 @@ int main()
 	assert(WireMessageCodec::format_for_log(WireMessageCodec::encode(ServerReceiptAckMessage{})) == "ServerReceiptAck");
 	assert(WireMessageCodec::format_for_log(WireMessageCodec::encode(HistoryEndMessage{})) == "HistoryEnd");
 	assert(WireMessageCodec::format_for_log(WireMessageCodec::encode(AuthOkMessage{})) == "AuthOk");
+	assert(WireMessageCodec::format_for_log(WireMessageCodec::encode(PingMessage{})) == "Ping");
+	assert(WireMessageCodec::format_for_log(WireMessageCodec::encode(PongMessage{})) == "Pong");
 
 	{
 		const auto payload = WireMessageCodec::encode(UserChatMessage{"ping"});
@@ -150,6 +166,8 @@ int main()
 	assert_roundtrip(BindTokenMessage{"device-token-32chars-long-enough"});
 	assert_roundtrip(AuthRequiredMessage{});
 	assert_roundtrip(AuthOkMessage{});
+	assert_roundtrip(PingMessage{});
+	assert_roundtrip(PongMessage{});
 
 	{
 		const UserChatMessage chat{"bidirectional"};

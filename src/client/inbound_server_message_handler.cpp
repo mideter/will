@@ -71,6 +71,9 @@ void ReceivingMessageHandler::on(const ServerMessage& message)
         return;
     }
 
+    if (dynamic_cast<const PingMessage*>(&message) != nullptr)
+        return;
+
     if (const auto* item = dynamic_cast<const HistoryItemMessage*>(&message)) {
         print_history_item(*item);
         return;

@@ -82,4 +82,16 @@ public:
 };
 
 
+class PingMessage final : public ServerMessage {
+public:
+    WireMessage::Type type() const noexcept override;
+    std::vector<char> encode() const override;
+    std::string format_for_log() const override;
+
+    static std::unique_ptr<PingMessage> from_bytes(const std::vector<char>& payload);
+
+    bool operator==(const PingMessage&) const noexcept { return true; }
+};
+
+
 } // namespace will

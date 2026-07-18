@@ -6,6 +6,7 @@
 #include <asio.hpp>
 
 #include <atomic>
+#include <chrono>
 #include <cstddef>
 #include <cstdint>
 #include <functional>
@@ -24,6 +25,12 @@ struct TcpConnectionHandlers {
 };
 
 
+struct HeartbeatSettings {
+    std::chrono::milliseconds interval{std::chrono::seconds{30}};
+    std::chrono::milliseconds timeout{std::chrono::seconds{10}};
+};
+
+
 class TcpConnection : public std::enable_shared_from_this<TcpConnection> {
 public:
     using Strand = asio::strand<asio::io_context::executor_type>;
@@ -35,9 +42,11 @@ public:
 
     void schedule_on_strand(std::function<void(asio::any_io_executor)> fn);
 
+    void start_heartbeat();
+
 private:
     TcpConnection(asio::io_context& ioc, TcpStreamSocket socket, asio::ip::tcp::endpoint peer_endpoint,
-                  TcpConnectionHandlers handlers);
+                  TcpConnectionHandlers handlers, HeartbeatSettings heartbeat);
 
     void begin();
     void shutdown();
@@ -45,11 +54,19 @@ private:
     void handle_payload(std::vector<char> payload);
     void request_close();
 
+    void note_inbound_activity();
+    void schedule_heartbeat_interval();
+    void on_heartbeat_interval(const asio::error_code& ec);
+    void on_heartbeat_timeout(const asio::error_code& ec);
+    void cancel_heartbeat();
+
     const std::uint64_t id_;
     TcpConnectionHandlers handlers_;
+    HeartbeatSettings heartbeat_;
 
     TcpStreamSocket socket_;
     Strand strand_;
+    asio::steady_timer heartbeat_timer_;
 
     std::string peer_address_;
 
@@ -57,6 +74,8 @@ private:
 
     bool closed_ = false;
     bool shutdown_done_ = false;
+    bool heartbeat_started_ = false;
+    bool awaiting_pong_ = false;
 
     static std::atomic<std::uint64_t> next_id_;
 

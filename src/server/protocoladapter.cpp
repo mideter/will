@@ -81,6 +81,7 @@ void ProtocolAdapter::handle_bind_token(const std::uint64_t connection_id, const
     if (const auto displaced = account_store_.set(connection_id, success.account))
         close_connection(*displaced);
     send_payload(connection_id, WireMessageCodec::encode(AuthOkMessage{}));
+    registry_.start_heartbeat(connection_id);
 }
 
 

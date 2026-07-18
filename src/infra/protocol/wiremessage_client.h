@@ -48,4 +48,16 @@ private:
 };
 
 
+class PongMessage final : public ClientMessage {
+public:
+    WireMessage::Type type() const noexcept override;
+    std::vector<char> encode() const override;
+    std::string format_for_log() const override;
+
+    static std::unique_ptr<PongMessage> from_bytes(const std::vector<char>& payload);
+
+    bool operator==(const PongMessage&) const noexcept { return true; }
+};
+
+
 } // namespace will
