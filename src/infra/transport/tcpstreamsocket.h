@@ -9,12 +9,12 @@
 namespace will {
 
 
-/** Connected-or-connectable TCP stream with Will defaults (SO_KEEPALIVE). */
+/** Connected-or-connectable TCP stream socket. */
 class TcpStreamSocket {
 public:
     explicit TcpStreamSocket(asio::io_context& ioc);
 
-    /** Accept path: move socket in, apply connection defaults. */
+    /** Accept path: move an already-accepted socket in. */
     explicit TcpStreamSocket(asio::ip::tcp::socket socket);
 
     TcpStreamSocket(TcpStreamSocket&&) noexcept = default;
@@ -34,8 +34,6 @@ public:
     void shutdown_and_close() noexcept;
 
 private:
-    static void apply_connection_defaults(asio::ip::tcp::socket& socket);
-
     asio::ip::tcp::socket socket_;
 };
 
