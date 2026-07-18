@@ -38,15 +38,20 @@ int main()
     assert(rows[1].author_id == peer_b);
 
     const std::string token = "abcd1234abcd1234abcd1234abcd1234";
-    const User created = users.create_user(token);
+    const User created = users.create_user(token, "abcdefgh");
     assert(created.id.value > 0);
     assert(created.device_token == token);
-    assert(created.name.empty());
+    assert(created.name == "abcdefgh");
 
     const std::optional<User> found = users.find_by_device_token(token);
     assert(found.has_value());
     assert(found->id == created.id);
-    assert(found->name.empty());
+    assert(found->name == "abcdefgh");
+
+    users.set_name(created.id, "newname1");
+    const std::optional<User> renamed = users.find_by_device_token(token);
+    assert(renamed.has_value());
+    assert(renamed->name == "newname1");
 
     ::unlink(db_path.c_str());
     return EXIT_SUCCESS;

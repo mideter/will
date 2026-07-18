@@ -31,13 +31,18 @@ public:
         return users_.at(it->second);
     }
 
-    User create_user(const std::string_view device_token) override
+    User create_user(const std::string_view device_token, const std::string_view name) override
     {
         const UserId id{++next_user_id_};
-        User user{id, std::string(device_token), {}};
+        User user{id, std::string(device_token), std::string(name)};
         users_.emplace(id, user);
         by_token_[user.device_token] = id;
         return user;
+    }
+
+    void set_name(const UserId id, const std::string_view name) override
+    {
+        users_.at(id).name = std::string(name);
     }
 
     void add_user(User user)

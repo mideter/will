@@ -9,6 +9,11 @@ target_include_directories(device-token-test PRIVATE ${CMAKE_SOURCE_DIR}/src/dom
 target_link_libraries(device-token-test PRIVATE will-domain)
 add_test(NAME device-token COMMAND device-token-test)
 
+add_executable(user-name-test user_name_test.cpp)
+target_include_directories(user-name-test PRIVATE ${CMAKE_SOURCE_DIR}/src/domain)
+target_link_libraries(user-name-test PRIVATE will-domain)
+add_test(NAME user-name COMMAND user-name-test)
+
 add_executable(tcp-framed-channel-test tcp_framed_channel_test.cpp)
 target_link_libraries(tcp-framed-channel-test PRIVATE will-transport)
 add_test(NAME tcp-framed-channel COMMAND tcp-framed-channel-test)

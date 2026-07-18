@@ -44,24 +44,46 @@ std::optional<domain::User> SqliteUserRepositoryImpl::find_by_device_token(const
 }
 
 
-domain::User SqliteUserRepositoryImpl::create_user(const std::string_view device_token)
+domain::User SqliteUserRepositoryImpl::create_user(const std::string_view device_token,
+                                                   const std::string_view name)
 {
     std::lock_guard lock(database_.mutex());
 
     sqlite3* const db = database_.db();
     sqlite3_stmt* stmt = nullptr;
-    check_sqlite(sqlite3_prepare_v2(db, "INSERT INTO users (device_token) VALUES (?);", -1, &stmt, nullptr), db,
-                 "prepare create_user");
+    check_sqlite(sqlite3_prepare_v2(db, "INSERT INTO users (device_token, name) VALUES (?, ?);", -1, &stmt,
+                                    nullptr),
+                 db, "prepare create_user");
 
     check_sqlite(sqlite3_bind_text(stmt, 1, device_token.data(), static_cast<int>(device_token.size()),
                                    SQLITE_TRANSIENT),
                  db, "bind device_token");
+    check_sqlite(sqlite3_bind_text(stmt, 2, name.data(), static_cast<int>(name.size()), SQLITE_TRANSIENT), db,
+                 "bind name");
 
     check_sqlite(sqlite3_step(stmt), db, "create_user step");
     sqlite3_finalize(stmt);
 
     const domain::UserId id{static_cast<std::uint64_t>(sqlite3_last_insert_rowid(db))};
-    return domain::User{id, std::string(device_token), {}};
+    return domain::User{id, std::string(device_token), std::string(name)};
+}
+
+
+void SqliteUserRepositoryImpl::set_name(const domain::UserId id, const std::string_view name)
+{
+    std::lock_guard lock(database_.mutex());
+
+    sqlite3* const db = database_.db();
+    sqlite3_stmt* stmt = nullptr;
+    check_sqlite(sqlite3_prepare_v2(db, "UPDATE users SET name = ? WHERE id = ?;", -1, &stmt, nullptr), db,
+                 "prepare set_name");
+
+    check_sqlite(sqlite3_bind_text(stmt, 1, name.data(), static_cast<int>(name.size()), SQLITE_TRANSIENT), db,
+                 "bind name");
+    check_sqlite(sqlite3_bind_int64(stmt, 2, static_cast<sqlite3_int64>(id.value)), db, "bind id");
+
+    check_sqlite(sqlite3_step(stmt), db, "set_name step");
+    sqlite3_finalize(stmt);
 }
 
 

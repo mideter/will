@@ -5,6 +5,7 @@
 #include "errors/auth_error.h"
 #include "errors/domain_error.h"
 #include "support/device_token.h"
+#include "support/user_name.h"
 #include "usecases/authenticate_device.h"
 #include "usecases/fetch_chat_history.h"
 #include "usecases/send_chat_message.h"
@@ -37,20 +38,40 @@ void test_authenticate_device_creates_user()
     const std::optional<User> user = users.find_by_device_token(token.value);
     assert(user.has_value());
     assert(user->id == success.account.user_id);
-    assert(user->name.empty());
+    assert(UserName::is_valid(user->name));
 }
 
 
 void test_authenticate_device_existing_user()
 {
     FakeUserRepository users;
-    users.add_user(User{UserId{42}, "abcd1234abcd1234abcd1234abcd1234"});
+    users.add_user(User{UserId{42}, "abcd1234abcd1234abcd1234abcd1234", {}});
 
     AuthenticateDevice authenticate(users);
     const auto result = authenticate.execute(
         AuthenticateDeviceInput{"abcd1234abcd1234abcd1234abcd1234", 1000});
     assert(std::holds_alternative<AuthenticateDeviceSuccess>(result));
     assert(std::get<AuthenticateDeviceSuccess>(result).account.user_id == UserId{42});
+
+    const std::optional<User> user = users.find_by_device_token("abcd1234abcd1234abcd1234abcd1234");
+    assert(user.has_value());
+    assert(UserName::is_valid(user->name));
+}
+
+
+void test_authenticate_device_keeps_existing_name()
+{
+    FakeUserRepository users;
+    users.add_user(User{UserId{7}, "abcd1234abcd1234abcd1234abcd1234", "keptname"});
+
+    AuthenticateDevice authenticate(users);
+    const auto result = authenticate.execute(
+        AuthenticateDeviceInput{"abcd1234abcd1234abcd1234abcd1234", 1000});
+    assert(std::holds_alternative<AuthenticateDeviceSuccess>(result));
+
+    const std::optional<User> user = users.find_by_device_token("abcd1234abcd1234abcd1234abcd1234");
+    assert(user.has_value());
+    assert(user->name == "keptname");
 }
 
 
@@ -144,6 +165,7 @@ int main()
 {
     test_authenticate_device_creates_user();
     test_authenticate_device_existing_user();
+    test_authenticate_device_keeps_existing_name();
     test_authenticate_device_invalid_token();
     test_send_chat_message_persists_and_notifies();
     test_fetch_chat_history_limit_and_is_mine();
