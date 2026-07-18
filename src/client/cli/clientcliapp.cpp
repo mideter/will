@@ -45,7 +45,7 @@ void ClientCliApp::print_help(std::ostream& os) const
         "  --host HOST                     Server IPv4 address (default {}; Novosibirsk: {})\n"
         "  --port PORT                     Server TCP port (default {})\n"
         "  --device-token-path PATH        Device token file (default {})\n"
-        "  --quiet                         Suppress delivery acknowledgements ([ok])\n"
+        "  --quiet                         Suppress delivery checkmarks on [me] lines\n"
         "  --history N                     Request last N messages on connect (default {})\n"
         "  --no-history                    Do not request chat history on connect\n"
         "  --color WHEN                    Color output: auto, always, never (default auto)\n",

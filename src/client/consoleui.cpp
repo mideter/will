@@ -19,6 +19,7 @@ constexpr char AnsiRed[] = "\033[31m";
 constexpr char AnsiGreen[] = "\033[32m";
 constexpr char AnsiCyan[] = "\033[36m";
 constexpr char AnsiYellow[] = "\033[33m";
+constexpr char CheckMark[] = "✓";
 
 
 std::mutex& console_mutex()
@@ -58,41 +59,78 @@ void ConsoleUi::print_prompt_unlocked() const
 }
 
 
-void ConsoleUi::print_chat_line(const std::string_view tag,
-                                const std::string_view tag_sgr,
-                                const std::string_view body,
-                                const bool dim,
-                                const bool interrupt_prompt) const
+void ConsoleUi::note_line_above_prompt_unlocked() const
 {
-    std::lock_guard lock(console_mutex());
-
-    if (interrupt_prompt)
-        std::cout << "\r\033[2K";
-
-    if (color_) {
-        if (dim)
-            std::cout << AnsiDim << tag << ' ' << body << AnsiReset;
-        else
-            std::cout << tag_sgr << tag << AnsiReset << ' ' << body;
-    } else {
-        std::cout << tag << ' ' << body;
-    }
-    std::cout << std::endl;
-
-    if (interrupt_prompt)
-        print_prompt_unlocked();
+    for (PendingMine& pending : pending_mines_)
+        ++pending.rows_above_prompt;
 }
 
 
-void ConsoleUi::print_mine(const std::string_view body, const bool dim) const
+void ConsoleUi::write_mine_line_unlocked(const std::string_view body,
+                                         const bool dim,
+                                         const bool acked) const
 {
-    print_chat_line("[me]", AnsiGreen, body, dim, false);
+    if (color_ && dim) {
+        std::cout << AnsiDim << "[me] " << body;
+        if (acked)
+            std::cout << ' ' << CheckMark;
+        std::cout << AnsiReset;
+        return;
+    }
+
+    if (color_)
+        std::cout << AnsiGreen << "[me]" << AnsiReset << ' ' << body;
+    else
+        std::cout << "[me] " << body;
+
+    if (acked) {
+        if (color_)
+            std::cout << ' ' << AnsiDim << CheckMark << AnsiReset;
+        else
+            std::cout << ' ' << CheckMark;
+    }
+}
+
+
+void ConsoleUi::print_mine(const std::string_view body,
+                           const bool dim,
+                           const bool await_receipt) const
+{
+    std::lock_guard lock(console_mutex());
+
+    write_mine_line_unlocked(body, dim, false);
+    std::cout << std::endl;
+    note_line_above_prompt_unlocked();
+
+    if (!dim && await_receipt)
+        pending_mines_.push_back(PendingMine{std::string{body}, 1});
+
+    if (live_prompt_)
+        print_prompt_unlocked();
 }
 
 
 void ConsoleUi::print_peer(const std::string_view body, const bool dim) const
 {
-    print_chat_line("[peer]", AnsiYellow, body, dim, live_prompt_);
+    std::lock_guard lock(console_mutex());
+
+    if (live_prompt_)
+        std::cout << "\r\033[2K";
+
+    if (color_) {
+        if (dim)
+            std::cout << AnsiDim << "[peer] " << body << AnsiReset;
+        else
+            std::cout << AnsiYellow << "[peer]" << AnsiReset << ' ' << body;
+    } else {
+        std::cout << "[peer] " << body;
+    }
+    std::cout << std::endl;
+
+    note_line_above_prompt_unlocked();
+
+    if (live_prompt_)
+        print_prompt_unlocked();
 }
 
 
@@ -100,16 +138,29 @@ void ConsoleUi::print_receipt() const
 {
     std::lock_guard lock(console_mutex());
 
+    if (pending_mines_.empty())
+        return;
+
+    const PendingMine pending = std::move(pending_mines_.front());
+    pending_mines_.pop_front();
+
     if (live_prompt_)
         std::cout << "\r\033[2K";
 
-    if (color_)
-        std::cout << AnsiDim << "[ok]" << AnsiReset << std::endl;
-    else
-        std::cout << "[ok]" << std::endl;
+    if (pending.rows_above_prompt > 0)
+        std::cout << "\033[" << pending.rows_above_prompt << 'A';
 
+    std::cout << '\r' << "\033[2K";
+    write_mine_line_unlocked(pending.body, false, true);
+
+    if (pending.rows_above_prompt > 0)
+        std::cout << "\033[" << pending.rows_above_prompt << 'B';
+
+    std::cout << '\r';
     if (live_prompt_)
         print_prompt_unlocked();
+    else
+        std::cout.flush();
 }
 
 
@@ -120,6 +171,8 @@ void ConsoleUi::print_status(const std::string_view text) const
         std::cout << AnsiDim << text << AnsiReset << std::endl;
     else
         std::cout << text << std::endl;
+
+    note_line_above_prompt_unlocked();
 }
 
 

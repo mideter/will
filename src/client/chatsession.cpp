@@ -72,9 +72,8 @@ void ChatSession::run()
 
     std::string line;
     while (!disconnected.load() && std::getline(std::cin, line)) {
+        ui_.print_mine(line, false, !client_.config().quiet_receipts);
         client_.send(line);
-        ui_.print_mine(line);
-        ui_.print_prompt();
     }
 
     ui_.set_live_prompt(false);

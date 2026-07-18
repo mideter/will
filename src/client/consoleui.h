@@ -2,6 +2,8 @@
 
 #include "clientconfig.h"
 
+#include <deque>
+#include <string>
 #include <string_view>
 
 
@@ -15,7 +17,7 @@ public:
 
     bool color_enabled() const noexcept { return color_; }
 
-    void print_mine(std::string_view body, bool dim = false) const;
+    void print_mine(std::string_view body, bool dim = false, bool await_receipt = true) const;
     void print_peer(std::string_view body, bool dim = false) const;
     void print_receipt() const;
     void print_status(std::string_view text) const;
@@ -28,17 +30,20 @@ public:
     void set_live_prompt(bool enabled) noexcept { live_prompt_ = enabled; }
 
 private:
+    struct PendingMine {
+        std::string body;
+        int rows_above_prompt = 1;
+    };
+
     static bool resolve_color(ColorMode mode);
 
-    void print_chat_line(std::string_view tag,
-                         std::string_view tag_sgr,
-                         std::string_view body,
-                         bool dim,
-                         bool interrupt_prompt) const;
     void print_prompt_unlocked() const;
+    void write_mine_line_unlocked(std::string_view body, bool dim, bool acked) const;
+    void note_line_above_prompt_unlocked() const;
 
     bool color_;
     bool live_prompt_ = false;
+    mutable std::deque<PendingMine> pending_mines_;
 };
 
 
