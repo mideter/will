@@ -107,7 +107,8 @@ void SqliteDatabase::init_schema()
     static constexpr const char* InitSchemaSql = R"sql(
 CREATE TABLE IF NOT EXISTS users (
   id INTEGER PRIMARY KEY,
-  device_token TEXT UNIQUE NOT NULL
+  device_token TEXT UNIQUE NOT NULL,
+  name TEXT NOT NULL DEFAULT ''
 );
 
 CREATE TABLE IF NOT EXISTS messages (
@@ -122,6 +123,12 @@ CREATE INDEX IF NOT EXISTS idx_messages_created_at ON messages(created_at_ms);
 )sql";
 
     check_sqlite(sqlite3_exec(db_, InitSchemaSql, nullptr, nullptr, nullptr), db_, "init_schema");
+
+    if (table_has_column(db_, "users", "id") && !table_has_column(db_, "users", "name")) {
+        check_sqlite(sqlite3_exec(db_, "ALTER TABLE users ADD COLUMN name TEXT NOT NULL DEFAULT '';", nullptr,
+                                  nullptr, nullptr),
+                     db_, "add users.name");
+    }
 }
 
 

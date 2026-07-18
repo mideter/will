@@ -34,7 +34,7 @@ public:
     User create_user(const std::string_view device_token) override
     {
         const UserId id{++next_user_id_};
-        User user{id, std::string(device_token)};
+        User user{id, std::string(device_token), {}};
         users_.emplace(id, user);
         by_token_[user.device_token] = id;
         return user;

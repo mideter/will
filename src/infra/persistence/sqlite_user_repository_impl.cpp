@@ -19,8 +19,8 @@ std::optional<domain::User> SqliteUserRepositoryImpl::find_by_device_token(const
 
     sqlite3* const db = database_.db();
     sqlite3_stmt* stmt = nullptr;
-    check_sqlite(sqlite3_prepare_v2(db, "SELECT id, device_token FROM users WHERE device_token = ? LIMIT 1;", -1,
-                                    &stmt, nullptr),
+    check_sqlite(sqlite3_prepare_v2(db, "SELECT id, device_token, name FROM users WHERE device_token = ? LIMIT 1;",
+                                    -1, &stmt, nullptr),
                  db, "prepare find_by_device_token");
 
     check_sqlite(sqlite3_bind_text(stmt, 1, device_token.data(), static_cast<int>(device_token.size()),
@@ -33,6 +33,8 @@ std::optional<domain::User> SqliteUserRepositoryImpl::find_by_device_token(const
         domain::User row;
         row.id = domain::UserId{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 0))};
         row.device_token = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
+        if (const unsigned char* name = sqlite3_column_text(stmt, 2))
+            row.name = reinterpret_cast<const char*>(name);
         user = std::move(row);
     }
 
@@ -59,7 +61,7 @@ domain::User SqliteUserRepositoryImpl::create_user(const std::string_view device
     sqlite3_finalize(stmt);
 
     const domain::UserId id{static_cast<std::uint64_t>(sqlite3_last_insert_rowid(db))};
-    return domain::User{id, std::string(device_token)};
+    return domain::User{id, std::string(device_token), {}};
 }
 
 

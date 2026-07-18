@@ -12,6 +12,7 @@ namespace will::domain {
 struct User {
     UserId id{};
     std::string device_token;
+    std::string name;
 };
 
 

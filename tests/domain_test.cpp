@@ -37,6 +37,7 @@ void test_authenticate_device_creates_user()
     const std::optional<User> user = users.find_by_device_token(token.value);
     assert(user.has_value());
     assert(user->id == success.account.user_id);
+    assert(user->name.empty());
 }
 
 
