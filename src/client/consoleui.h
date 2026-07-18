@@ -17,7 +17,7 @@ public:
 
     void print_mine(std::string_view body, bool dim = false) const;
     void print_peer(std::string_view body, bool dim = false) const;
-    void print_server(std::string_view body) const;
+    void print_receipt() const;
     void print_status(std::string_view text) const;
     void print_error(std::string_view text) const;
     void print_history_begin() const;

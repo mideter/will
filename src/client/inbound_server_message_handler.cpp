@@ -73,7 +73,7 @@ void ReceivingMessageHandler::on(const ServerMessage& message)
 
     if (dynamic_cast<const ServerReceiptAckMessage*>(&message) != nullptr) {
         if (!client_.config().quiet_receipts)
-            ui_.print_server("message accepted");
+            ui_.print_receipt();
         return;
     }
 

@@ -20,7 +20,7 @@ ClientCliApp::ClientCliApp()
     app_.add_option("--device-token-path", config_.device_token_path)
         ->description("Path to persistent device token file");
     app_.add_flag("--quiet", config_.quiet_receipts)
-        ->description("Suppress server receipt messages on stderr");
+        ->description("Suppress delivery acknowledgements");
     app_.add_option("--history", config_.history_limit)
         ->description("Request last N messages on connect");
     app_.add_flag_callback("--no-history", [this]() { config_.history_limit = 0; })
@@ -45,7 +45,7 @@ void ClientCliApp::print_help(std::ostream& os) const
         "  --host HOST                     Server IPv4 address (default {}; Novosibirsk: {})\n"
         "  --port PORT                     Server TCP port (default {})\n"
         "  --device-token-path PATH        Device token file (default {})\n"
-        "  --quiet                         Suppress server receipt messages on stderr\n"
+        "  --quiet                         Suppress delivery acknowledgements ([ok])\n"
         "  --history N                     Request last N messages on connect (default {})\n"
         "  --no-history                    Do not request chat history on connect\n"
         "  --color WHEN                    Color output: auto, always, never (default auto)\n",

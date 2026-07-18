@@ -19,7 +19,6 @@ constexpr char AnsiRed[] = "\033[31m";
 constexpr char AnsiGreen[] = "\033[32m";
 constexpr char AnsiCyan[] = "\033[36m";
 constexpr char AnsiYellow[] = "\033[33m";
-constexpr char AnsiMagenta[] = "\033[35m";
 
 
 std::mutex& console_mutex()
@@ -97,13 +96,20 @@ void ConsoleUi::print_peer(const std::string_view body, const bool dim) const
 }
 
 
-void ConsoleUi::print_server(const std::string_view body) const
+void ConsoleUi::print_receipt() const
 {
     std::lock_guard lock(console_mutex());
+
+    if (live_prompt_)
+        std::cout << "\r\033[2K";
+
     if (color_)
-        std::cerr << AnsiMagenta << "[server]" << AnsiReset << ' ' << body << std::endl;
+        std::cout << AnsiDim << "[ok]" << AnsiReset << std::endl;
     else
-        std::cerr << "[server] " << body << std::endl;
+        std::cout << "[ok]" << std::endl;
+
+    if (live_prompt_)
+        print_prompt_unlocked();
 }
 
 
