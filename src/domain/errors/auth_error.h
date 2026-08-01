@@ -1,12 +1,9 @@
 #pragma once
 
-
 namespace will::domain {
 
-
 enum class AuthError {
-    InvalidToken,
+  InvalidToken,
 };
-
 
 } // namespace will::domain

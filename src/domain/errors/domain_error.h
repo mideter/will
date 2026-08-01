@@ -5,8 +5,6 @@ namespace will::domain {
 
 
 enum class AuthResult {
-    Ok,
-    InvalidCredentials,
     ExpiredToken,
     NotAuthenticated,
 };
