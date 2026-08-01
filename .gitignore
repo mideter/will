@@ -1,12 +1,7 @@
 build/
 run/
-cmake-build-*/
-CMakeFiles/
-CMakeCache.txt
+.xmake/
 compile_commands.json
-Makefile
-cmake_install.cmake
-install_manifest.txt
 will.db*
 
 *.o

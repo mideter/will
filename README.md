@@ -12,25 +12,24 @@ Will is a C++20 TCP messenger with a dedicated server and chat client. Clients a
 
 ## Requirements
 
-- CMake 3.14+
+- [xmake](https://xmake.io)
 - C++20 compiler (GCC 10+, Clang 12+, or equivalent)
 - SQLite3 development libraries
 - OpenSSL development libraries (`libssl-dev` / `openssl-devel`)
 - pthreads
 
-[ASIO](https://github.com/chriskohlhoff/asio) and [CLI11](https://github.com/CLIUtils/CLI11) are fetched automatically at configure time.
+[ASIO](https://github.com/chriskohlhoff/asio) and [CLI11](https://github.com/CLIUtils/CLI11) are pulled automatically by xmake.
 
 On Debian/Ubuntu:
 
 ```bash
-sudo apt install build-essential cmake libsqlite3-dev libssl-dev
+sudo apt install build-essential xmake libsqlite3-dev libssl-dev
 ```
 
 ## Build
 
 ```bash
-cmake -S . -B build
-cmake --build build
+xmake
 ```
 
 All binaries are written to `build/`:
@@ -107,8 +106,8 @@ Example — 2000 idle connections for 10 seconds:
 ## Tests
 
 ```bash
-cmake --build build
-ctest --test-dir build --output-on-failure
+xmake
+xmake test
 ```
 
 The test suite covers wire protocol encoding, domain logic, SQLite persistence, CLI parsing, and integration tests that spawn `will-server` / `will-client`.

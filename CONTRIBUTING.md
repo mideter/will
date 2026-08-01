@@ -4,7 +4,7 @@ This document records project conventions so changes stay consistent. When in do
 
 ## Language and toolchain
 
-- C++ standard and compiler flags are defined in CMake
+- C++ standard and compiler flags are defined in `xmake.lua`
 - Build and run: see [README.md](README.md).
 
 ## Layout and modules

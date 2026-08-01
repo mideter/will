@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Build a .deb with will-server and a systemd service (will-server.service).
-# Requires: cmake, build-essential, dpkg-dev, and dpkg-deb (usually from dpkg).
+# Requires: xmake, build-essential, dpkg-dev, and dpkg-deb (usually from dpkg).
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -34,10 +34,13 @@ mkdir -p "${DEBIAN}" "${STAGE}/usr/bin" "${STAGE}/usr/lib/will-server" \
 	"${STAGE}/usr/share/doc/will-server"
 
 echo "==> Configuring and building will-server (Release)..."
-cmake -S "${ROOT}" -B "${WORKDIR}/cmake-build" -DCMAKE_BUILD_TYPE=Release
-cmake --build "${WORKDIR}/cmake-build" --target will-server -j"$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 4)"
+(
+	cd "${ROOT}"
+	xmake f -m release -y
+	xmake build will-server -j"$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 4)"
+)
 
-install -m755 "${WORKDIR}/cmake-build/will-server" "${STAGE}/usr/bin/will-server"
+install -m755 "${ROOT}/build/will-server" "${STAGE}/usr/bin/will-server"
 install -m755 "${ROOT}/packaging/deb/will-server-start" "${STAGE}/usr/lib/will-server/will-server-start"
 install -m640 "${ROOT}/packaging/deb/environment" "${STAGE}/etc/will-server/environment"
 install -m644 "${ROOT}/packaging/deb/will-server.service" "${STAGE}/lib/systemd/system/will-server.service"
