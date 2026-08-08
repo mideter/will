@@ -1,45 +1,39 @@
-target("wire-message-test")
-    set_kind("binary")
-    set_default(false)
+local function test_target(name)
+    target(name)
+        set_kind("binary")
+        set_default(false)
+        add_tests("default")
+end
+
+local function with_run_dep(dep_name)
+    on_config(function (target)
+        target:set("runargs", target:dep(dep_name):targetfile())
+    end)
+end
+
+test_target("wire-message-test")
     add_files("wire_message_test.cpp")
     add_deps("will-protocol")
-    add_tests("default")
 
-target("device-token-test")
-    set_kind("binary")
-    set_default(false)
+test_target("device-token-test")
     add_files("device_token_test.cpp")
-    add_includedirs("$(projectdir)/src/domain")
     add_deps("will-domain")
-    add_tests("default")
 
-target("user-name-test")
-    set_kind("binary")
-    set_default(false)
+test_target("user-name-test")
     add_files("user_name_test.cpp")
-    add_includedirs("$(projectdir)/src/domain")
     add_deps("will-domain")
-    add_tests("default")
 
-target("tcp-framed-channel-test")
-    set_kind("binary")
-    set_default(false)
+test_target("tcp-framed-channel-test")
     add_files("tcp_framed_channel_test.cpp")
     add_deps("will-transport")
-    add_tests("default")
 
-target("will-server-config-test")
-    set_kind("binary")
-    set_default(false)
+test_target("will-server-config-test")
     add_files(
         "server_config_test.cpp",
         "$(projectdir)/src/server/config/serverconfigvalidator.cpp")
     add_includedirs("$(projectdir)/src/server/config")
-    add_tests("default")
 
-target("will-cli-test")
-    set_kind("binary")
-    set_default(false)
+test_target("will-cli-test")
     add_files(
         "cli_test.cpp",
         "$(projectdir)/src/server/cli/servercliapp.cpp")
@@ -48,25 +42,17 @@ target("will-cli-test")
         "$(projectdir)/src/server/cli")
     add_deps("will-protocol")
     add_packages("cli11")
-    add_tests("default")
 
-target("will-client-config-test")
-    set_kind("binary")
-    set_default(false)
+test_target("will-client-config-test")
     add_files(
         "client_config_test.cpp",
         "$(projectdir)/src/client/clientconfigvalidator.cpp")
-    add_includedirs(
-        "$(projectdir)/src/client",
-        "$(projectdir)/src/domain")
+    add_includedirs("$(projectdir)/src/client")
     add_defines("ASIO_STANDALONE")
     add_deps("will-domain")
     add_packages("asio")
-    add_tests("default")
 
-target("will-client-cli-test")
-    set_kind("binary")
-    set_default(false)
+test_target("will-client-cli-test")
     add_files(
         "client_cli_test.cpp",
         "$(projectdir)/src/client/cli/clientcliapp.cpp")
@@ -75,99 +61,46 @@ target("will-client-cli-test")
         "$(projectdir)/src/client/cli")
     add_deps("will-protocol")
     add_packages("cli11")
-    add_tests("default")
 
-target("will-client-cli-integration-test")
-    set_kind("binary")
-    set_default(false)
+test_target("will-client-cli-integration-test")
     add_files("client_cli_integration_test.cpp")
     add_deps("will-client")
     add_packages("cli11")
-    add_tests("default")
-    on_config(function (target)
-        local dep = target:dep("will-client")
-        target:set("runargs", dep:targetfile())
-    end)
+    with_run_dep("will-client")
 
-target("will-server-cli-integration-test")
-    set_kind("binary")
-    set_default(false)
+test_target("will-server-cli-integration-test")
     add_files("server_cli_integration_test.cpp")
     add_deps("will-server")
     add_packages("cli11")
-    add_tests("default")
-    on_config(function (target)
-        local dep = target:dep("will-server")
-        target:set("runargs", dep:targetfile())
-    end)
+    with_run_dep("will-server")
 
-target("will-history-integration-test")
-    set_kind("binary")
-    set_default(false)
+test_target("will-history-integration-test")
     add_files("history_integration_test.cpp")
     add_deps("will-server", "will-protocol")
-    add_tests("default")
-    on_config(function (target)
-        local dep = target:dep("will-server")
-        target:set("runargs", dep:targetfile())
-    end)
+    with_run_dep("will-server")
 
-target("will-connection-account-store-test")
-    set_kind("binary")
-    set_default(false)
+test_target("will-connection-account-store-test")
     add_files(
         "connection_account_store_test.cpp",
         "$(projectdir)/src/server/connectionaccountstore.cpp")
-    add_includedirs(
-        "$(projectdir)/src/server",
-        "$(projectdir)/src/domain")
+    add_includedirs("$(projectdir)/src/server")
     add_deps("will-domain")
-    add_tests("default")
 
-target("will-session-takeover-integration-test")
-    set_kind("binary")
-    set_default(false)
+test_target("will-session-takeover-integration-test")
     add_files("session_takeover_integration_test.cpp")
     add_deps("will-server", "will-protocol")
-    add_tests("default")
-    on_config(function (target)
-        local dep = target:dep("will-server")
-        target:set("runargs", dep:targetfile())
-    end)
+    with_run_dep("will-server")
 
-target("will-heartbeat-integration-test")
-    set_kind("binary")
-    set_default(false)
+test_target("will-heartbeat-integration-test")
     add_files("heartbeat_integration_test.cpp")
     add_deps("will-server", "will-protocol")
-    add_tests("default")
-    on_config(function (target)
-        local dep = target:dep("will-server")
-        target:set("runargs", dep:targetfile())
-    end)
+    with_run_dep("will-server")
 
-target("will-domain-test")
-    set_kind("binary")
-    set_default(false)
+test_target("will-domain-test")
     add_files("domain_test.cpp")
-    add_includedirs(
-        "$(projectdir)/src/domain",
-        "$(projectdir)/tests")
+    add_includedirs("$(projectdir)/tests")
     add_deps("will-domain")
-    add_tests("default")
 
-target("will-sqlite-persistence-test")
-    set_kind("binary")
-    set_default(false)
-    add_files(
-        "sqlite_persistence_test.cpp",
-        "$(projectdir)/src/infra/persistence/sqlite_database.cpp",
-        "$(projectdir)/src/infra/persistence/password_hash.cpp",
-        "$(projectdir)/src/infra/persistence/sqlite_message_repository_impl.cpp",
-        "$(projectdir)/src/infra/persistence/sqlite_user_repository_impl.cpp")
-    add_includedirs(
-        "$(projectdir)/src/infra/persistence",
-        "$(projectdir)/src/domain")
-    add_deps("will-domain")
-    add_packages("openssl", "sqlite3")
-    add_tests("default")
+test_target("will-sqlite-persistence-test")
+    add_files("sqlite_persistence_test.cpp")
+    add_deps("will-persistence")
