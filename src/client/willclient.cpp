@@ -3,27 +3,18 @@
 #include "clientconfigvalidator.h"
 
 #include <future>
-#include <iostream>
 #include <stdexcept>
 #include <utility>
-
-#include "wiremessage_client.h"
-#include "wiremessage_codec.h"
-#include "wiremessage_server.h"
-#include "wiremessage_user_chat.h"
 
 
 namespace will {
 
 
-WillClient::WillClient()
-    : socket_(ioc_)
-{}
+WillClient::WillClient() = default;
 
 
 WillClient::WillClient(ClientConfig config)
-    : socket_(ioc_)
-    , config_(ClientConfigValidator::accept(std::move(config)))
+    : config_(ClientConfigValidator::accept(std::move(config)))
 {}
 
 
@@ -33,7 +24,7 @@ const ClientConfig& WillClient::config() const noexcept
 }
 
 
-void WillClient::set_inbound_handler(std::function<void(std::vector<char>)> handler)
+void WillClient::set_inbound_handler(std::function<void(const v1::ServerEvent&)> handler)
 {
     std::lock_guard lock(handler_mutex_);
     inbound_handler_ = std::move(handler);
@@ -47,29 +38,16 @@ void WillClient::set_closed_handler(std::function<void()> handler)
 }
 
 
-void WillClient::dispatch_inbound(std::vector<char> payload)
+void WillClient::dispatch_inbound(const v1::ServerEvent& event)
 {
-    std::function<void(std::vector<char>)> handler;
+    std::function<void(const v1::ServerEvent&)> handler;
     {
         std::lock_guard lock(handler_mutex_);
         handler = inbound_handler_;
     }
 
     if (handler)
-        handler(std::move(payload));
-}
-
-
-bool WillClient::try_handle_ping(const std::vector<char>& payload)
-{
-    const auto message = WireMessageCodec::decode_server(payload);
-    if (dynamic_cast<const PingMessage*>(message.get()) == nullptr)
-        return false;
-
-    if (channel_)
-        channel_->send_payload(WireMessageCodec::encode(PongMessage{}));
-
-    return true;
+        handler(event);
 }
 
 
@@ -95,59 +73,80 @@ void WillClient::dispatch_closed()
 }
 
 
-std::vector<char> WillClient::wait_for_auth_response()
+v1::ServerEvent WillClient::wait_for_auth_response()
 {
-    pending_auth_ = std::make_shared<std::promise<std::vector<char>>>();
+    pending_auth_ = std::make_shared<std::promise<v1::ServerEvent>>();
     return pending_auth_->get_future().get();
+}
+
+
+bool WillClient::write_event(const v1::ClientEvent& event) const
+{
+    std::lock_guard lock(write_mutex_);
+
+    if (!stream_ || closed_.load())
+        return false;
+
+    return stream_->Write(event);
+}
+
+
+void WillClient::reader_loop()
+{
+    v1::ServerEvent event;
+    while (stream_ && stream_->Read(&event)) {
+        if (pending_auth_) {
+            try {
+                pending_auth_->set_value(event);
+            } catch (const std::future_error&) {
+            }
+            pending_auth_.reset();
+            continue;
+        }
+
+        dispatch_inbound(event);
+    }
+
+    closed_.store(true);
+    dispatch_closed();
 }
 
 
 void WillClient::connect()
 {
-    if (channel_)
+    if (stream_)
         throw std::logic_error("WillClient: already connected");
 
-    socket_.connect(config_.host, config_.port);
+    const std::string target = config_.host + ":" + std::to_string(config_.port);
+    channel_ = grpc::CreateChannel(target, grpc::InsecureChannelCredentials());
+    stub_ = v1::Messenger::NewStub(channel_);
+    context_ = std::make_unique<grpc::ClientContext>();
+    stream_ = stub_->Session(context_.get());
+    if (!stream_)
+        throw std::runtime_error("WillClient: failed to open Session stream");
 
-    channel_ = std::make_shared<TcpFramedChannel>(socket_, strand_);
-    channel_->start(
-        [this](std::vector<char> payload) {
-            if (try_handle_ping(payload))
-                return;
-
-            if (pending_auth_) {
-                try {
-                    pending_auth_->set_value(std::move(payload));
-                } catch (const std::future_error&) {
-                }
-                pending_auth_.reset();
-                return;
-            }
-
-            dispatch_inbound(std::move(payload));
-        },
-        [this] { dispatch_closed(); });
-
-    io_thread_ = std::jthread([this] { ioc_.run(); });
+    reader_thread_ = std::jthread([this] { reader_loop(); });
 }
 
 
 void WillClient::authenticate_device(const std::string_view device_token)
 {
-    if (!channel_)
+    if (!stream_)
         throw std::logic_error("WillClient: not connected");
 
     if (authenticated_)
         throw std::logic_error("WillClient: already authenticated");
 
-    channel_->send_payload(WireMessageCodec::encode(BindTokenMessage{std::string(device_token)}));
+    v1::ClientEvent event;
+    event.mutable_bind_token()->set_token(std::string(device_token));
+    if (!write_event(event))
+        throw std::runtime_error("Will protocol: failed to send BindToken");
 
-    const std::vector<char> response = wait_for_auth_response();
-    const auto message = WireMessageCodec::decode_server(response);
-    if (dynamic_cast<const AuthRequiredMessage*>(message.get()) != nullptr)
+    const v1::ServerEvent response = wait_for_auth_response();
+    if (response.has_auth_required())
         throw std::runtime_error("Will protocol: device authentication failed");
 
-    if (dynamic_cast<const AuthOkMessage*>(message.get()) == nullptr)
+    if (!response.has_auth_ok())
         throw std::runtime_error("Will protocol: expected AuthOk");
 
     authenticated_ = true;
@@ -159,7 +158,11 @@ void WillClient::send(const std::string_view utf8_chat_body) const
     if (!authenticated_)
         throw std::logic_error("WillClient: not authenticated");
 
-    channel_->send_payload(WireMessageCodec::encode(UserChatMessage{std::string(utf8_chat_body)}));
+    v1::ClientEvent event;
+    event.mutable_chat()->set_body(std::string(utf8_chat_body));
+
+    if (!write_event(event))
+        throw std::runtime_error("Will protocol: failed to send chat message");
 }
 
 
@@ -171,7 +174,10 @@ bool WillClient::requestHistory(const std::uint32_t limit) const
     if (!authenticated_)
         throw std::logic_error("WillClient: not authenticated");
 
-    channel_->send_payload(WireMessageCodec::encode(HistoryRequestMessage{limit}));
+    v1::ClientEvent event;
+    event.mutable_history_request()->set_limit(limit);
+    if (!write_event(event))
+        throw std::runtime_error("Will protocol: failed to send HistoryRequest");
     return true;
 }
 
@@ -182,15 +188,24 @@ void WillClient::shutdown() const
         return;
 
     shutdown_done_ = true;
+    closed_.store(true);
 
-    if (channel_)
-        channel_->stop();
+    {
+        std::lock_guard lock(write_mutex_);
+        if (stream_)
+            stream_->WritesDone();
+    }
 
-    socket_.shutdown_and_close();
-    ioc_.stop();
+    if (context_)
+        context_->TryCancel();
 
-    if (io_thread_.joinable())
-        io_thread_.join();
+    if (reader_thread_.joinable())
+        reader_thread_.join();
+
+    stream_.reset();
+    stub_.reset();
+    context_.reset();
+    channel_.reset();
 }
 
 

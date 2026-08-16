@@ -3,7 +3,7 @@
 #include "consoleui.h"
 #include "willclient.h"
 
-#include <vector>
+#include "proto/messenger.pb.h"
 
 
 namespace will {
@@ -18,7 +18,7 @@ public:
 
 private:
     template<typename Handler>
-    void on_server_payload(const std::vector<char>& payload, Handler& handler) const;
+    void on_server_event(const v1::ServerEvent& event, Handler& handler) const;
 
     void loadHistory() const;
 

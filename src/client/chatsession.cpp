@@ -9,8 +9,6 @@
 #include <stdexcept>
 #include <string>
 
-#include "wiremessage_codec.h"
-
 
 namespace will {
 
@@ -18,15 +16,14 @@ namespace will {
 namespace {
 
 
-bool is_post_auth_server_message(const ServerMessage& message) noexcept
+bool is_post_auth_server_event(const v1::ServerEvent& event) noexcept
 {
-    switch (message.type()) {
-    case WireMessage::Type::ServerReceiptAck:
-    case WireMessage::Type::AuthRequired:
-    case WireMessage::Type::UserChat:
-    case WireMessage::Type::HistoryItem:
-    case WireMessage::Type::HistoryEnd:
-    case WireMessage::Type::Ping:
+    switch (event.event_case()) {
+    case v1::ServerEvent::kReceiptAck:
+    case v1::ServerEvent::kAuthRequired:
+    case v1::ServerEvent::kChat:
+    case v1::ServerEvent::kHistoryItem:
+    case v1::ServerEvent::kHistoryEnd:
         return true;
     default:
         return false;
@@ -50,13 +47,13 @@ void ChatSession::run()
     std::atomic<bool> disconnected{false};
 
     client_.set_closed_handler([&disconnected] { disconnected.store(true); });
-    client_.set_inbound_handler([this, &disconnected](std::vector<char> payload) {
+    client_.set_inbound_handler([this, &disconnected](const v1::ServerEvent& event) {
         if (disconnected.load())
             return;
 
         try {
             ReceivingMessageHandler handler{client_, ui_};
-            on_server_payload(payload, handler);
+            on_server_event(event, handler);
         }
         catch (const std::exception& e) {
             ui_.set_live_prompt(false);
@@ -106,10 +103,10 @@ void ChatSession::loadHistory() const
         }
     });
 
-    client_.set_inbound_handler([&](std::vector<char> payload) {
+    client_.set_inbound_handler([&](const v1::ServerEvent& event) {
         try {
             LoadingHistoryMessageHandler handler{ui_};
-            on_server_payload(payload, handler);
+            on_server_event(event, handler);
 
             std::lock_guard lock(mutex);
             if (handler.history_finished())
@@ -141,21 +138,19 @@ void ChatSession::loadHistory() const
 
 
 template<typename Handler>
-void ChatSession::on_server_payload(const std::vector<char>& payload, Handler& handler) const
+void ChatSession::on_server_event(const v1::ServerEvent& event, Handler& handler) const
 {
-    const auto message = WireMessageCodec::decode_server(payload);
-    if (!message || !is_post_auth_server_message(*message)) {
+    if (!is_post_auth_server_event(event))
         throw std::runtime_error("Will protocol: invalid server frame");
-    }
 
-    handler.on(*message);
+    handler.on(event);
 }
 
 
-template void ChatSession::on_server_payload<LoadingHistoryMessageHandler>(const std::vector<char>&,
-                                                                           LoadingHistoryMessageHandler&) const;
-template void ChatSession::on_server_payload<ReceivingMessageHandler>(const std::vector<char>&,
-                                                                      ReceivingMessageHandler&) const;
+template void ChatSession::on_server_event<LoadingHistoryMessageHandler>(const v1::ServerEvent&,
+                                                                         LoadingHistoryMessageHandler&) const;
+template void ChatSession::on_server_event<ReceivingMessageHandler>(const v1::ServerEvent&,
+                                                                    ReceivingMessageHandler&) const;
 
 
 } // namespace will

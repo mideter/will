@@ -1,21 +1,16 @@
 #include "protocoladapter.h"
 
 #include "inbound_client_message_handler.h"
-#include "tcpconnectionregistry.h"
+#include "sessionregistry.h"
 
 #include <chrono>
 #include <iostream>
-#include <string_view>
-
-#include "tcpframe.h"
-#include "wiremessage_codec.h"
-#include "wiremessage_server.h"
 
 
 namespace will {
 
 
-ProtocolAdapter::ProtocolAdapter(domain::MessengerPersistence persistence, TcpConnectionRegistry& registry,
+ProtocolAdapter::ProtocolAdapter(domain::MessengerPersistence persistence, SessionRegistry& registry,
                                  ConnectionAccountStore& account_store)
     : persistence_(persistence)
     , registry_(registry)
@@ -27,43 +22,37 @@ ProtocolAdapter::ProtocolAdapter(domain::MessengerPersistence persistence, TcpCo
 {}
 
 
-void ProtocolAdapter::on_client_payload(const std::uint64_t connection_id, const std::vector<char>& payload)
+void ProtocolAdapter::on_client_event(const std::uint64_t session_id, const v1::ClientEvent& event)
 {
-    const auto message = WireMessageCodec::decode_client(payload);
-    if (!message) {
-        close_with_protocol_error(connection_id, "Protocol error: invalid client frame");
-        return;
-    }
-
-    InboundClientMessageHandler handler{*this, connection_id};
-    handler.on(*message);
+    InboundClientMessageHandler handler{*this, session_id};
+    handler.on(event);
 }
 
 
-void ProtocolAdapter::send_payload(const std::uint64_t connection_id, const std::vector<char>& payload)
+void ProtocolAdapter::send_event(const std::uint64_t session_id, const v1::ServerEvent& event)
 {
-    registry_.enqueue_wire_frame(connection_id, TcpFrame::encode(payload));
+    registry_.enqueue_event(session_id, event);
 }
 
 
-void ProtocolAdapter::close_with_protocol_error(const std::uint64_t connection_id, const std::string_view message)
+void ProtocolAdapter::close_with_protocol_error(const std::uint64_t session_id, const std::string_view message)
 {
-    if (const std::string_view peer_address = registry_.peer_address(connection_id); !peer_address.empty())
-        std::cerr << "Connection " << peer_address << ": " << message << '\n';
+    if (const std::string_view peer_address = registry_.peer_address(session_id); !peer_address.empty())
+        std::cerr << "Session " << peer_address << ": " << message << '\n';
     else
-        std::cerr << "Connection " << connection_id << ": " << message << '\n';
+        std::cerr << "Session " << session_id << ": " << message << '\n';
 
-    close_connection(connection_id);
+    close_session(session_id);
 }
 
 
-void ProtocolAdapter::close_connection(const std::uint64_t connection_id)
+void ProtocolAdapter::close_session(const std::uint64_t session_id)
 {
-    registry_.close_connection(connection_id);
+    registry_.close_session(session_id);
 }
 
 
-void ProtocolAdapter::handle_bind_token(const std::uint64_t connection_id, const BindTokenMessage& token)
+void ProtocolAdapter::handle_bind_token(const std::uint64_t session_id, const v1::BindToken& token)
 {
     const auto now_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
                             std::chrono::system_clock::now().time_since_epoch())
@@ -73,64 +62,76 @@ void ProtocolAdapter::handle_bind_token(const std::uint64_t connection_id, const
     const auto outcome = authenticate_device_.execute(input);
 
     if (std::holds_alternative<domain::AuthError>(outcome)) {
-        send_auth_required(connection_id);
+        send_auth_required(session_id);
         return;
     }
 
     const auto& success = std::get<domain::AuthenticateDeviceSuccess>(outcome);
-    if (const auto displaced = account_store_.set(connection_id, success.account))
-        close_connection(*displaced);
-    send_payload(connection_id, WireMessageCodec::encode(AuthOkMessage{}));
-    registry_.start_heartbeat(connection_id);
+    if (const auto displaced = account_store_.set(session_id, success.account))
+        close_session(*displaced);
+
+    v1::ServerEvent event;
+    event.mutable_auth_ok();
+    send_event(session_id, event);
 }
 
 
-void ProtocolAdapter::send_auth_required(const std::uint64_t connection_id)
+void ProtocolAdapter::send_auth_required(const std::uint64_t session_id)
 {
-    send_payload(connection_id, WireMessageCodec::encode(AuthRequiredMessage{}));
+    v1::ServerEvent event;
+    event.mutable_auth_required();
+    send_event(session_id, event);
 }
 
 
-void ProtocolAdapter::handle_user_chat(const std::uint64_t connection_id, const UserChatMessage& chat)
+void ProtocolAdapter::handle_user_chat(const std::uint64_t session_id, const v1::ChatMessage& chat)
 {
     const auto now_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
                             std::chrono::system_clock::now().time_since_epoch())
                             .count();
 
     const domain::SendChatMessageInput input{
-        *account_store_.get(connection_id),
-        domain::ParticipantId{connection_id},
+        *account_store_.get(session_id),
+        domain::ParticipantId{session_id},
         domain::ChatId::global(),
         chat.body(),
         now_ms,
     };
 
     (void)send_chat_message_.execute(input);
-    send_payload(connection_id, WireMessageCodec::encode(ServerReceiptAckMessage{}));
+
+    v1::ServerEvent event;
+    event.mutable_receipt_ack();
+    send_event(session_id, event);
 }
 
 
-void ProtocolAdapter::handle_history_request(const std::uint64_t connection_id,
-                                             const HistoryRequestMessage& request)
+void ProtocolAdapter::handle_history_request(const std::uint64_t session_id, const v1::HistoryRequest& request)
 {
-    const domain::FetchChatHistoryInput input{*account_store_.get(connection_id), domain::ChatId::global(),
+    const domain::FetchChatHistoryInput input{*account_store_.get(session_id), domain::ChatId::global(),
                                               request.limit()};
 
     const auto outcome = fetch_chat_history_.execute(input);
     if (const auto* error = std::get_if<domain::DomainError>(&outcome)) {
         (void)error;
-        close_with_protocol_error(connection_id, "Protocol error: invalid HistoryRequest");
+        close_with_protocol_error(session_id, "Protocol error: invalid HistoryRequest");
         return;
     }
 
     const auto& history = std::get<domain::FetchChatHistoryResult>(outcome);
     for (const domain::FetchChatHistoryItem& item : history.items) {
-        send_payload(connection_id,
-                     WireMessageCodec::encode(HistoryItemMessage{item.message.id, item.is_mine,
-                                                                 item.message.author_name, item.message.body}));
+        v1::ServerEvent event;
+        auto* history_item = event.mutable_history_item();
+        history_item->set_message_id(item.message.id);
+        history_item->set_is_mine(item.is_mine);
+        history_item->set_name(item.message.author_name);
+        history_item->set_body(item.message.body);
+        send_event(session_id, event);
     }
 
-    send_payload(connection_id, WireMessageCodec::encode(HistoryEndMessage{}));
+    v1::ServerEvent end_event;
+    end_event.mutable_history_end();
+    send_event(session_id, end_event);
 }
 
 

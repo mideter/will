@@ -1,0 +1,65 @@
+syntax = "proto3";
+
+package will.v1;
+
+
+service Messenger {
+    rpc Session(stream ClientEvent) returns (stream ServerEvent) {}
+}
+
+
+message BindToken {
+   string token = 1;
+}
+
+
+message ChatMessage {
+    string name = 1;
+    string body = 2;
+}
+
+
+message HistoryRequest {
+    uint32 limit = 1;
+}
+
+
+message AuthRequired {}
+
+
+message AuthOk {}
+
+
+message ReceiptAck {}
+
+
+message HistoryItem {
+    uint64 message_id = 1;
+    bool is_mine = 2;
+    string name = 3;
+    string body = 4;
+}
+
+
+message HistoryEnd {}
+
+
+message ClientEvent {
+    oneof event {
+        BindToken bind_token = 1;
+        ChatMessage chat = 2;
+        HistoryRequest history_request = 3;
+    }
+}
+
+
+message ServerEvent {
+    oneof event {
+        AuthRequired auth_required = 1;
+        AuthOk auth_ok = 2;
+        ChatMessage chat = 3;
+        ReceiptAck receipt_ack = 4;
+        HistoryItem history_item = 5;
+        HistoryEnd history_end = 6;
+    }
+}

@@ -11,10 +11,6 @@ local function with_run_dep(dep_name)
     end)
 end
 
-test_target("wire-message-test")
-    add_files("wire_message_test.cpp")
-    add_deps("will-protocol")
-
 test_target("device-token-test")
     add_files("device_token_test.cpp")
     add_deps("will-domain")
@@ -22,10 +18,6 @@ test_target("device-token-test")
 test_target("user-name-test")
     add_files("user_name_test.cpp")
     add_deps("will-domain")
-
-test_target("tcp-framed-channel-test")
-    add_files("tcp_framed_channel_test.cpp")
-    add_deps("will-transport")
 
 test_target("will-server-config-test")
     add_files(
@@ -40,7 +32,6 @@ test_target("will-cli-test")
     add_includedirs(
         "$(projectdir)/src/server/config",
         "$(projectdir)/src/server/cli")
-    add_deps("will-protocol")
     add_packages("cli11")
 
 test_target("will-client-config-test")
@@ -48,9 +39,7 @@ test_target("will-client-config-test")
         "client_config_test.cpp",
         "$(projectdir)/src/client/clientconfigvalidator.cpp")
     add_includedirs("$(projectdir)/src/client")
-    add_defines("ASIO_STANDALONE")
     add_deps("will-domain")
-    add_packages("asio")
 
 test_target("will-client-cli-test")
     add_files(
@@ -59,7 +48,6 @@ test_target("will-client-cli-test")
     add_includedirs(
         "$(projectdir)/src/client",
         "$(projectdir)/src/client/cli")
-    add_deps("will-protocol")
     add_packages("cli11")
 
 test_target("will-client-cli-integration-test")
@@ -76,7 +64,8 @@ test_target("will-server-cli-integration-test")
 
 test_target("will-history-integration-test")
     add_files("history_integration_test.cpp")
-    add_deps("will-server", "will-protocol")
+    add_deps("will-server", "will_proto")
+    add_packages("pkgconfig::protobuf", "pkgconfig::grpc++")
     with_run_dep("will-server")
 
 test_target("will-connection-account-store-test")
@@ -88,12 +77,8 @@ test_target("will-connection-account-store-test")
 
 test_target("will-session-takeover-integration-test")
     add_files("session_takeover_integration_test.cpp")
-    add_deps("will-server", "will-protocol")
-    with_run_dep("will-server")
-
-test_target("will-heartbeat-integration-test")
-    add_files("heartbeat_integration_test.cpp")
-    add_deps("will-server", "will-protocol")
+    add_deps("will-server", "will_proto")
+    add_packages("pkgconfig::protobuf", "pkgconfig::grpc++")
     with_run_dep("will-server")
 
 test_target("will-domain-test")

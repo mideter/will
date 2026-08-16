@@ -176,9 +176,9 @@ int main(int argc, char* argv[])
         assert_contains(result.stderr_output, "listen_port");
     });
 
-    run_case("--io-threads abc prints error and usage, exits ConversionError", [&] {
-        check_cli_error(server_exe, {"--io-threads", "abc"},
-                        static_cast<int>(CLI::ExitCodes::ConversionError), "--io-threads");
+    run_case("--max-clients abc prints error and usage, exits ConversionError", [&] {
+        check_cli_error(server_exe, {"--max-clients", "abc"},
+                        static_cast<int>(CLI::ExitCodes::ConversionError), "--max-clients");
     });
 
     std::cout << "\nAll tests passed.\n";

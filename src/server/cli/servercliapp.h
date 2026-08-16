@@ -30,12 +30,10 @@ private:
     CLI::App app_;
 
     int port_;
-    int io_threads_;
-    int listen_backlog_;
     std::size_t max_clients_;
     std::string db_path_;
-    int heartbeat_interval_seconds_;
-    int heartbeat_timeout_seconds_;
+    int keepalive_interval_seconds_;
+    int keepalive_timeout_seconds_;
 };
 
 

@@ -16,7 +16,7 @@ StandardOutput=journal
 StandardError=journal
 SyslogIdentifier=will-server
 
-# Thousands of concurrent TCP sessions
+# Thousands of concurrent gRPC sessions
 LimitNOFILE=65535
 
 # Hardening (optional; safe for this daemon)

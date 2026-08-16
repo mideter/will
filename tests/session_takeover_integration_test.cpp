@@ -1,26 +1,20 @@
-#include "wiremessage.h"
-#include "wiremessage_codec.h"
-#include "wiremessage_client.h"
-#include "wiremessage_server.h"
-#include "wiremessage_user_chat.h"
-#include "tcpframe.h"
+#include "proto/messenger.grpc.pb.h"
+
+#include <grpcpp/grpcpp.h>
 
 #include <arpa/inet.h>
-#include <fcntl.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <sys/wait.h>
 #include <unistd.h>
 
-#include <array>
-#include <cassert>
+#include <atomic>
 #include <chrono>
 #include <cstdlib>
-#include <cstring>
 #include <iostream>
+#include <memory>
 #include <string>
 #include <thread>
-#include <vector>
 
 
 namespace {
@@ -49,93 +43,75 @@ int connect_tcp(const char* host, std::uint16_t port)
 }
 
 
-void send_all(int fd, const char* data, std::size_t len)
+using SessionStream = grpc::ClientReaderWriter<will::v1::ClientEvent, will::v1::ServerEvent>;
+
+
+struct GrpcSession {
+    std::shared_ptr<grpc::Channel> channel;
+    std::unique_ptr<will::v1::Messenger::Stub> stub;
+    std::unique_ptr<grpc::ClientContext> context = std::make_unique<grpc::ClientContext>();
+    std::unique_ptr<SessionStream> stream;
+};
+
+
+GrpcSession open_session(const std::uint16_t port)
 {
-    std::size_t sent = 0;
-    while (sent < len) {
-        const ssize_t n = ::send(fd, data + sent, len - sent, MSG_NOSIGNAL);
-        assert(n > 0);
-        sent += static_cast<std::size_t>(n);
-    }
+    GrpcSession session;
+    const std::string target = "127.0.0.1:" + std::to_string(port);
+    session.channel = grpc::CreateChannel(target, grpc::InsecureChannelCredentials());
+    session.stub = will::v1::Messenger::NewStub(session.channel);
+    session.stream = session.stub->Session(session.context.get());
+    return session;
 }
 
 
-void send_payload(int fd, const std::vector<char>& payload)
+bool bind_device_token(SessionStream& stream, const char* device_token)
 {
-    const std::vector<char> wire_bytes = will::TcpFrame::encode(payload);
-    send_all(fd, wire_bytes.data(), wire_bytes.size());
+    will::v1::ClientEvent event;
+    event.mutable_bind_token()->set_token(device_token);
+    if (!stream.Write(event))
+        return false;
+
+    will::v1::ServerEvent response;
+    if (!stream.Read(&response))
+        return false;
+    return response.has_auth_ok();
 }
 
 
-std::vector<char> read_payload(int fd)
+bool drain_receipt_ack(SessionStream& stream)
 {
-    std::array<unsigned char, 4> header{};
-    std::size_t got = 0;
-    while (got < 4) {
-        const ssize_t n = ::recv(fd, header.data() + got, 4 - got, 0);
-        assert(n > 0);
-        got += static_cast<std::size_t>(n);
-    }
-
-    const std::size_t plen = will::TcpFrame::read_u32_be(header);
-    assert(plen > 0);
-
-    std::vector<char> payload(plen);
-    got = 0;
-    while (got < plen) {
-        const ssize_t n = ::recv(fd, payload.data() + got, plen - got, 0);
-        assert(n > 0);
-        got += static_cast<std::size_t>(n);
-    }
-
-    return payload;
+    will::v1::ServerEvent event;
+    if (!stream.Read(&event))
+        return false;
+    return event.has_receipt_ack();
 }
 
 
-void bind_device_token(int fd, const char* device_token)
+/** Wait until stream Read fails (peer cancelled/closed), or timeout. */
+bool wait_for_stream_end(GrpcSession& session, std::chrono::milliseconds timeout)
 {
-    send_payload(fd, will::WireMessageCodec::encode(will::BindTokenMessage{device_token}));
+    std::atomic<bool> done{false};
+    std::atomic<bool> ended{false};
 
-    const auto auth_payload = read_payload(fd);
-    const auto auth_message = will::WireMessageCodec::decode_server(auth_payload);
-    assert(auth_message);
-    assert(dynamic_cast<const will::AuthOkMessage*>(auth_message.get()) != nullptr);
-}
+    std::thread reader([&] {
+        will::v1::ServerEvent event;
+        ended.store(!session.stream->Read(&event));
+        done.store(true);
+    });
 
-
-void drain_receipt_ack(int fd)
-{
-    const auto payload = read_payload(fd);
-    const auto message = will::WireMessageCodec::decode_server(payload);
-    assert(message);
-    assert(dynamic_cast<const will::ServerReceiptAckMessage*>(message.get()) != nullptr);
-}
-
-
-bool wait_for_eof(int fd, std::chrono::milliseconds timeout)
-{
     const auto deadline = std::chrono::steady_clock::now() + timeout;
-    const int flags = ::fcntl(fd, F_GETFL, 0);
-    assert(flags >= 0);
-    assert(::fcntl(fd, F_SETFL, flags | O_NONBLOCK) == 0);
+    while (!done.load() && std::chrono::steady_clock::now() < deadline)
+        std::this_thread::sleep_for(std::chrono::milliseconds(20));
 
-    char buf[1];
-    while (std::chrono::steady_clock::now() < deadline) {
-        const ssize_t n = ::recv(fd, buf, sizeof(buf), 0);
-        if (n == 0) {
-            ::fcntl(fd, F_SETFL, flags);
-            return true;
-        }
-        if (n < 0 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(10));
-            continue;
-        }
-        ::fcntl(fd, F_SETFL, flags);
+    if (!done.load()) {
+        session.context->TryCancel();
+        reader.join();
         return false;
     }
 
-    ::fcntl(fd, F_SETFL, flags);
-    return false;
+    reader.join();
+    return ended.load();
 }
 
 
@@ -152,8 +128,8 @@ pid_t start_server(const char* server_exe, std::uint16_t port, const std::string
         return pid;
 
     const std::string port_str = std::to_string(port);
-    execl(server_exe, server_exe, "--port", port_str.c_str(), "--io-threads", "1", "--db-path",
-          db_path.c_str(), static_cast<char*>(nullptr));
+    execl(server_exe, server_exe, "--port", port_str.c_str(), "--db-path", db_path.c_str(),
+          static_cast<char*>(nullptr));
     _exit(127);
 }
 
@@ -166,23 +142,17 @@ void stop_server(pid_t pid)
 }
 
 
-void wait_for_server(std::uint16_t port)
+bool wait_for_server(std::uint16_t port)
 {
     for (int attempt = 0; attempt < 50; ++attempt) {
         const int fd = connect_tcp("127.0.0.1", port);
         if (fd >= 0) {
             ::close(fd);
-            return;
+            return true;
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(20));
     }
-    assert(false && "server did not start");
-}
-
-
-void print_usage(const char* program)
-{
-    std::cerr << "Usage: " << program << " <path-to-will-server>\n";
+    return false;
 }
 
 
@@ -195,7 +165,7 @@ constexpr const char* DeviceToken = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
 int main(int argc, char* argv[])
 {
     if (argc < 2) {
-        print_usage(argv[0]);
+        std::cerr << "Usage: " << argv[0] << " <path-to-will-server>\n";
         return EXIT_FAILURE;
     }
 
@@ -206,24 +176,48 @@ int main(int argc, char* argv[])
     ::unlink(db_path.c_str());
 
     const pid_t server_pid = start_server(server_exe, port, db_path);
-    assert(server_pid > 0);
-    wait_for_server(port);
+    if (server_pid <= 0) {
+        std::cerr << "fork failed\n";
+        return EXIT_FAILURE;
+    }
+    if (!wait_for_server(port)) {
+        std::cerr << "server did not start\n";
+        stop_server(server_pid);
+        return EXIT_FAILURE;
+    }
 
-    const int first_fd = connect_tcp("127.0.0.1", port);
-    assert(first_fd >= 0);
-    bind_device_token(first_fd, DeviceToken);
+    GrpcSession first = open_session(port);
+    if (!first.stream || !bind_device_token(*first.stream, DeviceToken)) {
+        std::cerr << "first session failed\n";
+        stop_server(server_pid);
+        return EXIT_FAILURE;
+    }
 
-    const int second_fd = connect_tcp("127.0.0.1", port);
-    assert(second_fd >= 0);
-    bind_device_token(second_fd, DeviceToken);
+    GrpcSession second = open_session(port);
+    if (!second.stream || !bind_device_token(*second.stream, DeviceToken)) {
+        std::cerr << "second session failed\n";
+        first.context->TryCancel();
+        stop_server(server_pid);
+        return EXIT_FAILURE;
+    }
 
-    assert(wait_for_eof(first_fd, std::chrono::seconds(2)));
+    if (!wait_for_stream_end(first, std::chrono::seconds(2))) {
+        std::cerr << "displaced session did not end\n";
+        second.context->TryCancel();
+        stop_server(server_pid);
+        return EXIT_FAILURE;
+    }
 
-    send_payload(second_fd, will::WireMessageCodec::encode(will::UserChatMessage{"after-takeover"}));
-    drain_receipt_ack(second_fd);
+    will::v1::ClientEvent chat;
+    chat.mutable_chat()->set_body("after-takeover");
+    if (!second.stream->Write(chat) || !drain_receipt_ack(*second.stream)) {
+        std::cerr << "post-takeover chat failed\n";
+        second.context->TryCancel();
+        stop_server(server_pid);
+        return EXIT_FAILURE;
+    }
 
-    ::close(first_fd);
-    ::close(second_fd);
+    second.context->TryCancel();
     stop_server(server_pid);
     ::unlink(db_path.c_str());
 

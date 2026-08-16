@@ -1,6 +1,6 @@
 #pragma once
 
-#include "wiremessage.h"
+#include "proto/messenger.pb.h"
 
 #include <cstdint>
 
@@ -13,16 +13,16 @@ class ProtocolAdapter;
 
 class InboundClientMessageHandler final {
 public:
-    InboundClientMessageHandler(ProtocolAdapter& adapter, std::uint64_t connection_id);
+    InboundClientMessageHandler(ProtocolAdapter& adapter, std::uint64_t session_id);
 
-    void on(const ClientMessage& message);
+    void on(const v1::ClientEvent& event);
 
 private:
-    void on_bound_message(const ClientMessage& message);
-    void on_unbound_message(const ClientMessage& message);
+    void on_bound_event(const v1::ClientEvent& event);
+    void on_unbound_event(const v1::ClientEvent& event);
 
     ProtocolAdapter& adapter_;
-    std::uint64_t connection_id_;
+    std::uint64_t session_id_;
 };
 
 

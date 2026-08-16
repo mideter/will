@@ -50,12 +50,10 @@ std::optional<std::string_view> ServerConfigValidator::positive_reason(const T v
 void ServerConfigValidator::validate(const ServerConfig& config)
 {
     require("listen_port", listen_port_reason(config.listen_port));
-    require("io_threads", positive_reason(config.io_threads));
-    require("listen_backlog", positive_reason(config.listen_backlog));
     require("max_connections", positive_reason(config.max_connections));
     require("db_path", db_path_reason(config.db_path));
-    require("heartbeat_interval_seconds", positive_reason(config.heartbeat_interval_seconds));
-    require("heartbeat_timeout_seconds", positive_reason(config.heartbeat_timeout_seconds));
+    require("keepalive_interval_seconds", positive_reason(config.keepalive_interval_seconds));
+    require("keepalive_timeout_seconds", positive_reason(config.keepalive_timeout_seconds));
 }
 
 

@@ -1,6 +1,6 @@
 #include "clientconfigvalidator.h"
 
-#include <asio.hpp>
+#include <arpa/inet.h>
 
 #include <format>
 
@@ -26,11 +26,9 @@ std::optional<std::string_view> ClientConfigValidator::host_reason(const std::st
     if (host.empty())
         return "must not be empty";
 
-    try {
-        (void)asio::ip::make_address_v4(host);
-    } catch (...) {
+    in_addr addr{};
+    if (::inet_pton(AF_INET, host.c_str(), &addr) != 1)
         return "must be a valid IPv4 address";
-    }
 
     return std::nullopt;
 }

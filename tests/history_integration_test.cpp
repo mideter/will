@@ -1,9 +1,6 @@
-#include "wiremessage.h"
-#include "wiremessage_codec.h"
-#include "wiremessage_client.h"
-#include "wiremessage_server.h"
-#include "wiremessage_user_chat.h"
-#include "tcpframe.h"
+#include "proto/messenger.grpc.pb.h"
+
+#include <grpcpp/grpcpp.h>
 
 #include <arpa/inet.h>
 #include <netinet/in.h>
@@ -11,15 +8,13 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-#include <array>
 #include <cassert>
 #include <chrono>
 #include <cstdlib>
-#include <cstring>
 #include <iostream>
+#include <memory>
 #include <string>
 #include <thread>
-#include <vector>
 
 
 namespace {
@@ -48,71 +43,66 @@ int connect_tcp(const char* host, std::uint16_t port)
 }
 
 
-void send_all(int fd, const char* data, std::size_t len)
+using SessionStream = grpc::ClientReaderWriter<will::v1::ClientEvent, will::v1::ServerEvent>;
+
+
+struct GrpcSession {
+    std::shared_ptr<grpc::Channel> channel;
+    std::unique_ptr<will::v1::Messenger::Stub> stub;
+    std::unique_ptr<grpc::ClientContext> context = std::make_unique<grpc::ClientContext>();
+    std::unique_ptr<SessionStream> stream;
+};
+
+
+GrpcSession open_session(const std::uint16_t port)
 {
-    std::size_t sent = 0;
-    while (sent < len) {
-        const ssize_t n = ::send(fd, data + sent, len - sent, MSG_NOSIGNAL);
-        assert(n > 0);
-        sent += static_cast<std::size_t>(n);
-    }
+    GrpcSession session;
+    const std::string target = "127.0.0.1:" + std::to_string(port);
+    session.channel = grpc::CreateChannel(target, grpc::InsecureChannelCredentials());
+    session.stub = will::v1::Messenger::NewStub(session.channel);
+    session.stream = session.stub->Session(session.context.get());
+    return session;
 }
 
 
-void send_payload(int fd, const std::vector<char>& payload)
+void bind_device_token(SessionStream& stream, const char* device_token)
 {
-    const std::vector<char> wire_bytes = will::TcpFrame::encode(payload);
-    send_all(fd, wire_bytes.data(), wire_bytes.size());
+    will::v1::ClientEvent event;
+    event.mutable_bind_token()->set_token(device_token);
+    assert(stream.Write(event));
+
+    will::v1::ServerEvent response;
+    assert(stream.Read(&response));
+    assert(response.has_auth_ok());
 }
 
 
-std::vector<char> read_payload(int fd)
+void drain_receipt_ack(SessionStream& stream)
 {
-    std::array<unsigned char, 4> header{};
-    std::size_t got = 0;
-    while (got < 4) {
-        const ssize_t n = ::recv(fd, header.data() + got, 4 - got, 0);
-        assert(n > 0);
-        got += static_cast<std::size_t>(n);
-    }
-
-    const std::size_t plen = will::TcpFrame::read_u32_be(header);
-    assert(plen > 0);
-
-    std::vector<char> payload(plen);
-    got = 0;
-    while (got < plen) {
-        const ssize_t n = ::recv(fd, payload.data() + got, plen - got, 0);
-        assert(n > 0);
-        got += static_cast<std::size_t>(n);
-    }
-
-    return payload;
+    will::v1::ServerEvent event;
+    assert(stream.Read(&event));
+    assert(event.has_receipt_ack());
 }
 
 
-void drain_receipt_ack(int fd)
+void send_chat(SessionStream& stream, const char* body)
 {
-    const auto payload = read_payload(fd);
-    const auto message = will::WireMessageCodec::decode_server(payload);
-    assert(message);
-    assert(dynamic_cast<const will::ServerReceiptAckMessage*>(message.get()) != nullptr);
+    will::v1::ClientEvent event;
+    event.mutable_chat()->set_body(body);
+    assert(stream.Write(event));
+}
+
+
+void send_history_request(SessionStream& stream, std::uint32_t limit)
+{
+    will::v1::ClientEvent event;
+    event.mutable_history_request()->set_limit(limit);
+    assert(stream.Write(event));
 }
 
 
 constexpr const char* SenderToken = "11111111111111111111111111111111";
 constexpr const char* ViewerToken = "22222222222222222222222222222222";
-
-
-void bind_device_token(int fd, const char* device_token)
-{
-    send_payload(fd, will::WireMessageCodec::encode(will::BindTokenMessage{device_token}));
-
-    const auto auth_payload = read_payload(fd);
-    const auto auth_message = will::WireMessageCodec::decode_server(auth_payload);
-    assert(auth_message);
-    assert(dynamic_cast<const will::AuthOkMessage*>(auth_message.get()) != nullptr);
-}
 
 
 std::uint16_t pick_port()
@@ -128,8 +118,8 @@ pid_t start_server(const char* server_exe, std::uint16_t port, const std::string
         return pid;
 
     const std::string port_str = std::to_string(port);
-    execl(server_exe, server_exe, "--port", port_str.c_str(), "--io-threads", "1", "--db-path",
-          db_path.c_str(), static_cast<char*>(nullptr));
+    execl(server_exe, server_exe, "--port", port_str.c_str(), "--db-path", db_path.c_str(),
+          static_cast<char*>(nullptr));
     _exit(127);
 }
 
@@ -182,62 +172,53 @@ int main(int argc, char* argv[])
     assert(server_pid > 0);
     wait_for_server(port);
 
-    const int sender_fd = connect_tcp("127.0.0.1", port);
-    assert(sender_fd >= 0);
-    bind_device_token(sender_fd, SenderToken);
-    send_payload(sender_fd, will::WireMessageCodec::encode(will::UserChatMessage{"hello-from-sender"}));
-    drain_receipt_ack(sender_fd);
+    GrpcSession sender = open_session(port);
+    assert(sender.stream);
+    bind_device_token(*sender.stream, SenderToken);
+    send_chat(*sender.stream, "hello-from-sender");
+    drain_receipt_ack(*sender.stream);
 
-    const int viewer_fd = connect_tcp("127.0.0.1", port);
-    assert(viewer_fd >= 0);
-    bind_device_token(viewer_fd, ViewerToken);
-    send_payload(viewer_fd, will::WireMessageCodec::encode(will::HistoryRequestMessage{10}));
+    GrpcSession viewer = open_session(port);
+    assert(viewer.stream);
+    bind_device_token(*viewer.stream, ViewerToken);
+    send_history_request(*viewer.stream, 10);
 
-    const auto first_item = read_payload(viewer_fd);
-    const auto parsed_first_message = will::WireMessageCodec::decode_server(first_item);
-    assert(parsed_first_message);
-    const auto* parsed_first = dynamic_cast<const will::HistoryItemMessage*>(parsed_first_message.get());
-    assert(parsed_first);
-    assert(parsed_first->body() == "hello-from-sender");
-    assert(!parsed_first->is_mine());
-    assert(!parsed_first->name().empty());
-    assert(parsed_first->name().size() == 8);
+    will::v1::ServerEvent first_item;
+    assert(viewer.stream->Read(&first_item));
+    assert(first_item.has_history_item());
+    assert(first_item.history_item().body() == "hello-from-sender");
+    assert(!first_item.history_item().is_mine());
+    assert(!first_item.history_item().name().empty());
+    assert(first_item.history_item().name().size() == 8);
 
-    const auto end = read_payload(viewer_fd);
-    const auto end_message = will::WireMessageCodec::decode_server(end);
-    assert(end_message);
-    assert(dynamic_cast<const will::HistoryEndMessage*>(end_message.get()) != nullptr);
+    will::v1::ServerEvent end;
+    assert(viewer.stream->Read(&end));
+    assert(end.has_history_end());
 
-    send_payload(sender_fd, will::WireMessageCodec::encode(will::UserChatMessage{"hello-again"}));
-    drain_receipt_ack(sender_fd);
-    send_payload(sender_fd, will::WireMessageCodec::encode(will::HistoryRequestMessage{10}));
+    send_chat(*sender.stream, "hello-again");
+    drain_receipt_ack(*sender.stream);
+    send_history_request(*sender.stream, 10);
 
-    const auto own_item = read_payload(sender_fd);
-    const auto parsed_own_message = will::WireMessageCodec::decode_server(own_item);
-    assert(parsed_own_message);
-    const auto* parsed_own = dynamic_cast<const will::HistoryItemMessage*>(parsed_own_message.get());
-    assert(parsed_own);
-    assert(parsed_own->body() == "hello-from-sender");
-    assert(parsed_own->is_mine());
-    assert(!parsed_own->name().empty());
+    will::v1::ServerEvent own_item;
+    assert(sender.stream->Read(&own_item));
+    assert(own_item.has_history_item());
+    assert(own_item.history_item().body() == "hello-from-sender");
+    assert(own_item.history_item().is_mine());
+    assert(!own_item.history_item().name().empty());
 
-    const auto own_second = read_payload(sender_fd);
-    const auto parsed_second_message = will::WireMessageCodec::decode_server(own_second);
-    assert(parsed_second_message);
-    const auto* parsed_second = dynamic_cast<const will::HistoryItemMessage*>(parsed_second_message.get());
-    assert(parsed_second);
-    assert(parsed_second->body() == "hello-again");
-    assert(parsed_second->is_mine());
-    assert(!parsed_second->name().empty());
-    assert(parsed_second->name() == parsed_own->name());
+    will::v1::ServerEvent own_second;
+    assert(sender.stream->Read(&own_second));
+    assert(own_second.has_history_item());
+    assert(own_second.history_item().body() == "hello-again");
+    assert(own_second.history_item().is_mine());
+    assert(own_second.history_item().name() == own_item.history_item().name());
 
-    const auto sender_end = read_payload(sender_fd);
-    const auto sender_end_message = will::WireMessageCodec::decode_server(sender_end);
-    assert(sender_end_message);
-    assert(dynamic_cast<const will::HistoryEndMessage*>(sender_end_message.get()) != nullptr);
+    will::v1::ServerEvent sender_end;
+    assert(sender.stream->Read(&sender_end));
+    assert(sender_end.has_history_end());
 
-    ::close(sender_fd);
-    ::close(viewer_fd);
+    sender.context->TryCancel();
+    viewer.context->TryCancel();
     stop_server(server_pid);
     ::unlink(db_path.c_str());
 

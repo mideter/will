@@ -24,8 +24,7 @@ void WillServer::run()
 void WillServer::log_startup(const ServerConfig& config)
 {
     std::cout << "Starting Will Messenger Server v" << Version << " on port " << config.listen_port
-              << " (max " << config.max_connections << " clients, " << config.io_threads
-              << " io threads)\n";
+              << " (max " << config.max_connections << " clients, gRPC)\n";
 }
 
 

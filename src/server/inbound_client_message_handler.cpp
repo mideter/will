@@ -1,69 +1,64 @@
 #include "inbound_client_message_handler.h"
 
 #include "protocoladapter.h"
-#include "wiremessage_client.h"
-#include "wiremessage_user_chat.h"
 
 
 namespace will {
 
 
 InboundClientMessageHandler::InboundClientMessageHandler(ProtocolAdapter& adapter,
-                                                         const std::uint64_t connection_id)
+                                                         const std::uint64_t session_id)
     : adapter_(adapter)
-    , connection_id_(connection_id)
+    , session_id_(session_id)
 {}
 
 
-void InboundClientMessageHandler::on(const ClientMessage& message)
+void InboundClientMessageHandler::on(const v1::ClientEvent& event)
 {
-    if (adapter_.account_store_.has(connection_id_)) {
-        on_bound_message(message);
+    if (adapter_.account_store_.has(session_id_)) {
+        on_bound_event(event);
         return;
     }
 
-    on_unbound_message(message);
+    on_unbound_event(event);
 }
 
 
-void InboundClientMessageHandler::on_bound_message(const ClientMessage& message)
+void InboundClientMessageHandler::on_bound_event(const v1::ClientEvent& event)
 {
-    if (const auto* chat = dynamic_cast<const UserChatMessage*>(&message)) {
-        adapter_.handle_user_chat(connection_id_, *chat);
+    switch (event.event_case()) {
+    case v1::ClientEvent::kChat:
+        adapter_.handle_user_chat(session_id_, event.chat());
         return;
+    case v1::ClientEvent::kHistoryRequest:
+        adapter_.handle_history_request(session_id_, event.history_request());
+        return;
+    case v1::ClientEvent::kBindToken:
+        adapter_.handle_bind_token(session_id_, event.bind_token());
+        return;
+    case v1::ClientEvent::EVENT_NOT_SET:
+        break;
     }
 
-    if (const auto* history = dynamic_cast<const HistoryRequestMessage*>(&message)) {
-        adapter_.handle_history_request(connection_id_, *history);
-        return;
-    }
-
-    if (const auto* token = dynamic_cast<const BindTokenMessage*>(&message)) {
-        adapter_.handle_bind_token(connection_id_, *token);
-        return;
-    }
-
-    if (dynamic_cast<const PongMessage*>(&message) != nullptr)
-        return;
-
-    adapter_.close_with_protocol_error(connection_id_, "Protocol error: unhandled client message type");
+    adapter_.close_with_protocol_error(session_id_, "Protocol error: unhandled client message type");
 }
 
 
-void InboundClientMessageHandler::on_unbound_message(const ClientMessage& message)
+void InboundClientMessageHandler::on_unbound_event(const v1::ClientEvent& event)
 {
-    if (const auto* token = dynamic_cast<const BindTokenMessage*>(&message)) {
-        adapter_.handle_bind_token(connection_id_, *token);
+    switch (event.event_case()) {
+    case v1::ClientEvent::kBindToken:
+        adapter_.handle_bind_token(session_id_, event.bind_token());
         return;
+    case v1::ClientEvent::kChat:
+    case v1::ClientEvent::kHistoryRequest:
+        adapter_.send_auth_required(session_id_);
+        return;
+    case v1::ClientEvent::EVENT_NOT_SET:
+        break;
     }
 
-    if (dynamic_cast<const UserChatMessage*>(&message) != nullptr
-        || dynamic_cast<const HistoryRequestMessage*>(&message) != nullptr) {
-        adapter_.send_auth_required(connection_id_);
-        return;
-    }
-
-    adapter_.close_with_protocol_error(connection_id_, "Protocol error: unhandled client message type");
+    adapter_.close_with_protocol_error(session_id_, "Protocol error: unhandled client message type");
 }
 
 

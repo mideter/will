@@ -2,8 +2,6 @@
 
 #include "consoleui.h"
 #include "willclient.h"
-#include "wiremessage_server.h"
-#include "wiremessage_user_chat.h"
 
 #include <stdexcept>
 
@@ -14,24 +12,12 @@ namespace will {
 namespace {
 
 
-void print_history_item(ConsoleUi& ui, const HistoryItemMessage& item)
+void print_history_item(ConsoleUi& ui, const v1::HistoryItem& item)
 {
     if (item.is_mine())
         ui.print_mine(item.body(), true);
     else
         ui.print_peer(item.name(), item.body(), true);
-}
-
-
-[[noreturn]] void throw_unexpected_history_message()
-{
-    throw std::runtime_error("Unexpected message while loading history");
-}
-
-
-[[noreturn]] void throw_unhandled_server_message()
-{
-    throw std::runtime_error("Will protocol: unhandled server message type");
 }
 
 
@@ -43,19 +29,18 @@ LoadingHistoryMessageHandler::LoadingHistoryMessageHandler(ConsoleUi& ui)
 {}
 
 
-void LoadingHistoryMessageHandler::on(const ServerMessage& message)
+void LoadingHistoryMessageHandler::on(const v1::ServerEvent& event)
 {
-    if (const auto* item = dynamic_cast<const HistoryItemMessage*>(&message)) {
-        print_history_item(ui_, *item);
+    switch (event.event_case()) {
+    case v1::ServerEvent::kHistoryItem:
+        print_history_item(ui_, event.history_item());
         return;
-    }
-
-    if (dynamic_cast<const HistoryEndMessage*>(&message) != nullptr) {
+    case v1::ServerEvent::kHistoryEnd:
         history_finished_ = true;
         return;
+    default:
+        throw std::runtime_error("Unexpected message while loading history");
     }
-
-    throw_unexpected_history_message();
 }
 
 
@@ -65,35 +50,28 @@ ReceivingMessageHandler::ReceivingMessageHandler(const WillClient& client, Conso
 {}
 
 
-void ReceivingMessageHandler::on(const ServerMessage& message)
+void ReceivingMessageHandler::on(const v1::ServerEvent& event)
 {
-    if (dynamic_cast<const AuthOkMessage*>(&message) != nullptr
-        || dynamic_cast<const AuthRequiredMessage*>(&message) != nullptr)
+    switch (event.event_case()) {
+    case v1::ServerEvent::kAuthOk:
+    case v1::ServerEvent::kAuthRequired:
+    case v1::ServerEvent::kHistoryEnd:
         return;
-
-    if (dynamic_cast<const ServerReceiptAckMessage*>(&message) != nullptr) {
+    case v1::ServerEvent::kReceiptAck:
         if (!client_.config().quiet_receipts)
             ui_.print_receipt();
         return;
+    case v1::ServerEvent::kHistoryItem:
+        print_history_item(ui_, event.history_item());
+        return;
+    case v1::ServerEvent::kChat:
+        ui_.print_peer(event.chat().name(), event.chat().body());
+        return;
+    case v1::ServerEvent::EVENT_NOT_SET:
+        break;
     }
 
-    if (dynamic_cast<const PingMessage*>(&message) != nullptr)
-        return;
-
-    if (const auto* item = dynamic_cast<const HistoryItemMessage*>(&message)) {
-        print_history_item(ui_, *item);
-        return;
-    }
-
-    if (const auto* chat = dynamic_cast<const UserChatMessage*>(&message)) {
-        ui_.print_peer(chat->name(), chat->body());
-        return;
-    }
-
-    if (dynamic_cast<const HistoryEndMessage*>(&message) != nullptr)
-        return;
-
-    throw_unhandled_server_message();
+    throw std::runtime_error("Will protocol: unhandled server message type");
 }
 
 

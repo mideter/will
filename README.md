@@ -1,14 +1,14 @@
 # Will
 
-Will is a C++20 TCP messenger with a dedicated server and chat client. Clients authenticate with a persistent device token (one user per device), exchange messages in real time, and can load recent chat history from SQLite on connect.
+Will is a C++20 gRPC messenger with a dedicated server and chat client. Clients authenticate with a persistent device token (one user per device), exchange messages in real time, and can load recent chat history from SQLite on connect.
 
 ## Features
 
 - **Device-token authentication** — each client generates a persistent token on first run; one token maps to one user account
 - **Persistent chat** — messages stored in SQLite (`will.db` by default)
 - **Chat history** — clients can request the last *N* messages on connect (`--history`, default 50)
-- **Load testing** — `will-load-clients` opens many concurrent authenticated connections
-- **Layered design** — domain use cases, protocol codec, Asio-based TCP transport
+- **Load testing** — `will-load-clients` opens many concurrent authenticated sessions
+- **Layered design** — domain use cases, protobuf/gRPC transport, SQLite persistence
 
 ## Requirements
 
@@ -16,14 +16,15 @@ Will is a C++20 TCP messenger with a dedicated server and chat client. Clients a
 - C++20 compiler (GCC 10+, Clang 12+, or equivalent)
 - SQLite3 development libraries
 - OpenSSL development libraries (`libssl-dev` / `openssl-devel`)
-- pthreads
+- gRPC and Protobuf development libraries (`libgrpc++-dev`, `libprotobuf-dev`, `protobuf-compiler`, `protobuf-compiler-grpc`)
 
-[ASIO](https://github.com/chriskohlhoff/asio) and [CLI11](https://github.com/CLIUtils/CLI11) are pulled automatically by xmake.
+[CLI11](https://github.com/CLIUtils/CLI11) is pulled automatically by xmake. gRPC/Protobuf come from the system via pkg-config.
 
 On Debian/Ubuntu:
 
 ```bash
-sudo apt install build-essential xmake libsqlite3-dev libssl-dev
+sudo apt install build-essential xmake libsqlite3-dev libssl-dev \
+  libgrpc++-dev libprotobuf-dev protobuf-compiler protobuf-compiler-grpc
 ```
 
 ## Build
@@ -36,9 +37,9 @@ All binaries are written to `build/`:
 
 | Binary | Description |
 |--------|-------------|
-| `will-server` | TCP server with device-token auth and message persistence |
+| `will-server` | gRPC server with device-token auth and message persistence |
 | `will-client` | Interactive chat client |
-| `will-load-clients` | Concurrent connection / message load generator |
+| `will-load-clients` | Concurrent session / message load generator |
 
 ## Quick start (local development)
 
@@ -68,21 +69,22 @@ Run any binary with `--help` for the full option list.
 
 ### will-server
 
-Listens on TCP port **7770** by default. Key options:
+Listens on gRPC port **7770** by default. Key options:
 
 | Option | Default | Description |
 |--------|---------|-------------|
 | `--port` | `7770` | Listen port |
 | `--db-path` | `will.db` | SQLite database file |
-| `--max-clients` | `4096` | Max concurrent connections |
-| `--io-threads` | `4` | `io_context` worker threads |
+| `--max-clients` | `4096` | Max concurrent sessions |
+| `--keepalive-interval` | `30` | gRPC HTTP/2 keepalive ping interval (seconds) |
+| `--keepalive-timeout` | `10` | gRPC HTTP/2 keepalive ping timeout (seconds) |
 
 ### will-client
 
 | Option | Default | Description |
 |--------|---------|-------------|
 | `--host` | `127.0.0.1` | Server IPv4 address |
-| `--port` | `7770` | Server TCP port |
+| `--port` | `7770` | Server gRPC port |
 | `--device-token-path` | `will.device_token` | Path to persistent device token file |
 | `--history` | `50` | Request last *N* messages on connect |
 | `--no-history` | — | Skip history request |
@@ -92,11 +94,11 @@ Listens on TCP port **7770** by default. Key options:
 
 | Option | Default | Description |
 |--------|---------|-------------|
-| `--clients` | `100` | Concurrent connections |
+| `--clients` | `100` | Concurrent sessions |
 | `--messages` | `0` | Chat messages per client (`0` = idle only) |
-| `--hold-seconds` | `30` | Keep connections open |
+| `--hold-seconds` | `30` | Keep sessions open |
 
-Example — 2000 idle connections for 10 seconds:
+Example — 2000 idle sessions for 10 seconds:
 
 ```bash
 ./build/will-server &
@@ -110,23 +112,22 @@ xmake
 xmake test
 ```
 
-The test suite covers wire protocol encoding, domain logic, SQLite persistence, CLI parsing, and integration tests that spawn `will-server` / `will-client`.
+The test suite covers domain logic, SQLite persistence, CLI parsing, and integration tests that spawn `will-server` / `will-client`.
 
 ## Project layout
 
 ```
+proto/                 messenger.proto (gRPC Messenger.Session)
 src/
-  domain/          Entities, ports, and use cases (auth, chat, history)
+  domain/              Entities, ports, and use cases (auth, chat, history)
   infra/
-    protocol/      Wire message codec and framing
-    persistence/   SQLite repositories
-    transport/     TCP framed channel (Asio)
-  server/          will-server: connections, auth, protocol adapter
-  client/          will-client: session, inbound handler, CLI
+    persistence/       SQLite repositories
+  server/              will-server: sessions, auth, gRPC service
+  client/              will-client: session, inbound handler, CLI
 tools/
-  load_clients.cpp   will-load-clients entry point
-tests/               Unit and integration tests
-packaging/deb/       Debian package and systemd unit
+  load_clients.cpp     will-load-clients entry point
+tests/                 Unit and integration tests
+packaging/deb/         Debian package and systemd unit
 ```
 
 ## Debian packaging

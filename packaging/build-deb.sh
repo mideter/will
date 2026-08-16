@@ -61,9 +61,9 @@ Section: net
 Priority: optional
 Architecture: ${ARCH}
 Maintainer: Unmaintained snapshot <root@localhost>
-Depends: adduser, libc6, libgcc-s1 | libgcc1, libsqlite3-0, libstdc++6
-Description: Will Messenger TCP server
- Standalone server binary for the Will messenger protocol.
+Depends: adduser, libc6, libgcc-s1 | libgcc1, libgrpc++1.51t64 | libgrpc++1.51, libprotobuf32t64 | libprotobuf32, libsqlite3-0, libssl3, libstdc++6
+Description: Will Messenger gRPC server
+ Standalone gRPC server for the Will messenger.
  Installs systemd unit will-server.service (user will-server).
 EOF
 

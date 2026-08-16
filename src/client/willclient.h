@@ -1,46 +1,42 @@
 #pragma once
 
-#include "tcpframedchannel.h"
-#include "tcpstreamsocket.h"
+#include "clientconfig.h"
 
-#include <asio.hpp>
+#include "proto/messenger.grpc.pb.h"
 
+#include <grpcpp/grpcpp.h>
+
+#include <atomic>
 #include <cstdint>
-#include <future>
 #include <functional>
+#include <future>
 #include <memory>
 #include <mutex>
-#include <string>
 #include <string_view>
 #include <thread>
-#include <vector>
-
-#include "clientconfig.h"
 
 
 namespace will {
 
 
-// TCP: TcpFrame; payload is typed wire message (see wiremessage.h).
 class WillClient {
 public:
     WillClient();
     explicit WillClient(ClientConfig config);
 
-    /** Sync TCP connect; starts I/O thread and {@link TcpFramedChannel}. */
+    /** Opens a gRPC channel and starts Messenger.Session. */
     void connect();
 
-    /** Sends {@link BindTokenMessage} with the device token (requires prior {@link #connect}). */
+    /** Sends BindToken and waits for AuthOk. */
     void authenticate_device(std::string_view device_token);
 
-    /** Called on the channel strand; post to another executor if needed. */
-    void set_inbound_handler(std::function<void(std::vector<char>)> handler);
+    /** Called from the inbound reader thread. */
+    void set_inbound_handler(std::function<void(const v1::ServerEvent&)> handler);
     void set_closed_handler(std::function<void()> handler);
 
-    /** Sends {@link UserChatMessage} with UTF-8 body (requires prior {@link #authenticate_device}). */
     void send(std::string_view utf8_chat_body) const;
 
-    /** Sends {@link HistoryRequestMessage} with the given limit; returns false when limit is 0. */
+    /** Sends HistoryRequest; returns false when limit is 0. */
     bool requestHistory(std::uint32_t limit) const;
 
     void shutdown() const;
@@ -48,26 +44,31 @@ public:
     const ClientConfig& config() const noexcept;
 
 private:
-    std::vector<char> wait_for_auth_response();
-    void dispatch_inbound(std::vector<char> payload);
+    v1::ServerEvent wait_for_auth_response();
+    void dispatch_inbound(const v1::ServerEvent& event);
     void dispatch_closed();
-    bool try_handle_ping(const std::vector<char>& payload);
-
-    mutable asio::io_context ioc_;
-    mutable TcpStreamSocket socket_;
-    TcpFramedChannel::Strand strand_{asio::make_strand(ioc_)};
-    std::shared_ptr<TcpFramedChannel> channel_;
-    mutable std::jthread io_thread_;
+    void reader_loop();
+    bool write_event(const v1::ClientEvent& event) const;
 
     ClientConfig config_;
 
+    mutable std::shared_ptr<grpc::Channel> channel_;
+    mutable std::unique_ptr<v1::Messenger::Stub> stub_;
+    mutable std::unique_ptr<grpc::ClientContext> context_;
+    using Stream = grpc::ClientReaderWriter<v1::ClientEvent, v1::ServerEvent>;
+    mutable std::shared_ptr<Stream> stream_;
+
+    mutable std::mutex write_mutex_;
+    mutable std::jthread reader_thread_;
+
     mutable std::mutex handler_mutex_;
-    std::function<void(std::vector<char>)> inbound_handler_;
+    std::function<void(const v1::ServerEvent&)> inbound_handler_;
     std::function<void()> closed_handler_;
 
-    std::shared_ptr<std::promise<std::vector<char>>> pending_auth_;
+    std::shared_ptr<std::promise<v1::ServerEvent>> pending_auth_;
     mutable bool authenticated_ = false;
     mutable bool shutdown_done_ = false;
+    mutable std::atomic<bool> closed_{false};
 };
 
 

@@ -37,41 +37,29 @@ int main()
 
     {
         ServerConfig config;
-        config.io_threads = 0;
-        assert_throws_field(config, "io_threads");
-    }
-
-    {
-        ServerConfig config;
-        config.listen_backlog = 0;
-        assert_throws_field(config, "listen_backlog");
-    }
-
-    {
-        ServerConfig config;
         config.max_connections = 0;
         assert_throws_field(config, "max_connections");
     }
 
     {
         ServerConfig config;
-        config.heartbeat_interval_seconds = 0;
-        assert_throws_field(config, "heartbeat_interval_seconds");
+        config.keepalive_interval_seconds = 0;
+        assert_throws_field(config, "keepalive_interval_seconds");
     }
 
     {
         ServerConfig config;
-        config.heartbeat_timeout_seconds = 0;
-        assert_throws_field(config, "heartbeat_timeout_seconds");
+        config.keepalive_timeout_seconds = 0;
+        assert_throws_field(config, "keepalive_timeout_seconds");
     }
 
     {
         ServerConfig config;
         config.listen_port = 9000;
-        config.io_threads = 2;
+        config.max_connections = 2;
         const ServerConfig accepted = ServerConfigValidator::accept(std::move(config));
         assert(accepted.listen_port == 9000);
-        assert(accepted.io_threads == 2);
+        assert(accepted.max_connections == 2);
     }
 
     return EXIT_SUCCESS;

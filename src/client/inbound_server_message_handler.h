@@ -1,6 +1,6 @@
 #pragma once
 
-#include "wiremessage.h"
+#include "proto/messenger.pb.h"
 
 
 namespace will {
@@ -16,7 +16,7 @@ public:
 
     bool history_finished() const noexcept { return history_finished_; }
 
-    void on(const ServerMessage& message);
+    void on(const v1::ServerEvent& event);
 
 private:
     ConsoleUi& ui_;
@@ -28,7 +28,7 @@ class ReceivingMessageHandler final {
 public:
     ReceivingMessageHandler(const WillClient& client, ConsoleUi& ui);
 
-    void on(const ServerMessage& message);
+    void on(const v1::ServerEvent& event);
 
 private:
     const WillClient& client_;

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "asioserver.h"
+#include "grpcserver.h"
 #include "serverconfig.h"
 #include "sqlite_persistence_bundle.h"
 
@@ -10,7 +10,7 @@ namespace will {
 
 class WillServer {
 public:
-    static constexpr const char* Version = "5.3.0";
+    static constexpr const char* Version = "6.0.0";
 
     explicit WillServer(ServerConfig config = {});
 
@@ -21,7 +21,7 @@ private:
 
     ServerConfig config_;
     SqlitePersistenceBundle persistence_;
-    AsioMessengerServer server_;
+    GrpcMessengerServer server_;
 };
 
 

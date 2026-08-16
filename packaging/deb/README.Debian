@@ -1,7 +1,7 @@
 will-server for Debian
 ----------------------
 
-The server listens on TCP port 7770 by default (override with --port).
+The server listens on gRPC port 7770 by default (override with --port).
 
 After installation the systemd unit `will-server.service` is enabled.
 Logs: journalctl -u will-server -f
@@ -19,9 +19,9 @@ registered automatically on first successful authentication.
 Scaling (single process)
 ------------------------
 
-will-server uses an asynchronous I/O model (standalone Asio) suitable for
-roughly 2k-5k concurrent connections on one host, depending on CPU, RAM, and
-message rate.
+will-server uses gRPC (HTTP/2) with a synchronous Session handler per client,
+suitable for roughly 2k concurrent sessions on one host, depending on CPU, RAM,
+and message rate.
 
 Recommended production settings:
 
@@ -29,12 +29,12 @@ Recommended production settings:
 - Ensure the process ulimits allow open files: ulimit -n
 - Optional CLI flags:
     --max-clients 4096
-    --listen-backlog 1024
-    --io-threads 4
+    --keepalive-interval 30
+    --keepalive-timeout 10
 
 Load testing:
 
   will-server --port 7770 &
   will-load-clients --host 127.0.0.1 --port 7770 --clients 2000 --hold-seconds 10
 
-Acceptance: 2000 idle connections with failures=0 in load_clients output.
+Acceptance: 2000 idle sessions with failures=0 in load_clients output.
