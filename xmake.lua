@@ -4,7 +4,7 @@ set_languages("c++20")
 set_warnings("all")
 set_targetdir("$(projectdir)/build")
 
-add_requires("cli11 2.5.0", "openssl", "sqlite3")
+add_requires("cli11 2.5.0", "sqlite3")
 add_requires("pkgconfig::protobuf")
 add_requires("pkgconfig::grpc++")
 
@@ -27,7 +27,7 @@ target("will-persistence")
     set_kind("static")
     add_files("src/infra/persistence/**.cpp")
     add_includedirs("src/infra/persistence", {public = true})
-    add_packages("openssl", "sqlite3", {public = true})
+    add_packages("sqlite3", {public = true})
     add_deps("will-domain")
 
 target("will-server")

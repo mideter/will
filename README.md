@@ -15,7 +15,6 @@ Will is a C++20 gRPC messenger with a dedicated server and chat client. Clients 
 - [xmake](https://xmake.io)
 - C++20 compiler (GCC 10+, Clang 12+, or equivalent)
 - SQLite3 development libraries
-- OpenSSL development libraries (`libssl-dev` / `openssl-devel`)
 - gRPC and Protobuf development libraries (`libgrpc++-dev`, `libprotobuf-dev`, `protobuf-compiler`, `protobuf-compiler-grpc`)
 
 [CLI11](https://github.com/CLIUtils/CLI11) is pulled automatically by xmake. gRPC/Protobuf come from the system via pkg-config.
@@ -23,7 +22,7 @@ Will is a C++20 gRPC messenger with a dedicated server and chat client. Clients 
 On Debian/Ubuntu:
 
 ```bash
-sudo apt install build-essential xmake libsqlite3-dev libssl-dev \
+sudo apt install build-essential xmake libsqlite3-dev \
   libgrpc++-dev libprotobuf-dev protobuf-compiler protobuf-compiler-grpc
 ```
 
