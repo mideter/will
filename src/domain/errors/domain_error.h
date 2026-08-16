@@ -4,12 +4,6 @@
 namespace will::domain {
 
 
-enum class AuthResult {
-    ExpiredToken,
-    NotAuthenticated,
-};
-
-
 enum class DomainErrorCode {
     InvalidArgument,
     NotAuthenticated,
