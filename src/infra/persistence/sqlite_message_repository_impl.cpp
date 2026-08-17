@@ -15,7 +15,7 @@ SqliteMessageRepositoryImpl::SqliteMessageRepositoryImpl(SqliteDatabase& databas
 
 
 domain::Message SqliteMessageRepositoryImpl::append(const domain::ChatId chat, const domain::UserId author,
-                                                    const std::string_view body, const domain::TimestampMs ts)
+                                                    const std::string_view body, const domain::Timestamp ts)
 {
     std::lock_guard lock(database_.mutex());
 
@@ -32,7 +32,7 @@ domain::Message SqliteMessageRepositoryImpl::append(const domain::ChatId chat, c
                  "bind author_user_id");
     check_sqlite(sqlite3_bind_text(stmt, 3, body.data(), static_cast<int>(body.size()), SQLITE_TRANSIENT),
                  db, "bind body");
-    check_sqlite(sqlite3_bind_int64(stmt, 4, ts), db, "bind created_at_ms");
+    check_sqlite(sqlite3_bind_int64(stmt, 4, ts.value()), db, "bind created_at_ms");
 
     check_sqlite(sqlite3_step(stmt), db, "insert message step");
     sqlite3_finalize(stmt);
@@ -70,7 +70,9 @@ std::vector<domain::Message> SqliteMessageRepositoryImpl::load_last(const domain
         row.chat_id = domain::ChatId{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 1))};
         row.author_id = domain::UserId{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 2))};
         row.body = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3));
-        row.created_at = sqlite3_column_int64(stmt, 4);
+        const auto created_at = domain::Timestamp::parse(sqlite3_column_int64(stmt, 4));
+        check_sqlite(created_at.has_value() ? SQLITE_OK : SQLITE_CORRUPT, db, "parse created_at_ms");
+        row.created_at = *created_at;
         if (const unsigned char* name = sqlite3_column_text(stmt, 5))
             row.author_name = reinterpret_cast<const char*>(name);
         rows.push_back(std::move(row));

@@ -60,7 +60,7 @@ private:
 
 class InMemoryMessageRepository final : public MessageRepository {
 public:
-    Message append(ChatId chat, UserId author, std::string_view body, TimestampMs ts) override
+    Message append(ChatId chat, UserId author, std::string_view body, Timestamp ts) override
     {
         Message msg;
         msg.id = ++next_id_;

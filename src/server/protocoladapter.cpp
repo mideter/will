@@ -3,7 +3,8 @@
 #include "inbound_client_message_handler.h"
 #include "sessionregistry.h"
 
-#include <chrono>
+#include "support/timestamp.h"
+
 #include <iostream>
 
 
@@ -54,11 +55,7 @@ void ProtocolAdapter::close_session(const std::uint64_t session_id)
 
 void ProtocolAdapter::handle_bind_token(const std::uint64_t session_id, const v1::BindToken& token)
 {
-    const auto now_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
-                            std::chrono::system_clock::now().time_since_epoch())
-                            .count();
-
-    const domain::AuthenticateDeviceInput input{token.token(), now_ms};
+    const domain::AuthenticateDeviceInput input{token.token(), domain::Timestamp::now()};
     const auto outcome = authenticate_device_.execute(input);
 
     if (std::holds_alternative<domain::AuthError>(outcome)) {
@@ -86,16 +83,12 @@ void ProtocolAdapter::send_auth_required(const std::uint64_t session_id)
 
 void ProtocolAdapter::handle_user_chat(const std::uint64_t session_id, const v1::ChatMessage& chat)
 {
-    const auto now_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
-                            std::chrono::system_clock::now().time_since_epoch())
-                            .count();
-
     const domain::SendChatMessageInput input{
         *account_store_.get(session_id),
         domain::ParticipantId{session_id},
         domain::ChatId::global(),
         chat.body(),
-        now_ms,
+        domain::Timestamp::now(),
     };
 
     (void)send_chat_message_.execute(input);

@@ -4,6 +4,7 @@
 
 #include "entities/chat_id.h"
 #include "entities/user_id.h"
+#include "support/timestamp.h"
 
 #include <cassert>
 #include <cstdlib>
@@ -27,8 +28,8 @@ int main()
     const User user_b = users.create_user("bbbb1234bbbb1234bbbb1234bbbb1234", "namebbbb");
     const ChatId chat = ChatId::global();
 
-    messages.append(chat, user_a.id, "from-peer", 1000);
-    messages.append(chat, user_b.id, "from-me", 2000);
+    messages.append(chat, user_a.id, "from-peer", *Timestamp::parse(1000));
+    messages.append(chat, user_b.id, "from-me", *Timestamp::parse(2000));
 
     const auto rows = messages.load_last(chat, 10);
     assert(rows.size() == 2);

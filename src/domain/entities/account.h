@@ -1,7 +1,7 @@
 #pragma once
 
 #include "auth_token.h"
-#include "message.h"
+#include "support/timestamp.h"
 #include "user_id.h"
 
 
@@ -12,7 +12,7 @@ namespace will::domain {
 struct Account {
     UserId user_id{};
     AuthToken session_token;
-    TimestampMs authenticated_at = 0;
+    Timestamp authenticated_at{};
     std::string name;
 };
 

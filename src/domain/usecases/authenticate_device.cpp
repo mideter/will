@@ -25,7 +25,7 @@ std::variant<AuthenticateDeviceSuccess, AuthError> AuthenticateDevice::execute(c
         user->name = name;
     }
 
-    return AuthenticateDeviceSuccess{Account{user->id, token->value(), input.now_ms, user->name}};
+    return AuthenticateDeviceSuccess{Account{user->id, token->value(), input.now, user->name}};
 }
 
 

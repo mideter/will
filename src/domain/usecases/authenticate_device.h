@@ -14,7 +14,7 @@ namespace will::domain {
 
 struct AuthenticateDeviceInput {
     std::string_view device_token_raw;
-    TimestampMs now_ms = 0;
+    Timestamp now{};
 };
 
 

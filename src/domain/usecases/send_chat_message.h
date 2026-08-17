@@ -18,7 +18,7 @@ struct SendChatMessageInput {
     ParticipantId sender;
     ChatId chat_id = ChatId::global();
     std::string_view body;
-    TimestampMs created_at = 0;
+    Timestamp created_at{};
 };
 
 

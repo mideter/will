@@ -14,7 +14,7 @@ public:
     explicit SqliteMessageRepositoryImpl(SqliteDatabase& database);
 
     domain::Message append(domain::ChatId chat, domain::UserId author, std::string_view body,
-                           domain::TimestampMs ts) override;
+                           domain::Timestamp ts) override;
 
     std::vector<domain::Message> load_last(domain::ChatId chat, std::uint32_t limit) override;
 

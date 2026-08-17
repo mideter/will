@@ -5,6 +5,7 @@
 #include "errors/auth_error.h"
 #include "errors/domain_error.h"
 #include "support/device_token.h"
+#include "support/timestamp.h"
 #include "support/user_name.h"
 #include "usecases/authenticate_device.h"
 #include "usecases/fetch_chat_history.h"
@@ -28,7 +29,7 @@ void test_authenticate_device_creates_user()
     AuthenticateDevice authenticate(users);
 
     const AuthToken token = DeviceToken::generate();
-    const auto result = authenticate.execute(AuthenticateDeviceInput{token.value, 1000});
+    const auto result = authenticate.execute(AuthenticateDeviceInput{token.value, *Timestamp::parse(1000)});
     assert(std::holds_alternative<AuthenticateDeviceSuccess>(result));
 
     const AuthenticateDeviceSuccess& success = std::get<AuthenticateDeviceSuccess>(result);
@@ -50,7 +51,7 @@ void test_authenticate_device_existing_user()
 
     AuthenticateDevice authenticate(users);
     const auto result = authenticate.execute(
-        AuthenticateDeviceInput{"abcd1234abcd1234abcd1234abcd1234", 1000});
+        AuthenticateDeviceInput{"abcd1234abcd1234abcd1234abcd1234", *Timestamp::parse(1000)});
     assert(std::holds_alternative<AuthenticateDeviceSuccess>(result));
     assert(std::get<AuthenticateDeviceSuccess>(result).account.user_id == UserId{42});
 
@@ -67,7 +68,7 @@ void test_authenticate_device_keeps_existing_name()
 
     AuthenticateDevice authenticate(users);
     const auto result = authenticate.execute(
-        AuthenticateDeviceInput{"abcd1234abcd1234abcd1234abcd1234", 1000});
+        AuthenticateDeviceInput{"abcd1234abcd1234abcd1234abcd1234", *Timestamp::parse(1000)});
     assert(std::holds_alternative<AuthenticateDeviceSuccess>(result));
 
     const std::optional<User> user = users.find_by_device_token("abcd1234abcd1234abcd1234abcd1234");
@@ -81,7 +82,7 @@ void test_authenticate_device_invalid_token()
     FakeUserRepository users;
     AuthenticateDevice authenticate(users);
 
-    const auto result = authenticate.execute(AuthenticateDeviceInput{"short", 1000});
+    const auto result = authenticate.execute(AuthenticateDeviceInput{"short", *Timestamp::parse(1000)});
     assert(std::holds_alternative<AuthError>(result));
     assert(std::get<AuthError>(result) == AuthError::InvalidToken);
 }
@@ -92,16 +93,17 @@ void test_send_chat_message_persists_and_notifies()
     InMemoryMessageRepository messages;
     FakeParticipantNotifier notifier;
 
-    const Account account{UserId{7}, AuthToken{"tok"}, 500, "sendname"};
+    const Account account{UserId{7}, AuthToken{"tok"}, *Timestamp::parse(500), "sendname"};
     const ParticipantId sender{42};
 
     SendChatMessage send(messages, notifier);
-    const Message saved = send.execute(SendChatMessageInput{account, sender, ChatId::global(), "hello", 900});
+    const Message saved =
+        send.execute(SendChatMessageInput{account, sender, ChatId::global(), "hello", *Timestamp::parse(900)});
 
     assert(saved.id > 0);
     assert(saved.author_id == account.user_id);
     assert(saved.body == "hello");
-    assert(saved.created_at == 900);
+    assert(saved.created_at == *Timestamp::parse(900));
     assert(saved.author_name == "sendname");
 
     const auto loaded = messages.load_last(ChatId::global(), 10);
@@ -122,17 +124,17 @@ void test_fetch_chat_history_limit_and_is_mine()
     const UserId me{10};
     const UserId other{20};
 
-    messages.append(chat, other, "peer", 1);
-    messages.append(chat, me, "mine", 2);
-    messages.append(chat, other, "peer2", 3);
+    messages.append(chat, other, "peer", *Timestamp::parse(1));
+    messages.append(chat, me, "mine", *Timestamp::parse(2));
+    messages.append(chat, other, "peer2", *Timestamp::parse(3));
 
     FetchChatHistory fetch(messages);
 
-    const auto zero_limit = fetch.execute(FetchChatHistoryInput{Account{me, {}, 0}, chat, 0});
+    const auto zero_limit = fetch.execute(FetchChatHistoryInput{Account{me, {}, {}}, chat, 0});
     assert(std::holds_alternative<DomainError>(zero_limit));
     assert(std::get<DomainError>(zero_limit).code == DomainErrorCode::InvalidArgument);
 
-    const auto ok = fetch.execute(FetchChatHistoryInput{Account{me, {}, 0}, chat, 2});
+    const auto ok = fetch.execute(FetchChatHistoryInput{Account{me, {}, {}}, chat, 2});
     assert(std::holds_alternative<FetchChatHistoryResult>(ok));
 
     const FetchChatHistoryResult& result = std::get<FetchChatHistoryResult>(ok);
@@ -151,11 +153,11 @@ void test_fetch_chat_history_caps_limit()
     const UserId author{1};
 
     for (int i = 0; i < 5; ++i)
-        messages.append(chat, author, "m", static_cast<TimestampMs>(i));
+        messages.append(chat, author, "m", *Timestamp::parse(i));
 
     FetchChatHistory fetch(messages);
     const auto ok = fetch.execute(
-        FetchChatHistoryInput{Account{author, {}, 0}, chat, FetchChatHistory::MaxHistoryRequestLimit + 50});
+        FetchChatHistoryInput{Account{author, {}, {}}, chat, FetchChatHistory::MaxHistoryRequestLimit + 50});
     assert(std::holds_alternative<FetchChatHistoryResult>(ok));
     assert(std::get<FetchChatHistoryResult>(ok).items.size() == 5);
 }
