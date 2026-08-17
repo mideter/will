@@ -8,7 +8,7 @@
 namespace will::domain {
 
 
-/// Unix epoch instant; stored as milliseconds since 1970-01-01 UTC. Must be non-negative.
+/// Unix epoch instant; stored as nanoseconds since 1970-01-01 UTC. Must be non-negative.
 class Timestamp {
 public:
     static std::optional<Timestamp> parse(std::int64_t raw) noexcept;

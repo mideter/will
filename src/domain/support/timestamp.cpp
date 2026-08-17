@@ -5,7 +5,7 @@
 
 using std::chrono::system_clock;
 using std::chrono::duration_cast;
-using std::chrono::milliseconds;
+using std::chrono::nanoseconds;
 
 
 namespace will::domain {
@@ -22,10 +22,9 @@ std::optional<Timestamp> Timestamp::parse(const std::int64_t raw) noexcept
 
 Timestamp Timestamp::now()
 {
-    auto ns = system_clock::now().time_since_epoch();
-    std::int64_t ms = duration_cast<milliseconds>(ns).count();
-
-    return Timestamp{ms};
+    auto tse = system_clock::now().time_since_epoch();
+    auto ns = duration_cast<nanoseconds>(tse).count();
+    return Timestamp{ns};
 }
 
 

@@ -65,6 +65,8 @@ bool needs_schema_reset(sqlite3* db)
 {
     if (table_has_column(db, "messages", "sender_ip"))
         return true;
+    if (table_has_column(db, "messages", "created_at_ms"))
+        return true;
     if (table_has_column(db, "users", "password_hash"))
         return true;
     if (table_has_column(db, "users", "phone"))
@@ -116,10 +118,10 @@ CREATE TABLE IF NOT EXISTS messages (
   chat_id INTEGER NOT NULL,
   author_user_id INTEGER NOT NULL REFERENCES users(id),
   body TEXT NOT NULL,
-  created_at_ms INTEGER NOT NULL
+  created_at_ns INTEGER NOT NULL
 );
 
-CREATE INDEX IF NOT EXISTS idx_messages_created_at ON messages(created_at_ms);
+CREATE INDEX IF NOT EXISTS idx_messages_created_at ON messages(created_at_ns);
 )sql";
 
     check_sqlite(sqlite3_exec(db_, InitSchemaSql, nullptr, nullptr, nullptr), db_, "init_schema");

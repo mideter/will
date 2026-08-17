@@ -22,7 +22,7 @@ domain::Message SqliteMessageRepositoryImpl::append(const domain::ChatId chat, c
     sqlite3* const db = database_.db();
     sqlite3_stmt* stmt = nullptr;
     check_sqlite(sqlite3_prepare_v2(db,
-                                    "INSERT INTO messages (chat_id, author_user_id, body, created_at_ms) "
+                                    "INSERT INTO messages (chat_id, author_user_id, body, created_at_ns) "
                                     "VALUES (?, ?, ?, ?);",
                                     -1, &stmt, nullptr),
                  db, "prepare insert message");
@@ -32,7 +32,7 @@ domain::Message SqliteMessageRepositoryImpl::append(const domain::ChatId chat, c
                  "bind author_user_id");
     check_sqlite(sqlite3_bind_text(stmt, 3, body.data(), static_cast<int>(body.size()), SQLITE_TRANSIENT),
                  db, "bind body");
-    check_sqlite(sqlite3_bind_int64(stmt, 4, ts.value()), db, "bind created_at_ms");
+    check_sqlite(sqlite3_bind_int64(stmt, 4, ts.value()), db, "bind created_at_ns");
 
     check_sqlite(sqlite3_step(stmt), db, "insert message step");
     sqlite3_finalize(stmt);
@@ -50,7 +50,7 @@ std::vector<domain::Message> SqliteMessageRepositoryImpl::load_last(const domain
     sqlite3* const db = database_.db();
     sqlite3_stmt* stmt = nullptr;
     check_sqlite(sqlite3_prepare_v2(db,
-                                    "SELECT m.id, m.chat_id, m.author_user_id, m.body, m.created_at_ms, u.name "
+                                    "SELECT m.id, m.chat_id, m.author_user_id, m.body, m.created_at_ns, u.name "
                                     "FROM messages m "
                                     "JOIN users u ON u.id = m.author_user_id "
                                     "WHERE m.chat_id = ? ORDER BY m.id DESC LIMIT ?;",
@@ -71,7 +71,7 @@ std::vector<domain::Message> SqliteMessageRepositoryImpl::load_last(const domain
         row.author_id = domain::UserId{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 2))};
         row.body = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3));
         const auto created_at = domain::Timestamp::parse(sqlite3_column_int64(stmt, 4));
-        check_sqlite(created_at.has_value() ? SQLITE_OK : SQLITE_CORRUPT, db, "parse created_at_ms");
+        check_sqlite(created_at.has_value() ? SQLITE_OK : SQLITE_CORRUPT, db, "parse created_at_ns");
         row.created_at = *created_at;
         if (const unsigned char* name = sqlite3_column_text(stmt, 5))
             row.author_name = reinterpret_cast<const char*>(name);

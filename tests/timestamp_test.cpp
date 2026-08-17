@@ -17,7 +17,7 @@ int main()
     assert(!Timestamp::parse(-1));
     assert(Timestamp{}.value() == 0);
     assert(Timestamp::parse(0));
-    assert(Timestamp::now().value() >= 0);
+    assert(Timestamp::now().value() >= 1'000'000'000'000'000'000LL);
 
     return EXIT_SUCCESS;
 }
