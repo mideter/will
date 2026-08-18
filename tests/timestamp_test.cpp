@@ -1,4 +1,4 @@
-#include "entities/timestamp.h"
+import will.domain.timestamp;
 
 #include <cassert>
 #include <cstdlib>

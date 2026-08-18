@@ -11,7 +11,7 @@ namespace will::domain {
 struct AuthToken {
     std::string value;
 
-    constexpr AuthToken() noexcept = default;
+    AuthToken() noexcept = default;
     explicit AuthToken(std::string v) : value(std::move(v)) {}
 
     [[nodiscard]] bool empty() const noexcept { return value.empty(); }

@@ -14,6 +14,7 @@ end
 test_target("timestamp-test")
     add_files("timestamp_test.cpp")
     add_deps("will-domain")
+    set_policy("build.c++.modules", true)
 
 test_target("device-token-test")
     add_files("device_token_test.cpp")

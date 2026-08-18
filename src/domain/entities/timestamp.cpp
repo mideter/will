@@ -1,11 +1,13 @@
-#include "timestamp.h"
+module;
 
 #include <chrono>
 
+module will.domain.timestamp;
 
-using std::chrono::system_clock;
+
 using std::chrono::duration_cast;
 using std::chrono::nanoseconds;
+using std::chrono::system_clock;
 
 
 namespace will::domain {

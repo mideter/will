@@ -1,5 +1,9 @@
 #pragma once
 
+// Declarations shared with module will.domain.timestamp (timestamp.cppm).
+// Included from account.h / message.h. In new .cpp files prefer:
+//   import will.domain.timestamp;
+
 #include <compare>
 #include <cstdint>
 #include <optional>
