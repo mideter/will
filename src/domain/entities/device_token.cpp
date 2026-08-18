@@ -1,8 +1,14 @@
-#include "device_token.h"
+module;
 
 #include <cctype>
+#include <cstdint>
 #include <format>
+#include <optional>
 #include <random>
+#include <string>
+#include <string_view>
+
+module will.domain.device_token;
 
 
 namespace will::domain {

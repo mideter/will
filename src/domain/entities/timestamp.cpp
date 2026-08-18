@@ -13,6 +13,9 @@ using std::chrono::system_clock;
 namespace will::domain {
 
 
+Timestamp::Timestamp() noexcept = default;
+
+
 std::optional<Timestamp> Timestamp::parse(const std::int64_t raw) noexcept
 {
     if (raw < 0)

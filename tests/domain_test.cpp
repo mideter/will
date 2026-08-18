@@ -1,26 +1,120 @@
-#include "domain_fakes.h"
-
-#include "entities/chat_id.h"
-#include "entities/participant_id.h"
-#include "errors/auth_error.h"
-#include "errors/domain_error.h"
-#include "entities/device_token.h"
-#include "entities/timestamp.h"
-#include "entities/user_name.h"
-#include "usecases/authenticate_device.h"
-#include "usecases/fetch_chat_history.h"
-#include "usecases/send_chat_message.h"
-
 #include <cassert>
+#include <cstddef>
+#include <cstdint>
 #include <cstdlib>
+#include <map>
+#include <optional>
+#include <string>
+#include <string_view>
 #include <variant>
+#include <vector>
+
+import will.domain;
 
 
 namespace {
 
 
 using namespace will::domain;
-using namespace will::domain::test;
+
+
+class FakeUserRepository final : public UserRepository {
+public:
+    std::optional<User> find_by_device_token(const std::string_view device_token) override
+    {
+        const auto it = by_token_.find(std::string(device_token));
+        if (it == by_token_.end())
+            return std::nullopt;
+        return users_.at(it->second);
+    }
+
+    User create_user(const std::string_view device_token, const std::string_view name) override
+    {
+        const UserId id{++next_user_id_};
+        User user{id, std::string(device_token), std::string(name)};
+        users_.emplace(id, user);
+        by_token_[user.device_token] = id;
+        return user;
+    }
+
+    void set_name(const UserId id, const std::string_view name) override
+    {
+        users_.at(id).name = std::string(name);
+    }
+
+    void add_user(User user)
+    {
+        users_.emplace(user.id, user);
+        by_token_[user.device_token] = user.id;
+    }
+
+private:
+    std::uint64_t next_user_id_ = 0;
+    std::map<UserId, User> users_;
+    std::map<std::string, UserId> by_token_;
+};
+
+
+class InMemoryMessageRepository final : public MessageRepository {
+public:
+    Message append(ChatId chat, UserId author, std::string_view body, Timestamp ts) override
+    {
+        messages_.push_back(Message{
+            .id = ++next_id_,
+            .chat_id = chat,
+            .author_id = author,
+            .body = std::string(body),
+            .created_at = ts,
+            .author_name = {},
+        });
+        return messages_.back();
+    }
+
+    std::vector<Message> load_last(ChatId chat, std::uint32_t limit) override
+    {
+        std::vector<Message> matching;
+        matching.reserve(messages_.size());
+        for (const Message& m : messages_) {
+            if (m.chat_id == chat)
+                matching.push_back(m);
+        }
+        if (limit >= matching.size())
+            return matching;
+        return std::vector<Message>(matching.end() - static_cast<std::ptrdiff_t>(limit), matching.end());
+    }
+
+private:
+    std::uint64_t next_id_ = 0;
+    std::vector<Message> messages_;
+};
+
+
+class FakeParticipantNotifier final : public ParticipantNotifier {
+public:
+    void notify_chat_message(ChatId chat, const Message& msg, ParticipantId except_participant) override
+    {
+        notifications_.push_back(Notification{chat, msg, except_participant});
+    }
+
+    void send_to_participant(ParticipantId id, const OutboundEvent& ev) override
+    {
+        direct_.push_back(Direct{id, ev});
+    }
+
+    struct Notification {
+        ChatId chat;
+        Message message;
+        ParticipantId except;
+    };
+
+    struct Direct {
+        ParticipantId participant;
+        OutboundEvent event;
+    };
+
+    std::vector<Notification> notifications_;
+    std::vector<Direct> direct_;
+};
 
 
 void test_authenticate_device_creates_user()
@@ -37,10 +131,9 @@ void test_authenticate_device_creates_user()
     assert(success.account.session_token == token);
     assert(UserName::is_valid(success.account.name));
 
-    const std::optional<User> user = users.find_by_device_token(token.value);
-    assert(user.has_value());
-    assert(user->id == success.account.user_id);
-    assert(user->name == success.account.name);
+    assert(users.find_by_device_token(token.value).has_value());
+    assert(users.find_by_device_token(token.value)->id == success.account.user_id);
+    assert(users.find_by_device_token(token.value)->name == success.account.name);
 }
 
 
@@ -55,9 +148,8 @@ void test_authenticate_device_existing_user()
     assert(std::holds_alternative<AuthenticateDeviceSuccess>(result));
     assert(std::get<AuthenticateDeviceSuccess>(result).account.user_id == UserId{42});
 
-    const std::optional<User> user = users.find_by_device_token("abcd1234abcd1234abcd1234abcd1234");
-    assert(user.has_value());
-    assert(UserName::is_valid(user->name));
+    assert(users.find_by_device_token("abcd1234abcd1234abcd1234abcd1234").has_value());
+    assert(UserName::is_valid(users.find_by_device_token("abcd1234abcd1234abcd1234abcd1234")->name));
 }
 
 
@@ -71,9 +163,8 @@ void test_authenticate_device_keeps_existing_name()
         AuthenticateDeviceInput{"abcd1234abcd1234abcd1234abcd1234", *Timestamp::parse(1000)});
     assert(std::holds_alternative<AuthenticateDeviceSuccess>(result));
 
-    const std::optional<User> user = users.find_by_device_token("abcd1234abcd1234abcd1234abcd1234");
-    assert(user.has_value());
-    assert(user->name == "keptname");
+    assert(users.find_by_device_token("abcd1234abcd1234abcd1234abcd1234").has_value());
+    assert(users.find_by_device_token("abcd1234abcd1234abcd1234abcd1234")->name == "keptname");
 }
 
 

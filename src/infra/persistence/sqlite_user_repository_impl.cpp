@@ -1,8 +1,15 @@
-#include "sqlite_user_repository_impl.h"
+module;
 
-#include "sqlite_util.h"
-
+#include <cstdint>
+#include <mutex>
+#include <optional>
 #include <sqlite3.h>
+#include <string>
+#include <string_view>
+
+module will.persistence.sqlite_user_repository;
+
+import will.persistence.sqlite_util;
 
 
 namespace will {
@@ -30,12 +37,15 @@ std::optional<domain::User> SqliteUserRepositoryImpl::find_by_device_token(const
     std::optional<domain::User> user;
     const int rc = sqlite3_step(stmt);
     if (rc == SQLITE_ROW) {
-        domain::User row;
-        row.id = domain::UserId{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 0))};
-        row.device_token = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
-        if (const unsigned char* name = sqlite3_column_text(stmt, 2))
-            row.name = reinterpret_cast<const char*>(name);
-        user = std::move(row);
+        std::string name;
+        if (const unsigned char* raw_name = sqlite3_column_text(stmt, 2))
+            name = reinterpret_cast<const char*>(raw_name);
+
+        user = domain::User{
+            .id = domain::UserId{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 0))},
+            .device_token = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1)),
+            .name = std::move(name),
+        };
     }
 
     check_sqlite(rc == SQLITE_ROW ? SQLITE_OK : rc, db, "find_by_device_token step");

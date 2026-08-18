@@ -1,8 +1,8 @@
-#include "clientconfigvalidator.h"
-
 #include <cassert>
 #include <cstdlib>
 #include <string>
+
+import will.client.clientconfigvalidator;
 
 
 namespace {

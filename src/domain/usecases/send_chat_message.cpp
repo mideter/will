@@ -1,4 +1,4 @@
-#include "send_chat_message.h"
+module will.domain.send_chat_message;
 
 
 namespace will::domain {

@@ -1,7 +1,11 @@
-#include "willserver.h"
-#include "serverconfigvalidator.h"
+module;
 
 #include <iostream>
+#include <utility>
+
+module will.server.willserver;
+
+import will.server.serverconfigvalidator;
 
 
 namespace will {
@@ -10,7 +14,7 @@ namespace will {
 WillServer::WillServer(ServerConfig config)
     : config_(ServerConfigValidator::accept(std::move(config)))
     , persistence_(config_.db_path)
-    , server_(config_, persistence_.ports())
+    , server_(config_, &persistence_.messages(), &persistence_.users())
 {}
 
 

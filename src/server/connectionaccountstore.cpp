@@ -1,6 +1,11 @@
-#include "connectionaccountstore.h"
+module;
 
+#include <cstdint>
+#include <mutex>
+#include <optional>
 #include <utility>
+
+module will.server.connectionaccountstore;
 
 
 namespace will {

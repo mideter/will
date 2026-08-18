@@ -1,6 +1,3 @@
-#include "clientcliapp.h"
-#include "clientconfig.h"
-
 #include <CLI/CLI.hpp>
 
 #include <cassert>
@@ -9,6 +6,9 @@
 #include <string>
 #include <string_view>
 #include <vector>
+
+import will.client.clientcliapp;
+import will.client.clientconfig;
 
 
 namespace {

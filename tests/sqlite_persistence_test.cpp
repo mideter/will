@@ -1,15 +1,11 @@
-#include "sqlite_database.h"
-#include "sqlite_message_repository_impl.h"
-#include "sqlite_user_repository_impl.h"
-
-#include "entities/chat_id.h"
-#include "entities/user_id.h"
-#include "entities/timestamp.h"
-
 #include <cassert>
 #include <cstdlib>
+#include <optional>
 #include <string>
 #include <unistd.h>
+
+import will.persistence;
+import will.domain;
 
 
 int main()

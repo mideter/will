@@ -1,6 +1,13 @@
-#include "sessionregistry.h"
+module;
 
+#include "proto/messenger.grpc.pb.h"
+
+#include <grpcpp/grpcpp.h>
+
+#include <mutex>
 #include <utility>
+
+module will.server.sessionregistry;
 
 
 namespace will {

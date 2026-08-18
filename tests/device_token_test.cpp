@@ -1,7 +1,7 @@
-#include "entities/device_token.h"
-
 #include <cassert>
 #include <cstdlib>
+
+import will.domain.device_token;
 
 
 int main()

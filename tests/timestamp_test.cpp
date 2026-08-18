@@ -1,7 +1,7 @@
-import will.domain.timestamp;
-
 #include <cassert>
 #include <cstdlib>
+
+import will.domain.timestamp;
 
 
 int main()

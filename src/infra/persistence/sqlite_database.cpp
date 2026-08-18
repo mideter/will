@@ -1,10 +1,14 @@
-#include "sqlite_database.h"
-
-#include "sqlite_util.h"
+module;
 
 #include <cstring>
 #include <format>
+#include <mutex>
 #include <sqlite3.h>
+#include <string>
+
+module will.persistence.sqlite_database;
+
+import will.persistence.sqlite_util;
 
 
 namespace will {

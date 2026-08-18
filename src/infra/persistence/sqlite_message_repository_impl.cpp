@@ -1,9 +1,16 @@
-#include "sqlite_message_repository_impl.h"
-
-#include "sqlite_util.h"
+module;
 
 #include <algorithm>
+#include <cstdint>
+#include <mutex>
 #include <sqlite3.h>
+#include <string>
+#include <string_view>
+#include <vector>
+
+module will.persistence.sqlite_message_repository;
+
+import will.persistence.sqlite_util;
 
 
 namespace will {
@@ -65,17 +72,21 @@ std::vector<domain::Message> SqliteMessageRepositoryImpl::load_last(const domain
 
     int rc = sqlite3_step(stmt);
     while (rc == SQLITE_ROW) {
-        domain::Message row;
-        row.id = static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 0));
-        row.chat_id = domain::ChatId{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 1))};
-        row.author_id = domain::UserId{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 2))};
-        row.body = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3));
         const auto created_at = domain::Timestamp::parse(sqlite3_column_int64(stmt, 4));
         check_sqlite(created_at.has_value() ? SQLITE_OK : SQLITE_CORRUPT, db, "parse created_at_ns");
-        row.created_at = *created_at;
+
+        std::string author_name;
         if (const unsigned char* name = sqlite3_column_text(stmt, 5))
-            row.author_name = reinterpret_cast<const char*>(name);
-        rows.push_back(std::move(row));
+            author_name = reinterpret_cast<const char*>(name);
+
+        rows.push_back(domain::Message{
+            .id = static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 0)),
+            .chat_id = domain::ChatId{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 1))},
+            .author_id = domain::UserId{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 2))},
+            .body = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3)),
+            .created_at = *created_at,
+            .author_name = std::move(author_name),
+        });
         rc = sqlite3_step(stmt);
     }
 
