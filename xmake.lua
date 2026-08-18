@@ -11,7 +11,11 @@ add_requires("pkgconfig::grpc++")
 target("will-domain")
     set_kind("static")
     add_files("src/domain/**.cpp")
-    add_files("src/domain/entities/timestamp.cppm", {public = true})
+    add_files(
+        "src/domain/entities/timestamp.cppm",
+        "src/domain/entities/account.cppm",
+        "src/domain/entities/message.cppm",
+        {public = true})
     add_includedirs("src/domain", {public = true})
 
 target("will_proto")

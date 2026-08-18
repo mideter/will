@@ -1,5 +1,9 @@
 #pragma once
 
+// Declarations shared with module will.domain.message (message.cppm).
+// Included from use-case / port headers. In new .cpp files prefer:
+//   import will.domain.message;
+
 #include "chat_id.h"
 #include "timestamp.h"
 #include "user_id.h"
