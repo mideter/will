@@ -4,7 +4,7 @@
 
 #include "entities/chat_id.h"
 #include "entities/user_id.h"
-#include "support/timestamp.h"
+#include "entities/timestamp.h"
 
 #include <cassert>
 #include <cstdlib>

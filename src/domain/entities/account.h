@@ -1,7 +1,7 @@
 #pragma once
 
 #include "auth_token.h"
-#include "support/timestamp.h"
+#include "timestamp.h"
 #include "user_id.h"
 
 

@@ -1,6 +1,6 @@
 #include "devicetokenstore.h"
 
-#include "support/device_token.h"
+#include "entities/device_token.h"
 
 #include <fstream>
 #include <stdexcept>

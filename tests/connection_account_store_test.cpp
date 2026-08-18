@@ -1,6 +1,6 @@
 #include "connectionaccountstore.h"
 
-#include "support/timestamp.h"
+#include "entities/timestamp.h"
 
 #include <cassert>
 #include <cstdlib>

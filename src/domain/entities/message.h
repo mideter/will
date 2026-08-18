@@ -1,7 +1,7 @@
 #pragma once
 
 #include "chat_id.h"
-#include "support/timestamp.h"
+#include "timestamp.h"
 #include "user_id.h"
 
 #include <cstdint>

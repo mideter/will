@@ -13,7 +13,7 @@
 #include "clientconfigvalidator.h"
 #include "loadclientsconfigparser.h"
 #include "proto/messenger.grpc.pb.h"
-#include "support/device_token.h"
+#include "entities/device_token.h"
 
 
 namespace {

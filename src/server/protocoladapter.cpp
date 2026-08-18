@@ -3,7 +3,7 @@
 #include "inbound_client_message_handler.h"
 #include "sessionregistry.h"
 
-#include "support/timestamp.h"
+#include "entities/timestamp.h"
 
 #include <iostream>
 

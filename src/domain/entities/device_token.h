@@ -1,6 +1,6 @@
 #pragma once
 
-#include "entities/auth_token.h"
+#include "auth_token.h"
 
 #include <optional>
 #include <string_view>
