@@ -4,6 +4,7 @@ set_languages("c++20")
 set_warnings("all")
 set_targetdir("$(projectdir)/build")
 set_policy("build.c++.modules.gcc.cxx11abi", true)
+set_policy("build.c++.modules.std", false)
 
 add_requires("cli11 2.5.0", "sqlite3")
 add_requires("pkgconfig::protobuf")
