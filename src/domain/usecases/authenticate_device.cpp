@@ -1,13 +1,7 @@
-module;
+#include "authenticate_device.h"
 
-#include <optional>
-#include <string>
-#include <variant>
-
-module will.domain.authenticate_device;
-
-import will.domain.device_token;
-import will.domain.user_name;
+#include "entities/device_token.h"
+#include "entities/user_name.h"
 
 
 namespace will::domain {

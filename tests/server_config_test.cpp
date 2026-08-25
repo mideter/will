@@ -1,8 +1,8 @@
+#include "serverconfigvalidator.h"
+
 #include <cassert>
 #include <cstdlib>
 #include <string>
-
-import will.server.serverconfigvalidator;
 
 
 namespace {

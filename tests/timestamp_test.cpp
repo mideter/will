@@ -1,7 +1,7 @@
+#include "entities/timestamp.h"
+
 #include <cassert>
 #include <cstdlib>
-
-import will.domain.timestamp;
 
 
 int main()

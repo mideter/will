@@ -1,11 +1,6 @@
-module;
+#include "user_name.h"
 
-#include <cstddef>
 #include <random>
-#include <string>
-#include <string_view>
-
-module will.domain.user_name;
 
 
 namespace will::domain {

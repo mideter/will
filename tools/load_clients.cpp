@@ -1,9 +1,6 @@
-#include <CLI/CLI.hpp>
-
 #include <atomic>
 #include <chrono>
 #include <cstdlib>
-#include <exception>
 #include <format>
 #include <iostream>
 #include <memory>
@@ -13,10 +10,10 @@
 
 #include <grpcpp/grpcpp.h>
 
+#include "clientconfigvalidator.h"
+#include "loadclientsconfigparser.h"
 #include "proto/messenger.grpc.pb.h"
-
-import will.client.clientconfigvalidator;
-import will.tools.loadclientscliapp;
+#include "entities/device_token.h"
 
 
 namespace {
@@ -85,16 +82,8 @@ void client_worker(const will::LoadClientsConfig& config, const std::size_t clie
 
 int main(int argc, char* argv[])
 try {
-    will::LoadClientsCliApp cli;
-    will::LoadClientsConfig config;
-    try {
-        config = cli.parse(argc, argv);
-    } catch (const CLI::CallForHelp& error) {
-        cli.exit_on_help(error);
-    } catch (const CLI::ParseError& error) {
-        cli.exit_on_parse_error(error);
-    }
-
+    const will::LoadClientsConfigParser cli(argc, argv);
+    will::LoadClientsConfig config = cli.load_config();
     config.connection = will::ClientConfigValidator::accept(std::move(config.connection));
 
     std::atomic<std::size_t> failures{0};

@@ -1,123 +1,44 @@
-module;
+#include "protocoladapter.h"
 
-#include "proto/messenger.pb.h"
+#include "inbound_client_message_handler.h"
+#include "sessionregistry.h"
+
+#include "entities/timestamp.h"
 
 #include <iostream>
-#include <memory>
-#include <string>
-#include <string_view>
-
-module will.server.protocoladapter;
-
-import will.server.protocol_logic;
 
 
 namespace will {
 
 
-struct ProtocolAdapter::Impl {
-    Impl(void* messages, void* users, void* registry, void* account_store, EnqueueEventFn enqueue,
-         CloseSessionFn close, PeerAddressFn peer, BroadcastChatFn broadcast)
-        : registry_(registry)
-        , enqueue_(enqueue)
-        , close_(close)
-        , peer_(peer)
-        , runtime_(messages, users, account_store, registry, reinterpret_cast<BroadcastChat>(broadcast))
-    {}
-
-    void on_client_event(std::uint64_t session_id, const v1::ClientEvent& event);
-    void on_bound_event(std::uint64_t session_id, const v1::ClientEvent& event);
-    void on_unbound_event(std::uint64_t session_id, const v1::ClientEvent& event);
-    void handle_bind_token(std::uint64_t session_id, const v1::BindToken& token);
-    void handle_user_chat(std::uint64_t session_id, const v1::ChatMessage& chat);
-    void handle_history_request(std::uint64_t session_id, const v1::HistoryRequest& request);
-    void send_auth_required(std::uint64_t session_id);
-    void send_event(std::uint64_t session_id, const v1::ServerEvent& event);
-    void close_with_protocol_error(std::uint64_t session_id, std::string_view message);
-    void close_session(std::uint64_t session_id);
-
-    void* registry_;
-    EnqueueEventFn enqueue_;
-    CloseSessionFn close_;
-    PeerAddressFn peer_;
-    SessionRuntime runtime_;
-};
-
-
-ProtocolAdapter::ProtocolAdapter(void* messages, void* users, void* registry, void* account_store,
-                                 EnqueueEventFn enqueue, CloseSessionFn close, PeerAddressFn peer,
-                                 BroadcastChatFn broadcast)
-    : impl_(std::make_unique<Impl>(messages, users, registry, account_store, enqueue, close, peer, broadcast))
+ProtocolAdapter::ProtocolAdapter(domain::MessengerPersistence persistence, SessionRegistry& registry,
+                                 ConnectionAccountStore& account_store)
+    : persistence_(persistence)
+    , registry_(registry)
+    , account_store_(account_store)
+    , participant_notifier_(registry)
+    , authenticate_device_(persistence.users)
+    , send_chat_message_(persistence.messages, participant_notifier_)
+    , fetch_chat_history_(persistence.messages)
 {}
-
-
-ProtocolAdapter::~ProtocolAdapter() = default;
 
 
 void ProtocolAdapter::on_client_event(const std::uint64_t session_id, const v1::ClientEvent& event)
 {
-    impl_->on_client_event(session_id, event);
+    InboundClientMessageHandler handler{*this, session_id};
+    handler.on(event);
 }
 
 
-void ProtocolAdapter::Impl::on_client_event(const std::uint64_t session_id, const v1::ClientEvent& event)
+void ProtocolAdapter::send_event(const std::uint64_t session_id, const v1::ServerEvent& event)
 {
-    if (runtime_.has_account(session_id)) {
-        on_bound_event(session_id, event);
-        return;
-    }
-    on_unbound_event(session_id, event);
+    registry_.enqueue_event(session_id, event);
 }
 
 
-void ProtocolAdapter::Impl::on_bound_event(const std::uint64_t session_id, const v1::ClientEvent& event)
+void ProtocolAdapter::close_with_protocol_error(const std::uint64_t session_id, const std::string_view message)
 {
-    switch (event.event_case()) {
-    case v1::ClientEvent::kChat:
-        handle_user_chat(session_id, event.chat());
-        return;
-    case v1::ClientEvent::kHistoryRequest:
-        handle_history_request(session_id, event.history_request());
-        return;
-    case v1::ClientEvent::kBindToken:
-        handle_bind_token(session_id, event.bind_token());
-        return;
-    case v1::ClientEvent::EVENT_NOT_SET:
-        break;
-    }
-
-    close_with_protocol_error(session_id, "Protocol error: unhandled client message type");
-}
-
-
-void ProtocolAdapter::Impl::on_unbound_event(const std::uint64_t session_id, const v1::ClientEvent& event)
-{
-    switch (event.event_case()) {
-    case v1::ClientEvent::kBindToken:
-        handle_bind_token(session_id, event.bind_token());
-        return;
-    case v1::ClientEvent::kChat:
-    case v1::ClientEvent::kHistoryRequest:
-        send_auth_required(session_id);
-        return;
-    case v1::ClientEvent::EVENT_NOT_SET:
-        break;
-    }
-
-    close_with_protocol_error(session_id, "Protocol error: unhandled client message type");
-}
-
-
-void ProtocolAdapter::Impl::send_event(const std::uint64_t session_id, const v1::ServerEvent& event)
-{
-    enqueue_(registry_, session_id, event);
-}
-
-
-void ProtocolAdapter::Impl::close_with_protocol_error(const std::uint64_t session_id,
-                                                      const std::string_view message)
-{
-    if (const std::string_view peer_address = peer_(registry_, session_id); !peer_address.empty())
+    if (const std::string_view peer_address = registry_.peer_address(session_id); !peer_address.empty())
         std::cerr << "Session " << peer_address << ": " << message << '\n';
     else
         std::cerr << "Session " << session_id << ": " << message << '\n';
@@ -126,22 +47,25 @@ void ProtocolAdapter::Impl::close_with_protocol_error(const std::uint64_t sessio
 }
 
 
-void ProtocolAdapter::Impl::close_session(const std::uint64_t session_id)
+void ProtocolAdapter::close_session(const std::uint64_t session_id)
 {
-    close_(registry_, session_id);
+    registry_.close_session(session_id);
 }
 
 
-void ProtocolAdapter::Impl::handle_bind_token(const std::uint64_t session_id, const v1::BindToken& token)
+void ProtocolAdapter::handle_bind_token(const std::uint64_t session_id, const v1::BindToken& token)
 {
-    const BindTokenResult result = runtime_.bind_token(session_id, token.token());
-    if (result.status != BindTokenResult::Status::Ok) {
+    const domain::AuthenticateDeviceInput input{token.token(), domain::Timestamp::now()};
+    const auto outcome = authenticate_device_.execute(input);
+
+    if (std::holds_alternative<domain::AuthError>(outcome)) {
         send_auth_required(session_id);
         return;
     }
 
-    if (result.displaced_session)
-        close_session(*result.displaced_session);
+    const auto& success = std::get<domain::AuthenticateDeviceSuccess>(outcome);
+    if (const auto displaced = account_store_.set(session_id, success.account))
+        close_session(*displaced);
 
     v1::ServerEvent event;
     event.mutable_auth_ok();
@@ -149,7 +73,7 @@ void ProtocolAdapter::Impl::handle_bind_token(const std::uint64_t session_id, co
 }
 
 
-void ProtocolAdapter::Impl::send_auth_required(const std::uint64_t session_id)
+void ProtocolAdapter::send_auth_required(const std::uint64_t session_id)
 {
     v1::ServerEvent event;
     event.mutable_auth_required();
@@ -157,9 +81,17 @@ void ProtocolAdapter::Impl::send_auth_required(const std::uint64_t session_id)
 }
 
 
-void ProtocolAdapter::Impl::handle_user_chat(const std::uint64_t session_id, const v1::ChatMessage& chat)
+void ProtocolAdapter::handle_user_chat(const std::uint64_t session_id, const v1::ChatMessage& chat)
 {
-    runtime_.send_chat(session_id, chat.body());
+    const domain::SendChatMessageInput input{
+        *account_store_.get(session_id),
+        domain::ParticipantId{session_id},
+        domain::ChatId::global(),
+        chat.body(),
+        domain::Timestamp::now(),
+    };
+
+    (void)send_chat_message_.execute(input);
 
     v1::ServerEvent event;
     event.mutable_receipt_ack();
@@ -167,22 +99,26 @@ void ProtocolAdapter::Impl::handle_user_chat(const std::uint64_t session_id, con
 }
 
 
-void ProtocolAdapter::Impl::handle_history_request(const std::uint64_t session_id,
-                                                   const v1::HistoryRequest& request)
+void ProtocolAdapter::handle_history_request(const std::uint64_t session_id, const v1::HistoryRequest& request)
 {
-    const HistoryResult history = runtime_.fetch_history(session_id, request.limit());
-    if (history.status != HistoryResult::Status::Ok) {
+    const domain::FetchChatHistoryInput input{*account_store_.get(session_id), domain::ChatId::global(),
+                                              request.limit()};
+
+    const auto outcome = fetch_chat_history_.execute(input);
+    if (const auto* error = std::get_if<domain::DomainError>(&outcome)) {
+        (void)error;
         close_with_protocol_error(session_id, "Protocol error: invalid HistoryRequest");
         return;
     }
 
-    for (const HistoryItemDto& item : history.items) {
+    const auto& history = std::get<domain::FetchChatHistoryResult>(outcome);
+    for (const domain::FetchChatHistoryItem& item : history.items) {
         v1::ServerEvent event;
         auto* history_item = event.mutable_history_item();
-        history_item->set_message_id(item.message_id);
+        history_item->set_message_id(item.message.id);
         history_item->set_is_mine(item.is_mine);
-        history_item->set_name(item.name);
-        history_item->set_body(item.body);
+        history_item->set_name(item.message.author_name);
+        history_item->set_body(item.message.body);
         send_event(session_id, event);
     }
 

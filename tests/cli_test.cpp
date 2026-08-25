@@ -1,3 +1,6 @@
+#include "servercliapp.h"
+#include "serverconfig.h"
+
 #include <CLI/CLI.hpp>
 
 #include <cassert>
@@ -6,9 +9,6 @@
 #include <string>
 #include <string_view>
 #include <vector>
-
-import will.server.servercliapp;
-import will.server.serverconfig;
 
 
 namespace {

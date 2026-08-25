@@ -1,27 +1,16 @@
-#include <CLI/CLI.hpp>
-
-#include <exception>
 #include <iostream>
-#include <utility>
 
-import will.server.servercliapp;
-import will.server.willserver;
+#include "willserver.h"
+#include "serverconfigparser.h"
 
 
 int main(int argc, char* argv[])
 try {
-    will::ServerCliApp cli;
-    will::ServerConfig config;
-    try {
-        config = cli.parse(argc, argv);
-    } catch (const CLI::CallForHelp& error) {
-        cli.exit_on_help(error);
-    } catch (const CLI::ParseError& error) {
-        cli.exit_on_parse_error(error);
-    }
+    const will::ServerConfigParser cli(argc, argv);
 
-    will::WillServer server(std::move(config));
+    will::WillServer server(cli.server_config());
     server.run();
+
     return 0;
 }
 catch (const std::exception& e) {

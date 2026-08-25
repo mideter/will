@@ -1,18 +1,15 @@
-module;
+#include "devicetokenstore.h"
+
+#include "entities/device_token.h"
 
 #include <fstream>
 #include <stdexcept>
-#include <string>
-
-module will.client.devicetokenstore;
-
-import will.domain.device_token;
 
 
 namespace will {
 
 
-std::string DeviceTokenStore::load_or_create(const std::string& path)
+domain::AuthToken DeviceTokenStore::load_or_create(const std::string& path)
 {
     {
         std::ifstream in(path);
@@ -20,7 +17,7 @@ std::string DeviceTokenStore::load_or_create(const std::string& path)
             std::string token;
             in >> token;
             if (const auto parsed = domain::DeviceToken::parse(token))
-                return parsed->value().value;
+                return parsed->value();
         }
     }
 
@@ -34,7 +31,7 @@ std::string DeviceTokenStore::load_or_create(const std::string& path)
     if (!out)
         throw std::runtime_error("DeviceTokenStore: failed to persist device token");
 
-    return token.value;
+    return token;
 }
 
 

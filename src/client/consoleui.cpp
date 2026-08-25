@@ -1,11 +1,9 @@
-module;
+#include "consoleui.h"
 
 #include <cstdlib>
 #include <iostream>
 #include <mutex>
 #include <unistd.h>
-
-module will.client.consoleui;
 
 
 namespace will {

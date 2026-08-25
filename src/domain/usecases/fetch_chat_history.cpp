@@ -1,11 +1,6 @@
-module;
+#include "fetch_chat_history.h"
 
 #include <algorithm>
-#include <cstdint>
-#include <variant>
-#include <vector>
-
-module will.domain.fetch_chat_history;
 
 
 namespace will::domain {

@@ -1,8 +1,0 @@
-CompileFlags:
-  Remove:
-    - -fmodules-ts
-    - -fmodule-mapper=*
-    - -fdeps-format=*
-  Add:
-    - -std=c++20
-    - -D_GLIBCXX_USE_CXX11_ABI=1

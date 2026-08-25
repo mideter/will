@@ -1,9 +1,9 @@
+#include "entities/user_name.h"
+
 #include <cassert>
 #include <cstdlib>
 #include <set>
 #include <string>
-
-import will.domain.user_name;
 
 
 int main()

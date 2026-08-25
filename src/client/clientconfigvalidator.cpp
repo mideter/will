@@ -1,13 +1,8 @@
-module;
+#include "clientconfigvalidator.h"
 
 #include <arpa/inet.h>
 
 #include <format>
-#include <optional>
-#include <string>
-#include <string_view>
-
-module will.client.clientconfigvalidator;
 
 
 namespace will {
@@ -39,7 +34,7 @@ std::optional<std::string_view> ClientConfigValidator::host_reason(const std::st
 }
 
 
-std::optional<std::string_view> ClientConfigValidator::port_reason(const decltype(ClientConfig::port) port)
+std::optional<std::string_view> ClientConfigValidator::port_reason(const std::uint16_t port)
 {
     if (port < ClientConfig::MinPort || port > ClientConfig::MaxPort)
         return "must be between 1 and 65535";

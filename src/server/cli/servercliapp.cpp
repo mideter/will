@@ -1,14 +1,10 @@
-module;
+#include "servercliapp.h"
 
-#include <CLI/CLI.hpp>
+#include "serverconfig.h"
 
-#include <cstdint>
 #include <cstdlib>
 #include <format>
 #include <iostream>
-#include <string>
-
-module will.server.servercliapp;
 
 
 namespace will {

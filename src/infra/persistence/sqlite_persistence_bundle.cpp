@@ -1,8 +1,4 @@
-module;
-
-#include <string>
-
-module will.persistence.sqlite_persistence_bundle;
+#include "sqlite_persistence_bundle.h"
 
 
 namespace will {
