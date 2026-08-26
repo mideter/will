@@ -12,9 +12,9 @@ namespace will::domain {
 class Timestamp {
 public:
     static std::optional<Timestamp> parse(std::int64_t raw) noexcept;
-    static Timestamp now();
 
-    constexpr Timestamp() noexcept = default;
+    /// Current wall-clock time (nanoseconds since Unix epoch).
+    Timestamp() noexcept;
 
     constexpr std::int64_t value() const noexcept { return value_; }
 

@@ -55,7 +55,7 @@ void ProtocolAdapter::close_session(const std::uint64_t session_id)
 
 void ProtocolAdapter::handle_bind_token(const std::uint64_t session_id, const v1::BindToken& token)
 {
-    const domain::AuthenticateDeviceInput input{token.token(), domain::Timestamp::now()};
+    const domain::AuthenticateDeviceInput input{token.token(), domain::Timestamp{}};
     const auto outcome = authenticate_device_.execute(input);
 
     if (std::holds_alternative<domain::AuthError>(outcome)) {
@@ -88,7 +88,7 @@ void ProtocolAdapter::handle_user_chat(const std::uint64_t session_id, const v1:
         domain::ParticipantId{session_id},
         domain::ChatId::global(),
         chat.body(),
-        domain::Timestamp::now(),
+        domain::Timestamp{},
     };
 
     (void)send_chat_message_.execute(input);

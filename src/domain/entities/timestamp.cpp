@@ -20,11 +20,10 @@ std::optional<Timestamp> Timestamp::parse(const std::int64_t raw) noexcept
 }
 
 
-Timestamp Timestamp::now()
+Timestamp::Timestamp() noexcept
 {
-    auto tse = system_clock::now().time_since_epoch();
-    auto ns = duration_cast<nanoseconds>(tse).count();
-    return Timestamp{ns};
+    const auto tse = system_clock::now().time_since_epoch();
+    value_ = duration_cast<nanoseconds>(tse).count();
 }
 
 
