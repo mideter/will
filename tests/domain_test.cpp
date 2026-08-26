@@ -29,7 +29,7 @@ void test_authenticate_device_creates_user()
     AuthenticateDevice authenticate(users);
 
     const AuthToken token = DeviceToken::generate();
-    const auto result = authenticate.execute(AuthenticateDeviceInput{token.value, *Timestamp::parse(1000)});
+    const auto result = authenticate.execute(AuthenticateDeviceInput{token.value, Timestamp{1000}});
     assert(std::holds_alternative<AuthenticateDeviceSuccess>(result));
 
     const AuthenticateDeviceSuccess& success = std::get<AuthenticateDeviceSuccess>(result);
@@ -51,7 +51,7 @@ void test_authenticate_device_existing_user()
 
     AuthenticateDevice authenticate(users);
     const auto result = authenticate.execute(
-        AuthenticateDeviceInput{"abcd1234abcd1234abcd1234abcd1234", *Timestamp::parse(1000)});
+        AuthenticateDeviceInput{"abcd1234abcd1234abcd1234abcd1234", Timestamp{1000}});
     assert(std::holds_alternative<AuthenticateDeviceSuccess>(result));
     assert(std::get<AuthenticateDeviceSuccess>(result).account.user_id == UserId{42});
 
@@ -68,7 +68,7 @@ void test_authenticate_device_keeps_existing_name()
 
     AuthenticateDevice authenticate(users);
     const auto result = authenticate.execute(
-        AuthenticateDeviceInput{"abcd1234abcd1234abcd1234abcd1234", *Timestamp::parse(1000)});
+        AuthenticateDeviceInput{"abcd1234abcd1234abcd1234abcd1234", Timestamp{1000}});
     assert(std::holds_alternative<AuthenticateDeviceSuccess>(result));
 
     const std::optional<User> user = users.find_by_device_token("abcd1234abcd1234abcd1234abcd1234");
@@ -82,7 +82,7 @@ void test_authenticate_device_invalid_token()
     FakeUserRepository users;
     AuthenticateDevice authenticate(users);
 
-    const auto result = authenticate.execute(AuthenticateDeviceInput{"short", *Timestamp::parse(1000)});
+    const auto result = authenticate.execute(AuthenticateDeviceInput{"short", Timestamp{1000}});
     assert(std::holds_alternative<AuthError>(result));
     assert(std::get<AuthError>(result) == AuthError::InvalidToken);
 }
@@ -93,17 +93,17 @@ void test_send_chat_message_persists_and_notifies()
     InMemoryMessageRepository messages;
     FakeParticipantNotifier notifier;
 
-    const Account account{UserId{7}, AuthToken{"tok"}, *Timestamp::parse(500), "sendname"};
+    const Account account{UserId{7}, AuthToken{"tok"}, Timestamp{500}, "sendname"};
     const ParticipantId sender{42};
 
     SendChatMessage send(messages, notifier);
     const Message saved =
-        send.execute(SendChatMessageInput{account, sender, ChatId::global(), "hello", *Timestamp::parse(900)});
+        send.execute(SendChatMessageInput{account, sender, ChatId::global(), "hello", Timestamp{900}});
 
     assert(saved.id > 0);
     assert(saved.author_id == account.user_id);
     assert(saved.body == "hello");
-    assert(saved.created_at == *Timestamp::parse(900));
+    assert(saved.created_at == Timestamp{900});
     assert(saved.author_name == "sendname");
 
     const auto loaded = messages.load_last(ChatId::global(), 10);
@@ -124,9 +124,9 @@ void test_fetch_chat_history_limit_and_is_mine()
     const UserId me{10};
     const UserId other{20};
 
-    messages.append(chat, other, "peer", *Timestamp::parse(1));
-    messages.append(chat, me, "mine", *Timestamp::parse(2));
-    messages.append(chat, other, "peer2", *Timestamp::parse(3));
+    messages.append(chat, other, "peer", Timestamp{1});
+    messages.append(chat, me, "mine", Timestamp{2});
+    messages.append(chat, other, "peer2", Timestamp{3});
 
     FetchChatHistory fetch(messages);
 
@@ -153,7 +153,7 @@ void test_fetch_chat_history_caps_limit()
     const UserId author{1};
 
     for (int i = 0; i < 5; ++i)
-        messages.append(chat, author, "m", *Timestamp::parse(i));
+        messages.append(chat, author, "m", Timestamp{i});
 
     FetchChatHistory fetch(messages);
     const auto ok = fetch.execute(

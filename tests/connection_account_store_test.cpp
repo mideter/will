@@ -14,7 +14,7 @@ namespace {
 will::domain::Account make_account(std::uint64_t user_id, const char* token = "tok")
 {
     return will::domain::Account{will::domain::UserId{user_id}, will::domain::AuthToken{token},
-                                 *will::domain::Timestamp::parse(1000)};
+                                 will::domain::Timestamp{1000}};
 }
 
 

@@ -1,6 +1,7 @@
 #include "timestamp.h"
 
 #include <chrono>
+#include <stdexcept>
 
 
 using std::chrono::system_clock;
@@ -11,12 +12,12 @@ using std::chrono::nanoseconds;
 namespace will::domain {
 
 
-std::optional<Timestamp> Timestamp::parse(const std::int64_t raw) noexcept
+Timestamp::Timestamp(const std::int64_t value)
 {
-    if (raw < 0)
-        return std::nullopt;
+    if (value < 0)
+        throw std::invalid_argument("Timestamp must be non-negative");
 
-    return Timestamp{raw};
+    value_ = value;
 }
 
 
