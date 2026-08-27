@@ -34,12 +34,4 @@ void SessionParticipantNotifierImpl::notify_chat_message(const domain::Message& 
 }
 
 
-void SessionParticipantNotifierImpl::send_to_participant(const domain::ParticipantId id,
-                                                         const domain::OutboundEvent& ev)
-{
-    (void)id;
-    (void)ev;
-}
-
-
 } // namespace will

@@ -7,7 +7,6 @@
 #include "entities/participant_id.h"
 #include "entities/user.h"
 #include "entities/user_id.h"
-#include "events/outbound_event.h"
 #include "ports/message_repository.h"
 #include "ports/participant_notifier.h"
 #include "ports/user_repository.h"
@@ -102,24 +101,13 @@ public:
         notifications_.push_back(Notification{msg, std::string(author_name), except_participant});
     }
 
-    void send_to_participant(ParticipantId id, const OutboundEvent& ev) override
-    {
-        direct_.push_back(Direct{id, ev});
-    }
-
     struct Notification {
         Message message;
         std::string author_name;
         ParticipantId except;
     };
 
-    struct Direct {
-        ParticipantId participant;
-        OutboundEvent event;
-    };
-
     std::vector<Notification> notifications_;
-    std::vector<Direct> direct_;
 };
 
 

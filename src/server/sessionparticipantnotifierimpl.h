@@ -16,8 +16,6 @@ public:
     void notify_chat_message(const domain::Message& msg, std::string_view author_name,
                              domain::ParticipantId except_participant) override;
 
-    void send_to_participant(domain::ParticipantId id, const domain::OutboundEvent& ev) override;
-
 private:
     SessionRegistry& registry_;
 };
