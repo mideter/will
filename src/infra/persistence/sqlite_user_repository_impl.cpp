@@ -2,6 +2,7 @@
 
 #include "sqlite_util.h"
 
+#include <stdexcept>
 #include <sqlite3.h>
 
 
@@ -32,7 +33,11 @@ void SqliteUserRepositoryImpl::load_all()
         if (const unsigned char* name = sqlite3_column_text(stmt, 2))
             row.name = reinterpret_cast<const char*>(name);
 
-        id_by_token_[row.device_token] = row.id;
+        const auto token = domain::DeviceToken::parse(row.device_token);
+        if (!token)
+            throw std::runtime_error("load_all users: invalid device_token in database");
+
+        id_by_token_[*token] = row.id;
         users_by_id_[row.id] = std::move(row);
         rc = sqlite3_step(stmt);
     }
@@ -44,9 +49,13 @@ void SqliteUserRepositoryImpl::load_all()
 
 std::optional<domain::User> SqliteUserRepositoryImpl::find_by_device_token(const std::string_view device_token)
 {
+    const auto token = domain::DeviceToken::parse(device_token);
+    if (!token)
+        return std::nullopt;
+
     std::lock_guard lock(database_.mutex());
 
-    const auto token_it = id_by_token_.find(std::string(device_token));
+    const auto token_it = id_by_token_.find(*token);
     if (token_it == id_by_token_.end())
         return std::nullopt;
 
@@ -73,6 +82,10 @@ std::optional<domain::User> SqliteUserRepositoryImpl::find_by_id(const domain::U
 domain::User SqliteUserRepositoryImpl::create_user(const std::string_view device_token,
                                                    const std::string_view name)
 {
+    const auto token = domain::DeviceToken::parse(device_token);
+    if (!token)
+        throw std::invalid_argument("create_user: invalid device_token");
+
     std::lock_guard lock(database_.mutex());
 
     sqlite3* const db = database_.db();
@@ -81,7 +94,8 @@ domain::User SqliteUserRepositoryImpl::create_user(const std::string_view device
                                     nullptr),
                  db, "prepare create_user");
 
-    check_sqlite(sqlite3_bind_text(stmt, 1, device_token.data(), static_cast<int>(device_token.size()),
+    const std::string_view token_text = token->text();
+    check_sqlite(sqlite3_bind_text(stmt, 1, token_text.data(), static_cast<int>(token_text.size()),
                                    SQLITE_TRANSIENT),
                  db, "bind device_token");
     check_sqlite(sqlite3_bind_text(stmt, 2, name.data(), static_cast<int>(name.size()), SQLITE_TRANSIENT), db,
@@ -91,8 +105,8 @@ domain::User SqliteUserRepositoryImpl::create_user(const std::string_view device
     sqlite3_finalize(stmt);
 
     const domain::UserId id{static_cast<std::uint64_t>(sqlite3_last_insert_rowid(db))};
-    domain::User user{id, std::string(device_token), std::string(name)};
-    id_by_token_[user.device_token] = id;
+    domain::User user{id, std::string(token_text), std::string(name)};
+    id_by_token_[*token] = id;
     users_by_id_[id] = user;
     return user;
 }

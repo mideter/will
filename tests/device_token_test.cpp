@@ -12,6 +12,7 @@ int main()
         const auto parsed = DeviceToken::parse("abcd1234abcd1234abcd1234abcd1234");
         assert(parsed);
         assert(parsed->text() == "abcd1234abcd1234abcd1234abcd1234");
+        assert(*parsed == *DeviceToken::parse("abcd1234abcd1234abcd1234abcd1234"));
     }
 
     {

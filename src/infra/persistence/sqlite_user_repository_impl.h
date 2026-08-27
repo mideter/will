@@ -3,6 +3,8 @@
 #include "ports/user_repository.h"
 #include "sqlite_database.h"
 
+#include "entities/device_token.h"
+
 #include <string>
 #include <string_view>
 #include <unordered_map>
@@ -24,7 +26,7 @@ private:
 
     SqliteDatabase& database_;
     std::unordered_map<domain::UserId, domain::User> users_by_id_;
-    std::unordered_map<std::string, domain::UserId> id_by_token_;
+    std::unordered_map<domain::DeviceToken, domain::UserId> id_by_token_;
 };
 
 
