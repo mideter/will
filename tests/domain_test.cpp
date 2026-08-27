@@ -47,17 +47,14 @@ void test_authenticate_device_creates_user()
 void test_authenticate_device_existing_user()
 {
     FakeUserRepository users;
-    users.add_user(User{UserId{42}, "abcd1234abcd1234abcd1234abcd1234", {}});
+    users.add_user(User{UserId{42}, "abcd1234abcd1234abcd1234abcd1234", "oldname1"});
 
     AuthenticateDevice authenticate(users);
     const auto result = authenticate.execute(
         AuthenticateDeviceInput{"abcd1234abcd1234abcd1234abcd1234", Timestamp{1000}});
     assert(std::holds_alternative<AuthenticateDeviceSuccess>(result));
     assert(std::get<AuthenticateDeviceSuccess>(result).account.user_id == UserId{42});
-
-    const std::optional<User> user = users.find_by_device_token("abcd1234abcd1234abcd1234abcd1234");
-    assert(user.has_value());
-    assert(UserName::is_valid(user->name));
+    assert(std::get<AuthenticateDeviceSuccess>(result).account.name == "oldname1");
 }
 
 

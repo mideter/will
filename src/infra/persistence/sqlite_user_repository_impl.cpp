@@ -98,22 +98,4 @@ domain::User SqliteUserRepositoryImpl::create_user(const std::string_view device
 }
 
 
-void SqliteUserRepositoryImpl::set_name(const domain::UserId id, const std::string_view name)
-{
-    std::lock_guard lock(database_.mutex());
-
-    sqlite3* const db = database_.db();
-    sqlite3_stmt* stmt = nullptr;
-    check_sqlite(sqlite3_prepare_v2(db, "UPDATE users SET name = ? WHERE id = ?;", -1, &stmt, nullptr), db,
-                 "prepare set_name");
-
-    check_sqlite(sqlite3_bind_text(stmt, 1, name.data(), static_cast<int>(name.size()), SQLITE_TRANSIENT), db,
-                 "bind name");
-    check_sqlite(sqlite3_bind_int64(stmt, 2, static_cast<sqlite3_int64>(id.value)), db, "bind id");
-
-    check_sqlite(sqlite3_step(stmt), db, "set_name step");
-    sqlite3_finalize(stmt);
-}
-
-
 } // namespace will

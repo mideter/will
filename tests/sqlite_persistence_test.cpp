@@ -51,11 +51,6 @@ int main()
     assert(found->id == created.id);
     assert(found->name == "abcdefgh");
 
-    users.set_name(created.id, "newname1");
-    const std::optional<User> renamed = users.find_by_device_token(token);
-    assert(renamed.has_value());
-    assert(renamed->name == "newname1");
-
     ::unlink(db_path.c_str());
     return EXIT_SUCCESS;
 }

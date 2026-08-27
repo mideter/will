@@ -17,13 +17,8 @@ std::variant<AuthenticateDeviceSuccess, AuthError> AuthenticateDevice::execute(c
         return AuthError::InvalidToken;
 
     std::optional<User> user = users_.find_by_device_token(token->text());
-    if (!user) {
+    if (!user)
         user = users_.create_user(token->text(), UserName::generate());
-    } else if (user->name.empty()) {
-        const std::string name = UserName::generate();
-        users_.set_name(user->id, name);
-        user->name = name;
-    }
 
     return AuthenticateDeviceSuccess{Account{user->id, token->value(), input.now, user->name}};
 }

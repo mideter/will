@@ -47,11 +47,6 @@ public:
         return user;
     }
 
-    void set_name(const UserId id, const std::string_view name) override
-    {
-        users_.at(id).name = std::string(name);
-    }
-
     void add_user(User user)
     {
         users_.emplace(user.id, user);
