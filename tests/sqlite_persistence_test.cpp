@@ -33,12 +33,12 @@ int main()
 
     const auto rows = messages.load_last(chat, 10);
     assert(rows.size() == 2);
-    assert(rows[0].body == "from-peer");
-    assert(rows[0].author_id == user_a.id);
-    assert(rows[0].author_name == "nameaaaa");
-    assert(rows[1].body == "from-me");
-    assert(rows[1].author_id == user_b.id);
-    assert(rows[1].author_name == "namebbbb");
+    assert(rows[0].body() == "from-peer");
+    assert(rows[0].author_id() == user_a.id);
+    assert(users.find_by_id(rows[0].author_id())->name == "nameaaaa");
+    assert(rows[1].body() == "from-me");
+    assert(rows[1].author_id() == user_b.id);
+    assert(users.find_by_id(rows[1].author_id())->name == "namebbbb");
 
     const std::string token = "abcd1234abcd1234abcd1234abcd1234";
     const User created = users.create_user(token, "abcdefgh");

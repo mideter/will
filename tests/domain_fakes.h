@@ -31,6 +31,14 @@ public:
         return users_.at(it->second);
     }
 
+    std::optional<User> find_by_id(const UserId id) override
+    {
+        const auto it = users_.find(id);
+        if (it == users_.end())
+            return std::nullopt;
+        return it->second;
+    }
+
     User create_user(const std::string_view device_token, const std::string_view name) override
     {
         const UserId id{++next_user_id_};
@@ -62,12 +70,7 @@ class InMemoryMessageRepository final : public MessageRepository {
 public:
     Message append(ChatId chat, UserId author, std::string_view body, Timestamp ts) override
     {
-        Message msg;
-        msg.id = ++next_id_;
-        msg.chat_id = chat;
-        msg.author_id = author;
-        msg.body = std::string(body);
-        msg.created_at = ts;
+        Message msg{MessageId{++next_id_}, chat, author, std::string(body), ts};
         messages_.push_back(msg);
         return msg;
     }
@@ -77,7 +80,7 @@ public:
         std::vector<Message> matching;
         matching.reserve(messages_.size());
         for (const Message& m : messages_) {
-            if (m.chat_id == chat)
+            if (m.chat_id() == chat)
                 matching.push_back(m);
         }
         if (limit >= matching.size())
@@ -93,9 +96,10 @@ private:
 
 class FakeParticipantNotifier final : public ParticipantNotifier {
 public:
-    void notify_chat_message(ChatId chat, const Message& msg, ParticipantId except_participant) override
+    void notify_chat_message(ChatId chat, const Message& msg, std::string_view author_name,
+                             ParticipantId except_participant) override
     {
-        notifications_.push_back(Notification{chat, msg, except_participant});
+        notifications_.push_back(Notification{chat, msg, std::string(author_name), except_participant});
     }
 
     void send_to_participant(ParticipantId id, const OutboundEvent& ev) override
@@ -106,6 +110,7 @@ public:
     struct Notification {
         ChatId chat;
         Message message;
+        std::string author_name;
         ParticipantId except;
     };
 

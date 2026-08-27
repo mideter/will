@@ -1,13 +1,15 @@
 #include "fetch_chat_history.h"
 
 #include <algorithm>
+#include <map>
 
 
 namespace will::domain {
 
 
-FetchChatHistory::FetchChatHistory(MessageRepository& messages)
+FetchChatHistory::FetchChatHistory(MessageRepository& messages, UserRepository& users)
     : messages_(messages)
+    , users_(users)
 {}
 
 
@@ -23,9 +25,20 @@ std::variant<FetchChatHistoryResult, DomainError> FetchChatHistory::execute(cons
     FetchChatHistoryResult result;
     result.items.reserve(rows.size());
 
+    std::map<UserId, std::string> author_names;
     for (const Message& row : rows) {
-        const bool is_mine = row.author_id == input.account.user_id;
-        result.items.push_back(FetchChatHistoryItem{row, is_mine});
+        std::string author_name;
+        if (const auto cached = author_names.find(row.author_id()); cached != author_names.end()) {
+            author_name = cached->second;
+        } else if (const std::optional<User> author = users_.find_by_id(row.author_id())) {
+            author_name = author->name;
+            author_names.emplace(row.author_id(), author_name);
+        } else {
+            author_names.emplace(row.author_id(), std::string{});
+        }
+
+        const bool is_mine = row.author_id() == input.account.user_id;
+        result.items.push_back(FetchChatHistoryItem{row, std::move(author_name), is_mine});
     }
 
     return result;

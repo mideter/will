@@ -19,7 +19,7 @@ ProtocolAdapter::ProtocolAdapter(domain::MessengerPersistence persistence, Sessi
     , participant_notifier_(registry)
     , authenticate_device_(persistence.users)
     , send_chat_message_(persistence.messages, participant_notifier_)
-    , fetch_chat_history_(persistence.messages)
+    , fetch_chat_history_(persistence.messages, persistence.users)
 {}
 
 
@@ -115,10 +115,10 @@ void ProtocolAdapter::handle_history_request(const std::uint64_t session_id, con
     for (const domain::FetchChatHistoryItem& item : history.items) {
         v1::ServerEvent event;
         auto* history_item = event.mutable_history_item();
-        history_item->set_message_id(item.message.id);
+        history_item->set_message_id(item.message.id().value());
         history_item->set_is_mine(item.is_mine);
-        history_item->set_name(item.message.author_name);
-        history_item->set_body(item.message.body);
+        history_item->set_name(item.author_name);
+        history_item->set_body(item.message.body());
         send_event(session_id, event);
     }
 

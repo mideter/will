@@ -15,6 +15,10 @@ test_target("timestamp-test")
     add_files("timestamp_test.cpp")
     add_deps("will-domain")
 
+test_target("message-test")
+    add_files("message_test.cpp")
+    add_deps("will-domain")
+
 test_target("device-token-test")
     add_files("device_token_test.cpp")
     add_deps("will-domain")

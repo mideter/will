@@ -100,35 +100,38 @@ void test_send_chat_message_persists_and_notifies()
     const Message saved =
         send.execute(SendChatMessageInput{account, sender, ChatId::global(), "hello", Timestamp{900}});
 
-    assert(saved.id > 0);
-    assert(saved.author_id == account.user_id);
-    assert(saved.body == "hello");
-    assert(saved.created_at == Timestamp{900});
-    assert(saved.author_name == "sendname");
+    assert(saved.id().value() > 0);
+    assert(saved.author_id() == account.user_id);
+    assert(saved.body() == "hello");
+    assert(saved.created_at() == Timestamp{900});
 
     const auto loaded = messages.load_last(ChatId::global(), 10);
     assert(loaded.size() == 1);
-    assert(loaded[0].body == "hello");
+    assert(loaded[0].body() == "hello");
 
     assert(notifier.notifications_.size() == 1);
     assert(notifier.notifications_[0].except == sender);
-    assert(notifier.notifications_[0].message.id == saved.id);
-    assert(notifier.notifications_[0].message.author_name == "sendname");
+    assert(notifier.notifications_[0].message.id() == saved.id());
+    assert(notifier.notifications_[0].author_name == "sendname");
 }
 
 
 void test_fetch_chat_history_limit_and_is_mine()
 {
     InMemoryMessageRepository messages;
+    FakeUserRepository users;
     const ChatId chat = ChatId::global();
     const UserId me{10};
     const UserId other{20};
+
+    users.add_user(User{me, "token-me-xxxxxxxxxxxxxxxxxxxx", "menameaa"});
+    users.add_user(User{other, "token-other-xxxxxxxxxxxxxxxxx", "peername"});
 
     messages.append(chat, other, "peer", Timestamp{1});
     messages.append(chat, me, "mine", Timestamp{2});
     messages.append(chat, other, "peer2", Timestamp{3});
 
-    FetchChatHistory fetch(messages);
+    FetchChatHistory fetch(messages, users);
 
     const auto zero_limit = fetch.execute(FetchChatHistoryInput{Account{me, {}, {}}, chat, 0});
     assert(std::holds_alternative<DomainError>(zero_limit));
@@ -139,9 +142,11 @@ void test_fetch_chat_history_limit_and_is_mine()
 
     const FetchChatHistoryResult& result = std::get<FetchChatHistoryResult>(ok);
     assert(result.items.size() == 2);
-    assert(result.items[0].message.body == "mine");
+    assert(result.items[0].message.body() == "mine");
+    assert(result.items[0].author_name == "menameaa");
     assert(result.items[0].is_mine);
-    assert(result.items[1].message.body == "peer2");
+    assert(result.items[1].message.body() == "peer2");
+    assert(result.items[1].author_name == "peername");
     assert(!result.items[1].is_mine);
 }
 
@@ -149,13 +154,16 @@ void test_fetch_chat_history_limit_and_is_mine()
 void test_fetch_chat_history_caps_limit()
 {
     InMemoryMessageRepository messages;
+    FakeUserRepository users;
     const ChatId chat = ChatId::global();
     const UserId author{1};
+
+    users.add_user(User{author, "token-author-xxxxxxxxxxxxxxx", "authoraa"});
 
     for (int i = 0; i < 5; ++i)
         messages.append(chat, author, "m", Timestamp{i});
 
-    FetchChatHistory fetch(messages);
+    FetchChatHistory fetch(messages, users);
     const auto ok = fetch.execute(
         FetchChatHistoryInput{Account{author, {}, {}}, chat, FetchChatHistory::MaxHistoryRequestLimit + 50});
     assert(std::holds_alternative<FetchChatHistoryResult>(ok));

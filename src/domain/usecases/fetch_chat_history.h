@@ -5,8 +5,10 @@
 #include "entities/message.h"
 #include "errors/domain_error.h"
 #include "ports/message_repository.h"
+#include "ports/user_repository.h"
 
 #include <cstdint>
+#include <string>
 #include <variant>
 #include <vector>
 
@@ -23,6 +25,7 @@ struct FetchChatHistoryInput {
 
 struct FetchChatHistoryItem {
     Message message;
+    std::string author_name;
     bool is_mine = false;
 };
 
@@ -36,12 +39,13 @@ class FetchChatHistory {
 public:
     static constexpr std::uint32_t MaxHistoryRequestLimit = 1000;
 
-    explicit FetchChatHistory(MessageRepository& messages);
+    FetchChatHistory(MessageRepository& messages, UserRepository& users);
 
     std::variant<FetchChatHistoryResult, DomainError> execute(const FetchChatHistoryInput& input);
 
 private:
     MessageRepository& messages_;
+    UserRepository& users_;
 };
 
 

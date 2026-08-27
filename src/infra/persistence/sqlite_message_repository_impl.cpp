@@ -38,7 +38,7 @@ domain::Message SqliteMessageRepositoryImpl::append(const domain::ChatId chat, c
     sqlite3_finalize(stmt);
 
     const std::uint64_t id = static_cast<std::uint64_t>(sqlite3_last_insert_rowid(db));
-    return domain::Message{id, chat, author, std::string(body), ts, {}};
+    return domain::Message{domain::MessageId{id}, chat, author, std::string(body), ts};
 }
 
 
@@ -50,10 +50,9 @@ std::vector<domain::Message> SqliteMessageRepositoryImpl::load_last(const domain
     sqlite3* const db = database_.db();
     sqlite3_stmt* stmt = nullptr;
     check_sqlite(sqlite3_prepare_v2(db,
-                                    "SELECT m.id, m.chat_id, m.author_user_id, m.body, m.created_at_ns, u.name "
-                                    "FROM messages m "
-                                    "JOIN users u ON u.id = m.author_user_id "
-                                    "WHERE m.chat_id = ? ORDER BY m.id DESC LIMIT ?;",
+                                    "SELECT id, chat_id, author_user_id, body, created_at_ns "
+                                    "FROM messages "
+                                    "WHERE chat_id = ? ORDER BY id DESC LIMIT ?;",
                                     -1, &stmt, nullptr),
                  db, "prepare load_last messages");
 
@@ -66,19 +65,14 @@ std::vector<domain::Message> SqliteMessageRepositoryImpl::load_last(const domain
     int rc = sqlite3_step(stmt);
 
     while (rc == SQLITE_ROW) {
-        domain::Message row;
-
-        row.id = static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 0));
-        row.chat_id = domain::ChatId{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 1))};
-        row.author_id = domain::UserId{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 2))};
-        row.body = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3));
-
-        row.created_at = domain::Timestamp{sqlite3_column_int64(stmt, 4)};
-
-        if (const unsigned char* name = sqlite3_column_text(stmt, 5))
-            row.author_name = reinterpret_cast<const char*>(name);
-
-        rows.push_back(std::move(row));
+        const char* const body_text = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3));
+        rows.push_back(domain::Message{
+            domain::MessageId{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 0))},
+            domain::ChatId{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 1))},
+            domain::UserId{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 2))},
+            body_text ? std::string(body_text) : std::string{},
+            domain::Timestamp{sqlite3_column_int64(stmt, 4)},
+        });
         rc = sqlite3_step(stmt);
     }
 

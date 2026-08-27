@@ -14,6 +14,7 @@ public:
     explicit SqliteUserRepositoryImpl(SqliteDatabase& database);
 
     std::optional<domain::User> find_by_device_token(std::string_view device_token) override;
+    std::optional<domain::User> find_by_id(domain::UserId id) override;
     domain::User create_user(std::string_view device_token, std::string_view name) override;
     void set_name(domain::UserId id, std::string_view name) override;
 
