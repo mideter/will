@@ -96,10 +96,10 @@ private:
 
 class FakeParticipantNotifier final : public ParticipantNotifier {
 public:
-    void notify_chat_message(ChatId chat, const Message& msg, std::string_view author_name,
+    void notify_chat_message(const Message& msg, std::string_view author_name,
                              ParticipantId except_participant) override
     {
-        notifications_.push_back(Notification{chat, msg, std::string(author_name), except_participant});
+        notifications_.push_back(Notification{msg, std::string(author_name), except_participant});
     }
 
     void send_to_participant(ParticipantId id, const OutboundEvent& ev) override
@@ -108,7 +108,6 @@ public:
     }
 
     struct Notification {
-        ChatId chat;
         Message message;
         std::string author_name;
         ParticipantId except;

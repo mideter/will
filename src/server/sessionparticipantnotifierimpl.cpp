@@ -15,13 +15,10 @@ SessionParticipantNotifierImpl::SessionParticipantNotifierImpl(SessionRegistry& 
 {}
 
 
-void SessionParticipantNotifierImpl::notify_chat_message(const domain::ChatId chat,
-                                                         const domain::Message& msg,
+void SessionParticipantNotifierImpl::notify_chat_message(const domain::Message& msg,
                                                          const std::string_view author_name,
                                                          const domain::ParticipantId except_participant)
 {
-    (void)chat;
-
     v1::ServerEvent event;
     auto* chat_message = event.mutable_chat();
     chat_message->set_name(std::string(author_name));

@@ -1,6 +1,5 @@
 #pragma once
 
-#include "entities/chat_id.h"
 #include "entities/message.h"
 #include "entities/participant_id.h"
 #include "events/outbound_event.h"
@@ -15,7 +14,7 @@ class ParticipantNotifier {
 public:
     virtual ~ParticipantNotifier() = default;
 
-    virtual void notify_chat_message(ChatId chat, const Message& msg, std::string_view author_name,
+    virtual void notify_chat_message(const Message& msg, std::string_view author_name,
                                      ParticipantId except_participant) = 0;
     virtual void send_to_participant(ParticipantId id, const OutboundEvent& ev) = 0;
 };

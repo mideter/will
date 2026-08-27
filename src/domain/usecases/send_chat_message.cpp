@@ -13,7 +13,7 @@ SendChatMessage::SendChatMessage(MessageRepository& messages, ParticipantNotifie
 Message SendChatMessage::execute(const SendChatMessageInput& input)
 {
     Message saved = messages_.append(input.chat_id, input.account.user_id, input.body, input.created_at);
-    notifier_.notify_chat_message(input.chat_id, saved, input.account.name, input.sender);
+    notifier_.notify_chat_message(saved, input.account.name, input.sender);
     return saved;
 }
 
