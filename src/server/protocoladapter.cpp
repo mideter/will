@@ -16,7 +16,7 @@ ProtocolAdapter::ProtocolAdapter(domain::MessengerPersistence persistence, Sessi
     : persistence_(persistence)
     , registry_(registry)
     , account_store_(account_store)
-    , participant_notifier_(registry)
+    , participant_notifier_(registry, persistence.users)
     , authenticate_device_(persistence.users)
     , send_chat_message_(persistence.messages, participant_notifier_)
     , fetch_chat_history_(persistence.messages, persistence.users)

@@ -10,18 +10,24 @@
 namespace will {
 
 
-SessionParticipantNotifierImpl::SessionParticipantNotifierImpl(SessionRegistry& registry)
+SessionParticipantNotifierImpl::SessionParticipantNotifierImpl(SessionRegistry& registry,
+                                                               domain::UserRepository& users)
     : registry_(registry)
+    , users_(users)
 {}
 
 
 void SessionParticipantNotifierImpl::notify_chat_message(const domain::Message& msg,
-                                                         const std::string_view author_name,
                                                          const domain::ParticipantId except_participant)
 {
+    std::string author_name;
+    
+    if (const auto author = users_.find_by_id(msg.author_id()))
+        author_name = author->name;
+
     v1::ServerEvent event;
     auto* chat_message = event.mutable_chat();
-    chat_message->set_name(std::string(author_name));
+    chat_message->set_name(author_name);
     chat_message->set_body(msg.body());
 
     if (const std::string_view sender_address = registry_.peer_address(except_participant.value);

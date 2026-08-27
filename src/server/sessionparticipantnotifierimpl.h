@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ports/participant_notifier.h"
+#include "ports/user_repository.h"
 
 
 namespace will {
@@ -11,13 +12,14 @@ class SessionRegistry;
 
 class SessionParticipantNotifierImpl final : public domain::ParticipantNotifier {
 public:
-    explicit SessionParticipantNotifierImpl(SessionRegistry& registry);
+    SessionParticipantNotifierImpl(SessionRegistry& registry, domain::UserRepository& users);
 
-    void notify_chat_message(const domain::Message& msg, std::string_view author_name,
+    void notify_chat_message(const domain::Message& msg,
                              domain::ParticipantId except_participant) override;
 
 private:
     SessionRegistry& registry_;
+    domain::UserRepository& users_;
 };
 
 

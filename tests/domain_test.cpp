@@ -112,7 +112,6 @@ void test_send_chat_message_persists_and_notifies()
     assert(notifier.notifications_.size() == 1);
     assert(notifier.notifications_[0].except == sender);
     assert(notifier.notifications_[0].message.id() == saved.id());
-    assert(notifier.notifications_[0].author_name == "sendname");
 }
 
 

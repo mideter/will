@@ -95,15 +95,13 @@ private:
 
 class FakeParticipantNotifier final : public ParticipantNotifier {
 public:
-    void notify_chat_message(const Message& msg, std::string_view author_name,
-                             ParticipantId except_participant) override
+    void notify_chat_message(const Message& msg, ParticipantId except_participant) override
     {
-        notifications_.push_back(Notification{msg, std::string(author_name), except_participant});
+        notifications_.push_back(Notification{msg, except_participant});
     }
 
     struct Notification {
         Message message;
-        std::string author_name;
         ParticipantId except;
     };
 
