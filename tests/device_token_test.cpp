@@ -16,9 +16,9 @@ int main()
     }
 
     {
-        const AuthToken generated = DeviceToken::generate();
-        assert(generated.value.size() == 32);
-        assert(DeviceToken::parse(generated.value));
+        const DeviceToken generated = DeviceToken::generate();
+        assert(generated.text().size() == 32);
+        assert(DeviceToken::parse(generated.text()));
     }
 
     assert(!DeviceToken::parse(""));

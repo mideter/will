@@ -1,10 +1,9 @@
 #pragma once
 
-#include "auth_token.h"
-
 #include <cstddef>
 #include <functional>
 #include <optional>
+#include <string>
 #include <string_view>
 
 
@@ -18,17 +17,16 @@ public:
     static constexpr std::size_t MaxLength = 128;
 
     static std::optional<DeviceToken> parse(std::string_view input);
-    static AuthToken generate();
+    static DeviceToken generate();
 
-    const AuthToken& value() const noexcept { return token_; }
-    std::string_view text() const noexcept { return token_.value; }
+    std::string_view text() const noexcept { return value_; }
 
     bool operator==(const DeviceToken&) const = default;
 
 private:
-    explicit DeviceToken(AuthToken token);
+    explicit DeviceToken(std::string value);
 
-    AuthToken token_;
+    std::string value_;
 };
 
 

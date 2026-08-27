@@ -1,4 +1,3 @@
-#include "entities/auth_token.h"
 #include "chatsession.h"
 #include "clientconfigparser.h"
 #include "consoleui.h"
@@ -16,12 +15,12 @@ int main(int argc, char* argv[])
         color = cli.client_config().color;
         will::ConsoleUi ui(color);
 
-        const will::domain::AuthToken device_token =
+        const will::domain::DeviceToken device_token =
             will::DeviceTokenStore::load_or_create(cli.client_config().device_token_path);
 
         will::WillClient client(cli.client_config());
         client.connect();
-        client.authenticate_device(device_token.value);
+        client.authenticate_device(device_token.text());
 
         will::ChatSession chat_session(client, ui);
         chat_session.run();

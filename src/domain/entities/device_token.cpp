@@ -30,20 +30,20 @@ std::optional<DeviceToken> DeviceToken::parse(const std::string_view input)
             return std::nullopt;
     }
 
-    return DeviceToken{AuthToken{std::string(input)}};
+    return DeviceToken{std::string(input)};
 }
 
 
-AuthToken DeviceToken::generate()
+DeviceToken DeviceToken::generate()
 {
     std::random_device rd;
     std::mt19937_64 gen(rd());
     std::uniform_int_distribution<std::uint64_t> dist;
-    return AuthToken{std::format("{:016x}{:016x}", dist(gen), dist(gen))};
+    return DeviceToken{std::format("{:016x}{:016x}", dist(gen), dist(gen))};
 }
 
 
-DeviceToken::DeviceToken(AuthToken token) : token_(std::move(token)) {}
+DeviceToken::DeviceToken(std::string value) : value_(std::move(value)) {}
 
 
 } // namespace will::domain

@@ -1,12 +1,12 @@
 #include "domain_fakes.h"
 
 #include "entities/chat_id.h"
-#include "entities/participant_id.h"
-#include "errors/auth_error.h"
-#include "errors/domain_error.h"
 #include "entities/device_token.h"
+#include "entities/participant_id.h"
 #include "entities/timestamp.h"
 #include "entities/user_name.h"
+#include "errors/auth_error.h"
+#include "errors/domain_error.h"
 #include "usecases/authenticate_device.h"
 #include "usecases/fetch_chat_history.h"
 #include "usecases/send_chat_message.h"
@@ -23,21 +23,27 @@ using namespace will::domain;
 using namespace will::domain::test;
 
 
+DeviceToken test_token(const char* hex = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+{
+    return *DeviceToken::parse(hex);
+}
+
+
 void test_authenticate_device_creates_user()
 {
     FakeUserRepository users;
     AuthenticateDevice authenticate(users);
 
-    const AuthToken token = DeviceToken::generate();
-    const auto result = authenticate.execute(AuthenticateDeviceInput{token.value, Timestamp{1000}});
+    const DeviceToken token = DeviceToken::generate();
+    const auto result = authenticate.execute(AuthenticateDeviceInput{token.text(), Timestamp{1000}});
     assert(std::holds_alternative<AuthenticateDeviceSuccess>(result));
 
     const AuthenticateDeviceSuccess& success = std::get<AuthenticateDeviceSuccess>(result);
     assert(success.account.user_id.value > 0);
-    assert(success.account.session_token == token);
+    assert(success.account.device_token == token);
     assert(UserName::is_valid(success.account.name));
 
-    const std::optional<User> user = users.find_by_device_token(token.value);
+    const std::optional<User> user = users.find_by_device_token(token.text());
     assert(user.has_value());
     assert(user->id == success.account.user_id);
     assert(user->name == success.account.name);
@@ -90,7 +96,7 @@ void test_send_chat_message_persists_and_notifies()
     InMemoryMessageRepository messages;
     FakeParticipantNotifier notifier;
 
-    const Account account{UserId{7}, AuthToken{"tok"}, Timestamp{500}, "sendname"};
+    const Account account{UserId{7}, test_token(), Timestamp{500}, "sendname"};
     const ParticipantId sender{42};
 
     SendChatMessage send(messages, notifier);
@@ -128,12 +134,13 @@ void test_fetch_chat_history_limit_and_is_mine()
     messages.append(chat, other, "peer2", Timestamp{3});
 
     FetchChatHistory fetch(messages, users);
+    const Account account{me, test_token(), Timestamp{}};
 
-    const auto zero_limit = fetch.execute(FetchChatHistoryInput{Account{me, {}, {}}, chat, 0});
+    const auto zero_limit = fetch.execute(FetchChatHistoryInput{account, chat, 0});
     assert(std::holds_alternative<DomainError>(zero_limit));
     assert(std::get<DomainError>(zero_limit).code == DomainErrorCode::InvalidArgument);
 
-    const auto ok = fetch.execute(FetchChatHistoryInput{Account{me, {}, {}}, chat, 2});
+    const auto ok = fetch.execute(FetchChatHistoryInput{account, chat, 2});
     assert(std::holds_alternative<FetchChatHistoryResult>(ok));
 
     const FetchChatHistoryResult& result = std::get<FetchChatHistoryResult>(ok);
@@ -160,8 +167,8 @@ void test_fetch_chat_history_caps_limit()
         messages.append(chat, author, "m", Timestamp{i});
 
     FetchChatHistory fetch(messages, users);
-    const auto ok = fetch.execute(
-        FetchChatHistoryInput{Account{author, {}, {}}, chat, FetchChatHistory::MaxHistoryRequestLimit + 50});
+    const auto ok = fetch.execute(FetchChatHistoryInput{
+        Account{author, test_token(), Timestamp{}}, chat, FetchChatHistory::MaxHistoryRequestLimit + 50});
     assert(std::holds_alternative<FetchChatHistoryResult>(ok));
     assert(std::get<FetchChatHistoryResult>(ok).items.size() == 5);
 }

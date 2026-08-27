@@ -1,7 +1,6 @@
 #pragma once
 
 #include "entities/account.h"
-#include "entities/auth_token.h"
 #include "entities/chat_id.h"
 #include "entities/message.h"
 #include "entities/participant_id.h"

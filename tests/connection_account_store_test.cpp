@@ -1,5 +1,6 @@
 #include "connectionaccountstore.h"
 
+#include "entities/device_token.h"
 #include "entities/timestamp.h"
 
 #include <cassert>
@@ -11,9 +12,16 @@
 namespace {
 
 
-will::domain::Account make_account(std::uint64_t user_id, const char* token = "tok")
+will::domain::DeviceToken test_token(const char* hex)
 {
-    return will::domain::Account{will::domain::UserId{user_id}, will::domain::AuthToken{token},
+    return *will::domain::DeviceToken::parse(hex);
+}
+
+
+will::domain::Account make_account(std::uint64_t user_id,
+                                   const char* token = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+{
+    return will::domain::Account{will::domain::UserId{user_id}, test_token(token),
                                  will::domain::Timestamp{1000}};
 }
 
@@ -38,9 +46,9 @@ void test_same_connection_rebind()
     will::ConnectionAccountStore store;
 
     assert(!store.set(1, make_account(7)));
-    assert(!store.set(1, make_account(7, "tok2")));
+    assert(!store.set(1, make_account(7, "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb")));
     assert(store.has(1));
-    assert(store.get(1)->session_token.value == "tok2");
+    assert(store.get(1)->device_token.text() == "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
 }
 
 

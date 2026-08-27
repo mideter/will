@@ -1,7 +1,6 @@
 #pragma once
 
 #include "entities/account.h"
-#include "entities/auth_token.h"
 #include "errors/auth_error.h"
 #include "ports/user_repository.h"
 
@@ -27,7 +26,7 @@ class AuthenticateDevice {
 public:
     explicit AuthenticateDevice(UserRepository& users);
 
-    [[nodiscard]] std::variant<AuthenticateDeviceSuccess, AuthError> execute(const AuthenticateDeviceInput& input);
+    std::variant<AuthenticateDeviceSuccess, AuthError> execute(const AuthenticateDeviceInput& input);
 
 private:
     UserRepository& users_;

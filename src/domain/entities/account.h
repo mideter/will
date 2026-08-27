@@ -1,8 +1,10 @@
 #pragma once
 
-#include "auth_token.h"
+#include "device_token.h"
 #include "timestamp.h"
 #include "user_id.h"
+
+#include <string>
 
 
 namespace will::domain {
@@ -11,7 +13,7 @@ namespace will::domain {
 /// Authenticated connection context for an active session.
 struct Account {
     UserId user_id{};
-    AuthToken session_token;
+    DeviceToken device_token;
     Timestamp authenticated_at{};
     std::string name;
 };
