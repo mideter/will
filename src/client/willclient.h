@@ -1,6 +1,7 @@
 #pragma once
 
 #include "clientconfig.h"
+#include "entities/device_token.h"
 
 #include "proto/messenger.grpc.pb.h"
 
@@ -24,11 +25,8 @@ public:
     WillClient();
     explicit WillClient(ClientConfig config);
 
-    /** Opens a gRPC channel and starts Messenger.Session. */
+    /** Opens a gRPC channel, starts Messenger.Session, and authenticates with the device token. */
     void connect();
-
-    /** Sends BindToken and waits for AuthOk. */
-    void authenticate_device(std::string_view device_token);
 
     /** Called from the inbound reader thread. */
     void set_inbound_handler(std::function<void(const v1::ServerEvent&)> handler);
@@ -44,6 +42,8 @@ public:
     const ClientConfig& config() const noexcept;
 
 private:
+    static domain::DeviceToken load_or_create_device_token(const std::string& path);
+    void authenticate_device(std::string_view device_token);
     v1::ServerEvent wait_for_auth_response();
     void dispatch_inbound(const v1::ServerEvent& event);
     void dispatch_closed();

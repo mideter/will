@@ -2,6 +2,7 @@
 
 #include "clientconfigvalidator.h"
 
+#include <fstream>
 #include <future>
 #include <stdexcept>
 #include <utility>
@@ -112,10 +113,38 @@ void WillClient::reader_loop()
 }
 
 
+domain::DeviceToken WillClient::load_or_create_device_token(const std::string& path)
+{
+    {
+        std::ifstream in(path);
+        if (in) {
+            std::string token;
+            in >> token;
+            if (const auto parsed = domain::DeviceToken::parse(token))
+                return *parsed;
+        }
+    }
+
+    const domain::DeviceToken token = domain::DeviceToken::generate();
+
+    std::ofstream out(path, std::ios::trunc);
+    if (!out)
+        throw std::runtime_error("WillClient: failed to write " + path);
+
+    out << token.text();
+    if (!out)
+        throw std::runtime_error("WillClient: failed to persist device token");
+
+    return token;
+}
+
+
 void WillClient::connect()
 {
     if (stream_)
         throw std::logic_error("WillClient: already connected");
+
+    const domain::DeviceToken device_token = load_or_create_device_token(config_.device_token_path);
 
     const std::string target = config_.host + ":" + std::to_string(config_.port);
     channel_ = grpc::CreateChannel(target, grpc::InsecureChannelCredentials());
@@ -126,6 +155,7 @@ void WillClient::connect()
         throw std::runtime_error("WillClient: failed to open Session stream");
 
     reader_thread_ = std::jthread([this] { reader_loop(); });
+    authenticate_device(device_token.text());
 }
 
 
