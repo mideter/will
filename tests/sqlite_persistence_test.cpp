@@ -3,8 +3,8 @@
 #include "sqlite_user_repository_impl.h"
 
 #include "entities/chat_id.h"
-#include "entities/user_id.h"
 #include "entities/timestamp.h"
+#include "entities/user_id.h"
 
 #include <cassert>
 #include <cstdlib>
@@ -20,36 +20,67 @@ int main()
     const std::string db_path = "/tmp/will-sqlite-persistence-test-" + std::to_string(getpid()) + ".db";
     ::unlink(db_path.c_str());
 
-    SqliteDatabase database(db_path);
-    SqliteMessageRepositoryImpl messages(database);
-    SqliteUserRepositoryImpl users(database);
-
-    const User user_a = users.create_user("aaaa1234aaaa1234aaaa1234aaaa1234", "nameaaaa");
-    const User user_b = users.create_user("bbbb1234bbbb1234bbbb1234bbbb1234", "namebbbb");
-    const ChatId chat = ChatId::global();
-
-    messages.append(chat, user_a.id, "from-peer", Timestamp{1000});
-    messages.append(chat, user_b.id, "from-me", Timestamp{2000});
-
-    const auto rows = messages.load_last(chat, 10);
-    assert(rows.size() == 2);
-    assert(rows[0].body() == "from-peer");
-    assert(rows[0].author_id() == user_a.id);
-    assert(users.find_by_id(rows[0].author_id())->name == "nameaaaa");
-    assert(rows[1].body() == "from-me");
-    assert(rows[1].author_id() == user_b.id);
-    assert(users.find_by_id(rows[1].author_id())->name == "namebbbb");
-
+    UserId user_a_id{};
+    UserId user_b_id{};
+    UserId created_id{};
     const std::string token = "abcd1234abcd1234abcd1234abcd1234";
-    const User created = users.create_user(token, "abcdefgh");
-    assert(created.id.value > 0);
-    assert(created.device_token == token);
-    assert(created.name == "abcdefgh");
 
-    const std::optional<User> found = users.find_by_device_token(token);
-    assert(found.has_value());
-    assert(found->id == created.id);
-    assert(found->name == "abcdefgh");
+    {
+        SqliteDatabase database(db_path);
+        SqliteMessageRepositoryImpl messages(database);
+        SqliteUserRepositoryImpl users(database);
+
+        const User user_a = users.create_user("aaaa1234aaaa1234aaaa1234aaaa1234", "nameaaaa");
+        const User user_b = users.create_user("bbbb1234bbbb1234bbbb1234bbbb1234", "namebbbb");
+        user_a_id = user_a.id;
+        user_b_id = user_b.id;
+
+        const ChatId chat = ChatId::global();
+        messages.append(chat, user_a.id, "from-peer", Timestamp{1000});
+        messages.append(chat, user_b.id, "from-me", Timestamp{2000});
+
+        const auto rows = messages.load_last(chat, 10);
+        assert(rows.size() == 2);
+        assert(rows[0].body() == "from-peer");
+        assert(rows[0].author_id() == user_a.id);
+        assert(users.find_by_id(rows[0].author_id())->name == "nameaaaa");
+        assert(rows[1].body() == "from-me");
+        assert(rows[1].author_id() == user_b.id);
+        assert(users.find_by_id(rows[1].author_id())->name == "namebbbb");
+
+        const User created = users.create_user(token, "abcdefgh");
+        created_id = created.id;
+        assert(created.id.value > 0);
+        assert(created.device_token == token);
+        assert(created.name == "abcdefgh");
+
+        const std::optional<User> found = users.find_by_device_token(token);
+        assert(found.has_value());
+        assert(found->id == created.id);
+        assert(found->name == "abcdefgh");
+    }
+
+    {
+        SqliteDatabase database(db_path);
+        SqliteUserRepositoryImpl users(database);
+
+        const std::optional<User> by_token = users.find_by_device_token(token);
+        assert(by_token.has_value());
+        assert(by_token->id == created_id);
+        assert(by_token->name == "abcdefgh");
+
+        const std::optional<User> a = users.find_by_id(user_a_id);
+        assert(a.has_value());
+        assert(a->name == "nameaaaa");
+        assert(a->device_token == "aaaa1234aaaa1234aaaa1234aaaa1234");
+
+        const std::optional<User> b = users.find_by_id(user_b_id);
+        assert(b.has_value());
+        assert(b->name == "namebbbb");
+
+        assert(!users.find_by_id(UserId{999999}).has_value());
+        assert(!users.find_by_device_token("missing-token-xxxxxxxxxxxxxxxx").has_value());
+    }
 
     ::unlink(db_path.c_str());
     return EXIT_SUCCESS;

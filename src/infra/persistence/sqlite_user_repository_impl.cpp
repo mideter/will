@@ -10,37 +10,51 @@ namespace will {
 
 SqliteUserRepositoryImpl::SqliteUserRepositoryImpl(SqliteDatabase& database)
     : database_(database)
-{}
+{
+    load_all();
+}
+
+
+void SqliteUserRepositoryImpl::load_all()
+{
+    std::lock_guard lock(database_.mutex());
+
+    sqlite3* const db = database_.db();
+    sqlite3_stmt* stmt = nullptr;
+    check_sqlite(sqlite3_prepare_v2(db, "SELECT id, device_token, name FROM users;", -1, &stmt, nullptr), db,
+                 "prepare load_all users");
+
+    int rc = sqlite3_step(stmt);
+    while (rc == SQLITE_ROW) {
+        domain::User row;
+        row.id = domain::UserId{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 0))};
+        row.device_token = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
+        if (const unsigned char* name = sqlite3_column_text(stmt, 2))
+            row.name = reinterpret_cast<const char*>(name);
+
+        id_by_token_[row.device_token] = row.id;
+        users_by_id_[row.id] = std::move(row);
+        rc = sqlite3_step(stmt);
+    }
+
+    check_sqlite(rc, db, "load_all users step");
+    sqlite3_finalize(stmt);
+}
 
 
 std::optional<domain::User> SqliteUserRepositoryImpl::find_by_device_token(const std::string_view device_token)
 {
     std::lock_guard lock(database_.mutex());
 
-    sqlite3* const db = database_.db();
-    sqlite3_stmt* stmt = nullptr;
-    check_sqlite(sqlite3_prepare_v2(db, "SELECT id, device_token, name FROM users WHERE device_token = ? LIMIT 1;",
-                                    -1, &stmt, nullptr),
-                 db, "prepare find_by_device_token");
+    const auto token_it = id_by_token_.find(std::string(device_token));
+    if (token_it == id_by_token_.end())
+        return std::nullopt;
 
-    check_sqlite(sqlite3_bind_text(stmt, 1, device_token.data(), static_cast<int>(device_token.size()),
-                                   SQLITE_TRANSIENT),
-                 db, "bind device_token");
+    const auto user_it = users_by_id_.find(token_it->second);
+    if (user_it == users_by_id_.end())
+        return std::nullopt;
 
-    std::optional<domain::User> user;
-    const int rc = sqlite3_step(stmt);
-    if (rc == SQLITE_ROW) {
-        domain::User row;
-        row.id = domain::UserId{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 0))};
-        row.device_token = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
-        if (const unsigned char* name = sqlite3_column_text(stmt, 2))
-            row.name = reinterpret_cast<const char*>(name);
-        user = std::move(row);
-    }
-
-    check_sqlite(rc == SQLITE_ROW ? SQLITE_OK : rc, db, "find_by_device_token step");
-    sqlite3_finalize(stmt);
-    return user;
+    return user_it->second;
 }
 
 
@@ -48,28 +62,11 @@ std::optional<domain::User> SqliteUserRepositoryImpl::find_by_id(const domain::U
 {
     std::lock_guard lock(database_.mutex());
 
-    sqlite3* const db = database_.db();
-    sqlite3_stmt* stmt = nullptr;
-    check_sqlite(sqlite3_prepare_v2(db, "SELECT id, device_token, name FROM users WHERE id = ? LIMIT 1;", -1,
-                                    &stmt, nullptr),
-                 db, "prepare find_by_id");
+    const auto it = users_by_id_.find(id);
+    if (it == users_by_id_.end())
+        return std::nullopt;
 
-    check_sqlite(sqlite3_bind_int64(stmt, 1, static_cast<sqlite3_int64>(id.value)), db, "bind id");
-
-    std::optional<domain::User> user;
-    const int rc = sqlite3_step(stmt);
-    if (rc == SQLITE_ROW) {
-        domain::User row;
-        row.id = domain::UserId{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 0))};
-        row.device_token = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
-        if (const unsigned char* name = sqlite3_column_text(stmt, 2))
-            row.name = reinterpret_cast<const char*>(name);
-        user = std::move(row);
-    }
-
-    check_sqlite(rc == SQLITE_ROW ? SQLITE_OK : rc, db, "find_by_id step");
-    sqlite3_finalize(stmt);
-    return user;
+    return it->second;
 }
 
 
@@ -94,7 +91,10 @@ domain::User SqliteUserRepositoryImpl::create_user(const std::string_view device
     sqlite3_finalize(stmt);
 
     const domain::UserId id{static_cast<std::uint64_t>(sqlite3_last_insert_rowid(db))};
-    return domain::User{id, std::string(device_token), std::string(name)};
+    domain::User user{id, std::string(device_token), std::string(name)};
+    id_by_token_[user.device_token] = id;
+    users_by_id_[id] = user;
+    return user;
 }
 
 
