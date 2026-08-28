@@ -121,7 +121,7 @@ void print_usage(const char* program)
 {
     std::cerr << "Usage: " << program << " <path-to-will-server>\n"
               << "\n"
-              << "Integration tests for ServerConfigParser / will-server CLI behavior.\n"
+              << "Integration tests for will-server CLI behavior.\n"
               << "Example:\n"
               << "  " << program << " ./build/will-server\n"
               << "\n"

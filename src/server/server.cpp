@@ -1,19 +1,8 @@
-#include <iostream>
-
-#include "willserver.h"
-#include "serverconfigparser.h"
+#include "serverapp.h"
 
 
 int main(int argc, char* argv[])
-try {
-    const will::ServerConfigParser cli(argc, argv);
-
-    will::WillServer server(cli.server_config());
-    server.run();
-
-    return 0;
-}
-catch (const std::exception& e) {
-    std::cerr << "Server error: " << e.what() << '\n';
-    return 1;
+{
+    will::ServerApp app(argc, argv);
+    return app.run();
 }
