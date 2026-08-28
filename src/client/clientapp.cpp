@@ -1,7 +1,6 @@
 #include "clientapp.h"
 
 #include "chatsession.h"
-#include "clientcliapp.h"
 #include "clientconfigvalidator.h"
 #include "consoleui.h"
 #include "willclient.h"
@@ -13,15 +12,14 @@ namespace will {
 
 
 ClientApp::ClientApp(int argc, char* argv[])
+    : cli_{}
 {
-    ClientCliApp cli;
-
     try {
-        config_ = ClientConfigValidator::accept(cli.parse(argc, argv));
+        config_ = ClientConfigValidator::accept(cli_.parse(argc, argv));
     } catch (const CLI::CallForHelp& error) {
-        cli.exit_on_help(error);
+        cli_.exit_on_help(error);
     } catch (const CLI::ParseError& error) {
-        cli.exit_on_parse_error(error);
+        cli_.exit_on_parse_error(error);
     }
 }
 

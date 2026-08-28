@@ -1,6 +1,7 @@
 #pragma once
 
 #include "clientconfig.h"
+#include "clientcliapp.h"
 
 
 namespace will {
@@ -15,6 +16,7 @@ public:
     int run();
 
 private:
+    ClientCliApp cli_;
     ClientConfig config_;
 };
 
