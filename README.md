@@ -116,11 +116,11 @@ The test suite covers domain logic, SQLite persistence, CLI parsing, and integra
 ## Project layout
 
 ```
-proto/                 messenger.proto (gRPC Messenger.Session)
 src/
   domain/              Entities, ports, and use cases (auth, chat, history)
   infra/
     persistence/       SQLite repositories
+    transport/         messenger.proto (gRPC Messenger.Session)
   server/              will-server: sessions, auth, gRPC service
   client/              will-client: session, inbound handler, CLI
 tools/

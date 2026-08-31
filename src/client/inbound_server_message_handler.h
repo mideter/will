@@ -1,6 +1,6 @@
 #pragma once
 
-#include "proto/messenger.pb.h"
+#include "infra/transport/messenger.pb.h"
 
 
 namespace will {

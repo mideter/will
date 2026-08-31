@@ -72,7 +72,7 @@ test_target("will-server-cli-integration-test")
 
 test_target("will-history-integration-test")
     add_files("history_integration_test.cpp")
-    add_deps("will-server", "will_proto")
+    add_deps("will-server", "will-transport")
     add_packages("pkgconfig::protobuf", "pkgconfig::grpc++")
     with_run_dep("will-server")
 
@@ -85,7 +85,7 @@ test_target("will-connection-account-store-test")
 
 test_target("will-session-takeover-integration-test")
     add_files("session_takeover_integration_test.cpp")
-    add_deps("will-server", "will_proto")
+    add_deps("will-server", "will-transport")
     add_packages("pkgconfig::protobuf", "pkgconfig::grpc++")
     with_run_dep("will-server")
 

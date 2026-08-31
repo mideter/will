@@ -1,6 +1,6 @@
 #pragma once
 
-#include "proto/messenger.grpc.pb.h"
+#include "infra/transport/messenger.grpc.pb.h"
 
 #include <grpcpp/grpcpp.h>
 

@@ -3,7 +3,7 @@
 #include "clientconfig.h"
 #include "entities/device_token.h"
 
-#include "proto/messenger.grpc.pb.h"
+#include "infra/transport/messenger.grpc.pb.h"
 
 #include <grpcpp/grpcpp.h>
 

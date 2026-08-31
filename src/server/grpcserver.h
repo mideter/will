@@ -7,7 +7,7 @@
 
 #include "ports/messenger_persistence.h"
 
-#include "proto/messenger.grpc.pb.h"
+#include "infra/transport/messenger.grpc.pb.h"
 
 #include <grpcpp/grpcpp.h>
 

@@ -3,7 +3,7 @@
 #include "consoleui.h"
 #include "willclient.h"
 
-#include "proto/messenger.pb.h"
+#include "infra/transport/messenger.pb.h"
 
 
 namespace will {

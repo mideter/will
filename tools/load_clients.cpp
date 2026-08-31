@@ -12,7 +12,7 @@
 
 #include "clientconfigvalidator.h"
 #include "loadclientsconfigparser.h"
-#include "proto/messenger.grpc.pb.h"
+#include "infra/transport/messenger.grpc.pb.h"
 #include "entities/device_token.h"
 
 

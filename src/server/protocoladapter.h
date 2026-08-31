@@ -10,7 +10,7 @@
 #include "usecases/fetch_chat_history.h"
 #include "usecases/send_chat_message.h"
 
-#include "proto/messenger.pb.h"
+#include "infra/transport/messenger.pb.h"
 
 #include <cstdint>
 #include <string_view>
