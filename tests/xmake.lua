@@ -5,6 +5,18 @@ local function test_target(name)
         add_tests("default")
 end
 
+target("will-load-clients")
+    set_kind("binary")
+    add_files(
+        "$(projectdir)/tests/load/**.cpp",
+        "$(projectdir)/src/client/clientconfigvalidator.cpp")
+    add_includedirs(
+        "$(projectdir)/src/client",
+        "$(projectdir)/tests/load",
+        "$(projectdir)/tests/load/cli")
+    add_deps("will-transport", "will-domain")
+    add_packages("cli11", "pkgconfig::protobuf", "pkgconfig::grpc++")
+
 local function with_run_dep(dep_name)
     on_config(function (target)
         target:set("runargs", target:dep(dep_name):targetfile())

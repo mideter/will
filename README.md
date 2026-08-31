@@ -123,9 +123,9 @@ src/
     transport/         messenger.proto (gRPC Messenger.Session)
   server/              will-server: sessions, auth, gRPC service
   client/              will-client: session, inbound handler, CLI
-tools/
-  load_clients.cpp     will-load-clients entry point
-tests/                 Unit and integration tests
+tests/
+  load/                will-load-clients load generator
+  *.cpp                Unit and integration tests (xmake test)
 packaging/deb/         Debian package and systemd unit
 ```
 

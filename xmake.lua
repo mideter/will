@@ -45,11 +45,4 @@ target("will-client")
     add_deps("will-transport", "will-domain")
     add_packages("cli11", "pkgconfig::protobuf", "pkgconfig::grpc++")
 
-target("will-load-clients")
-    set_kind("binary")
-    add_files("tools/**.cpp", "src/client/clientconfigvalidator.cpp")
-    add_includedirs("src/client", "tools", "tools/cli")
-    add_deps("will-transport", "will-domain")
-    add_packages("cli11", "pkgconfig::protobuf", "pkgconfig::grpc++")
-
 includes("tests")
