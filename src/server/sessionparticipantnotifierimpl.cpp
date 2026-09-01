@@ -23,7 +23,7 @@ void SessionParticipantNotifierImpl::notify_chat_message(const domain::Message& 
     std::string author_name;
     
     if (const auto author = users_.find_by_id(msg.author_id()))
-        author_name = author->name.text();
+        author_name = author->name().text();
 
     v1::ServerEvent event;
     auto* chat_message = event.mutable_chat();

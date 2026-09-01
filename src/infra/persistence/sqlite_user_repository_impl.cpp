@@ -41,9 +41,9 @@ void SqliteUserRepositoryImpl::load_all()
         if (!token)
             throw std::runtime_error("load_all users: invalid device_token in database");
 
-        domain::User row{id, device_token, *name};
-        id_by_token_[*token] = row.id;
-        users_by_id_.emplace(row.id, std::move(row));
+        domain::User row{id, *token, *name};
+        id_by_token_[*token] = row.id();
+        users_by_id_.emplace(row.id(), std::move(row));
         rc = sqlite3_step(stmt);
     }
 
@@ -112,7 +112,7 @@ domain::User SqliteUserRepositoryImpl::create_user(const std::string_view device
 
     const domain::UserId id{static_cast<std::uint64_t>(sqlite3_last_insert_rowid(db))};
     const auto [it, inserted] =
-        users_by_id_.emplace(id, domain::User{id, std::string(token_text), name});
+        users_by_id_.emplace(id, domain::User{id, *token, name});
     id_by_token_[*token] = id;
     return it->second;
 }

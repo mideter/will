@@ -2,6 +2,7 @@
 
 #include "entities/account.h"
 #include "entities/chat_id.h"
+#include "entities/device_token.h"
 #include "entities/message.h"
 #include "entities/participant_id.h"
 #include "entities/user.h"
@@ -41,16 +42,16 @@ public:
     User create_user(const std::string_view device_token, const UserName name) override
     {
         const UserId id{++next_user_id_};
-        User user{id, std::string(device_token), name};
+        User user{id, *DeviceToken::parse(device_token), name};
         users_.emplace(id, user);
-        by_token_[user.device_token] = id;
+        by_token_[std::string(user.device_token().text())] = id;
         return user;
     }
 
     void add_user(User user)
     {
-        users_.emplace(user.id, user);
-        by_token_[user.device_token] = user.id;
+        users_.emplace(user.id(), user);
+        by_token_[std::string(user.device_token().text())] = user.id();
     }
 
 private:

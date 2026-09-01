@@ -50,15 +50,15 @@ void test_authenticate_device_creates_user()
 
     const std::optional<User> user = users.find_by_device_token(token.text());
     assert(user.has_value());
-    assert(user->id == success.account.user_id());
-    assert(UserName::parse(user->name.text()));
+    assert(user->id() == success.account.user_id());
+    assert(UserName::parse(user->name().text()));
 }
 
 
 void test_authenticate_device_existing_user()
 {
     FakeUserRepository users;
-    users.add_user(User{UserId{42}, "abcd1234abcd1234abcd1234abcd1234", test_name("oldname1")});
+    users.add_user(User{UserId{42}, test_token("abcd1234abcd1234abcd1234abcd1234"), test_name("oldname1")});
 
     AuthenticateDevice authenticate(users);
     const auto result = authenticate.execute(
@@ -71,7 +71,7 @@ void test_authenticate_device_existing_user()
 void test_authenticate_device_keeps_existing_name()
 {
     FakeUserRepository users;
-    users.add_user(User{UserId{7}, "abcd1234abcd1234abcd1234abcd1234", test_name("keptname")});
+    users.add_user(User{UserId{7}, test_token("abcd1234abcd1234abcd1234abcd1234"), test_name("keptname")});
 
     AuthenticateDevice authenticate(users);
     const auto result = authenticate.execute(
@@ -80,7 +80,7 @@ void test_authenticate_device_keeps_existing_name()
 
     const std::optional<User> user = users.find_by_device_token("abcd1234abcd1234abcd1234abcd1234");
     assert(user.has_value());
-    assert(user->name == test_name("keptname"));
+    assert(user->name() == test_name("keptname"));
 }
 
 
@@ -130,8 +130,8 @@ void test_fetch_chat_history_limit_and_is_mine()
     const UserId me{10};
     const UserId other{20};
 
-    users.add_user(User{me, "token-me-xxxxxxxxxxxxxxxxxxxx", test_name("menameaa")});
-    users.add_user(User{other, "token-other-xxxxxxxxxxxxxxxxx", test_name("peername")});
+    users.add_user(User{me, test_token("c0ffee00c0ffee00c0ffee00c0ffee00"), test_name("menameaa")});
+    users.add_user(User{other, test_token("deadbeefdeadbeefdeadbeefdeadbeef"), test_name("peername")});
 
     messages.append(chat, other, "peer", Timestamp{1});
     messages.append(chat, me, "mine", Timestamp{2});
@@ -165,7 +165,7 @@ void test_fetch_chat_history_caps_limit()
     const ChatId chat = ChatId::global();
     const UserId author{1};
 
-    users.add_user(User{author, "token-author-xxxxxxxxxxxxxxx", test_name("authoraa")});
+    users.add_user(User{author, test_token("feedfacefeedfacefeedfacefeedface"), test_name("authoraa")});
 
     for (int i = 0; i < 5; ++i)
         messages.append(chat, author, "m", Timestamp{i});
