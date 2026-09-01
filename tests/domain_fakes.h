@@ -1,6 +1,5 @@
 #pragma once
 
-#include "entities/account.h"
 #include "entities/chat_id.h"
 #include "entities/device_token.h"
 #include "entities/message.h"

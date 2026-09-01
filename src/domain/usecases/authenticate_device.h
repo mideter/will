@@ -1,6 +1,6 @@
 #pragma once
 
-#include "entities/account.h"
+#include "entities/user.h"
 #include "errors/auth_error.h"
 #include "ports/user_repository.h"
 
@@ -13,12 +13,11 @@ namespace will::domain {
 
 struct AuthenticateDeviceInput {
     std::string_view device_token_raw;
-    Timestamp now{};
 };
 
 
 struct AuthenticateDeviceSuccess {
-    Account account;
+    User user;
 };
 
 

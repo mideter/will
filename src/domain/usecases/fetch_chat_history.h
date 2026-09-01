@@ -1,7 +1,7 @@
 #pragma once
 
-#include "entities/account.h"
 #include "entities/chat_id.h"
+#include "entities/user_id.h"
 #include "entities/message.h"
 #include "errors/domain_error.h"
 #include "ports/message_repository.h"
@@ -17,7 +17,7 @@ namespace will::domain {
 
 
 struct FetchChatHistoryInput {
-    Account account;
+    UserId user_id;
     ChatId chat_id = ChatId::global();
     std::uint32_t limit = 0;
 };

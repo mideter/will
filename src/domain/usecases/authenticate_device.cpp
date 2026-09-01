@@ -20,7 +20,7 @@ std::variant<AuthenticateDeviceSuccess, AuthError> AuthenticateDevice::execute(c
     if (!user)
         user = users_.create_user(token->text(), UserName::generate());
 
-    return AuthenticateDeviceSuccess{Account{user->id(), *token, input.now}};
+    return AuthenticateDeviceSuccess{*user};
 }
 
 

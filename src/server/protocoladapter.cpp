@@ -55,7 +55,7 @@ void ProtocolAdapter::close_session(const std::uint64_t session_id)
 
 void ProtocolAdapter::handle_bind_token(const std::uint64_t session_id, const v1::BindToken& token)
 {
-    const domain::AuthenticateDeviceInput input{token.token(), domain::Timestamp{}};
+    const domain::AuthenticateDeviceInput input{token.token()};
     const auto outcome = authenticate_device_.execute(input);
 
     if (std::holds_alternative<domain::AuthError>(outcome)) {
@@ -64,7 +64,7 @@ void ProtocolAdapter::handle_bind_token(const std::uint64_t session_id, const v1
     }
 
     const auto& success = std::get<domain::AuthenticateDeviceSuccess>(outcome);
-    if (const auto displaced = account_store_.set(session_id, success.account))
+    if (const auto displaced = account_store_.set(session_id, success.user))
         close_session(*displaced);
 
     v1::ServerEvent event;
@@ -84,7 +84,7 @@ void ProtocolAdapter::send_auth_required(const std::uint64_t session_id)
 void ProtocolAdapter::handle_user_chat(const std::uint64_t session_id, const v1::ChatMessage& chat)
 {
     const domain::SendChatMessageInput input{
-        *account_store_.get(session_id),
+        account_store_.get(session_id)->id(),
         domain::ParticipantId{session_id},
         domain::ChatId::global(),
         chat.body(),
@@ -101,7 +101,7 @@ void ProtocolAdapter::handle_user_chat(const std::uint64_t session_id, const v1:
 
 void ProtocolAdapter::handle_history_request(const std::uint64_t session_id, const v1::HistoryRequest& request)
 {
-    const domain::FetchChatHistoryInput input{*account_store_.get(session_id), domain::ChatId::global(),
+    const domain::FetchChatHistoryInput input{account_store_.get(session_id)->id(), domain::ChatId::global(),
                                               request.limit()};
 
     const auto outcome = fetch_chat_history_.execute(input);
