@@ -10,18 +10,18 @@ int main()
 {
     using namespace will::domain;
 
-    assert(UserName::is_valid("abcdefgh"));
-    assert(UserName::is_valid("abc12345"));
-    assert(!UserName::is_valid(""));
-    assert(!UserName::is_valid("short"));
-    assert(!UserName::is_valid("ABCDEFGH"));
-    assert(!UserName::is_valid("abcd-efg"));
+    assert(UserName::parse("abcdefgh"));
+    assert(UserName::parse("abc12345"));
+    assert(!UserName::parse(""));
+    assert(!UserName::parse("short"));
+    assert(!UserName::parse("ABCDEFGH"));
+    assert(!UserName::parse("abcd-efg"));
 
     std::set<std::string> names;
     for (int i = 0; i < 64; ++i) {
-        const std::string name = UserName::generate();
-        assert(UserName::is_valid(name));
-        names.insert(name);
+        const UserName name = UserName::generate();
+        assert(UserName::parse(name.text()));
+        names.insert(std::string(name.text()));
     }
     assert(names.size() > 1);
 

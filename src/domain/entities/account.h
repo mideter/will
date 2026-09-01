@@ -3,8 +3,7 @@
 #include "device_token.h"
 #include "timestamp.h"
 #include "user_id.h"
-
-#include <string>
+#include "user_name.h"
 
 
 namespace will::domain {
@@ -15,7 +14,7 @@ struct Account {
     UserId user_id{};
     DeviceToken device_token;
     Timestamp authenticated_at{};
-    std::string name;
+    UserName name;
 };
 
 

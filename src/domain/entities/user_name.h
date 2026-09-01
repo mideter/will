@@ -1,6 +1,8 @@
 #pragma once
 
 #include <cstddef>
+#include <functional>
+#include <optional>
 #include <string>
 #include <string_view>
 
@@ -13,9 +15,27 @@ class UserName {
 public:
     static constexpr std::size_t Length = 8;
 
-    static std::string generate();
-    static bool is_valid(std::string_view name) noexcept;
+    static std::optional<UserName> parse(std::string_view input);
+    static UserName generate();
+
+    std::string_view text() const noexcept { return value_; }
+
+    bool operator==(const UserName&) const = default;
+
+private:
+    explicit UserName(std::string value);
+
+    std::string value_;
 };
 
 
 } // namespace will::domain
+
+
+template <>
+struct std::hash<will::domain::UserName> {
+    std::size_t operator()(const will::domain::UserName& name) const noexcept
+    {
+        return std::hash<std::string_view>{}(name.text());
+    }
+};

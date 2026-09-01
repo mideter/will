@@ -31,7 +31,7 @@ std::variant<FetchChatHistoryResult, DomainError> FetchChatHistory::execute(cons
         if (const auto cached = author_names.find(row.author_id()); cached != author_names.end()) {
             author_name = cached->second;
         } else if (const std::optional<User> author = users_.find_by_id(row.author_id())) {
-            author_name = author->name;
+            author_name = author->name.text();
             author_names.emplace(row.author_id(), author_name);
         } else {
             author_names.emplace(row.author_id(), std::string{});

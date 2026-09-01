@@ -2,6 +2,7 @@
 
 #include "entities/device_token.h"
 #include "entities/timestamp.h"
+#include "entities/user_name.h"
 
 #include <cassert>
 #include <cstdlib>
@@ -22,7 +23,7 @@ will::domain::Account make_account(std::uint64_t user_id,
                                    const char* token = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
 {
     return will::domain::Account{will::domain::UserId{user_id}, test_token(token),
-                                 will::domain::Timestamp{1000}};
+                                 will::domain::Timestamp{1000}, *will::domain::UserName::parse("testuser")};
 }
 
 

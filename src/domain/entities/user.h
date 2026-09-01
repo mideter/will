@@ -1,6 +1,7 @@
 #pragma once
 
 #include "user_id.h"
+#include "user_name.h"
 
 #include <string>
 
@@ -12,7 +13,7 @@ namespace will::domain {
 struct User {
     UserId id{};
     std::string device_token;
-    std::string name;
+    UserName name;
 };
 
 

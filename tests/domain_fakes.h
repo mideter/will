@@ -6,6 +6,7 @@
 #include "entities/participant_id.h"
 #include "entities/user.h"
 #include "entities/user_id.h"
+#include "entities/user_name.h"
 #include "ports/message_repository.h"
 #include "ports/participant_notifier.h"
 #include "ports/user_repository.h"
@@ -37,10 +38,10 @@ public:
         return it->second;
     }
 
-    User create_user(const std::string_view device_token, const std::string_view name) override
+    User create_user(const std::string_view device_token, const UserName name) override
     {
         const UserId id{++next_user_id_};
-        User user{id, std::string(device_token), std::string(name)};
+        User user{id, std::string(device_token), name};
         users_.emplace(id, user);
         by_token_[user.device_token] = id;
         return user;

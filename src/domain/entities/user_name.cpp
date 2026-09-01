@@ -16,7 +16,22 @@ constexpr std::size_t AlphabetSize = sizeof(Alphabet) - 1;
 } // namespace
 
 
-std::string UserName::generate()
+std::optional<UserName> UserName::parse(const std::string_view input)
+{
+    if (input.size() != Length)
+        return std::nullopt;
+
+    for (const char c : input) {
+        const bool ok = (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9');
+        if (!ok)
+            return std::nullopt;
+    }
+
+    return UserName{std::string(input)};
+}
+
+
+UserName UserName::generate()
 {
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -25,22 +40,11 @@ std::string UserName::generate()
     std::string name(Length, '\0');
     for (char& ch : name)
         ch = Alphabet[dist(gen)];
-    return name;
+    return UserName{std::move(name)};
 }
 
 
-bool UserName::is_valid(const std::string_view name) noexcept
-{
-    if (name.size() != Length)
-        return false;
-
-    for (const char c : name) {
-        const bool ok = (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9');
-        if (!ok)
-            return false;
-    }
-    return true;
-}
+UserName::UserName(std::string value) : value_(std::move(value)) {}
 
 
 } // namespace will::domain
