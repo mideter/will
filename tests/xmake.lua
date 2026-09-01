@@ -31,6 +31,10 @@ test_target("message-test")
     add_files("message_test.cpp")
     add_deps("will-domain")
 
+test_target("account-test")
+    add_files("account_test.cpp")
+    add_deps("will-domain")
+
 test_target("device-token-test")
     add_files("device_token_test.cpp")
     add_deps("will-domain")

@@ -37,7 +37,7 @@ std::variant<FetchChatHistoryResult, DomainError> FetchChatHistory::execute(cons
             author_names.emplace(row.author_id(), std::string{});
         }
 
-        const bool is_mine = row.author_id() == input.account.user_id;
+        const bool is_mine = row.author_id() == input.account.user_id();
         result.items.push_back(FetchChatHistoryItem{row, std::move(author_name), is_mine});
     }
 

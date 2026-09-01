@@ -36,7 +36,7 @@ void test_displace_other_connection()
     assert(displaced && *displaced == 1);
     assert(!store.has(1));
     assert(store.has(2));
-    assert(store.get(2)->user_id == will::domain::UserId{7});
+    assert(store.get(2)->user_id() == will::domain::UserId{7});
 }
 
 
@@ -47,7 +47,7 @@ void test_same_connection_rebind()
     assert(!store.set(1, make_account(7)));
     assert(!store.set(1, make_account(7, "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb")));
     assert(store.has(1));
-    assert(store.get(1)->device_token.text() == "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
+    assert(store.get(1)->device_token().text() == "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
 }
 
 
@@ -61,7 +61,7 @@ void test_remove_after_displace_keeps_new_owner()
 
     store.remove(1);
     assert(store.has(2));
-    assert(store.get(2)->user_id == will::domain::UserId{7});
+    assert(store.get(2)->user_id() == will::domain::UserId{7});
 
     store.remove(2);
     assert(!store.has(2));
@@ -78,8 +78,8 @@ void test_rebind_different_user_clears_old_index()
     assert(!store.set(2, make_account(7)));
     assert(store.has(1));
     assert(store.has(2));
-    assert(store.get(1)->user_id == will::domain::UserId{8});
-    assert(store.get(2)->user_id == will::domain::UserId{7});
+    assert(store.get(1)->user_id() == will::domain::UserId{8});
+    assert(store.get(2)->user_id() == will::domain::UserId{7});
 }
 
 

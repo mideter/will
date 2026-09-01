@@ -45,12 +45,12 @@ void test_authenticate_device_creates_user()
     assert(std::holds_alternative<AuthenticateDeviceSuccess>(result));
 
     const AuthenticateDeviceSuccess& success = std::get<AuthenticateDeviceSuccess>(result);
-    assert(success.account.user_id.value > 0);
-    assert(success.account.device_token == token);
+    assert(success.account.user_id().value > 0);
+    assert(success.account.device_token() == token);
 
     const std::optional<User> user = users.find_by_device_token(token.text());
     assert(user.has_value());
-    assert(user->id == success.account.user_id);
+    assert(user->id == success.account.user_id());
     assert(UserName::parse(user->name.text()));
 }
 
@@ -64,7 +64,7 @@ void test_authenticate_device_existing_user()
     const auto result = authenticate.execute(
         AuthenticateDeviceInput{"abcd1234abcd1234abcd1234abcd1234", Timestamp{1000}});
     assert(std::holds_alternative<AuthenticateDeviceSuccess>(result));
-    assert(std::get<AuthenticateDeviceSuccess>(result).account.user_id == UserId{42});
+    assert(std::get<AuthenticateDeviceSuccess>(result).account.user_id() == UserId{42});
 }
 
 
@@ -108,7 +108,7 @@ void test_send_chat_message_persists_and_notifies()
         send.execute(SendChatMessageInput{account, sender, ChatId::global(), "hello", Timestamp{900}});
 
     assert(saved.id().value() > 0);
-    assert(saved.author_id() == account.user_id);
+    assert(saved.author_id() == account.user_id());
     assert(saved.body() == "hello");
     assert(saved.created_at() == Timestamp{900});
 
