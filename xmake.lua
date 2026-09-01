@@ -1,4 +1,5 @@
 add_rules("mode.debug", "mode.release")
+add_rules("plugin.compile_commands.autoupdate", {outputdir = "build", lsp = "clangd"})
 
 set_languages("c++20")
 set_warnings("all")
