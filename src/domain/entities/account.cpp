@@ -11,8 +11,6 @@ Account::Account(const UserId user_id, DeviceToken device_token, const Timestamp
     , device_token_(std::move(device_token))
     , authenticated_at_(authenticated_at)
 {
-    if (user_id_.value == 0)
-        throw std::invalid_argument("Account user_id must be non-zero");
 }
 
 

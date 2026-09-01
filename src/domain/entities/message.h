@@ -17,7 +17,7 @@ class Message {
 public:
     static constexpr std::size_t MaxBodyLength = 4096;
 
-    /// Throws std::invalid_argument if author is zero, or body is empty / too long.
+    /// author_id must be non-zero (enforced by UserId). Throws std::invalid_argument if body is empty / too long.
     Message(MessageId id, ChatId chat_id, UserId author_id, std::string body, Timestamp created_at);
 
     MessageId id() const noexcept { return id_; }

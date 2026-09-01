@@ -45,7 +45,7 @@ void test_authenticate_device_creates_user()
     assert(std::holds_alternative<AuthenticateDeviceSuccess>(result));
 
     const AuthenticateDeviceSuccess& success = std::get<AuthenticateDeviceSuccess>(result);
-    assert(success.account.user_id().value > 0);
+    assert(success.account.user_id().value() > 0);
     assert(success.account.device_token() == token);
 
     const std::optional<User> user = users.find_by_device_token(token.text());

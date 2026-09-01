@@ -21,9 +21,9 @@ int main()
     const std::string db_path = "/tmp/will-sqlite-persistence-test-" + std::to_string(getpid()) + ".db";
     ::unlink(db_path.c_str());
 
-    UserId user_a_id{};
-    UserId user_b_id{};
-    UserId created_id{};
+    std::optional<UserId> user_a_id;
+    std::optional<UserId> user_b_id;
+    std::optional<UserId> created_id;
     const std::string token = "abcd1234abcd1234abcd1234abcd1234";
 
     {
@@ -51,7 +51,7 @@ int main()
 
         const User created = users.create_user(token, *UserName::parse("abcdefgh"));
         created_id = created.id();
-        assert(created.id().value > 0);
+        assert(created.id().value() > 0);
         assert(created.device_token().text() == token);
         assert(created.name() == *UserName::parse("abcdefgh"));
 
@@ -67,15 +67,15 @@ int main()
 
         const std::optional<User> by_token = users.find_by_device_token(token);
         assert(by_token.has_value());
-        assert(by_token->id() == created_id);
+        assert(by_token->id() == *created_id);
         assert(by_token->name() == *UserName::parse("abcdefgh"));
 
-        const std::optional<User> a = users.find_by_id(user_a_id);
+        const std::optional<User> a = users.find_by_id(*user_a_id);
         assert(a.has_value());
         assert(a->name() == *UserName::parse("nameaaaa"));
         assert(a->device_token().text() == "aaaa1234aaaa1234aaaa1234aaaa1234");
 
-        const std::optional<User> b = users.find_by_id(user_b_id);
+        const std::optional<User> b = users.find_by_id(*user_b_id);
         assert(b.has_value());
         assert(b->name() == *UserName::parse("namebbbb"));
 

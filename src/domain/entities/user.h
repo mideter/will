@@ -11,7 +11,7 @@ namespace will::domain {
 /// Registered user account bound to a single device token.
 class User {
 public:
-    /// Throws std::invalid_argument if id is zero.
+    /// user_id must be non-zero (enforced by UserId).
     User(UserId id, DeviceToken device_token, UserName name);
 
     UserId id() const noexcept { return id_; }

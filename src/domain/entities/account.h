@@ -11,7 +11,7 @@ namespace will::domain {
 /// Authenticated connection context for an active session.
 class Account {
 public:
-    /// Throws std::invalid_argument if user_id is zero.
+    /// user_id must be non-zero (enforced by UserId).
     Account(UserId user_id, DeviceToken device_token, Timestamp authenticated_at);
 
     UserId user_id() const noexcept { return user_id_; }

@@ -44,14 +44,14 @@ public:
         const UserId id{++next_user_id_};
         User user{id, *DeviceToken::parse(device_token), name};
         users_.emplace(id, user);
-        by_token_[std::string(user.device_token().text())] = id;
+        by_token_.insert_or_assign(std::string(user.device_token().text()), id);
         return user;
     }
 
     void add_user(User user)
     {
         users_.emplace(user.id(), user);
-        by_token_[std::string(user.device_token().text())] = user.id();
+        by_token_.insert_or_assign(std::string(user.device_token().text()), user.id());
     }
 
 private:

@@ -14,8 +14,6 @@ Message::Message(const MessageId id, const ChatId chat_id, const UserId author_i
     , body_(std::move(body))
     , created_at_(created_at)
 {
-    if (author_id_.value == 0)
-        throw std::invalid_argument("Message author_id must be non-zero");
     if (body_.empty())
         throw std::invalid_argument("Message body must be non-empty");
     if (body_.size() > MaxBodyLength)

@@ -1,21 +1,26 @@
 #pragma once
 
-#include <cstdint>
 #include <compare>
+#include <cstdint>
 #include <functional>
 
 
 namespace will::domain {
 
 
-struct UserId {
-    std::uint64_t value = 0;
+/// Persistent user identity assigned by storage. Must be non-zero.
+class UserId {
+public:
+    /// Throws std::invalid_argument if value is 0.
+    explicit UserId(std::uint64_t value);
 
-    constexpr UserId() noexcept = default;
-    constexpr explicit UserId(std::uint64_t v) noexcept : value(v) {}
+    constexpr std::uint64_t value() const noexcept { return value_; }
 
     constexpr auto operator<=>(const UserId&) const noexcept = default;
     constexpr bool operator==(const UserId&) const noexcept = default;
+
+private:
+    std::uint64_t value_;
 };
 
 
@@ -26,6 +31,6 @@ template <>
 struct std::hash<will::domain::UserId> {
     std::size_t operator()(const will::domain::UserId id) const noexcept
     {
-        return std::hash<std::uint64_t>{}(id.value);
+        return std::hash<std::uint64_t>{}(id.value());
     }
 };
