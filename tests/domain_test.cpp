@@ -47,12 +47,11 @@ void test_authenticate_device_creates_user()
     const AuthenticateDeviceSuccess& success = std::get<AuthenticateDeviceSuccess>(result);
     assert(success.account.user_id.value > 0);
     assert(success.account.device_token == token);
-    assert(UserName::parse(success.account.name.text()));
 
     const std::optional<User> user = users.find_by_device_token(token.text());
     assert(user.has_value());
     assert(user->id == success.account.user_id);
-    assert(user->name == success.account.name);
+    assert(UserName::parse(user->name.text()));
 }
 
 
@@ -66,7 +65,6 @@ void test_authenticate_device_existing_user()
         AuthenticateDeviceInput{"abcd1234abcd1234abcd1234abcd1234", Timestamp{1000}});
     assert(std::holds_alternative<AuthenticateDeviceSuccess>(result));
     assert(std::get<AuthenticateDeviceSuccess>(result).account.user_id == UserId{42});
-    assert(std::get<AuthenticateDeviceSuccess>(result).account.name == test_name("oldname1"));
 }
 
 
@@ -102,7 +100,7 @@ void test_send_chat_message_persists_and_notifies()
     InMemoryMessageRepository messages;
     FakeParticipantNotifier notifier;
 
-    const Account account{UserId{7}, test_token(), Timestamp{500}, test_name("sendname")};
+    const Account account{UserId{7}, test_token(), Timestamp{500}};
     const ParticipantId sender{42};
 
     SendChatMessage send(messages, notifier);
@@ -140,7 +138,7 @@ void test_fetch_chat_history_limit_and_is_mine()
     messages.append(chat, other, "peer2", Timestamp{3});
 
     FetchChatHistory fetch(messages, users);
-    const Account account{me, test_token(), Timestamp{}, test_name("unused01")};
+    const Account account{me, test_token(), Timestamp{}};
 
     const auto zero_limit = fetch.execute(FetchChatHistoryInput{account, chat, 0});
     assert(std::holds_alternative<DomainError>(zero_limit));
@@ -174,7 +172,7 @@ void test_fetch_chat_history_caps_limit()
 
     FetchChatHistory fetch(messages, users);
     const auto ok = fetch.execute(FetchChatHistoryInput{
-        Account{author, test_token(), Timestamp{}, test_name("unused02")}, chat, FetchChatHistory::MaxHistoryRequestLimit + 50});
+        Account{author, test_token(), Timestamp{}}, chat, FetchChatHistory::MaxHistoryRequestLimit + 50});
     assert(std::holds_alternative<FetchChatHistoryResult>(ok));
     assert(std::get<FetchChatHistoryResult>(ok).items.size() == 5);
 }
