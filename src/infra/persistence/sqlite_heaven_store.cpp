@@ -1,4 +1,4 @@
-#include "sqlite_heaven_impl.h"
+#include "sqlite_heaven_store.h"
 
 #include "sqlite_util.h"
 
@@ -9,14 +9,12 @@
 namespace will {
 
 
-SqliteHeavenImpl::SqliteHeavenImpl(SqliteDatabase& database)
+SqliteHeavenStore::SqliteHeavenStore(SqliteDatabase& database)
     : database_(database)
-{
-    load_all();
-}
+{}
 
 
-void SqliteHeavenImpl::load_all()
+std::vector<domain::God> SqliteHeavenStore::load_all()
 {
     std::lock_guard lock(database_.mutex());
 
@@ -24,6 +22,8 @@ void SqliteHeavenImpl::load_all()
     sqlite3_stmt* stmt = nullptr;
     check_sqlite(sqlite3_prepare_v2(db, "SELECT id, device_token, name FROM gods;", -1, &stmt, nullptr), db,
                  "prepare load_all gods");
+
+    std::vector<domain::God> gods;
 
     int rc = sqlite3_step(stmt);
     while (rc == SQLITE_ROW) {
@@ -41,54 +41,21 @@ void SqliteHeavenImpl::load_all()
         if (!token)
             throw std::runtime_error("load_all gods: invalid device_token in database");
 
-        domain::God row{id, *token, *name};
-        id_by_token_.insert_or_assign(*token, row.id());
-        gods_by_id_.emplace(row.id(), std::move(row));
+        gods.emplace_back(id, *token, *name);
         rc = sqlite3_step(stmt);
     }
 
     check_sqlite(rc, db, "load_all gods step");
     sqlite3_finalize(stmt);
+    return gods;
 }
 
 
-std::optional<domain::God> SqliteHeavenImpl::find_by_device_token(const std::string_view device_token)
+domain::God SqliteHeavenStore::insert(const std::string_view device_token, const domain::GodName name)
 {
     const auto token = domain::DeviceToken::parse(device_token);
     if (!token)
-        return std::nullopt;
-
-    std::lock_guard lock(database_.mutex());
-
-    const auto token_it = id_by_token_.find(*token);
-    if (token_it == id_by_token_.end())
-        return std::nullopt;
-
-    const auto god_it = gods_by_id_.find(token_it->second);
-    if (god_it == gods_by_id_.end())
-        return std::nullopt;
-
-    return god_it->second;
-}
-
-
-std::optional<domain::God> SqliteHeavenImpl::find_by_id(const domain::GodId id)
-{
-    std::lock_guard lock(database_.mutex());
-
-    const auto it = gods_by_id_.find(id);
-    if (it == gods_by_id_.end())
-        return std::nullopt;
-
-    return it->second;
-}
-
-
-domain::God SqliteHeavenImpl::create_god(const std::string_view device_token, const domain::GodName name)
-{
-    const auto token = domain::DeviceToken::parse(device_token);
-    if (!token)
-        throw std::invalid_argument("create_god: invalid device_token");
+        throw std::invalid_argument("insert god: invalid device_token");
 
     std::lock_guard lock(database_.mutex());
 
@@ -96,7 +63,7 @@ domain::God SqliteHeavenImpl::create_god(const std::string_view device_token, co
     sqlite3_stmt* stmt = nullptr;
     check_sqlite(sqlite3_prepare_v2(db, "INSERT INTO gods (device_token, name) VALUES (?, ?);", -1, &stmt,
                                     nullptr),
-                 db, "prepare create_god");
+                 db, "prepare insert god");
 
     const std::string_view token_text = token->text();
     check_sqlite(sqlite3_bind_text(stmt, 1, token_text.data(), static_cast<int>(token_text.size()),
@@ -106,13 +73,11 @@ domain::God SqliteHeavenImpl::create_god(const std::string_view device_token, co
                                    SQLITE_TRANSIENT),
                  db, "bind name");
 
-    check_sqlite(sqlite3_step(stmt), db, "create_god step");
+    check_sqlite(sqlite3_step(stmt), db, "insert god step");
     sqlite3_finalize(stmt);
 
     const domain::GodId id{static_cast<std::uint64_t>(sqlite3_last_insert_rowid(db))};
-    const auto [it, inserted] = gods_by_id_.emplace(id, domain::God{id, *token, name});
-    id_by_token_.insert_or_assign(*token, id);
-    return it->second;
+    return domain::God{id, *token, name};
 }
 
 

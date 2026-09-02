@@ -1,5 +1,6 @@
 #include "domain_fakes.h"
 
+#include "entities/heaven.h"
 #include "ids/abode_id.h"
 #include "values/device_token.h"
 #include "values/timestamp.h"
@@ -36,8 +37,9 @@ GodName test_name(const char* text)
 
 void test_authenticate_device_creates_god()
 {
-    FakeHeaven gods;
-    AuthenticateDevice authenticate(gods);
+    InMemoryHeavenStore store;
+    Heaven heaven(store);
+    AuthenticateDevice authenticate(heaven);
 
     const DeviceToken token = DeviceToken::generate();
     const auto result = authenticate.execute(AuthenticateDeviceInput{token.text()});
@@ -47,7 +49,7 @@ void test_authenticate_device_creates_god()
     assert(success.god.id().value() > 0);
     assert(success.god.device_token() == token);
 
-    const std::optional<God> god = gods.find_by_device_token(token.text());
+    const std::optional<God> god = heaven.find_by_device_token(token.text());
     assert(god.has_value());
     assert(god->id() == success.god.id());
     assert(GodName::parse(god->name().text()));
@@ -56,10 +58,11 @@ void test_authenticate_device_creates_god()
 
 void test_authenticate_device_existing_god()
 {
-    FakeHeaven gods;
-    gods.add_god(God{GodId{42}, test_token("abcd1234abcd1234abcd1234abcd1234"), test_name("oldname1")});
+    InMemoryHeavenStore store;
+    Heaven heaven(store);
+    heaven.insert(God{GodId{42}, test_token("abcd1234abcd1234abcd1234abcd1234"), test_name("oldname1")});
 
-    AuthenticateDevice authenticate(gods);
+    AuthenticateDevice authenticate(heaven);
     const auto result = authenticate.execute(AuthenticateDeviceInput{"abcd1234abcd1234abcd1234abcd1234"});
     assert(std::holds_alternative<AuthenticateDeviceSuccess>(result));
     assert(std::get<AuthenticateDeviceSuccess>(result).god.id() == GodId{42});
@@ -68,14 +71,15 @@ void test_authenticate_device_existing_god()
 
 void test_authenticate_device_keeps_existing_name()
 {
-    FakeHeaven gods;
-    gods.add_god(God{GodId{7}, test_token("abcd1234abcd1234abcd1234abcd1234"), test_name("keptname")});
+    InMemoryHeavenStore store;
+    Heaven heaven(store);
+    heaven.insert(God{GodId{7}, test_token("abcd1234abcd1234abcd1234abcd1234"), test_name("keptname")});
 
-    AuthenticateDevice authenticate(gods);
+    AuthenticateDevice authenticate(heaven);
     const auto result = authenticate.execute(AuthenticateDeviceInput{"abcd1234abcd1234abcd1234abcd1234"});
     assert(std::holds_alternative<AuthenticateDeviceSuccess>(result));
 
-    const std::optional<God> god = gods.find_by_device_token("abcd1234abcd1234abcd1234abcd1234");
+    const std::optional<God> god = heaven.find_by_device_token("abcd1234abcd1234abcd1234abcd1234");
     assert(god.has_value());
     assert(god->name() == test_name("keptname"));
 }
@@ -83,8 +87,9 @@ void test_authenticate_device_keeps_existing_name()
 
 void test_authenticate_device_invalid_token()
 {
-    FakeHeaven gods;
-    AuthenticateDevice authenticate(gods);
+    InMemoryHeavenStore store;
+    Heaven heaven(store);
+    AuthenticateDevice authenticate(heaven);
 
     const auto result = authenticate.execute(AuthenticateDeviceInput{"short"});
     assert(std::holds_alternative<AuthError>(result));
@@ -119,19 +124,20 @@ void test_send_letter_persists_and_notifies()
 void test_fetch_letter_history_limit_and_is_mine()
 {
     InMemoryLetterRepository letters;
-    FakeHeaven gods;
+    InMemoryHeavenStore store;
+    Heaven heaven(store);
     const AbodeId abode = AbodeId::global();
     const GodId me{10};
     const GodId other{20};
 
-    gods.add_god(God{me, test_token("c0ffee00c0ffee00c0ffee00c0ffee00"), test_name("menameaa")});
-    gods.add_god(God{other, test_token("deadbeefdeadbeefdeadbeefdeadbeef"), test_name("peername")});
+    heaven.insert(God{me, test_token("c0ffee00c0ffee00c0ffee00c0ffee00"), test_name("menameaa")});
+    heaven.insert(God{other, test_token("deadbeefdeadbeefdeadbeefdeadbeef"), test_name("peername")});
 
     letters.append(abode, other, "peer", Timestamp{1});
     letters.append(abode, me, "mine", Timestamp{2});
     letters.append(abode, other, "peer2", Timestamp{3});
 
-    FetchLetterHistory fetch(letters, gods);
+    FetchLetterHistory fetch(letters, heaven);
 
     const auto zero_limit = fetch.execute(FetchLetterHistoryInput{me, abode, 0});
     assert(std::holds_alternative<DomainError>(zero_limit));
@@ -154,16 +160,17 @@ void test_fetch_letter_history_limit_and_is_mine()
 void test_fetch_letter_history_caps_limit()
 {
     InMemoryLetterRepository letters;
-    FakeHeaven gods;
+    InMemoryHeavenStore store;
+    Heaven heaven(store);
     const AbodeId abode = AbodeId::global();
     const GodId author{1};
 
-    gods.add_god(God{author, test_token("feedfacefeedfacefeedfacefeedface"), test_name("authoraa")});
+    heaven.insert(God{author, test_token("feedfacefeedfacefeedfacefeedface"), test_name("authoraa")});
 
     for (int i = 0; i < 5; ++i)
         letters.append(abode, author, "m", Timestamp{i});
 
-    FetchLetterHistory fetch(letters, gods);
+    FetchLetterHistory fetch(letters, heaven);
     const auto ok = fetch.execute(FetchLetterHistoryInput{
         author, abode, FetchLetterHistory::MaxHistoryRequestLimit + 50});
     assert(std::holds_alternative<FetchLetterHistoryResult>(ok));

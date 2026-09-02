@@ -1,16 +1,14 @@
 #pragma once
 
-#include "values/device_token.h"
-#include "entities/god.h"
 #include "entities/letter.h"
+#include "entities/god.h"
 #include "ids/god_id.h"
-#include "values/god_name.h"
-#include "ports/heaven.h"
+#include "ports/heaven_store.h"
 #include "ports/letter_repository.h"
 #include "ports/participant_notifier.h"
+#include "values/device_token.h"
+#include "values/god_name.h"
 
-#include <map>
-#include <optional>
 #include <string>
 #include <vector>
 
@@ -18,43 +16,21 @@
 namespace will::domain::test {
 
 
-class FakeHeaven final : public Heaven {
+class InMemoryHeavenStore final : public HeavenStore {
 public:
-    std::optional<God> find_by_device_token(const std::string_view device_token) override
-    {
-        const auto it = by_token_.find(std::string(device_token));
-        if (it == by_token_.end())
-            return std::nullopt;
-        return gods_.at(it->second);
-    }
+    std::vector<God> load_all() override { return gods_; }
 
-    std::optional<God> find_by_id(const GodId id) override
-    {
-        const auto it = gods_.find(id);
-        if (it == gods_.end())
-            return std::nullopt;
-        return it->second;
-    }
-
-    God create_god(const std::string_view device_token, const GodName name) override
+    God insert(const std::string_view device_token, const GodName name) override
     {
         const GodId id{++next_god_id_};
         God god{id, *DeviceToken::parse(device_token), name};
-        gods_.emplace(id, god);
-        by_token_.insert_or_assign(std::string(god.device_token().text()), id);
+        gods_.push_back(god);
         return god;
-    }
-
-    void add_god(God god)
-    {
-        gods_.emplace(god.id(), god);
-        by_token_.insert_or_assign(std::string(god.device_token().text()), god.id());
     }
 
 private:
     std::uint64_t next_god_id_ = 0;
-    std::map<GodId, God> gods_;
-    std::map<std::string, GodId> by_token_;
+    std::vector<God> gods_;
 };
 
 

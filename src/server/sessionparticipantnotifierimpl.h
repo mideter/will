@@ -1,7 +1,7 @@
 #pragma once
 
 #include "ports/participant_notifier.h"
-#include "ports/heaven.h"
+#include "entities/heaven.h"
 
 
 namespace will {

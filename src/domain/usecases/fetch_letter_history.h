@@ -4,7 +4,7 @@
 #include "ids/god_id.h"
 #include "entities/letter.h"
 #include "errors/domain_error.h"
-#include "ports/heaven.h"
+#include "entities/heaven.h"
 #include "ports/letter_repository.h"
 
 #include <cstdint>

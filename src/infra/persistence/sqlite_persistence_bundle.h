@@ -2,8 +2,9 @@
 
 #include "ports/messenger_persistence.h"
 
+#include "entities/heaven.h"
 #include "sqlite_database.h"
-#include "sqlite_heaven_impl.h"
+#include "sqlite_heaven_store.h"
 #include "sqlite_letter_repository_impl.h"
 
 #include <string>
@@ -24,8 +25,9 @@ public:
 
 private:
     SqliteDatabase database_;
+    SqliteHeavenStore heaven_store_;
     SqliteLetterRepositoryImpl letters_;
-    SqliteHeavenImpl heaven_;
+    domain::Heaven heaven_;
 };
 
 

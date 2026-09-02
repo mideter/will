@@ -2,7 +2,7 @@
 
 #include "entities/god.h"
 #include "errors/auth_error.h"
-#include "ports/heaven.h"
+#include "entities/heaven.h"
 
 #include <string_view>
 #include <variant>

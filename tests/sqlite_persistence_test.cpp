@@ -1,6 +1,7 @@
+#include "entities/heaven.h"
 #include "sqlite_database.h"
+#include "sqlite_heaven_store.h"
 #include "sqlite_letter_repository_impl.h"
-#include "sqlite_heaven_impl.h"
 
 #include "ids/abode_id.h"
 #include "values/timestamp.h"
@@ -28,8 +29,9 @@ int main()
 
     {
         SqliteDatabase database(db_path);
+        SqliteHeavenStore store(database);
         SqliteLetterRepositoryImpl letters(database);
-        SqliteHeavenImpl heaven(database);
+        Heaven heaven(store);
 
         const God god_a = heaven.create_god("aaaa1234aaaa1234aaaa1234aaaa1234", *GodName::parse("nameaaaa"));
         const God god_b = heaven.create_god("bbbb1234bbbb1234bbbb1234bbbb1234", *GodName::parse("namebbbb"));
@@ -63,7 +65,8 @@ int main()
 
     {
         SqliteDatabase database(db_path);
-        SqliteHeavenImpl heaven(database);
+        SqliteHeavenStore store(database);
+        Heaven heaven(store);
 
         const std::optional<God> by_token = heaven.find_by_device_token(token);
         assert(by_token.has_value());

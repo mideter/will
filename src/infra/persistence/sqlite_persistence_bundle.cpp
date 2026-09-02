@@ -6,8 +6,9 @@ namespace will {
 
 SqlitePersistenceBundle::SqlitePersistenceBundle(std::string db_path)
     : database_(std::move(db_path))
+    , heaven_store_(database_)
     , letters_(database_)
-    , heaven_(database_)
+    , heaven_(heaven_store_)
 {}
 
 
