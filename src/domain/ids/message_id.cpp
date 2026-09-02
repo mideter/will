@@ -6,12 +6,10 @@
 namespace will::domain {
 
 
-MessageId::MessageId(const std::uint64_t value)
+MessageId::MessageId(const std::uint64_t value) : Id(value)
 {
     if (value == 0)
         throw std::invalid_argument("MessageId must be non-zero");
-
-    value_ = value;
 }
 
 
