@@ -1,5 +1,5 @@
 #include "entities/message.h"
-#include "entities/message_id.h"
+#include "ids/message_id.h"
 
 #include <cassert>
 #include <cstdlib>

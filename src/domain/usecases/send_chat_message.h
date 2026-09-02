@@ -1,7 +1,7 @@
 #pragma once
 
-#include "entities/chat_id.h"
-#include "entities/user_id.h"
+#include "ids/chat_id.h"
+#include "ids/user_id.h"
 #include "entities/message.h"
 #include "ports/message_repository.h"
 #include "ports/participant_notifier.h"

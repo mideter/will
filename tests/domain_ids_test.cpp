@@ -1,6 +1,6 @@
-#include "entities/chat_id.h"
-#include "entities/message_id.h"
-#include "entities/user_id.h"
+#include "ids/chat_id.h"
+#include "ids/message_id.h"
+#include "ids/user_id.h"
 
 #include <cassert>
 #include <cstdlib>

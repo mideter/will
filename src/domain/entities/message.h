@@ -1,9 +1,9 @@
 #pragma once
 
-#include "chat_id.h"
-#include "message_id.h"
+#include "ids/chat_id.h"
+#include "ids/message_id.h"
+#include "ids/user_id.h"
 #include "timestamp.h"
-#include "user_id.h"
 
 #include <cstddef>
 #include <string>

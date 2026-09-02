@@ -3,7 +3,7 @@
 #include "session.h"
 #include "session_id.h"
 
-#include "entities/user_id.h"
+#include "ids/user_id.h"
 
 #include "infra/transport/messenger.grpc.pb.h"
 

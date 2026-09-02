@@ -2,9 +2,9 @@
 #include "sqlite_message_repository_impl.h"
 #include "sqlite_user_repository_impl.h"
 
-#include "entities/chat_id.h"
+#include "ids/chat_id.h"
 #include "entities/timestamp.h"
-#include "entities/user_id.h"
+#include "ids/user_id.h"
 #include "entities/user_name.h"
 
 #include <cassert>

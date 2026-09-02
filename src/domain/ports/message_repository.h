@@ -1,8 +1,8 @@
 #pragma once
 
-#include "entities/chat_id.h"
 #include "entities/message.h"
-#include "entities/user_id.h"
+#include "ids/chat_id.h"
+#include "ids/user_id.h"
 
 #include <string_view>
 #include <vector>

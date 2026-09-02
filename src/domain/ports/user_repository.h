@@ -1,7 +1,7 @@
 #pragma once
 
 #include "entities/user.h"
-#include "entities/user_id.h"
+#include "ids/user_id.h"
 #include "entities/user_name.h"
 
 #include <optional>

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "chat_id.h"
+#include "ids/chat_id.h"
 
 
 namespace will::domain {

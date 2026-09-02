@@ -1,6 +1,6 @@
 #include "domain_fakes.h"
 
-#include "entities/chat_id.h"
+#include "ids/chat_id.h"
 #include "entities/device_token.h"
 #include "entities/timestamp.h"
 #include "entities/user_name.h"
