@@ -1,6 +1,7 @@
 #include "ids/abode_id.h"
 #include "ids/letter_id.h"
 #include "ids/god_id.h"
+#include "ids/vessel_id.h"
 
 #include <cassert>
 #include <cstdlib>
@@ -39,6 +40,12 @@ int main()
 
     try {
         AbodeId{0};
+        return EXIT_FAILURE;
+    } catch (const std::invalid_argument&) {
+    }
+
+    try {
+        VesselId{0};
         return EXIT_FAILURE;
     } catch (const std::invalid_argument&) {
     }

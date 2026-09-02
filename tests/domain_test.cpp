@@ -47,7 +47,6 @@ void test_authenticate_device_creates_god()
 
     const AuthenticateDeviceSuccess& success = std::get<AuthenticateDeviceSuccess>(result);
     assert(success.god.id().value() > 0);
-    assert(success.god.device_token() == token);
 
     const std::optional<God> god = heaven.find_by_device_token(token.text());
     assert(god.has_value());
@@ -60,7 +59,7 @@ void test_authenticate_device_existing_god()
 {
     InMemoryEternity eternity;
     Heaven heaven(eternity);
-    heaven.insert(God{GodId{42}, test_token("abcd1234abcd1234abcd1234abcd1234"), test_name("oldname1")});
+    seed_god_with_token(heaven, GodId{42}, test_token("abcd1234abcd1234abcd1234abcd1234"), test_name("oldname1"));
 
     AuthenticateDevice authenticate(heaven);
     const auto result = authenticate.execute(AuthenticateDeviceInput{"abcd1234abcd1234abcd1234abcd1234"});
@@ -73,7 +72,7 @@ void test_authenticate_device_keeps_existing_name()
 {
     InMemoryEternity eternity;
     Heaven heaven(eternity);
-    heaven.insert(God{GodId{7}, test_token("abcd1234abcd1234abcd1234abcd1234"), test_name("keptname")});
+    seed_god_with_token(heaven, GodId{7}, test_token("abcd1234abcd1234abcd1234abcd1234"), test_name("keptname"));
 
     AuthenticateDevice authenticate(heaven);
     const auto result = authenticate.execute(AuthenticateDeviceInput{"abcd1234abcd1234abcd1234abcd1234"});
@@ -130,8 +129,8 @@ void test_fetch_letter_history_limit_and_is_mine()
     const GodId me{10};
     const GodId other{20};
 
-    heaven.insert(God{me, test_token("c0ffee00c0ffee00c0ffee00c0ffee00"), test_name("menameaa")});
-    heaven.insert(God{other, test_token("deadbeefdeadbeefdeadbeefdeadbeef"), test_name("peername")});
+    seed_god_with_token(heaven, me, test_token("c0ffee00c0ffee00c0ffee00c0ffee00"), test_name("menameaa"));
+    seed_god_with_token(heaven, other, test_token("deadbeefdeadbeefdeadbeefdeadbeef"), test_name("peername"));
 
     letters.append(abode, other, "peer", Timestamp{1});
     letters.append(abode, me, "mine", Timestamp{2});
@@ -165,7 +164,7 @@ void test_fetch_letter_history_caps_limit()
     const AbodeId abode = AbodeId::global();
     const GodId author{1};
 
-    heaven.insert(God{author, test_token("feedfacefeedfacefeedfacefeedface"), test_name("authoraa")});
+    seed_god_with_token(heaven, author, test_token("feedfacefeedfacefeedfacefeedface"), test_name("authoraa"));
 
     for (int i = 0; i < 5; ++i)
         letters.append(abode, author, "m", Timestamp{i});

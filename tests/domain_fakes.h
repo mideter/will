@@ -1,8 +1,11 @@
 #pragma once
 
-#include "entities/letter.h"
 #include "entities/god.h"
+#include "entities/heaven.h"
+#include "entities/letter.h"
+#include "entities/vessel.h"
 #include "ids/god_id.h"
+#include "ids/vessel_id.h"
 #include "ports/eternity.h"
 #include "ports/letter_repository.h"
 #include "ports/participant_notifier.h"
@@ -10,6 +13,7 @@
 #include "values/god_name.h"
 
 #include <string>
+#include <utility>
 #include <vector>
 
 
@@ -18,19 +22,28 @@ namespace will::domain::test {
 
 class InMemoryEternity final : public Eternity {
 public:
-    std::vector<God> load_all() override { return gods_; }
+    std::vector<God> load_gods() override { return gods_; }
 
-    God insert(const std::string_view device_token, const GodName name) override
+    std::vector<Vessel> load_vessels() override { return vessels_; }
+
+    std::pair<God, Vessel> insert_god_with_vessel(const std::string_view device_token,
+                                                  const GodName name) override
     {
-        const GodId id{++next_god_id_};
-        God god{id, *DeviceToken::parse(device_token), name};
+        const GodId god_id{++next_god_id_};
+        const VesselId vessel_id{++next_vessel_id_};
+        const DeviceToken token = *DeviceToken::parse(device_token);
+        God god{god_id, name};
+        Vessel vessel{vessel_id, token, god_id};
         gods_.push_back(god);
-        return god;
+        vessels_.push_back(vessel);
+        return {god, vessel};
     }
 
 private:
     std::uint64_t next_god_id_ = 0;
+    std::uint64_t next_vessel_id_ = 0;
     std::vector<God> gods_;
+    std::vector<Vessel> vessels_;
 };
 
 
@@ -68,6 +81,12 @@ public:
 
     std::vector<Letter> notifications_;
 };
+
+
+inline void seed_god_with_token(Heaven& heaven, const GodId god_id, const DeviceToken& token, const GodName name)
+{
+    heaven.insert_god_with_vessel(God{god_id, name}, Vessel{VesselId{god_id.value()}, token, god_id});
+}
 
 
 } // namespace will::domain::test

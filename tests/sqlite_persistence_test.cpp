@@ -54,8 +54,7 @@ int main()
         const God created = heaven.create_god(token, *GodName::parse("abcdefgh"));
         created_id = created.id();
         assert(created.id().value() > 0);
-        assert(created.device_token().text() == token);
-        assert(created.name() == *GodName::parse("abcdefgh"));
+        assert(heaven.find_by_device_token(token)->id() == created.id());
 
         const std::optional<God> found = heaven.find_by_device_token(token);
         assert(found.has_value());
@@ -76,7 +75,7 @@ int main()
         const std::optional<God> a = heaven.find_by_id(*god_a_id);
         assert(a.has_value());
         assert(a->name() == *GodName::parse("nameaaaa"));
-        assert(a->device_token().text() == "aaaa1234aaaa1234aaaa1234aaaa1234");
+        assert(heaven.find_by_device_token("aaaa1234aaaa1234aaaa1234aaaa1234")->id() == *god_a_id);
 
         const std::optional<God> b = heaven.find_by_id(*god_b_id);
         assert(b.has_value());

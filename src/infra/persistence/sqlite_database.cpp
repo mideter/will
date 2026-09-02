@@ -117,6 +117,7 @@ void drop_legacy_tables(sqlite3* db)
 {
     static constexpr const char* DropLegacyTablesSql = R"sql(
 DROP TABLE IF EXISTS letters;
+DROP TABLE IF EXISTS vessels;
 DROP TABLE IF EXISTS messages;
 DROP TABLE IF EXISTS auth_sessions;
 DROP TABLE IF EXISTS otp_challenges;
@@ -125,6 +126,36 @@ DROP TABLE IF EXISTS users;
 )sql";
     check_sqlite(sqlite3_exec(db, DropLegacyTablesSql, nullptr, nullptr, nullptr), db,
                  "drop_legacy_tables");
+}
+
+
+void migrate_gods_device_token_to_vessels(sqlite3* db)
+{
+    if (!table_has_column(db, "gods", "device_token"))
+        return;
+
+    check_sqlite(
+        sqlite3_exec(db,
+                     "INSERT OR IGNORE INTO vessels (device_token, god_id) SELECT device_token, id FROM gods;",
+                     nullptr, nullptr, nullptr),
+        db, "migrate device_token to vessels");
+
+    check_sqlite(sqlite3_exec(db, "BEGIN IMMEDIATE;", nullptr, nullptr, nullptr), db,
+                 "begin migrate gods schema");
+    check_sqlite(sqlite3_exec(db,
+                              "CREATE TABLE gods_new ("
+                              "  id INTEGER PRIMARY KEY,"
+                              "  name TEXT NOT NULL DEFAULT ''"
+                              ");",
+                              nullptr, nullptr, nullptr),
+                 db, "create gods_new");
+    check_sqlite(sqlite3_exec(db, "INSERT INTO gods_new (id, name) SELECT id, name FROM gods;", nullptr, nullptr,
+                              nullptr),
+                 db, "copy gods to gods_new");
+    check_sqlite(sqlite3_exec(db, "DROP TABLE gods;", nullptr, nullptr, nullptr), db, "drop old gods");
+    check_sqlite(sqlite3_exec(db, "ALTER TABLE gods_new RENAME TO gods;", nullptr, nullptr, nullptr), db,
+                 "rename gods_new");
+    check_sqlite(sqlite3_exec(db, "COMMIT;", nullptr, nullptr, nullptr), db, "commit migrate gods schema");
 }
 
 
@@ -139,8 +170,13 @@ void SqliteDatabase::init_schema()
     static constexpr const char* InitSchemaSql = R"sql(
 CREATE TABLE IF NOT EXISTS gods (
   id INTEGER PRIMARY KEY,
-  device_token TEXT UNIQUE NOT NULL,
   name TEXT NOT NULL DEFAULT ''
+);
+
+CREATE TABLE IF NOT EXISTS vessels (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  device_token TEXT UNIQUE NOT NULL,
+  god_id INTEGER NOT NULL REFERENCES gods(id)
 );
 
 CREATE TABLE IF NOT EXISTS letters (
@@ -155,6 +191,8 @@ CREATE INDEX IF NOT EXISTS idx_letters_created_at ON letters(created_at_ns);
 )sql";
 
     check_sqlite(sqlite3_exec(db_, InitSchemaSql, nullptr, nullptr, nullptr), db_, "init_schema");
+
+    migrate_gods_device_token_to_vessels(db_);
 
     check_sqlite(sqlite3_exec(db_, "UPDATE letters SET abode_id = 1 WHERE abode_id = 0;", nullptr, nullptr,
                               nullptr),
