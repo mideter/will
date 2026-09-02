@@ -15,13 +15,13 @@ namespace will {
  * Thread-safe store of authenticated users keyed by connection id.
  * Enforces one active session per user.
  */
-class ConnectionAccountStore {
+class ConnectionUserStore {
 public:
-    [[nodiscard]] bool has(std::uint64_t connection_id) const;
-    [[nodiscard]] std::optional<domain::User> get(std::uint64_t connection_id) const;
+    bool has(std::uint64_t connection_id) const;
+    std::optional<domain::User> get(std::uint64_t connection_id) const;
 
     /** Binds user to connection. Returns the displaced connection id, if any. */
-    [[nodiscard]] std::optional<std::uint64_t> set(std::uint64_t connection_id, domain::User user);
+    std::optional<std::uint64_t> set(std::uint64_t connection_id, domain::User user);
 
     void remove(std::uint64_t connection_id);
 

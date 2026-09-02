@@ -1,4 +1,4 @@
-#include "connectionaccountstore.h"
+#include "connectionuserstore.h"
 
 #include "entities/device_token.h"
 #include "entities/user_name.h"
@@ -27,7 +27,7 @@ will::domain::User make_user(std::uint64_t user_id,
 
 void test_displace_other_connection()
 {
-    will::ConnectionAccountStore store;
+    will::ConnectionUserStore store;
 
     assert(!store.set(1, make_user(7)));
     assert(store.has(1));
@@ -42,7 +42,7 @@ void test_displace_other_connection()
 
 void test_same_connection_rebind()
 {
-    will::ConnectionAccountStore store;
+    will::ConnectionUserStore store;
 
     assert(!store.set(1, make_user(7)));
     assert(!store.set(1, make_user(7, "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb")));
@@ -53,7 +53,7 @@ void test_same_connection_rebind()
 
 void test_remove_after_displace_keeps_new_owner()
 {
-    will::ConnectionAccountStore store;
+    will::ConnectionUserStore store;
 
     assert(!store.set(1, make_user(7)));
     const auto displaced = store.set(2, make_user(7));
@@ -70,7 +70,7 @@ void test_remove_after_displace_keeps_new_owner()
 
 void test_rebind_different_user_clears_old_index()
 {
-    will::ConnectionAccountStore store;
+    will::ConnectionUserStore store;
 
     assert(!store.set(1, make_user(7)));
     assert(!store.set(1, make_user(8)));
@@ -93,6 +93,6 @@ int main()
     test_remove_after_displace_keeps_new_owner();
     test_rebind_different_user_clears_old_index();
 
-    std::cout << "connection account store test passed\n";
+    std::cout << "connection user store test passed\n";
     return EXIT_SUCCESS;
 }

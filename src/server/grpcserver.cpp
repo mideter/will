@@ -28,10 +28,10 @@ void handle_signal(int)
 
 
 MessengerService::MessengerService(ProtocolAdapter& adapter, SessionRegistry& registry,
-                                   ConnectionAccountStore& account_store, const std::size_t max_connections)
+                                   ConnectionUserStore& user_store, const std::size_t max_connections)
     : adapter_(adapter)
     , registry_(registry)
-    , account_store_(account_store)
+    , user_store_(user_store)
     , max_connections_(max_connections)
 {}
 
@@ -54,7 +54,7 @@ grpc::Status MessengerService::Session(grpc::ServerContext* context,
             break;
     }
 
-    account_store_.remove(session_id);
+    user_store_.remove(session_id);
     registry_.unregister_session(session_id);
     return grpc::Status::OK;
 }
@@ -62,8 +62,8 @@ grpc::Status MessengerService::Session(grpc::ServerContext* context,
 
 GrpcMessengerServer::GrpcMessengerServer(ServerConfig config, domain::MessengerPersistence persistence)
     : config_(std::move(config))
-    , protocol_adapter_(persistence, registry_, account_store_)
-    , service_(protocol_adapter_, registry_, account_store_, config_.max_connections)
+    , protocol_adapter_(persistence, registry_, user_store_)
+    , service_(protocol_adapter_, registry_, user_store_, config_.max_connections)
 {}
 
 

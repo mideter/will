@@ -1,6 +1,6 @@
 #pragma once
 
-#include "connectionaccountstore.h"
+#include "connectionuserstore.h"
 #include "serverconfig.h"
 #include "sessionparticipantnotifierimpl.h"
 
@@ -31,7 +31,7 @@ class ProtocolAdapter {
 
 public:
     ProtocolAdapter(domain::MessengerPersistence persistence, SessionRegistry& registry,
-                    ConnectionAccountStore& account_store);
+                    ConnectionUserStore& user_store);
 
     void on_client_event(std::uint64_t session_id, const v1::ClientEvent& event);
 
@@ -46,7 +46,7 @@ private:
 
     domain::MessengerPersistence persistence_;
     SessionRegistry& registry_;
-    ConnectionAccountStore& account_store_;
+    ConnectionUserStore& user_store_;
     SessionParticipantNotifierImpl participant_notifier_;
     domain::AuthenticateDevice authenticate_device_;
     domain::SendChatMessage send_chat_message_;

@@ -1,4 +1,4 @@
-#include "connectionaccountstore.h"
+#include "connectionuserstore.h"
 
 #include <utility>
 
@@ -6,14 +6,14 @@
 namespace will {
 
 
-bool ConnectionAccountStore::has(const std::uint64_t connection_id) const
+bool ConnectionUserStore::has(const std::uint64_t connection_id) const
 {
     std::lock_guard lock(mutex_);
     return users_.contains(connection_id);
 }
 
 
-std::optional<domain::User> ConnectionAccountStore::get(const std::uint64_t connection_id) const
+std::optional<domain::User> ConnectionUserStore::get(const std::uint64_t connection_id) const
 {
     std::lock_guard lock(mutex_);
 
@@ -26,7 +26,7 @@ std::optional<domain::User> ConnectionAccountStore::get(const std::uint64_t conn
 }
 
 
-std::optional<std::uint64_t> ConnectionAccountStore::set(const std::uint64_t connection_id, domain::User user)
+std::optional<std::uint64_t> ConnectionUserStore::set(const std::uint64_t connection_id, domain::User user)
 {
     std::lock_guard lock(mutex_);
 
@@ -53,7 +53,7 @@ std::optional<std::uint64_t> ConnectionAccountStore::set(const std::uint64_t con
 }
 
 
-void ConnectionAccountStore::remove(const std::uint64_t connection_id)
+void ConnectionUserStore::remove(const std::uint64_t connection_id)
 {
     std::lock_guard lock(mutex_);
 

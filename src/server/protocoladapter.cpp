@@ -12,10 +12,10 @@ namespace will {
 
 
 ProtocolAdapter::ProtocolAdapter(domain::MessengerPersistence persistence, SessionRegistry& registry,
-                                 ConnectionAccountStore& account_store)
+                                 ConnectionUserStore& user_store)
     : persistence_(persistence)
     , registry_(registry)
-    , account_store_(account_store)
+    , user_store_(user_store)
     , participant_notifier_(registry, persistence.users)
     , authenticate_device_(persistence.users)
     , send_chat_message_(persistence.messages, participant_notifier_)
@@ -64,7 +64,7 @@ void ProtocolAdapter::handle_bind_token(const std::uint64_t session_id, const v1
     }
 
     const auto& success = std::get<domain::AuthenticateDeviceSuccess>(outcome);
-    if (const auto displaced = account_store_.set(session_id, success.user))
+    if (const auto displaced = user_store_.set(session_id, success.user))
         close_session(*displaced);
 
     v1::ServerEvent event;
@@ -84,7 +84,7 @@ void ProtocolAdapter::send_auth_required(const std::uint64_t session_id)
 void ProtocolAdapter::handle_user_chat(const std::uint64_t session_id, const v1::ChatMessage& chat)
 {
     const domain::SendChatMessageInput input{
-        account_store_.get(session_id)->id(),
+        user_store_.get(session_id)->id(),
         domain::ParticipantId{session_id},
         domain::ChatId::global(),
         chat.body(),
@@ -101,7 +101,7 @@ void ProtocolAdapter::handle_user_chat(const std::uint64_t session_id, const v1:
 
 void ProtocolAdapter::handle_history_request(const std::uint64_t session_id, const v1::HistoryRequest& request)
 {
-    const domain::FetchChatHistoryInput input{account_store_.get(session_id)->id(), domain::ChatId::global(),
+    const domain::FetchChatHistoryInput input{user_store_.get(session_id)->id(), domain::ChatId::global(),
                                               request.limit()};
 
     const auto outcome = fetch_chat_history_.execute(input);

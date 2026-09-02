@@ -88,10 +88,10 @@ test_target("will-history-integration-test")
     add_packages("pkgconfig::protobuf", "pkgconfig::grpc++")
     with_run_dep("will-server")
 
-test_target("will-connection-account-store-test")
+test_target("will-connection-user-store-test")
     add_files(
-        "connection_account_store_test.cpp",
-        "$(projectdir)/src/server/connectionaccountstore.cpp")
+        "connection_user_store_test.cpp",
+        "$(projectdir)/src/server/connectionuserstore.cpp")
     add_includedirs("$(projectdir)/src/server")
     add_deps("will-domain")
 

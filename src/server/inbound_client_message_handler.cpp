@@ -15,7 +15,7 @@ InboundClientMessageHandler::InboundClientMessageHandler(ProtocolAdapter& adapte
 
 void InboundClientMessageHandler::on(const v1::ClientEvent& event)
 {
-    if (adapter_.account_store_.has(session_id_)) {
+    if (adapter_.user_store_.has(session_id_)) {
         on_bound_event(event);
         return;
     }

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "connectionaccountstore.h"
+#include "connectionuserstore.h"
 #include "protocoladapter.h"
 #include "serverconfig.h"
 #include "sessionregistry.h"
@@ -21,7 +21,7 @@ namespace will {
 
 class MessengerService final : public v1::Messenger::Service {
 public:
-    MessengerService(ProtocolAdapter& adapter, SessionRegistry& registry, ConnectionAccountStore& account_store,
+    MessengerService(ProtocolAdapter& adapter, SessionRegistry& registry, ConnectionUserStore& user_store,
                      std::size_t max_connections);
 
     grpc::Status Session(grpc::ServerContext* context,
@@ -30,7 +30,7 @@ public:
 private:
     ProtocolAdapter& adapter_;
     SessionRegistry& registry_;
-    ConnectionAccountStore& account_store_;
+    ConnectionUserStore& user_store_;
     std::size_t max_connections_;
 };
 
@@ -45,7 +45,7 @@ public:
 
 private:
     ServerConfig config_;
-    ConnectionAccountStore account_store_;
+    ConnectionUserStore user_store_;
     SessionRegistry registry_;
     ProtocolAdapter protocol_adapter_;
     MessengerService service_;

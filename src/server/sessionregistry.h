@@ -61,7 +61,7 @@ public:
 
     void broadcast_except(std::uint64_t except_session_id, const v1::ServerEvent& event);
 
-    [[nodiscard]] std::string_view peer_address(std::uint64_t session_id) const;
+    std::string_view peer_address(std::uint64_t session_id) const;
 
     void close_all_sessions();
 
