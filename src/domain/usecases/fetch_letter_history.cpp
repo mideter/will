@@ -7,9 +7,9 @@
 namespace will::domain {
 
 
-FetchLetterHistory::FetchLetterHistory(LetterRepository& letters, GodRepository& gods)
+FetchLetterHistory::FetchLetterHistory(LetterRepository& letters, Heaven& heaven)
     : letters_(letters)
-    , gods_(gods)
+    , heaven_(heaven)
 {}
 
 
@@ -30,7 +30,7 @@ std::variant<FetchLetterHistoryResult, DomainError> FetchLetterHistory::execute(
         std::string author_name;
         if (const auto cached = author_names.find(row.author_id()); cached != author_names.end()) {
             author_name = cached->second;
-        } else if (const std::optional<God> author = gods_.find_by_id(row.author_id())) {
+        } else if (const std::optional<God> author = heaven_.find_by_id(row.author_id())) {
             author_name = author->name().text();
             author_names.emplace(row.author_id(), author_name);
         } else {

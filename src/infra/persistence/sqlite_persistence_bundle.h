@@ -3,7 +3,7 @@
 #include "ports/messenger_persistence.h"
 
 #include "sqlite_database.h"
-#include "sqlite_god_repository_impl.h"
+#include "sqlite_heaven_impl.h"
 #include "sqlite_letter_repository_impl.h"
 
 #include <string>
@@ -20,12 +20,12 @@ public:
     domain::MessengerPersistence ports();
 
     domain::LetterRepository& letters();
-    domain::GodRepository& gods();
+    domain::Heaven& heaven();
 
 private:
     SqliteDatabase database_;
     SqliteLetterRepositoryImpl letters_;
-    SqliteGodRepositoryImpl gods_;
+    SqliteHeavenImpl heaven_;
 };
 
 

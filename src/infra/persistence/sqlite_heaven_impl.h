@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ports/god_repository.h"
+#include "ports/heaven.h"
 #include "sqlite_database.h"
 
 #include <string_view>
@@ -10,9 +10,9 @@
 namespace will {
 
 
-class SqliteGodRepositoryImpl final : public domain::GodRepository {
+class SqliteHeavenImpl final : public domain::Heaven {
 public:
-    explicit SqliteGodRepositoryImpl(SqliteDatabase& database);
+    explicit SqliteHeavenImpl(SqliteDatabase& database);
 
     std::optional<domain::God> find_by_device_token(std::string_view device_token) override;
     std::optional<domain::God> find_by_id(domain::GodId id) override;

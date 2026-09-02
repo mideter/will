@@ -5,7 +5,7 @@
 #include "entities/letter.h"
 #include "ids/god_id.h"
 #include "values/god_name.h"
-#include "ports/god_repository.h"
+#include "ports/heaven.h"
 #include "ports/letter_repository.h"
 #include "ports/participant_notifier.h"
 
@@ -18,7 +18,7 @@
 namespace will::domain::test {
 
 
-class FakeGodRepository final : public GodRepository {
+class FakeHeaven final : public Heaven {
 public:
     std::optional<God> find_by_device_token(const std::string_view device_token) override
     {

@@ -11,7 +11,7 @@ namespace will::domain {
 struct Abode {
     AbodeId id = AbodeId::global();
 
-    static constexpr Abode global() noexcept { return Abode{}; }
+    static Abode global() noexcept { return Abode{}; }
 };
 
 

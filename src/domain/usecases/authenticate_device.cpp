@@ -7,7 +7,7 @@
 namespace will::domain {
 
 
-AuthenticateDevice::AuthenticateDevice(GodRepository& gods) : gods_(gods) {}
+AuthenticateDevice::AuthenticateDevice(Heaven& heaven) : heaven_(heaven) {}
 
 
 std::variant<AuthenticateDeviceSuccess, AuthError> AuthenticateDevice::execute(const AuthenticateDeviceInput& input)
@@ -16,9 +16,9 @@ std::variant<AuthenticateDeviceSuccess, AuthError> AuthenticateDevice::execute(c
     if (!token)
         return AuthError::InvalidToken;
 
-    std::optional<God> god = gods_.find_by_device_token(token->text());
+    std::optional<God> god = heaven_.find_by_device_token(token->text());
     if (!god)
-        god = gods_.create_god(token->text(), GodName::generate());
+        god = heaven_.create_god(token->text(), GodName::generate());
 
     return AuthenticateDeviceSuccess{*god};
 }

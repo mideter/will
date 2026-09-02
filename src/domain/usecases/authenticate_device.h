@@ -2,7 +2,7 @@
 
 #include "entities/god.h"
 #include "errors/auth_error.h"
-#include "ports/god_repository.h"
+#include "ports/heaven.h"
 
 #include <string_view>
 #include <variant>
@@ -23,12 +23,12 @@ struct AuthenticateDeviceSuccess {
 
 class AuthenticateDevice {
 public:
-    explicit AuthenticateDevice(GodRepository& gods);
+    explicit AuthenticateDevice(Heaven& heaven);
 
     std::variant<AuthenticateDeviceSuccess, AuthError> execute(const AuthenticateDeviceInput& input);
 
 private:
-    GodRepository& gods_;
+    Heaven& heaven_;
 };
 
 

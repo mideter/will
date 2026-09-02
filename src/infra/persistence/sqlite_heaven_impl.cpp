@@ -1,4 +1,4 @@
-#include "sqlite_god_repository_impl.h"
+#include "sqlite_heaven_impl.h"
 
 #include "sqlite_util.h"
 
@@ -9,14 +9,14 @@
 namespace will {
 
 
-SqliteGodRepositoryImpl::SqliteGodRepositoryImpl(SqliteDatabase& database)
+SqliteHeavenImpl::SqliteHeavenImpl(SqliteDatabase& database)
     : database_(database)
 {
     load_all();
 }
 
 
-void SqliteGodRepositoryImpl::load_all()
+void SqliteHeavenImpl::load_all()
 {
     std::lock_guard lock(database_.mutex());
 
@@ -52,7 +52,7 @@ void SqliteGodRepositoryImpl::load_all()
 }
 
 
-std::optional<domain::God> SqliteGodRepositoryImpl::find_by_device_token(const std::string_view device_token)
+std::optional<domain::God> SqliteHeavenImpl::find_by_device_token(const std::string_view device_token)
 {
     const auto token = domain::DeviceToken::parse(device_token);
     if (!token)
@@ -72,7 +72,7 @@ std::optional<domain::God> SqliteGodRepositoryImpl::find_by_device_token(const s
 }
 
 
-std::optional<domain::God> SqliteGodRepositoryImpl::find_by_id(const domain::GodId id)
+std::optional<domain::God> SqliteHeavenImpl::find_by_id(const domain::GodId id)
 {
     std::lock_guard lock(database_.mutex());
 
@@ -84,7 +84,7 @@ std::optional<domain::God> SqliteGodRepositoryImpl::find_by_id(const domain::God
 }
 
 
-domain::God SqliteGodRepositoryImpl::create_god(const std::string_view device_token, const domain::GodName name)
+domain::God SqliteHeavenImpl::create_god(const std::string_view device_token, const domain::GodName name)
 {
     const auto token = domain::DeviceToken::parse(device_token);
     if (!token)

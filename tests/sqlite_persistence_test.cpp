@@ -1,6 +1,6 @@
 #include "sqlite_database.h"
 #include "sqlite_letter_repository_impl.h"
-#include "sqlite_god_repository_impl.h"
+#include "sqlite_heaven_impl.h"
 
 #include "ids/abode_id.h"
 #include "values/timestamp.h"
@@ -29,10 +29,10 @@ int main()
     {
         SqliteDatabase database(db_path);
         SqliteLetterRepositoryImpl letters(database);
-        SqliteGodRepositoryImpl gods(database);
+        SqliteHeavenImpl heaven(database);
 
-        const God god_a = gods.create_god("aaaa1234aaaa1234aaaa1234aaaa1234", *GodName::parse("nameaaaa"));
-        const God god_b = gods.create_god("bbbb1234bbbb1234bbbb1234bbbb1234", *GodName::parse("namebbbb"));
+        const God god_a = heaven.create_god("aaaa1234aaaa1234aaaa1234aaaa1234", *GodName::parse("nameaaaa"));
+        const God god_b = heaven.create_god("bbbb1234bbbb1234bbbb1234bbbb1234", *GodName::parse("namebbbb"));
         god_a_id = god_a.id();
         god_b_id = god_b.id();
 
@@ -44,18 +44,18 @@ int main()
         assert(rows.size() == 2);
         assert(rows[0].body() == "from-peer");
         assert(rows[0].author_id() == god_a.id());
-        assert(gods.find_by_id(rows[0].author_id())->name() == *GodName::parse("nameaaaa"));
+        assert(heaven.find_by_id(rows[0].author_id())->name() == *GodName::parse("nameaaaa"));
         assert(rows[1].body() == "from-me");
         assert(rows[1].author_id() == god_b.id());
-        assert(gods.find_by_id(rows[1].author_id())->name() == *GodName::parse("namebbbb"));
+        assert(heaven.find_by_id(rows[1].author_id())->name() == *GodName::parse("namebbbb"));
 
-        const God created = gods.create_god(token, *GodName::parse("abcdefgh"));
+        const God created = heaven.create_god(token, *GodName::parse("abcdefgh"));
         created_id = created.id();
         assert(created.id().value() > 0);
         assert(created.device_token().text() == token);
         assert(created.name() == *GodName::parse("abcdefgh"));
 
-        const std::optional<God> found = gods.find_by_device_token(token);
+        const std::optional<God> found = heaven.find_by_device_token(token);
         assert(found.has_value());
         assert(found->id() == created.id());
         assert(found->name() == *GodName::parse("abcdefgh"));
@@ -63,24 +63,24 @@ int main()
 
     {
         SqliteDatabase database(db_path);
-        SqliteGodRepositoryImpl gods(database);
+        SqliteHeavenImpl heaven(database);
 
-        const std::optional<God> by_token = gods.find_by_device_token(token);
+        const std::optional<God> by_token = heaven.find_by_device_token(token);
         assert(by_token.has_value());
         assert(by_token->id() == *created_id);
         assert(by_token->name() == *GodName::parse("abcdefgh"));
 
-        const std::optional<God> a = gods.find_by_id(*god_a_id);
+        const std::optional<God> a = heaven.find_by_id(*god_a_id);
         assert(a.has_value());
         assert(a->name() == *GodName::parse("nameaaaa"));
         assert(a->device_token().text() == "aaaa1234aaaa1234aaaa1234aaaa1234");
 
-        const std::optional<God> b = gods.find_by_id(*god_b_id);
+        const std::optional<God> b = heaven.find_by_id(*god_b_id);
         assert(b.has_value());
         assert(b->name() == *GodName::parse("namebbbb"));
 
-        assert(!gods.find_by_id(GodId{999999}).has_value());
-        assert(!gods.find_by_device_token("missing-token-xxxxxxxxxxxxxxxx").has_value());
+        assert(!heaven.find_by_id(GodId{999999}).has_value());
+        assert(!heaven.find_by_device_token("missing-token-xxxxxxxxxxxxxxxx").has_value());
     }
 
     ::unlink(db_path.c_str());

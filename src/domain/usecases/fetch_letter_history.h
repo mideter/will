@@ -4,7 +4,7 @@
 #include "ids/god_id.h"
 #include "entities/letter.h"
 #include "errors/domain_error.h"
-#include "ports/god_repository.h"
+#include "ports/heaven.h"
 #include "ports/letter_repository.h"
 
 #include <cstdint>
@@ -39,13 +39,13 @@ class FetchLetterHistory {
 public:
     static constexpr std::uint32_t MaxHistoryRequestLimit = 1000;
 
-    FetchLetterHistory(LetterRepository& letters, GodRepository& gods);
+    FetchLetterHistory(LetterRepository& letters, Heaven& heaven);
 
     std::variant<FetchLetterHistoryResult, DomainError> execute(const FetchLetterHistoryInput& input);
 
 private:
     LetterRepository& letters_;
-    GodRepository& gods_;
+    Heaven& heaven_;
 };
 
 

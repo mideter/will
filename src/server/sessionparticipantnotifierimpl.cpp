@@ -11,9 +11,9 @@ namespace will {
 
 
 SessionParticipantNotifierImpl::SessionParticipantNotifierImpl(SessionRegistry& registry,
-                                                               domain::GodRepository& gods)
+                                                               domain::Heaven& heaven)
     : registry_(registry)
-    , gods_(gods)
+    , heaven_(heaven)
 {}
 
 
@@ -21,7 +21,7 @@ void SessionParticipantNotifierImpl::notify_letter(const domain::Letter& letter)
 {
     std::string author_name;
 
-    if (const auto author = gods_.find_by_id(letter.author_id()))
+    if (const auto author = heaven_.find_by_id(letter.author_id()))
         author_name = author->name().text();
 
     v1::ServerEvent event;

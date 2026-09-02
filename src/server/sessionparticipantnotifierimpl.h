@@ -1,7 +1,7 @@
 #pragma once
 
 #include "ports/participant_notifier.h"
-#include "ports/god_repository.h"
+#include "ports/heaven.h"
 
 
 namespace will {
@@ -12,13 +12,13 @@ class SessionRegistry;
 
 class SessionParticipantNotifierImpl final : public domain::ParticipantNotifier {
 public:
-    SessionParticipantNotifierImpl(SessionRegistry& registry, domain::GodRepository& gods);
+    SessionParticipantNotifierImpl(SessionRegistry& registry, domain::Heaven& heaven);
 
     void notify_letter(const domain::Letter& letter) override;
 
 private:
     SessionRegistry& registry_;
-    domain::GodRepository& gods_;
+    domain::Heaven& heaven_;
 };
 
 

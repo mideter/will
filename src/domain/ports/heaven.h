@@ -11,9 +11,9 @@
 namespace will::domain {
 
 
-class GodRepository {
+class Heaven {
 public:
-    virtual ~GodRepository() = default;
+    virtual ~Heaven() = default;
 
     virtual std::optional<God> find_by_device_token(std::string_view device_token) = 0;
     virtual std::optional<God> find_by_id(GodId id) = 0;
