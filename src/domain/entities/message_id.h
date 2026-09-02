@@ -2,6 +2,7 @@
 
 #include <compare>
 #include <cstdint>
+#include <functional>
 
 
 namespace will::domain {
@@ -24,3 +25,12 @@ private:
 
 
 } // namespace will::domain
+
+
+template <>
+struct std::hash<will::domain::MessageId> {
+    std::size_t operator()(const will::domain::MessageId id) const noexcept
+    {
+        return std::hash<std::uint64_t>{}(id.value());
+    }
+};

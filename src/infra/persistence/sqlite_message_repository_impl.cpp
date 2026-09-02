@@ -27,7 +27,7 @@ domain::Message SqliteMessageRepositoryImpl::append(const domain::ChatId chat, c
                                     -1, &stmt, nullptr),
                  db, "prepare insert message");
 
-    check_sqlite(sqlite3_bind_int64(stmt, 1, static_cast<sqlite3_int64>(chat.value)), db, "bind chat_id");
+    check_sqlite(sqlite3_bind_int64(stmt, 1, static_cast<sqlite3_int64>(chat.value())), db, "bind chat_id");
     check_sqlite(sqlite3_bind_int64(stmt, 2, static_cast<sqlite3_int64>(author.value())), db,
                  "bind author_user_id");
     check_sqlite(sqlite3_bind_text(stmt, 3, body.data(), static_cast<int>(body.size()), SQLITE_TRANSIENT),
@@ -56,7 +56,7 @@ std::vector<domain::Message> SqliteMessageRepositoryImpl::load_last(const domain
                                     -1, &stmt, nullptr),
                  db, "prepare load_last messages");
 
-    check_sqlite(sqlite3_bind_int64(stmt, 1, static_cast<sqlite3_int64>(chat.value)), db, "bind chat_id");
+    check_sqlite(sqlite3_bind_int64(stmt, 1, static_cast<sqlite3_int64>(chat.value())), db, "bind chat_id");
     check_sqlite(sqlite3_bind_int64(stmt, 2, static_cast<sqlite3_int64>(limit)), db, "bind limit");
 
     std::vector<domain::Message> rows;
