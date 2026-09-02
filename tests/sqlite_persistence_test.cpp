@@ -1,6 +1,6 @@
 #include "entities/heaven.h"
 #include "sqlite_database.h"
-#include "sqlite_heaven_store.h"
+#include "sqlite_store.h"
 #include "sqlite_letter_repository_impl.h"
 
 #include "ids/abode_id.h"
@@ -29,7 +29,7 @@ int main()
 
     {
         SqliteDatabase database(db_path);
-        SqliteHeavenStore store(database);
+        SqliteStore store(database);
         SqliteLetterRepositoryImpl letters(database);
         Heaven heaven(store);
 
@@ -65,7 +65,7 @@ int main()
 
     {
         SqliteDatabase database(db_path);
-        SqliteHeavenStore store(database);
+        SqliteStore store(database);
         Heaven heaven(store);
 
         const std::optional<God> by_token = heaven.find_by_device_token(token);

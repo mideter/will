@@ -3,7 +3,7 @@
 #include "entities/letter.h"
 #include "entities/god.h"
 #include "ids/god_id.h"
-#include "ports/heaven_store.h"
+#include "ports/eternity.h"
 #include "ports/letter_repository.h"
 #include "ports/participant_notifier.h"
 #include "values/device_token.h"
@@ -16,7 +16,7 @@
 namespace will::domain::test {
 
 
-class InMemoryHeavenStore final : public HeavenStore {
+class InMemoryEternity final : public Eternity {
 public:
     std::vector<God> load_all() override { return gods_; }
 

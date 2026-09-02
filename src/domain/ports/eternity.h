@@ -10,10 +10,10 @@
 namespace will::domain {
 
 
-/// Long-term storage for gods. Runtime lookups use Heaven in memory.
-class HeavenStore {
+/// Eternal memory — durable storage. Runtime lookups use Heaven in memory.
+class Eternity {
 public:
-    virtual ~HeavenStore() = default;
+    virtual ~Eternity() = default;
 
     virtual std::vector<God> load_all() = 0;
     virtual God insert(std::string_view device_token, GodName name) = 0;

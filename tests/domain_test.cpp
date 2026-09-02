@@ -37,8 +37,8 @@ GodName test_name(const char* text)
 
 void test_authenticate_device_creates_god()
 {
-    InMemoryHeavenStore store;
-    Heaven heaven(store);
+    InMemoryEternity eternity;
+    Heaven heaven(eternity);
     AuthenticateDevice authenticate(heaven);
 
     const DeviceToken token = DeviceToken::generate();
@@ -58,8 +58,8 @@ void test_authenticate_device_creates_god()
 
 void test_authenticate_device_existing_god()
 {
-    InMemoryHeavenStore store;
-    Heaven heaven(store);
+    InMemoryEternity eternity;
+    Heaven heaven(eternity);
     heaven.insert(God{GodId{42}, test_token("abcd1234abcd1234abcd1234abcd1234"), test_name("oldname1")});
 
     AuthenticateDevice authenticate(heaven);
@@ -71,8 +71,8 @@ void test_authenticate_device_existing_god()
 
 void test_authenticate_device_keeps_existing_name()
 {
-    InMemoryHeavenStore store;
-    Heaven heaven(store);
+    InMemoryEternity eternity;
+    Heaven heaven(eternity);
     heaven.insert(God{GodId{7}, test_token("abcd1234abcd1234abcd1234abcd1234"), test_name("keptname")});
 
     AuthenticateDevice authenticate(heaven);
@@ -87,8 +87,8 @@ void test_authenticate_device_keeps_existing_name()
 
 void test_authenticate_device_invalid_token()
 {
-    InMemoryHeavenStore store;
-    Heaven heaven(store);
+    InMemoryEternity eternity;
+    Heaven heaven(eternity);
     AuthenticateDevice authenticate(heaven);
 
     const auto result = authenticate.execute(AuthenticateDeviceInput{"short"});
@@ -124,8 +124,8 @@ void test_send_letter_persists_and_notifies()
 void test_fetch_letter_history_limit_and_is_mine()
 {
     InMemoryLetterRepository letters;
-    InMemoryHeavenStore store;
-    Heaven heaven(store);
+    InMemoryEternity eternity;
+    Heaven heaven(eternity);
     const AbodeId abode = AbodeId::global();
     const GodId me{10};
     const GodId other{20};
@@ -160,8 +160,8 @@ void test_fetch_letter_history_limit_and_is_mine()
 void test_fetch_letter_history_caps_limit()
 {
     InMemoryLetterRepository letters;
-    InMemoryHeavenStore store;
-    Heaven heaven(store);
+    InMemoryEternity eternity;
+    Heaven heaven(eternity);
     const AbodeId abode = AbodeId::global();
     const GodId author{1};
 

@@ -4,10 +4,10 @@
 namespace will::domain {
 
 
-Heaven::Heaven(HeavenStore& store)
-    : store_(store)
+Heaven::Heaven(Eternity& eternity)
+    : eternity_(eternity)
 {
-    for (God god : store_.load_all())
+    for (God god : eternity_.load_all())
         insert(std::move(god));
 }
 
@@ -46,7 +46,7 @@ std::optional<God> Heaven::find_by_device_token(const std::string_view device_to
 
 God Heaven::create_god(const std::string_view device_token, const GodName name)
 {
-    God god = store_.insert(device_token, name);
+    God god = eternity_.insert(device_token, name);
 
     std::lock_guard lock(mutex_);
     id_by_token_.insert_or_assign(god.device_token(), god.id());

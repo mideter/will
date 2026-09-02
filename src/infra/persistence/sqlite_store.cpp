@@ -1,4 +1,4 @@
-#include "sqlite_heaven_store.h"
+#include "sqlite_store.h"
 
 #include "sqlite_util.h"
 
@@ -9,12 +9,12 @@
 namespace will {
 
 
-SqliteHeavenStore::SqliteHeavenStore(SqliteDatabase& database)
+SqliteStore::SqliteStore(SqliteDatabase& database)
     : database_(database)
 {}
 
 
-std::vector<domain::God> SqliteHeavenStore::load_all()
+std::vector<domain::God> SqliteStore::load_all()
 {
     std::lock_guard lock(database_.mutex());
 
@@ -51,7 +51,7 @@ std::vector<domain::God> SqliteHeavenStore::load_all()
 }
 
 
-domain::God SqliteHeavenStore::insert(const std::string_view device_token, const domain::GodName name)
+domain::God SqliteStore::insert(const std::string_view device_token, const domain::GodName name)
 {
     const auto token = domain::DeviceToken::parse(device_token);
     if (!token)
