@@ -1,6 +1,7 @@
 #pragma once
 
 #include <compare>
+#include <concepts>
 #include <cstdint>
 #include <functional>
 
@@ -24,7 +25,11 @@ private:
 };
 
 
-template<typename IdType>
+template<typename T>
+concept DomainId = std::derived_from<T, Id>;
+
+
+template<DomainId IdType>
 struct IdHash {
     std::size_t operator()(const IdType& id) const noexcept
     {
