@@ -2,7 +2,7 @@
 
 #include "inbound_client_message_handler.h"
 
-#include "entities/timestamp.h"
+#include "values/timestamp.h"
 
 #include <iostream>
 

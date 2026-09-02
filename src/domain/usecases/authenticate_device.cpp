@@ -1,7 +1,7 @@
 #include "authenticate_device.h"
 
-#include "entities/device_token.h"
-#include "entities/user_name.h"
+#include "values/device_token.h"
+#include "values/user_name.h"
 
 
 namespace will::domain {

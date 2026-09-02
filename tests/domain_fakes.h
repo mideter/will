@@ -1,11 +1,10 @@
 #pragma once
 
-#include "ids/chat_id.h"
-#include "entities/device_token.h"
+#include "values/device_token.h"
 #include "entities/message.h"
 #include "entities/user.h"
 #include "ids/user_id.h"
-#include "entities/user_name.h"
+#include "values/user_name.h"
 #include "ports/message_repository.h"
 #include "ports/participant_notifier.h"
 #include "ports/user_repository.h"

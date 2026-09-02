@@ -2,7 +2,7 @@
 
 #include "entities/user.h"
 #include "ids/user_id.h"
-#include "entities/user_name.h"
+#include "values/user_name.h"
 
 #include <optional>
 #include <string_view>

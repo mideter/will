@@ -3,7 +3,7 @@
 #include "ports/user_repository.h"
 #include "sqlite_database.h"
 
-#include "entities/device_token.h"
+#include "values/device_token.h"
 
 #include <string>
 #include <string_view>

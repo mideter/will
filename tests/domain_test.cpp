@@ -1,9 +1,9 @@
 #include "domain_fakes.h"
 
 #include "ids/chat_id.h"
-#include "entities/device_token.h"
-#include "entities/timestamp.h"
-#include "entities/user_name.h"
+#include "values/device_token.h"
+#include "values/timestamp.h"
+#include "values/user_name.h"
 #include "errors/auth_error.h"
 #include "errors/domain_error.h"
 #include "usecases/authenticate_device.h"

@@ -1,4 +1,4 @@
-#include "entities/device_token.h"
+#include "values/device_token.h"
 
 #include <cassert>
 #include <cstdlib>

@@ -1,8 +1,8 @@
 #pragma once
 
-#include "device_token.h"
+#include "values/device_token.h"
 #include "ids/user_id.h"
-#include "user_name.h"
+#include "values/user_name.h"
 
 
 namespace will::domain {

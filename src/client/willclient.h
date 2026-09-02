@@ -1,7 +1,7 @@
 #pragma once
 
 #include "clientconfig.h"
-#include "entities/device_token.h"
+#include "values/device_token.h"
 
 #include "infra/transport/messenger.grpc.pb.h"
 

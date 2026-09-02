@@ -3,9 +3,9 @@
 #include "sqlite_user_repository_impl.h"
 
 #include "ids/chat_id.h"
-#include "entities/timestamp.h"
+#include "values/timestamp.h"
 #include "ids/user_id.h"
-#include "entities/user_name.h"
+#include "values/user_name.h"
 
 #include <cassert>
 #include <cstdlib>
