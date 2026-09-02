@@ -2,9 +2,9 @@
 
 #include "ids/abode_id.h"
 #include "ids/user_id.h"
-#include "entities/message.h"
+#include "entities/letter.h"
 #include "errors/domain_error.h"
-#include "ports/message_repository.h"
+#include "ports/letter_repository.h"
 #include "ports/user_repository.h"
 
 #include <cstdint>
@@ -16,35 +16,35 @@
 namespace will::domain {
 
 
-struct FetchChatHistoryInput {
+struct FetchLetterHistoryInput {
     UserId user_id;
     AbodeId abode_id = AbodeId::global();
     std::uint32_t limit = 0;
 };
 
 
-struct FetchChatHistoryItem {
-    Message message;
+struct FetchLetterHistoryItem {
+    Letter letter;
     std::string author_name;
     bool is_mine = false;
 };
 
 
-struct FetchChatHistoryResult {
-    std::vector<FetchChatHistoryItem> items;
+struct FetchLetterHistoryResult {
+    std::vector<FetchLetterHistoryItem> items;
 };
 
 
-class FetchChatHistory {
+class FetchLetterHistory {
 public:
     static constexpr std::uint32_t MaxHistoryRequestLimit = 1000;
 
-    FetchChatHistory(MessageRepository& messages, UserRepository& users);
+    FetchLetterHistory(LetterRepository& letters, UserRepository& users);
 
-    std::variant<FetchChatHistoryResult, DomainError> execute(const FetchChatHistoryInput& input);
+    std::variant<FetchLetterHistoryResult, DomainError> execute(const FetchLetterHistoryInput& input);
 
 private:
-    MessageRepository& messages_;
+    LetterRepository& letters_;
     UserRepository& users_;
 };
 

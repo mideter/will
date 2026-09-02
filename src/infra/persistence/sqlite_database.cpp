@@ -61,8 +61,26 @@ bool table_has_column(sqlite3* db, const char* table, const char* column)
 }
 
 
+bool table_exists(sqlite3* db, const char* table)
+{
+    sqlite3_stmt* stmt = nullptr;
+    check_sqlite(sqlite3_prepare_v2(db,
+                                    "SELECT 1 FROM sqlite_master WHERE type='table' AND name=? LIMIT 1;",
+                                    -1, &stmt, nullptr),
+                 db, "prepare table_exists");
+    check_sqlite(sqlite3_bind_text(stmt, 1, table, -1, SQLITE_STATIC), db, "bind table_exists");
+    const int rc = sqlite3_step(stmt);
+    const bool exists = rc == SQLITE_ROW;
+    sqlite3_finalize(stmt);
+    check_sqlite(rc == SQLITE_ROW || rc == SQLITE_DONE ? SQLITE_OK : rc, db, "table_exists step");
+    return exists;
+}
+
+
 bool needs_schema_reset(sqlite3* db)
 {
+    if (table_exists(db, "messages"))
+        return true;
     if (table_has_column(db, "messages", "chat_id"))
         return true;
     if (table_has_column(db, "messages", "sender_ip"))
@@ -83,13 +101,14 @@ bool needs_schema_reset(sqlite3* db)
     sqlite3_finalize(stmt);
     check_sqlite(rc == SQLITE_ROW ? SQLITE_OK : rc, db, "users table check step");
 
-    return !has_users && table_has_column(db, "messages", "body");
+    return !has_users && table_has_column(db, "letters", "body");
 }
 
 
 void drop_legacy_tables(sqlite3* db)
 {
     static constexpr const char* DropLegacyTablesSql = R"sql(
+DROP TABLE IF EXISTS letters;
 DROP TABLE IF EXISTS messages;
 DROP TABLE IF EXISTS auth_sessions;
 DROP TABLE IF EXISTS otp_challenges;
@@ -115,7 +134,7 @@ CREATE TABLE IF NOT EXISTS users (
   name TEXT NOT NULL DEFAULT ''
 );
 
-CREATE TABLE IF NOT EXISTS messages (
+CREATE TABLE IF NOT EXISTS letters (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   abode_id INTEGER NOT NULL,
   author_user_id INTEGER NOT NULL REFERENCES users(id),
@@ -123,12 +142,12 @@ CREATE TABLE IF NOT EXISTS messages (
   created_at_ns INTEGER NOT NULL
 );
 
-CREATE INDEX IF NOT EXISTS idx_messages_created_at ON messages(created_at_ns);
+CREATE INDEX IF NOT EXISTS idx_letters_created_at ON letters(created_at_ns);
 )sql";
 
     check_sqlite(sqlite3_exec(db_, InitSchemaSql, nullptr, nullptr, nullptr), db_, "init_schema");
 
-    check_sqlite(sqlite3_exec(db_, "UPDATE messages SET abode_id = 1 WHERE abode_id = 0;", nullptr, nullptr,
+    check_sqlite(sqlite3_exec(db_, "UPDATE letters SET abode_id = 1 WHERE abode_id = 0;", nullptr, nullptr,
                               nullptr),
                  db_, "migrate global abode_id");
 

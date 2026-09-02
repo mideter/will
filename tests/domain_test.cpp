@@ -7,8 +7,8 @@
 #include "errors/auth_error.h"
 #include "errors/domain_error.h"
 #include "usecases/authenticate_device.h"
-#include "usecases/fetch_chat_history.h"
-#include "usecases/send_chat_message.h"
+#include "usecases/fetch_letter_history.h"
+#include "usecases/send_letter.h"
 
 #include <cassert>
 #include <cstdlib>
@@ -92,23 +92,22 @@ void test_authenticate_device_invalid_token()
 }
 
 
-void test_send_chat_message_persists_and_notifies()
+void test_send_letter_persists_and_notifies()
 {
-    InMemoryMessageRepository messages;
+    InMemoryLetterRepository letters;
     FakeParticipantNotifier notifier;
 
     const UserId author{7};
 
-    SendChatMessage send(messages, notifier);
-    const Message saved =
-        send.execute(SendChatMessageInput{author, AbodeId::global(), "hello", Timestamp{900}});
+    SendLetter send(letters, notifier);
+    const Letter saved = send.execute(SendLetterInput{author, AbodeId::global(), "hello", Timestamp{900}});
 
     assert(saved.id().value() > 0);
     assert(saved.author_id() == author);
     assert(saved.body() == "hello");
     assert(saved.created_at() == Timestamp{900});
 
-    const auto loaded = messages.load_last(AbodeId::global(), 10);
+    const auto loaded = letters.load_last(AbodeId::global(), 10);
     assert(loaded.size() == 1);
     assert(loaded[0].body() == "hello");
 
@@ -117,9 +116,9 @@ void test_send_chat_message_persists_and_notifies()
 }
 
 
-void test_fetch_chat_history_limit_and_is_mine()
+void test_fetch_letter_history_limit_and_is_mine()
 {
-    InMemoryMessageRepository messages;
+    InMemoryLetterRepository letters;
     FakeUserRepository users;
     const AbodeId abode = AbodeId::global();
     const UserId me{10};
@@ -128,33 +127,33 @@ void test_fetch_chat_history_limit_and_is_mine()
     users.add_user(User{me, test_token("c0ffee00c0ffee00c0ffee00c0ffee00"), test_name("menameaa")});
     users.add_user(User{other, test_token("deadbeefdeadbeefdeadbeefdeadbeef"), test_name("peername")});
 
-    messages.append(abode, other, "peer", Timestamp{1});
-    messages.append(abode, me, "mine", Timestamp{2});
-    messages.append(abode, other, "peer2", Timestamp{3});
+    letters.append(abode, other, "peer", Timestamp{1});
+    letters.append(abode, me, "mine", Timestamp{2});
+    letters.append(abode, other, "peer2", Timestamp{3});
 
-    FetchChatHistory fetch(messages, users);
+    FetchLetterHistory fetch(letters, users);
 
-    const auto zero_limit = fetch.execute(FetchChatHistoryInput{me, abode, 0});
+    const auto zero_limit = fetch.execute(FetchLetterHistoryInput{me, abode, 0});
     assert(std::holds_alternative<DomainError>(zero_limit));
     assert(std::get<DomainError>(zero_limit).code == DomainErrorCode::InvalidArgument);
 
-    const auto ok = fetch.execute(FetchChatHistoryInput{me, abode, 2});
-    assert(std::holds_alternative<FetchChatHistoryResult>(ok));
+    const auto ok = fetch.execute(FetchLetterHistoryInput{me, abode, 2});
+    assert(std::holds_alternative<FetchLetterHistoryResult>(ok));
 
-    const FetchChatHistoryResult& result = std::get<FetchChatHistoryResult>(ok);
+    const FetchLetterHistoryResult& result = std::get<FetchLetterHistoryResult>(ok);
     assert(result.items.size() == 2);
-    assert(result.items[0].message.body() == "mine");
+    assert(result.items[0].letter.body() == "mine");
     assert(result.items[0].author_name == "menameaa");
     assert(result.items[0].is_mine);
-    assert(result.items[1].message.body() == "peer2");
+    assert(result.items[1].letter.body() == "peer2");
     assert(result.items[1].author_name == "peername");
     assert(!result.items[1].is_mine);
 }
 
 
-void test_fetch_chat_history_caps_limit()
+void test_fetch_letter_history_caps_limit()
 {
-    InMemoryMessageRepository messages;
+    InMemoryLetterRepository letters;
     FakeUserRepository users;
     const AbodeId abode = AbodeId::global();
     const UserId author{1};
@@ -162,13 +161,13 @@ void test_fetch_chat_history_caps_limit()
     users.add_user(User{author, test_token("feedfacefeedfacefeedfacefeedface"), test_name("authoraa")});
 
     for (int i = 0; i < 5; ++i)
-        messages.append(abode, author, "m", Timestamp{i});
+        letters.append(abode, author, "m", Timestamp{i});
 
-    FetchChatHistory fetch(messages, users);
-    const auto ok = fetch.execute(FetchChatHistoryInput{
-        author, abode, FetchChatHistory::MaxHistoryRequestLimit + 50});
-    assert(std::holds_alternative<FetchChatHistoryResult>(ok));
-    assert(std::get<FetchChatHistoryResult>(ok).items.size() == 5);
+    FetchLetterHistory fetch(letters, users);
+    const auto ok = fetch.execute(FetchLetterHistoryInput{
+        author, abode, FetchLetterHistory::MaxHistoryRequestLimit + 50});
+    assert(std::holds_alternative<FetchLetterHistoryResult>(ok));
+    assert(std::get<FetchLetterHistoryResult>(ok).items.size() == 5);
 }
 
 
@@ -181,8 +180,8 @@ int main()
     test_authenticate_device_existing_user();
     test_authenticate_device_keeps_existing_name();
     test_authenticate_device_invalid_token();
-    test_send_chat_message_persists_and_notifies();
-    test_fetch_chat_history_limit_and_is_mine();
-    test_fetch_chat_history_caps_limit();
+    test_send_letter_persists_and_notifies();
+    test_fetch_letter_history_limit_and_is_mine();
+    test_fetch_letter_history_caps_limit();
     return EXIT_SUCCESS;
 }

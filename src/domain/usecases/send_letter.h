@@ -2,8 +2,8 @@
 
 #include "ids/abode_id.h"
 #include "ids/user_id.h"
-#include "entities/message.h"
-#include "ports/message_repository.h"
+#include "entities/letter.h"
+#include "ports/letter_repository.h"
 #include "ports/participant_notifier.h"
 
 #include <string_view>
@@ -12,7 +12,7 @@
 namespace will::domain {
 
 
-struct SendChatMessageInput {
+struct SendLetterInput {
     UserId user_id;
     AbodeId abode_id = AbodeId::global();
     std::string_view body;
@@ -20,14 +20,14 @@ struct SendChatMessageInput {
 };
 
 
-class SendChatMessage {
+class SendLetter {
 public:
-    SendChatMessage(MessageRepository& messages, ParticipantNotifier& notifier);
+    SendLetter(LetterRepository& letters, ParticipantNotifier& notifier);
 
-    Message execute(const SendChatMessageInput& input);
+    Letter execute(const SendLetterInput& input);
 
 private:
-    MessageRepository& messages_;
+    LetterRepository& letters_;
     ParticipantNotifier& notifier_;
 };
 

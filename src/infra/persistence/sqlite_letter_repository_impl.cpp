@@ -1,4 +1,4 @@
-#include "sqlite_message_repository_impl.h"
+#include "sqlite_letter_repository_impl.h"
 
 #include "sqlite_util.h"
 
@@ -9,23 +9,23 @@
 namespace will {
 
 
-SqliteMessageRepositoryImpl::SqliteMessageRepositoryImpl(SqliteDatabase& database)
+SqliteLetterRepositoryImpl::SqliteLetterRepositoryImpl(SqliteDatabase& database)
     : database_(database)
 {}
 
 
-domain::Message SqliteMessageRepositoryImpl::append(const domain::AbodeId abode, const domain::UserId author,
-                                                    const std::string_view body, const domain::Timestamp ts)
+domain::Letter SqliteLetterRepositoryImpl::append(const domain::AbodeId abode, const domain::UserId author,
+                                                  const std::string_view body, const domain::Timestamp ts)
 {
     std::lock_guard lock(database_.mutex());
 
     sqlite3* const db = database_.db();
     sqlite3_stmt* stmt = nullptr;
     check_sqlite(sqlite3_prepare_v2(db,
-                                    "INSERT INTO messages (abode_id, author_user_id, body, created_at_ns) "
+                                    "INSERT INTO letters (abode_id, author_user_id, body, created_at_ns) "
                                     "VALUES (?, ?, ?, ?);",
                                     -1, &stmt, nullptr),
-                 db, "prepare insert message");
+                 db, "prepare insert letter");
 
     check_sqlite(sqlite3_bind_int64(stmt, 1, static_cast<sqlite3_int64>(abode.value())), db, "bind abode_id");
     check_sqlite(sqlite3_bind_int64(stmt, 2, static_cast<sqlite3_int64>(author.value())), db,
@@ -34,16 +34,16 @@ domain::Message SqliteMessageRepositoryImpl::append(const domain::AbodeId abode,
                  db, "bind body");
     check_sqlite(sqlite3_bind_int64(stmt, 4, ts.value()), db, "bind created_at_ns");
 
-    check_sqlite(sqlite3_step(stmt), db, "insert message step");
+    check_sqlite(sqlite3_step(stmt), db, "insert letter step");
     sqlite3_finalize(stmt);
 
     const std::uint64_t id = static_cast<std::uint64_t>(sqlite3_last_insert_rowid(db));
-    return domain::Message{domain::MessageId{id}, abode, author, std::string(body), ts};
+    return domain::Letter{domain::LetterId{id}, abode, author, std::string(body), ts};
 }
 
 
-std::vector<domain::Message> SqliteMessageRepositoryImpl::load_last(const domain::AbodeId abode,
-                                                                    const std::uint32_t limit)
+std::vector<domain::Letter> SqliteLetterRepositoryImpl::load_last(const domain::AbodeId abode,
+                                                                  const std::uint32_t limit)
 {
     std::lock_guard lock(database_.mutex());
 
@@ -51,23 +51,23 @@ std::vector<domain::Message> SqliteMessageRepositoryImpl::load_last(const domain
     sqlite3_stmt* stmt = nullptr;
     check_sqlite(sqlite3_prepare_v2(db,
                                     "SELECT id, abode_id, author_user_id, body, created_at_ns "
-                                    "FROM messages "
+                                    "FROM letters "
                                     "WHERE abode_id = ? ORDER BY id DESC LIMIT ?;",
                                     -1, &stmt, nullptr),
-                 db, "prepare load_last messages");
+                 db, "prepare load_last letters");
 
     check_sqlite(sqlite3_bind_int64(stmt, 1, static_cast<sqlite3_int64>(abode.value())), db, "bind abode_id");
     check_sqlite(sqlite3_bind_int64(stmt, 2, static_cast<sqlite3_int64>(limit)), db, "bind limit");
 
-    std::vector<domain::Message> rows;
+    std::vector<domain::Letter> rows;
     rows.reserve(limit);
 
     int rc = sqlite3_step(stmt);
 
     while (rc == SQLITE_ROW) {
         const char* const body_text = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3));
-        rows.push_back(domain::Message{
-            domain::MessageId{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 0))},
+        rows.push_back(domain::Letter{
+            domain::LetterId{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 0))},
             domain::AbodeId{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 1))},
             domain::UserId{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 2))},
             body_text ? std::string(body_text) : std::string{},
@@ -76,7 +76,7 @@ std::vector<domain::Message> SqliteMessageRepositoryImpl::load_last(const domain
         rc = sqlite3_step(stmt);
     }
 
-    check_sqlite(rc, db, "load_last messages step");
+    check_sqlite(rc, db, "load_last letters step");
     sqlite3_finalize(stmt);
 
     std::reverse(rows.begin(), rows.end());

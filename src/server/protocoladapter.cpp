@@ -15,8 +15,8 @@ ProtocolAdapter::ProtocolAdapter(domain::MessengerPersistence persistence, Sessi
     , registry_(registry)
     , participant_notifier_(registry, persistence.users)
     , authenticate_device_(persistence.users)
-    , send_chat_message_(persistence.messages, participant_notifier_)
-    , fetch_chat_history_(persistence.messages, persistence.users)
+    , send_letter_(persistence.letters, participant_notifier_)
+    , fetch_letter_history_(persistence.letters, persistence.users)
 {}
 
 
@@ -86,10 +86,10 @@ void ProtocolAdapter::send_auth_required(const SessionId session_id)
 
 void ProtocolAdapter::handle_user_chat(const SessionId session_id, const v1::ChatMessage& chat)
 {
-    const domain::SendChatMessageInput input{*registry_.user_id(session_id), domain::AbodeId::global(), chat.body(),
-                                             domain::Timestamp{}};
+    const domain::SendLetterInput input{*registry_.user_id(session_id), domain::AbodeId::global(), chat.body(),
+                                        domain::Timestamp{}};
 
-    (void)send_chat_message_.execute(input);
+    (void)send_letter_.execute(input);
 
     v1::ServerEvent event;
     event.mutable_receipt_ack();
@@ -99,24 +99,24 @@ void ProtocolAdapter::handle_user_chat(const SessionId session_id, const v1::Cha
 
 void ProtocolAdapter::handle_history_request(const SessionId session_id, const v1::HistoryRequest& request)
 {
-    const domain::FetchChatHistoryInput input{*registry_.user_id(session_id), domain::AbodeId::global(),
-                                              request.limit()};
+    const domain::FetchLetterHistoryInput input{*registry_.user_id(session_id), domain::AbodeId::global(),
+                                                request.limit()};
 
-    const auto outcome = fetch_chat_history_.execute(input);
+    const auto outcome = fetch_letter_history_.execute(input);
     if (const auto* error = std::get_if<domain::DomainError>(&outcome)) {
         (void)error;
         close_with_protocol_error(session_id, "Protocol error: invalid HistoryRequest");
         return;
     }
 
-    const auto& history = std::get<domain::FetchChatHistoryResult>(outcome);
-    for (const domain::FetchChatHistoryItem& item : history.items) {
+    const auto& history = std::get<domain::FetchLetterHistoryResult>(outcome);
+    for (const domain::FetchLetterHistoryItem& item : history.items) {
         v1::ServerEvent event;
         auto* history_item = event.mutable_history_item();
-        history_item->set_message_id(item.message.id().value());
+        history_item->set_message_id(item.letter.id().value());
         history_item->set_is_mine(item.is_mine);
         history_item->set_name(item.author_name);
-        history_item->set_body(item.message.body());
+        history_item->set_body(item.letter.body());
         send_event(session_id, event);
     }
 

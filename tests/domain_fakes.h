@@ -1,11 +1,11 @@
 #pragma once
 
 #include "values/device_token.h"
-#include "entities/message.h"
+#include "entities/letter.h"
 #include "entities/user.h"
 #include "ids/user_id.h"
 #include "values/user_name.h"
-#include "ports/message_repository.h"
+#include "ports/letter_repository.h"
 #include "ports/participant_notifier.h"
 #include "ports/user_repository.h"
 
@@ -58,39 +58,39 @@ private:
 };
 
 
-class InMemoryMessageRepository final : public MessageRepository {
+class InMemoryLetterRepository final : public LetterRepository {
 public:
-    Message append(AbodeId abode, UserId author, std::string_view body, Timestamp ts) override
+    Letter append(AbodeId abode, UserId author, std::string_view body, Timestamp ts) override
     {
-        Message msg{MessageId{++next_id_}, abode, author, std::string(body), ts};
-        messages_.push_back(msg);
-        return msg;
+        Letter letter{LetterId{++next_id_}, abode, author, std::string(body), ts};
+        letters_.push_back(letter);
+        return letter;
     }
 
-    std::vector<Message> load_last(AbodeId abode, std::uint32_t limit) override
+    std::vector<Letter> load_last(AbodeId abode, std::uint32_t limit) override
     {
-        std::vector<Message> matching;
-        matching.reserve(messages_.size());
-        for (const Message& m : messages_) {
-            if (m.abode_id() == abode)
-                matching.push_back(m);
+        std::vector<Letter> matching;
+        matching.reserve(letters_.size());
+        for (const Letter& letter : letters_) {
+            if (letter.abode_id() == abode)
+                matching.push_back(letter);
         }
         if (limit >= matching.size())
             return matching;
-        return std::vector<Message>(matching.end() - static_cast<std::ptrdiff_t>(limit), matching.end());
+        return std::vector<Letter>(matching.end() - static_cast<std::ptrdiff_t>(limit), matching.end());
     }
 
 private:
     std::uint64_t next_id_ = 0;
-    std::vector<Message> messages_;
+    std::vector<Letter> letters_;
 };
 
 
 class FakeParticipantNotifier final : public ParticipantNotifier {
 public:
-    void notify_chat_message(const Message& msg) override { notifications_.push_back(msg); }
+    void notify_letter(const Letter& letter) override { notifications_.push_back(letter); }
 
-    std::vector<Message> notifications_;
+    std::vector<Letter> notifications_;
 };
 
 

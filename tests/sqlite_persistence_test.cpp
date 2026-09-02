@@ -1,5 +1,5 @@
 #include "sqlite_database.h"
-#include "sqlite_message_repository_impl.h"
+#include "sqlite_letter_repository_impl.h"
 #include "sqlite_user_repository_impl.h"
 
 #include "ids/abode_id.h"
@@ -28,7 +28,7 @@ int main()
 
     {
         SqliteDatabase database(db_path);
-        SqliteMessageRepositoryImpl messages(database);
+        SqliteLetterRepositoryImpl letters(database);
         SqliteUserRepositoryImpl users(database);
 
         const User user_a = users.create_user("aaaa1234aaaa1234aaaa1234aaaa1234", *UserName::parse("nameaaaa"));
@@ -37,10 +37,10 @@ int main()
         user_b_id = user_b.id();
 
         const AbodeId abode = AbodeId::global();
-        messages.append(abode, user_a.id(), "from-peer", Timestamp{1000});
-        messages.append(abode, user_b.id(), "from-me", Timestamp{2000});
+        letters.append(abode, user_a.id(), "from-peer", Timestamp{1000});
+        letters.append(abode, user_b.id(), "from-me", Timestamp{2000});
 
-        const auto rows = messages.load_last(abode, 10);
+        const auto rows = letters.load_last(abode, 10);
         assert(rows.size() == 2);
         assert(rows[0].body() == "from-peer");
         assert(rows[0].author_id() == user_a.id());

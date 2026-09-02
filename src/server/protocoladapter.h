@@ -7,8 +7,8 @@
 #include "ports/messenger_persistence.h"
 
 #include "usecases/authenticate_device.h"
-#include "usecases/fetch_chat_history.h"
-#include "usecases/send_chat_message.h"
+#include "usecases/fetch_letter_history.h"
+#include "usecases/send_letter.h"
 
 #include "infra/transport/messenger.pb.h"
 
@@ -45,8 +45,8 @@ private:
     SessionRegistry& registry_;
     SessionParticipantNotifierImpl participant_notifier_;
     domain::AuthenticateDevice authenticate_device_;
-    domain::SendChatMessage send_chat_message_;
-    domain::FetchChatHistory fetch_chat_history_;
+    domain::SendLetter send_letter_;
+    domain::FetchLetterHistory fetch_letter_history_;
 };
 
 

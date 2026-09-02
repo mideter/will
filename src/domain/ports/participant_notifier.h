@@ -1,6 +1,6 @@
 #pragma once
 
-#include "entities/message.h"
+#include "entities/letter.h"
 
 
 namespace will::domain {
@@ -10,7 +10,7 @@ class ParticipantNotifier {
 public:
     virtual ~ParticipantNotifier() = default;
 
-    virtual void notify_chat_message(const Message& msg) = 0;
+    virtual void notify_letter(const Letter& letter) = 0;
 };
 
 

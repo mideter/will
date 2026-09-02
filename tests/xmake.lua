@@ -27,8 +27,8 @@ test_target("timestamp-test")
     add_files("timestamp_test.cpp")
     add_deps("will-domain")
 
-test_target("message-test")
-    add_files("message_test.cpp")
+test_target("letter-test")
+    add_files("letter_test.cpp")
     add_deps("will-domain")
 
 test_target("domain-ids-test")

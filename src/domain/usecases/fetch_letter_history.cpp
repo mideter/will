@@ -1,4 +1,4 @@
-#include "fetch_chat_history.h"
+#include "fetch_letter_history.h"
 
 #include <algorithm>
 #include <map>
@@ -7,26 +7,26 @@
 namespace will::domain {
 
 
-FetchChatHistory::FetchChatHistory(MessageRepository& messages, UserRepository& users)
-    : messages_(messages)
+FetchLetterHistory::FetchLetterHistory(LetterRepository& letters, UserRepository& users)
+    : letters_(letters)
     , users_(users)
 {}
 
 
-std::variant<FetchChatHistoryResult, DomainError> FetchChatHistory::execute(const FetchChatHistoryInput& input)
+std::variant<FetchLetterHistoryResult, DomainError> FetchLetterHistory::execute(const FetchLetterHistoryInput& input)
 {
     if (input.limit == 0) {
         return DomainError{DomainErrorCode::InvalidArgument};
     }
 
     const std::uint32_t capped_limit = std::min(input.limit, MaxHistoryRequestLimit);
-    const std::vector<Message> rows = messages_.load_last(input.abode_id, capped_limit);
+    const std::vector<Letter> rows = letters_.load_last(input.abode_id, capped_limit);
 
-    FetchChatHistoryResult result;
+    FetchLetterHistoryResult result;
     result.items.reserve(rows.size());
 
     std::map<UserId, std::string> author_names;
-    for (const Message& row : rows) {
+    for (const Letter& row : rows) {
         std::string author_name;
         if (const auto cached = author_names.find(row.author_id()); cached != author_names.end()) {
             author_name = cached->second;
@@ -38,7 +38,7 @@ std::variant<FetchChatHistoryResult, DomainError> FetchChatHistory::execute(cons
         }
 
         const bool is_mine = row.author_id() == input.user_id;
-        result.items.push_back(FetchChatHistoryItem{row, std::move(author_name), is_mine});
+        result.items.push_back(FetchLetterHistoryItem{row, std::move(author_name), is_mine});
     }
 
     return result;

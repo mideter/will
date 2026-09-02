@@ -1,5 +1,5 @@
 #include "ids/abode_id.h"
-#include "ids/message_id.h"
+#include "ids/letter_id.h"
 #include "ids/user_id.h"
 
 #include <cassert>
@@ -23,12 +23,12 @@ int main()
     }
 
     {
-        const MessageId id{7};
+        const LetterId id{7};
         assert(id.value() == 7);
     }
 
     try {
-        MessageId{0};
+        LetterId{0};
         return EXIT_FAILURE;
     } catch (const std::invalid_argument&) {
     }
