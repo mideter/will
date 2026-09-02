@@ -128,6 +128,10 @@ CREATE INDEX IF NOT EXISTS idx_messages_created_at ON messages(created_at_ns);
 
     check_sqlite(sqlite3_exec(db_, InitSchemaSql, nullptr, nullptr, nullptr), db_, "init_schema");
 
+    check_sqlite(sqlite3_exec(db_, "UPDATE messages SET abode_id = 1 WHERE abode_id = 0;", nullptr, nullptr,
+                              nullptr),
+                 db_, "migrate global abode_id");
+
     if (table_has_column(db_, "users", "id") && !table_has_column(db_, "users", "name")) {
         check_sqlite(sqlite3_exec(db_, "ALTER TABLE users ADD COLUMN name TEXT NOT NULL DEFAULT '';", nullptr,
                                   nullptr, nullptr),

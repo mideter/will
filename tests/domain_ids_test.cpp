@@ -34,15 +34,19 @@ int main()
     }
 
     {
-        assert(AbodeId::global().value() == 0);
-        assert(AbodeId::global().is_global());
-        assert(AbodeId::global() == AbodeId{0});
+        assert(AbodeId::global() == AbodeId{1});
+    }
+
+    try {
+        AbodeId{0};
+        return EXIT_FAILURE;
+    } catch (const std::invalid_argument&) {
     }
 
     {
         const AbodeId abode{5};
         assert(abode.value() == 5);
-        assert(!abode.is_global());
+        assert(abode != AbodeId::global());
     }
 
     return EXIT_SUCCESS;

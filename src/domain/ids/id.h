@@ -18,7 +18,8 @@ public:
     constexpr bool operator==(const Id&) const noexcept = default;
 
 protected:
-    explicit constexpr Id(std::uint64_t value) noexcept : value_(value) {}
+    /// Throws std::invalid_argument if value is 0.
+    explicit Id(std::uint64_t value);
 
 private:
     std::uint64_t value_;

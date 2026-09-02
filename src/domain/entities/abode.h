@@ -7,7 +7,7 @@ namespace will::domain {
 
 
 /// Abode (Обитель) — место общения пользователей.
-/// Single global abode is represented by AbodeId::global().
+/// Single global abode is represented by AbodeId::global() (id 1).
 struct Abode {
     AbodeId id = AbodeId::global();
 

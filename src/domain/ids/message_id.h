@@ -8,11 +8,10 @@
 namespace will::domain {
 
 
-/// Persistent message identity assigned by storage. Must be non-zero.
+/// Persistent message identity assigned by storage.
 class MessageId : public Id {
 public:
-    /// Throws std::invalid_argument if value is 0.
-    explicit MessageId(std::uint64_t value);
+    explicit MessageId(std::uint64_t value) : Id(value) {}
 
     constexpr auto operator<=>(const MessageId&) const noexcept = default;
     constexpr bool operator==(const MessageId&) const noexcept = default;

@@ -8,11 +8,10 @@
 namespace will::domain {
 
 
-/// Persistent user identity assigned by storage. Must be non-zero.
+/// Persistent user identity assigned by storage.
 class UserId : public Id {
 public:
-    /// Throws std::invalid_argument if value is 0.
-    explicit UserId(std::uint64_t value);
+    explicit UserId(std::uint64_t value) : Id(value) {}
 
     constexpr auto operator<=>(const UserId&) const noexcept = default;
     constexpr bool operator==(const UserId&) const noexcept = default;
