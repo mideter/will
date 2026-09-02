@@ -14,7 +14,7 @@ ProtocolAdapter::ProtocolAdapter(domain::MessengerPersistence persistence, Sessi
     : persistence_(persistence)
     , registry_(registry)
     , participant_notifier_(registry, persistence.heaven)
-    , authenticate_device_(persistence.heaven)
+    , authenticate_device_(persistence.heaven, persistence.earth, persistence.eternity)
     , send_letter_(persistence.letters, participant_notifier_)
     , fetch_letter_history_(persistence.letters, persistence.heaven)
 {}

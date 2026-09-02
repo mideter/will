@@ -12,7 +12,7 @@
 namespace will::domain {
 
 
-/// Eternal memory — durable storage. Runtime lookups use Heaven in memory.
+/// Eternal memory — durable storage. Runtime lookups use Heaven and Earth in memory.
 class Eternity {
 public:
     virtual ~Eternity() = default;

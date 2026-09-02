@@ -2,6 +2,7 @@
 
 #include "ports/messenger_persistence.h"
 
+#include "entities/earth.h"
 #include "entities/heaven.h"
 #include "sqlite_database.h"
 #include "sqlite_store.h"
@@ -22,12 +23,15 @@ public:
 
     domain::LetterRepository& letters();
     domain::Heaven& heaven();
+    domain::Earth& earth();
+    domain::Eternity& eternity();
 
 private:
     SqliteDatabase database_;
     SqliteStore store_;
     SqliteLetterRepositoryImpl letters_;
     domain::Heaven heaven_;
+    domain::Earth earth_;
 };
 
 

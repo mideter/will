@@ -1,8 +1,10 @@
 #pragma once
 
-#include "entities/god.h"
 #include "errors/auth_error.h"
+
+#include "entities/earth.h"
 #include "entities/heaven.h"
+#include "ports/eternity.h"
 
 #include <string_view>
 #include <variant>
@@ -23,12 +25,14 @@ struct AuthenticateDeviceSuccess {
 
 class AuthenticateDevice {
 public:
-    explicit AuthenticateDevice(Heaven& heaven);
+    AuthenticateDevice(Heaven& heaven, Earth& earth, Eternity& eternity);
 
     std::variant<AuthenticateDeviceSuccess, AuthError> execute(const AuthenticateDeviceInput& input);
 
 private:
     Heaven& heaven_;
+    Earth& earth_;
+    Eternity& eternity_;
 };
 
 

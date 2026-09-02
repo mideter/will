@@ -1,3 +1,4 @@
+#include "entities/earth.h"
 #include "entities/heaven.h"
 #include "sqlite_database.h"
 #include "sqlite_store.h"
@@ -12,6 +13,22 @@
 #include <cstdlib>
 #include <string>
 #include <unistd.h>
+
+
+namespace {
+
+
+will::domain::God register_god(will::domain::Heaven& heaven, will::domain::Earth& earth, will::domain::Eternity& eternity,
+                               const std::string_view device_token, const will::domain::GodName name)
+{
+    auto [god, vessel] = eternity.insert_god_with_vessel(device_token, name);
+    heaven.insert(god);
+    earth.insert(std::move(vessel));
+    return god;
+}
+
+
+} // namespace
 
 
 int main()
@@ -32,9 +49,12 @@ int main()
         SqliteStore store(database);
         SqliteLetterRepositoryImpl letters(database);
         Heaven heaven(store);
+        Earth earth(store);
 
-        const God god_a = heaven.create_god("aaaa1234aaaa1234aaaa1234aaaa1234", *GodName::parse("nameaaaa"));
-        const God god_b = heaven.create_god("bbbb1234bbbb1234bbbb1234bbbb1234", *GodName::parse("namebbbb"));
+        const God god_a = register_god(heaven, earth, store, "aaaa1234aaaa1234aaaa1234aaaa1234",
+                                       *GodName::parse("nameaaaa"));
+        const God god_b = register_god(heaven, earth, store, "bbbb1234bbbb1234bbbb1234bbbb1234",
+                                       *GodName::parse("namebbbb"));
         god_a_id = god_a.id();
         god_b_id = god_b.id();
 
@@ -51,38 +71,36 @@ int main()
         assert(rows[1].author_id() == god_b.id());
         assert(heaven.find_by_id(rows[1].author_id())->name() == *GodName::parse("namebbbb"));
 
-        const God created = heaven.create_god(token, *GodName::parse("abcdefgh"));
+        const God created = register_god(heaven, earth, store, token, *GodName::parse("abcdefgh"));
         created_id = created.id();
         assert(created.id().value() > 0);
-        assert(heaven.find_by_device_token(token)->id() == created.id());
+        assert(earth.god_id_for_token(token) == created.id());
+        assert(created.name() == *GodName::parse("abcdefgh"));
 
-        const std::optional<God> found = heaven.find_by_device_token(token);
-        assert(found.has_value());
-        assert(found->id() == created.id());
-        assert(found->name() == *GodName::parse("abcdefgh"));
+        assert(earth.find_by_token(token).has_value());
+        assert(heaven.find_by_id(created.id()).has_value());
     }
 
     {
         SqliteDatabase database(db_path);
         SqliteStore store(database);
         Heaven heaven(store);
+        Earth earth(store);
 
-        const std::optional<God> by_token = heaven.find_by_device_token(token);
-        assert(by_token.has_value());
-        assert(by_token->id() == *created_id);
-        assert(by_token->name() == *GodName::parse("abcdefgh"));
+        assert(earth.god_id_for_token(token) == *created_id);
+        assert(heaven.find_by_id(*created_id)->name() == *GodName::parse("abcdefgh"));
 
         const std::optional<God> a = heaven.find_by_id(*god_a_id);
         assert(a.has_value());
         assert(a->name() == *GodName::parse("nameaaaa"));
-        assert(heaven.find_by_device_token("aaaa1234aaaa1234aaaa1234aaaa1234")->id() == *god_a_id);
+        assert(earth.god_id_for_token("aaaa1234aaaa1234aaaa1234aaaa1234") == *god_a_id);
 
         const std::optional<God> b = heaven.find_by_id(*god_b_id);
         assert(b.has_value());
         assert(b->name() == *GodName::parse("namebbbb"));
 
         assert(!heaven.find_by_id(GodId{999999}).has_value());
-        assert(!heaven.find_by_device_token("missing-token-xxxxxxxxxxxxxxxx").has_value());
+        assert(!earth.find_by_token("missing-token-xxxxxxxxxxxxxxxx").has_value());
     }
 
     ::unlink(db_path.c_str());

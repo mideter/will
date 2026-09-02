@@ -1,5 +1,6 @@
 #pragma once
 
+#include "entities/earth.h"
 #include "entities/god.h"
 #include "entities/heaven.h"
 #include "entities/letter.h"
@@ -83,9 +84,21 @@ public:
 };
 
 
-inline void seed_god_with_token(Heaven& heaven, const GodId god_id, const DeviceToken& token, const GodName name)
+inline God register_god_with_vessel(Heaven& heaven, Earth& earth, Eternity& eternity,
+                                    const std::string_view device_token, const GodName name)
 {
-    heaven.insert_god_with_vessel(God{god_id, name}, Vessel{VesselId{god_id.value()}, token, god_id});
+    auto [god, vessel] = eternity.insert_god_with_vessel(device_token, name);
+    heaven.insert(god);
+    earth.insert(std::move(vessel));
+    return god;
+}
+
+
+inline void seed_god_with_token(Heaven& heaven, Earth& earth, const GodId god_id, const DeviceToken& token,
+                                const GodName name)
+{
+    heaven.insert(God{god_id, name});
+    earth.insert(Vessel{VesselId{god_id.value()}, token, god_id});
 }
 
 

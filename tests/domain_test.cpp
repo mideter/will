@@ -1,5 +1,6 @@
 #include "domain_fakes.h"
 
+#include "entities/earth.h"
 #include "entities/heaven.h"
 #include "ids/abode_id.h"
 #include "values/device_token.h"
@@ -39,7 +40,8 @@ void test_authenticate_device_creates_god()
 {
     InMemoryEternity eternity;
     Heaven heaven(eternity);
-    AuthenticateDevice authenticate(heaven);
+    Earth earth(eternity);
+    AuthenticateDevice authenticate(heaven, earth, eternity);
 
     const DeviceToken token = DeviceToken::generate();
     const auto result = authenticate.execute(AuthenticateDeviceInput{token.text()});
@@ -48,9 +50,9 @@ void test_authenticate_device_creates_god()
     const AuthenticateDeviceSuccess& success = std::get<AuthenticateDeviceSuccess>(result);
     assert(success.god.id().value() > 0);
 
-    const std::optional<God> god = heaven.find_by_device_token(token.text());
+    assert(earth.god_id_for_token(token.text()) == success.god.id());
+    const std::optional<God> god = heaven.find_by_id(success.god.id());
     assert(god.has_value());
-    assert(god->id() == success.god.id());
     assert(GodName::parse(god->name().text()));
 }
 
@@ -59,9 +61,10 @@ void test_authenticate_device_existing_god()
 {
     InMemoryEternity eternity;
     Heaven heaven(eternity);
-    seed_god_with_token(heaven, GodId{42}, test_token("abcd1234abcd1234abcd1234abcd1234"), test_name("oldname1"));
+    Earth earth(eternity);
+    seed_god_with_token(heaven, earth, GodId{42}, test_token("abcd1234abcd1234abcd1234abcd1234"), test_name("oldname1"));
 
-    AuthenticateDevice authenticate(heaven);
+    AuthenticateDevice authenticate(heaven, earth, eternity);
     const auto result = authenticate.execute(AuthenticateDeviceInput{"abcd1234abcd1234abcd1234abcd1234"});
     assert(std::holds_alternative<AuthenticateDeviceSuccess>(result));
     assert(std::get<AuthenticateDeviceSuccess>(result).god.id() == GodId{42});
@@ -72,13 +75,14 @@ void test_authenticate_device_keeps_existing_name()
 {
     InMemoryEternity eternity;
     Heaven heaven(eternity);
-    seed_god_with_token(heaven, GodId{7}, test_token("abcd1234abcd1234abcd1234abcd1234"), test_name("keptname"));
+    Earth earth(eternity);
+    seed_god_with_token(heaven, earth, GodId{7}, test_token("abcd1234abcd1234abcd1234abcd1234"), test_name("keptname"));
 
-    AuthenticateDevice authenticate(heaven);
+    AuthenticateDevice authenticate(heaven, earth, eternity);
     const auto result = authenticate.execute(AuthenticateDeviceInput{"abcd1234abcd1234abcd1234abcd1234"});
     assert(std::holds_alternative<AuthenticateDeviceSuccess>(result));
 
-    const std::optional<God> god = heaven.find_by_device_token("abcd1234abcd1234abcd1234abcd1234");
+    const std::optional<God> god = heaven.find_by_id(GodId{7});
     assert(god.has_value());
     assert(god->name() == test_name("keptname"));
 }
@@ -88,7 +92,8 @@ void test_authenticate_device_invalid_token()
 {
     InMemoryEternity eternity;
     Heaven heaven(eternity);
-    AuthenticateDevice authenticate(heaven);
+    Earth earth(eternity);
+    AuthenticateDevice authenticate(heaven, earth, eternity);
 
     const auto result = authenticate.execute(AuthenticateDeviceInput{"short"});
     assert(std::holds_alternative<AuthError>(result));
@@ -125,12 +130,13 @@ void test_fetch_letter_history_limit_and_is_mine()
     InMemoryLetterRepository letters;
     InMemoryEternity eternity;
     Heaven heaven(eternity);
+    Earth earth(eternity);
     const AbodeId abode = AbodeId::global();
     const GodId me{10};
     const GodId other{20};
 
-    seed_god_with_token(heaven, me, test_token("c0ffee00c0ffee00c0ffee00c0ffee00"), test_name("menameaa"));
-    seed_god_with_token(heaven, other, test_token("deadbeefdeadbeefdeadbeefdeadbeef"), test_name("peername"));
+    seed_god_with_token(heaven, earth, me, test_token("c0ffee00c0ffee00c0ffee00c0ffee00"), test_name("menameaa"));
+    seed_god_with_token(heaven, earth, other, test_token("deadbeefdeadbeefdeadbeefdeadbeef"), test_name("peername"));
 
     letters.append(abode, other, "peer", Timestamp{1});
     letters.append(abode, me, "mine", Timestamp{2});
@@ -161,10 +167,11 @@ void test_fetch_letter_history_caps_limit()
     InMemoryLetterRepository letters;
     InMemoryEternity eternity;
     Heaven heaven(eternity);
+    Earth earth(eternity);
     const AbodeId abode = AbodeId::global();
     const GodId author{1};
 
-    seed_god_with_token(heaven, author, test_token("feedfacefeedfacefeedfacefeedface"), test_name("authoraa"));
+    seed_god_with_token(heaven, earth, author, test_token("feedfacefeedfacefeedfacefeedface"), test_name("authoraa"));
 
     for (int i = 0; i < 5; ++i)
         letters.append(abode, author, "m", Timestamp{i});

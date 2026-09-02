@@ -9,12 +9,13 @@ SqlitePersistenceBundle::SqlitePersistenceBundle(std::string db_path)
     , store_(database_)
     , letters_(database_)
     , heaven_(store_)
+    , earth_(store_)
 {}
 
 
 domain::MessengerPersistence SqlitePersistenceBundle::ports()
 {
-    return {letters(), heaven()};
+    return {letters(), heaven(), earth(), eternity()};
 }
 
 
@@ -27,6 +28,18 @@ domain::LetterRepository& SqlitePersistenceBundle::letters()
 domain::Heaven& SqlitePersistenceBundle::heaven()
 {
     return heaven_;
+}
+
+
+domain::Earth& SqlitePersistenceBundle::earth()
+{
+    return earth_;
+}
+
+
+domain::Eternity& SqlitePersistenceBundle::eternity()
+{
+    return store_;
 }
 
 

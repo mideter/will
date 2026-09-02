@@ -7,7 +7,11 @@
 namespace will::domain {
 
 
-AuthenticateDevice::AuthenticateDevice(Heaven& heaven) : heaven_(heaven) {}
+AuthenticateDevice::AuthenticateDevice(Heaven& heaven, Earth& earth, Eternity& eternity)
+    : heaven_(heaven)
+    , earth_(earth)
+    , eternity_(eternity)
+{}
 
 
 std::variant<AuthenticateDeviceSuccess, AuthError> AuthenticateDevice::execute(const AuthenticateDeviceInput& input)
@@ -16,11 +20,15 @@ std::variant<AuthenticateDeviceSuccess, AuthError> AuthenticateDevice::execute(c
     if (!token)
         return AuthError::InvalidToken;
 
-    std::optional<God> god = heaven_.find_by_device_token(token->text());
-    if (!god)
-        god = heaven_.create_god(token->text(), GodName::generate());
+    if (const std::optional<GodId> god_id = earth_.god_id_for_token(token->text())) {
+        if (const std::optional<God> god = heaven_.find_by_id(*god_id))
+            return AuthenticateDeviceSuccess{*god};
+    }
 
-    return AuthenticateDeviceSuccess{*god};
+    auto [god, vessel] = eternity_.insert_god_with_vessel(token->text(), GodName::generate());
+    heaven_.insert(god);
+    earth_.insert(std::move(vessel));
+    return AuthenticateDeviceSuccess{god};
 }
 
 
