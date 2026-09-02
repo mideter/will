@@ -7,9 +7,9 @@
 namespace will::domain {
 
 
-FetchLetterHistory::FetchLetterHistory(LetterRepository& letters, UserRepository& users)
+FetchLetterHistory::FetchLetterHistory(LetterRepository& letters, GodRepository& gods)
     : letters_(letters)
-    , users_(users)
+    , gods_(gods)
 {}
 
 
@@ -25,19 +25,19 @@ std::variant<FetchLetterHistoryResult, DomainError> FetchLetterHistory::execute(
     FetchLetterHistoryResult result;
     result.items.reserve(rows.size());
 
-    std::map<UserId, std::string> author_names;
+    std::map<GodId, std::string> author_names;
     for (const Letter& row : rows) {
         std::string author_name;
         if (const auto cached = author_names.find(row.author_id()); cached != author_names.end()) {
             author_name = cached->second;
-        } else if (const std::optional<User> author = users_.find_by_id(row.author_id())) {
+        } else if (const std::optional<God> author = gods_.find_by_id(row.author_id())) {
             author_name = author->name().text();
             author_names.emplace(row.author_id(), author_name);
         } else {
             author_names.emplace(row.author_id(), std::string{});
         }
 
-        const bool is_mine = row.author_id() == input.user_id;
+        const bool is_mine = row.author_id() == input.god_id;
         result.items.push_back(FetchLetterHistoryItem{row, std::move(author_name), is_mine});
     }
 

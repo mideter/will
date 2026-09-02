@@ -12,7 +12,7 @@ SendLetter::SendLetter(LetterRepository& letters, ParticipantNotifier& notifier)
 
 Letter SendLetter::execute(const SendLetterInput& input)
 {
-    Letter saved = letters_.append(input.abode_id, input.user_id, input.body, input.created_at);
+    Letter saved = letters_.append(input.abode_id, input.god_id, input.body, input.created_at);
     notifier_.notify_letter(saved);
     return saved;
 }

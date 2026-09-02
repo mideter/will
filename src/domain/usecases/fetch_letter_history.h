@@ -1,11 +1,11 @@
 #pragma once
 
 #include "ids/abode_id.h"
-#include "ids/user_id.h"
+#include "ids/god_id.h"
 #include "entities/letter.h"
 #include "errors/domain_error.h"
+#include "ports/god_repository.h"
 #include "ports/letter_repository.h"
-#include "ports/user_repository.h"
 
 #include <cstdint>
 #include <string>
@@ -17,7 +17,7 @@ namespace will::domain {
 
 
 struct FetchLetterHistoryInput {
-    UserId user_id;
+    GodId god_id;
     AbodeId abode_id = AbodeId::global();
     std::uint32_t limit = 0;
 };
@@ -39,13 +39,13 @@ class FetchLetterHistory {
 public:
     static constexpr std::uint32_t MaxHistoryRequestLimit = 1000;
 
-    FetchLetterHistory(LetterRepository& letters, UserRepository& users);
+    FetchLetterHistory(LetterRepository& letters, GodRepository& gods);
 
     std::variant<FetchLetterHistoryResult, DomainError> execute(const FetchLetterHistoryInput& input);
 
 private:
     LetterRepository& letters_;
-    UserRepository& users_;
+    GodRepository& gods_;
 };
 
 

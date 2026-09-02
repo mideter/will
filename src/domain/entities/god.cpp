@@ -1,12 +1,10 @@
-#include "user.h"
-
-#include <stdexcept>
+#include "god.h"
 
 
 namespace will::domain {
 
 
-User::User(const UserId id, DeviceToken device_token, UserName name)
+God::God(const GodId id, DeviceToken device_token, GodName name)
     : id_(id)
     , device_token_(std::move(device_token))
     , name_(std::move(name))

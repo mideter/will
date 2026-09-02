@@ -1,6 +1,6 @@
 #include "ids/abode_id.h"
 #include "ids/letter_id.h"
-#include "ids/user_id.h"
+#include "ids/god_id.h"
 
 #include <cassert>
 #include <cstdlib>
@@ -12,12 +12,12 @@ int main()
     using namespace will::domain;
 
     {
-        const UserId id{42};
+        const GodId id{42};
         assert(id.value() == 42);
     }
 
     try {
-        UserId{0};
+        GodId{0};
         return EXIT_FAILURE;
     } catch (const std::invalid_argument&) {
     }

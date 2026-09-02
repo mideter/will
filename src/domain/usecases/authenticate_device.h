@@ -1,8 +1,8 @@
 #pragma once
 
-#include "entities/user.h"
+#include "entities/god.h"
 #include "errors/auth_error.h"
-#include "ports/user_repository.h"
+#include "ports/god_repository.h"
 
 #include <string_view>
 #include <variant>
@@ -17,18 +17,18 @@ struct AuthenticateDeviceInput {
 
 
 struct AuthenticateDeviceSuccess {
-    User user;
+    God god;
 };
 
 
 class AuthenticateDevice {
 public:
-    explicit AuthenticateDevice(UserRepository& users);
+    explicit AuthenticateDevice(GodRepository& gods);
 
     std::variant<AuthenticateDeviceSuccess, AuthError> execute(const AuthenticateDeviceInput& input);
 
 private:
-    UserRepository& users_;
+    GodRepository& gods_;
 };
 
 

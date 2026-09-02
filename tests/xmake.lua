@@ -39,8 +39,8 @@ test_target("device-token-test")
     add_files("device_token_test.cpp")
     add_deps("will-domain")
 
-test_target("user-name-test")
-    add_files("user_name_test.cpp")
+test_target("god-name-test")
+    add_files("god_name_test.cpp")
     add_deps("will-domain")
 
 test_target("will-server-config-test")

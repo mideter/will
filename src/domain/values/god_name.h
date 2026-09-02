@@ -10,20 +10,20 @@
 namespace will::domain {
 
 
-/** Random public user label: Latin letters a-z and digits, fixed length. */
-class UserName {
+/** Random public god label: Latin letters a-z and digits, fixed length. */
+class GodName {
 public:
     static constexpr std::size_t Length = 8;
 
-    static std::optional<UserName> parse(std::string_view input);
-    static UserName generate();
+    static std::optional<GodName> parse(std::string_view input);
+    static GodName generate();
 
     std::string_view text() const noexcept { return value_; }
 
-    bool operator==(const UserName&) const = default;
+    bool operator==(const GodName&) const = default;
 
 private:
-    explicit UserName(std::string value);
+    explicit GodName(std::string value);
 
     std::string value_;
 };
@@ -33,8 +33,8 @@ private:
 
 
 template <>
-struct std::hash<will::domain::UserName> {
-    std::size_t operator()(const will::domain::UserName& name) const noexcept
+struct std::hash<will::domain::GodName> {
+    std::size_t operator()(const will::domain::GodName& name) const noexcept
     {
         return std::hash<std::string_view>{}(name.text());
     }

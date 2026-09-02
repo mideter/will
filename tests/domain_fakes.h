@@ -1,13 +1,13 @@
 #pragma once
 
 #include "values/device_token.h"
+#include "entities/god.h"
 #include "entities/letter.h"
-#include "entities/user.h"
-#include "ids/user_id.h"
-#include "values/user_name.h"
+#include "ids/god_id.h"
+#include "values/god_name.h"
+#include "ports/god_repository.h"
 #include "ports/letter_repository.h"
 #include "ports/participant_notifier.h"
-#include "ports/user_repository.h"
 
 #include <map>
 #include <optional>
@@ -18,49 +18,49 @@
 namespace will::domain::test {
 
 
-class FakeUserRepository final : public UserRepository {
+class FakeGodRepository final : public GodRepository {
 public:
-    std::optional<User> find_by_device_token(const std::string_view device_token) override
+    std::optional<God> find_by_device_token(const std::string_view device_token) override
     {
         const auto it = by_token_.find(std::string(device_token));
         if (it == by_token_.end())
             return std::nullopt;
-        return users_.at(it->second);
+        return gods_.at(it->second);
     }
 
-    std::optional<User> find_by_id(const UserId id) override
+    std::optional<God> find_by_id(const GodId id) override
     {
-        const auto it = users_.find(id);
-        if (it == users_.end())
+        const auto it = gods_.find(id);
+        if (it == gods_.end())
             return std::nullopt;
         return it->second;
     }
 
-    User create_user(const std::string_view device_token, const UserName name) override
+    God create_god(const std::string_view device_token, const GodName name) override
     {
-        const UserId id{++next_user_id_};
-        User user{id, *DeviceToken::parse(device_token), name};
-        users_.emplace(id, user);
-        by_token_.insert_or_assign(std::string(user.device_token().text()), id);
-        return user;
+        const GodId id{++next_god_id_};
+        God god{id, *DeviceToken::parse(device_token), name};
+        gods_.emplace(id, god);
+        by_token_.insert_or_assign(std::string(god.device_token().text()), id);
+        return god;
     }
 
-    void add_user(User user)
+    void add_god(God god)
     {
-        users_.emplace(user.id(), user);
-        by_token_.insert_or_assign(std::string(user.device_token().text()), user.id());
+        gods_.emplace(god.id(), god);
+        by_token_.insert_or_assign(std::string(god.device_token().text()), god.id());
     }
 
 private:
-    std::uint64_t next_user_id_ = 0;
-    std::map<UserId, User> users_;
-    std::map<std::string, UserId> by_token_;
+    std::uint64_t next_god_id_ = 0;
+    std::map<GodId, God> gods_;
+    std::map<std::string, GodId> by_token_;
 };
 
 
 class InMemoryLetterRepository final : public LetterRepository {
 public:
-    Letter append(AbodeId abode, UserId author, std::string_view body, Timestamp ts) override
+    Letter append(AbodeId abode, GodId author, std::string_view body, Timestamp ts) override
     {
         Letter letter{LetterId{++next_id_}, abode, author, std::string(body), ts};
         letters_.push_back(letter);

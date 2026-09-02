@@ -81,6 +81,10 @@ bool needs_schema_reset(sqlite3* db)
 {
     if (table_exists(db, "messages"))
         return true;
+    if (table_exists(db, "users"))
+        return true;
+    if (table_has_column(db, "letters", "author_user_id"))
+        return true;
     if (table_has_column(db, "messages", "chat_id"))
         return true;
     if (table_has_column(db, "messages", "sender_ip"))
@@ -91,17 +95,21 @@ bool needs_schema_reset(sqlite3* db)
         return true;
     if (table_has_column(db, "users", "phone"))
         return true;
+    if (table_has_column(db, "gods", "password_hash"))
+        return true;
+    if (table_has_column(db, "gods", "phone"))
+        return true;
 
     sqlite3_stmt* stmt = nullptr;
-    check_sqlite(sqlite3_prepare_v2(db, "SELECT name FROM sqlite_master WHERE type='table' AND name='users';",
+    check_sqlite(sqlite3_prepare_v2(db, "SELECT name FROM sqlite_master WHERE type='table' AND name='gods';",
                                     -1, &stmt, nullptr),
-                 db, "prepare users table check");
+                 db, "prepare gods table check");
     const int rc = sqlite3_step(stmt);
-    const bool has_users = rc == SQLITE_ROW;
+    const bool has_gods = rc == SQLITE_ROW;
     sqlite3_finalize(stmt);
-    check_sqlite(rc == SQLITE_ROW ? SQLITE_OK : rc, db, "users table check step");
+    check_sqlite(rc == SQLITE_ROW ? SQLITE_OK : rc, db, "gods table check step");
 
-    return !has_users && table_has_column(db, "letters", "body");
+    return !has_gods && table_has_column(db, "letters", "body");
 }
 
 
@@ -112,6 +120,7 @@ DROP TABLE IF EXISTS letters;
 DROP TABLE IF EXISTS messages;
 DROP TABLE IF EXISTS auth_sessions;
 DROP TABLE IF EXISTS otp_challenges;
+DROP TABLE IF EXISTS gods;
 DROP TABLE IF EXISTS users;
 )sql";
     check_sqlite(sqlite3_exec(db, DropLegacyTablesSql, nullptr, nullptr, nullptr), db,
@@ -128,7 +137,7 @@ void SqliteDatabase::init_schema()
         drop_legacy_tables(db_);
 
     static constexpr const char* InitSchemaSql = R"sql(
-CREATE TABLE IF NOT EXISTS users (
+CREATE TABLE IF NOT EXISTS gods (
   id INTEGER PRIMARY KEY,
   device_token TEXT UNIQUE NOT NULL,
   name TEXT NOT NULL DEFAULT ''
@@ -137,7 +146,7 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS letters (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   abode_id INTEGER NOT NULL,
-  author_user_id INTEGER NOT NULL REFERENCES users(id),
+  author_god_id INTEGER NOT NULL REFERENCES gods(id),
   body TEXT NOT NULL,
   created_at_ns INTEGER NOT NULL
 );
@@ -151,10 +160,10 @@ CREATE INDEX IF NOT EXISTS idx_letters_created_at ON letters(created_at_ns);
                               nullptr),
                  db_, "migrate global abode_id");
 
-    if (table_has_column(db_, "users", "id") && !table_has_column(db_, "users", "name")) {
-        check_sqlite(sqlite3_exec(db_, "ALTER TABLE users ADD COLUMN name TEXT NOT NULL DEFAULT '';", nullptr,
+    if (table_has_column(db_, "gods", "id") && !table_has_column(db_, "gods", "name")) {
+        check_sqlite(sqlite3_exec(db_, "ALTER TABLE gods ADD COLUMN name TEXT NOT NULL DEFAULT '';", nullptr,
                                   nullptr, nullptr),
-                     db_, "add users.name");
+                     db_, "add gods.name");
     }
 }
 

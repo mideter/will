@@ -1,13 +1,13 @@
 #include "authenticate_device.h"
 
 #include "values/device_token.h"
-#include "values/user_name.h"
+#include "values/god_name.h"
 
 
 namespace will::domain {
 
 
-AuthenticateDevice::AuthenticateDevice(UserRepository& users) : users_(users) {}
+AuthenticateDevice::AuthenticateDevice(GodRepository& gods) : gods_(gods) {}
 
 
 std::variant<AuthenticateDeviceSuccess, AuthError> AuthenticateDevice::execute(const AuthenticateDeviceInput& input)
@@ -16,11 +16,11 @@ std::variant<AuthenticateDeviceSuccess, AuthError> AuthenticateDevice::execute(c
     if (!token)
         return AuthError::InvalidToken;
 
-    std::optional<User> user = users_.find_by_device_token(token->text());
-    if (!user)
-        user = users_.create_user(token->text(), UserName::generate());
+    std::optional<God> god = gods_.find_by_device_token(token->text());
+    if (!god)
+        god = gods_.create_god(token->text(), GodName::generate());
 
-    return AuthenticateDeviceSuccess{*user};
+    return AuthenticateDeviceSuccess{*god};
 }
 
 

@@ -3,7 +3,7 @@
 #include "session.h"
 #include "session_id.h"
 
-#include "ids/user_id.h"
+#include "ids/god_id.h"
 
 #include "infra/transport/messenger.grpc.pb.h"
 
@@ -23,8 +23,8 @@ namespace will {
 
 /**
  * Thread-safe registry of active gRPC sessions.
- * Owns session lifecycle, transport fan-out, and authenticated user bindings.
- * Enforces one active session per user.
+ * Owns session lifecycle, transport fan-out, and authenticated god bindings.
+ * Enforces one active session per god.
  */
 class SessionRegistry {
 public:
@@ -43,18 +43,18 @@ public:
 
     void broadcast_except(SessionId except_session_id, const v1::ServerEvent& event);
 
-    void broadcast_except_user(domain::UserId except_user_id, const v1::ServerEvent& event);
+    void broadcast_except_god(domain::GodId except_god_id, const v1::ServerEvent& event);
 
-    std::optional<SessionId> session_id_for_user(domain::UserId user_id) const;
+    std::optional<SessionId> session_id_for_god(domain::GodId god_id) const;
 
     std::string_view peer_address(SessionId session_id) const;
 
     bool is_authenticated(SessionId session_id) const;
 
-    std::optional<domain::UserId> user_id(SessionId session_id) const;
+    std::optional<domain::GodId> god_id(SessionId session_id) const;
 
-    /** Binds user to session. Returns the displaced session id, if any. */
-    std::optional<SessionId> bind_user(SessionId session_id, domain::UserId user_id);
+    /** Binds god to session. Returns the displaced session id, if any. */
+    std::optional<SessionId> bind_god(SessionId session_id, domain::GodId god_id);
 
     void close_all_sessions();
 
@@ -68,11 +68,11 @@ public:
 private:
     static std::string peer_from_context(grpc::ServerContext* context);
 
-    void clear_user_binding(SessionId session_id);
+    void clear_god_binding(SessionId session_id);
 
     mutable std::mutex mutex_;
     std::unordered_map<std::uint64_t, std::shared_ptr<Session>> sessions_;
-    std::unordered_map<std::uint64_t, SessionId> session_by_user_;
+    std::unordered_map<std::uint64_t, SessionId> session_by_god_;
     std::atomic<std::uint64_t> next_id_{1};
 };
 
