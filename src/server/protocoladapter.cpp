@@ -86,13 +86,8 @@ void ProtocolAdapter::send_auth_required(const SessionId session_id)
 
 void ProtocolAdapter::handle_user_chat(const SessionId session_id, const v1::ChatMessage& chat)
 {
-    const domain::SendChatMessageInput input{
-        *registry_.user_id(session_id),
-        domain::ParticipantId{session_id.value},
-        domain::ChatId::global(),
-        chat.body(),
-        domain::Timestamp{},
-    };
+    const domain::SendChatMessageInput input{*registry_.user_id(session_id), domain::ChatId::global(), chat.body(),
+                                             domain::Timestamp{}};
 
     (void)send_chat_message_.execute(input);
 

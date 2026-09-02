@@ -2,7 +2,6 @@
 
 #include "entities/chat_id.h"
 #include "entities/device_token.h"
-#include "entities/participant_id.h"
 #include "entities/timestamp.h"
 #include "entities/user_name.h"
 #include "errors/auth_error.h"
@@ -99,11 +98,10 @@ void test_send_chat_message_persists_and_notifies()
     FakeParticipantNotifier notifier;
 
     const UserId author{7};
-    const ParticipantId sender{42};
 
     SendChatMessage send(messages, notifier);
     const Message saved =
-        send.execute(SendChatMessageInput{author, sender, ChatId::global(), "hello", Timestamp{900}});
+        send.execute(SendChatMessageInput{author, ChatId::global(), "hello", Timestamp{900}});
 
     assert(saved.id().value() > 0);
     assert(saved.author_id() == author);
@@ -115,8 +113,7 @@ void test_send_chat_message_persists_and_notifies()
     assert(loaded[0].body() == "hello");
 
     assert(notifier.notifications_.size() == 1);
-    assert(notifier.notifications_[0].except == sender);
-    assert(notifier.notifications_[0].message.id() == saved.id());
+    assert(notifier.notifications_[0].id() == saved.id());
 }
 
 

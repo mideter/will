@@ -3,7 +3,6 @@
 #include "entities/chat_id.h"
 #include "entities/device_token.h"
 #include "entities/message.h"
-#include "entities/participant_id.h"
 #include "entities/user.h"
 #include "entities/user_id.h"
 #include "entities/user_name.h"
@@ -90,17 +89,9 @@ private:
 
 class FakeParticipantNotifier final : public ParticipantNotifier {
 public:
-    void notify_chat_message(const Message& msg, ParticipantId except_participant) override
-    {
-        notifications_.push_back(Notification{msg, except_participant});
-    }
+    void notify_chat_message(const Message& msg) override { notifications_.push_back(msg); }
 
-    struct Notification {
-        Message message;
-        ParticipantId except;
-    };
-
-    std::vector<Notification> notifications_;
+    std::vector<Message> notifications_;
 };
 
 

@@ -43,6 +43,10 @@ public:
 
     void broadcast_except(SessionId except_session_id, const v1::ServerEvent& event);
 
+    void broadcast_except_user(domain::UserId except_user_id, const v1::ServerEvent& event);
+
+    std::optional<SessionId> session_id_for_user(domain::UserId user_id) const;
+
     std::string_view peer_address(SessionId session_id) const;
 
     bool is_authenticated(SessionId session_id) const;

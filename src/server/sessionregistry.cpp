@@ -113,6 +113,36 @@ void SessionRegistry::broadcast_except(const SessionId except_session_id, const 
 }
 
 
+void SessionRegistry::broadcast_except_user(const domain::UserId except_user_id, const v1::ServerEvent& event)
+{
+    std::vector<std::shared_ptr<Session>> targets;
+    {
+        std::lock_guard lock(mutex_);
+        targets.reserve(sessions_.size());
+        for (const auto& [id, session] : sessions_) {
+            if (const auto bound = session->user_id(); bound && *bound == except_user_id)
+                continue;
+            targets.push_back(session);
+        }
+    }
+
+    for (const auto& session : targets) {
+        if (!session->write(event))
+            close_session(session->id());
+    }
+}
+
+
+std::optional<SessionId> SessionRegistry::session_id_for_user(const domain::UserId user_id) const
+{
+    std::lock_guard lock(mutex_);
+    const auto it = session_by_user_.find(user_id.value());
+    if (it == session_by_user_.end())
+        return std::nullopt;
+    return it->second;
+}
+
+
 std::string_view SessionRegistry::peer_address(const SessionId session_id) const
 {
     std::lock_guard lock(mutex_);

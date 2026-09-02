@@ -14,8 +14,7 @@ class SessionParticipantNotifierImpl final : public domain::ParticipantNotifier 
 public:
     SessionParticipantNotifierImpl(SessionRegistry& registry, domain::UserRepository& users);
 
-    void notify_chat_message(const domain::Message& msg,
-                             domain::ParticipantId except_participant) override;
+    void notify_chat_message(const domain::Message& msg) override;
 
 private:
     SessionRegistry& registry_;
