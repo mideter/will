@@ -88,12 +88,14 @@ test_target("will-history-integration-test")
     add_packages("pkgconfig::protobuf", "pkgconfig::grpc++")
     with_run_dep("will-server")
 
-test_target("will-connection-user-store-test")
+test_target("will-session-registry-test")
     add_files(
-        "connection_user_store_test.cpp",
-        "$(projectdir)/src/server/connectionuserstore.cpp")
+        "session_registry_test.cpp",
+        "$(projectdir)/src/server/session.cpp",
+        "$(projectdir)/src/server/sessionregistry.cpp")
     add_includedirs("$(projectdir)/src/server")
-    add_deps("will-domain")
+    add_deps("will-domain", "will-transport")
+    add_packages("pkgconfig::grpc++")
 
 test_target("will-session-takeover-integration-test")
     add_files("session_takeover_integration_test.cpp")

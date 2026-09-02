@@ -6,41 +6,6 @@
 namespace will {
 
 
-SessionStream::SessionStream(const std::uint64_t id, grpc::ServerContext* context, Stream* stream,
-                             std::string peer_address)
-    : id_(id)
-    , context_(context)
-    , stream_(stream)
-    , peer_address_(std::move(peer_address))
-{}
-
-
-bool SessionStream::write(const v1::ServerEvent& event)
-{
-    std::lock_guard lock(write_mutex_);
-    if (closed_.load())
-        return false;
-
-    return stream_->Write(event);
-}
-
-
-void SessionStream::request_close()
-{
-    grpc::ServerContext* context = nullptr;
-    {
-        std::lock_guard lock(write_mutex_);
-        if (closed_.exchange(true))
-            return;
-        context = context_;
-        context_ = nullptr;
-    }
-
-    if (context != nullptr)
-        context->TryCancel();
-}
-
-
 std::string SessionRegistry::peer_from_context(grpc::ServerContext* context)
 {
     if (context == nullptr)
@@ -50,34 +15,62 @@ std::string SessionRegistry::peer_from_context(grpc::ServerContext* context)
 }
 
 
-std::shared_ptr<SessionStream> SessionRegistry::register_session(grpc::ServerContext* context,
-                                                                 SessionStream::Stream* stream)
+std::shared_ptr<Session> SessionRegistry::register_session(grpc::ServerContext* context, Session::Stream* stream)
 {
-    const std::uint64_t id = next_id_.fetch_add(1);
-    auto session = std::make_shared<SessionStream>(id, context, stream, peer_from_context(context));
+    const SessionId id{next_id_.fetch_add(1)};
+    auto session = std::make_shared<Session>(id, context, stream, peer_from_context(context));
 
     std::lock_guard lock(mutex_);
-    sessions_.emplace(id, session);
+    sessions_.emplace(id.value, session);
     return session;
 }
 
 
-void SessionRegistry::unregister_session(const std::uint64_t session_id)
+std::shared_ptr<Session> SessionRegistry::register_test_session()
 {
+    const SessionId id{next_id_.fetch_add(1)};
+    auto session = std::make_shared<Session>(id, nullptr, nullptr, std::string{});
+
     std::lock_guard lock(mutex_);
-    sessions_.erase(session_id);
+    sessions_.emplace(id.value, session);
+    return session;
 }
 
 
-void SessionRegistry::close_session(const std::uint64_t session_id)
+void SessionRegistry::clear_user_binding(const SessionId session_id)
 {
-    std::shared_ptr<SessionStream> session;
+    const auto it = sessions_.find(session_id.value);
+    if (it == sessions_.end())
+        return;
+
+    if (const auto bound_user = it->second->user_id()) {
+        const auto rit = session_by_user_.find(bound_user->value());
+        if (rit != session_by_user_.end() && rit->second == session_id)
+            session_by_user_.erase(rit);
+    }
+
+    it->second->clear_user_id();
+}
+
+
+void SessionRegistry::unregister_session(const SessionId session_id)
+{
+    std::lock_guard lock(mutex_);
+    clear_user_binding(session_id);
+    sessions_.erase(session_id.value);
+}
+
+
+void SessionRegistry::close_session(const SessionId session_id)
+{
+    std::shared_ptr<Session> session;
     {
         std::lock_guard lock(mutex_);
-        const auto it = sessions_.find(session_id);
+        const auto it = sessions_.find(session_id.value);
         if (it == sessions_.end())
             return;
         session = it->second;
+        clear_user_binding(session_id);
         sessions_.erase(it);
     }
 
@@ -85,12 +78,12 @@ void SessionRegistry::close_session(const std::uint64_t session_id)
 }
 
 
-void SessionRegistry::enqueue_event(const std::uint64_t session_id, const v1::ServerEvent& event)
+void SessionRegistry::enqueue_event(const SessionId session_id, const v1::ServerEvent& event)
 {
-    std::shared_ptr<SessionStream> session;
+    std::shared_ptr<Session> session;
     {
         std::lock_guard lock(mutex_);
-        const auto it = sessions_.find(session_id);
+        const auto it = sessions_.find(session_id.value);
         if (it == sessions_.end())
             return;
         session = it->second;
@@ -101,14 +94,14 @@ void SessionRegistry::enqueue_event(const std::uint64_t session_id, const v1::Se
 }
 
 
-void SessionRegistry::broadcast_except(const std::uint64_t except_session_id, const v1::ServerEvent& event)
+void SessionRegistry::broadcast_except(const SessionId except_session_id, const v1::ServerEvent& event)
 {
-    std::vector<std::shared_ptr<SessionStream>> targets;
+    std::vector<std::shared_ptr<Session>> targets;
     {
         std::lock_guard lock(mutex_);
         targets.reserve(sessions_.size());
         for (const auto& [id, session] : sessions_) {
-            if (id != except_session_id)
+            if (id != except_session_id.value)
                 targets.push_back(session);
         }
     }
@@ -120,25 +113,78 @@ void SessionRegistry::broadcast_except(const std::uint64_t except_session_id, co
 }
 
 
-std::string_view SessionRegistry::peer_address(const std::uint64_t session_id) const
+std::string_view SessionRegistry::peer_address(const SessionId session_id) const
 {
     std::lock_guard lock(mutex_);
-    const auto it = sessions_.find(session_id);
+    const auto it = sessions_.find(session_id.value);
     if (it == sessions_.end())
         return {};
     return it->second->peer_address();
 }
 
 
+bool SessionRegistry::is_authenticated(const SessionId session_id) const
+{
+    std::lock_guard lock(mutex_);
+    const auto it = sessions_.find(session_id.value);
+    if (it == sessions_.end())
+        return false;
+    return it->second->is_authenticated();
+}
+
+
+std::optional<domain::UserId> SessionRegistry::user_id(const SessionId session_id) const
+{
+    std::lock_guard lock(mutex_);
+    const auto it = sessions_.find(session_id.value);
+    if (it == sessions_.end())
+        return std::nullopt;
+    return it->second->user_id();
+}
+
+
+std::optional<SessionId> SessionRegistry::bind_user(const SessionId session_id, const domain::UserId user_id)
+{
+    std::lock_guard lock(mutex_);
+
+    const auto it = sessions_.find(session_id.value);
+    if (it == sessions_.end())
+        return std::nullopt;
+
+    const auto& session = it->second;
+
+    if (const auto existing = session->user_id()) {
+        if (*existing != user_id) {
+            const auto rit = session_by_user_.find(existing->value());
+            if (rit != session_by_user_.end() && rit->second == session_id)
+                session_by_user_.erase(rit);
+        }
+    }
+
+    std::optional<SessionId> displaced;
+    if (const auto rit = session_by_user_.find(user_id.value()); rit != session_by_user_.end()) {
+        if (rit->second != session_id) {
+            displaced = rit->second;
+            clear_user_binding(*displaced);
+        }
+    }
+
+    session->set_user_id(user_id);
+    session_by_user_[user_id.value()] = session_id;
+    return displaced;
+}
+
+
 void SessionRegistry::close_all_sessions()
 {
-    std::vector<std::shared_ptr<SessionStream>> sessions;
+    std::vector<std::shared_ptr<Session>> sessions;
     {
         std::lock_guard lock(mutex_);
         sessions.reserve(sessions_.size());
         for (auto& [id, session] : sessions_)
             sessions.push_back(session);
         sessions_.clear();
+        session_by_user_.clear();
     }
 
     for (const auto& session : sessions)

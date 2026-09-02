@@ -1,13 +1,17 @@
 #pragma once
 
-#include "infra/transport/messenger.grpc.pb.h"
+#include "session.h"
+#include "session_id.h"
 
-#include <grpcpp/grpcpp.h>
+#include "entities/user_id.h"
+
+#include "infra/transport/messenger.grpc.pb.h"
 
 #include <atomic>
 #include <cstdint>
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <unordered_map>
@@ -17,32 +21,10 @@
 namespace will {
 
 
-class SessionStream {
-public:
-    using Stream = grpc::ServerReaderWriter<v1::ServerEvent, v1::ClientEvent>;
-
-    SessionStream(std::uint64_t id, grpc::ServerContext* context, Stream* stream, std::string peer_address);
-
-    std::uint64_t id() const noexcept { return id_; }
-    std::string_view peer_address() const noexcept { return peer_address_; }
-    bool closed() const noexcept { return closed_.load(); }
-
-    bool write(const v1::ServerEvent& event);
-    void request_close();
-
-private:
-    const std::uint64_t id_;
-    grpc::ServerContext* context_;
-    Stream* stream_;
-    std::string peer_address_;
-    std::mutex write_mutex_;
-    std::atomic<bool> closed_{false};
-};
-
-
 /**
- * Thread-safe registry of active gRPC Session streams.
- * Owns session lifecycle for fan-out and takeover.
+ * Thread-safe registry of active gRPC sessions.
+ * Owns session lifecycle, transport fan-out, and authenticated user bindings.
+ * Enforces one active session per user.
  */
 class SessionRegistry {
 public:
@@ -51,17 +33,24 @@ public:
     SessionRegistry(const SessionRegistry&) = delete;
     SessionRegistry& operator=(const SessionRegistry&) = delete;
 
-    std::shared_ptr<SessionStream> register_session(grpc::ServerContext* context, SessionStream::Stream* stream);
+    std::shared_ptr<Session> register_session(grpc::ServerContext* context, Session::Stream* stream);
 
-    void unregister_session(std::uint64_t session_id);
+    void unregister_session(SessionId session_id);
 
-    void close_session(std::uint64_t session_id);
+    void close_session(SessionId session_id);
 
-    void enqueue_event(std::uint64_t session_id, const v1::ServerEvent& event);
+    void enqueue_event(SessionId session_id, const v1::ServerEvent& event);
 
-    void broadcast_except(std::uint64_t except_session_id, const v1::ServerEvent& event);
+    void broadcast_except(SessionId except_session_id, const v1::ServerEvent& event);
 
-    std::string_view peer_address(std::uint64_t session_id) const;
+    std::string_view peer_address(SessionId session_id) const;
+
+    bool is_authenticated(SessionId session_id) const;
+
+    std::optional<domain::UserId> user_id(SessionId session_id) const;
+
+    /** Binds user to session. Returns the displaced session id, if any. */
+    std::optional<SessionId> bind_user(SessionId session_id, domain::UserId user_id);
 
     void close_all_sessions();
 
@@ -69,11 +58,17 @@ public:
 
     bool at_capacity(std::size_t max_connections) const noexcept;
 
+    /** Registers a session without transport. For unit tests only. */
+    std::shared_ptr<Session> register_test_session();
+
 private:
     static std::string peer_from_context(grpc::ServerContext* context);
 
+    void clear_user_binding(SessionId session_id);
+
     mutable std::mutex mutex_;
-    std::unordered_map<std::uint64_t, std::shared_ptr<SessionStream>> sessions_;
+    std::unordered_map<std::uint64_t, std::shared_ptr<Session>> sessions_;
+    std::unordered_map<std::uint64_t, SessionId> session_by_user_;
     std::atomic<std::uint64_t> next_id_{1};
 };
 

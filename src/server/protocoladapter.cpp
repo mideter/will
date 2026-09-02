@@ -1,7 +1,6 @@
 #include "protocoladapter.h"
 
 #include "inbound_client_message_handler.h"
-#include "sessionregistry.h"
 
 #include "entities/timestamp.h"
 
@@ -11,11 +10,9 @@
 namespace will {
 
 
-ProtocolAdapter::ProtocolAdapter(domain::MessengerPersistence persistence, SessionRegistry& registry,
-                                 ConnectionUserStore& user_store)
+ProtocolAdapter::ProtocolAdapter(domain::MessengerPersistence persistence, SessionRegistry& registry)
     : persistence_(persistence)
     , registry_(registry)
-    , user_store_(user_store)
     , participant_notifier_(registry, persistence.users)
     , authenticate_device_(persistence.users)
     , send_chat_message_(persistence.messages, participant_notifier_)
@@ -23,37 +20,43 @@ ProtocolAdapter::ProtocolAdapter(domain::MessengerPersistence persistence, Sessi
 {}
 
 
-void ProtocolAdapter::on_client_event(const std::uint64_t session_id, const v1::ClientEvent& event)
+void ProtocolAdapter::on_client_event(const SessionId session_id, const v1::ClientEvent& event)
 {
     InboundClientMessageHandler handler{*this, session_id};
     handler.on(event);
 }
 
 
-void ProtocolAdapter::send_event(const std::uint64_t session_id, const v1::ServerEvent& event)
+bool ProtocolAdapter::is_authenticated(const SessionId session_id) const
+{
+    return registry_.is_authenticated(session_id);
+}
+
+
+void ProtocolAdapter::send_event(const SessionId session_id, const v1::ServerEvent& event)
 {
     registry_.enqueue_event(session_id, event);
 }
 
 
-void ProtocolAdapter::close_with_protocol_error(const std::uint64_t session_id, const std::string_view message)
+void ProtocolAdapter::close_with_protocol_error(const SessionId session_id, const std::string_view message)
 {
     if (const std::string_view peer_address = registry_.peer_address(session_id); !peer_address.empty())
         std::cerr << "Session " << peer_address << ": " << message << '\n';
     else
-        std::cerr << "Session " << session_id << ": " << message << '\n';
+        std::cerr << "Session " << session_id.value << ": " << message << '\n';
 
     close_session(session_id);
 }
 
 
-void ProtocolAdapter::close_session(const std::uint64_t session_id)
+void ProtocolAdapter::close_session(const SessionId session_id)
 {
     registry_.close_session(session_id);
 }
 
 
-void ProtocolAdapter::handle_bind_token(const std::uint64_t session_id, const v1::BindToken& token)
+void ProtocolAdapter::handle_bind_token(const SessionId session_id, const v1::BindToken& token)
 {
     const domain::AuthenticateDeviceInput input{token.token()};
     const auto outcome = authenticate_device_.execute(input);
@@ -64,7 +67,7 @@ void ProtocolAdapter::handle_bind_token(const std::uint64_t session_id, const v1
     }
 
     const auto& success = std::get<domain::AuthenticateDeviceSuccess>(outcome);
-    if (const auto displaced = user_store_.set(session_id, success.user))
+    if (const auto displaced = registry_.bind_user(session_id, success.user.id()))
         close_session(*displaced);
 
     v1::ServerEvent event;
@@ -73,7 +76,7 @@ void ProtocolAdapter::handle_bind_token(const std::uint64_t session_id, const v1
 }
 
 
-void ProtocolAdapter::send_auth_required(const std::uint64_t session_id)
+void ProtocolAdapter::send_auth_required(const SessionId session_id)
 {
     v1::ServerEvent event;
     event.mutable_auth_required();
@@ -81,11 +84,11 @@ void ProtocolAdapter::send_auth_required(const std::uint64_t session_id)
 }
 
 
-void ProtocolAdapter::handle_user_chat(const std::uint64_t session_id, const v1::ChatMessage& chat)
+void ProtocolAdapter::handle_user_chat(const SessionId session_id, const v1::ChatMessage& chat)
 {
     const domain::SendChatMessageInput input{
-        user_store_.get(session_id)->id(),
-        domain::ParticipantId{session_id},
+        *registry_.user_id(session_id),
+        domain::ParticipantId{session_id.value},
         domain::ChatId::global(),
         chat.body(),
         domain::Timestamp{},
@@ -99,9 +102,9 @@ void ProtocolAdapter::handle_user_chat(const std::uint64_t session_id, const v1:
 }
 
 
-void ProtocolAdapter::handle_history_request(const std::uint64_t session_id, const v1::HistoryRequest& request)
+void ProtocolAdapter::handle_history_request(const SessionId session_id, const v1::HistoryRequest& request)
 {
-    const domain::FetchChatHistoryInput input{user_store_.get(session_id)->id(), domain::ChatId::global(),
+    const domain::FetchChatHistoryInput input{*registry_.user_id(session_id), domain::ChatId::global(),
                                               request.limit()};
 
     const auto outcome = fetch_chat_history_.execute(input);

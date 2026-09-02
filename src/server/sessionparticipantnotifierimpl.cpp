@@ -30,13 +30,13 @@ void SessionParticipantNotifierImpl::notify_chat_message(const domain::Message& 
     chat_message->set_name(author_name);
     chat_message->set_body(msg.body());
 
-    if (const std::string_view sender_address = registry_.peer_address(except_participant.value);
+    if (const std::string_view sender_address = registry_.peer_address(SessionId{except_participant.value});
         !sender_address.empty()) {
         std::cout << "Broadcast from " << sender_address << ": chat name_len=" << author_name.size()
                   << " body_len=" << msg.body().size() << std::endl;
     }
 
-    registry_.broadcast_except(except_participant.value, event);
+    registry_.broadcast_except(SessionId{except_participant.value}, event);
 }
 
 

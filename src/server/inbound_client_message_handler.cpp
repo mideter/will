@@ -6,8 +6,7 @@
 namespace will {
 
 
-InboundClientMessageHandler::InboundClientMessageHandler(ProtocolAdapter& adapter,
-                                                         const std::uint64_t session_id)
+InboundClientMessageHandler::InboundClientMessageHandler(ProtocolAdapter& adapter, const SessionId session_id)
     : adapter_(adapter)
     , session_id_(session_id)
 {}
@@ -15,7 +14,7 @@ InboundClientMessageHandler::InboundClientMessageHandler(ProtocolAdapter& adapte
 
 void InboundClientMessageHandler::on(const v1::ClientEvent& event)
 {
-    if (adapter_.user_store_.has(session_id_)) {
+    if (adapter_.is_authenticated(session_id_)) {
         on_bound_event(event);
         return;
     }
