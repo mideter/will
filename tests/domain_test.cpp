@@ -1,6 +1,6 @@
 #include "domain_fakes.h"
 
-#include "ids/chat_id.h"
+#include "ids/abode_id.h"
 #include "values/device_token.h"
 #include "values/timestamp.h"
 #include "values/user_name.h"
@@ -101,14 +101,14 @@ void test_send_chat_message_persists_and_notifies()
 
     SendChatMessage send(messages, notifier);
     const Message saved =
-        send.execute(SendChatMessageInput{author, ChatId::global(), "hello", Timestamp{900}});
+        send.execute(SendChatMessageInput{author, AbodeId::global(), "hello", Timestamp{900}});
 
     assert(saved.id().value() > 0);
     assert(saved.author_id() == author);
     assert(saved.body() == "hello");
     assert(saved.created_at() == Timestamp{900});
 
-    const auto loaded = messages.load_last(ChatId::global(), 10);
+    const auto loaded = messages.load_last(AbodeId::global(), 10);
     assert(loaded.size() == 1);
     assert(loaded[0].body() == "hello");
 
@@ -121,24 +121,24 @@ void test_fetch_chat_history_limit_and_is_mine()
 {
     InMemoryMessageRepository messages;
     FakeUserRepository users;
-    const ChatId chat = ChatId::global();
+    const AbodeId abode = AbodeId::global();
     const UserId me{10};
     const UserId other{20};
 
     users.add_user(User{me, test_token("c0ffee00c0ffee00c0ffee00c0ffee00"), test_name("menameaa")});
     users.add_user(User{other, test_token("deadbeefdeadbeefdeadbeefdeadbeef"), test_name("peername")});
 
-    messages.append(chat, other, "peer", Timestamp{1});
-    messages.append(chat, me, "mine", Timestamp{2});
-    messages.append(chat, other, "peer2", Timestamp{3});
+    messages.append(abode, other, "peer", Timestamp{1});
+    messages.append(abode, me, "mine", Timestamp{2});
+    messages.append(abode, other, "peer2", Timestamp{3});
 
     FetchChatHistory fetch(messages, users);
 
-    const auto zero_limit = fetch.execute(FetchChatHistoryInput{me, chat, 0});
+    const auto zero_limit = fetch.execute(FetchChatHistoryInput{me, abode, 0});
     assert(std::holds_alternative<DomainError>(zero_limit));
     assert(std::get<DomainError>(zero_limit).code == DomainErrorCode::InvalidArgument);
 
-    const auto ok = fetch.execute(FetchChatHistoryInput{me, chat, 2});
+    const auto ok = fetch.execute(FetchChatHistoryInput{me, abode, 2});
     assert(std::holds_alternative<FetchChatHistoryResult>(ok));
 
     const FetchChatHistoryResult& result = std::get<FetchChatHistoryResult>(ok);
@@ -156,17 +156,17 @@ void test_fetch_chat_history_caps_limit()
 {
     InMemoryMessageRepository messages;
     FakeUserRepository users;
-    const ChatId chat = ChatId::global();
+    const AbodeId abode = AbodeId::global();
     const UserId author{1};
 
     users.add_user(User{author, test_token("feedfacefeedfacefeedfacefeedface"), test_name("authoraa")});
 
     for (int i = 0; i < 5; ++i)
-        messages.append(chat, author, "m", Timestamp{i});
+        messages.append(abode, author, "m", Timestamp{i});
 
     FetchChatHistory fetch(messages, users);
     const auto ok = fetch.execute(FetchChatHistoryInput{
-        author, chat, FetchChatHistory::MaxHistoryRequestLimit + 50});
+        author, abode, FetchChatHistory::MaxHistoryRequestLimit + 50});
     assert(std::holds_alternative<FetchChatHistoryResult>(ok));
     assert(std::get<FetchChatHistoryResult>(ok).items.size() == 5);
 }

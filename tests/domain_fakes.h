@@ -60,19 +60,19 @@ private:
 
 class InMemoryMessageRepository final : public MessageRepository {
 public:
-    Message append(ChatId chat, UserId author, std::string_view body, Timestamp ts) override
+    Message append(AbodeId abode, UserId author, std::string_view body, Timestamp ts) override
     {
-        Message msg{MessageId{++next_id_}, chat, author, std::string(body), ts};
+        Message msg{MessageId{++next_id_}, abode, author, std::string(body), ts};
         messages_.push_back(msg);
         return msg;
     }
 
-    std::vector<Message> load_last(ChatId chat, std::uint32_t limit) override
+    std::vector<Message> load_last(AbodeId abode, std::uint32_t limit) override
     {
         std::vector<Message> matching;
         matching.reserve(messages_.size());
         for (const Message& m : messages_) {
-            if (m.chat_id() == chat)
+            if (m.abode_id() == abode)
                 matching.push_back(m);
         }
         if (limit >= matching.size())

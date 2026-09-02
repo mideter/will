@@ -20,7 +20,7 @@ std::variant<FetchChatHistoryResult, DomainError> FetchChatHistory::execute(cons
     }
 
     const std::uint32_t capped_limit = std::min(input.limit, MaxHistoryRequestLimit);
-    const std::vector<Message> rows = messages_.load_last(input.chat_id, capped_limit);
+    const std::vector<Message> rows = messages_.load_last(input.abode_id, capped_limit);
 
     FetchChatHistoryResult result;
     result.items.reserve(rows.size());

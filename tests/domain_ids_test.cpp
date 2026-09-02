@@ -1,4 +1,4 @@
-#include "ids/chat_id.h"
+#include "ids/abode_id.h"
 #include "ids/message_id.h"
 #include "ids/user_id.h"
 
@@ -34,15 +34,15 @@ int main()
     }
 
     {
-        assert(ChatId::global().value() == 0);
-        assert(ChatId::global().is_global());
-        assert(ChatId::global() == ChatId{0});
+        assert(AbodeId::global().value() == 0);
+        assert(AbodeId::global().is_global());
+        assert(AbodeId::global() == AbodeId{0});
     }
 
     {
-        const ChatId room{5};
-        assert(room.value() == 5);
-        assert(!room.is_global());
+        const AbodeId abode{5};
+        assert(abode.value() == 5);
+        assert(!abode.is_global());
     }
 
     return EXIT_SUCCESS;

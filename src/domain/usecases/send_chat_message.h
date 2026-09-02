@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ids/chat_id.h"
+#include "ids/abode_id.h"
 #include "ids/user_id.h"
 #include "entities/message.h"
 #include "ports/message_repository.h"
@@ -14,7 +14,7 @@ namespace will::domain {
 
 struct SendChatMessageInput {
     UserId user_id;
-    ChatId chat_id = ChatId::global();
+    AbodeId abode_id = AbodeId::global();
     std::string_view body;
     Timestamp created_at{};
 };

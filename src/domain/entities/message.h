@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ids/chat_id.h"
+#include "ids/abode_id.h"
 #include "ids/message_id.h"
 #include "ids/user_id.h"
 #include "values/timestamp.h"
@@ -12,23 +12,23 @@
 namespace will::domain {
 
 
-/// Persisted chat message. Identity and body are fixed after construction.
+/// Message posted in an abode. Identity and body are fixed after construction.
 class Message {
 public:
     static constexpr std::size_t MaxBodyLength = 4096;
 
     /// author_id must be non-zero (enforced by UserId). Throws std::invalid_argument if body is empty / too long.
-    Message(MessageId id, ChatId chat_id, UserId author_id, std::string body, Timestamp created_at);
+    Message(MessageId id, AbodeId abode_id, UserId author_id, std::string body, Timestamp created_at);
 
     MessageId id() const noexcept { return id_; }
-    ChatId chat_id() const noexcept { return chat_id_; }
+    AbodeId abode_id() const noexcept { return abode_id_; }
     UserId author_id() const noexcept { return author_id_; }
     const std::string& body() const noexcept { return body_; }
     Timestamp created_at() const noexcept { return created_at_; }
 
 private:
     MessageId id_;
-    ChatId chat_id_;
+    AbodeId abode_id_;
     UserId author_id_;
     std::string body_;
     Timestamp created_at_;

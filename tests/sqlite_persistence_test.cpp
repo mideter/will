@@ -2,7 +2,7 @@
 #include "sqlite_message_repository_impl.h"
 #include "sqlite_user_repository_impl.h"
 
-#include "ids/chat_id.h"
+#include "ids/abode_id.h"
 #include "values/timestamp.h"
 #include "ids/user_id.h"
 #include "values/user_name.h"
@@ -36,11 +36,11 @@ int main()
         user_a_id = user_a.id();
         user_b_id = user_b.id();
 
-        const ChatId chat = ChatId::global();
-        messages.append(chat, user_a.id(), "from-peer", Timestamp{1000});
-        messages.append(chat, user_b.id(), "from-me", Timestamp{2000});
+        const AbodeId abode = AbodeId::global();
+        messages.append(abode, user_a.id(), "from-peer", Timestamp{1000});
+        messages.append(abode, user_b.id(), "from-me", Timestamp{2000});
 
-        const auto rows = messages.load_last(chat, 10);
+        const auto rows = messages.load_last(abode, 10);
         assert(rows.size() == 2);
         assert(rows[0].body() == "from-peer");
         assert(rows[0].author_id() == user_a.id());

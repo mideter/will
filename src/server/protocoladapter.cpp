@@ -86,7 +86,7 @@ void ProtocolAdapter::send_auth_required(const SessionId session_id)
 
 void ProtocolAdapter::handle_user_chat(const SessionId session_id, const v1::ChatMessage& chat)
 {
-    const domain::SendChatMessageInput input{*registry_.user_id(session_id), domain::ChatId::global(), chat.body(),
+    const domain::SendChatMessageInput input{*registry_.user_id(session_id), domain::AbodeId::global(), chat.body(),
                                              domain::Timestamp{}};
 
     (void)send_chat_message_.execute(input);
@@ -99,7 +99,7 @@ void ProtocolAdapter::handle_user_chat(const SessionId session_id, const v1::Cha
 
 void ProtocolAdapter::handle_history_request(const SessionId session_id, const v1::HistoryRequest& request)
 {
-    const domain::FetchChatHistoryInput input{*registry_.user_id(session_id), domain::ChatId::global(),
+    const domain::FetchChatHistoryInput input{*registry_.user_id(session_id), domain::AbodeId::global(),
                                               request.limit()};
 
     const auto outcome = fetch_chat_history_.execute(input);

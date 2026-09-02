@@ -6,10 +6,10 @@
 namespace will::domain {
 
 
-Message::Message(const MessageId id, const ChatId chat_id, const UserId author_id, std::string body,
+Message::Message(const MessageId id, const AbodeId abode_id, const UserId author_id, std::string body,
                  const Timestamp created_at)
     : id_(id)
-    , chat_id_(chat_id)
+    , abode_id_(abode_id)
     , author_id_(author_id)
     , body_(std::move(body))
     , created_at_(created_at)

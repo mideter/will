@@ -63,6 +63,8 @@ bool table_has_column(sqlite3* db, const char* table, const char* column)
 
 bool needs_schema_reset(sqlite3* db)
 {
+    if (table_has_column(db, "messages", "chat_id"))
+        return true;
     if (table_has_column(db, "messages", "sender_ip"))
         return true;
     if (table_has_column(db, "messages", "created_at_ms"))
@@ -115,7 +117,7 @@ CREATE TABLE IF NOT EXISTS users (
 
 CREATE TABLE IF NOT EXISTS messages (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  chat_id INTEGER NOT NULL,
+  abode_id INTEGER NOT NULL,
   author_user_id INTEGER NOT NULL REFERENCES users(id),
   body TEXT NOT NULL,
   created_at_ns INTEGER NOT NULL
