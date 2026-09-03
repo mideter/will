@@ -40,8 +40,8 @@ void test_authenticate_device_creates_god()
 {
     InMemoryEternity eternity;
     Heaven heaven(eternity);
-    Earth earth(eternity);
-    AuthenticateDevice authenticate(heaven, earth, eternity);
+    Earth earth(heaven);
+    AuthenticateDevice authenticate(earth);
 
     const DeviceToken token = DeviceToken::generate();
     const auto result = authenticate.execute(AuthenticateDeviceInput{token.text()});
@@ -61,10 +61,10 @@ void test_authenticate_device_existing_god()
 {
     InMemoryEternity eternity;
     Heaven heaven(eternity);
-    Earth earth(eternity);
+    Earth earth(heaven);
     seed_god_with_token(heaven, earth, id::God{42}, test_token("abcd1234abcd1234abcd1234abcd1234"), test_name("oldname1"));
 
-    AuthenticateDevice authenticate(heaven, earth, eternity);
+    AuthenticateDevice authenticate(earth);
     const auto result = authenticate.execute(AuthenticateDeviceInput{"abcd1234abcd1234abcd1234abcd1234"});
     assert(std::holds_alternative<AuthenticateDeviceSuccess>(result));
     assert(std::get<AuthenticateDeviceSuccess>(result).god.id() == id::God{42});
@@ -75,10 +75,10 @@ void test_authenticate_device_keeps_existing_name()
 {
     InMemoryEternity eternity;
     Heaven heaven(eternity);
-    Earth earth(eternity);
+    Earth earth(heaven);
     seed_god_with_token(heaven, earth, id::God{7}, test_token("abcd1234abcd1234abcd1234abcd1234"), test_name("keptname"));
 
-    AuthenticateDevice authenticate(heaven, earth, eternity);
+    AuthenticateDevice authenticate(earth);
     const auto result = authenticate.execute(AuthenticateDeviceInput{"abcd1234abcd1234abcd1234abcd1234"});
     assert(std::holds_alternative<AuthenticateDeviceSuccess>(result));
 
@@ -92,8 +92,8 @@ void test_authenticate_device_invalid_token()
 {
     InMemoryEternity eternity;
     Heaven heaven(eternity);
-    Earth earth(eternity);
-    AuthenticateDevice authenticate(heaven, earth, eternity);
+    Earth earth(heaven);
+    AuthenticateDevice authenticate(earth);
 
     const auto result = authenticate.execute(AuthenticateDeviceInput{"short"});
     assert(std::holds_alternative<AuthError>(result));
@@ -130,7 +130,7 @@ void test_fetch_letter_history_limit_and_is_mine()
     InMemoryLetterRepository letters;
     InMemoryEternity eternity;
     Heaven heaven(eternity);
-    Earth earth(eternity);
+    Earth earth(heaven);
     const id::Abode abode = id::Abode::global();
     const id::God me{10};
     const id::God other{20};
@@ -167,7 +167,7 @@ void test_fetch_letter_history_caps_limit()
     InMemoryLetterRepository letters;
     InMemoryEternity eternity;
     Heaven heaven(eternity);
-    Earth earth(eternity);
+    Earth earth(heaven);
     const id::Abode abode = id::Abode::global();
     const id::God author{1};
 

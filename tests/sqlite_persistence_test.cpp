@@ -18,8 +18,9 @@
 namespace {
 
 
-will::domain::God register_god(will::domain::Heaven& heaven, will::domain::Earth& earth, will::domain::Eternity& eternity,
-                               const std::string_view device_token, const will::domain::GodName name)
+will::domain::God register_god(will::domain::Heaven& heaven, will::domain::Earth& earth,
+                               will::domain::Eternity& eternity, const std::string_view device_token,
+                               const will::domain::GodName name)
 {
     auto [god, vessel] = eternity.insert_god_with_vessel(device_token, name);
     heaven.insert(god);
@@ -49,7 +50,7 @@ int main()
         SqliteStore store(database);
         SqliteLetterRepositoryImpl letters(database);
         Heaven heaven(store);
-        Earth earth(store);
+        Earth earth(heaven);
 
         const God god_a = register_god(heaven, earth, store, "aaaa1234aaaa1234aaaa1234aaaa1234",
                                        *GodName::parse("nameaaaa"));
@@ -85,7 +86,7 @@ int main()
         SqliteDatabase database(db_path);
         SqliteStore store(database);
         Heaven heaven(store);
-        Earth earth(store);
+        Earth earth(heaven);
 
         assert(earth.god_id_for_token(token) == *created_id);
         assert(heaven.find_by_id(*created_id)->name() == *GodName::parse("abcdefgh"));

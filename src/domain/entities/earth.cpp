@@ -4,10 +4,26 @@
 namespace will::domain {
 
 
-Earth::Earth(Eternity& eternity)
+Earth::Earth(Heaven& heaven)
+    : heaven_(heaven)
 {
-    for (Vessel vessel : eternity.load_vessels())
+    for (Vessel vessel : heaven_.load_vessels())
         insert(std::move(vessel));
+}
+
+
+std::optional<God> Earth::receive(const std::string_view device_token_raw)
+{
+    if (const std::optional<Vessel> vessel = find_by_token(device_token_raw))
+        return heaven_.find_by_id(vessel->god_id());
+
+    const std::optional<DeviceToken> token = DeviceToken::parse(device_token_raw);
+    if (!token)
+        return std::nullopt;
+
+    auto [god, vessel] = heaven_.remember_with_vessel(token->text());
+    insert(std::move(vessel));
+    return god;
 }
 
 

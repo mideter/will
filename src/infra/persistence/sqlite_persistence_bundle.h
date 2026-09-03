@@ -24,7 +24,6 @@ public:
     domain::LetterRepository& letters();
     domain::Heaven& heaven();
     domain::Earth& earth();
-    domain::Eternity& eternity();
 
 private:
     SqliteDatabase database_;

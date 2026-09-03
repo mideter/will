@@ -3,7 +3,6 @@
 #include "entities/earth.h"
 #include "entities/heaven.h"
 #include "ports/letter_repository.h"
-#include "ports/eternity.h"
 
 
 namespace will::domain {
@@ -14,7 +13,6 @@ struct MessengerPersistence {
     LetterRepository& letters;
     Heaven& heaven;
     Earth& earth;
-    Eternity& eternity;
 };
 
 

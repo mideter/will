@@ -3,8 +3,7 @@
 #include "errors/auth_error.h"
 
 #include "entities/earth.h"
-#include "entities/heaven.h"
-#include "ports/eternity.h"
+#include "entities/god.h"
 
 #include <string_view>
 #include <variant>
@@ -25,14 +24,12 @@ struct AuthenticateDeviceSuccess {
 
 class AuthenticateDevice {
 public:
-    AuthenticateDevice(Heaven& heaven, Earth& earth, Eternity& eternity);
+    explicit AuthenticateDevice(Earth& earth);
 
     std::variant<AuthenticateDeviceSuccess, AuthError> execute(const AuthenticateDeviceInput& input);
 
 private:
-    Heaven& heaven_;
     Earth& earth_;
-    Eternity& eternity_;
 };
 
 

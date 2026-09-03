@@ -1,12 +1,15 @@
 #include "heaven.h"
 
+#include "values/god_name.h"
+
 
 namespace will::domain {
 
 
 Heaven::Heaven(Eternity& eternity)
+    : eternity_(eternity)
 {
-    for (God god : eternity.load_gods())
+    for (God god : eternity_.load_gods())
         insert(std::move(god));
 }
 
@@ -20,6 +23,21 @@ std::optional<God> Heaven::find_by_id(const id::God id) const
         return std::nullopt;
 
     return it->second;
+}
+
+
+std::pair<God, Vessel> Heaven::remember_with_vessel(const std::string_view device_token)
+{
+    const GodName name = GodName::generate();
+    auto [god, vessel] = eternity_.insert_god_with_vessel(device_token, name);
+    insert(god);
+    return {god, std::move(vessel)};
+}
+
+
+std::vector<Vessel> Heaven::load_vessels() const
+{
+    return eternity_.load_vessels();
 }
 
 

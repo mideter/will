@@ -84,13 +84,9 @@ public:
 };
 
 
-inline God register_god_with_vessel(Heaven& heaven, Earth& earth, Eternity& eternity,
-                                    const std::string_view device_token, const GodName name)
+inline God register_god_with_vessel(Earth& earth, const std::string_view device_token)
 {
-    auto [god, vessel] = eternity.insert_god_with_vessel(device_token, name);
-    heaven.insert(god);
-    earth.insert(std::move(vessel));
-    return god;
+    return *earth.receive(device_token);
 }
 
 
