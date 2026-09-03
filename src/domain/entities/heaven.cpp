@@ -11,7 +11,7 @@ Heaven::Heaven(Eternity& eternity)
 }
 
 
-std::optional<God> Heaven::find_by_id(const GodId id) const
+std::optional<God> Heaven::find_by_id(const id::God id) const
 {
     std::lock_guard lock(mutex_);
 

@@ -6,7 +6,7 @@
 #include <functional>
 
 
-namespace will::domain {
+namespace will::domain::id {
 
 
 /// Common base for strongly-typed persistent identifiers.
@@ -39,4 +39,4 @@ struct IdHash {
 };
 
 
-} // namespace will::domain
+} // namespace will::domain::id

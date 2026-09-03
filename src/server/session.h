@@ -2,7 +2,7 @@
 
 #include "session_id.h"
 
-#include "ids/god_id.h"
+#include "ids/god.h"
 
 #include "infra/transport/messenger.grpc.pb.h"
 
@@ -31,7 +31,7 @@ public:
     std::string_view peer_address() const noexcept { return peer_address_; }
     bool closed() const noexcept { return closed_.load(); }
     bool is_authenticated() const noexcept { return god_id_.has_value(); }
-    std::optional<domain::GodId> god_id() const noexcept { return god_id_; }
+    std::optional<domain::id::God> god_id() const noexcept { return god_id_; }
 
     bool write(const v1::ServerEvent& event);
     void request_close();
@@ -39,14 +39,14 @@ public:
 private:
     friend class SessionRegistry;
 
-    void set_god_id(domain::GodId god_id) noexcept { god_id_ = god_id; }
+    void set_god_id(domain::id::God god_id) noexcept { god_id_ = god_id; }
     void clear_god_id() noexcept { god_id_.reset(); }
 
     const SessionId id_;
     grpc::ServerContext* context_;
     Stream* stream_;
     std::string peer_address_;
-    std::optional<domain::GodId> god_id_;
+    std::optional<domain::id::God> god_id_;
     std::mutex write_mutex_;
     std::atomic<bool> closed_{false};
 };

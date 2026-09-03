@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ids/god_id.h"
+#include "ids/god.h"
 #include "values/god_name.h"
 
 
@@ -10,15 +10,15 @@ namespace will::domain {
 /// God (Бог) — participant of an abode.
 class God {
 public:
-    God(GodId id, GodName name);
+    God(id::God id, GodName name);
 
-    GodId id() const noexcept { return id_; }
+    id::God id() const noexcept { return id_; }
     const GodName& name() const noexcept { return name_; }
 
     bool operator==(const God&) const = default;
 
 private:
-    GodId id_;
+    id::God id_;
     GodName name_;
 };
 

@@ -3,7 +3,7 @@
 #include <stdexcept>
 
 
-namespace will::domain {
+namespace will::domain::id {
 
 
 Id::Id(const std::uint64_t value) : value_(value)
@@ -13,4 +13,4 @@ Id::Id(const std::uint64_t value) : value_(value)
 }
 
 
-} // namespace will::domain
+} // namespace will::domain::id

@@ -4,9 +4,9 @@
 #include "sqlite_store.h"
 #include "sqlite_letter_repository_impl.h"
 
-#include "ids/abode_id.h"
+#include "ids/abode.h"
 #include "values/timestamp.h"
-#include "ids/god_id.h"
+#include "ids/god.h"
 #include "values/god_name.h"
 
 #include <cassert>
@@ -39,9 +39,9 @@ int main()
     const std::string db_path = "/tmp/will-sqlite-persistence-test-" + std::to_string(getpid()) + ".db";
     ::unlink(db_path.c_str());
 
-    std::optional<GodId> god_a_id;
-    std::optional<GodId> god_b_id;
-    std::optional<GodId> created_id;
+    std::optional<id::God> god_a_id;
+    std::optional<id::God> god_b_id;
+    std::optional<id::God> created_id;
     const std::string token = "abcd1234abcd1234abcd1234abcd1234";
 
     {
@@ -58,7 +58,7 @@ int main()
         god_a_id = god_a.id();
         god_b_id = god_b.id();
 
-        const AbodeId abode = AbodeId::global();
+        const id::Abode abode = id::Abode::global();
         letters.append(abode, god_a.id(), "from-peer", Timestamp{1000});
         letters.append(abode, god_b.id(), "from-me", Timestamp{2000});
 
@@ -99,7 +99,7 @@ int main()
         assert(b.has_value());
         assert(b->name() == *GodName::parse("namebbbb"));
 
-        assert(!heaven.find_by_id(GodId{999999}).has_value());
+        assert(!heaven.find_by_id(id::God{999999}).has_value());
         assert(!earth.find_by_token("missing-token-xxxxxxxxxxxxxxxx").has_value());
     }
 

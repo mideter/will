@@ -31,7 +31,7 @@ std::optional<Vessel> Earth::find_by_token(const std::string_view device_token) 
 }
 
 
-std::optional<GodId> Earth::god_id_for_token(const std::string_view device_token) const
+std::optional<id::God> Earth::god_id_for_token(const std::string_view device_token) const
 {
     if (const std::optional<Vessel> vessel = find_by_token(device_token))
         return vessel->god_id();

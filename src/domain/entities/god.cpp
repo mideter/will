@@ -4,7 +4,7 @@
 namespace will::domain {
 
 
-God::God(const GodId id, GodName name)
+God::God(const id::God id, GodName name)
     : id_(id)
     , name_(std::move(name))
 {}

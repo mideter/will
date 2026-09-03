@@ -20,7 +20,7 @@ std::variant<AuthenticateDeviceSuccess, AuthError> AuthenticateDevice::execute(c
     if (!token)
         return AuthError::InvalidToken;
 
-    if (const std::optional<GodId> god_id = earth_.god_id_for_token(token->text())) {
+    if (const std::optional<id::God> god_id = earth_.god_id_for_token(token->text())) {
         if (const std::optional<God> god = heaven_.find_by_id(*god_id))
             return AuthenticateDeviceSuccess{*god};
     }

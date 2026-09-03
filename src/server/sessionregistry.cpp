@@ -113,7 +113,7 @@ void SessionRegistry::broadcast_except(const SessionId except_session_id, const 
 }
 
 
-void SessionRegistry::broadcast_except_god(const domain::GodId except_god_id, const v1::ServerEvent& event)
+void SessionRegistry::broadcast_except_god(const domain::id::God except_god_id, const v1::ServerEvent& event)
 {
     std::vector<std::shared_ptr<Session>> targets;
     {
@@ -133,7 +133,7 @@ void SessionRegistry::broadcast_except_god(const domain::GodId except_god_id, co
 }
 
 
-std::optional<SessionId> SessionRegistry::session_id_for_god(const domain::GodId god_id) const
+std::optional<SessionId> SessionRegistry::session_id_for_god(const domain::id::God god_id) const
 {
     std::lock_guard lock(mutex_);
     const auto it = session_by_god_.find(god_id.value());
@@ -163,7 +163,7 @@ bool SessionRegistry::is_authenticated(const SessionId session_id) const
 }
 
 
-std::optional<domain::GodId> SessionRegistry::god_id(const SessionId session_id) const
+std::optional<domain::id::God> SessionRegistry::god_id(const SessionId session_id) const
 {
     std::lock_guard lock(mutex_);
     const auto it = sessions_.find(session_id.value);
@@ -173,7 +173,7 @@ std::optional<domain::GodId> SessionRegistry::god_id(const SessionId session_id)
 }
 
 
-std::optional<SessionId> SessionRegistry::bind_god(const SessionId session_id, const domain::GodId god_id)
+std::optional<SessionId> SessionRegistry::bind_god(const SessionId session_id, const domain::id::God god_id)
 {
     std::lock_guard lock(mutex_);
 

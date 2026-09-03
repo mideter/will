@@ -1,7 +1,7 @@
-#include "ids/abode_id.h"
-#include "ids/letter_id.h"
-#include "ids/god_id.h"
-#include "ids/vessel_id.h"
+#include "ids/abode.h"
+#include "ids/letter.h"
+#include "ids/god.h"
+#include "ids/vessel.h"
 
 #include <cassert>
 #include <cstdlib>
@@ -13,47 +13,47 @@ int main()
     using namespace will::domain;
 
     {
-        const GodId id{42};
+        const id::God id{42};
         assert(id.value() == 42);
     }
 
     try {
-        GodId{0};
+        id::God{0};
         return EXIT_FAILURE;
     } catch (const std::invalid_argument&) {
     }
 
     {
-        const LetterId id{7};
+        const id::Letter id{7};
         assert(id.value() == 7);
     }
 
     try {
-        LetterId{0};
+        id::Letter{0};
         return EXIT_FAILURE;
     } catch (const std::invalid_argument&) {
     }
 
     {
-        assert(AbodeId::global() == AbodeId{1});
+        assert(id::Abode::global() == id::Abode{1});
     }
 
     try {
-        AbodeId{0};
+        id::Abode{0};
         return EXIT_FAILURE;
     } catch (const std::invalid_argument&) {
     }
 
     try {
-        VesselId{0};
+        id::Vessel{0};
         return EXIT_FAILURE;
     } catch (const std::invalid_argument&) {
     }
 
     {
-        const AbodeId abode{5};
+        const id::Abode abode{5};
         assert(abode.value() == 5);
-        assert(abode != AbodeId::global());
+        assert(abode != id::Abode::global());
     }
 
     return EXIT_SUCCESS;

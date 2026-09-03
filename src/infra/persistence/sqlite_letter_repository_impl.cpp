@@ -14,7 +14,7 @@ SqliteLetterRepositoryImpl::SqliteLetterRepositoryImpl(SqliteDatabase& database)
 {}
 
 
-domain::Letter SqliteLetterRepositoryImpl::append(const domain::AbodeId abode, const domain::GodId author,
+domain::Letter SqliteLetterRepositoryImpl::append(const domain::id::Abode abode, const domain::id::God author,
                                                   const std::string_view body, const domain::Timestamp ts)
 {
     std::lock_guard lock(database_.mutex());
@@ -38,11 +38,11 @@ domain::Letter SqliteLetterRepositoryImpl::append(const domain::AbodeId abode, c
     sqlite3_finalize(stmt);
 
     const std::uint64_t id = static_cast<std::uint64_t>(sqlite3_last_insert_rowid(db));
-    return domain::Letter{domain::LetterId{id}, abode, author, std::string(body), ts};
+    return domain::Letter{domain::id::Letter{id}, abode, author, std::string(body), ts};
 }
 
 
-std::vector<domain::Letter> SqliteLetterRepositoryImpl::load_last(const domain::AbodeId abode,
+std::vector<domain::Letter> SqliteLetterRepositoryImpl::load_last(const domain::id::Abode abode,
                                                                   const std::uint32_t limit)
 {
     std::lock_guard lock(database_.mutex());
@@ -67,9 +67,9 @@ std::vector<domain::Letter> SqliteLetterRepositoryImpl::load_last(const domain::
     while (rc == SQLITE_ROW) {
         const char* const body_text = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3));
         rows.push_back(domain::Letter{
-            domain::LetterId{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 0))},
-            domain::AbodeId{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 1))},
-            domain::GodId{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 2))},
+            domain::id::Letter{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 0))},
+            domain::id::Abode{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 1))},
+            domain::id::God{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 2))},
             body_text ? std::string(body_text) : std::string{},
             domain::Timestamp{sqlite3_column_int64(stmt, 4)},
         });

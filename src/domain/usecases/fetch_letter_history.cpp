@@ -25,7 +25,7 @@ std::variant<FetchLetterHistoryResult, DomainError> FetchLetterHistory::execute(
     FetchLetterHistoryResult result;
     result.items.reserve(rows.size());
 
-    std::map<GodId, std::string> author_names;
+    std::map<id::God, std::string> author_names;
     for (const Letter& row : rows) {
         std::string author_name;
         if (const auto cached = author_names.find(row.author_id()); cached != author_names.end()) {

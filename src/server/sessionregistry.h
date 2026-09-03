@@ -3,7 +3,7 @@
 #include "session.h"
 #include "session_id.h"
 
-#include "ids/god_id.h"
+#include "ids/god.h"
 
 #include "infra/transport/messenger.grpc.pb.h"
 
@@ -43,18 +43,18 @@ public:
 
     void broadcast_except(SessionId except_session_id, const v1::ServerEvent& event);
 
-    void broadcast_except_god(domain::GodId except_god_id, const v1::ServerEvent& event);
+    void broadcast_except_god(domain::id::God except_god_id, const v1::ServerEvent& event);
 
-    std::optional<SessionId> session_id_for_god(domain::GodId god_id) const;
+    std::optional<SessionId> session_id_for_god(domain::id::God god_id) const;
 
     std::string_view peer_address(SessionId session_id) const;
 
     bool is_authenticated(SessionId session_id) const;
 
-    std::optional<domain::GodId> god_id(SessionId session_id) const;
+    std::optional<domain::id::God> god_id(SessionId session_id) const;
 
     /** Binds god to session. Returns the displaced session id, if any. */
-    std::optional<SessionId> bind_god(SessionId session_id, domain::GodId god_id);
+    std::optional<SessionId> bind_god(SessionId session_id, domain::id::God god_id);
 
     void close_all_sessions();
 

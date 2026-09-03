@@ -27,7 +27,7 @@ std::vector<domain::God> SqliteStore::load_gods()
 
     int rc = sqlite3_step(stmt);
     while (rc == SQLITE_ROW) {
-        const domain::GodId id{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 0))};
+        const domain::id::God id{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 0))};
         const unsigned char* const name_text = sqlite3_column_text(stmt, 1);
         if (!name_text)
             throw std::runtime_error("load_gods: missing name in database");
@@ -59,9 +59,9 @@ std::vector<domain::Vessel> SqliteStore::load_vessels()
 
     int rc = sqlite3_step(stmt);
     while (rc == SQLITE_ROW) {
-        const domain::VesselId id{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 0))};
+        const domain::id::Vessel id{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 0))};
         const char* const device_token = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
-        const domain::GodId god_id{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 2))};
+        const domain::id::God god_id{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 2))};
 
         const auto token = domain::DeviceToken::parse(device_token);
         if (!token)
@@ -99,7 +99,7 @@ std::pair<domain::God, domain::Vessel> SqliteStore::insert_god_with_vessel(const
     check_sqlite(sqlite3_step(god_stmt), db, "insert god step");
     sqlite3_finalize(god_stmt);
 
-    const domain::GodId god_id{static_cast<std::uint64_t>(sqlite3_last_insert_rowid(db))};
+    const domain::id::God god_id{static_cast<std::uint64_t>(sqlite3_last_insert_rowid(db))};
 
     sqlite3_stmt* vessel_stmt = nullptr;
     check_sqlite(sqlite3_prepare_v2(db, "INSERT INTO vessels (device_token, god_id) VALUES (?, ?);", -1,
@@ -115,7 +115,7 @@ std::pair<domain::God, domain::Vessel> SqliteStore::insert_god_with_vessel(const
     check_sqlite(sqlite3_step(vessel_stmt), db, "insert vessel step");
     sqlite3_finalize(vessel_stmt);
 
-    const domain::VesselId vessel_id{static_cast<std::uint64_t>(sqlite3_last_insert_rowid(db))};
+    const domain::id::Vessel vessel_id{static_cast<std::uint64_t>(sqlite3_last_insert_rowid(db))};
 
     check_sqlite(sqlite3_exec(db, "COMMIT;", nullptr, nullptr, nullptr), db, "commit insert god/vessel");
 

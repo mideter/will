@@ -5,8 +5,8 @@
 #include "entities/heaven.h"
 #include "entities/letter.h"
 #include "entities/vessel.h"
-#include "ids/god_id.h"
-#include "ids/vessel_id.h"
+#include "ids/god.h"
+#include "ids/vessel.h"
 #include "ports/eternity.h"
 #include "ports/letter_repository.h"
 #include "ports/participant_notifier.h"
@@ -30,8 +30,8 @@ public:
     std::pair<God, Vessel> insert_god_with_vessel(const std::string_view device_token,
                                                   const GodName name) override
     {
-        const GodId god_id{++next_god_id_};
-        const VesselId vessel_id{++next_vessel_id_};
+        const id::God god_id{++next_god_id_};
+        const id::Vessel vessel_id{++next_vessel_id_};
         const DeviceToken token = *DeviceToken::parse(device_token);
         God god{god_id, name};
         Vessel vessel{vessel_id, token, god_id};
@@ -50,14 +50,14 @@ private:
 
 class InMemoryLetterRepository final : public LetterRepository {
 public:
-    Letter append(AbodeId abode, GodId author, std::string_view body, Timestamp ts) override
+    Letter append(id::Abode abode, id::God author, std::string_view body, Timestamp ts) override
     {
-        Letter letter{LetterId{++next_id_}, abode, author, std::string(body), ts};
+        Letter letter{id::Letter{++next_id_}, abode, author, std::string(body), ts};
         letters_.push_back(letter);
         return letter;
     }
 
-    std::vector<Letter> load_last(AbodeId abode, std::uint32_t limit) override
+    std::vector<Letter> load_last(id::Abode abode, std::uint32_t limit) override
     {
         std::vector<Letter> matching;
         matching.reserve(letters_.size());
@@ -94,11 +94,11 @@ inline God register_god_with_vessel(Heaven& heaven, Earth& earth, Eternity& eter
 }
 
 
-inline void seed_god_with_token(Heaven& heaven, Earth& earth, const GodId god_id, const DeviceToken& token,
+inline void seed_god_with_token(Heaven& heaven, Earth& earth, const id::God god_id, const DeviceToken& token,
                                 const GodName name)
 {
     heaven.insert(God{god_id, name});
-    earth.insert(Vessel{VesselId{god_id.value()}, token, god_id});
+    earth.insert(Vessel{id::Vessel{god_id.value()}, token, god_id});
 }
 
 

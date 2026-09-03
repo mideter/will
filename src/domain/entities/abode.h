@@ -1,15 +1,15 @@
 #pragma once
 
-#include "ids/abode_id.h"
+#include "ids/abode.h"
 
 
 namespace will::domain {
 
 
 /// Abode (Обитель) — место общения пользователей.
-/// Single global abode is represented by AbodeId::global() (id 1).
+/// Single global abode is represented by id::Abode::global() (id 1).
 struct Abode {
-    AbodeId id = AbodeId::global();
+    id::Abode id = id::Abode::global();
 
     static Abode global() noexcept { return Abode{}; }
 };
