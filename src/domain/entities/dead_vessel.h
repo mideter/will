@@ -9,7 +9,7 @@
 namespace will::domain {
 
 
-/// DeadVessel (Мёртвый сосуд) — device token without a god. Owns all DeviceToken handling.
+/// DeadVessel (Мёртвый сосуд) — device token without a soul. Owns all DeviceToken handling.
 class DeadVessel {
 public:
     /// Throws std::invalid_argument if the device token is invalid.

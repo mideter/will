@@ -1,6 +1,6 @@
 #include "ids/abode.h"
 #include "ids/letter.h"
-#include "ids/god.h"
+#include "ids/soul.h"
 #include "ids/vessel.h"
 
 #include <cassert>
@@ -13,12 +13,12 @@ int main()
     using namespace will::domain;
 
     {
-        const id::God id{42};
+        const id::Soul id{42};
         assert(id.value() == 42);
     }
 
     try {
-        id::God{0};
+        id::Soul{0};
         return EXIT_FAILURE;
     } catch (const std::invalid_argument&) {
     }

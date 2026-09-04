@@ -1,8 +1,8 @@
 #pragma once
 
-#include "entities/god.h"
+#include "entities/soul.h"
 #include "entities/vessel.h"
-#include "values/god_name.h"
+#include "values/soul_name.h"
 
 #include <string_view>
 #include <utility>
@@ -17,9 +17,9 @@ class Eternity {
 public:
     virtual ~Eternity() = default;
 
-    virtual std::vector<God> load_gods() = 0;
+    virtual std::vector<Soul> load_souls() = 0;
     virtual std::vector<Vessel> load_vessels() = 0;
-    virtual std::pair<God, Vessel> insert_god_with_vessel(std::string_view device_token, GodName name) = 0;
+    virtual std::pair<Soul, Vessel> insert_soul_with_vessel(std::string_view device_token, SoulName name) = 0;
 };
 
 

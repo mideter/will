@@ -28,10 +28,10 @@ std::optional<Vessel> Earth::find_by_dead(const DeadVessel& dead) const
 }
 
 
-std::optional<id::God> Earth::god_id_for_dead(const DeadVessel& dead) const
+std::optional<id::Soul> Earth::soul_id_for_dead(const DeadVessel& dead) const
 {
     if (const std::optional<Vessel> vessel = find_by_dead(dead))
-        return vessel->god_id();
+        return vessel->soul_id();
     return std::nullopt;
 }
 

@@ -3,7 +3,7 @@
 #include "errors/auth_error.h"
 
 #include "entities/earth.h"
-#include "entities/god.h"
+#include "entities/soul.h"
 #include "entities/heaven.h"
 
 #include <string_view>
@@ -19,7 +19,7 @@ struct AuthenticateDeviceInput {
 
 
 struct AuthenticateDeviceSuccess {
-    God god;
+    Soul soul;
 };
 
 

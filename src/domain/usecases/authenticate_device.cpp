@@ -23,14 +23,14 @@ std::variant<AuthenticateDeviceSuccess, AuthError> AuthenticateDevice::execute(
         const DeadVessel dead{input.device_token_raw};
 
         if (const std::optional<Vessel> vessel = earth_.find_by_dead(dead)) {
-            if (const std::optional<God> god = heaven_.find_by_id(vessel->god_id()))
-                return AuthenticateDeviceSuccess{*god};
+            if (const std::optional<Soul> soul = heaven_.find_by_id(vessel->soul_id()))
+                return AuthenticateDeviceSuccess{*soul};
             return AuthError::InvalidToken;
         }
 
-        auto [god, vessel] = heaven_.remember_with_vessel(dead);
+        auto [soul, vessel] = heaven_.remember_with_vessel(dead);
         earth_.insert(std::move(vessel));
-        return AuthenticateDeviceSuccess{god};
+        return AuthenticateDeviceSuccess{soul};
     } catch (const std::invalid_argument&) {
         return AuthError::InvalidToken;
     }

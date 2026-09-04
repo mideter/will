@@ -1,6 +1,6 @@
 #include "heaven.h"
 
-#include "values/god_name.h"
+#include "values/soul_name.h"
 
 
 namespace will::domain {
@@ -9,29 +9,29 @@ namespace will::domain {
 Heaven::Heaven(Eternity& eternity)
     : eternity_(eternity)
 {
-    for (God god : eternity_.load_gods())
-        insert(std::move(god));
+    for (Soul soul : eternity_.load_souls())
+        insert(std::move(soul));
 }
 
 
-std::optional<God> Heaven::find_by_id(const id::God id) const
+std::optional<Soul> Heaven::find_by_id(const id::Soul id) const
 {
     std::lock_guard lock(mutex_);
 
-    const auto it = gods_by_id_.find(id);
-    if (it == gods_by_id_.end())
+    const auto it = souls_by_id_.find(id);
+    if (it == souls_by_id_.end())
         return std::nullopt;
 
     return it->second;
 }
 
 
-std::pair<God, Vessel> Heaven::remember_with_vessel(const DeadVessel& dead)
+std::pair<Soul, Vessel> Heaven::remember_with_vessel(const DeadVessel& dead)
 {
-    const GodName name = GodName::generate();
-    auto [god, vessel] = eternity_.insert_god_with_vessel(dead.text(), name);
-    insert(god);
-    return {god, std::move(vessel)};
+    const SoulName name = SoulName::generate();
+    auto [soul, vessel] = eternity_.insert_soul_with_vessel(dead.text(), name);
+    insert(soul);
+    return {soul, std::move(vessel)};
 }
 
 
@@ -41,10 +41,10 @@ std::vector<Vessel> Heaven::load_vessels() const
 }
 
 
-void Heaven::insert(God god)
+void Heaven::insert(Soul soul)
 {
     std::lock_guard lock(mutex_);
-    gods_by_id_.insert_or_assign(god.id(), std::move(god));
+    souls_by_id_.insert_or_assign(soul.id(), std::move(soul));
 }
 
 

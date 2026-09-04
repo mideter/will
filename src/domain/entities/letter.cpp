@@ -6,7 +6,7 @@
 namespace will::domain {
 
 
-Letter::Letter(const id::Letter id, const id::Abode abode_id, const id::God author_id, std::string body,
+Letter::Letter(const id::Letter id, const id::Abode abode_id, const id::Soul author_id, std::string body,
                const Timestamp created_at)
     : id_(id)
     , abode_id_(abode_id)

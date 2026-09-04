@@ -1,9 +1,9 @@
 #pragma once
 
 #include "entities/dead_vessel.h"
-#include "entities/god.h"
+#include "entities/soul.h"
 #include "entities/vessel.h"
-#include "ids/god.h"
+#include "ids/soul.h"
 #include "ports/eternity.h"
 
 #include <mutex>
@@ -16,24 +16,24 @@
 namespace will::domain {
 
 
-/// Heaven (Небо) — runtime registry of gods. Speaks with Eternity.
+/// Heaven (Небо) — runtime registry of souls. Speaks with Eternity.
 class Heaven {
 public:
     explicit Heaven(Eternity& eternity);
 
-    std::optional<God> find_by_id(id::God id) const;
+    std::optional<Soul> find_by_id(id::Soul id) const;
 
-    /// Give a name, remember the god in Eternity, and keep them in Heaven.
-    std::pair<God, Vessel> remember_with_vessel(const DeadVessel& dead);
+    /// Give a name, remember the soul in Eternity, and keep them in Heaven.
+    std::pair<Soul, Vessel> remember_with_vessel(const DeadVessel& dead);
 
     std::vector<Vessel> load_vessels() const;
 
-    void insert(God god);
+    void insert(Soul soul);
 
 private:
     Eternity& eternity_;
     mutable std::mutex mutex_;
-    std::unordered_map<id::God, God> gods_by_id_;
+    std::unordered_map<id::Soul, Soul> souls_by_id_;
 };
 
 

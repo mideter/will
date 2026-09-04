@@ -5,7 +5,7 @@
 #include "entities/heaven.h"
 #include "ids/abode.h"
 #include "values/timestamp.h"
-#include "values/god_name.h"
+#include "values/soul_name.h"
 #include "errors/auth_error.h"
 #include "errors/domain_error.h"
 #include "usecases/authenticate_device.h"
@@ -30,13 +30,13 @@ DeadVessel test_dead(const char* hex = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
 }
 
 
-GodName test_name(const char* text)
+SoulName test_name(const char* text)
 {
-    return *GodName::parse(text);
+    return *SoulName::parse(text);
 }
 
 
-void test_authenticate_device_creates_god()
+void test_authenticate_device_creates_soul()
 {
     InMemoryEternity eternity;
     Heaven heaven(eternity);
@@ -48,27 +48,27 @@ void test_authenticate_device_creates_god()
     assert(std::holds_alternative<AuthenticateDeviceSuccess>(result));
 
     const AuthenticateDeviceSuccess& success = std::get<AuthenticateDeviceSuccess>(result);
-    assert(success.god.id().value() > 0);
+    assert(success.soul.id().value() > 0);
 
-    assert(earth.god_id_for_dead(dead) == success.god.id());
-    const std::optional<God> god = heaven.find_by_id(success.god.id());
-    assert(god.has_value());
-    assert(GodName::parse(god->name().text()));
+    assert(earth.soul_id_for_dead(dead) == success.soul.id());
+    const std::optional<Soul> soul = heaven.find_by_id(success.soul.id());
+    assert(soul.has_value());
+    assert(SoulName::parse(soul->name().text()));
 }
 
 
-void test_authenticate_device_existing_god()
+void test_authenticate_device_existing_soul()
 {
     InMemoryEternity eternity;
     Heaven heaven(eternity);
     Earth earth(heaven);
-    seed_god_with_dead(heaven, earth, id::God{42}, test_dead("abcd1234abcd1234abcd1234abcd1234"),
+    seed_soul_with_dead(heaven, earth, id::Soul{42}, test_dead("abcd1234abcd1234abcd1234abcd1234"),
                        test_name("oldname1"));
 
     AuthenticateDevice authenticate(heaven, earth);
     const auto result = authenticate.execute(AuthenticateDeviceInput{"abcd1234abcd1234abcd1234abcd1234"});
     assert(std::holds_alternative<AuthenticateDeviceSuccess>(result));
-    assert(std::get<AuthenticateDeviceSuccess>(result).god.id() == id::God{42});
+    assert(std::get<AuthenticateDeviceSuccess>(result).soul.id() == id::Soul{42});
 }
 
 
@@ -77,16 +77,16 @@ void test_authenticate_device_keeps_existing_name()
     InMemoryEternity eternity;
     Heaven heaven(eternity);
     Earth earth(heaven);
-    seed_god_with_dead(heaven, earth, id::God{7}, test_dead("abcd1234abcd1234abcd1234abcd1234"),
+    seed_soul_with_dead(heaven, earth, id::Soul{7}, test_dead("abcd1234abcd1234abcd1234abcd1234"),
                        test_name("keptname"));
 
     AuthenticateDevice authenticate(heaven, earth);
     const auto result = authenticate.execute(AuthenticateDeviceInput{"abcd1234abcd1234abcd1234abcd1234"});
     assert(std::holds_alternative<AuthenticateDeviceSuccess>(result));
 
-    const std::optional<God> god = heaven.find_by_id(id::God{7});
-    assert(god.has_value());
-    assert(god->name() == test_name("keptname"));
+    const std::optional<Soul> soul = heaven.find_by_id(id::Soul{7});
+    assert(soul.has_value());
+    assert(soul->name() == test_name("keptname"));
 }
 
 
@@ -108,7 +108,7 @@ void test_send_letter_persists_and_notifies()
     InMemoryLetterRepository letters;
     FakeParticipantNotifier notifier;
 
-    const id::God author{7};
+    const id::Soul author{7};
 
     SendLetter send(letters, notifier);
     const Letter saved = send.execute(SendLetterInput{author, id::Abode::global(), "hello", Timestamp{900}});
@@ -134,11 +134,11 @@ void test_fetch_letter_history_limit_and_is_mine()
     Heaven heaven(eternity);
     Earth earth(heaven);
     const id::Abode abode = id::Abode::global();
-    const id::God me{10};
-    const id::God other{20};
+    const id::Soul me{10};
+    const id::Soul other{20};
 
-    seed_god_with_dead(heaven, earth, me, test_dead("c0ffee00c0ffee00c0ffee00c0ffee00"), test_name("menameaa"));
-    seed_god_with_dead(heaven, earth, other, test_dead("deadbeefdeadbeefdeadbeefdeadbeef"),
+    seed_soul_with_dead(heaven, earth, me, test_dead("c0ffee00c0ffee00c0ffee00c0ffee00"), test_name("menameaa"));
+    seed_soul_with_dead(heaven, earth, other, test_dead("deadbeefdeadbeefdeadbeefdeadbeef"),
                        test_name("peername"));
 
     letters.append(abode, other, "peer", Timestamp{1});
@@ -172,9 +172,9 @@ void test_fetch_letter_history_caps_limit()
     Heaven heaven(eternity);
     Earth earth(heaven);
     const id::Abode abode = id::Abode::global();
-    const id::God author{1};
+    const id::Soul author{1};
 
-    seed_god_with_dead(heaven, earth, author, test_dead("feedfacefeedfacefeedfacefeedface"),
+    seed_soul_with_dead(heaven, earth, author, test_dead("feedfacefeedfacefeedfacefeedface"),
                        test_name("authoraa"));
 
     for (int i = 0; i < 5; ++i)
@@ -193,8 +193,8 @@ void test_fetch_letter_history_caps_limit()
 
 int main()
 {
-    test_authenticate_device_creates_god();
-    test_authenticate_device_existing_god();
+    test_authenticate_device_creates_soul();
+    test_authenticate_device_existing_soul();
     test_authenticate_device_keeps_existing_name();
     test_authenticate_device_invalid_token();
     test_send_letter_persists_and_notifies();

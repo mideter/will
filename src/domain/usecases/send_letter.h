@@ -1,7 +1,7 @@
 #pragma once
 
 #include "ids/abode.h"
-#include "ids/god.h"
+#include "ids/soul.h"
 #include "entities/letter.h"
 #include "ports/letter_repository.h"
 #include "ports/participant_notifier.h"
@@ -13,7 +13,7 @@ namespace will::domain {
 
 
 struct SendLetterInput {
-    id::God god_id;
+    id::Soul soul_id;
     id::Abode abode_id = id::Abode::global();
     std::string_view body;
     Timestamp created_at{};

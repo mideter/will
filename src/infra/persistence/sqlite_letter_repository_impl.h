@@ -13,7 +13,7 @@ class SqliteLetterRepositoryImpl final : public domain::LetterRepository {
 public:
     explicit SqliteLetterRepositoryImpl(SqliteDatabase& database);
 
-    domain::Letter append(domain::id::Abode abode, domain::id::God author, std::string_view body,
+    domain::Letter append(domain::id::Abode abode, domain::id::Soul author, std::string_view body,
                           domain::Timestamp ts) override;
 
     std::vector<domain::Letter> load_last(domain::id::Abode abode, std::uint32_t limit) override;

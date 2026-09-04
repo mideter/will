@@ -67,7 +67,7 @@ void ProtocolAdapter::handle_bind_token(const SessionId session_id, const v1::Bi
     }
 
     const auto& success = std::get<domain::AuthenticateDeviceSuccess>(outcome);
-    if (const auto displaced = registry_.bind_god(session_id, success.god.id()))
+    if (const auto displaced = registry_.bind_soul(session_id, success.soul.id()))
         close_session(*displaced);
 
     v1::ServerEvent event;
@@ -86,7 +86,7 @@ void ProtocolAdapter::send_auth_required(const SessionId session_id)
 
 void ProtocolAdapter::handle_user_chat(const SessionId session_id, const v1::ChatMessage& chat)
 {
-    const domain::SendLetterInput input{*registry_.god_id(session_id), domain::id::Abode::global(), chat.body(),
+    const domain::SendLetterInput input{*registry_.soul_id(session_id), domain::id::Abode::global(), chat.body(),
                                         domain::Timestamp{}};
 
     (void)send_letter_.execute(input);
@@ -99,7 +99,7 @@ void ProtocolAdapter::handle_user_chat(const SessionId session_id, const v1::Cha
 
 void ProtocolAdapter::handle_history_request(const SessionId session_id, const v1::HistoryRequest& request)
 {
-    const domain::FetchLetterHistoryInput input{*registry_.god_id(session_id), domain::id::Abode::global(),
+    const domain::FetchLetterHistoryInput input{*registry_.soul_id(session_id), domain::id::Abode::global(),
                                                 request.limit()};
 
     const auto outcome = fetch_letter_history_.execute(input);

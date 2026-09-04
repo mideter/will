@@ -2,16 +2,16 @@
 
 #include "entities/dead_vessel.h"
 #include "entities/earth.h"
-#include "entities/god.h"
+#include "entities/soul.h"
 #include "entities/heaven.h"
 #include "entities/letter.h"
 #include "entities/vessel.h"
-#include "ids/god.h"
+#include "ids/soul.h"
 #include "ids/vessel.h"
 #include "ports/eternity.h"
 #include "ports/letter_repository.h"
 #include "ports/participant_notifier.h"
-#include "values/god_name.h"
+#include "values/soul_name.h"
 
 #include <string>
 #include <utility>
@@ -23,34 +23,34 @@ namespace will::domain::test {
 
 class InMemoryEternity final : public Eternity {
 public:
-    std::vector<God> load_gods() override { return gods_; }
+    std::vector<Soul> load_souls() override { return souls_; }
 
     std::vector<Vessel> load_vessels() override { return vessels_; }
 
-    std::pair<God, Vessel> insert_god_with_vessel(const std::string_view device_token,
-                                                  const GodName name) override
+    std::pair<Soul, Vessel> insert_soul_with_vessel(const std::string_view device_token,
+                                                  const SoulName name) override
     {
-        const id::God god_id{++next_god_id_};
+        const id::Soul soul_id{++next_soul_id_};
         const id::Vessel vessel_id{++next_vessel_id_};
         const DeadVessel dead{device_token};
-        God god{god_id, name};
-        Vessel vessel{vessel_id, dead, god_id};
-        gods_.push_back(god);
+        Soul soul{soul_id, name};
+        Vessel vessel{vessel_id, dead, soul_id};
+        souls_.push_back(soul);
         vessels_.push_back(vessel);
-        return {god, vessel};
+        return {soul, vessel};
     }
 
 private:
-    std::uint64_t next_god_id_ = 0;
+    std::uint64_t next_soul_id_ = 0;
     std::uint64_t next_vessel_id_ = 0;
-    std::vector<God> gods_;
+    std::vector<Soul> souls_;
     std::vector<Vessel> vessels_;
 };
 
 
 class InMemoryLetterRepository final : public LetterRepository {
 public:
-    Letter append(id::Abode abode, id::God author, std::string_view body, Timestamp ts) override
+    Letter append(id::Abode abode, id::Soul author, std::string_view body, Timestamp ts) override
     {
         Letter letter{id::Letter{++next_id_}, abode, author, std::string(body), ts};
         letters_.push_back(letter);
@@ -84,20 +84,20 @@ public:
 };
 
 
-inline God register_god_with_vessel(Heaven& heaven, Earth& earth, const std::string_view device_token)
+inline Soul register_soul_with_vessel(Heaven& heaven, Earth& earth, const std::string_view device_token)
 {
     const DeadVessel dead{device_token};
-    auto [god, vessel] = heaven.remember_with_vessel(dead);
+    auto [soul, vessel] = heaven.remember_with_vessel(dead);
     earth.insert(std::move(vessel));
-    return god;
+    return soul;
 }
 
 
-inline void seed_god_with_dead(Heaven& heaven, Earth& earth, const id::God god_id, const DeadVessel& dead,
-                               const GodName name)
+inline void seed_soul_with_dead(Heaven& heaven, Earth& earth, const id::Soul soul_id, const DeadVessel& dead,
+                               const SoulName name)
 {
-    heaven.insert(God{god_id, name});
-    earth.insert(Vessel{id::Vessel{god_id.value()}, dead, god_id});
+    heaven.insert(Soul{soul_id, name});
+    earth.insert(Vessel{id::Vessel{soul_id.value()}, dead, soul_id});
 }
 
 

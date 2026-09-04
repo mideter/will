@@ -1,7 +1,7 @@
 #pragma once
 
 #include "ids/abode.h"
-#include "ids/god.h"
+#include "ids/soul.h"
 #include "entities/letter.h"
 #include "errors/domain_error.h"
 #include "entities/heaven.h"
@@ -17,7 +17,7 @@ namespace will::domain {
 
 
 struct FetchLetterHistoryInput {
-    id::God god_id;
+    id::Soul soul_id;
     id::Abode abode_id = id::Abode::global();
     std::uint32_t limit = 0;
 };

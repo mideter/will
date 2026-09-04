@@ -1,4 +1,4 @@
-#include "god_name.h"
+#include "soul_name.h"
 
 #include <random>
 
@@ -16,7 +16,7 @@ constexpr std::size_t AlphabetSize = sizeof(Alphabet) - 1;
 } // namespace
 
 
-std::optional<GodName> GodName::parse(const std::string_view input)
+std::optional<SoulName> SoulName::parse(const std::string_view input)
 {
     if (input.size() != Length)
         return std::nullopt;
@@ -27,11 +27,11 @@ std::optional<GodName> GodName::parse(const std::string_view input)
             return std::nullopt;
     }
 
-    return GodName{std::string(input)};
+    return SoulName{std::string(input)};
 }
 
 
-GodName GodName::generate()
+SoulName SoulName::generate()
 {
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -40,11 +40,11 @@ GodName GodName::generate()
     std::string name(Length, '\0');
     for (char& ch : name)
         ch = Alphabet[dist(gen)];
-    return GodName{std::move(name)};
+    return SoulName{std::move(name)};
 }
 
 
-GodName::GodName(std::string value) : value_(std::move(value)) {}
+SoulName::SoulName(std::string value) : value_(std::move(value)) {}
 
 
 } // namespace will::domain

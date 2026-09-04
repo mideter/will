@@ -2,7 +2,7 @@
 
 #include "entities/letter.h"
 #include "ids/abode.h"
-#include "ids/god.h"
+#include "ids/soul.h"
 
 #include <string_view>
 #include <vector>
@@ -15,7 +15,7 @@ class LetterRepository {
 public:
     virtual ~LetterRepository() = default;
 
-    virtual Letter append(id::Abode abode, id::God author, std::string_view body, Timestamp ts) = 0;
+    virtual Letter append(id::Abode abode, id::Soul author, std::string_view body, Timestamp ts) = 0;
     virtual std::vector<Letter> load_last(id::Abode abode, std::uint32_t limit) = 0;
 };
 
