@@ -4,6 +4,7 @@
 #include "entities/earth.h"
 #include "entities/heaven.h"
 #include "ids/abode.h"
+#include "values/device_token.h"
 #include "values/timestamp.h"
 #include "values/soul_name.h"
 #include "errors/auth_error.h"
@@ -43,7 +44,7 @@ void test_authenticate_device_creates_soul()
     Earth earth(heaven);
     AuthenticateDevice authenticate(heaven, earth);
 
-    const DeadVessel dead = DeadVessel::generate();
+    const DeadVessel dead{DeviceToken::generate()};
     const auto result = authenticate.execute(AuthenticateDeviceInput{dead.text()});
     assert(std::holds_alternative<AuthenticateDeviceSuccess>(result));
 

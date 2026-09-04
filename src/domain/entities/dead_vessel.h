@@ -9,15 +9,13 @@
 namespace will::domain {
 
 
-/// DeadVessel (Мёртвый сосуд) — device token without a soul. Owns all DeviceToken handling.
+/// DeadVessel (Мёртвый сосуд) — device token without a soul.
 class DeadVessel {
 public:
     /// Throws std::invalid_argument if the device token is invalid.
     explicit DeadVessel(std::string_view device_token_raw);
 
     explicit DeadVessel(DeviceToken token);
-
-    static DeadVessel generate();
 
     std::string_view text() const noexcept { return token_.text(); }
 

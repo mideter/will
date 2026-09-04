@@ -33,10 +33,4 @@ DeadVessel::DeadVessel(DeviceToken token)
 {}
 
 
-DeadVessel DeadVessel::generate()
-{
-    return DeadVessel{DeviceToken::generate()};
-}
-
-
 } // namespace will::domain
