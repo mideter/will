@@ -4,14 +4,6 @@
 namespace will::domain {
 
 
-Earth::Earth(Heaven& heaven)
-	: heaven_(heaven)
-{
-	for (Vessel vessel : heaven_.load_vessels())
-		insert(std::move(vessel));
-}
-
-
 std::optional<Vessel> Earth::find_vessel_by_token(const DeviceToken& token) const
 {
 	std::lock_guard lock(mutex_);

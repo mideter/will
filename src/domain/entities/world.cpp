@@ -8,8 +8,9 @@ namespace will::domain {
 
 World::World(Eternity& eternity)
 	: heaven_(eternity)
-	, earth_(heaven_)
 {
+	for (Vessel vessel : heaven_.load_vessels())
+		earth_.insert(std::move(vessel));
 	for (Man man : heaven_.load_men())
 		insert(std::move(man));
 }
