@@ -24,10 +24,7 @@ std::variant<AuthenticateDeviceSuccess, AuthError> AuthenticateDevice::execute(
 	if (std::optional<Man> man = world_.find_man_by_token(*token))
 		return AuthenticateDeviceSuccess{std::move(*man)};
 
-	ManBirth birth = world_.heaven().remember_man(*token);
-	world_.earth().insert(std::move(birth.vessel));
-	world_.insert(birth.man);
-	return AuthenticateDeviceSuccess{std::move(birth.man)};
+	return AuthenticateDeviceSuccess{world_.remember_man(*token)};
 }
 
 

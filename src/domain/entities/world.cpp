@@ -44,6 +44,16 @@ std::optional<id::Soul> World::soul_id_for_token(const DeviceToken& token) const
 }
 
 
+Man World::remember_man(const DeviceToken& token)
+{
+	ManBirth birth = heaven_.remember_man(token);
+	earth_.insert(std::move(birth.vessel));
+	Man man = std::move(birth.man);
+	insert(man);
+	return man;
+}
+
+
 void World::insert(Man man)
 {
 	std::lock_guard lock(mutex_);
