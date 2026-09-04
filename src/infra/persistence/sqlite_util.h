@@ -18,4 +18,35 @@ inline void check_sqlite(const int rc, sqlite3* db, const char* context)
 }
 
 
+/// RAII SQLite transaction: ROLLBACK on destruction unless commit() succeeded.
+class SqliteTransaction {
+public:
+	explicit SqliteTransaction(sqlite3* db)
+		: db_(db)
+	{
+		check_sqlite(sqlite3_exec(db_, "BEGIN IMMEDIATE;", nullptr, nullptr, nullptr), db_,
+					 "begin transaction");
+	}
+
+	SqliteTransaction(const SqliteTransaction&) = delete;
+	SqliteTransaction& operator=(const SqliteTransaction&) = delete;
+
+	~SqliteTransaction()
+	{
+		if (db_ && !committed_)
+			sqlite3_exec(db_, "ROLLBACK;", nullptr, nullptr, nullptr);
+	}
+
+	void commit()
+	{
+		check_sqlite(sqlite3_exec(db_, "COMMIT;", nullptr, nullptr, nullptr), db_, "commit transaction");
+		committed_ = true;
+	}
+
+private:
+	sqlite3* db_ = nullptr;
+	bool committed_ = false;
+};
+
+
 } // namespace will

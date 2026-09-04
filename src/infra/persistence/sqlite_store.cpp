@@ -112,7 +112,7 @@ domain::ManBirth SqliteStore::insert_man(const domain::DeviceToken& token, const
 	std::lock_guard lock(database_.mutex());
 
 	sqlite3* const db = database_.db();
-	check_sqlite(sqlite3_exec(db, "BEGIN IMMEDIATE;", nullptr, nullptr, nullptr), db, "begin insert man");
+	SqliteTransaction tx(db);
 
 	sqlite3_stmt* soul_stmt = nullptr;
 	check_sqlite(sqlite3_prepare_v2(db, "INSERT INTO souls (name) VALUES (?);", -1, &soul_stmt, nullptr), db,
@@ -153,7 +153,7 @@ domain::ManBirth SqliteStore::insert_man(const domain::DeviceToken& token, const
 
 	const domain::id::Man man_id{static_cast<std::uint64_t>(sqlite3_last_insert_rowid(db))};
 
-	check_sqlite(sqlite3_exec(db, "COMMIT;", nullptr, nullptr, nullptr), db, "commit insert man");
+	tx.commit();
 
 	return domain::ManBirth{
 		domain::Man{man_id, soul_id, vessel_id},
