@@ -13,11 +13,13 @@ namespace will::domain {
 
 
 /// Earth (Земля) — runtime registry of vessels.
+/// Living access is through World (Мир), which is Earth.
 class Earth {
 public:
-	Earth() = default;
-
 	std::optional<Vessel> find_vessel_by_token(const DeviceToken& token) const;
+
+protected:
+	Earth() = default;
 
 	void insert(Vessel vessel);
 

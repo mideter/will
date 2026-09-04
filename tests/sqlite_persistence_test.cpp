@@ -11,25 +11,9 @@
 
 #include <cassert>
 #include <cstdlib>
+#include <optional>
 #include <string>
 #include <unistd.h>
-
-
-namespace {
-
-
-will::domain::Soul register_soul(will::domain::World& world, will::domain::Eternity& eternity,
-								 const will::domain::DeviceToken& token, const will::domain::SoulName name)
-{
-	will::domain::ManBirth birth = eternity.insert_man(token, name);
-	world.heaven().insert(birth.soul);
-	world.earth().insert(std::move(birth.vessel));
-	world.insert(birth.man);
-	return birth.soul;
-}
-
-
-} // namespace
 
 
 int main()
@@ -43,6 +27,9 @@ int main()
 	std::optional<id::Soul> soul_a_id;
 	std::optional<id::Soul> soul_b_id;
 	std::optional<id::Soul> created_id;
+	std::optional<SoulName> name_a;
+	std::optional<SoulName> name_b;
+	std::optional<SoulName> name_created;
 	const std::string token_text = "abcd1234abcd1234abcd1234abcd1234";
 
 	{
@@ -55,10 +42,14 @@ int main()
 		const DeviceToken token_b = *DeviceToken::parse("bbbb1234bbbb1234bbbb1234bbbb1234");
 		const DeviceToken token_created = *DeviceToken::parse(token_text);
 
-		const Soul soul_a = register_soul(world, store, token_a, *SoulName::parse("nameaaaa"));
-		const Soul soul_b = register_soul(world, store, token_b, *SoulName::parse("namebbbb"));
+		const Man man_a = world.birth_man(token_a);
+		const Man man_b = world.birth_man(token_b);
+		const Soul soul_a = *world.find_by_id(man_a.soul_id());
+		const Soul soul_b = *world.find_by_id(man_b.soul_id());
 		soul_a_id = soul_a.id();
 		soul_b_id = soul_b.id();
+		name_a = soul_a.name();
+		name_b = soul_b.name();
 
 		const id::Abode abode = world.abode().id;
 		letters.append(abode, soul_a.id(), "from-peer", Timestamp{1000});
@@ -68,19 +59,20 @@ int main()
 		assert(rows.size() == 2);
 		assert(rows[0].body() == "from-peer");
 		assert(rows[0].author_id() == soul_a.id());
-		assert(world.heaven().find_by_id(rows[0].author_id())->name() == *SoulName::parse("nameaaaa"));
+		assert(world.find_by_id(rows[0].author_id())->name() == *name_a);
 		assert(rows[1].body() == "from-me");
 		assert(rows[1].author_id() == soul_b.id());
-		assert(world.heaven().find_by_id(rows[1].author_id())->name() == *SoulName::parse("namebbbb"));
+		assert(world.find_by_id(rows[1].author_id())->name() == *name_b);
 
-		const Soul created = register_soul(world, store, token_created, *SoulName::parse("abcdefgh"));
+		const Man man_created = world.birth_man(token_created);
+		const Soul created = *world.find_by_id(man_created.soul_id());
 		created_id = created.id();
+		name_created = created.name();
 		assert(created.id().value() > 0);
 		assert(world.soul_id_for_token(token_created) == created.id());
-		assert(created.name() == *SoulName::parse("abcdefgh"));
 
 		assert(world.find_man_by_token(token_created).has_value());
-		assert(world.heaven().find_by_id(created.id()).has_value());
+		assert(world.find_by_id(created.id()).has_value());
 	}
 
 	{
@@ -90,18 +82,18 @@ int main()
 
 		const DeviceToken token_created = *DeviceToken::parse(token_text);
 		assert(world.soul_id_for_token(token_created) == *created_id);
-		assert(world.heaven().find_by_id(*created_id)->name() == *SoulName::parse("abcdefgh"));
+		assert(world.find_by_id(*created_id)->name() == *name_created);
 
-		const std::optional<Soul> a = world.heaven().find_by_id(*soul_a_id);
+		const std::optional<Soul> a = world.find_by_id(*soul_a_id);
 		assert(a.has_value());
-		assert(a->name() == *SoulName::parse("nameaaaa"));
+		assert(a->name() == *name_a);
 		assert(world.soul_id_for_token(*DeviceToken::parse("aaaa1234aaaa1234aaaa1234aaaa1234")) == *soul_a_id);
 
-		const std::optional<Soul> b = world.heaven().find_by_id(*soul_b_id);
+		const std::optional<Soul> b = world.find_by_id(*soul_b_id);
 		assert(b.has_value());
-		assert(b->name() == *SoulName::parse("namebbbb"));
+		assert(b->name() == *name_b);
 
-		assert(!world.heaven().find_by_id(id::Soul{999999}).has_value());
+		assert(!world.find_by_id(id::Soul{999999}).has_value());
 		assert(!world.find_man_by_token(*DeviceToken::parse("ffffffffffffffffffffffffffffffff")).has_value());
 	}
 

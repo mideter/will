@@ -46,6 +46,22 @@ public:
 		return ManBirth{man, std::move(soul), std::move(vessel)};
 	}
 
+	/// Remember a man in eternity before the living World wakes (ctor load).
+	void seed_man(const id::Soul soul_id, const DeviceToken& token, const SoulName name)
+	{
+		const id::Vessel vessel_id{soul_id.value()};
+		const id::Man man_id{soul_id.value()};
+		souls_.push_back(Soul{soul_id, name});
+		vessels_.push_back(Vessel{vessel_id, token});
+		men_.push_back(Man{man_id, soul_id, vessel_id});
+		if (soul_id.value() > next_soul_id_)
+			next_soul_id_ = soul_id.value();
+		if (vessel_id.value() > next_vessel_id_)
+			next_vessel_id_ = vessel_id.value();
+		if (man_id.value() > next_man_id_)
+			next_man_id_ = man_id.value();
+	}
+
 private:
 	std::uint64_t next_soul_id_ = 0;
 	std::uint64_t next_vessel_id_ = 0;
@@ -96,17 +112,14 @@ inline Soul register_soul_with_vessel(World& world, const std::string_view devic
 {
 	const DeviceToken token = *DeviceToken::parse(device_token);
 	const Man man = world.birth_man(token);
-	return *world.heaven().find_by_id(man.soul_id());
+	return *world.find_by_id(man.soul_id());
 }
 
 
-inline void seed_man(World& world, const id::Soul soul_id, const DeviceToken& token, const SoulName name)
+inline void seed_man(InMemoryEternity& eternity, const id::Soul soul_id, const DeviceToken& token,
+					 const SoulName name)
 {
-	const id::Vessel vessel_id{soul_id.value()};
-	const id::Man man_id{soul_id.value()};
-	world.heaven().insert(Soul{soul_id, name});
-	world.earth().insert(Vessel{vessel_id, token});
-	world.insert(Man{man_id, soul_id, vessel_id});
+	eternity.seed_man(soul_id, token, name);
 }
 
 

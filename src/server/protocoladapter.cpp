@@ -13,10 +13,10 @@ namespace will {
 ProtocolAdapter::ProtocolAdapter(domain::MessengerPersistence persistence, SessionRegistry& registry)
 	: persistence_(persistence)
 	, registry_(registry)
-	, participant_notifier_(registry, persistence.world.heaven())
+	, participant_notifier_(registry, persistence.world)
 	, authenticate_device_(persistence.world)
 	, send_letter_(persistence.letters, participant_notifier_)
-	, fetch_letter_history_(persistence.letters, persistence.world.heaven())
+	, fetch_letter_history_(persistence.letters, persistence.world)
 {}
 
 

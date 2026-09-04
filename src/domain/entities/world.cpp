@@ -7,18 +7,19 @@ namespace will::domain {
 
 
 World::World(Eternity& eternity)
-	: heaven_(eternity)
+	: Heaven(eternity)
 {
-	for (Vessel vessel : heaven_.load_vessels())
-		earth_.insert(std::move(vessel));
-	for (Man man : heaven_.load_men())
+	for (Vessel vessel : load_vessels())
+		Earth::insert(std::move(vessel));
+
+	for (Man man : load_men())
 		insert(std::move(man));
 }
 
 
 std::optional<Man> World::find_man_by_token(const DeviceToken& token) const
 {
-	const std::optional<Vessel> vessel = earth_.find_vessel_by_token(token);
+	const std::optional<Vessel> vessel = find_vessel_by_token(token);
 	if (!vessel)
 		return std::nullopt;
 
@@ -40,14 +41,15 @@ std::optional<id::Soul> World::soul_id_for_token(const DeviceToken& token) const
 {
 	if (const std::optional<Man> man = find_man_by_token(token))
 		return man->soul_id();
+
 	return std::nullopt;
 }
 
 
 Man World::birth_man(const DeviceToken& token)
 {
-	ManBirth birth = heaven_.birth_man(token);
-	earth_.insert(std::move(birth.vessel));
+	ManBirth birth = Heaven::birth_man(token);
+	Earth::insert(std::move(birth.vessel));
 	Man man = std::move(birth.man);
 	insert(man);
 	return man;

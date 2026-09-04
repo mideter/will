@@ -51,19 +51,19 @@ void test_authenticate_device_creates_soul()
 	assert(success.man.vessel_id().value() > 0);
 
 	assert(world.soul_id_for_token(token) == success.man.soul_id());
-	const std::optional<Soul> soul = world.heaven().find_by_id(success.man.soul_id());
+	const std::optional<Soul> soul = world.find_by_id(success.man.soul_id());
 	assert(soul.has_value());
 	assert(SoulName::parse(soul->name().text()));
 	assert(world.find_man_by_token(token)->id() == success.man.id());
-	assert(world.earth().find_vessel_by_token(token)->id() == success.man.vessel_id());
+	assert(world.find_vessel_by_token(token)->id() == success.man.vessel_id());
 }
 
 
 void test_authenticate_device_existing_soul()
 {
 	InMemoryEternity eternity;
+	seed_man(eternity, id::Soul{42}, test_token("abcd1234abcd1234abcd1234abcd1234"), test_name("oldname1"));
 	World world(eternity);
-	seed_man(world, id::Soul{42}, test_token("abcd1234abcd1234abcd1234abcd1234"), test_name("oldname1"));
 
 	AuthenticateDevice authenticate(world);
 	const auto result = authenticate.execute(AuthenticateDeviceInput{"abcd1234abcd1234abcd1234abcd1234"});
@@ -75,14 +75,14 @@ void test_authenticate_device_existing_soul()
 void test_authenticate_device_keeps_existing_name()
 {
 	InMemoryEternity eternity;
+	seed_man(eternity, id::Soul{7}, test_token("abcd1234abcd1234abcd1234abcd1234"), test_name("keptname"));
 	World world(eternity);
-	seed_man(world, id::Soul{7}, test_token("abcd1234abcd1234abcd1234abcd1234"), test_name("keptname"));
 
 	AuthenticateDevice authenticate(world);
 	const auto result = authenticate.execute(AuthenticateDeviceInput{"abcd1234abcd1234abcd1234abcd1234"});
 	assert(std::holds_alternative<AuthenticateDeviceSuccess>(result));
 
-	const std::optional<Soul> soul = world.heaven().find_by_id(id::Soul{7});
+	const std::optional<Soul> soul = world.find_by_id(id::Soul{7});
 	assert(soul.has_value());
 	assert(soul->name() == test_name("keptname"));
 }
@@ -128,19 +128,19 @@ void test_fetch_letter_history_limit_and_is_mine()
 {
 	InMemoryLetterRepository letters;
 	InMemoryEternity eternity;
-	World world(eternity);
-	const id::Abode abode = world.abode().id;
 	const id::Soul me{10};
 	const id::Soul other{20};
 
-	seed_man(world, me, test_token("c0ffee00c0ffee00c0ffee00c0ffee00"), test_name("menameaa"));
-	seed_man(world, other, test_token("deadbeefdeadbeefdeadbeefdeadbeef"), test_name("peername"));
+	seed_man(eternity, me, test_token("c0ffee00c0ffee00c0ffee00c0ffee00"), test_name("menameaa"));
+	seed_man(eternity, other, test_token("deadbeefdeadbeefdeadbeefdeadbeef"), test_name("peername"));
+	World world(eternity);
+	const id::Abode abode = world.abode().id;
 
 	letters.append(abode, other, "peer", Timestamp{1});
 	letters.append(abode, me, "mine", Timestamp{2});
 	letters.append(abode, other, "peer2", Timestamp{3});
 
-	FetchLetterHistory fetch(letters, world.heaven());
+	FetchLetterHistory fetch(letters, world);
 
 	const auto zero_limit = fetch.execute(FetchLetterHistoryInput{me, abode, 0});
 	assert(std::holds_alternative<DomainError>(zero_limit));
@@ -164,16 +164,16 @@ void test_fetch_letter_history_caps_limit()
 {
 	InMemoryLetterRepository letters;
 	InMemoryEternity eternity;
-	World world(eternity);
-	const id::Abode abode = world.abode().id;
 	const id::Soul author{1};
 
-	seed_man(world, author, test_token("feedfacefeedfacefeedfacefeedface"), test_name("authoraa"));
+	seed_man(eternity, author, test_token("feedfacefeedfacefeedfacefeedface"), test_name("authoraa"));
+	World world(eternity);
+	const id::Abode abode = world.abode().id;
 
 	for (int i = 0; i < 5; ++i)
 		letters.append(abode, author, "m", Timestamp{i});
 
-	FetchLetterHistory fetch(letters, world.heaven());
+	FetchLetterHistory fetch(letters, world);
 	const auto ok = fetch.execute(FetchLetterHistoryInput{
 		author, abode, FetchLetterHistory::MaxHistoryRequestLimit + 50});
 	assert(std::holds_alternative<FetchLetterHistoryResult>(ok));

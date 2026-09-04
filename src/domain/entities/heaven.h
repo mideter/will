@@ -3,7 +3,6 @@
 #include "entities/man.h"
 #include "entities/soul.h"
 #include "entities/vessel.h"
-#include "identity/soul.h"
 #include "ports/eternity.h"
 #include "values/device_token.h"
 
@@ -17,11 +16,13 @@ namespace will::domain {
 
 
 /// Heaven (Небо) — runtime registry of souls. Speaks with Eternity.
+/// Living access is through World (Мир), which is Heaven.
 class Heaven {
 public:
-	explicit Heaven(Eternity& eternity);
-
 	std::optional<Soul> find_by_id(id::Soul id) const;
+
+protected:
+	explicit Heaven(Eternity& eternity);
 
 	/// Give a name, birth soul/vessel/man in Eternity, and keep the soul in Heaven.
 	ManBirth birth_man(const DeviceToken& token);
