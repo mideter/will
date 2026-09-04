@@ -92,6 +92,15 @@ test_target("will-history-integration-test")
     add_packages("pkgconfig::protobuf", "pkgconfig::grpc++")
     with_run_dep("will-server")
 
+test_target("will-loading-history-handler-test")
+    add_files(
+        "loading_history_handler_test.cpp",
+        "$(projectdir)/src/client/inbound_server_message_handler.cpp",
+        "$(projectdir)/src/client/consoleui.cpp")
+    add_includedirs("$(projectdir)/src/client")
+    add_deps("will-transport", "will-domain")
+    add_packages("pkgconfig::protobuf")
+
 test_target("will-session-registry-test")
     add_files(
         "session_registry_test.cpp",
