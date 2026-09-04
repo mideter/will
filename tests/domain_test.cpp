@@ -49,12 +49,13 @@ void test_authenticate_device_creates_soul()
     assert(std::holds_alternative<AuthenticateDeviceSuccess>(result));
 
     const AuthenticateDeviceSuccess& success = std::get<AuthenticateDeviceSuccess>(result);
-    assert(success.soul.id().value() > 0);
+    assert(success.man.soul().id().value() > 0);
 
-    assert(earth.soul_id_for_dead(dead) == success.soul.id());
-    const std::optional<Soul> soul = heaven.find_by_id(success.soul.id());
+    assert(earth.soul_id_for_dead(dead) == success.man.soul().id());
+    const std::optional<Soul> soul = heaven.find_by_id(success.man.soul().id());
     assert(soul.has_value());
     assert(SoulName::parse(soul->name().text()));
+    assert(success.man.vessel().soul_id() == success.man.soul().id());
 }
 
 
@@ -69,7 +70,7 @@ void test_authenticate_device_existing_soul()
     AuthenticateDevice authenticate(heaven, earth);
     const auto result = authenticate.execute(AuthenticateDeviceInput{"abcd1234abcd1234abcd1234abcd1234"});
     assert(std::holds_alternative<AuthenticateDeviceSuccess>(result));
-    assert(std::get<AuthenticateDeviceSuccess>(result).soul.id() == id::Soul{42});
+    assert(std::get<AuthenticateDeviceSuccess>(result).man.soul().id() == id::Soul{42});
 }
 
 

@@ -26,12 +26,12 @@ std::optional<Soul> Heaven::find_by_id(const id::Soul id) const
 }
 
 
-std::pair<Soul, Vessel> Heaven::remember_with_vessel(const DeadVessel& dead)
+Man Heaven::remember_with_vessel(const DeadVessel& dead)
 {
     const SoulName name = SoulName::generate();
-    auto [soul, vessel] = eternity_.insert_soul_with_vessel(dead, name);
-    insert(soul);
-    return {soul, std::move(vessel)};
+    Man man = eternity_.insert_soul_with_vessel(dead, name);
+    insert(man.soul());
+    return man;
 }
 
 

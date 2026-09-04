@@ -67,7 +67,7 @@ void ProtocolAdapter::handle_bind_token(const SessionId session_id, const v1::Bi
     }
 
     const auto& success = std::get<domain::AuthenticateDeviceSuccess>(outcome);
-    if (const auto displaced = registry_.bind_soul(session_id, success.soul.id()))
+    if (const auto displaced = registry_.bind_soul(session_id, success.man.soul().id()))
         close_session(*displaced);
 
     v1::ServerEvent event;

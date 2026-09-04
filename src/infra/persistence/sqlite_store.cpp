@@ -82,8 +82,7 @@ std::vector<domain::Vessel> SqliteStore::load_vessels()
 }
 
 
-std::pair<domain::Soul, domain::Vessel> SqliteStore::insert_soul_with_vessel(const domain::DeadVessel& dead,
-                                                                             const domain::SoulName name)
+domain::Man SqliteStore::insert_soul_with_vessel(const domain::DeadVessel& dead, const domain::SoulName name)
 {
     std::lock_guard lock(database_.mutex());
 
@@ -120,7 +119,7 @@ std::pair<domain::Soul, domain::Vessel> SqliteStore::insert_soul_with_vessel(con
 
     check_sqlite(sqlite3_exec(db, "COMMIT;", nullptr, nullptr, nullptr), db, "commit insert soul/vessel");
 
-    return {domain::Soul{soul_id, name}, domain::Vessel{vessel_id, dead, soul_id}};
+    return domain::Man{domain::Soul{soul_id, name}, domain::Vessel{vessel_id, dead, soul_id}};
 }
 
 

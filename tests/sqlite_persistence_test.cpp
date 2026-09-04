@@ -1,5 +1,6 @@
 #include "entities/earth.h"
 #include "entities/heaven.h"
+#include "entities/man.h"
 #include "entities/dead_vessel.h"
 #include "sqlite_database.h"
 #include "sqlite_store.h"
@@ -23,10 +24,10 @@ will::domain::Soul register_soul(will::domain::Heaven& heaven, will::domain::Ear
                                will::domain::Eternity& eternity, const will::domain::DeadVessel& dead,
                                const will::domain::SoulName name)
 {
-    auto [soul, vessel] = eternity.insert_soul_with_vessel(dead, name);
-    heaven.insert(soul);
-    earth.insert(std::move(vessel));
-    return soul;
+    will::domain::Man man = eternity.insert_soul_with_vessel(dead, name);
+    heaven.insert(man.soul());
+    earth.insert(man.vessel());
+    return man.soul();
 }
 
 
