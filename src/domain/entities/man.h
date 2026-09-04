@@ -1,8 +1,8 @@
 #pragma once
 
-#include "ids/man.h"
-#include "ids/soul.h"
-#include "ids/vessel.h"
+#include "identity/man.h"
+#include "identity/soul.h"
+#include "identity/vessel.h"
 
 
 namespace will::domain {

@@ -1,8 +1,8 @@
 #pragma once
 
-#include "ids/abode.h"
-#include "ids/soul.h"
-#include "ids/letter.h"
+#include "identity/abode.h"
+#include "identity/soul.h"
+#include "identity/letter.h"
 #include "values/timestamp.h"
 
 #include <cstddef>

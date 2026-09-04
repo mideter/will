@@ -3,9 +3,9 @@
 #include "entities/heaven.h"
 #include "entities/man.h"
 #include "entities/vessel.h"
-#include "ids/man.h"
-#include "ids/soul.h"
-#include "ids/vessel.h"
+#include "identity/man.h"
+#include "identity/soul.h"
+#include "identity/vessel.h"
 #include "values/device_token.h"
 
 #include <mutex>

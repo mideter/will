@@ -3,7 +3,7 @@
 #include "entities/man.h"
 #include "entities/soul.h"
 #include "entities/vessel.h"
-#include "ids/soul.h"
+#include "identity/soul.h"
 #include "ports/eternity.h"
 #include "values/device_token.h"
 

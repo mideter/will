@@ -5,10 +5,10 @@
 #include "sqlite_store.h"
 #include "sqlite_letter_repository_impl.h"
 
-#include "ids/abode.h"
+#include "identity/abode.h"
 #include "values/device_token.h"
 #include "values/timestamp.h"
-#include "ids/soul.h"
+#include "identity/soul.h"
 #include "values/soul_name.h"
 
 #include <cassert>

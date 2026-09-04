@@ -1,7 +1,7 @@
 #pragma once
 
-#include "ids/abode.h"
-#include "ids/soul.h"
+#include "identity/abode.h"
+#include "identity/soul.h"
 #include "entities/letter.h"
 #include "errors/domain_error.h"
 #include "entities/heaven.h"

@@ -2,7 +2,7 @@
 
 #include "entities/earth.h"
 #include "entities/heaven.h"
-#include "ids/abode.h"
+#include "identity/abode.h"
 #include "values/device_token.h"
 #include "values/timestamp.h"
 #include "values/soul_name.h"

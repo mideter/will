@@ -31,8 +31,8 @@ test_target("letter-test")
     add_files("letter_test.cpp")
     add_deps("will-domain")
 
-test_target("domain-ids-test")
-    add_files("domain_ids_test.cpp")
+test_target("domain-identity-test")
+    add_files("domain_identity_test.cpp")
     add_deps("will-domain")
 
 test_target("device-token-test")

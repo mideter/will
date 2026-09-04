@@ -2,7 +2,7 @@
 
 #include "session_id.h"
 
-#include "ids/soul.h"
+#include "identity/soul.h"
 
 #include "infra/transport/messenger.grpc.pb.h"
 

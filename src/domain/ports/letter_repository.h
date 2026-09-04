@@ -1,8 +1,8 @@
 #pragma once
 
 #include "entities/letter.h"
-#include "ids/abode.h"
-#include "ids/soul.h"
+#include "identity/abode.h"
+#include "identity/soul.h"
 
 #include <string_view>
 #include <vector>

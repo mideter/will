@@ -1,5 +1,5 @@
 #include "entities/letter.h"
-#include "ids/letter.h"
+#include "identity/letter.h"
 
 #include <cassert>
 #include <cstdlib>
