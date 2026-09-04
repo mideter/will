@@ -5,35 +5,28 @@ namespace will {
 
 
 SqlitePersistenceBundle::SqlitePersistenceBundle(std::string db_path)
-    : database_(std::move(db_path))
-    , store_(database_)
-    , letters_(database_)
-    , heaven_(store_)
-    , earth_(heaven_)
+	: database_(std::move(db_path))
+	, store_(database_)
+	, letters_(database_)
+	, world_(store_)
 {}
 
 
 domain::MessengerPersistence SqlitePersistenceBundle::ports()
 {
-    return {letters(), heaven(), earth()};
+	return {letters(), world()};
 }
 
 
 domain::LetterRepository& SqlitePersistenceBundle::letters()
 {
-    return letters_;
+	return letters_;
 }
 
 
-domain::Heaven& SqlitePersistenceBundle::heaven()
+domain::World& SqlitePersistenceBundle::world()
 {
-    return heaven_;
-}
-
-
-domain::Earth& SqlitePersistenceBundle::earth()
-{
-    return earth_;
+	return world_;
 }
 
 

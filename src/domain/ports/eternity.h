@@ -20,7 +20,7 @@ struct ManBirth {
 };
 
 
-/// Eternal memory — durable storage. Runtime lookups use Heaven and Earth in memory.
+/// Eternal memory — durable storage. Runtime lookups use World (Heaven, Earth, men) in memory.
 class Eternity {
 public:
     virtual ~Eternity() = default;
