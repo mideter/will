@@ -95,7 +95,7 @@ public:
 inline Soul register_soul_with_vessel(World& world, const std::string_view device_token)
 {
 	const DeviceToken token = *DeviceToken::parse(device_token);
-	const Man man = world.remember_man(token);
+	const Man man = world.birth_man(token);
 	return *world.heaven().find_by_id(man.soul_id());
 }
 

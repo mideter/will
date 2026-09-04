@@ -23,8 +23,8 @@ public:
 
 	std::optional<Soul> find_by_id(id::Soul id) const;
 
-	/// Give a name, remember soul/vessel/man in Eternity, and keep the soul in Heaven.
-	ManBirth remember_man(const DeviceToken& token);
+	/// Give a name, birth soul/vessel/man in Eternity, and keep the soul in Heaven.
+	ManBirth birth_man(const DeviceToken& token);
 
 	std::vector<Vessel> load_vessels() const;
 	std::vector<Man> load_men() const;

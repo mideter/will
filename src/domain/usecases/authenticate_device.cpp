@@ -24,7 +24,7 @@ std::variant<AuthenticateDeviceSuccess, AuthError> AuthenticateDevice::execute(
 	if (std::optional<Man> man = world_.find_man_by_token(*token))
 		return AuthenticateDeviceSuccess{std::move(*man)};
 
-	return AuthenticateDeviceSuccess{world_.remember_man(*token)};
+	return AuthenticateDeviceSuccess{world_.birth_man(*token)};
 }
 
 

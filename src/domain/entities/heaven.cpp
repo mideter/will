@@ -28,7 +28,7 @@ std::optional<Soul> Heaven::find_by_id(const id::Soul id) const
 }
 
 
-ManBirth Heaven::remember_man(const DeviceToken& token)
+ManBirth Heaven::birth_man(const DeviceToken& token)
 {
 	const SoulName name = SoulName::generate();
 	ManBirth birth = eternity_.insert_man(token, name);

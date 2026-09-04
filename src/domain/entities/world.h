@@ -35,8 +35,8 @@ public:
 	std::optional<Man> find_man_by_token(const DeviceToken& token) const;
 	std::optional<id::Soul> soul_id_for_token(const DeviceToken& token) const;
 
-	/// Remember a new man in Eternity (via Heaven) and accept soul, vessel, and man into the living cosmos.
-	Man remember_man(const DeviceToken& token);
+	/// Birth a new man in Eternity (via Heaven) and accept soul, vessel, and man into the living cosmos.
+	Man birth_man(const DeviceToken& token);
 
 	void insert(Man man);
 
