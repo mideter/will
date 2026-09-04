@@ -1,5 +1,6 @@
 #include "entities/earth.h"
 #include "entities/heaven.h"
+#include "entities/dead_vessel.h"
 #include "sqlite_database.h"
 #include "sqlite_store.h"
 #include "sqlite_letter_repository_impl.h"
@@ -75,10 +76,10 @@ int main()
         const God created = register_god(heaven, earth, store, token, *GodName::parse("abcdefgh"));
         created_id = created.id();
         assert(created.id().value() > 0);
-        assert(earth.god_id_for_token(token) == created.id());
+        assert(earth.god_id_for_dead(DeadVessel{token}) == created.id());
         assert(created.name() == *GodName::parse("abcdefgh"));
 
-        assert(earth.find_by_token(token).has_value());
+        assert(earth.find_by_dead(DeadVessel{token}).has_value());
         assert(heaven.find_by_id(created.id()).has_value());
     }
 
@@ -88,20 +89,20 @@ int main()
         Heaven heaven(store);
         Earth earth(heaven);
 
-        assert(earth.god_id_for_token(token) == *created_id);
+        assert(earth.god_id_for_dead(DeadVessel{token}) == *created_id);
         assert(heaven.find_by_id(*created_id)->name() == *GodName::parse("abcdefgh"));
 
         const std::optional<God> a = heaven.find_by_id(*god_a_id);
         assert(a.has_value());
         assert(a->name() == *GodName::parse("nameaaaa"));
-        assert(earth.god_id_for_token("aaaa1234aaaa1234aaaa1234aaaa1234") == *god_a_id);
+        assert(earth.god_id_for_dead(DeadVessel{"aaaa1234aaaa1234aaaa1234aaaa1234"}) == *god_a_id);
 
         const std::optional<God> b = heaven.find_by_id(*god_b_id);
         assert(b.has_value());
         assert(b->name() == *GodName::parse("namebbbb"));
 
         assert(!heaven.find_by_id(id::God{999999}).has_value());
-        assert(!earth.find_by_token("missing-token-xxxxxxxxxxxxxxxx").has_value());
+        assert(!earth.find_by_dead(DeadVessel{"ffffffffffffffffffffffffffffffff"}).has_value());
     }
 
     ::unlink(db_path.c_str());

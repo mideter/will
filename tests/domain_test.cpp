@@ -1,9 +1,9 @@
 #include "domain_fakes.h"
 
+#include "entities/dead_vessel.h"
 #include "entities/earth.h"
 #include "entities/heaven.h"
 #include "ids/abode.h"
-#include "values/device_token.h"
 #include "values/timestamp.h"
 #include "values/god_name.h"
 #include "errors/auth_error.h"
@@ -24,9 +24,9 @@ using namespace will::domain;
 using namespace will::domain::test;
 
 
-DeviceToken test_token(const char* hex = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+DeadVessel test_dead(const char* hex = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
 {
-    return *DeviceToken::parse(hex);
+    return DeadVessel{hex};
 }
 
 
@@ -41,16 +41,16 @@ void test_authenticate_device_creates_god()
     InMemoryEternity eternity;
     Heaven heaven(eternity);
     Earth earth(heaven);
-    AuthenticateDevice authenticate(earth);
+    AuthenticateDevice authenticate(heaven, earth);
 
-    const DeviceToken token = DeviceToken::generate();
-    const auto result = authenticate.execute(AuthenticateDeviceInput{token.text()});
+    const DeadVessel dead = DeadVessel::generate();
+    const auto result = authenticate.execute(AuthenticateDeviceInput{dead.text()});
     assert(std::holds_alternative<AuthenticateDeviceSuccess>(result));
 
     const AuthenticateDeviceSuccess& success = std::get<AuthenticateDeviceSuccess>(result);
     assert(success.god.id().value() > 0);
 
-    assert(earth.god_id_for_token(token.text()) == success.god.id());
+    assert(earth.god_id_for_dead(dead) == success.god.id());
     const std::optional<God> god = heaven.find_by_id(success.god.id());
     assert(god.has_value());
     assert(GodName::parse(god->name().text()));
@@ -62,9 +62,10 @@ void test_authenticate_device_existing_god()
     InMemoryEternity eternity;
     Heaven heaven(eternity);
     Earth earth(heaven);
-    seed_god_with_token(heaven, earth, id::God{42}, test_token("abcd1234abcd1234abcd1234abcd1234"), test_name("oldname1"));
+    seed_god_with_dead(heaven, earth, id::God{42}, test_dead("abcd1234abcd1234abcd1234abcd1234"),
+                       test_name("oldname1"));
 
-    AuthenticateDevice authenticate(earth);
+    AuthenticateDevice authenticate(heaven, earth);
     const auto result = authenticate.execute(AuthenticateDeviceInput{"abcd1234abcd1234abcd1234abcd1234"});
     assert(std::holds_alternative<AuthenticateDeviceSuccess>(result));
     assert(std::get<AuthenticateDeviceSuccess>(result).god.id() == id::God{42});
@@ -76,9 +77,10 @@ void test_authenticate_device_keeps_existing_name()
     InMemoryEternity eternity;
     Heaven heaven(eternity);
     Earth earth(heaven);
-    seed_god_with_token(heaven, earth, id::God{7}, test_token("abcd1234abcd1234abcd1234abcd1234"), test_name("keptname"));
+    seed_god_with_dead(heaven, earth, id::God{7}, test_dead("abcd1234abcd1234abcd1234abcd1234"),
+                       test_name("keptname"));
 
-    AuthenticateDevice authenticate(earth);
+    AuthenticateDevice authenticate(heaven, earth);
     const auto result = authenticate.execute(AuthenticateDeviceInput{"abcd1234abcd1234abcd1234abcd1234"});
     assert(std::holds_alternative<AuthenticateDeviceSuccess>(result));
 
@@ -93,7 +95,7 @@ void test_authenticate_device_invalid_token()
     InMemoryEternity eternity;
     Heaven heaven(eternity);
     Earth earth(heaven);
-    AuthenticateDevice authenticate(earth);
+    AuthenticateDevice authenticate(heaven, earth);
 
     const auto result = authenticate.execute(AuthenticateDeviceInput{"short"});
     assert(std::holds_alternative<AuthError>(result));
@@ -135,8 +137,9 @@ void test_fetch_letter_history_limit_and_is_mine()
     const id::God me{10};
     const id::God other{20};
 
-    seed_god_with_token(heaven, earth, me, test_token("c0ffee00c0ffee00c0ffee00c0ffee00"), test_name("menameaa"));
-    seed_god_with_token(heaven, earth, other, test_token("deadbeefdeadbeefdeadbeefdeadbeef"), test_name("peername"));
+    seed_god_with_dead(heaven, earth, me, test_dead("c0ffee00c0ffee00c0ffee00c0ffee00"), test_name("menameaa"));
+    seed_god_with_dead(heaven, earth, other, test_dead("deadbeefdeadbeefdeadbeefdeadbeef"),
+                       test_name("peername"));
 
     letters.append(abode, other, "peer", Timestamp{1});
     letters.append(abode, me, "mine", Timestamp{2});
@@ -171,7 +174,8 @@ void test_fetch_letter_history_caps_limit()
     const id::Abode abode = id::Abode::global();
     const id::God author{1};
 
-    seed_god_with_token(heaven, earth, author, test_token("feedfacefeedfacefeedfacefeedface"), test_name("authoraa"));
+    seed_god_with_dead(heaven, earth, author, test_dead("feedfacefeedfacefeedfacefeedface"),
+                       test_name("authoraa"));
 
     for (int i = 0; i < 5; ++i)
         letters.append(abode, author, "m", Timestamp{i});

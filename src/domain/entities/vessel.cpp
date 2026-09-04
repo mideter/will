@@ -1,12 +1,14 @@
 #include "vessel.h"
 
+#include <utility>
+
 
 namespace will::domain {
 
 
-Vessel::Vessel(const id::Vessel id, DeviceToken token, const id::God god_id)
+Vessel::Vessel(const id::Vessel id, DeadVessel dead, const id::God god_id)
     : id_(id)
-    , token_(std::move(token))
+    , dead_(std::move(dead))
     , god_id_(god_id)
 {}
 

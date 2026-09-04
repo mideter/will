@@ -1,5 +1,6 @@
 #pragma once
 
+#include "entities/dead_vessel.h"
 #include "entities/god.h"
 #include "entities/vessel.h"
 #include "ids/god.h"
@@ -7,7 +8,6 @@
 
 #include <mutex>
 #include <optional>
-#include <string_view>
 #include <unordered_map>
 #include <utility>
 #include <vector>
@@ -24,7 +24,7 @@ public:
     std::optional<God> find_by_id(id::God id) const;
 
     /// Give a name, remember the god in Eternity, and keep them in Heaven.
-    std::pair<God, Vessel> remember_with_vessel(std::string_view device_token);
+    std::pair<God, Vessel> remember_with_vessel(const DeadVessel& dead);
 
     std::vector<Vessel> load_vessels() const;
 

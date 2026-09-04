@@ -12,31 +12,12 @@ Earth::Earth(Heaven& heaven)
 }
 
 
-std::optional<God> Earth::receive(const std::string_view device_token_raw)
+std::optional<Vessel> Earth::find_by_dead(const DeadVessel& dead) const
 {
-    if (const std::optional<Vessel> vessel = find_by_token(device_token_raw))
-        return heaven_.find_by_id(vessel->god_id());
-
-    const std::optional<DeviceToken> token = DeviceToken::parse(device_token_raw);
-    if (!token)
-        return std::nullopt;
-
-    auto [god, vessel] = heaven_.remember_with_vessel(token->text());
-    insert(std::move(vessel));
-    return god;
-}
-
-
-std::optional<Vessel> Earth::find_by_token(const std::string_view device_token) const
-{
-    const auto token = DeviceToken::parse(device_token);
-    if (!token)
-        return std::nullopt;
-
     std::lock_guard lock(mutex_);
 
-    const auto token_it = id_by_token_.find(*token);
-    if (token_it == id_by_token_.end())
+    const auto token_it = id_by_dead_.find(dead);
+    if (token_it == id_by_dead_.end())
         return std::nullopt;
 
     const auto it = vessels_by_id_.find(token_it->second);
@@ -47,9 +28,9 @@ std::optional<Vessel> Earth::find_by_token(const std::string_view device_token) 
 }
 
 
-std::optional<id::God> Earth::god_id_for_token(const std::string_view device_token) const
+std::optional<id::God> Earth::god_id_for_dead(const DeadVessel& dead) const
 {
-    if (const std::optional<Vessel> vessel = find_by_token(device_token))
+    if (const std::optional<Vessel> vessel = find_by_dead(dead))
         return vessel->god_id();
     return std::nullopt;
 }
@@ -58,7 +39,7 @@ std::optional<id::God> Earth::god_id_for_token(const std::string_view device_tok
 void Earth::insert(Vessel vessel)
 {
     std::lock_guard lock(mutex_);
-    id_by_token_.insert_or_assign(vessel.token(), vessel.id());
+    id_by_dead_.insert_or_assign(vessel.dead(), vessel.id());
     vessels_by_id_.insert_or_assign(vessel.id(), std::move(vessel));
 }
 

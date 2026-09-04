@@ -2,6 +2,8 @@
 
 #include "sqlite_util.h"
 
+#include "entities/dead_vessel.h"
+
 #include <stdexcept>
 #include <sqlite3.h>
 
@@ -63,11 +65,14 @@ std::vector<domain::Vessel> SqliteStore::load_vessels()
         const char* const device_token = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
         const domain::id::God god_id{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 2))};
 
-        const auto token = domain::DeviceToken::parse(device_token);
-        if (!token)
-            throw std::runtime_error("load_vessels: invalid device_token in database");
+        if (!device_token)
+            throw std::runtime_error("load_vessels: missing device_token in database");
 
-        vessels.emplace_back(id, *token, god_id);
+        try {
+            vessels.emplace_back(id, domain::DeadVessel{std::string_view{device_token}}, god_id);
+        } catch (const std::invalid_argument&) {
+            throw std::runtime_error("load_vessels: invalid device_token in database");
+        }
         rc = sqlite3_step(stmt);
     }
 
@@ -80,9 +85,7 @@ std::vector<domain::Vessel> SqliteStore::load_vessels()
 std::pair<domain::God, domain::Vessel> SqliteStore::insert_god_with_vessel(const std::string_view device_token,
                                                                              const domain::GodName name)
 {
-    const auto token = domain::DeviceToken::parse(device_token);
-    if (!token)
-        throw std::invalid_argument("insert_god_with_vessel: invalid device_token");
+    const domain::DeadVessel dead{device_token};
 
     std::lock_guard lock(database_.mutex());
 
@@ -106,7 +109,7 @@ std::pair<domain::God, domain::Vessel> SqliteStore::insert_god_with_vessel(const
                                     &vessel_stmt, nullptr),
                  db, "prepare insert vessel");
 
-    const std::string_view token_text = token->text();
+    const std::string_view token_text = dead.text();
     check_sqlite(sqlite3_bind_text(vessel_stmt, 1, token_text.data(), static_cast<int>(token_text.size()),
                                    SQLITE_TRANSIENT),
                  db, "bind device_token");
@@ -119,7 +122,7 @@ std::pair<domain::God, domain::Vessel> SqliteStore::insert_god_with_vessel(const
 
     check_sqlite(sqlite3_exec(db, "COMMIT;", nullptr, nullptr, nullptr), db, "commit insert god/vessel");
 
-    return {domain::God{god_id, name}, domain::Vessel{vessel_id, *token, god_id}};
+    return {domain::God{god_id, name}, domain::Vessel{vessel_id, dead, god_id}};
 }
 
 

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "entities/dead_vessel.h"
 #include "entities/earth.h"
 #include "entities/god.h"
 #include "entities/heaven.h"
@@ -10,7 +11,6 @@
 #include "ports/eternity.h"
 #include "ports/letter_repository.h"
 #include "ports/participant_notifier.h"
-#include "values/device_token.h"
 #include "values/god_name.h"
 
 #include <string>
@@ -32,9 +32,9 @@ public:
     {
         const id::God god_id{++next_god_id_};
         const id::Vessel vessel_id{++next_vessel_id_};
-        const DeviceToken token = *DeviceToken::parse(device_token);
+        const DeadVessel dead{device_token};
         God god{god_id, name};
-        Vessel vessel{vessel_id, token, god_id};
+        Vessel vessel{vessel_id, dead, god_id};
         gods_.push_back(god);
         vessels_.push_back(vessel);
         return {god, vessel};
@@ -84,17 +84,20 @@ public:
 };
 
 
-inline God register_god_with_vessel(Earth& earth, const std::string_view device_token)
+inline God register_god_with_vessel(Heaven& heaven, Earth& earth, const std::string_view device_token)
 {
-    return *earth.receive(device_token);
+    const DeadVessel dead{device_token};
+    auto [god, vessel] = heaven.remember_with_vessel(dead);
+    earth.insert(std::move(vessel));
+    return god;
 }
 
 
-inline void seed_god_with_token(Heaven& heaven, Earth& earth, const id::God god_id, const DeviceToken& token,
-                                const GodName name)
+inline void seed_god_with_dead(Heaven& heaven, Earth& earth, const id::God god_id, const DeadVessel& dead,
+                               const GodName name)
 {
     heaven.insert(God{god_id, name});
-    earth.insert(Vessel{id::Vessel{god_id.value()}, token, god_id});
+    earth.insert(Vessel{id::Vessel{god_id.value()}, dead, god_id});
 }
 
 

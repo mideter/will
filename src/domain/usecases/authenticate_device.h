@@ -4,6 +4,7 @@
 
 #include "entities/earth.h"
 #include "entities/god.h"
+#include "entities/heaven.h"
 
 #include <string_view>
 #include <variant>
@@ -24,11 +25,12 @@ struct AuthenticateDeviceSuccess {
 
 class AuthenticateDevice {
 public:
-    explicit AuthenticateDevice(Earth& earth);
+    AuthenticateDevice(Heaven& heaven, Earth& earth);
 
     std::variant<AuthenticateDeviceSuccess, AuthError> execute(const AuthenticateDeviceInput& input);
 
 private:
+    Heaven& heaven_;
     Earth& earth_;
 };
 

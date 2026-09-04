@@ -26,10 +26,10 @@ std::optional<God> Heaven::find_by_id(const id::God id) const
 }
 
 
-std::pair<God, Vessel> Heaven::remember_with_vessel(const std::string_view device_token)
+std::pair<God, Vessel> Heaven::remember_with_vessel(const DeadVessel& dead)
 {
     const GodName name = GodName::generate();
-    auto [god, vessel] = eternity_.insert_god_with_vessel(device_token, name);
+    auto [god, vessel] = eternity_.insert_god_with_vessel(dead.text(), name);
     insert(god);
     return {god, std::move(vessel)};
 }
