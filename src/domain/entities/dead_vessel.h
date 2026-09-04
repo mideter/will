@@ -22,6 +22,8 @@ public:
     bool operator==(const DeadVessel&) const = default;
 
 private:
+    friend struct std::hash<DeadVessel>;
+
     DeviceToken token_;
 };
 
@@ -33,6 +35,6 @@ template <>
 struct std::hash<will::domain::DeadVessel> {
     std::size_t operator()(const will::domain::DeadVessel& vessel) const noexcept
     {
-        return std::hash<std::string_view>{}(vessel.text());
+        return std::hash<will::domain::DeviceToken>{}(vessel.token_);
     }
 };
