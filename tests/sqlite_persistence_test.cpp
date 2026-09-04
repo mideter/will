@@ -20,10 +20,10 @@ namespace {
 
 
 will::domain::Soul register_soul(will::domain::Heaven& heaven, will::domain::Earth& earth,
-                               will::domain::Eternity& eternity, const std::string_view device_token,
+                               will::domain::Eternity& eternity, const will::domain::DeadVessel& dead,
                                const will::domain::SoulName name)
 {
-    auto [soul, vessel] = eternity.insert_soul_with_vessel(device_token, name);
+    auto [soul, vessel] = eternity.insert_soul_with_vessel(dead, name);
     heaven.insert(soul);
     earth.insert(std::move(vessel));
     return soul;
@@ -53,10 +53,12 @@ int main()
         Heaven heaven(store);
         Earth earth(heaven);
 
-        const Soul soul_a = register_soul(heaven, earth, store, "aaaa1234aaaa1234aaaa1234aaaa1234",
-                                          *SoulName::parse("nameaaaa"));
-        const Soul soul_b = register_soul(heaven, earth, store, "bbbb1234bbbb1234bbbb1234bbbb1234",
-                                          *SoulName::parse("namebbbb"));
+        const DeadVessel dead_a{"aaaa1234aaaa1234aaaa1234aaaa1234"};
+        const DeadVessel dead_b{"bbbb1234bbbb1234bbbb1234bbbb1234"};
+        const DeadVessel dead_created{token};
+
+        const Soul soul_a = register_soul(heaven, earth, store, dead_a, *SoulName::parse("nameaaaa"));
+        const Soul soul_b = register_soul(heaven, earth, store, dead_b, *SoulName::parse("namebbbb"));
         soul_a_id = soul_a.id();
         soul_b_id = soul_b.id();
 
@@ -73,13 +75,13 @@ int main()
         assert(rows[1].author_id() == soul_b.id());
         assert(heaven.find_by_id(rows[1].author_id())->name() == *SoulName::parse("namebbbb"));
 
-        const Soul created = register_soul(heaven, earth, store, token, *SoulName::parse("abcdefgh"));
+        const Soul created = register_soul(heaven, earth, store, dead_created, *SoulName::parse("abcdefgh"));
         created_id = created.id();
         assert(created.id().value() > 0);
-        assert(earth.soul_id_for_dead(DeadVessel{token}) == created.id());
+        assert(earth.soul_id_for_dead(dead_created) == created.id());
         assert(created.name() == *SoulName::parse("abcdefgh"));
 
-        assert(earth.find_by_dead(DeadVessel{token}).has_value());
+        assert(earth.find_by_dead(dead_created).has_value());
         assert(heaven.find_by_id(created.id()).has_value());
     }
 
@@ -89,7 +91,8 @@ int main()
         Heaven heaven(store);
         Earth earth(heaven);
 
-        assert(earth.soul_id_for_dead(DeadVessel{token}) == *created_id);
+        const DeadVessel dead_created{token};
+        assert(earth.soul_id_for_dead(dead_created) == *created_id);
         assert(heaven.find_by_id(*created_id)->name() == *SoulName::parse("abcdefgh"));
 
         const std::optional<Soul> a = heaven.find_by_id(*soul_a_id);

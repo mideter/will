@@ -29,7 +29,7 @@ std::optional<Soul> Heaven::find_by_id(const id::Soul id) const
 std::pair<Soul, Vessel> Heaven::remember_with_vessel(const DeadVessel& dead)
 {
     const SoulName name = SoulName::generate();
-    auto [soul, vessel] = eternity_.insert_soul_with_vessel(dead.text(), name);
+    auto [soul, vessel] = eternity_.insert_soul_with_vessel(dead, name);
     insert(soul);
     return {soul, std::move(vessel)};
 }

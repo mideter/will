@@ -82,11 +82,9 @@ std::vector<domain::Vessel> SqliteStore::load_vessels()
 }
 
 
-std::pair<domain::Soul, domain::Vessel> SqliteStore::insert_soul_with_vessel(const std::string_view device_token,
+std::pair<domain::Soul, domain::Vessel> SqliteStore::insert_soul_with_vessel(const domain::DeadVessel& dead,
                                                                              const domain::SoulName name)
 {
-    const domain::DeadVessel dead{device_token};
-
     std::lock_guard lock(database_.mutex());
 
     sqlite3* const db = database_.db();

@@ -27,12 +27,10 @@ public:
 
     std::vector<Vessel> load_vessels() override { return vessels_; }
 
-    std::pair<Soul, Vessel> insert_soul_with_vessel(const std::string_view device_token,
-                                                  const SoulName name) override
+    std::pair<Soul, Vessel> insert_soul_with_vessel(const DeadVessel& dead, const SoulName name) override
     {
         const id::Soul soul_id{++next_soul_id_};
         const id::Vessel vessel_id{++next_vessel_id_};
-        const DeadVessel dead{device_token};
         Soul soul{soul_id, name};
         Vessel vessel{vessel_id, dead, soul_id};
         souls_.push_back(soul);
