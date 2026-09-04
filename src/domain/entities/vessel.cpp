@@ -6,10 +6,9 @@
 namespace will::domain {
 
 
-Vessel::Vessel(const id::Vessel id, DeadVessel dead, const id::Soul soul_id)
+Vessel::Vessel(const id::Vessel id, DeviceToken token)
     : id_(id)
-    , dead_(std::move(dead))
-    , soul_id_(soul_id)
+    , token_(std::move(token))
 {}
 
 

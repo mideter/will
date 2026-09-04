@@ -2,6 +2,8 @@
 
 #include "values/soul_name.h"
 
+#include <utility>
+
 
 namespace will::domain {
 
@@ -26,18 +28,24 @@ std::optional<Soul> Heaven::find_by_id(const id::Soul id) const
 }
 
 
-Man Heaven::remember_with_vessel(const DeadVessel& dead)
+ManBirth Heaven::remember_man(const DeviceToken& token)
 {
     const SoulName name = SoulName::generate();
-    Man man = eternity_.insert_soul_with_vessel(dead, name);
-    insert(man.soul());
-    return man;
+    ManBirth birth = eternity_.insert_man(token, name);
+    insert(birth.soul);
+    return birth;
 }
 
 
 std::vector<Vessel> Heaven::load_vessels() const
 {
     return eternity_.load_vessels();
+}
+
+
+std::vector<Man> Heaven::load_men() const
+{
+    return eternity_.load_men();
 }
 
 

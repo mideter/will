@@ -1,26 +1,28 @@
 #pragma once
 
-#include "entities/soul.h"
-#include "entities/vessel.h"
+#include "ids/man.h"
+#include "ids/soul.h"
+#include "ids/vessel.h"
 
 
 namespace will::domain {
 
 
-/// Man (Человек) — soul dwelling in a vessel.
+/// Man (Человек) — soul dwelling in a vessel. Identity and links are fixed after construction.
 class Man {
 public:
-    /// Throws std::invalid_argument if vessel.soul_id() != soul.id().
-    Man(Soul&& soul, Vessel&& vessel);
+    Man(id::Man id, id::Soul soul_id, id::Vessel vessel_id);
 
-    const Soul& soul() const noexcept { return soul_; }
-    const Vessel& vessel() const noexcept { return vessel_; }
+    id::Man id() const noexcept { return id_; }
+    id::Soul soul_id() const noexcept { return soul_id_; }
+    id::Vessel vessel_id() const noexcept { return vessel_id_; }
 
     bool operator==(const Man&) const = default;
 
 private:
-    Soul soul_;
-    Vessel vessel_;
+    id::Man id_;
+    id::Soul soul_id_;
+    id::Vessel vessel_id_;
 };
 
 

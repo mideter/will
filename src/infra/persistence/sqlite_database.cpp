@@ -111,6 +111,7 @@ void drop_legacy_tables(sqlite3* db)
 {
     static constexpr const char* DropLegacyTablesSql = R"sql(
 DROP TABLE IF EXISTS letters;
+DROP TABLE IF EXISTS men;
 DROP TABLE IF EXISTS vessels;
 DROP TABLE IF EXISTS messages;
 DROP TABLE IF EXISTS auth_sessions;
@@ -130,10 +131,17 @@ void migrate_souls_device_token_to_vessels(sqlite3* db)
         return;
 
     check_sqlite(
-        sqlite3_exec(db,
-                     "INSERT OR IGNORE INTO vessels (device_token, soul_id) SELECT device_token, id FROM souls;",
+        sqlite3_exec(db, "INSERT OR IGNORE INTO vessels (device_token) SELECT device_token FROM souls;",
                      nullptr, nullptr, nullptr),
         db, "migrate device_token to vessels");
+
+    check_sqlite(
+        sqlite3_exec(db,
+                     "INSERT OR IGNORE INTO men (soul_id, vessel_id) "
+                     "SELECT s.id, v.id FROM souls s "
+                     "JOIN vessels v ON v.device_token = s.device_token;",
+                     nullptr, nullptr, nullptr),
+        db, "migrate souls/vessels to men");
 
     check_sqlite(sqlite3_exec(db, "BEGIN IMMEDIATE;", nullptr, nullptr, nullptr), db,
                  "begin migrate souls schema");
@@ -172,6 +180,38 @@ void migrate_gods_to_souls(sqlite3* db)
 }
 
 
+void migrate_vessels_soul_id_to_men(sqlite3* db)
+{
+    if (!table_has_column(db, "vessels", "soul_id"))
+        return;
+
+    check_sqlite(
+        sqlite3_exec(db,
+                     "INSERT OR IGNORE INTO men (soul_id, vessel_id) "
+                     "SELECT soul_id, id FROM vessels;",
+                     nullptr, nullptr, nullptr),
+        db, "migrate vessels.soul_id to men");
+
+    check_sqlite(sqlite3_exec(db, "BEGIN IMMEDIATE;", nullptr, nullptr, nullptr), db,
+                 "begin migrate vessels schema");
+    check_sqlite(sqlite3_exec(db,
+                              "CREATE TABLE vessels_new ("
+                              "  id INTEGER PRIMARY KEY AUTOINCREMENT,"
+                              "  device_token TEXT UNIQUE NOT NULL"
+                              ");",
+                              nullptr, nullptr, nullptr),
+                 db, "create vessels_new");
+    check_sqlite(sqlite3_exec(db,
+                              "INSERT INTO vessels_new (id, device_token) SELECT id, device_token FROM vessels;",
+                              nullptr, nullptr, nullptr),
+                 db, "copy vessels to vessels_new");
+    check_sqlite(sqlite3_exec(db, "DROP TABLE vessels;", nullptr, nullptr, nullptr), db, "drop old vessels");
+    check_sqlite(sqlite3_exec(db, "ALTER TABLE vessels_new RENAME TO vessels;", nullptr, nullptr, nullptr), db,
+                 "rename vessels_new");
+    check_sqlite(sqlite3_exec(db, "COMMIT;", nullptr, nullptr, nullptr), db, "commit migrate vessels schema");
+}
+
+
 } // namespace
 
 
@@ -192,8 +232,13 @@ CREATE TABLE IF NOT EXISTS souls (
 
 CREATE TABLE IF NOT EXISTS vessels (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  device_token TEXT UNIQUE NOT NULL,
-  soul_id INTEGER NOT NULL REFERENCES souls(id)
+  device_token TEXT UNIQUE NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS men (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  soul_id INTEGER NOT NULL REFERENCES souls(id),
+  vessel_id INTEGER NOT NULL UNIQUE REFERENCES vessels(id)
 );
 
 CREATE TABLE IF NOT EXISTS letters (
@@ -212,6 +257,7 @@ CREATE INDEX IF NOT EXISTS idx_letters_created_at ON letters(created_at_ns);
     migrate_souls_device_token_to_vessels(db_);
     // Column renames for DBs that already had vessels/letters before gods→souls.
     migrate_gods_to_souls(db_);
+    migrate_vessels_soul_id_to_men(db_);
 
     check_sqlite(sqlite3_exec(db_, "UPDATE letters SET abode_id = 1 WHERE abode_id = 0;", nullptr, nullptr,
                               nullptr),

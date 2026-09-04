@@ -1,17 +1,18 @@
 #pragma once
 
-#include "entities/dead_vessel.h"
 #include "entities/earth.h"
 #include "entities/soul.h"
 #include "entities/heaven.h"
 #include "entities/letter.h"
 #include "entities/man.h"
 #include "entities/vessel.h"
+#include "ids/man.h"
 #include "ids/soul.h"
 #include "ids/vessel.h"
 #include "ports/eternity.h"
 #include "ports/letter_repository.h"
 #include "ports/participant_notifier.h"
+#include "values/device_token.h"
 #include "values/soul_name.h"
 
 #include <string>
@@ -28,22 +29,29 @@ public:
 
     std::vector<Vessel> load_vessels() override { return vessels_; }
 
-    Man insert_soul_with_vessel(const DeadVessel& dead, const SoulName name) override
+    std::vector<Man> load_men() override { return men_; }
+
+    ManBirth insert_man(const DeviceToken& token, const SoulName name) override
     {
         const id::Soul soul_id{++next_soul_id_};
         const id::Vessel vessel_id{++next_vessel_id_};
+        const id::Man man_id{++next_man_id_};
         Soul soul{soul_id, name};
-        Vessel vessel{vessel_id, dead, soul_id};
+        Vessel vessel{vessel_id, token};
+        Man man{man_id, soul_id, vessel_id};
         souls_.push_back(soul);
         vessels_.push_back(vessel);
-        return Man{std::move(soul), std::move(vessel)};
+        men_.push_back(man);
+        return ManBirth{man, std::move(soul), std::move(vessel)};
     }
 
 private:
     std::uint64_t next_soul_id_ = 0;
     std::uint64_t next_vessel_id_ = 0;
+    std::uint64_t next_man_id_ = 0;
     std::vector<Soul> souls_;
     std::vector<Vessel> vessels_;
+    std::vector<Man> men_;
 };
 
 
@@ -85,18 +93,22 @@ public:
 
 inline Soul register_soul_with_vessel(Heaven& heaven, Earth& earth, const std::string_view device_token)
 {
-    const DeadVessel dead{device_token};
-    Man man = heaven.remember_with_vessel(dead);
-    earth.insert(man.vessel());
-    return man.soul();
+    const DeviceToken token = *DeviceToken::parse(device_token);
+    ManBirth birth = heaven.remember_man(token);
+    earth.insert(std::move(birth.vessel));
+    earth.insert(birth.man);
+    return birth.soul;
 }
 
 
-inline void seed_soul_with_dead(Heaven& heaven, Earth& earth, const id::Soul soul_id, const DeadVessel& dead,
-                               const SoulName name)
+inline void seed_man(Heaven& heaven, Earth& earth, const id::Soul soul_id, const DeviceToken& token,
+                     const SoulName name)
 {
+    const id::Vessel vessel_id{soul_id.value()};
+    const id::Man man_id{soul_id.value()};
     heaven.insert(Soul{soul_id, name});
-    earth.insert(Vessel{id::Vessel{soul_id.value()}, dead, soul_id});
+    earth.insert(Vessel{vessel_id, token});
+    earth.insert(Man{man_id, soul_id, vessel_id});
 }
 
 

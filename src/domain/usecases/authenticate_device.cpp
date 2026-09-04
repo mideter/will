@@ -1,9 +1,8 @@
 #include "authenticate_device.h"
 
-#include "entities/dead_vessel.h"
+#include "values/device_token.h"
 
 #include <optional>
-#include <stdexcept>
 #include <utility>
 
 
@@ -19,21 +18,17 @@ AuthenticateDevice::AuthenticateDevice(Heaven& heaven, Earth& earth)
 std::variant<AuthenticateDeviceSuccess, AuthError> AuthenticateDevice::execute(
     const AuthenticateDeviceInput& input)
 {
-    try {
-        const DeadVessel dead{input.device_token_raw};
-
-        if (std::optional<Vessel> vessel = earth_.find_by_dead(dead)) {
-            if (std::optional<Soul> soul = heaven_.find_by_id(vessel->soul_id()))
-                return AuthenticateDeviceSuccess{Man{std::move(*soul), std::move(*vessel)}};
-            return AuthError::InvalidToken;
-        }
-
-        Man man = heaven_.remember_with_vessel(dead);
-        earth_.insert(man.vessel());
-        return AuthenticateDeviceSuccess{std::move(man)};
-    } catch (const std::invalid_argument&) {
+    const std::optional<DeviceToken> token = DeviceToken::parse(input.device_token_raw);
+    if (!token)
         return AuthError::InvalidToken;
-    }
+
+    if (std::optional<Man> man = earth_.find_man_by_token(*token))
+        return AuthenticateDeviceSuccess{std::move(*man)};
+
+    ManBirth birth = heaven_.remember_man(*token);
+    earth_.insert(std::move(birth.vessel));
+    earth_.insert(birth.man);
+    return AuthenticateDeviceSuccess{std::move(birth.man)};
 }
 
 

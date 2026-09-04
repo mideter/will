@@ -1,5 +1,6 @@
 #include "ids/abode.h"
 #include "ids/letter.h"
+#include "ids/man.h"
 #include "ids/soul.h"
 #include "ids/vessel.h"
 
@@ -48,6 +49,17 @@ int main()
         id::Vessel{0};
         return EXIT_FAILURE;
     } catch (const std::invalid_argument&) {
+    }
+
+    try {
+        id::Man{0};
+        return EXIT_FAILURE;
+    } catch (const std::invalid_argument&) {
+    }
+
+    {
+        const id::Man id{3};
+        assert(id.value() == 3);
     }
 
     {

@@ -1,6 +1,5 @@
 #include "domain_fakes.h"
 
-#include "entities/dead_vessel.h"
 #include "entities/earth.h"
 #include "entities/heaven.h"
 #include "ids/abode.h"
@@ -25,9 +24,9 @@ using namespace will::domain;
 using namespace will::domain::test;
 
 
-DeadVessel test_dead(const char* hex = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+DeviceToken test_token(const char* hex = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
 {
-    return DeadVessel{hex};
+    return *DeviceToken::parse(hex);
 }
 
 
@@ -44,18 +43,20 @@ void test_authenticate_device_creates_soul()
     Earth earth(heaven);
     AuthenticateDevice authenticate(heaven, earth);
 
-    const DeadVessel dead{DeviceToken::generate()};
-    const auto result = authenticate.execute(AuthenticateDeviceInput{dead.text()});
+    const DeviceToken token = DeviceToken::generate();
+    const auto result = authenticate.execute(AuthenticateDeviceInput{token.text()});
     assert(std::holds_alternative<AuthenticateDeviceSuccess>(result));
 
     const AuthenticateDeviceSuccess& success = std::get<AuthenticateDeviceSuccess>(result);
-    assert(success.man.soul().id().value() > 0);
+    assert(success.man.soul_id().value() > 0);
+    assert(success.man.id().value() > 0);
+    assert(success.man.vessel_id().value() > 0);
 
-    assert(earth.soul_id_for_dead(dead) == success.man.soul().id());
-    const std::optional<Soul> soul = heaven.find_by_id(success.man.soul().id());
+    assert(earth.soul_id_for_token(token) == success.man.soul_id());
+    const std::optional<Soul> soul = heaven.find_by_id(success.man.soul_id());
     assert(soul.has_value());
     assert(SoulName::parse(soul->name().text()));
-    assert(success.man.vessel().soul_id() == success.man.soul().id());
+    assert(earth.find_man_by_token(token)->id() == success.man.id());
 }
 
 
@@ -64,13 +65,13 @@ void test_authenticate_device_existing_soul()
     InMemoryEternity eternity;
     Heaven heaven(eternity);
     Earth earth(heaven);
-    seed_soul_with_dead(heaven, earth, id::Soul{42}, test_dead("abcd1234abcd1234abcd1234abcd1234"),
-                       test_name("oldname1"));
+    seed_man(heaven, earth, id::Soul{42}, test_token("abcd1234abcd1234abcd1234abcd1234"),
+             test_name("oldname1"));
 
     AuthenticateDevice authenticate(heaven, earth);
     const auto result = authenticate.execute(AuthenticateDeviceInput{"abcd1234abcd1234abcd1234abcd1234"});
     assert(std::holds_alternative<AuthenticateDeviceSuccess>(result));
-    assert(std::get<AuthenticateDeviceSuccess>(result).man.soul().id() == id::Soul{42});
+    assert(std::get<AuthenticateDeviceSuccess>(result).man.soul_id() == id::Soul{42});
 }
 
 
@@ -79,8 +80,8 @@ void test_authenticate_device_keeps_existing_name()
     InMemoryEternity eternity;
     Heaven heaven(eternity);
     Earth earth(heaven);
-    seed_soul_with_dead(heaven, earth, id::Soul{7}, test_dead("abcd1234abcd1234abcd1234abcd1234"),
-                       test_name("keptname"));
+    seed_man(heaven, earth, id::Soul{7}, test_token("abcd1234abcd1234abcd1234abcd1234"),
+             test_name("keptname"));
 
     AuthenticateDevice authenticate(heaven, earth);
     const auto result = authenticate.execute(AuthenticateDeviceInput{"abcd1234abcd1234abcd1234abcd1234"});
@@ -139,9 +140,8 @@ void test_fetch_letter_history_limit_and_is_mine()
     const id::Soul me{10};
     const id::Soul other{20};
 
-    seed_soul_with_dead(heaven, earth, me, test_dead("c0ffee00c0ffee00c0ffee00c0ffee00"), test_name("menameaa"));
-    seed_soul_with_dead(heaven, earth, other, test_dead("deadbeefdeadbeefdeadbeefdeadbeef"),
-                       test_name("peername"));
+    seed_man(heaven, earth, me, test_token("c0ffee00c0ffee00c0ffee00c0ffee00"), test_name("menameaa"));
+    seed_man(heaven, earth, other, test_token("deadbeefdeadbeefdeadbeefdeadbeef"), test_name("peername"));
 
     letters.append(abode, other, "peer", Timestamp{1});
     letters.append(abode, me, "mine", Timestamp{2});
@@ -176,8 +176,7 @@ void test_fetch_letter_history_caps_limit()
     const id::Abode abode = id::Abode::global();
     const id::Soul author{1};
 
-    seed_soul_with_dead(heaven, earth, author, test_dead("feedfacefeedfacefeedfacefeedface"),
-                       test_name("authoraa"));
+    seed_man(heaven, earth, author, test_token("feedfacefeedfacefeedfacefeedface"), test_name("authoraa"));
 
     for (int i = 0; i < 5; ++i)
         letters.append(abode, author, "m", Timestamp{i});

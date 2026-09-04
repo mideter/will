@@ -1,8 +1,7 @@
 #pragma once
 
-#include "entities/dead_vessel.h"
-#include "ids/soul.h"
 #include "ids/vessel.h"
+#include "values/device_token.h"
 
 
 namespace will::domain {
@@ -11,18 +10,16 @@ namespace will::domain {
 /// Vessel (Сосуд) — device through which a soul reaches the world.
 class Vessel {
 public:
-    Vessel(id::Vessel id, DeadVessel dead, id::Soul soul_id);
+    Vessel(id::Vessel id, DeviceToken token);
 
     id::Vessel id() const noexcept { return id_; }
-    const DeadVessel& dead() const noexcept { return dead_; }
-    id::Soul soul_id() const noexcept { return soul_id_; }
+    const DeviceToken& token() const noexcept { return token_; }
 
     bool operator==(const Vessel&) const = default;
 
 private:
     id::Vessel id_;
-    DeadVessel dead_;
-    id::Soul soul_id_;
+    DeviceToken token_;
 };
 
 

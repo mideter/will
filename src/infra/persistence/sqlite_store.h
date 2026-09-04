@@ -13,7 +13,8 @@ public:
 
     std::vector<domain::Soul> load_souls() override;
     std::vector<domain::Vessel> load_vessels() override;
-    domain::Man insert_soul_with_vessel(const domain::DeadVessel& dead, domain::SoulName name) override;
+    std::vector<domain::Man> load_men() override;
+    domain::ManBirth insert_man(const domain::DeviceToken& token, domain::SoulName name) override;
 
 private:
     SqliteDatabase& database_;
