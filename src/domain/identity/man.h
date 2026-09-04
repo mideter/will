@@ -11,10 +11,10 @@ namespace will::domain::id {
 /// Persistent man identity assigned by storage.
 class Man : public Id {
 public:
-    explicit Man(std::uint64_t value) : Id(value) {}
+	explicit Man(std::uint64_t value) : Id(value) {}
 
-    constexpr auto operator<=>(const Man&) const noexcept = default;
-    constexpr bool operator==(const Man&) const noexcept = default;
+	constexpr auto operator<=>(const Man&) const noexcept = default;
+	constexpr bool operator==(const Man&) const noexcept = default;
 };
 
 

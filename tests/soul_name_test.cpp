@@ -6,19 +6,19 @@
 
 int main()
 {
-    using namespace will::domain;
+	using namespace will::domain;
 
-    assert(SoulName::parse("abcdefgh"));
-    assert(SoulName::parse("abc12345"));
-    assert(!SoulName::parse(""));
-    assert(!SoulName::parse("short"));
-    assert(!SoulName::parse("ABCDEFGH"));
-    assert(!SoulName::parse("abcd-efg"));
+	assert(SoulName::parse("abcdefgh"));
+	assert(SoulName::parse("abc12345"));
+	assert(!SoulName::parse(""));
+	assert(!SoulName::parse("short"));
+	assert(!SoulName::parse("ABCDEFGH"));
+	assert(!SoulName::parse("abcd-efg"));
 
-    {
-        const SoulName name = SoulName::generate();
-        assert(SoulName::parse(name.text()));
-    }
+	{
+		const SoulName name = SoulName::generate();
+		assert(SoulName::parse(name.text()));
+	}
 
-    return EXIT_SUCCESS;
+	return EXIT_SUCCESS;
 }

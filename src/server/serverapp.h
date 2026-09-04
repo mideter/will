@@ -9,15 +9,15 @@ namespace will {
 
 class ServerApp {
 public:
-    ServerApp(int argc, char* argv[]);
+	ServerApp(int argc, char* argv[]);
 
-    const ServerConfig& config() const noexcept;
+	const ServerConfig& config() const noexcept;
 
-    int run();
+	int run();
 
 private:
-    ServerCliApp cli_;
-    ServerConfig config_;
+	ServerCliApp cli_;
+	ServerConfig config_;
 };
 
 

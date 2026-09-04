@@ -12,13 +12,13 @@ class SessionRegistry;
 
 class SessionParticipantNotifierImpl final : public domain::ParticipantNotifier {
 public:
-    SessionParticipantNotifierImpl(SessionRegistry& registry, domain::Heaven& heaven);
+	SessionParticipantNotifierImpl(SessionRegistry& registry, domain::Heaven& heaven);
 
-    void notify_letter(const domain::Letter& letter) override;
+	void notify_letter(const domain::Letter& letter) override;
 
 private:
-    SessionRegistry& registry_;
-    domain::Heaven& heaven_;
+	SessionRegistry& registry_;
+	domain::Heaven& heaven_;
 };
 
 

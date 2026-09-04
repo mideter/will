@@ -12,27 +12,27 @@ class WillClient;
 
 class LoadingHistoryMessageHandler final {
 public:
-    explicit LoadingHistoryMessageHandler(ConsoleUi& ui);
+	explicit LoadingHistoryMessageHandler(ConsoleUi& ui);
 
-    bool history_finished() const noexcept { return history_finished_; }
+	bool history_finished() const noexcept { return history_finished_; }
 
-    void on(const v1::ServerEvent& event);
+	void on(const v1::ServerEvent& event);
 
 private:
-    ConsoleUi& ui_;
-    bool history_finished_ = false;
+	ConsoleUi& ui_;
+	bool history_finished_ = false;
 };
 
 
 class ReceivingMessageHandler final {
 public:
-    ReceivingMessageHandler(const WillClient& client, ConsoleUi& ui);
+	ReceivingMessageHandler(const WillClient& client, ConsoleUi& ui);
 
-    void on(const v1::ServerEvent& event);
+	void on(const v1::ServerEvent& event);
 
 private:
-    const WillClient& client_;
-    ConsoleUi& ui_;
+	const WillClient& client_;
+	ConsoleUi& ui_;
 };
 
 

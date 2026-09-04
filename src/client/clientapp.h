@@ -9,15 +9,15 @@ namespace will {
 
 class ClientApp {
 public:
-    ClientApp(int argc, char* argv[]);
+	ClientApp(int argc, char* argv[]);
 
-    const ClientConfig& config() const noexcept;
+	const ClientConfig& config() const noexcept;
 
-    int run();
+	int run();
 
 private:
-    ClientCliApp cli_;
-    ClientConfig config_;
+	ClientCliApp cli_;
+	ClientConfig config_;
 };
 
 

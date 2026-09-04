@@ -18,29 +18,29 @@ constexpr std::size_t AlphabetSize = sizeof(Alphabet) - 1;
 
 std::optional<SoulName> SoulName::parse(const std::string_view input)
 {
-    if (input.size() != Length)
-        return std::nullopt;
+	if (input.size() != Length)
+		return std::nullopt;
 
-    for (const char c : input) {
-        const bool ok = (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9');
-        if (!ok)
-            return std::nullopt;
-    }
+	for (const char c : input) {
+		const bool ok = (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9');
+		if (!ok)
+			return std::nullopt;
+	}
 
-    return SoulName{std::string(input)};
+	return SoulName{std::string(input)};
 }
 
 
 SoulName SoulName::generate()
 {
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_int_distribution<std::size_t> dist(0, AlphabetSize - 1);
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_int_distribution<std::size_t> dist(0, AlphabetSize - 1);
 
-    std::string name(Length, '\0');
-    for (char& ch : name)
-        ch = Alphabet[dist(gen)];
-    return SoulName{std::move(name)};
+	std::string name(Length, '\0');
+	for (char& ch : name)
+		ch = Alphabet[dist(gen)];
+	return SoulName{std::move(name)};
 }
 
 

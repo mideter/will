@@ -3,6 +3,6 @@
 
 int main(int argc, char* argv[])
 {
-    will::ServerApp app(argc, argv);
-    return app.run();
+	will::ServerApp app(argc, argv);
+	return app.run();
 }

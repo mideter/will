@@ -10,16 +10,16 @@ namespace will::domain {
 /// Soul (Душа) — participant of an abode.
 class Soul {
 public:
-    Soul(id::Soul id, SoulName name);
+	Soul(id::Soul id, SoulName name);
 
-    id::Soul id() const noexcept { return id_; }
-    const SoulName& name() const noexcept { return name_; }
+	id::Soul id() const noexcept { return id_; }
+	const SoulName& name() const noexcept { return name_; }
 
-    bool operator==(const Soul&) const = default;
+	bool operator==(const Soul&) const = default;
 
 private:
-    id::Soul id_;
-    SoulName name_;
+	id::Soul id_;
+	SoulName name_;
 };
 
 

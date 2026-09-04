@@ -11,10 +11,10 @@ namespace will::domain::id {
 /// Persistent vessel identity assigned by storage.
 class Vessel : public Id {
 public:
-    explicit Vessel(std::uint64_t value) : Id(value) {}
+	explicit Vessel(std::uint64_t value) : Id(value) {}
 
-    constexpr auto operator<=>(const Vessel&) const noexcept = default;
-    constexpr bool operator==(const Vessel&) const noexcept = default;
+	constexpr auto operator<=>(const Vessel&) const noexcept = default;
+	constexpr bool operator==(const Vessel&) const noexcept = default;
 };
 
 

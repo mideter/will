@@ -11,10 +11,10 @@ namespace will::domain::id {
 /// Persistent letter identity assigned by storage.
 class Letter : public Id {
 public:
-    explicit Letter(std::uint64_t value) : Id(value) {}
+	explicit Letter(std::uint64_t value) : Id(value) {}
 
-    constexpr auto operator<=>(const Letter&) const noexcept = default;
-    constexpr bool operator==(const Letter&) const noexcept = default;
+	constexpr auto operator<=>(const Letter&) const noexcept = default;
+	constexpr bool operator==(const Letter&) const noexcept = default;
 };
 
 

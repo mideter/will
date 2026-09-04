@@ -15,117 +15,117 @@ namespace {
 
 
 struct Argv {
-    std::vector<std::string> storage;
-    std::vector<char*> ptrs;
+	std::vector<std::string> storage;
+	std::vector<char*> ptrs;
 
-    explicit Argv(std::initializer_list<const char*> args)
-    {
-        storage.reserve(args.size());
-        for (const char* arg : args)
-            storage.emplace_back(arg);
+	explicit Argv(std::initializer_list<const char*> args)
+	{
+		storage.reserve(args.size());
+		for (const char* arg : args)
+			storage.emplace_back(arg);
 
-        ptrs.reserve(storage.size());
-        for (std::string& arg : storage)
-            ptrs.push_back(arg.data());
+		ptrs.reserve(storage.size());
+		for (std::string& arg : storage)
+			ptrs.push_back(arg.data());
 
-        ptrs.push_back(nullptr);
-    }
+		ptrs.push_back(nullptr);
+	}
 
-    int argc() const { return static_cast<int>(storage.size()); }
+	int argc() const { return static_cast<int>(storage.size()); }
 
-    char** argv() { return ptrs.data(); }
+	char** argv() { return ptrs.data(); }
 };
 
 
 void assert_parse_error(std::initializer_list<const char*> args)
 {
-    using namespace will;
+	using namespace will;
 
-    Argv argv{args};
-    ServerCliApp cli;
-    bool threw = false;
-    try {
-        (void)cli.parse(argv.argc(), argv.argv());
-    } catch (const CLI::ParseError&) {
-        threw = true;
-    }
-    assert(threw);
+	Argv argv{args};
+	ServerCliApp cli;
+	bool threw = false;
+	try {
+		(void)cli.parse(argv.argc(), argv.argv());
+	} catch (const CLI::ParseError&) {
+		threw = true;
+	}
+	assert(threw);
 }
 
 
 void assert_help_requested(std::initializer_list<const char*> args)
 {
-    using namespace will;
+	using namespace will;
 
-    Argv argv{args};
-    ServerCliApp cli;
-    bool threw = false;
-    try {
-        (void)cli.parse(argv.argc(), argv.argv());
-    } catch (const CLI::CallForHelp&) {
-        threw = true;
-    }
-    assert(threw);
+	Argv argv{args};
+	ServerCliApp cli;
+	bool threw = false;
+	try {
+		(void)cli.parse(argv.argc(), argv.argv());
+	} catch (const CLI::CallForHelp&) {
+		threw = true;
+	}
+	assert(threw);
 }
 
 
 void assert_help_output()
 {
-    using namespace will;
+	using namespace will;
 
-    std::ostringstream out;
-    ServerCliApp{}.print_help(out);
-    const std::string help = out.str();
+	std::ostringstream out;
+	ServerCliApp{}.print_help(out);
+	const std::string help = out.str();
 
-    assert(help.find("Usage: will-server") != std::string::npos);
-    assert(help.find("--port") != std::string::npos);
-    assert(help.find("--keepalive-interval") != std::string::npos);
-    assert(help.find("--keepalive-timeout") != std::string::npos);
-    assert(help.find("-h, --help") != std::string::npos);
-    assert(help.find("OPTIONS:") == std::string::npos);
-    assert(help.find(" INT") == std::string::npos);
-    assert(help.find(" UINT") == std::string::npos);
-    assert(help.find("[OPTIONS]") == std::string::npos);
+	assert(help.find("Usage: will-server") != std::string::npos);
+	assert(help.find("--port") != std::string::npos);
+	assert(help.find("--keepalive-interval") != std::string::npos);
+	assert(help.find("--keepalive-timeout") != std::string::npos);
+	assert(help.find("-h, --help") != std::string::npos);
+	assert(help.find("OPTIONS:") == std::string::npos);
+	assert(help.find(" INT") == std::string::npos);
+	assert(help.find(" UINT") == std::string::npos);
+	assert(help.find("[OPTIONS]") == std::string::npos);
 }
 
 
 void assert_defaults()
 {
-    using namespace will;
+	using namespace will;
 
-    Argv args{"will-server"};
-    const will::ServerConfig config = ServerCliApp{}.parse(args.argc(), args.argv());
+	Argv args{"will-server"};
+	const will::ServerConfig config = ServerCliApp{}.parse(args.argc(), args.argv());
 
-    assert(config.listen_port == will::ServerConfig::DefaultListenPort);
-    assert(config.max_connections == will::ServerConfig::DefaultMaxConnections);
-    assert(config.db_path == will::ServerConfig::DefaultDbPath);
-    assert(config.keepalive_interval_seconds == will::ServerConfig::DefaultKeepaliveIntervalSeconds);
-    assert(config.keepalive_timeout_seconds == will::ServerConfig::DefaultKeepaliveTimeoutSeconds);
+	assert(config.listen_port == will::ServerConfig::DefaultListenPort);
+	assert(config.max_connections == will::ServerConfig::DefaultMaxConnections);
+	assert(config.db_path == will::ServerConfig::DefaultDbPath);
+	assert(config.keepalive_interval_seconds == will::ServerConfig::DefaultKeepaliveIntervalSeconds);
+	assert(config.keepalive_timeout_seconds == will::ServerConfig::DefaultKeepaliveTimeoutSeconds);
 }
 
 
 void assert_all_options()
 {
-    using namespace will;
+	using namespace will;
 
-    Argv args{"will-server",
-              "--port",
-              "9000",
-              "--max-clients",
-              "128",
-              "--db-path",
-              "/tmp/custom.db",
-              "--keepalive-interval",
-              "15",
-              "--keepalive-timeout",
-              "5"};
-    const will::ServerConfig config = ServerCliApp{}.parse(args.argc(), args.argv());
+	Argv args{"will-server",
+			  "--port",
+			  "9000",
+			  "--max-clients",
+			  "128",
+			  "--db-path",
+			  "/tmp/custom.db",
+			  "--keepalive-interval",
+			  "15",
+			  "--keepalive-timeout",
+			  "5"};
+	const will::ServerConfig config = ServerCliApp{}.parse(args.argc(), args.argv());
 
-    assert(config.listen_port == 9000);
-    assert(config.max_connections == 128);
-    assert(config.db_path == "/tmp/custom.db");
-    assert(config.keepalive_interval_seconds == 15);
-    assert(config.keepalive_timeout_seconds == 5);
+	assert(config.listen_port == 9000);
+	assert(config.max_connections == 128);
+	assert(config.db_path == "/tmp/custom.db");
+	assert(config.keepalive_interval_seconds == 15);
+	assert(config.keepalive_timeout_seconds == 5);
 }
 
 
@@ -134,16 +134,16 @@ void assert_all_options()
 
 int main()
 {
-    assert_help_output();
-    assert_parse_error({"will-server", "--unknown"});
-    assert_help_requested({"will-server", "--help"});
-    assert_help_requested({"will-server", "-h"});
-    assert_help_requested({"will-server", "--help", "--port", "8080"});
-    assert_help_requested({"will-server", "--port", "8080", "--help"});
-    assert_defaults();
-    assert_all_options();
-    assert_parse_error({"will-server", "--port"});
-    assert_parse_error({"will-server", "--max-clients", "abc"});
+	assert_help_output();
+	assert_parse_error({"will-server", "--unknown"});
+	assert_help_requested({"will-server", "--help"});
+	assert_help_requested({"will-server", "-h"});
+	assert_help_requested({"will-server", "--help", "--port", "8080"});
+	assert_help_requested({"will-server", "--port", "8080", "--help"});
+	assert_defaults();
+	assert_all_options();
+	assert_parse_error({"will-server", "--port"});
+	assert_parse_error({"will-server", "--max-clients", "abc"});
 
-    return EXIT_SUCCESS;
+	return EXIT_SUCCESS;
 }

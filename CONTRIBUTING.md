@@ -30,7 +30,7 @@ This document records project conventions so changes stay consistent. When in do
 
 ## Formatting
 
-- **Indentation:** tab for block indent; align continuation lines in a way consistent with surrounding files.
+- **Indentation:** tabs for block indent (display width 4). Continuation lines keep the same tab indent as the enclosing block, then use spaces only for visual alignment under the previous token.
 - **Braces:** opening brace on its own line after the function or control statement (Allman / BSD style).
 - **Line length:** no hard limit in tooling yet; avoid very long lines when a natural break improves readability.
 

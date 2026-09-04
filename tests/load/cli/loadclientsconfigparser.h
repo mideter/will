@@ -8,12 +8,12 @@ namespace will {
 
 class LoadClientsConfigParser {
 public:
-    LoadClientsConfigParser(int argc, char* argv[]);
+	LoadClientsConfigParser(int argc, char* argv[]);
 
-    const LoadClientsConfig& load_config() const noexcept;
+	const LoadClientsConfig& load_config() const noexcept;
 
 private:
-    LoadClientsConfig load_config_;
+	LoadClientsConfig load_config_;
 };
 
 

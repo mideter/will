@@ -5,14 +5,14 @@ namespace will::domain {
 
 
 enum class DomainErrorCode {
-    InvalidArgument,
-    NotAuthenticated,
-    Unauthorized,
+	InvalidArgument,
+	NotAuthenticated,
+	Unauthorized,
 };
 
 
 struct DomainError {
-    DomainErrorCode code = DomainErrorCode::InvalidArgument;
+	DomainErrorCode code = DomainErrorCode::InvalidArgument;
 };
 
 

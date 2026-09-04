@@ -17,35 +17,35 @@ namespace will::domain {
 
 
 struct FetchLetterHistoryInput {
-    id::Soul soul_id;
-    id::Abode abode_id = id::Abode::global();
-    std::uint32_t limit = 0;
+	id::Soul soul_id;
+	id::Abode abode_id = id::Abode::global();
+	std::uint32_t limit = 0;
 };
 
 
 struct FetchLetterHistoryItem {
-    Letter letter;
-    std::string author_name;
-    bool is_mine = false;
+	Letter letter;
+	std::string author_name;
+	bool is_mine = false;
 };
 
 
 struct FetchLetterHistoryResult {
-    std::vector<FetchLetterHistoryItem> items;
+	std::vector<FetchLetterHistoryItem> items;
 };
 
 
 class FetchLetterHistory {
 public:
-    static constexpr std::uint32_t MaxHistoryRequestLimit = 1000;
+	static constexpr std::uint32_t MaxHistoryRequestLimit = 1000;
 
-    FetchLetterHistory(LetterRepository& letters, Heaven& heaven);
+	FetchLetterHistory(LetterRepository& letters, Heaven& heaven);
 
-    std::variant<FetchLetterHistoryResult, DomainError> execute(const FetchLetterHistoryInput& input);
+	std::variant<FetchLetterHistoryResult, DomainError> execute(const FetchLetterHistoryInput& input);
 
 private:
-    LetterRepository& letters_;
-    Heaven& heaven_;
+	LetterRepository& letters_;
+	Heaven& heaven_;
 };
 
 

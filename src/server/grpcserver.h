@@ -20,33 +20,33 @@ namespace will {
 
 class MessengerService final : public v1::Messenger::Service {
 public:
-    MessengerService(ProtocolAdapter& adapter, SessionRegistry& registry, std::size_t max_connections);
+	MessengerService(ProtocolAdapter& adapter, SessionRegistry& registry, std::size_t max_connections);
 
-    grpc::Status Session(grpc::ServerContext* context,
-                         grpc::ServerReaderWriter<v1::ServerEvent, v1::ClientEvent>* stream) override;
+	grpc::Status Session(grpc::ServerContext* context,
+						 grpc::ServerReaderWriter<v1::ServerEvent, v1::ClientEvent>* stream) override;
 
 private:
-    ProtocolAdapter& adapter_;
-    SessionRegistry& registry_;
-    std::size_t max_connections_;
+	ProtocolAdapter& adapter_;
+	SessionRegistry& registry_;
+	std::size_t max_connections_;
 };
 
 
 class GrpcMessengerServer {
 public:
-    GrpcMessengerServer(ServerConfig config, domain::MessengerPersistence persistence);
+	GrpcMessengerServer(ServerConfig config, domain::MessengerPersistence persistence);
 
-    void run();
+	void run();
 
-    void request_stop();
+	void request_stop();
 
 private:
-    ServerConfig config_;
-    SessionRegistry registry_;
-    ProtocolAdapter protocol_adapter_;
-    MessengerService service_;
-    std::unique_ptr<grpc::Server> server_;
-    std::atomic<bool> stopping_{false};
+	ServerConfig config_;
+	SessionRegistry registry_;
+	ProtocolAdapter protocol_adapter_;
+	MessengerService service_;
+	std::unique_ptr<grpc::Server> server_;
+	std::atomic<bool> stopping_{false};
 };
 
 

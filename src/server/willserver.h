@@ -10,18 +10,18 @@ namespace will {
 
 class WillServer {
 public:
-    static constexpr const char* Version = "6.0.0";
+	static constexpr const char* Version = "6.0.0";
 
-    explicit WillServer(ServerConfig config = {});
+	explicit WillServer(ServerConfig config = {});
 
-    void run();
+	void run();
 
 private:
-    static void log_startup(const ServerConfig& config);
+	static void log_startup(const ServerConfig& config);
 
-    ServerConfig config_;
-    SqlitePersistenceBundle persistence_;
-    GrpcMessengerServer server_;
+	ServerConfig config_;
+	SqlitePersistenceBundle persistence_;
+	GrpcMessengerServer server_;
 };
 
 

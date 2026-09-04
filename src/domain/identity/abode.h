@@ -11,12 +11,12 @@ namespace will::domain::id {
 /// Persistent abode identity. The single global abode is id 1 (see global()).
 class Abode : public Id {
 public:
-    explicit Abode(std::uint64_t value) : Id(value) {}
+	explicit Abode(std::uint64_t value) : Id(value) {}
 
-    static Abode global() { return Abode{1}; }
+	static Abode global() { return Abode{1}; }
 
-    constexpr auto operator<=>(const Abode&) const noexcept = default;
-    constexpr bool operator==(const Abode&) const noexcept = default;
+	constexpr auto operator<=>(const Abode&) const noexcept = default;
+	constexpr bool operator==(const Abode&) const noexcept = default;
 };
 
 

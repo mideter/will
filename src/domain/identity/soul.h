@@ -11,10 +11,10 @@ namespace will::domain::id {
 /// Persistent soul identity assigned by storage.
 class Soul : public Id {
 public:
-    explicit Soul(std::uint64_t value) : Id(value) {}
+	explicit Soul(std::uint64_t value) : Id(value) {}
 
-    constexpr auto operator<=>(const Soul&) const noexcept = default;
-    constexpr bool operator==(const Soul&) const noexcept = default;
+	constexpr auto operator<=>(const Soul&) const noexcept = default;
+	constexpr bool operator==(const Soul&) const noexcept = default;
 };
 
 

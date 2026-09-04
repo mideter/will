@@ -13,22 +13,22 @@ namespace will::domain {
 
 
 struct SendLetterInput {
-    id::Soul soul_id;
-    id::Abode abode_id = id::Abode::global();
-    std::string_view body;
-    Timestamp created_at{};
+	id::Soul soul_id;
+	id::Abode abode_id = id::Abode::global();
+	std::string_view body;
+	Timestamp created_at{};
 };
 
 
 class SendLetter {
 public:
-    SendLetter(LetterRepository& letters, ParticipantNotifier& notifier);
+	SendLetter(LetterRepository& letters, ParticipantNotifier& notifier);
 
-    Letter execute(const SendLetterInput& input);
+	Letter execute(const SendLetterInput& input);
 
 private:
-    LetterRepository& letters_;
-    ParticipantNotifier& notifier_;
+	LetterRepository& letters_;
+	ParticipantNotifier& notifier_;
 };
 
 

@@ -12,26 +12,26 @@ namespace will {
 
 class LoadClientsCliApp {
 public:
-    explicit LoadClientsCliApp(const LoadClientsConfig& defaults = LoadClientsConfig{});
+	explicit LoadClientsCliApp(const LoadClientsConfig& defaults = LoadClientsConfig{});
 
-    void print_help(std::ostream& os) const;
+	void print_help(std::ostream& os) const;
 
-    [[noreturn]] void exit_on_help(const CLI::CallForHelp& error) const;
+	[[noreturn]] void exit_on_help(const CLI::CallForHelp& error) const;
 
-    [[noreturn]] void exit_on_parse_error(const CLI::ParseError& error) const;
+	[[noreturn]] void exit_on_parse_error(const CLI::ParseError& error) const;
 
-    LoadClientsConfig parse(int argc, char* argv[]);
+	LoadClientsConfig parse(int argc, char* argv[]);
 
 private:
-    void apply_to(LoadClientsConfig& config) const;
+	void apply_to(LoadClientsConfig& config) const;
 
-    CLI::App app_;
+	CLI::App app_;
 
-    std::string host_;
-    int port_;
-    std::size_t clients_;
-    std::size_t messages_per_client_;
-    int hold_seconds_;
+	std::string host_;
+	int port_;
+	std::size_t clients_;
+	std::size_t messages_per_client_;
+	int hold_seconds_;
 };
 
 
