@@ -106,7 +106,7 @@ test_target("will-loading-history-handler-test")
         "$(projectdir)/src/client/consoleui.cpp")
     add_includedirs("$(projectdir)/src/client")
     add_deps("will-transport", "will-domain")
-    add_packages("pkgconfig::protobuf")
+    add_packages("pkgconfig::protobuf", "doctest")
 
 test_target("will-session-registry-test")
     add_files(
@@ -132,3 +132,4 @@ test_target("will-domain-test")
 test_target("will-sqlite-persistence-test")
     add_files("sqlite_persistence_test.cpp")
     add_deps("will-persistence")
+    add_packages("doctest")

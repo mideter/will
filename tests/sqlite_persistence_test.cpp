@@ -1,3 +1,6 @@
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include <doctest/doctest.h>
+
 #include "entities/world.h"
 #include "sqlite_database.h"
 #include "sqlite_store.h"
@@ -9,14 +12,12 @@
 #include "identity/soul.h"
 #include "values/soul_name.h"
 
-#include <cassert>
-#include <cstdlib>
 #include <optional>
 #include <string>
 #include <unistd.h>
 
 
-int main()
+TEST_CASE("sqlite persistence survives reopen")
 {
 	using namespace will;
 	using namespace will::domain;
@@ -56,23 +57,23 @@ int main()
 		letters.append(abode, soul_b.id(), "from-me", Timestamp{2000});
 
 		const auto rows = letters.load_last(abode, 10);
-		assert(rows.size() == 2);
-		assert(rows[0].body() == "from-peer");
-		assert(rows[0].author_id() == soul_a.id());
-		assert(world.find_by_id(rows[0].author_id())->name() == *name_a);
-		assert(rows[1].body() == "from-me");
-		assert(rows[1].author_id() == soul_b.id());
-		assert(world.find_by_id(rows[1].author_id())->name() == *name_b);
+		REQUIRE(rows.size() == 2);
+		CHECK(rows[0].body() == "from-peer");
+		CHECK(rows[0].author_id() == soul_a.id());
+		CHECK(world.find_by_id(rows[0].author_id())->name() == *name_a);
+		CHECK(rows[1].body() == "from-me");
+		CHECK(rows[1].author_id() == soul_b.id());
+		CHECK(world.find_by_id(rows[1].author_id())->name() == *name_b);
 
 		const Man man_created = world.birth_man(token_created);
 		const Soul created = *world.find_by_id(man_created.soul_id());
 		created_id = created.id();
 		name_created = created.name();
-		assert(created.id().value() > 0);
-		assert(world.soul_id_for_token(token_created) == created.id());
+		CHECK(created.id().value() > 0);
+		CHECK(world.soul_id_for_token(token_created) == created.id());
 
-		assert(world.find_man_by_token(token_created).has_value());
-		assert(world.find_by_id(created.id()).has_value());
+		CHECK(world.find_man_by_token(token_created).has_value());
+		CHECK(world.find_by_id(created.id()).has_value());
 	}
 
 	{
@@ -81,22 +82,21 @@ int main()
 		World world(store);
 
 		const DeviceToken token_created = *DeviceToken::parse(token_text);
-		assert(world.soul_id_for_token(token_created) == *created_id);
-		assert(world.find_by_id(*created_id)->name() == *name_created);
+		CHECK(world.soul_id_for_token(token_created) == *created_id);
+		CHECK(world.find_by_id(*created_id)->name() == *name_created);
 
 		const std::optional<Soul> a = world.find_by_id(*soul_a_id);
-		assert(a.has_value());
-		assert(a->name() == *name_a);
-		assert(world.soul_id_for_token(*DeviceToken::parse("aaaa1234aaaa1234aaaa1234aaaa1234")) == *soul_a_id);
+		REQUIRE(a.has_value());
+		CHECK(a->name() == *name_a);
+		CHECK(world.soul_id_for_token(*DeviceToken::parse("aaaa1234aaaa1234aaaa1234aaaa1234")) == *soul_a_id);
 
 		const std::optional<Soul> b = world.find_by_id(*soul_b_id);
-		assert(b.has_value());
-		assert(b->name() == *name_b);
+		REQUIRE(b.has_value());
+		CHECK(b->name() == *name_b);
 
-		assert(!world.find_by_id(id::Soul{999999}).has_value());
-		assert(!world.find_man_by_token(*DeviceToken::parse("ffffffffffffffffffffffffffffffff")).has_value());
+		CHECK_FALSE(world.find_by_id(id::Soul{999999}).has_value());
+		CHECK_FALSE(world.find_man_by_token(*DeviceToken::parse("ffffffffffffffffffffffffffffffff")).has_value());
 	}
 
 	::unlink(db_path.c_str());
-	return EXIT_SUCCESS;
 }
