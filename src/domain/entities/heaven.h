@@ -2,7 +2,6 @@
 
 #include "entities/man.h"
 #include "entities/soul.h"
-#include "entities/vessel.h"
 #include "ports/eternity.h"
 #include "values/device_token.h"
 
@@ -15,8 +14,9 @@
 namespace will::domain {
 
 
-/// Heaven (Небо) — runtime registry of souls. Speaks with Eternity.
+/// Heaven (Небо) — runtime index of souls living in men. Speaks with Eternity.
 /// Living access is through World (Мир), which is Heaven.
+/// Pointers address Soul/Vessel bases of heap-stable Man (unique_ptr).
 class Heaven {
 public:
 	std::optional<Soul> find_by_id(id::Soul id) const;
@@ -24,18 +24,19 @@ public:
 protected:
 	explicit Heaven(Eternity& eternity);
 
-	/// Give a name, birth soul/vessel/man in Eternity, and keep the soul in Heaven.
-	ManBirth birth_man(const DeviceToken& token);
+	/// Give a name and birth man (with soul and vessel) in Eternity.
+	Man birth_man(const DeviceToken& token);
 
-	std::vector<Vessel> load_vessels() const;
-	std::vector<Man> load_men() const;
+	/// Recall men from Eternity into the waking cosmos.
+	std::vector<Man> remember() const;
 
-	void insert(Soul soul);
+	/// Index a soul owned by a heap-stable Man.
+	void index(const Soul& soul);
 
 private:
 	Eternity& eternity_;
 	mutable std::mutex mutex_;
-	std::unordered_map<id::Soul, Soul> souls_by_id_;
+	std::unordered_map<id::Soul, const Soul*> souls_by_id_;
 };
 
 

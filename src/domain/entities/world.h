@@ -8,6 +8,7 @@
 #include "ports/eternity.h"
 #include "values/device_token.h"
 
+#include <memory>
 #include <mutex>
 #include <unordered_map>
 
@@ -17,6 +18,7 @@ namespace will::domain {
 
 /// World (Мир) — living cosmos: Heaven, Earth, men, and abodes.
 /// One object is both Heaven and Earth; speaks with Eternity through Heaven.
+/// Men are heap-stable (unique_ptr); Heaven/Earth index the Soul/Vessel bases.
 class World : public Heaven, public Earth {
 public:
 	explicit World(Eternity& eternity);
@@ -27,14 +29,14 @@ public:
 	/// Man dwelling in this vessel. Throws if the vessel has no man (broken invariant).
 	Man find_man_by_vessel(const Vessel& vessel) const;
 
-	/// Birth a new man in Eternity and accept soul, vessel, and man into the living cosmos.
+	/// Birth a new man in Eternity and accept him into the living cosmos.
 	Man birth_man(const DeviceToken& token);
 
 private:
-	void insert(Man man);
+	void accept(Man man);
 
 	mutable std::mutex mutex_;
-	std::unordered_map<id::Man, Man> men_by_id_;
+	std::unordered_map<id::Man, std::unique_ptr<Man>> men_by_id_;
 	std::unordered_map<id::Vessel, id::Man> man_id_by_vessel_;
 };
 

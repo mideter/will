@@ -26,24 +26,16 @@ namespace will::domain::test {
 
 class InMemoryEternity final : public Eternity {
 public:
-	std::vector<Soul> load_souls() override { return souls_; }
+	std::vector<Man> recall() override { return men_; }
 
-	std::vector<Vessel> load_vessels() override { return vessels_; }
-
-	std::vector<Man> load_men() override { return men_; }
-
-	ManBirth insert_man(const DeviceToken& token, const SoulName name) override
+	Man insert_man(const DeviceToken& token, const SoulName name) override
 	{
 		const id::Soul soul_id{++next_soul_id_};
 		const id::Vessel vessel_id{++next_vessel_id_};
 		const id::Man man_id{++next_man_id_};
-		Soul soul{soul_id, name};
-		Vessel vessel{vessel_id, token};
-		Man man{man_id, soul_id, vessel_id};
-		souls_.push_back(soul);
-		vessels_.push_back(vessel);
+		Man man{man_id, Soul{soul_id, name}, Vessel{vessel_id, token}};
 		men_.push_back(man);
-		return ManBirth{man, std::move(soul), std::move(vessel)};
+		return man;
 	}
 
 	/// Remember a man in eternity before the living World wakes (ctor load).
@@ -51,9 +43,7 @@ public:
 	{
 		const id::Vessel vessel_id{soul_id.value()};
 		const id::Man man_id{soul_id.value()};
-		souls_.push_back(Soul{soul_id, name});
-		vessels_.push_back(Vessel{vessel_id, token});
-		men_.push_back(Man{man_id, soul_id, vessel_id});
+		men_.push_back(Man{man_id, Soul{soul_id, name}, Vessel{vessel_id, token}});
 		if (soul_id.value() > next_soul_id_)
 			next_soul_id_ = soul_id.value();
 		if (vessel_id.value() > next_vessel_id_)
@@ -66,8 +56,6 @@ private:
 	std::uint64_t next_soul_id_ = 0;
 	std::uint64_t next_vessel_id_ = 0;
 	std::uint64_t next_man_id_ = 0;
-	std::vector<Soul> souls_;
-	std::vector<Vessel> vessels_;
 	std::vector<Man> men_;
 };
 

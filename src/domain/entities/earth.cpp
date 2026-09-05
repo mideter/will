@@ -16,15 +16,15 @@ std::optional<Vessel> Earth::find_vessel_by_token(const DeviceToken& token) cons
 	if (it == vessels_by_id_.end())
 		return std::nullopt;
 
-	return it->second;
+	return *it->second;
 }
 
 
-void Earth::insert(Vessel vessel)
+void Earth::index(const Vessel& vessel)
 {
 	std::lock_guard lock(mutex_);
 	id_by_token_.insert_or_assign(vessel.token(), vessel.id());
-	vessels_by_id_.insert_or_assign(vessel.id(), std::move(vessel));
+	vessels_by_id_.insert_or_assign(vessel.id(), &vessel);
 }
 
 

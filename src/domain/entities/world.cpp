@@ -10,11 +10,8 @@ namespace will::domain {
 World::World(Eternity& eternity)
 	: Heaven(eternity)
 {
-	for (Vessel vessel : load_vessels())
-		Earth::insert(std::move(vessel));
-
-	for (Man man : load_men())
-		insert(std::move(man));
+	for (Man man : remember())
+		accept(std::move(man));
 }
 
 
@@ -27,28 +24,35 @@ Man World::find_man_by_vessel(const Vessel& vessel) const
 		throw std::logic_error("Vessel has no man");
 
 	const auto it = men_by_id_.find(man_it->second);
-	if (it == men_by_id_.end())
+	if (it == men_by_id_.end() || !it->second)
 		throw std::logic_error("Vessel has no man");
 
-	return it->second;
+	return *it->second;
 }
 
 
 Man World::birth_man(const DeviceToken& token)
 {
-	ManBirth birth = Heaven::birth_man(token);
-	Earth::insert(std::move(birth.vessel));
-	Man man = std::move(birth.man);
-	insert(man);
+	Man man = Heaven::birth_man(token);
+	accept(man);
 	return man;
 }
 
 
-void World::insert(Man man)
+void World::accept(Man man)
 {
+	auto ptr = std::make_unique<Man>(std::move(man));
+	// Man stays on the heap; moving unique_ptr does not invalidate these references.
+	const Soul& soul = *ptr;
+	const Vessel& vessel = *ptr;
+	const id::Man man_id = ptr->id();
+	const id::Vessel vessel_id = vessel.id();
+
 	std::lock_guard lock(mutex_);
-	man_id_by_vessel_.insert_or_assign(man.vessel_id(), man.id());
-	men_by_id_.insert_or_assign(man.id(), std::move(man));
+	men_by_id_.insert_or_assign(man_id, std::move(ptr));
+	man_id_by_vessel_.insert_or_assign(vessel_id, man_id);
+	Heaven::index(soul);
+	Earth::index(vessel);
 }
 
 
