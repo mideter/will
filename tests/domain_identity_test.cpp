@@ -1,72 +1,44 @@
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include <doctest/doctest.h>
+
 #include "identity/abode.h"
 #include "identity/letter.h"
 #include "identity/man.h"
 #include "identity/soul.h"
 #include "identity/vessel.h"
 
-#include <cassert>
-#include <cstdlib>
 #include <stdexcept>
 
 
-int main()
+using namespace will::domain;
+
+
+TEST_CASE("id::Soul requires positive value")
 {
-	using namespace will::domain;
+	CHECK(id::Soul{42}.value() == 42);
+	CHECK_THROWS_AS(id::Soul{0}, std::invalid_argument);
+}
 
-	{
-		const id::Soul id{42};
-		assert(id.value() == 42);
-	}
 
-	try {
-		id::Soul{0};
-		return EXIT_FAILURE;
-	} catch (const std::invalid_argument&) {
-	}
+TEST_CASE("id::Letter requires positive value")
+{
+	CHECK(id::Letter{7}.value() == 7);
+	CHECK_THROWS_AS(id::Letter{0}, std::invalid_argument);
+}
 
-	{
-		const id::Letter id{7};
-		assert(id.value() == 7);
-	}
 
-	try {
-		id::Letter{0};
-		return EXIT_FAILURE;
-	} catch (const std::invalid_argument&) {
-	}
+TEST_CASE("id::Abode global and positive values")
+{
+	CHECK(id::Abode::global() == id::Abode{1});
+	CHECK(id::Abode{5}.value() == 5);
+	CHECK(id::Abode{5} != id::Abode::global());
+	CHECK_THROWS_AS(id::Abode{0}, std::invalid_argument);
+}
 
-	{
-		assert(id::Abode::global() == id::Abode{1});
-	}
 
-	try {
-		id::Abode{0};
-		return EXIT_FAILURE;
-	} catch (const std::invalid_argument&) {
-	}
-
-	try {
-		id::Vessel{0};
-		return EXIT_FAILURE;
-	} catch (const std::invalid_argument&) {
-	}
-
-	try {
-		id::Man{0};
-		return EXIT_FAILURE;
-	} catch (const std::invalid_argument&) {
-	}
-
-	{
-		const id::Man id{3};
-		assert(id.value() == 3);
-	}
-
-	{
-		const id::Abode abode{5};
-		assert(abode.value() == 5);
-		assert(abode != id::Abode::global());
-	}
-
-	return EXIT_SUCCESS;
+TEST_CASE("id::Vessel and id::Man require positive values")
+{
+	CHECK(id::Man{3}.value() == 3);
+	CHECK_THROWS_AS(id::Vessel{0}, std::invalid_argument);
+	CHECK_THROWS_AS(id::Man{0}, std::invalid_argument);
 }

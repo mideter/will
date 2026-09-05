@@ -1,60 +1,52 @@
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include <doctest/doctest.h>
+
 #include "entities/letter.h"
 #include "identity/letter.h"
 
-#include <cassert>
-#include <cstdlib>
 #include <stdexcept>
 #include <string>
 
 
-int main()
+using namespace will::domain;
+
+
+TEST_CASE("id::Letter requires positive value")
 {
-	using namespace will::domain;
+	CHECK(id::Letter{1}.value() == 1);
+	CHECK_THROWS_AS(id::Letter{0}, std::invalid_argument);
+}
 
-	{
-		const id::Letter id{1};
-		assert(id.value() == 1);
-	}
 
-	try {
-		id::Letter{0};
-		return EXIT_FAILURE;
-	} catch (const std::invalid_argument&) {
-	}
+TEST_CASE("Letter stores fields")
+{
+	const Letter letter{id::Letter{1}, id::Abode::global(), id::Soul{7}, "hello", Timestamp{100}};
+	CHECK(letter.id() == id::Letter{1});
+	CHECK(letter.abode_id() == id::Abode::global());
+	CHECK(letter.author_id() == id::Soul{7});
+	CHECK(letter.body() == "hello");
+	CHECK(letter.created_at() == Timestamp{100});
+}
 
-	{
-		const Letter letter{id::Letter{1}, id::Abode::global(), id::Soul{7}, "hello", Timestamp{100}};
-		assert(letter.id() == id::Letter{1});
-		assert(letter.abode_id() == id::Abode::global());
-		assert(letter.author_id() == id::Soul{7});
-		assert(letter.body() == "hello");
-		assert(letter.created_at() == Timestamp{100});
-	}
 
-	try {
-		Letter{id::Letter{1}, id::Abode::global(), id::Soul{0}, "x", Timestamp{0}};
-		return EXIT_FAILURE;
-	} catch (const std::invalid_argument&) {
-	}
+TEST_CASE("Letter rejects invalid construction")
+{
+	CHECK_THROWS_AS(
+		(Letter{id::Letter{1}, id::Abode::global(), id::Soul{0}, "x", Timestamp{0}}),
+		std::invalid_argument);
+	CHECK_THROWS_AS(
+		(Letter{id::Letter{1}, id::Abode::global(), id::Soul{1}, "", Timestamp{0}}),
+		std::invalid_argument);
+	CHECK_THROWS_AS(
+		(Letter{id::Letter{1}, id::Abode::global(), id::Soul{1},
+			std::string(Letter::MaxBodyLength + 1, 'a'), Timestamp{0}}),
+		std::invalid_argument);
+}
 
-	try {
-		Letter{id::Letter{1}, id::Abode::global(), id::Soul{1}, "", Timestamp{0}};
-		return EXIT_FAILURE;
-	} catch (const std::invalid_argument&) {
-	}
 
-	try {
-		Letter{id::Letter{1}, id::Abode::global(), id::Soul{1}, std::string(Letter::MaxBodyLength + 1, 'a'),
-			   Timestamp{0}};
-		return EXIT_FAILURE;
-	} catch (const std::invalid_argument&) {
-	}
-
-	{
-		const Letter max_body{id::Letter{1}, id::Abode::global(), id::Soul{1},
-							  std::string(Letter::MaxBodyLength, 'a'), Timestamp{0}};
-		assert(max_body.body().size() == Letter::MaxBodyLength);
-	}
-
-	return EXIT_SUCCESS;
+TEST_CASE("Letter accepts max body length")
+{
+	const Letter max_body{id::Letter{1}, id::Abode::global(), id::Soul{1},
+		std::string(Letter::MaxBodyLength, 'a'), Timestamp{0}};
+	CHECK(max_body.body().size() == Letter::MaxBodyLength);
 }

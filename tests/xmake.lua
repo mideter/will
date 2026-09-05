@@ -31,10 +31,12 @@ test_target("timestamp-test")
 test_target("letter-test")
     add_files("letter_test.cpp")
     add_deps("will-domain")
+    add_packages("doctest")
 
 test_target("domain-identity-test")
     add_files("domain_identity_test.cpp")
     add_deps("will-domain")
+    add_packages("doctest")
 
 test_target("device-token-test")
     add_files("device_token_test.cpp")
