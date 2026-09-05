@@ -7,6 +7,8 @@
 
 #include "infra/transport/messenger.pb.h"
 
+#include <stdexcept>
+
 
 /** Linked only because ReceivingMessageHandler shares a translation unit. */
 const will::ClientConfig& will::WillClient::config() const noexcept
@@ -52,7 +54,7 @@ will::v1::ServerEvent make_history_end()
 } // namespace
 
 
-TEST_CASE("chat during history load does not abort")
+TEST_CASE("history load accepts items then HistoryEnd")
 {
 	will::ConsoleUi ui(will::ColorMode::Never);
 	will::LoadingHistoryMessageHandler handler(ui);
@@ -60,9 +62,17 @@ TEST_CASE("chat during history load does not abort")
 	handler.on(make_history_item("older", false));
 	CHECK_FALSE(handler.history_finished());
 
-	handler.on(make_chat("peername", "live-while-loading"));
-	CHECK_FALSE(handler.history_finished());
-
 	handler.on(make_history_end());
 	CHECK(handler.history_finished());
+}
+
+
+TEST_CASE("chat during history load is rejected")
+{
+	will::ConsoleUi ui(will::ColorMode::Never);
+	will::LoadingHistoryMessageHandler handler(ui);
+
+	handler.on(make_history_item("older", false));
+	CHECK_THROWS_AS(handler.on(make_chat("peername", "live-while-loading")), std::runtime_error);
+	CHECK_FALSE(handler.history_finished());
 }
