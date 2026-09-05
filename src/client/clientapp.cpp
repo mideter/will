@@ -5,6 +5,7 @@
 #include "consoleui.h"
 #include "willclient.h"
 
+#include <cstdlib>
 #include <string>
 
 
@@ -20,6 +21,9 @@ ClientApp::ClientApp(int argc, char* argv[])
 		cli_.exit_on_help(error);
 	} catch (const CLI::ParseError& error) {
 		cli_.exit_on_parse_error(error);
+	} catch (const ClientConfigError& error) {
+		ConsoleUi{}.print_error(std::string("Client error: ") + error.what());
+		std::exit(EXIT_FAILURE);
 	}
 }
 

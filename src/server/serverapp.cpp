@@ -3,6 +3,7 @@
 #include "serverconfigvalidator.h"
 #include "willserver.h"
 
+#include <cstdlib>
 #include <iostream>
 
 
@@ -18,6 +19,9 @@ ServerApp::ServerApp(int argc, char* argv[])
 		cli_.exit_on_help(error);
 	} catch (const CLI::ParseError& error) {
 		cli_.exit_on_parse_error(error);
+	} catch (const ServerConfigError& error) {
+		std::cerr << "Server error: " << error.what() << '\n';
+		std::exit(EXIT_FAILURE);
 	}
 }
 
