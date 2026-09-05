@@ -39,6 +39,7 @@ test_target("domain-identity-test")
 test_target("device-token-test")
     add_files("device_token_test.cpp")
     add_deps("will-domain")
+    add_packages("doctest")
 
 test_target("soul-name-test")
     add_files("soul_name_test.cpp")

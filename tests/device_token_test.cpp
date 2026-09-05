@@ -1,29 +1,32 @@
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include <doctest/doctest.h>
+
 #include "values/device_token.h"
 
-#include <cassert>
-#include <cstdlib>
+
+using namespace will::domain;
 
 
-int main()
+TEST_CASE("DeviceToken::parse accepts valid hex")
 {
-	using namespace will::domain;
+	const auto parsed = DeviceToken::parse("abcd1234abcd1234abcd1234abcd1234");
+	REQUIRE(parsed);
+	CHECK(parsed->text() == "abcd1234abcd1234abcd1234abcd1234");
+	CHECK(*parsed == *DeviceToken::parse("abcd1234abcd1234abcd1234abcd1234"));
+}
 
-	{
-		const auto parsed = DeviceToken::parse("abcd1234abcd1234abcd1234abcd1234");
-		assert(parsed);
-		assert(parsed->text() == "abcd1234abcd1234abcd1234abcd1234");
-		assert(*parsed == *DeviceToken::parse("abcd1234abcd1234abcd1234abcd1234"));
-	}
 
-	{
-		const DeviceToken generated = DeviceToken::generate();
-		assert(generated.text().size() == 32);
-		assert(DeviceToken::parse(generated.text()));
-	}
+TEST_CASE("DeviceToken::generate produces a parseable 32-char token")
+{
+	const DeviceToken generated = DeviceToken::generate();
+	CHECK(generated.text().size() == 32);
+	CHECK(DeviceToken::parse(generated.text()));
+}
 
-	assert(!DeviceToken::parse(""));
-	assert(!DeviceToken::parse("short"));
-	assert(!DeviceToken::parse("zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz"));
 
-	return EXIT_SUCCESS;
+TEST_CASE("DeviceToken::parse rejects invalid tokens")
+{
+	CHECK_FALSE(DeviceToken::parse(""));
+	CHECK_FALSE(DeviceToken::parse("short"));
+	CHECK_FALSE(DeviceToken::parse("zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz"));
 }
