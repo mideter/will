@@ -9,7 +9,6 @@
 #include "values/device_token.h"
 
 #include <mutex>
-#include <optional>
 #include <unordered_map>
 
 
@@ -25,8 +24,8 @@ public:
 	/// Single abode for now; later a registry of abodes in this world.
 	Abode abode() const noexcept { return Abode::global(); }
 
-	/// Find the man dwelling in this vessel.
-	std::optional<Man> find_man_by_vessel(const Vessel& vessel) const;
+	/// Man dwelling in this vessel. Throws if the vessel has no man (broken invariant).
+	Man find_man_by_vessel(const Vessel& vessel) const;
 
 	/// Birth a new man in Eternity and accept soul, vessel, and man into the living cosmos.
 	Man birth_man(const DeviceToken& token);

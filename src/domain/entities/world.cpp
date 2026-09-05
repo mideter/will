@@ -1,5 +1,6 @@
 #include "world.h"
 
+#include <stdexcept>
 #include <utility>
 
 
@@ -17,17 +18,17 @@ World::World(Eternity& eternity)
 }
 
 
-std::optional<Man> World::find_man_by_vessel(const Vessel& vessel) const
+Man World::find_man_by_vessel(const Vessel& vessel) const
 {
 	std::lock_guard lock(mutex_);
 
 	const auto man_it = man_id_by_vessel_.find(vessel.id());
 	if (man_it == man_id_by_vessel_.end())
-		return std::nullopt;
+		throw std::logic_error("Vessel has no man");
 
 	const auto it = men_by_id_.find(man_it->second);
 	if (it == men_by_id_.end())
-		return std::nullopt;
+		throw std::logic_error("Vessel has no man");
 
 	return it->second;
 }

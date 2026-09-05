@@ -57,8 +57,8 @@ TEST_CASE("authenticate_device creates soul")
 	const std::optional<Vessel> vessel = world.find_vessel_by_token(token);
 	REQUIRE(vessel.has_value());
 	CHECK(vessel->id() == success.man.vessel_id());
-	CHECK(world.find_man_by_vessel(*vessel)->id() == success.man.id());
-	CHECK(world.find_man_by_vessel(*vessel)->soul_id() == success.man.soul_id());
+	CHECK(world.find_man_by_vessel(*vessel).id() == success.man.id());
+	CHECK(world.find_man_by_vessel(*vessel).soul_id() == success.man.soul_id());
 
 	const std::optional<Soul> soul = world.find_by_id(success.man.soul_id());
 	REQUIRE(soul.has_value());

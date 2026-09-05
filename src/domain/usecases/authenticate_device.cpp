@@ -21,10 +21,8 @@ std::variant<AuthenticateDeviceSuccess, AuthError> AuthenticateDevice::execute(
 	if (!token)
 		return AuthError::InvalidToken;
 
-	if (const std::optional<Vessel> vessel = world_.find_vessel_by_token(*token)) {
-		if (std::optional<Man> man = world_.find_man_by_vessel(*vessel))
-			return AuthenticateDeviceSuccess{std::move(*man)};
-	}
+	if (const std::optional<Vessel> vessel = world_.find_vessel_by_token(*token))
+		return AuthenticateDeviceSuccess{world_.find_man_by_vessel(*vessel)};
 
 	return AuthenticateDeviceSuccess{world_.birth_man(*token)};
 }
