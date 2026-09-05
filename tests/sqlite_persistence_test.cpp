@@ -70,9 +70,9 @@ TEST_CASE("sqlite persistence survives reopen")
 		created_id = created.id();
 		name_created = created.name();
 		CHECK(created.id().value() > 0);
-		CHECK(world.soul_id_for_token(token_created) == created.id());
-
-		CHECK(world.find_man_by_token(token_created).has_value());
+		const std::optional<Vessel> vessel_created = world.find_vessel_by_token(token_created);
+		REQUIRE(vessel_created.has_value());
+		CHECK(world.find_man_by_vessel(*vessel_created)->soul_id() == created.id());
 		CHECK(world.find_by_id(created.id()).has_value());
 	}
 
@@ -82,20 +82,26 @@ TEST_CASE("sqlite persistence survives reopen")
 		World world(store);
 
 		const DeviceToken token_created = *DeviceToken::parse(token_text);
-		CHECK(world.soul_id_for_token(token_created) == *created_id);
+		const std::optional<Vessel> vessel_created = world.find_vessel_by_token(token_created);
+		REQUIRE(vessel_created.has_value());
+		CHECK(world.find_man_by_vessel(*vessel_created)->soul_id() == *created_id);
 		CHECK(world.find_by_id(*created_id)->name() == *name_created);
 
 		const std::optional<Soul> a = world.find_by_id(*soul_a_id);
 		REQUIRE(a.has_value());
 		CHECK(a->name() == *name_a);
-		CHECK(world.soul_id_for_token(*DeviceToken::parse("aaaa1234aaaa1234aaaa1234aaaa1234")) == *soul_a_id);
+		const std::optional<Vessel> vessel_a =
+			world.find_vessel_by_token(*DeviceToken::parse("aaaa1234aaaa1234aaaa1234aaaa1234"));
+		REQUIRE(vessel_a.has_value());
+		CHECK(world.find_man_by_vessel(*vessel_a)->soul_id() == *soul_a_id);
 
 		const std::optional<Soul> b = world.find_by_id(*soul_b_id);
 		REQUIRE(b.has_value());
 		CHECK(b->name() == *name_b);
 
 		CHECK_FALSE(world.find_by_id(id::Soul{999999}).has_value());
-		CHECK_FALSE(world.find_man_by_token(*DeviceToken::parse("ffffffffffffffffffffffffffffffff")).has_value());
+		CHECK_FALSE(world.find_vessel_by_token(*DeviceToken::parse("ffffffffffffffffffffffffffffffff"))
+						.has_value());
 	}
 
 	::unlink(db_path.c_str());

@@ -4,7 +4,6 @@
 #include "entities/earth.h"
 #include "entities/heaven.h"
 #include "entities/man.h"
-#include "identity/soul.h"
 #include "identity/vessel.h"
 #include "ports/eternity.h"
 #include "values/device_token.h"
@@ -26,8 +25,8 @@ public:
 	/// Single abode for now; later a registry of abodes in this world.
 	Abode abode() const noexcept { return Abode::global(); }
 
-	std::optional<Man> find_man_by_token(const DeviceToken& token) const;
-	std::optional<id::Soul> soul_id_for_token(const DeviceToken& token) const;
+	/// Find the man dwelling in this vessel.
+	std::optional<Man> find_man_by_vessel(const Vessel& vessel) const;
 
 	/// Birth a new man in Eternity and accept soul, vessel, and man into the living cosmos.
 	Man birth_man(const DeviceToken& token);

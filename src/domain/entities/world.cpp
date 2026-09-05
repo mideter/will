@@ -17,15 +17,11 @@ World::World(Eternity& eternity)
 }
 
 
-std::optional<Man> World::find_man_by_token(const DeviceToken& token) const
+std::optional<Man> World::find_man_by_vessel(const Vessel& vessel) const
 {
-	const std::optional<Vessel> vessel = find_vessel_by_token(token);
-	if (!vessel)
-		return std::nullopt;
-
 	std::lock_guard lock(mutex_);
 
-	const auto man_it = man_id_by_vessel_.find(vessel->id());
+	const auto man_it = man_id_by_vessel_.find(vessel.id());
 	if (man_it == man_id_by_vessel_.end())
 		return std::nullopt;
 
@@ -34,15 +30,6 @@ std::optional<Man> World::find_man_by_token(const DeviceToken& token) const
 		return std::nullopt;
 
 	return it->second;
-}
-
-
-std::optional<id::Soul> World::soul_id_for_token(const DeviceToken& token) const
-{
-	if (const std::optional<Man> man = find_man_by_token(token))
-		return man->soul_id();
-
-	return std::nullopt;
 }
 
 
