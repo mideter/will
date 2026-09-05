@@ -43,6 +43,7 @@ test_target("device-token-test")
 test_target("soul-name-test")
     add_files("soul_name_test.cpp")
     add_deps("will-domain")
+    add_packages("doctest")
 
 test_target("will-server-config-test")
     add_files(

@@ -1,24 +1,30 @@
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include <doctest/doctest.h>
+
 #include "values/soul_name.h"
 
-#include <cassert>
-#include <cstdlib>
+
+using namespace will::domain;
 
 
-int main()
+TEST_CASE("SoulName::parse accepts valid names")
 {
-	using namespace will::domain;
+	CHECK(SoulName::parse("abcdefgh"));
+	CHECK(SoulName::parse("abc12345"));
+}
 
-	assert(SoulName::parse("abcdefgh"));
-	assert(SoulName::parse("abc12345"));
-	assert(!SoulName::parse(""));
-	assert(!SoulName::parse("short"));
-	assert(!SoulName::parse("ABCDEFGH"));
-	assert(!SoulName::parse("abcd-efg"));
 
-	{
-		const SoulName name = SoulName::generate();
-		assert(SoulName::parse(name.text()));
-	}
+TEST_CASE("SoulName::parse rejects invalid names")
+{
+	CHECK_FALSE(SoulName::parse(""));
+	CHECK_FALSE(SoulName::parse("short"));
+	CHECK_FALSE(SoulName::parse("ABCDEFGH"));
+	CHECK_FALSE(SoulName::parse("abcd-efg"));
+}
 
-	return EXIT_SUCCESS;
+
+TEST_CASE("SoulName::generate produces a parseable name")
+{
+	const SoulName name = SoulName::generate();
+	CHECK(SoulName::parse(name.text()));
 }
