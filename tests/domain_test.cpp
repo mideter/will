@@ -1,3 +1,6 @@
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include <doctest/doctest.h>
+
 #include "domain_fakes.h"
 
 #include "entities/world.h"
@@ -11,8 +14,6 @@
 #include "usecases/fetch_letter_history.h"
 #include "usecases/send_letter.h"
 
-#include <cassert>
-#include <cstdlib>
 #include <variant>
 
 
@@ -35,7 +36,10 @@ SoulName test_name(const char* text)
 }
 
 
-void test_authenticate_device_creates_soul()
+} // namespace
+
+
+TEST_CASE("authenticate_device creates soul")
 {
 	InMemoryEternity eternity;
 	World world(eternity);
@@ -43,23 +47,23 @@ void test_authenticate_device_creates_soul()
 
 	const DeviceToken token = DeviceToken::generate();
 	const auto result = authenticate.execute(AuthenticateDeviceInput{token.text()});
-	assert(std::holds_alternative<AuthenticateDeviceSuccess>(result));
+	REQUIRE(std::holds_alternative<AuthenticateDeviceSuccess>(result));
 
 	const AuthenticateDeviceSuccess& success = std::get<AuthenticateDeviceSuccess>(result);
-	assert(success.man.soul_id().value() > 0);
-	assert(success.man.id().value() > 0);
-	assert(success.man.vessel_id().value() > 0);
+	CHECK(success.man.soul_id().value() > 0);
+	CHECK(success.man.id().value() > 0);
+	CHECK(success.man.vessel_id().value() > 0);
 
-	assert(world.soul_id_for_token(token) == success.man.soul_id());
+	CHECK(world.soul_id_for_token(token) == success.man.soul_id());
 	const std::optional<Soul> soul = world.find_by_id(success.man.soul_id());
-	assert(soul.has_value());
-	assert(SoulName::parse(soul->name().text()));
-	assert(world.find_man_by_token(token)->id() == success.man.id());
-	assert(world.find_vessel_by_token(token)->id() == success.man.vessel_id());
+	REQUIRE(soul.has_value());
+	CHECK(SoulName::parse(soul->name().text()));
+	CHECK(world.find_man_by_token(token)->id() == success.man.id());
+	CHECK(world.find_vessel_by_token(token)->id() == success.man.vessel_id());
 }
 
 
-void test_authenticate_device_existing_soul()
+TEST_CASE("authenticate_device existing soul")
 {
 	InMemoryEternity eternity;
 	seed_man(eternity, id::Soul{42}, test_token("abcd1234abcd1234abcd1234abcd1234"), test_name("oldname1"));
@@ -67,12 +71,12 @@ void test_authenticate_device_existing_soul()
 
 	AuthenticateDevice authenticate(world);
 	const auto result = authenticate.execute(AuthenticateDeviceInput{"abcd1234abcd1234abcd1234abcd1234"});
-	assert(std::holds_alternative<AuthenticateDeviceSuccess>(result));
-	assert(std::get<AuthenticateDeviceSuccess>(result).man.soul_id() == id::Soul{42});
+	REQUIRE(std::holds_alternative<AuthenticateDeviceSuccess>(result));
+	CHECK(std::get<AuthenticateDeviceSuccess>(result).man.soul_id() == id::Soul{42});
 }
 
 
-void test_authenticate_device_keeps_existing_name()
+TEST_CASE("authenticate_device keeps existing name")
 {
 	InMemoryEternity eternity;
 	seed_man(eternity, id::Soul{7}, test_token("abcd1234abcd1234abcd1234abcd1234"), test_name("keptname"));
@@ -80,27 +84,27 @@ void test_authenticate_device_keeps_existing_name()
 
 	AuthenticateDevice authenticate(world);
 	const auto result = authenticate.execute(AuthenticateDeviceInput{"abcd1234abcd1234abcd1234abcd1234"});
-	assert(std::holds_alternative<AuthenticateDeviceSuccess>(result));
+	REQUIRE(std::holds_alternative<AuthenticateDeviceSuccess>(result));
 
 	const std::optional<Soul> soul = world.find_by_id(id::Soul{7});
-	assert(soul.has_value());
-	assert(soul->name() == test_name("keptname"));
+	REQUIRE(soul.has_value());
+	CHECK(soul->name() == test_name("keptname"));
 }
 
 
-void test_authenticate_device_invalid_token()
+TEST_CASE("authenticate_device invalid token")
 {
 	InMemoryEternity eternity;
 	World world(eternity);
 	AuthenticateDevice authenticate(world);
 
 	const auto result = authenticate.execute(AuthenticateDeviceInput{"short"});
-	assert(std::holds_alternative<AuthError>(result));
-	assert(std::get<AuthError>(result) == AuthError::InvalidToken);
+	REQUIRE(std::holds_alternative<AuthError>(result));
+	CHECK(std::get<AuthError>(result) == AuthError::InvalidToken);
 }
 
 
-void test_send_letter_persists_and_notifies()
+TEST_CASE("send_letter persists and notifies")
 {
 	InMemoryLetterRepository letters;
 	FakeParticipantNotifier notifier;
@@ -110,21 +114,21 @@ void test_send_letter_persists_and_notifies()
 	SendLetter send(letters, notifier);
 	const Letter saved = send.execute(SendLetterInput{author, id::Abode::global(), "hello", Timestamp{900}});
 
-	assert(saved.id().value() > 0);
-	assert(saved.author_id() == author);
-	assert(saved.body() == "hello");
-	assert(saved.created_at() == Timestamp{900});
+	CHECK(saved.id().value() > 0);
+	CHECK(saved.author_id() == author);
+	CHECK(saved.body() == "hello");
+	CHECK(saved.created_at() == Timestamp{900});
 
 	const auto loaded = letters.load_last(id::Abode::global(), 10);
-	assert(loaded.size() == 1);
-	assert(loaded[0].body() == "hello");
+	REQUIRE(loaded.size() == 1);
+	CHECK(loaded[0].body() == "hello");
 
-	assert(notifier.notifications_.size() == 1);
-	assert(notifier.notifications_[0].id() == saved.id());
+	REQUIRE(notifier.notifications_.size() == 1);
+	CHECK(notifier.notifications_[0].id() == saved.id());
 }
 
 
-void test_fetch_letter_history_limit_and_is_mine()
+TEST_CASE("fetch_letter_history limit and is_mine")
 {
 	InMemoryLetterRepository letters;
 	InMemoryEternity eternity;
@@ -143,24 +147,24 @@ void test_fetch_letter_history_limit_and_is_mine()
 	FetchLetterHistory fetch(letters, world);
 
 	const auto zero_limit = fetch.execute(FetchLetterHistoryInput{me, abode, 0});
-	assert(std::holds_alternative<DomainError>(zero_limit));
-	assert(std::get<DomainError>(zero_limit).code == DomainErrorCode::InvalidArgument);
+	REQUIRE(std::holds_alternative<DomainError>(zero_limit));
+	CHECK(std::get<DomainError>(zero_limit).code == DomainErrorCode::InvalidArgument);
 
 	const auto ok = fetch.execute(FetchLetterHistoryInput{me, abode, 2});
-	assert(std::holds_alternative<FetchLetterHistoryResult>(ok));
+	REQUIRE(std::holds_alternative<FetchLetterHistoryResult>(ok));
 
 	const FetchLetterHistoryResult& result = std::get<FetchLetterHistoryResult>(ok);
-	assert(result.items.size() == 2);
-	assert(result.items[0].letter.body() == "mine");
-	assert(result.items[0].author_name == "menameaa");
-	assert(result.items[0].is_mine);
-	assert(result.items[1].letter.body() == "peer2");
-	assert(result.items[1].author_name == "peername");
-	assert(!result.items[1].is_mine);
+	REQUIRE(result.items.size() == 2);
+	CHECK(result.items[0].letter.body() == "mine");
+	CHECK(result.items[0].author_name == "menameaa");
+	CHECK(result.items[0].is_mine);
+	CHECK(result.items[1].letter.body() == "peer2");
+	CHECK(result.items[1].author_name == "peername");
+	CHECK_FALSE(result.items[1].is_mine);
 }
 
 
-void test_fetch_letter_history_caps_limit()
+TEST_CASE("fetch_letter_history caps limit")
 {
 	InMemoryLetterRepository letters;
 	InMemoryEternity eternity;
@@ -176,22 +180,6 @@ void test_fetch_letter_history_caps_limit()
 	FetchLetterHistory fetch(letters, world);
 	const auto ok = fetch.execute(FetchLetterHistoryInput{
 		author, abode, FetchLetterHistory::MaxHistoryRequestLimit + 50});
-	assert(std::holds_alternative<FetchLetterHistoryResult>(ok));
-	assert(std::get<FetchLetterHistoryResult>(ok).items.size() == 5);
-}
-
-
-} // namespace
-
-
-int main()
-{
-	test_authenticate_device_creates_soul();
-	test_authenticate_device_existing_soul();
-	test_authenticate_device_keeps_existing_name();
-	test_authenticate_device_invalid_token();
-	test_send_letter_persists_and_notifies();
-	test_fetch_letter_history_limit_and_is_mine();
-	test_fetch_letter_history_caps_limit();
-	return EXIT_SUCCESS;
+	REQUIRE(std::holds_alternative<FetchLetterHistoryResult>(ok));
+	CHECK(std::get<FetchLetterHistoryResult>(ok).items.size() == 5);
 }

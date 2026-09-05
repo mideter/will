@@ -53,6 +53,7 @@ test_target("will-server-config-test")
         "server_config_test.cpp",
         "$(projectdir)/src/server/config/serverconfigvalidator.cpp")
     add_includedirs("$(projectdir)/src/server/config")
+    add_packages("doctest")
 
 test_target("will-cli-test")
     add_files(
@@ -61,7 +62,7 @@ test_target("will-cli-test")
     add_includedirs(
         "$(projectdir)/src/server/config",
         "$(projectdir)/src/server/cli")
-    add_packages("cli11")
+    add_packages("cli11", "doctest")
 
 test_target("will-client-config-test")
     add_files(
@@ -69,6 +70,7 @@ test_target("will-client-config-test")
         "$(projectdir)/src/client/clientconfigvalidator.cpp")
     add_includedirs("$(projectdir)/src/client")
     add_deps("will-domain")
+    add_packages("doctest")
 
 test_target("will-client-cli-test")
     add_files(
@@ -77,7 +79,7 @@ test_target("will-client-cli-test")
     add_includedirs(
         "$(projectdir)/src/client",
         "$(projectdir)/src/client/cli")
-    add_packages("cli11")
+    add_packages("cli11", "doctest")
 
 test_target("will-client-cli-integration-test")
     add_files("client_cli_integration_test.cpp")
@@ -113,7 +115,7 @@ test_target("will-session-registry-test")
         "$(projectdir)/src/server/sessionregistry.cpp")
     add_includedirs("$(projectdir)/src/server")
     add_deps("will-domain", "will-transport")
-    add_packages("pkgconfig::grpc++")
+    add_packages("pkgconfig::grpc++", "doctest")
 
 test_target("will-session-takeover-integration-test")
     add_files("session_takeover_integration_test.cpp")
@@ -125,6 +127,7 @@ test_target("will-domain-test")
     add_files("domain_test.cpp")
     add_includedirs("$(projectdir)/tests")
     add_deps("will-domain")
+    add_packages("doctest")
 
 test_target("will-sqlite-persistence-test")
     add_files("sqlite_persistence_test.cpp")

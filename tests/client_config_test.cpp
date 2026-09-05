@@ -1,21 +1,25 @@
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include <doctest/doctest.h>
+
 #include "clientconfigvalidator.h"
 
-#include <cassert>
-#include <cstdlib>
 #include <string>
+#include <utility>
+
+
+using namespace will;
 
 
 namespace {
 
 
-void assert_throws_field(const will::ClientConfig& config, const char* field)
+void require_throws_field(const ClientConfig& config, const char* field)
 {
 	try {
-		will::ClientConfigValidator::validate(config);
-		assert(false && "expected ClientConfigError");
-	} catch (const will::ClientConfigError& error) {
-		const std::string message = error.what();
-		assert(message.find(field) != std::string::npos);
+		ClientConfigValidator::validate(config);
+		FAIL_CHECK("expected ClientConfigError");
+	} catch (const ClientConfigError& error) {
+		CHECK(std::string(error.what()).find(field) != std::string::npos);
 	}
 }
 
@@ -23,46 +27,45 @@ void assert_throws_field(const will::ClientConfig& config, const char* field)
 } // namespace
 
 
-int main()
+TEST_CASE("ClientConfig defaults are valid")
 {
-	using namespace will;
+	CHECK_NOTHROW(ClientConfigValidator::validate({}));
+}
 
-	ClientConfigValidator::validate({});
 
+TEST_CASE("ClientConfig rejects invalid fields")
+{
 	{
 		ClientConfig config;
 		config.host = "";
-		assert_throws_field(config, "host");
+		require_throws_field(config, "host");
 	}
-
 	{
 		ClientConfig config;
 		config.host = "not-an-ip";
-		assert_throws_field(config, "host");
+		require_throws_field(config, "host");
 	}
-
 	{
 		ClientConfig config;
 		config.port = 0;
-		assert_throws_field(config, "port");
+		require_throws_field(config, "port");
 	}
-
 	{
 		ClientConfig config;
 		config.device_token_path = "";
-		assert_throws_field(config, "device_token_path");
+		require_throws_field(config, "device_token_path");
 	}
+}
 
-	{
-		ClientConfig config;
-		config.host = "192.168.1.10";
-		config.port = 9000;
-		config.device_token_path = "/tmp/will.device_token";
-		const ClientConfig accepted = ClientConfigValidator::accept(std::move(config));
-		assert(accepted.host == "192.168.1.10");
-		assert(accepted.port == 9000);
-		assert(accepted.device_token_path == "/tmp/will.device_token");
-	}
 
-	return EXIT_SUCCESS;
+TEST_CASE("ClientConfigValidator::accept returns validated config")
+{
+	ClientConfig config;
+	config.host = "192.168.1.10";
+	config.port = 9000;
+	config.device_token_path = "/tmp/will.device_token";
+	const ClientConfig accepted = ClientConfigValidator::accept(std::move(config));
+	CHECK(accepted.host == "192.168.1.10");
+	CHECK(accepted.port == 9000);
+	CHECK(accepted.device_token_path == "/tmp/will.device_token");
 }
