@@ -1,3 +1,6 @@
+#define DOCTEST_CONFIG_IMPLEMENT
+#include <doctest/doctest.h>
+
 #include "infra/transport/messenger.grpc.pb.h"
 
 #include <grpcpp/grpcpp.h>
@@ -15,9 +18,13 @@
 #include <memory>
 #include <string>
 #include <thread>
+#include <vector>
 
 
 namespace {
+
+
+const char* g_server_exe = nullptr;
 
 
 int connect_tcp(const char* host, std::uint16_t port)
@@ -162,65 +169,53 @@ constexpr const char* DeviceToken = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
 } // namespace
 
 
-int main(int argc, char* argv[])
+TEST_CASE("second session with same device token displaces the first")
+{
+	const std::uint16_t port = pick_port();
+	const std::string db_path = "/tmp/will-session-takeover-test-" + std::to_string(getpid()) + ".db";
+
+	::unlink(db_path.c_str());
+
+	const pid_t server_pid = start_server(g_server_exe, port, db_path);
+	REQUIRE(server_pid > 0);
+	REQUIRE(wait_for_server(port));
+
+	GrpcSession first = open_session(port);
+	REQUIRE(first.stream);
+	REQUIRE(bind_device_token(*first.stream, DeviceToken));
+
+	GrpcSession second = open_session(port);
+	REQUIRE(second.stream);
+	REQUIRE(bind_device_token(*second.stream, DeviceToken));
+
+	REQUIRE(wait_for_stream_end(first, std::chrono::seconds(2)));
+
+	will::v1::ClientEvent chat;
+	chat.mutable_chat()->set_body("after-takeover");
+	REQUIRE(second.stream->Write(chat));
+	REQUIRE(drain_receipt_ack(*second.stream));
+
+	second.context->TryCancel();
+	stop_server(server_pid);
+	::unlink(db_path.c_str());
+}
+
+
+int main(int argc, char** argv)
 {
 	if (argc < 2) {
 		std::cerr << "Usage: " << argv[0] << " <path-to-will-server>\n";
 		return EXIT_FAILURE;
 	}
 
-	const char* const server_exe = argv[1];
-	const std::uint16_t port = pick_port();
-	const std::string db_path = "/tmp/will-session-takeover-test-" + std::to_string(getpid()) + ".db";
+	g_server_exe = argv[1];
 
-	::unlink(db_path.c_str());
+	doctest::Context context;
+	std::vector<char*> doctest_argv{argv[0]};
 
-	const pid_t server_pid = start_server(server_exe, port, db_path);
-	if (server_pid <= 0) {
-		std::cerr << "fork failed\n";
-		return EXIT_FAILURE;
-	}
-	if (!wait_for_server(port)) {
-		std::cerr << "server did not start\n";
-		stop_server(server_pid);
-		return EXIT_FAILURE;
-	}
+	for (int i = 2; i < argc; ++i)
+		doctest_argv.push_back(argv[i]);
 
-	GrpcSession first = open_session(port);
-	if (!first.stream || !bind_device_token(*first.stream, DeviceToken)) {
-		std::cerr << "first session failed\n";
-		stop_server(server_pid);
-		return EXIT_FAILURE;
-	}
-
-	GrpcSession second = open_session(port);
-	if (!second.stream || !bind_device_token(*second.stream, DeviceToken)) {
-		std::cerr << "second session failed\n";
-		first.context->TryCancel();
-		stop_server(server_pid);
-		return EXIT_FAILURE;
-	}
-
-	if (!wait_for_stream_end(first, std::chrono::seconds(2))) {
-		std::cerr << "displaced session did not end\n";
-		second.context->TryCancel();
-		stop_server(server_pid);
-		return EXIT_FAILURE;
-	}
-
-	will::v1::ClientEvent chat;
-	chat.mutable_chat()->set_body("after-takeover");
-	if (!second.stream->Write(chat) || !drain_receipt_ack(*second.stream)) {
-		std::cerr << "post-takeover chat failed\n";
-		second.context->TryCancel();
-		stop_server(server_pid);
-		return EXIT_FAILURE;
-	}
-
-	second.context->TryCancel();
-	stop_server(server_pid);
-	::unlink(db_path.c_str());
-
-	std::cout << "session takeover integration test passed\n";
-	return EXIT_SUCCESS;
+	context.applyCommandLine(static_cast<int>(doctest_argv.size()), doctest_argv.data());
+	return context.run();
 }

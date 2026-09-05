@@ -1,6 +1,8 @@
+#define DOCTEST_CONFIG_IMPLEMENT
+#include <doctest/doctest.h>
+
 #include <CLI/CLI.hpp>
 
-#include <cassert>
 #include <cstdlib>
 #include <fcntl.h>
 #include <iostream>
@@ -12,6 +14,9 @@
 
 
 namespace {
+
+
+const char* g_client_exe = nullptr;
 
 
 struct RunResult {
@@ -83,110 +88,108 @@ RunResult run_will_client(const char* client_exe, const std::vector<std::string>
 }
 
 
-void assert_contains(std::string_view haystack, std::string_view needle)
+void check_contains(std::string_view haystack, std::string_view needle)
 {
-	assert(haystack.find(needle) != std::string_view::npos);
+	CHECK(haystack.find(needle) != std::string_view::npos);
 }
 
 
-void run_case(std::string_view name, const auto& test_fn)
+void check_help(const std::vector<std::string>& args)
 {
-	std::cout << "  " << name << " ... ";
-	test_fn();
-	std::cout << "ok\n";
+	const RunResult result = run_will_client(g_client_exe, args);
+	CHECK(result.exit_code == 0);
+	check_contains(result.stderr_output, "will-client");
+	check_contains(result.stderr_output, "--host");
+	check_contains(result.stderr_output, "--help");
 }
 
 
-void check_help(const char* client_exe, const std::vector<std::string>& args)
+void check_cli_error(const std::vector<std::string>& args, int expected_exit_code,
+					 std::string_view error_fragment)
 {
-	const RunResult result = run_will_client(client_exe, args);
-	assert(result.exit_code == 0);
-	assert_contains(result.stderr_output, "will-client");
-	assert_contains(result.stderr_output, "--host");
-	assert_contains(result.stderr_output, "--help");
-}
-
-
-void check_cli_error(const char* client_exe, const std::vector<std::string>& args,
-					 int expected_exit_code, std::string_view error_fragment)
-{
-	const RunResult result = run_will_client(client_exe, args);
-	assert(result.exit_code == expected_exit_code);
-	assert_contains(result.stderr_output, error_fragment);
-	assert_contains(result.stderr_output, "help");
-}
-
-
-void print_usage(const char* program)
-{
-	std::cerr << "Usage: " << program << " <path-to-will-client>\n"
-			  << "\n"
-			  << "Integration tests for ClientConfigParser / will-client CLI behavior.\n"
-			  << "Example:\n"
-			  << "  " << program << " ./build/will-client\n"
-			  << "\n"
-			  << "Or via CTest (path is passed automatically):\n"
-			  << "  ctest --test-dir build -R will-client-cli-integration --output-on-failure\n";
+	const RunResult result = run_will_client(g_client_exe, args);
+	CHECK(result.exit_code == expected_exit_code);
+	check_contains(result.stderr_output, error_fragment);
+	check_contains(result.stderr_output, "help");
 }
 
 
 } // namespace
 
 
-int main(int argc, char* argv[])
+TEST_CASE("will-client --help prints usage and exits 0")
+{
+	check_help({"--help"});
+}
+
+
+TEST_CASE("will-client -h prints usage and exits 0")
+{
+	check_help({"-h"});
+}
+
+
+TEST_CASE("will-client --help with other options")
+{
+	check_help({"--help", "--port", "8080"});
+}
+
+
+TEST_CASE("will-client --help after other options")
+{
+	check_help({"--port", "8080", "--help"});
+}
+
+
+TEST_CASE("will-client --unknown exits ExtrasError")
+{
+	check_cli_error({"--unknown"}, static_cast<int>(CLI::ExitCodes::ExtrasError), "--unknown");
+}
+
+
+TEST_CASE("will-client --port without value exits ArgumentMismatch")
+{
+	check_cli_error({"--port"}, static_cast<int>(CLI::ExitCodes::ArgumentMismatch), "--port");
+}
+
+
+TEST_CASE("will-client --port 0 fails at startup")
+{
+	const RunResult result = run_will_client(g_client_exe, {"--port", "0"});
+	CHECK(result.exit_code == 1);
+	check_contains(result.stderr_output, "Client error:");
+	check_contains(result.stderr_output, "port");
+}
+
+
+TEST_CASE("will-client --host invalid fails at startup")
+{
+	const RunResult result = run_will_client(g_client_exe, {"--host", "invalid"});
+	CHECK(result.exit_code == 1);
+	check_contains(result.stderr_output, "Client error:");
+	check_contains(result.stderr_output, "host");
+}
+
+
+TEST_CASE("will-client --port abc exits ConversionError")
+{
+	check_cli_error({"--port", "abc"}, static_cast<int>(CLI::ExitCodes::ConversionError), "--port");
+}
+
+
+int main(int argc, char** argv)
 {
 	if (argc < 2) {
-		print_usage(argv[0]);
+		std::cerr << "Usage: " << argv[0] << " <path-to-will-client>\n";
 		return EXIT_FAILURE;
 	}
 
-	const char* const client_exe = argv[1];
+	g_client_exe = argv[1];
 
-	std::cout << "will-client CLI integration tests\n"
-			  << "  binary: " << client_exe << '\n'
-			  << '\n';
-
-	run_case("--help prints usage and exits 0", [&] { check_help(client_exe, {"--help"}); });
-
-	run_case("-h prints usage and exits 0", [&] { check_help(client_exe, {"-h"}); });
-
-	run_case("--help with other options still prints help and exits 0", [&] {
-		check_help(client_exe, {"--help", "--port", "8080"});
-	});
-
-	run_case("--help after other options prints help and exits 0", [&] {
-		check_help(client_exe, {"--port", "8080", "--help"});
-	});
-
-	run_case("--unknown prints error and usage, exits ExtrasError", [&] {
-		check_cli_error(client_exe, {"--unknown"},
-						static_cast<int>(CLI::ExitCodes::ExtrasError), "--unknown");
-	});
-
-	run_case("--port without value prints error and usage, exits ArgumentMismatch", [&] {
-		check_cli_error(client_exe, {"--port"},
-						static_cast<int>(CLI::ExitCodes::ArgumentMismatch), "--port");
-	});
-
-	run_case("--port 0 fails at client startup, exits 1", [&] {
-		const RunResult result = run_will_client(client_exe, {"--port", "0"});
-		assert(result.exit_code == 1);
-		assert_contains(result.stderr_output, "Client error:");
-		assert_contains(result.stderr_output, "port");
-	});
-
-	run_case("--host invalid fails at client startup, exits 1", [&] {
-		const RunResult result = run_will_client(client_exe, {"--host", "invalid"});
-		assert(result.exit_code == 1);
-		assert_contains(result.stderr_output, "Client error:");
-		assert_contains(result.stderr_output, "host");
-	});
-
-	run_case("--port abc prints error and usage, exits ConversionError", [&] {
-		check_cli_error(client_exe, {"--port", "abc"},
-						static_cast<int>(CLI::ExitCodes::ConversionError), "--port");
-	});
-
-	std::cout << "\nAll tests passed.\n";
-	return EXIT_SUCCESS;
+	doctest::Context context;
+	std::vector<char*> doctest_argv{argv[0]};
+	for (int i = 2; i < argc; ++i)
+		doctest_argv.push_back(argv[i]);
+	context.applyCommandLine(static_cast<int>(doctest_argv.size()), doctest_argv.data());
+	return context.run();
 }
