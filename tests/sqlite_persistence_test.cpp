@@ -52,7 +52,7 @@ TEST_CASE("sqlite persistence survives reopen")
 		name_a = soul_a.name();
 		name_b = soul_b.name();
 
-		const id::Abode abode = world.abode().id;
+		const id::Abode abode = world.abode_id();
 		letters.append(abode, soul_a.id(), "from-peer", Timestamp{1000});
 		letters.append(abode, soul_b.id(), "from-me", Timestamp{2000});
 

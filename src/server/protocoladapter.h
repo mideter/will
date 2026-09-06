@@ -6,8 +6,8 @@
 
 #include "ports/messenger_persistence.h"
 
+#include "entities/abode.h"
 #include "usecases/fetch_letter_history.h"
-#include "usecases/send_letter.h"
 
 #include "infra/transport/messenger.pb.h"
 
@@ -20,7 +20,7 @@ namespace will {
 class InboundClientMessageHandler;
 
 
-/** Maps client protobuf events to domain use cases and enqueues outbound events. */
+/** Maps client protobuf events to domain communion and enqueues outbound events. */
 class ProtocolAdapter {
 	friend class InboundClientMessageHandler;
 
@@ -43,7 +43,7 @@ private:
 	domain::MessengerPersistence persistence_;
 	SessionRegistry& registry_;
 	SessionParticipantNotifierImpl participant_notifier_;
-	domain::SendLetter send_letter_;
+	domain::Abode abode_;
 	domain::FetchLetterHistory fetch_letter_history_;
 };
 

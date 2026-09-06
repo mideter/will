@@ -3,6 +3,7 @@
 
 #include "domain_fakes.h"
 
+#include "entities/abode.h"
 #include "entities/world.h"
 #include "identity/abode.h"
 #include "values/device_token.h"
@@ -10,7 +11,6 @@
 #include "values/soul_name.h"
 #include "errors/domain_error.h"
 #include "usecases/fetch_letter_history.h"
-#include "usecases/send_letter.h"
 
 #include <variant>
 
@@ -86,22 +86,21 @@ TEST_CASE("welcome keeps existing name")
 }
 
 
-TEST_CASE("send_letter persists and notifies")
+TEST_CASE("abode inscribe persists and notifies")
 {
 	InMemoryLetterRepository letters;
 	FakeParticipantNotifier notifier;
+	Abode abode(id::Abode::global(), letters, notifier);
 
 	const id::Soul author{7};
-
-	SendLetter send(letters, notifier);
-	const Letter saved = send.execute(SendLetterInput{author, id::Abode::global(), "hello", Timestamp{900}});
+	const Letter saved = abode.inscribe(author, "hello", Timestamp{900});
 
 	CHECK(saved.id().value() > 0);
 	CHECK(saved.author_id() == author);
 	CHECK(saved.body() == "hello");
 	CHECK(saved.created_at() == Timestamp{900});
 
-	const auto loaded = letters.load_last(id::Abode::global(), 10);
+	const auto loaded = letters.load_last(abode.id(), 10);
 	REQUIRE(loaded.size() == 1);
 	CHECK(loaded[0].body() == "hello");
 
@@ -120,7 +119,7 @@ TEST_CASE("fetch_letter_history limit and is_mine")
 	seed_man(eternity, me, test_token("c0ffee00c0ffee00c0ffee00c0ffee00"), test_name("menameaa"));
 	seed_man(eternity, other, test_token("deadbeefdeadbeefdeadbeefdeadbeef"), test_name("peername"));
 	World world(eternity);
-	const id::Abode abode = world.abode().id;
+	const id::Abode abode = world.abode_id();
 
 	letters.append(abode, other, "peer", Timestamp{1});
 	letters.append(abode, me, "mine", Timestamp{2});
@@ -154,7 +153,7 @@ TEST_CASE("fetch_letter_history caps limit")
 
 	seed_man(eternity, author, test_token("feedfacefeedfacefeedfacefeedface"), test_name("authoraa"));
 	World world(eternity);
-	const id::Abode abode = world.abode().id;
+	const id::Abode abode = world.abode_id();
 
 	for (int i = 0; i < 5; ++i)
 		letters.append(abode, author, "m", Timestamp{i});

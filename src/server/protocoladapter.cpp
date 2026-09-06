@@ -15,7 +15,7 @@ ProtocolAdapter::ProtocolAdapter(domain::MessengerPersistence persistence, Sessi
 	: persistence_(persistence)
 	, registry_(registry)
 	, participant_notifier_(registry, persistence.world)
-	, send_letter_(persistence.letters, participant_notifier_)
+	, abode_(domain::id::Abode::global(), persistence.letters, participant_notifier_)
 	, fetch_letter_history_(persistence.letters, persistence.world)
 {}
 
@@ -84,10 +84,7 @@ void ProtocolAdapter::send_auth_required(const SessionId session_id)
 
 void ProtocolAdapter::handle_user_chat(const SessionId session_id, const v1::ChatMessage& chat)
 {
-	const domain::SendLetterInput input{*registry_.soul_id(session_id), persistence_.world.abode().id, chat.body(),
-										domain::Timestamp{}};
-
-	(void)send_letter_.execute(input);
+	(void)abode_.inscribe(*registry_.soul_id(session_id), chat.body(), domain::Timestamp{});
 
 	v1::ServerEvent event;
 	event.mutable_receipt_ack();
@@ -97,7 +94,7 @@ void ProtocolAdapter::handle_user_chat(const SessionId session_id, const v1::Cha
 
 void ProtocolAdapter::handle_history_request(const SessionId session_id, const v1::HistoryRequest& request)
 {
-	const domain::FetchLetterHistoryInput input{*registry_.soul_id(session_id), persistence_.world.abode().id,
+	const domain::FetchLetterHistoryInput input{*registry_.soul_id(session_id), abode_.id(),
 												request.limit()};
 
 	const auto outcome = fetch_letter_history_.execute(input);

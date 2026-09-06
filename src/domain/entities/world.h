@@ -1,9 +1,9 @@
 #pragma once
 
-#include "entities/abode.h"
 #include "entities/earth.h"
 #include "entities/heaven.h"
 #include "entities/man.h"
+#include "identity/abode.h"
 #include "identity/vessel.h"
 #include "ports/eternity.h"
 #include "values/device_token.h"
@@ -24,7 +24,7 @@ public:
 	explicit World(Eternity& eternity);
 
 	/// Single abode for now; later a registry of abodes in this world.
-	Abode abode() const noexcept { return Abode::global(); }
+	id::Abode abode_id() const noexcept { return id::Abode::global(); }
 
 	/// Man dwelling in this vessel. Throws if the vessel has no man (broken invariant).
 	Man find_man_by_vessel(const Vessel& vessel) const;
