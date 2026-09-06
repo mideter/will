@@ -6,6 +6,7 @@
 #include "values/timestamp.h"
 
 #include <iostream>
+#include <vector>
 
 
 namespace will {
@@ -15,8 +16,9 @@ ProtocolAdapter::ProtocolAdapter(domain::MessengerPersistence persistence, Sessi
 	: persistence_(persistence)
 	, registry_(registry)
 	, participant_notifier_(registry, persistence.world)
-	, abode_(domain::id::Abode::global(), persistence.letters, participant_notifier_, persistence.world)
-{}
+{
+	persistence_.world.abode().echo_through(participant_notifier_);
+}
 
 
 void ProtocolAdapter::on_client_event(const SessionId session_id, const v1::ClientEvent& event)
@@ -83,7 +85,7 @@ void ProtocolAdapter::send_auth_required(const SessionId session_id)
 
 void ProtocolAdapter::handle_user_chat(const SessionId session_id, const v1::ChatMessage& chat)
 {
-	(void)abode_.inscribe(*registry_.soul_id(session_id), chat.body(), domain::Timestamp{});
+	(void)persistence_.world.abode().inscribe(*registry_.soul_id(session_id), chat.body(), domain::Timestamp{});
 
 	v1::ServerEvent event;
 	event.mutable_receipt_ack();
@@ -93,7 +95,7 @@ void ProtocolAdapter::handle_user_chat(const SessionId session_id, const v1::Cha
 
 void ProtocolAdapter::handle_history_request(const SessionId session_id, const v1::HistoryRequest& request)
 {
-	const auto outcome = abode_.retell(*registry_.soul_id(session_id), request.limit());
+	const auto outcome = persistence_.world.abode().retell(*registry_.soul_id(session_id), request.limit());
 	if (const auto* error = std::get_if<domain::DomainError>(&outcome)) {
 		(void)error;
 		close_with_protocol_error(session_id, "Protocol error: invalid HistoryRequest");

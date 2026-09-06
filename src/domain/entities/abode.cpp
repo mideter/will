@@ -3,23 +3,32 @@
 #include <algorithm>
 #include <map>
 #include <optional>
+#include <stdexcept>
 
 
 namespace will::domain {
 
 
-Abode::Abode(id::Abode id, LetterRepository& letters, ParticipantNotifier& notifier, Heaven& heaven)
+Abode::Abode(id::Abode id, LetterRepository& letters, Heaven& heaven)
 	: id_(id)
 	, letters_(letters)
-	, notifier_(notifier)
 	, heaven_(heaven)
 {}
 
 
+void Abode::echo_through(ParticipantNotifier& notifier) noexcept
+{
+	notifier_ = &notifier;
+}
+
+
 Letter Abode::inscribe(id::Soul author, std::string_view body, Timestamp created_at)
 {
+	if (!notifier_)
+		throw std::logic_error("Abode has no echo");
+
 	Letter saved = letters_.append(id_, author, body, created_at);
-	notifier_.notify_letter(saved);
+	notifier_->notify_letter(saved);
 	return saved;
 }
 

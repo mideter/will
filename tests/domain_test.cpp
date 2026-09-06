@@ -3,15 +3,14 @@
 
 #include "domain_fakes.h"
 
-#include "entities/abode.h"
 #include "entities/world.h"
-#include "identity/abode.h"
 #include "values/device_token.h"
 #include "values/timestamp.h"
 #include "values/soul_name.h"
 #include "errors/domain_error.h"
 
 #include <variant>
+#include <vector>
 
 
 namespace {
@@ -39,7 +38,8 @@ SoulName test_name(const char* text)
 TEST_CASE("welcome creates man")
 {
 	InMemoryEternity eternity;
-	World world(eternity);
+	InMemoryLetterRepository letters;
+	World world(eternity, letters);
 
 	const DeviceToken token = DeviceToken::generate();
 	const Man man = world.welcome(token);
@@ -63,8 +63,9 @@ TEST_CASE("welcome creates man")
 TEST_CASE("welcome existing man")
 {
 	InMemoryEternity eternity;
+	InMemoryLetterRepository letters;
 	seed_man(eternity, id::Soul{42}, test_token("abcd1234abcd1234abcd1234abcd1234"), test_name("oldname1"));
-	World world(eternity);
+	World world(eternity, letters);
 
 	const Man man = world.welcome(test_token("abcd1234abcd1234abcd1234abcd1234"));
 	CHECK(man.soul_id() == id::Soul{42});
@@ -74,8 +75,9 @@ TEST_CASE("welcome existing man")
 TEST_CASE("welcome keeps existing name")
 {
 	InMemoryEternity eternity;
+	InMemoryLetterRepository letters;
 	seed_man(eternity, id::Soul{7}, test_token("abcd1234abcd1234abcd1234abcd1234"), test_name("keptname"));
-	World world(eternity);
+	World world(eternity, letters);
 
 	(void)world.welcome(test_token("abcd1234abcd1234abcd1234abcd1234"));
 
@@ -90,18 +92,18 @@ TEST_CASE("abode inscribe persists and notifies")
 	InMemoryLetterRepository letters;
 	FakeParticipantNotifier notifier;
 	InMemoryEternity eternity;
-	World world(eternity);
-	Abode abode(id::Abode::global(), letters, notifier, world);
+	World world(eternity, letters);
+	world.abode().echo_through(notifier);
 
 	const id::Soul author{7};
-	const Letter saved = abode.inscribe(author, "hello", Timestamp{900});
+	const Letter saved = world.abode().inscribe(author, "hello", Timestamp{900});
 
 	CHECK(saved.id().value() > 0);
 	CHECK(saved.author_id() == author);
 	CHECK(saved.body() == "hello");
 	CHECK(saved.created_at() == Timestamp{900});
 
-	const auto loaded = letters.load_last(abode.id(), 10);
+	const auto loaded = letters.load_last(world.abode().id(), 10);
 	REQUIRE(loaded.size() == 1);
 	CHECK(loaded[0].body() == "hello");
 
@@ -113,25 +115,23 @@ TEST_CASE("abode inscribe persists and notifies")
 TEST_CASE("abode retell limit and is_mine")
 {
 	InMemoryLetterRepository letters;
-	FakeParticipantNotifier notifier;
 	InMemoryEternity eternity;
 	const id::Soul me{10};
 	const id::Soul other{20};
 
 	seed_man(eternity, me, test_token("c0ffee00c0ffee00c0ffee00c0ffee00"), test_name("menameaa"));
 	seed_man(eternity, other, test_token("deadbeefdeadbeefdeadbeefdeadbeef"), test_name("peername"));
-	World world(eternity);
-	Abode abode(world.abode_id(), letters, notifier, world);
+	World world(eternity, letters);
 
-	letters.append(abode.id(), other, "peer", Timestamp{1});
-	letters.append(abode.id(), me, "mine", Timestamp{2});
-	letters.append(abode.id(), other, "peer2", Timestamp{3});
+	letters.append(world.abode().id(), other, "peer", Timestamp{1});
+	letters.append(world.abode().id(), me, "mine", Timestamp{2});
+	letters.append(world.abode().id(), other, "peer2", Timestamp{3});
 
-	const auto zero_limit = abode.retell(me, 0);
+	const auto zero_limit = world.abode().retell(me, 0);
 	REQUIRE(std::holds_alternative<DomainError>(zero_limit));
 	CHECK(std::get<DomainError>(zero_limit).code == DomainErrorCode::InvalidArgument);
 
-	const auto ok = abode.retell(me, 2);
+	const auto ok = world.abode().retell(me, 2);
 	REQUIRE(std::holds_alternative<std::vector<RetoldLetter>>(ok));
 
 	const auto& items = std::get<std::vector<RetoldLetter>>(ok);
@@ -148,18 +148,16 @@ TEST_CASE("abode retell limit and is_mine")
 TEST_CASE("abode retell caps limit")
 {
 	InMemoryLetterRepository letters;
-	FakeParticipantNotifier notifier;
 	InMemoryEternity eternity;
 	const id::Soul author{1};
 
 	seed_man(eternity, author, test_token("feedfacefeedfacefeedfacefeedface"), test_name("authoraa"));
-	World world(eternity);
-	Abode abode(world.abode_id(), letters, notifier, world);
+	World world(eternity, letters);
 
 	for (int i = 0; i < 5; ++i)
-		letters.append(abode.id(), author, "m", Timestamp{i});
+		letters.append(world.abode().id(), author, "m", Timestamp{i});
 
-	const auto ok = abode.retell(author, Abode::MaxRetellLimit + 50);
+	const auto ok = world.abode().retell(author, Abode::MaxRetellLimit + 50);
 	REQUIRE(std::holds_alternative<std::vector<RetoldLetter>>(ok));
 	CHECK(std::get<std::vector<RetoldLetter>>(ok).size() == 5);
 }

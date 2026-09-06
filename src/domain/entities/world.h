@@ -1,11 +1,12 @@
 #pragma once
 
+#include "entities/abode.h"
 #include "entities/earth.h"
 #include "entities/heaven.h"
 #include "entities/man.h"
-#include "identity/abode.h"
 #include "identity/vessel.h"
 #include "ports/eternity.h"
+#include "ports/letter_repository.h"
 #include "values/device_token.h"
 
 #include <memory>
@@ -21,10 +22,11 @@ namespace will::domain {
 /// Men are heap-stable (unique_ptr); Heaven/Earth index the Soul/Vessel bases.
 class World : public Heaven, public Earth {
 public:
-	explicit World(Eternity& eternity);
+	World(Eternity& eternity, LetterRepository& letters);
 
 	/// Single abode for now; later a registry of abodes in this world.
-	id::Abode abode_id() const noexcept { return id::Abode::global(); }
+	Abode& abode() noexcept { return abode_; }
+	const Abode& abode() const noexcept { return abode_; }
 
 	/// Man dwelling in this vessel. Throws if the vessel has no man (broken invariant).
 	Man find_man_by_vessel(const Vessel& vessel) const;
@@ -38,6 +40,7 @@ private:
 
 	void accept(Man man);
 
+	Abode abode_;
 	mutable std::mutex mutex_;
 	std::unordered_map<id::Man, std::unique_ptr<Man>> men_by_id_;
 	std::unordered_map<id::Vessel, id::Man> man_id_by_vessel_;

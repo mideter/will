@@ -26,14 +26,17 @@ struct RetoldLetter {
 
 
 /// Abode (Обитель) — place of communion in the World.
-/// Holds letter memory and echoes inscribed letters to participants.
+/// Holds letter memory; echoes inscribed letters once opened through a notifier.
 class Abode {
 public:
 	static constexpr std::uint32_t MaxRetellLimit = 1000;
 
-	Abode(id::Abode id, LetterRepository& letters, ParticipantNotifier& notifier, Heaven& heaven);
+	Abode(id::Abode id, LetterRepository& letters, Heaven& heaven);
 
 	id::Abode id() const noexcept { return id_; }
+
+	/// Open echo of inscribed letters to participants.
+	void echo_through(ParticipantNotifier& notifier) noexcept;
 
 	/// Inscribe a letter from a soul into this abode's memory and echo it.
 	Letter inscribe(id::Soul author, std::string_view body, Timestamp created_at);
@@ -44,8 +47,8 @@ public:
 private:
 	id::Abode id_;
 	LetterRepository& letters_;
-	ParticipantNotifier& notifier_;
 	Heaven& heaven_;
+	ParticipantNotifier* notifier_ = nullptr;
 };
 
 

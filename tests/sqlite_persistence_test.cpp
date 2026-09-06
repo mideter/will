@@ -37,7 +37,7 @@ TEST_CASE("sqlite persistence survives reopen")
 		SqliteDatabase database(db_path);
 		SqliteStore store(database);
 		SqliteLetterRepositoryImpl letters(database);
-		World world(store);
+		World world(store, letters);
 
 		const DeviceToken token_a = *DeviceToken::parse("aaaa1234aaaa1234aaaa1234aaaa1234");
 		const DeviceToken token_b = *DeviceToken::parse("bbbb1234bbbb1234bbbb1234bbbb1234");
@@ -52,7 +52,7 @@ TEST_CASE("sqlite persistence survives reopen")
 		name_a = soul_a.name();
 		name_b = soul_b.name();
 
-		const id::Abode abode = world.abode_id();
+		const id::Abode abode = world.abode().id();
 		letters.append(abode, soul_a.id(), "from-peer", Timestamp{1000});
 		letters.append(abode, soul_b.id(), "from-me", Timestamp{2000});
 
@@ -79,7 +79,8 @@ TEST_CASE("sqlite persistence survives reopen")
 	{
 		SqliteDatabase database(db_path);
 		SqliteStore store(database);
-		World world(store);
+		SqliteLetterRepositoryImpl letters(database);
+		World world(store, letters);
 
 		const DeviceToken token_created = *DeviceToken::parse(token_text);
 		const std::optional<Vessel> vessel_created = world.find_vessel_by_token(token_created);

@@ -6,8 +6,6 @@
 
 #include "ports/messenger_persistence.h"
 
-#include "entities/abode.h"
-
 #include "infra/transport/messenger.pb.h"
 
 #include <string_view>
@@ -42,7 +40,6 @@ private:
 	domain::MessengerPersistence persistence_;
 	SessionRegistry& registry_;
 	SessionParticipantNotifierImpl participant_notifier_;
-	domain::Abode abode_;
 };
 
 
