@@ -4,7 +4,7 @@
 #include "sessionparticipantnotifierimpl.h"
 #include "sessionregistry.h"
 
-#include "ports/messenger_persistence.h"
+#include "entities/world.h"
 
 #include "infra/transport/messenger.pb.h"
 
@@ -22,11 +22,11 @@ class ProtocolAdapter {
 	friend class InboundClientMessageHandler;
 
 public:
-	ProtocolAdapter(domain::MessengerPersistence persistence, SessionRegistry& registry);
+	ProtocolAdapter(domain::World& world, SessionRegistry& registry);
 
 	void on_client_event(SessionId session_id, const v1::ClientEvent& event);
 
-	bool is_authenticated(SessionId session_id) const;
+	[[nodiscard]] bool is_authenticated(SessionId session_id) const;
 
 private:
 	void handle_bind_token(SessionId session_id, const v1::BindToken& token);
@@ -37,7 +37,7 @@ private:
 	void close_with_protocol_error(SessionId session_id, std::string_view message);
 	void close_session(SessionId session_id);
 
-	domain::MessengerPersistence persistence_;
+	domain::World& world_;
 	SessionRegistry& registry_;
 	SessionParticipantNotifierImpl participant_notifier_;
 };

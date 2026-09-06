@@ -12,12 +12,12 @@
 namespace will {
 
 
-ProtocolAdapter::ProtocolAdapter(domain::MessengerPersistence persistence, SessionRegistry& registry)
-	: persistence_(persistence)
+ProtocolAdapter::ProtocolAdapter(domain::World& world, SessionRegistry& registry)
+	: world_(world)
 	, registry_(registry)
-	, participant_notifier_(registry, persistence.world)
+	, participant_notifier_(registry, world_)
 {
-	persistence_.world.abode().echo_through(participant_notifier_);
+	world_.abode().echo_through(participant_notifier_);
 }
 
 
@@ -65,7 +65,7 @@ void ProtocolAdapter::handle_bind_token(const SessionId session_id, const v1::Bi
 		return;
 	}
 
-	const domain::Man man = persistence_.world.welcome(*device_token);
+	const domain::Man man = world_.welcome(*device_token);
 	if (const auto displaced = registry_.bind_soul(session_id, man.soul_id()))
 		close_session(*displaced);
 
@@ -85,7 +85,7 @@ void ProtocolAdapter::send_auth_required(const SessionId session_id)
 
 void ProtocolAdapter::handle_user_chat(const SessionId session_id, const v1::ChatMessage& chat)
 {
-	(void)persistence_.world.abode().inscribe(*registry_.soul_id(session_id), chat.body(), domain::Timestamp{});
+	(void)world_.abode().inscribe(*registry_.soul_id(session_id), chat.body(), domain::Timestamp{});
 
 	v1::ServerEvent event;
 	event.mutable_receipt_ack();
@@ -95,7 +95,7 @@ void ProtocolAdapter::handle_user_chat(const SessionId session_id, const v1::Cha
 
 void ProtocolAdapter::handle_history_request(const SessionId session_id, const v1::HistoryRequest& request)
 {
-	const auto outcome = persistence_.world.abode().retell(*registry_.soul_id(session_id), request.limit());
+	const auto outcome = world_.abode().retell(*registry_.soul_id(session_id), request.limit());
 	if (const auto* error = std::get_if<domain::DomainError>(&outcome)) {
 		(void)error;
 		close_with_protocol_error(session_id, "Protocol error: invalid HistoryRequest");

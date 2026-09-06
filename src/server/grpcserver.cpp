@@ -58,9 +58,9 @@ grpc::Status MessengerService::Session(grpc::ServerContext* context,
 }
 
 
-GrpcMessengerServer::GrpcMessengerServer(ServerConfig config, domain::MessengerPersistence persistence)
+GrpcMessengerServer::GrpcMessengerServer(ServerConfig config, domain::World& world)
 	: config_(std::move(config))
-	, protocol_adapter_(persistence, registry_)
+	, protocol_adapter_(world, registry_)
 	, service_(protocol_adapter_, registry_, config_.max_connections)
 {}
 

@@ -4,7 +4,7 @@
 #include "serverconfig.h"
 #include "sessionregistry.h"
 
-#include "ports/messenger_persistence.h"
+#include "entities/world.h"
 
 #include "infra/transport/messenger.grpc.pb.h"
 
@@ -34,7 +34,7 @@ private:
 
 class GrpcMessengerServer {
 public:
-	GrpcMessengerServer(ServerConfig config, domain::MessengerPersistence persistence);
+	GrpcMessengerServer(ServerConfig config, domain::World& world);
 
 	void run();
 

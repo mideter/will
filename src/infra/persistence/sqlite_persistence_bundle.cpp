@@ -12,18 +12,6 @@ SqlitePersistenceBundle::SqlitePersistenceBundle(std::string db_path)
 {}
 
 
-domain::MessengerPersistence SqlitePersistenceBundle::ports()
-{
-	return {letters(), world()};
-}
-
-
-domain::LetterRepository& SqlitePersistenceBundle::letters()
-{
-	return letters_;
-}
-
-
 domain::World& SqlitePersistenceBundle::world()
 {
 	return world_;
