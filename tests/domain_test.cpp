@@ -10,7 +10,6 @@
 #include "values/timestamp.h"
 #include "values/soul_name.h"
 #include "errors/domain_error.h"
-#include "usecases/fetch_letter_history.h"
 
 #include <variant>
 
@@ -90,7 +89,9 @@ TEST_CASE("abode inscribe persists and notifies")
 {
 	InMemoryLetterRepository letters;
 	FakeParticipantNotifier notifier;
-	Abode abode(id::Abode::global(), letters, notifier);
+	InMemoryEternity eternity;
+	World world(eternity);
+	Abode abode(id::Abode::global(), letters, notifier, world);
 
 	const id::Soul author{7};
 	const Letter saved = abode.inscribe(author, "hello", Timestamp{900});
@@ -109,9 +110,10 @@ TEST_CASE("abode inscribe persists and notifies")
 }
 
 
-TEST_CASE("fetch_letter_history limit and is_mine")
+TEST_CASE("abode retell limit and is_mine")
 {
 	InMemoryLetterRepository letters;
+	FakeParticipantNotifier notifier;
 	InMemoryEternity eternity;
 	const id::Soul me{10};
 	const id::Soul other{20};
@@ -119,48 +121,45 @@ TEST_CASE("fetch_letter_history limit and is_mine")
 	seed_man(eternity, me, test_token("c0ffee00c0ffee00c0ffee00c0ffee00"), test_name("menameaa"));
 	seed_man(eternity, other, test_token("deadbeefdeadbeefdeadbeefdeadbeef"), test_name("peername"));
 	World world(eternity);
-	const id::Abode abode = world.abode_id();
+	Abode abode(world.abode_id(), letters, notifier, world);
 
-	letters.append(abode, other, "peer", Timestamp{1});
-	letters.append(abode, me, "mine", Timestamp{2});
-	letters.append(abode, other, "peer2", Timestamp{3});
+	letters.append(abode.id(), other, "peer", Timestamp{1});
+	letters.append(abode.id(), me, "mine", Timestamp{2});
+	letters.append(abode.id(), other, "peer2", Timestamp{3});
 
-	FetchLetterHistory fetch(letters, world);
-
-	const auto zero_limit = fetch.execute(FetchLetterHistoryInput{me, abode, 0});
+	const auto zero_limit = abode.retell(me, 0);
 	REQUIRE(std::holds_alternative<DomainError>(zero_limit));
 	CHECK(std::get<DomainError>(zero_limit).code == DomainErrorCode::InvalidArgument);
 
-	const auto ok = fetch.execute(FetchLetterHistoryInput{me, abode, 2});
-	REQUIRE(std::holds_alternative<FetchLetterHistoryResult>(ok));
+	const auto ok = abode.retell(me, 2);
+	REQUIRE(std::holds_alternative<std::vector<RetoldLetter>>(ok));
 
-	const FetchLetterHistoryResult& result = std::get<FetchLetterHistoryResult>(ok);
-	REQUIRE(result.items.size() == 2);
-	CHECK(result.items[0].letter.body() == "mine");
-	CHECK(result.items[0].author_name == "menameaa");
-	CHECK(result.items[0].is_mine);
-	CHECK(result.items[1].letter.body() == "peer2");
-	CHECK(result.items[1].author_name == "peername");
-	CHECK_FALSE(result.items[1].is_mine);
+	const auto& items = std::get<std::vector<RetoldLetter>>(ok);
+	REQUIRE(items.size() == 2);
+	CHECK(items[0].letter.body() == "mine");
+	CHECK(items[0].author_name == "menameaa");
+	CHECK(items[0].is_mine);
+	CHECK(items[1].letter.body() == "peer2");
+	CHECK(items[1].author_name == "peername");
+	CHECK_FALSE(items[1].is_mine);
 }
 
 
-TEST_CASE("fetch_letter_history caps limit")
+TEST_CASE("abode retell caps limit")
 {
 	InMemoryLetterRepository letters;
+	FakeParticipantNotifier notifier;
 	InMemoryEternity eternity;
 	const id::Soul author{1};
 
 	seed_man(eternity, author, test_token("feedfacefeedfacefeedfacefeedface"), test_name("authoraa"));
 	World world(eternity);
-	const id::Abode abode = world.abode_id();
+	Abode abode(world.abode_id(), letters, notifier, world);
 
 	for (int i = 0; i < 5; ++i)
-		letters.append(abode, author, "m", Timestamp{i});
+		letters.append(abode.id(), author, "m", Timestamp{i});
 
-	FetchLetterHistory fetch(letters, world);
-	const auto ok = fetch.execute(FetchLetterHistoryInput{
-		author, abode, FetchLetterHistory::MaxHistoryRequestLimit + 50});
-	REQUIRE(std::holds_alternative<FetchLetterHistoryResult>(ok));
-	CHECK(std::get<FetchLetterHistoryResult>(ok).items.size() == 5);
+	const auto ok = abode.retell(author, Abode::MaxRetellLimit + 50);
+	REQUIRE(std::holds_alternative<std::vector<RetoldLetter>>(ok));
+	CHECK(std::get<std::vector<RetoldLetter>>(ok).size() == 5);
 }

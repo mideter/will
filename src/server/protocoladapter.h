@@ -7,7 +7,6 @@
 #include "ports/messenger_persistence.h"
 
 #include "entities/abode.h"
-#include "usecases/fetch_letter_history.h"
 
 #include "infra/transport/messenger.pb.h"
 
@@ -29,7 +28,7 @@ public:
 
 	void on_client_event(SessionId session_id, const v1::ClientEvent& event);
 
-	[[nodiscard]] bool is_authenticated(SessionId session_id) const;
+	bool is_authenticated(SessionId session_id) const;
 
 private:
 	void handle_bind_token(SessionId session_id, const v1::BindToken& token);
@@ -44,7 +43,6 @@ private:
 	SessionRegistry& registry_;
 	SessionParticipantNotifierImpl participant_notifier_;
 	domain::Abode abode_;
-	domain::FetchLetterHistory fetch_letter_history_;
 };
 
 

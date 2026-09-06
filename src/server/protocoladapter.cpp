@@ -15,8 +15,7 @@ ProtocolAdapter::ProtocolAdapter(domain::MessengerPersistence persistence, Sessi
 	: persistence_(persistence)
 	, registry_(registry)
 	, participant_notifier_(registry, persistence.world)
-	, abode_(domain::id::Abode::global(), persistence.letters, participant_notifier_)
-	, fetch_letter_history_(persistence.letters, persistence.world)
+	, abode_(domain::id::Abode::global(), persistence.letters, participant_notifier_, persistence.world)
 {}
 
 
@@ -94,18 +93,15 @@ void ProtocolAdapter::handle_user_chat(const SessionId session_id, const v1::Cha
 
 void ProtocolAdapter::handle_history_request(const SessionId session_id, const v1::HistoryRequest& request)
 {
-	const domain::FetchLetterHistoryInput input{*registry_.soul_id(session_id), abode_.id(),
-												request.limit()};
-
-	const auto outcome = fetch_letter_history_.execute(input);
+	const auto outcome = abode_.retell(*registry_.soul_id(session_id), request.limit());
 	if (const auto* error = std::get_if<domain::DomainError>(&outcome)) {
 		(void)error;
 		close_with_protocol_error(session_id, "Protocol error: invalid HistoryRequest");
 		return;
 	}
 
-	const auto& history = std::get<domain::FetchLetterHistoryResult>(outcome);
-	for (const domain::FetchLetterHistoryItem& item : history.items) {
+	const auto& items = std::get<std::vector<domain::RetoldLetter>>(outcome);
+	for (const domain::RetoldLetter& item : items) {
 		v1::ServerEvent event;
 		auto* history_item = event.mutable_history_item();
 		history_item->set_message_id(item.letter.id().value());
