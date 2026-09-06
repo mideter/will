@@ -32,6 +32,9 @@ public:
 	/// Birth a new man in Eternity and accept him into the living cosmos.
 	Man birth_man(const DeviceToken& token);
 
+	/// Welcome a vessel's token: return the dwelling man, or birth one if unknown.
+	Man welcome(const DeviceToken& token);
+
 private:
 	void accept(Man man);
 

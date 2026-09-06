@@ -1,5 +1,6 @@
 #include "world.h"
 
+#include <optional>
 #include <stdexcept>
 #include <utility>
 
@@ -36,6 +37,15 @@ Man World::birth_man(const DeviceToken& token)
 	Man man = Heaven::birth_man(token);
 	accept(man);
 	return man;
+}
+
+
+Man World::welcome(const DeviceToken& token)
+{
+	if (const std::optional<Vessel> vessel = find_vessel_by_token(token))
+		return find_man_by_vessel(*vessel);
+
+	return birth_man(token);
 }
 
 
