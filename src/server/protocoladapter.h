@@ -6,7 +6,6 @@
 
 #include "ports/messenger_persistence.h"
 
-#include "usecases/authenticate_device.h"
 #include "usecases/fetch_letter_history.h"
 #include "usecases/send_letter.h"
 
@@ -44,7 +43,6 @@ private:
 	domain::MessengerPersistence persistence_;
 	SessionRegistry& registry_;
 	SessionParticipantNotifierImpl participant_notifier_;
-	domain::AuthenticateDevice authenticate_device_;
 	domain::SendLetter send_letter_;
 	domain::FetchLetterHistory fetch_letter_history_;
 };

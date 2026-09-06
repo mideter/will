@@ -8,9 +8,7 @@
 #include "values/device_token.h"
 #include "values/timestamp.h"
 #include "values/soul_name.h"
-#include "errors/auth_error.h"
 #include "errors/domain_error.h"
-#include "usecases/authenticate_device.h"
 #include "usecases/fetch_letter_history.h"
 #include "usecases/send_letter.h"
 
@@ -39,71 +37,52 @@ SoulName test_name(const char* text)
 } // namespace
 
 
-TEST_CASE("authenticate_device creates soul")
+TEST_CASE("welcome creates man")
 {
 	InMemoryEternity eternity;
 	World world(eternity);
-	AuthenticateDevice authenticate(world);
 
 	const DeviceToken token = DeviceToken::generate();
-	const auto result = authenticate.execute(AuthenticateDeviceInput{token.text()});
-	REQUIRE(std::holds_alternative<AuthenticateDeviceSuccess>(result));
+	const Man man = world.welcome(token);
 
-	const AuthenticateDeviceSuccess& success = std::get<AuthenticateDeviceSuccess>(result);
-	CHECK(success.man.soul_id().value() > 0);
-	CHECK(success.man.id().value() > 0);
-	CHECK(success.man.vessel_id().value() > 0);
+	CHECK(man.soul_id().value() > 0);
+	CHECK(man.id().value() > 0);
+	CHECK(man.vessel_id().value() > 0);
 
 	const std::optional<Vessel> vessel = world.find_vessel_by_token(token);
 	REQUIRE(vessel.has_value());
-	CHECK(vessel->id() == success.man.vessel_id());
-	CHECK(world.find_man_by_vessel(*vessel).id() == success.man.id());
-	CHECK(world.find_man_by_vessel(*vessel).soul_id() == success.man.soul_id());
+	CHECK(vessel->id() == man.vessel_id());
+	CHECK(world.find_man_by_vessel(*vessel).id() == man.id());
+	CHECK(world.find_man_by_vessel(*vessel).soul_id() == man.soul_id());
 
-	const std::optional<Soul> soul = world.find_by_id(success.man.soul_id());
+	const std::optional<Soul> soul = world.find_by_id(man.soul_id());
 	REQUIRE(soul.has_value());
 	CHECK(SoulName::parse(soul->name().text()));
 }
 
 
-TEST_CASE("authenticate_device existing soul")
+TEST_CASE("welcome existing man")
 {
 	InMemoryEternity eternity;
 	seed_man(eternity, id::Soul{42}, test_token("abcd1234abcd1234abcd1234abcd1234"), test_name("oldname1"));
 	World world(eternity);
 
-	AuthenticateDevice authenticate(world);
-	const auto result = authenticate.execute(AuthenticateDeviceInput{"abcd1234abcd1234abcd1234abcd1234"});
-	REQUIRE(std::holds_alternative<AuthenticateDeviceSuccess>(result));
-	CHECK(std::get<AuthenticateDeviceSuccess>(result).man.soul_id() == id::Soul{42});
+	const Man man = world.welcome(test_token("abcd1234abcd1234abcd1234abcd1234"));
+	CHECK(man.soul_id() == id::Soul{42});
 }
 
 
-TEST_CASE("authenticate_device keeps existing name")
+TEST_CASE("welcome keeps existing name")
 {
 	InMemoryEternity eternity;
 	seed_man(eternity, id::Soul{7}, test_token("abcd1234abcd1234abcd1234abcd1234"), test_name("keptname"));
 	World world(eternity);
 
-	AuthenticateDevice authenticate(world);
-	const auto result = authenticate.execute(AuthenticateDeviceInput{"abcd1234abcd1234abcd1234abcd1234"});
-	REQUIRE(std::holds_alternative<AuthenticateDeviceSuccess>(result));
+	(void)world.welcome(test_token("abcd1234abcd1234abcd1234abcd1234"));
 
 	const std::optional<Soul> soul = world.find_by_id(id::Soul{7});
 	REQUIRE(soul.has_value());
 	CHECK(soul->name() == test_name("keptname"));
-}
-
-
-TEST_CASE("authenticate_device invalid token")
-{
-	InMemoryEternity eternity;
-	World world(eternity);
-	AuthenticateDevice authenticate(world);
-
-	const auto result = authenticate.execute(AuthenticateDeviceInput{"short"});
-	REQUIRE(std::holds_alternative<AuthError>(result));
-	CHECK(std::get<AuthError>(result) == AuthError::InvalidToken);
 }
 
 

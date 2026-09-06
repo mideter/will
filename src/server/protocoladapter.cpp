@@ -2,6 +2,7 @@
 
 #include "inbound_client_message_handler.h"
 
+#include "values/device_token.h"
 #include "values/timestamp.h"
 
 #include <iostream>
@@ -14,7 +15,6 @@ ProtocolAdapter::ProtocolAdapter(domain::MessengerPersistence persistence, Sessi
 	: persistence_(persistence)
 	, registry_(registry)
 	, participant_notifier_(registry, persistence.world)
-	, authenticate_device_(persistence.world)
 	, send_letter_(persistence.letters, participant_notifier_)
 	, fetch_letter_history_(persistence.letters, persistence.world)
 {}
@@ -58,16 +58,14 @@ void ProtocolAdapter::close_session(const SessionId session_id)
 
 void ProtocolAdapter::handle_bind_token(const SessionId session_id, const v1::BindToken& token)
 {
-	const domain::AuthenticateDeviceInput input{token.token()};
-	const auto outcome = authenticate_device_.execute(input);
-
-	if (std::holds_alternative<domain::AuthError>(outcome)) {
+	const auto device_token = domain::DeviceToken::parse(token.token());
+	if (!device_token) {
 		send_auth_required(session_id);
 		return;
 	}
 
-	const auto& success = std::get<domain::AuthenticateDeviceSuccess>(outcome);
-	if (const auto displaced = registry_.bind_soul(session_id, success.man.soul_id()))
+	const domain::Man man = persistence_.world.welcome(*device_token);
+	if (const auto displaced = registry_.bind_soul(session_id, man.soul_id()))
 		close_session(*displaced);
 
 	v1::ServerEvent event;
