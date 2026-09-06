@@ -24,8 +24,8 @@ public:
 protected:
 	explicit Heaven(Eternity& eternity);
 
-	/// Give a name and birth man (with soul and vessel) in Eternity.
-	Man birth_man(const DeviceToken& token);
+	/// Give a name and beget a man (with soul and vessel) in Eternity.
+	Man beget(const DeviceToken& token);
 
 	/// Recall men from Eternity into the waking cosmos.
 	std::vector<Man> remember() const;

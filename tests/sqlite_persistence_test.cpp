@@ -43,8 +43,8 @@ TEST_CASE("sqlite persistence survives reopen")
 		const DeviceToken token_b = *DeviceToken::parse("bbbb1234bbbb1234bbbb1234bbbb1234");
 		const DeviceToken token_created = *DeviceToken::parse(token_text);
 
-		const Man man_a = world.birth_man(token_a);
-		const Man man_b = world.birth_man(token_b);
+		const Man man_a = world.welcome(token_a);
+		const Man man_b = world.welcome(token_b);
 		const Soul soul_a = *world.find_by_id(man_a.soul_id());
 		const Soul soul_b = *world.find_by_id(man_b.soul_id());
 		soul_a_id = soul_a.id();
@@ -65,7 +65,7 @@ TEST_CASE("sqlite persistence survives reopen")
 		CHECK(rows[1].author_id() == soul_b.id());
 		CHECK(world.find_by_id(rows[1].author_id())->name() == *name_b);
 
-		const Man man_created = world.birth_man(token_created);
+		const Man man_created = world.welcome(token_created);
 		const Soul created = *world.find_by_id(man_created.soul_id());
 		created_id = created.id();
 		name_created = created.name();

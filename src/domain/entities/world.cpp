@@ -32,20 +32,20 @@ Man World::find_man_by_vessel(const Vessel& vessel) const
 }
 
 
-Man World::birth_man(const DeviceToken& token)
-{
-	Man man = Heaven::birth_man(token);
-	accept(man);
-	return man;
-}
-
-
 Man World::welcome(const DeviceToken& token)
 {
 	if (const std::optional<Vessel> vessel = find_vessel_by_token(token))
 		return find_man_by_vessel(*vessel);
 
-	return birth_man(token);
+	return beget(token);
+}
+
+
+Man World::beget(const DeviceToken& token)
+{
+	Man man = Heaven::beget(token);
+	accept(man);
+	return man;
 }
 
 

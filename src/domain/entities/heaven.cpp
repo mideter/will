@@ -23,7 +23,7 @@ std::optional<Soul> Heaven::find_by_id(const id::Soul id) const
 }
 
 
-Man Heaven::birth_man(const DeviceToken& token)
+Man Heaven::beget(const DeviceToken& token)
 {
 	const SoulName name = SoulName::generate();
 	return eternity_.insert_man(token, name);
