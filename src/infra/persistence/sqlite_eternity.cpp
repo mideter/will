@@ -63,7 +63,7 @@ std::vector<domain::Man> SqliteEternity::recall()
 }
 
 
-domain::Man SqliteEternity::insert_man(const domain::DeviceToken& token, const domain::SoulName name)
+domain::Man SqliteEternity::enroll(const domain::DeviceToken& token, const domain::SoulName name)
 {
 	std::lock_guard lock(database_.mutex());
 

@@ -10,14 +10,16 @@
 namespace will::domain {
 
 
-/// Eternal memory — durable storage. Runtime lookups use World (Heaven, Earth, men) in memory.
+/// Eternity — who endures. Runtime lookups use World (Heaven, Earth, men) while awake.
 class Eternity {
 public:
 	virtual ~Eternity() = default;
 
-	/// Yield men known in eternal memory (soul and vessel included).
+	/// Yield men known in eternity (soul and vessel included).
 	virtual std::vector<Man> recall() = 0;
-	virtual Man insert_man(const DeviceToken& token, SoulName name) = 0;
+
+	/// Enroll a man in the book of life.
+	virtual Man enroll(const DeviceToken& token, SoulName name) = 0;
 };
 
 

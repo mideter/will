@@ -28,7 +28,7 @@ class InMemoryEternity final : public Eternity {
 public:
 	std::vector<Man> recall() override { return men_; }
 
-	Man insert_man(const DeviceToken& token, const SoulName name) override
+	Man enroll(const DeviceToken& token, const SoulName name) override
 	{
 		const id::Soul soul_id{++next_soul_id_};
 		const id::Vessel vessel_id{++next_vessel_id_};

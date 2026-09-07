@@ -13,7 +13,7 @@ public:
 	explicit SqliteEternity(SqliteDatabase& database);
 
 	std::vector<domain::Man> recall() override;
-	domain::Man insert_man(const domain::DeviceToken& token, domain::SoulName name) override;
+	domain::Man enroll(const domain::DeviceToken& token, domain::SoulName name) override;
 
 private:
 	SqliteDatabase& database_;
