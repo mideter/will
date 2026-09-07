@@ -18,7 +18,7 @@ namespace will::domain {
 
 
 /// World (Мир) — living cosmos: Heaven, Earth, men, and abodes.
-/// Union of the eternal and the temporal; speaks with Eternity through Heaven,
+/// Union of Eternity and Temporality; speaks with Eternity through Heaven,
 /// with Temporality through Abode. Men are heap-stable (unique_ptr);
 /// Heaven/Earth index the Soul/Vessel bases.
 class World : public Heaven, public Earth {

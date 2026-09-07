@@ -10,7 +10,7 @@
 namespace will::domain {
 
 
-/// Eternity — who endures. Runtime lookups use World (Heaven, Earth, men) while awake.
+/// Eternity (Вечность) — who endures.
 class Eternity {
 public:
 	virtual ~Eternity() = default;
