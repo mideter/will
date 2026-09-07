@@ -10,7 +10,6 @@
 #include "identity/man.h"
 #include "identity/soul.h"
 #include "identity/vessel.h"
-#include "ports/eternity.h"
 #include "ports/temporality.h"
 #include "ports/time.h"
 #include "values/device_token.h"
@@ -41,7 +40,7 @@ private:
 };
 
 
-class InMemoryEternity final : public Eternity {
+class InMemoryTemporality final : public Temporality {
 public:
 	Time& time() override { return time_; }
 
@@ -71,23 +70,6 @@ public:
 			next_man_id_ = man_id.value();
 	}
 
-	FakeTime& fake_time() { return time_; }
-
-private:
-	FakeTime time_;
-	std::uint64_t next_soul_id_ = 0;
-	std::uint64_t next_vessel_id_ = 0;
-	std::uint64_t next_man_id_ = 0;
-	std::vector<Man> men_;
-};
-
-
-class InMemoryTemporality final : public Temporality {
-public:
-	explicit InMemoryTemporality(Time& time)
-		: time_(time)
-	{}
-
 	Letter fix(id::Abode abode, id::Soul author, std::string_view body) override
 	{
 		Letter letter{id::Letter{++next_id_}, abode, author, std::string(body), time_.instant()};
@@ -108,9 +90,15 @@ public:
 		return std::vector<Letter>(matching.end() - static_cast<std::ptrdiff_t>(limit), matching.end());
 	}
 
+	FakeTime& fake_time() { return time_; }
+
 private:
-	Time& time_;
+	FakeTime time_;
+	std::uint64_t next_soul_id_ = 0;
+	std::uint64_t next_vessel_id_ = 0;
+	std::uint64_t next_man_id_ = 0;
 	std::uint64_t next_id_ = 0;
+	std::vector<Man> men_;
 	std::vector<Letter> letters_;
 };
 
@@ -123,10 +111,10 @@ inline Soul register_soul_with_vessel(World& world, const std::string_view devic
 }
 
 
-inline void seed_man(InMemoryEternity& eternity, const id::Soul soul_id, const DeviceToken& token,
+inline void seed_man(InMemoryTemporality& temporality, const id::Soul soul_id, const DeviceToken& token,
 					 const SoulName name)
 {
-	eternity.seed_man(soul_id, token, name);
+	temporality.seed_man(soul_id, token, name);
 }
 
 

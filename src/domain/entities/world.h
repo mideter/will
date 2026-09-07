@@ -5,7 +5,6 @@
 #include "entities/heaven.h"
 #include "entities/man.h"
 #include "identity/vessel.h"
-#include "ports/eternity.h"
 #include "ports/temporality.h"
 #include "values/device_token.h"
 
@@ -18,12 +17,9 @@ namespace will::domain {
 
 
 /// World (Мир) — living cosmos: Heaven, Earth, men, and abodes.
-/// Union of Eternity and Temporality; speaks with Eternity through Heaven,
-/// with Temporality through Abode. Men are heap-stable (unique_ptr);
-/// Heaven/Earth index the Soul/Vessel bases.
 class World : public Heaven, public Earth {
 public:
-	World(Eternity& eternity, Temporality& temporality);
+	explicit World(Temporality& temporality);
 
 	/// Single abode for now; later a registry of abodes in this world.
 	Abode& abode() noexcept { return abode_; }

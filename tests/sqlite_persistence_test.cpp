@@ -3,7 +3,6 @@
 
 #include "entities/world.h"
 #include "sqlite_database.h"
-#include "sqlite_eternity.h"
 #include "sqlite_temporality.h"
 
 #include "identity/abode.h"
@@ -34,9 +33,8 @@ TEST_CASE("sqlite persistence survives reopen")
 
 	{
 		SqliteDatabase database(db_path);
-		SqliteEternity eternity(database);
-		SqliteTemporality temporality(database, eternity.time());
-		World world(eternity, temporality);
+		SqliteTemporality temporality(database);
+		World world(temporality);
 
 		const DeviceToken token_a = *DeviceToken::parse("aaaa1234aaaa1234aaaa1234aaaa1234");
 		const DeviceToken token_b = *DeviceToken::parse("bbbb1234bbbb1234bbbb1234bbbb1234");
@@ -77,9 +75,8 @@ TEST_CASE("sqlite persistence survives reopen")
 
 	{
 		SqliteDatabase database(db_path);
-		SqliteEternity eternity(database);
-		SqliteTemporality temporality(database, eternity.time());
-		World world(eternity, temporality);
+		SqliteTemporality temporality(database);
+		World world(temporality);
 
 		const DeviceToken token_created = *DeviceToken::parse(token_text);
 		const std::optional<Vessel> vessel_created = world.find_vessel_by_token(token_created);

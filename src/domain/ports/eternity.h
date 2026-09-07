@@ -11,7 +11,7 @@
 namespace will::domain {
 
 
-/// Eternity (Вечность) — who endures. Pair to Temporality; World unites both.
+/// Eternity (Вечность) — who endures.
 /// Time belongs to Eternity; without the eternal there is no present for the temporal.
 class Eternity {
 public:
