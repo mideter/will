@@ -38,7 +38,7 @@ SoulName test_name(const char* text)
 TEST_CASE("welcome creates man")
 {
 	InMemoryEternity eternity;
-	InMemoryTemporality temporality;
+	InMemoryTemporality temporality(eternity.time());
 	World world(eternity, temporality);
 
 	const DeviceToken token = DeviceToken::generate();
@@ -63,7 +63,7 @@ TEST_CASE("welcome creates man")
 TEST_CASE("welcome existing man")
 {
 	InMemoryEternity eternity;
-	InMemoryTemporality temporality;
+	InMemoryTemporality temporality(eternity.time());
 	seed_man(eternity, id::Soul{42}, test_token("abcd1234abcd1234abcd1234abcd1234"), test_name("oldname1"));
 	World world(eternity, temporality);
 
@@ -75,7 +75,7 @@ TEST_CASE("welcome existing man")
 TEST_CASE("welcome keeps existing name")
 {
 	InMemoryEternity eternity;
-	InMemoryTemporality temporality;
+	InMemoryTemporality temporality(eternity.time());
 	seed_man(eternity, id::Soul{7}, test_token("abcd1234abcd1234abcd1234abcd1234"), test_name("keptname"));
 	World world(eternity, temporality);
 
@@ -89,8 +89,8 @@ TEST_CASE("welcome keeps existing name")
 
 TEST_CASE("abode inscribe persists")
 {
-	InMemoryTemporality temporality;
 	InMemoryEternity eternity;
+	InMemoryTemporality temporality(eternity.time());
 	World world(eternity, temporality);
 
 	const id::Soul author{7};
@@ -99,7 +99,7 @@ TEST_CASE("abode inscribe persists")
 	CHECK(saved.id().value() > 0);
 	CHECK(saved.author_id() == author);
 	CHECK(saved.body() == "hello");
-	CHECK(saved.created_at().value() > 0);
+	CHECK(saved.created_at() == Timestamp{1});
 
 	const auto loaded = temporality.letters(world.abode().id(), 10);
 	REQUIRE(loaded.size() == 1);
@@ -109,8 +109,8 @@ TEST_CASE("abode inscribe persists")
 
 TEST_CASE("abode retell limit and is_mine")
 {
-	InMemoryTemporality temporality;
 	InMemoryEternity eternity;
+	InMemoryTemporality temporality(eternity.time());
 	const id::Soul me{10};
 	const id::Soul other{20};
 
@@ -142,8 +142,8 @@ TEST_CASE("abode retell limit and is_mine")
 
 TEST_CASE("abode retell caps limit")
 {
-	InMemoryTemporality temporality;
 	InMemoryEternity eternity;
+	InMemoryTemporality temporality(eternity.time());
 	const id::Soul author{1};
 
 	seed_man(eternity, author, test_token("feedfacefeedfacefeedfacefeedface"), test_name("authoraa"));

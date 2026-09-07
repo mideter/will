@@ -1,6 +1,7 @@
 #pragma once
 
 #include "entities/man.h"
+#include "ports/time.h"
 #include "values/device_token.h"
 #include "values/soul_name.h"
 
@@ -10,10 +11,14 @@
 namespace will::domain {
 
 
-/// Eternity (Вечность) — who endures.
+/// Eternity (Вечность) — who endures. Pair to Temporality; World unites both.
+/// Time belongs to Eternity; without the eternal there is no present for the temporal.
 class Eternity {
 public:
 	virtual ~Eternity() = default;
+
+	/// Time given by eternity.
+	virtual Time& time() = 0;
 
 	/// Men known in eternity (soul and vessel included).
 	virtual std::vector<Man> men() = 0;

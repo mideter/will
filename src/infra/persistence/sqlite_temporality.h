@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ports/temporality.h"
+#include "ports/time.h"
 #include "sqlite_database.h"
 
 #include <string_view>
@@ -11,7 +12,7 @@ namespace will {
 
 class SqliteTemporality final : public domain::Temporality {
 public:
-	explicit SqliteTemporality(SqliteDatabase& database);
+	SqliteTemporality(SqliteDatabase& database, domain::Time& time);
 
 	domain::Letter fix(domain::id::Abode abode, domain::id::Soul author, std::string_view body) override;
 
@@ -19,6 +20,7 @@ public:
 
 private:
 	SqliteDatabase& database_;
+	domain::Time& time_;
 };
 
 

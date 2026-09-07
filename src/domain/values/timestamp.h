@@ -8,11 +8,9 @@ namespace will::domain {
 
 
 /// Unix epoch instant; stored as nanoseconds since 1970-01-01 UTC. Must be non-negative.
+/// A measure of an instant — not the act of capturing "now" (that is Time::instant).
 class Timestamp {
 public:
-	/// Current wall-clock time (nanoseconds since Unix epoch).
-	Timestamp() noexcept;
-
 	/// From nanoseconds since Unix epoch. Throws std::invalid_argument if negative.
 	explicit Timestamp(std::int64_t value);
 

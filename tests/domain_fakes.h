@@ -12,9 +12,12 @@
 #include "identity/vessel.h"
 #include "ports/eternity.h"
 #include "ports/temporality.h"
+#include "ports/time.h"
 #include "values/device_token.h"
 #include "values/soul_name.h"
+#include "values/timestamp.h"
 
+#include <cstdint>
 #include <string>
 #include <utility>
 #include <vector>
@@ -23,8 +26,25 @@
 namespace will::domain::test {
 
 
+class FakeTime final : public Time {
+public:
+	explicit FakeTime(const Timestamp instant = Timestamp{1})
+		: instant_(instant)
+	{}
+
+	Timestamp instant() const override { return instant_; }
+
+	void set_instant(const Timestamp instant) { instant_ = instant; }
+
+private:
+	Timestamp instant_;
+};
+
+
 class InMemoryEternity final : public Eternity {
 public:
+	Time& time() override { return time_; }
+
 	std::vector<Man> men() override { return men_; }
 
 	Man enroll(const DeviceToken& token, const SoulName name) override
@@ -51,7 +71,10 @@ public:
 			next_man_id_ = man_id.value();
 	}
 
+	FakeTime& fake_time() { return time_; }
+
 private:
+	FakeTime time_;
 	std::uint64_t next_soul_id_ = 0;
 	std::uint64_t next_vessel_id_ = 0;
 	std::uint64_t next_man_id_ = 0;
@@ -61,9 +84,13 @@ private:
 
 class InMemoryTemporality final : public Temporality {
 public:
+	explicit InMemoryTemporality(Time& time)
+		: time_(time)
+	{}
+
 	Letter fix(id::Abode abode, id::Soul author, std::string_view body) override
 	{
-		Letter letter{id::Letter{++next_id_}, abode, author, std::string(body), Timestamp{}};
+		Letter letter{id::Letter{++next_id_}, abode, author, std::string(body), time_.instant()};
 		letters_.push_back(letter);
 		return letter;
 	}
@@ -82,6 +109,7 @@ public:
 	}
 
 private:
+	Time& time_;
 	std::uint64_t next_id_ = 0;
 	std::vector<Letter> letters_;
 };

@@ -21,9 +21,3 @@ TEST_CASE("Timestamp rejects negative values")
 {
 	CHECK_THROWS_AS(Timestamp{-1}, std::invalid_argument);
 }
-
-
-TEST_CASE("default Timestamp is wall-clock now")
-{
-	CHECK(Timestamp{}.value() >= 1'000'000'000'000'000'000LL);
-}

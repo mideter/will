@@ -16,6 +16,12 @@ SqliteEternity::SqliteEternity(SqliteDatabase& database)
 {}
 
 
+domain::Time& SqliteEternity::time()
+{
+	return time_;
+}
+
+
 std::vector<domain::Man> SqliteEternity::men()
 {
 	std::lock_guard lock(database_.mutex());

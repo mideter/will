@@ -9,15 +9,16 @@
 namespace will {
 
 
-SqliteTemporality::SqliteTemporality(SqliteDatabase& database)
+SqliteTemporality::SqliteTemporality(SqliteDatabase& database, domain::Time& time)
 	: database_(database)
+	, time_(time)
 {}
 
 
 domain::Letter SqliteTemporality::fix(const domain::id::Abode abode, const domain::id::Soul author,
 									   const std::string_view body)
 {
-	const domain::Timestamp ts{};
+	const domain::Timestamp ts = time_.instant();
 	std::lock_guard lock(database_.mutex());
 
 	sqlite3* const db = database_.db();

@@ -35,7 +35,7 @@ TEST_CASE("sqlite persistence survives reopen")
 	{
 		SqliteDatabase database(db_path);
 		SqliteEternity eternity(database);
-		SqliteTemporality temporality(database);
+		SqliteTemporality temporality(database, eternity.time());
 		World world(eternity, temporality);
 
 		const DeviceToken token_a = *DeviceToken::parse("aaaa1234aaaa1234aaaa1234aaaa1234");
@@ -78,7 +78,7 @@ TEST_CASE("sqlite persistence survives reopen")
 	{
 		SqliteDatabase database(db_path);
 		SqliteEternity eternity(database);
-		SqliteTemporality temporality(database);
+		SqliteTemporality temporality(database, eternity.time());
 		World world(eternity, temporality);
 
 		const DeviceToken token_created = *DeviceToken::parse(token_text);
