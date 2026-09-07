@@ -61,7 +61,7 @@ void ProtocolAdapter::handle_bind_token(const SessionId session_id, const v1::Bi
 		return;
 	}
 
-	const domain::Man man = world_.welcome(*device_token);
+	const domain::Man& man = world_.welcome(*device_token);
 	if (const auto displaced = registry_.bind_soul(session_id, man.soul_id()))
 		close_session(*displaced);
 
@@ -84,8 +84,8 @@ void ProtocolAdapter::handle_user_chat(const SessionId session_id, const v1::Cha
 	const domain::Letter letter = world_.abode().inscribe(*registry_.soul_id(session_id), chat.body());
 
 	std::string author_name;
-	if (const auto author = world_.find_by_id(letter.author_id()))
-		author_name = author->name().text();
+	if (world_.knows(letter.author_id()))
+		author_name = world_.soul(letter.author_id()).name().text();
 
 	v1::ServerEvent chat_event;
 	auto* chat_message = chat_event.mutable_chat();

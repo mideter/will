@@ -17,8 +17,13 @@ namespace will::domain {
 
 
 /// World (Мир) — living cosmos: Heaven, Earth, men, and abodes.
+/// Men are heap-stable (unique_ptr). APIs that name a living man, soul, or vessel
+/// hand out references/pointers into that storage — never snapshots.
 class World : public Heaven, public Earth {
 public:
+	using Earth::knows;
+	using Heaven::knows;
+
 	explicit World(Temporality& temporality);
 
 	/// Single abode for now; later a registry of abodes in this world.
@@ -26,16 +31,17 @@ public:
 	const Abode& abode() const noexcept { return abode_; }
 
 	/// Man dwelling in this vessel. Throws if the vessel has no man (broken invariant).
-	Man find_man_by_vessel(const Vessel& vessel) const;
+	const Man& man(const Vessel& vessel) const;
 
 	/// Welcome a vessel's token: return the dwelling man, or beget one if unknown.
-	Man welcome(const DeviceToken& token);
+	const Man& welcome(const DeviceToken& token);
 
 private:
 	/// Beget a new man in Eternity and accept him into the living cosmos.
-	Man beget(const DeviceToken& token);
+	const Man& beget(const DeviceToken& token);
 
-	void accept(Man man);
+	/// Place a man on the heap and index him. Returns the living man.
+	const Man& accept(Man&& man);
 
 	Abode abode_;
 	mutable std::mutex mutex_;

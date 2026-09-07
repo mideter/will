@@ -2,17 +2,31 @@
 
 #include <algorithm>
 #include <map>
-#include <optional>
 
 
 namespace will::domain {
 
 
-Abode::Abode(id::Abode id, Temporality& temporality, Heaven& heaven)
+Abode::Abode(id::Abode id, AbodeName name, Temporality& temporality, Heaven& heaven)
 	: id_(id)
+	, name_(std::move(name))
 	, temporality_(temporality)
 	, heaven_(heaven)
 {}
+
+
+void Abode::admit(const Soul& soul)
+{
+	std::lock_guard lock(mutex_);
+	members_.insert(&soul);
+}
+
+
+bool Abode::shelters(const Soul& soul) const
+{
+	std::lock_guard lock(mutex_);
+	return members_.contains(&soul);
+}
 
 
 Letter Abode::inscribe(id::Soul author, std::string_view body)
@@ -33,12 +47,14 @@ std::variant<std::vector<RetoldLetter>, DomainError> Abode::retell(id::Soul soul
 	items.reserve(rows.size());
 
 	std::map<id::Soul, std::string> author_names;
+
 	for (const Letter& row : rows) {
 		std::string author_name;
+
 		if (const auto cached = author_names.find(row.author_id()); cached != author_names.end()) {
 			author_name = cached->second;
-		} else if (const std::optional<Soul> author = heaven_.find_by_id(row.author_id())) {
-			author_name = author->name().text();
+		} else if (heaven_.knows(row.author_id())) {
+			author_name = heaven_.soul(row.author_id()).name().text();
 			author_names.emplace(row.author_id(), author_name);
 		} else {
 			author_names.emplace(row.author_id(), std::string{});

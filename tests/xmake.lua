@@ -48,6 +48,11 @@ test_target("soul-name-test")
     add_deps("will-domain")
     add_packages("doctest")
 
+test_target("abode-name-test")
+    add_files("abode_name_test.cpp")
+    add_deps("will-domain")
+    add_packages("doctest")
+
 test_target("will-server-config-test")
     add_files(
         "server_config_test.cpp",

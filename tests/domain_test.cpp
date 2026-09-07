@@ -4,6 +4,7 @@
 #include "domain_fakes.h"
 
 #include "entities/world.h"
+#include "values/abode_name.h"
 #include "values/device_token.h"
 #include "values/timestamp.h"
 #include "values/soul_name.h"
@@ -40,22 +41,27 @@ TEST_CASE("welcome creates man")
 	InMemoryTemporality temporality;
 	World world(temporality);
 
+	CHECK(world.abode().name() == AbodeName::global());
+
 	const DeviceToken token = DeviceToken::generate();
-	const Man man = world.welcome(token);
+	const Man& man = world.welcome(token);
 
 	CHECK(man.soul_id().value() > 0);
 	CHECK(man.id().value() > 0);
 	CHECK(man.vessel_id().value() > 0);
+	CHECK(world.abode().shelters(man));
+	CHECK(world.knows(token));
+	CHECK(world.knows(man.soul_id()));
 
-	const std::optional<Vessel> vessel = world.find_vessel_by_token(token);
-	REQUIRE(vessel.has_value());
-	CHECK(vessel->id() == man.vessel_id());
-	CHECK(world.find_man_by_vessel(*vessel).id() == man.id());
-	CHECK(world.find_man_by_vessel(*vessel).soul_id() == man.soul_id());
+	const Vessel& vessel = world.vessel(token);
+	CHECK(vessel.id() == man.vessel_id());
+	CHECK(world.man(vessel).id() == man.id());
+	CHECK(&world.man(vessel) == &man);
+	CHECK(world.man(vessel).soul_id() == man.soul_id());
 
-	const std::optional<Soul> soul = world.find_by_id(man.soul_id());
-	REQUIRE(soul.has_value());
-	CHECK(SoulName::parse(soul->name().text()));
+	const Soul& soul = world.soul(man.soul_id());
+	CHECK(&soul == static_cast<const Soul*>(&man));
+	CHECK(SoulName::parse(soul.name().text()));
 }
 
 
@@ -65,8 +71,9 @@ TEST_CASE("welcome existing man")
 	seed_man(temporality, id::Soul{42}, test_token("abcd1234abcd1234abcd1234abcd1234"), test_name("oldname1"));
 	World world(temporality);
 
-	const Man man = world.welcome(test_token("abcd1234abcd1234abcd1234abcd1234"));
+	const Man& man = world.welcome(test_token("abcd1234abcd1234abcd1234abcd1234"));
 	CHECK(man.soul_id() == id::Soul{42});
+	CHECK(world.abode().shelters(man));
 }
 
 
@@ -78,9 +85,7 @@ TEST_CASE("welcome keeps existing name")
 
 	(void)world.welcome(test_token("abcd1234abcd1234abcd1234abcd1234"));
 
-	const std::optional<Soul> soul = world.find_by_id(id::Soul{7});
-	REQUIRE(soul.has_value());
-	CHECK(soul->name() == test_name("keptname"));
+	CHECK(world.soul(id::Soul{7}).name() == test_name("keptname"));
 }
 
 

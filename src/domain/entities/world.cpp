@@ -1,6 +1,7 @@
 #include "world.h"
 
-#include <optional>
+#include "values/abode_name.h"
+
 #include <stdexcept>
 #include <utility>
 
@@ -10,14 +11,14 @@ namespace will::domain {
 
 World::World(Temporality& temporality)
 	: Heaven(temporality)
-	, abode_(id::Abode::global(), temporality, *this)
+	, abode_(id::Abode::global(), AbodeName::global(), temporality, *this)
 {
 	for (Man man : remember())
-		accept(std::move(man));
+		(void)accept(std::move(man));
 }
 
 
-Man World::find_man_by_vessel(const Vessel& vessel) const
+const Man& World::man(const Vessel& vessel) const
 {
 	std::lock_guard lock(mutex_);
 
@@ -33,30 +34,29 @@ Man World::find_man_by_vessel(const Vessel& vessel) const
 }
 
 
-Man World::welcome(const DeviceToken& token)
+const Man& World::welcome(const DeviceToken& token)
 {
-	if (const std::optional<Vessel> vessel = find_vessel_by_token(token))
-		return find_man_by_vessel(*vessel);
+	if (knows(token))
+		return man(vessel(token));
 
 	return beget(token);
 }
 
 
-Man World::beget(const DeviceToken& token)
+const Man& World::beget(const DeviceToken& token)
 {
-	Man man = Heaven::beget(token);
-	accept(man);
-	return man;
+	return accept(Heaven::beget(token));
 }
 
 
-void World::accept(Man man)
+const Man& World::accept(Man&& man)
 {
 	auto ptr = std::make_unique<Man>(std::move(man));
 	// Man stays on the heap; moving unique_ptr does not invalidate these references.
-	const Soul& soul = *ptr;
-	const Vessel& vessel = *ptr;
-	const id::Man man_id = ptr->id();
+	Man& live = *ptr;
+	const Soul& soul = live;
+	const Vessel& vessel = live;
+	const id::Man man_id = live.id();
 	const id::Vessel vessel_id = vessel.id();
 
 	std::lock_guard lock(mutex_);
@@ -64,6 +64,8 @@ void World::accept(Man man)
 	man_id_by_vessel_.insert_or_assign(vessel_id, man_id);
 	Heaven::index(soul);
 	Earth::index(vessel);
+	abode_.admit(soul);
+	return live;
 }
 
 

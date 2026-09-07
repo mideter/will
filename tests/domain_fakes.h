@@ -103,11 +103,10 @@ private:
 };
 
 
-inline Soul register_soul_with_vessel(World& world, const std::string_view device_token)
+inline const Soul& register_soul_with_vessel(World& world, const std::string_view device_token)
 {
 	const DeviceToken token = *DeviceToken::parse(device_token);
-	const Man man = world.welcome(token);
-	return *world.find_by_id(man.soul_id());
+	return world.welcome(token);
 }
 
 

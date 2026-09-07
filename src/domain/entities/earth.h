@@ -5,7 +5,6 @@
 #include "values/device_token.h"
 
 #include <mutex>
-#include <optional>
 #include <unordered_map>
 
 
@@ -15,9 +14,14 @@ namespace will::domain {
 /// Earth (Земля) — runtime index of vessels living in men.
 /// Living access is through World (Мир), which is Earth.
 /// Pointers address Vessel bases of heap-stable Man (unique_ptr).
+/// Lookups hand out those living vessels — never snapshots.
 class Earth {
 public:
-	std::optional<Vessel> find_vessel_by_token(const DeviceToken& token) const;
+	/// Whether Earth knows a vessel by this token.
+	bool knows(const DeviceToken& token) const;
+
+	/// Living vessel for this token. Throws if unknown.
+	const Vessel& vessel(const DeviceToken& token) const;
 
 protected:
 	Earth() = default;

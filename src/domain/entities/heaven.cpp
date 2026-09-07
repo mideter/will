@@ -2,6 +2,8 @@
 
 #include "values/soul_name.h"
 
+#include <stdexcept>
+
 
 namespace will::domain {
 
@@ -11,13 +13,20 @@ Heaven::Heaven(Eternity& eternity)
 {}
 
 
-std::optional<Soul> Heaven::find_by_id(const id::Soul id) const
+bool Heaven::knows(const id::Soul id) const
+{
+	std::lock_guard lock(mutex_);
+	return souls_by_id_.contains(id);
+}
+
+
+const Soul& Heaven::soul(const id::Soul id) const
 {
 	std::lock_guard lock(mutex_);
 
 	const auto it = souls_by_id_.find(id);
-	if (it == souls_by_id_.end())
-		return std::nullopt;
+	if (it == souls_by_id_.end() || !it->second)
+		throw std::logic_error("Heaven does not know this soul");
 
 	return *it->second;
 }

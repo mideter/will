@@ -6,7 +6,6 @@
 #include "values/device_token.h"
 
 #include <mutex>
-#include <optional>
 #include <unordered_map>
 #include <vector>
 
@@ -16,10 +15,15 @@ namespace will::domain {
 
 /// Heaven (Небо) — runtime index of souls living in men. Speaks with Eternity.
 /// Living access is through World (Мир), which is Heaven.
-/// Pointers address Soul/Vessel bases of heap-stable Man (unique_ptr).
+/// Pointers address Soul bases of heap-stable Man (unique_ptr).
+/// Lookups hand out those living souls — never snapshots.
 class Heaven {
 public:
-	std::optional<Soul> find_by_id(id::Soul id) const;
+	/// Whether Heaven knows this soul.
+	bool knows(id::Soul id) const;
+
+	/// Living soul in the waking cosmos. Throws if unknown.
+	const Soul& soul(id::Soul id) const;
 
 protected:
 	explicit Heaven(Eternity& eternity);
