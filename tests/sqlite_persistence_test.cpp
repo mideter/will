@@ -55,7 +55,7 @@ TEST_CASE("sqlite persistence survives reopen")
 		temporality.fix(abode, soul_a.id(), "from-peer");
 		temporality.fix(abode, soul_b.id(), "from-me");
 
-		const auto rows = temporality.load_last(abode, 10);
+		const auto rows = temporality.letters(abode, 10);
 		REQUIRE(rows.size() == 2);
 		CHECK(rows[0].body() == "from-peer");
 		CHECK(rows[0].author_id() == soul_a.id());

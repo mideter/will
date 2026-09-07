@@ -16,7 +16,7 @@ SqliteEternity::SqliteEternity(SqliteDatabase& database)
 {}
 
 
-std::vector<domain::Man> SqliteEternity::recall()
+std::vector<domain::Man> SqliteEternity::men()
 {
 	std::lock_guard lock(database_.mutex());
 
@@ -28,7 +28,7 @@ std::vector<domain::Man> SqliteEternity::recall()
 									"INNER JOIN souls AS s ON s.id = m.soul_id "
 									"INNER JOIN vessels AS v ON v.id = m.vessel_id;",
 									-1, &stmt, nullptr),
-				 db, "prepare recall");
+				 db, "prepare men");
 
 	std::vector<domain::Man> men;
 
@@ -38,26 +38,26 @@ std::vector<domain::Man> SqliteEternity::recall()
 		const domain::id::Soul soul_id{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 1))};
 		const unsigned char* const name_text = sqlite3_column_text(stmt, 2);
 		if (!name_text)
-			throw std::runtime_error("recall: missing soul name in database");
+			throw std::runtime_error("men: missing soul name in database");
 
 		const auto name = domain::SoulName::parse(reinterpret_cast<const char*>(name_text));
 		if (!name)
-			throw std::runtime_error("recall: invalid soul name in database");
+			throw std::runtime_error("men: invalid soul name in database");
 
 		const domain::id::Vessel vessel_id{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 3))};
 		const char* const device_token = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 4));
 		if (!device_token)
-			throw std::runtime_error("recall: missing device_token in database");
+			throw std::runtime_error("men: missing device_token in database");
 
 		const auto token = domain::DeviceToken::parse(device_token);
 		if (!token)
-			throw std::runtime_error("recall: invalid device_token in database");
+			throw std::runtime_error("men: invalid device_token in database");
 
 		men.emplace_back(man_id, domain::Soul{soul_id, *name}, domain::Vessel{vessel_id, *token});
 		rc = sqlite3_step(stmt);
 	}
 
-	check_sqlite(rc, db, "recall step");
+	check_sqlite(rc, db, "men step");
 	sqlite3_finalize(stmt);
 	return men;
 }

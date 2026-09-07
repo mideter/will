@@ -32,7 +32,7 @@ Man Heaven::beget(const DeviceToken& token)
 
 std::vector<Man> Heaven::remember() const
 {
-	return eternity_.recall();
+	return eternity_.men();
 }
 
 

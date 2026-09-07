@@ -15,7 +15,7 @@ public:
 
 	domain::Letter fix(domain::id::Abode abode, domain::id::Soul author, std::string_view body) override;
 
-	std::vector<domain::Letter> load_last(domain::id::Abode abode, std::uint32_t limit) override;
+	std::vector<domain::Letter> letters(domain::id::Abode abode, std::uint32_t limit) override;
 
 private:
 	SqliteDatabase& database_;

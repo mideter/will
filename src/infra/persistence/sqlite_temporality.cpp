@@ -43,8 +43,8 @@ domain::Letter SqliteTemporality::fix(const domain::id::Abode abode, const domai
 }
 
 
-std::vector<domain::Letter> SqliteTemporality::load_last(const domain::id::Abode abode,
-														 const std::uint32_t limit)
+std::vector<domain::Letter> SqliteTemporality::letters(const domain::id::Abode abode,
+													  const std::uint32_t limit)
 {
 	std::lock_guard lock(database_.mutex());
 
@@ -55,7 +55,7 @@ std::vector<domain::Letter> SqliteTemporality::load_last(const domain::id::Abode
 									"FROM letters "
 									"WHERE abode_id = ? ORDER BY id DESC LIMIT ?;",
 									-1, &stmt, nullptr),
-				 db, "prepare load_last letters");
+				 db, "prepare letters");
 
 	check_sqlite(sqlite3_bind_int64(stmt, 1, static_cast<sqlite3_int64>(abode.value())), db, "bind abode_id");
 	check_sqlite(sqlite3_bind_int64(stmt, 2, static_cast<sqlite3_int64>(limit)), db, "bind limit");
@@ -77,7 +77,7 @@ std::vector<domain::Letter> SqliteTemporality::load_last(const domain::id::Abode
 		rc = sqlite3_step(stmt);
 	}
 
-	check_sqlite(rc, db, "load_last letters step");
+	check_sqlite(rc, db, "letters step");
 	sqlite3_finalize(stmt);
 
 	std::reverse(rows.begin(), rows.end());

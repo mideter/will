@@ -103,7 +103,7 @@ TEST_CASE("abode inscribe persists and notifies")
 	CHECK(saved.body() == "hello");
 	CHECK(saved.created_at().value() > 0);
 
-	const auto loaded = temporality.load_last(world.abode().id(), 10);
+	const auto loaded = temporality.letters(world.abode().id(), 10);
 	REQUIRE(loaded.size() == 1);
 	CHECK(loaded[0].body() == "hello");
 

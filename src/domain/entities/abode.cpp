@@ -39,7 +39,7 @@ std::variant<std::vector<RetoldLetter>, DomainError> Abode::retell(id::Soul soul
 		return DomainError{DomainErrorCode::InvalidArgument};
 
 	const std::uint32_t capped_limit = std::min(limit, MaxRetellLimit);
-	const std::vector<Letter> rows = temporality_.load_last(id_, capped_limit);
+	const std::vector<Letter> rows = temporality_.letters(id_, capped_limit);
 
 	std::vector<RetoldLetter> items;
 	items.reserve(rows.size());

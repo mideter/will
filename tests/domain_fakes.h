@@ -26,7 +26,7 @@ namespace will::domain::test {
 
 class InMemoryEternity final : public Eternity {
 public:
-	std::vector<Man> recall() override { return men_; }
+	std::vector<Man> men() override { return men_; }
 
 	Man enroll(const DeviceToken& token, const SoulName name) override
 	{
@@ -69,7 +69,7 @@ public:
 		return letter;
 	}
 
-	std::vector<Letter> load_last(id::Abode abode, std::uint32_t limit) override
+	std::vector<Letter> letters(id::Abode abode, std::uint32_t limit) override
 	{
 		std::vector<Letter> matching;
 		matching.reserve(letters_.size());
