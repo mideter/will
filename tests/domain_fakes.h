@@ -11,8 +11,8 @@
 #include "identity/soul.h"
 #include "identity/vessel.h"
 #include "ports/eternity.h"
-#include "ports/letter_repository.h"
-#include "ports/participant_notifier.h"
+#include "ports/temporality.h"
+#include "ports/echo.h"
 #include "values/device_token.h"
 #include "values/soul_name.h"
 
@@ -60,7 +60,7 @@ private:
 };
 
 
-class InMemoryLetterRepository final : public LetterRepository {
+class InMemoryTemporality final : public Temporality {
 public:
 	Letter append(id::Abode abode, id::Soul author, std::string_view body, Timestamp ts) override
 	{
@@ -88,7 +88,7 @@ private:
 };
 
 
-class FakeParticipantNotifier final : public ParticipantNotifier {
+class FakeEcho final : public Echo {
 public:
 	void notify_letter(const Letter& letter) override { notifications_.push_back(letter); }
 

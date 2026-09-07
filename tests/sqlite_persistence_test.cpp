@@ -4,7 +4,7 @@
 #include "entities/world.h"
 #include "sqlite_database.h"
 #include "sqlite_store.h"
-#include "sqlite_letter_repository_impl.h"
+#include "sqlite_temporality.h"
 
 #include "identity/abode.h"
 #include "values/device_token.h"
@@ -36,7 +36,7 @@ TEST_CASE("sqlite persistence survives reopen")
 	{
 		SqliteDatabase database(db_path);
 		SqliteStore store(database);
-		SqliteLetterRepositoryImpl letters(database);
+		SqliteTemporality letters(database);
 		World world(store, letters);
 
 		const DeviceToken token_a = *DeviceToken::parse("aaaa1234aaaa1234aaaa1234aaaa1234");
@@ -79,7 +79,7 @@ TEST_CASE("sqlite persistence survives reopen")
 	{
 		SqliteDatabase database(db_path);
 		SqliteStore store(database);
-		SqliteLetterRepositoryImpl letters(database);
+		SqliteTemporality letters(database);
 		World world(store, letters);
 
 		const DeviceToken token_created = *DeviceToken::parse(token_text);

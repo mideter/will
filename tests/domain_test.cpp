@@ -38,7 +38,7 @@ SoulName test_name(const char* text)
 TEST_CASE("welcome creates man")
 {
 	InMemoryEternity eternity;
-	InMemoryLetterRepository letters;
+	InMemoryTemporality letters;
 	World world(eternity, letters);
 
 	const DeviceToken token = DeviceToken::generate();
@@ -63,7 +63,7 @@ TEST_CASE("welcome creates man")
 TEST_CASE("welcome existing man")
 {
 	InMemoryEternity eternity;
-	InMemoryLetterRepository letters;
+	InMemoryTemporality letters;
 	seed_man(eternity, id::Soul{42}, test_token("abcd1234abcd1234abcd1234abcd1234"), test_name("oldname1"));
 	World world(eternity, letters);
 
@@ -75,7 +75,7 @@ TEST_CASE("welcome existing man")
 TEST_CASE("welcome keeps existing name")
 {
 	InMemoryEternity eternity;
-	InMemoryLetterRepository letters;
+	InMemoryTemporality letters;
 	seed_man(eternity, id::Soul{7}, test_token("abcd1234abcd1234abcd1234abcd1234"), test_name("keptname"));
 	World world(eternity, letters);
 
@@ -89,8 +89,8 @@ TEST_CASE("welcome keeps existing name")
 
 TEST_CASE("abode inscribe persists and notifies")
 {
-	InMemoryLetterRepository letters;
-	FakeParticipantNotifier notifier;
+	InMemoryTemporality letters;
+	FakeEcho notifier;
 	InMemoryEternity eternity;
 	World world(eternity, letters);
 	world.abode().echo_through(notifier);
@@ -114,7 +114,7 @@ TEST_CASE("abode inscribe persists and notifies")
 
 TEST_CASE("abode retell limit and is_mine")
 {
-	InMemoryLetterRepository letters;
+	InMemoryTemporality letters;
 	InMemoryEternity eternity;
 	const id::Soul me{10};
 	const id::Soul other{20};
@@ -147,7 +147,7 @@ TEST_CASE("abode retell limit and is_mine")
 
 TEST_CASE("abode retell caps limit")
 {
-	InMemoryLetterRepository letters;
+	InMemoryTemporality letters;
 	InMemoryEternity eternity;
 	const id::Soul author{1};
 

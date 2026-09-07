@@ -1,7 +1,7 @@
 #pragma once
 
 #include "serverconfig.h"
-#include "sessionparticipantnotifierimpl.h"
+#include "sessionecho.h"
 #include "sessionregistry.h"
 
 #include "entities/world.h"
@@ -39,7 +39,7 @@ private:
 
 	domain::World& world_;
 	SessionRegistry& registry_;
-	SessionParticipantNotifierImpl participant_notifier_;
+	SessionEcho echo_;
 };
 
 

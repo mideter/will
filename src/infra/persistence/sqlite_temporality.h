@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ports/letter_repository.h"
+#include "ports/temporality.h"
 #include "sqlite_database.h"
 
 #include <string_view>
@@ -9,9 +9,9 @@
 namespace will {
 
 
-class SqliteLetterRepositoryImpl final : public domain::LetterRepository {
+class SqliteTemporality final : public domain::Temporality {
 public:
-	explicit SqliteLetterRepositoryImpl(SqliteDatabase& database);
+	explicit SqliteTemporality(SqliteDatabase& database);
 
 	domain::Letter append(domain::id::Abode abode, domain::id::Soul author, std::string_view body,
 						  domain::Timestamp ts) override;

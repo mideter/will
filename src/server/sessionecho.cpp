@@ -1,4 +1,4 @@
-#include "sessionparticipantnotifierimpl.h"
+#include "sessionecho.h"
 
 #include "sessionregistry.h"
 
@@ -10,14 +10,13 @@
 namespace will {
 
 
-SessionParticipantNotifierImpl::SessionParticipantNotifierImpl(SessionRegistry& registry,
-															   domain::Heaven& heaven)
+SessionEcho::SessionEcho(SessionRegistry& registry, domain::Heaven& heaven)
 	: registry_(registry)
 	, heaven_(heaven)
 {}
 
 
-void SessionParticipantNotifierImpl::notify_letter(const domain::Letter& letter)
+void SessionEcho::notify_letter(const domain::Letter& letter)
 {
 	std::string author_name;
 

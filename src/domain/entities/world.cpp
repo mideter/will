@@ -8,9 +8,9 @@
 namespace will::domain {
 
 
-World::World(Eternity& eternity, LetterRepository& letters)
+World::World(Eternity& eternity, Temporality& temporality)
 	: Heaven(eternity)
-	, abode_(id::Abode::global(), letters, *this)
+	, abode_(id::Abode::global(), temporality, *this)
 {
 	for (Man man : remember())
 		accept(std::move(man));

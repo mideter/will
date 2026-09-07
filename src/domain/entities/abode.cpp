@@ -9,26 +9,26 @@
 namespace will::domain {
 
 
-Abode::Abode(id::Abode id, LetterRepository& letters, Heaven& heaven)
+Abode::Abode(id::Abode id, Temporality& temporality, Heaven& heaven)
 	: id_(id)
-	, letters_(letters)
+	, temporality_(temporality)
 	, heaven_(heaven)
 {}
 
 
-void Abode::echo_through(ParticipantNotifier& notifier) noexcept
+void Abode::echo_through(Echo& echo) noexcept
 {
-	notifier_ = &notifier;
+	echo_ = &echo;
 }
 
 
 Letter Abode::inscribe(id::Soul author, std::string_view body, Timestamp created_at)
 {
-	if (!notifier_)
+	if (!echo_)
 		throw std::logic_error("Abode has no echo");
 
-	Letter saved = letters_.append(id_, author, body, created_at);
-	notifier_->notify_letter(saved);
+	Letter saved = temporality_.append(id_, author, body, created_at);
+	echo_->notify_letter(saved);
 	return saved;
 }
 
@@ -39,7 +39,7 @@ std::variant<std::vector<RetoldLetter>, DomainError> Abode::retell(id::Soul soul
 		return DomainError{DomainErrorCode::InvalidArgument};
 
 	const std::uint32_t capped_limit = std::min(limit, MaxRetellLimit);
-	const std::vector<Letter> rows = letters_.load_last(id_, capped_limit);
+	const std::vector<Letter> rows = temporality_.load_last(id_, capped_limit);
 
 	std::vector<RetoldLetter> items;
 	items.reserve(rows.size());

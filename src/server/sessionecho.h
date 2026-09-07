@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ports/participant_notifier.h"
+#include "ports/echo.h"
 #include "entities/heaven.h"
 
 
@@ -10,9 +10,9 @@ namespace will {
 class SessionRegistry;
 
 
-class SessionParticipantNotifierImpl final : public domain::ParticipantNotifier {
+class SessionEcho final : public domain::Echo {
 public:
-	SessionParticipantNotifierImpl(SessionRegistry& registry, domain::Heaven& heaven);
+	SessionEcho(SessionRegistry& registry, domain::Heaven& heaven);
 
 	void notify_letter(const domain::Letter& letter) override;
 

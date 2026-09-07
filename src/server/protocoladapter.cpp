@@ -15,9 +15,9 @@ namespace will {
 ProtocolAdapter::ProtocolAdapter(domain::World& world, SessionRegistry& registry)
 	: world_(world)
 	, registry_(registry)
-	, participant_notifier_(registry, world_)
+	, echo_(registry, world_)
 {
-	world_.abode().echo_through(participant_notifier_);
+	world_.abode().echo_through(echo_);
 }
 
 

@@ -5,8 +5,8 @@
 #include "entities/heaven.h"
 #include "entities/letter.h"
 #include "errors/domain_error.h"
-#include "ports/letter_repository.h"
-#include "ports/participant_notifier.h"
+#include "ports/temporality.h"
+#include "ports/echo.h"
 
 #include <cstdint>
 #include <string>
@@ -26,19 +26,19 @@ struct RetoldLetter {
 
 
 /// Abode (Обитель) — place of communion in the World.
-/// Holds letter memory; echoes inscribed letters once opened through a notifier.
+/// Speaks with Temporality; echoes inscribed letters once opened through an Echo.
 class Abode {
 public:
 	static constexpr std::uint32_t MaxRetellLimit = 1000;
 
-	Abode(id::Abode id, LetterRepository& letters, Heaven& heaven);
+	Abode(id::Abode id, Temporality& temporality, Heaven& heaven);
 
 	id::Abode id() const noexcept { return id_; }
 
 	/// Open echo of inscribed letters to participants.
-	void echo_through(ParticipantNotifier& notifier) noexcept;
+	void echo_through(Echo& echo) noexcept;
 
-	/// Inscribe a letter from a soul into this abode's memory and echo it.
+	/// Inscribe a letter from a soul into Temporality and echo it.
 	Letter inscribe(id::Soul author, std::string_view body, Timestamp created_at);
 
 	/// Retell recent letters for a soul (author names resolved through Heaven).
@@ -46,9 +46,9 @@ public:
 
 private:
 	id::Abode id_;
-	LetterRepository& letters_;
+	Temporality& temporality_;
 	Heaven& heaven_;
-	ParticipantNotifier* notifier_ = nullptr;
+	Echo* echo_ = nullptr;
 };
 
 

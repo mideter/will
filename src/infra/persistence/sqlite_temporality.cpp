@@ -1,4 +1,4 @@
-#include "sqlite_letter_repository_impl.h"
+#include "sqlite_temporality.h"
 
 #include "sqlite_util.h"
 
@@ -9,13 +9,13 @@
 namespace will {
 
 
-SqliteLetterRepositoryImpl::SqliteLetterRepositoryImpl(SqliteDatabase& database)
+SqliteTemporality::SqliteTemporality(SqliteDatabase& database)
 	: database_(database)
 {}
 
 
-domain::Letter SqliteLetterRepositoryImpl::append(const domain::id::Abode abode, const domain::id::Soul author,
-												  const std::string_view body, const domain::Timestamp ts)
+domain::Letter SqliteTemporality::append(const domain::id::Abode abode, const domain::id::Soul author,
+										 const std::string_view body, const domain::Timestamp ts)
 {
 	std::lock_guard lock(database_.mutex());
 
@@ -42,8 +42,8 @@ domain::Letter SqliteLetterRepositoryImpl::append(const domain::id::Abode abode,
 }
 
 
-std::vector<domain::Letter> SqliteLetterRepositoryImpl::load_last(const domain::id::Abode abode,
-																  const std::uint32_t limit)
+std::vector<domain::Letter> SqliteTemporality::load_last(const domain::id::Abode abode,
+														 const std::uint32_t limit)
 {
 	std::lock_guard lock(database_.mutex());
 
