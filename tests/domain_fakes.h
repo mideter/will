@@ -12,7 +12,6 @@
 #include "identity/vessel.h"
 #include "ports/eternity.h"
 #include "ports/temporality.h"
-#include "ports/echo.h"
 #include "values/device_token.h"
 #include "values/soul_name.h"
 
@@ -85,14 +84,6 @@ public:
 private:
 	std::uint64_t next_id_ = 0;
 	std::vector<Letter> letters_;
-};
-
-
-class FakeEcho final : public Echo {
-public:
-	void notify_letter(const Letter& letter) override { notifications_.push_back(letter); }
-
-	std::vector<Letter> notifications_;
 };
 
 

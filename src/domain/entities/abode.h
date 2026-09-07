@@ -6,7 +6,6 @@
 #include "entities/letter.h"
 #include "errors/domain_error.h"
 #include "ports/temporality.h"
-#include "ports/echo.h"
 
 #include <cstdint>
 #include <string>
@@ -26,7 +25,7 @@ struct RetoldLetter {
 
 
 /// Abode (Обитель) — place of communion in the World.
-/// Speaks with Temporality; echoes inscribed letters once opened through an Echo.
+/// Speaks with Temporality.
 class Abode {
 public:
 	static constexpr std::uint32_t MaxRetellLimit = 1000;
@@ -35,10 +34,7 @@ public:
 
 	id::Abode id() const noexcept { return id_; }
 
-	/// Open echo of inscribed letters to participants.
-	void echo_through(Echo& echo) noexcept;
-
-	/// Inscribe a letter from a soul into Temporality and echo it.
+	/// Inscribe a letter from a soul into Temporality.
 	Letter inscribe(id::Soul author, std::string_view body);
 
 	/// Retell recent letters for a soul (author names resolved through Heaven).
@@ -48,7 +44,6 @@ private:
 	id::Abode id_;
 	Temporality& temporality_;
 	Heaven& heaven_;
-	Echo* echo_ = nullptr;
 };
 
 

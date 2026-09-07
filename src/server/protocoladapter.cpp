@@ -14,10 +14,7 @@ namespace will {
 ProtocolAdapter::ProtocolAdapter(domain::World& world, SessionRegistry& registry)
 	: world_(world)
 	, registry_(registry)
-	, echo_(registry, world_)
-{
-	world_.abode().echo_through(echo_);
-}
+{}
 
 
 void ProtocolAdapter::on_client_event(const SessionId session_id, const v1::ClientEvent& event)
@@ -84,11 +81,27 @@ void ProtocolAdapter::send_auth_required(const SessionId session_id)
 
 void ProtocolAdapter::handle_user_chat(const SessionId session_id, const v1::ChatMessage& chat)
 {
-	(void)world_.abode().inscribe(*registry_.soul_id(session_id), chat.body());
+	const domain::Letter letter = world_.abode().inscribe(*registry_.soul_id(session_id), chat.body());
 
-	v1::ServerEvent event;
-	event.mutable_receipt_ack();
-	send_event(session_id, event);
+	std::string author_name;
+	if (const auto author = world_.find_by_id(letter.author_id()))
+		author_name = author->name().text();
+
+	v1::ServerEvent chat_event;
+	auto* chat_message = chat_event.mutable_chat();
+	chat_message->set_name(author_name);
+	chat_message->set_body(letter.body());
+
+	if (const std::string_view sender_address = registry_.peer_address(session_id); !sender_address.empty()) {
+		std::cout << "Broadcast from " << sender_address << ": chat name_len=" << author_name.size()
+				  << " body_len=" << letter.body().size() << std::endl;
+	}
+
+	registry_.broadcast_except_soul(letter.author_id(), chat_event);
+
+	v1::ServerEvent ack;
+	ack.mutable_receipt_ack();
+	send_event(session_id, ack);
 }
 
 

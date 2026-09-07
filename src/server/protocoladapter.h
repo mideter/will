@@ -1,7 +1,6 @@
 #pragma once
 
 #include "serverconfig.h"
-#include "sessionecho.h"
 #include "sessionregistry.h"
 
 #include "entities/world.h"
@@ -39,7 +38,6 @@ private:
 
 	domain::World& world_;
 	SessionRegistry& registry_;
-	SessionEcho echo_;
 };
 
 

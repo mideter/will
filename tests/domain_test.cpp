@@ -87,13 +87,11 @@ TEST_CASE("welcome keeps existing name")
 }
 
 
-TEST_CASE("abode inscribe persists and notifies")
+TEST_CASE("abode inscribe persists")
 {
 	InMemoryTemporality temporality;
-	FakeEcho notifier;
 	InMemoryEternity eternity;
 	World world(eternity, temporality);
-	world.abode().echo_through(notifier);
 
 	const id::Soul author{7};
 	const Letter saved = world.abode().inscribe(author, "hello");
@@ -106,9 +104,6 @@ TEST_CASE("abode inscribe persists and notifies")
 	const auto loaded = temporality.letters(world.abode().id(), 10);
 	REQUIRE(loaded.size() == 1);
 	CHECK(loaded[0].body() == "hello");
-
-	REQUIRE(notifier.notifications_.size() == 1);
-	CHECK(notifier.notifications_[0].id() == saved.id());
 }
 
 

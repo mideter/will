@@ -3,7 +3,6 @@
 #include <algorithm>
 #include <map>
 #include <optional>
-#include <stdexcept>
 
 
 namespace will::domain {
@@ -16,20 +15,9 @@ Abode::Abode(id::Abode id, Temporality& temporality, Heaven& heaven)
 {}
 
 
-void Abode::echo_through(Echo& echo) noexcept
-{
-	echo_ = &echo;
-}
-
-
 Letter Abode::inscribe(id::Soul author, std::string_view body)
 {
-	if (!echo_)
-		throw std::logic_error("Abode has no echo");
-
-	Letter saved = temporality_.fix(id_, author, body);
-	echo_->notify_letter(saved);
-	return saved;
+	return temporality_.fix(id_, author, body);
 }
 
 
