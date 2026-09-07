@@ -8,7 +8,6 @@
 
 #include "identity/abode.h"
 #include "values/device_token.h"
-#include "values/timestamp.h"
 #include "identity/soul.h"
 #include "values/soul_name.h"
 
@@ -36,8 +35,8 @@ TEST_CASE("sqlite persistence survives reopen")
 	{
 		SqliteDatabase database(db_path);
 		SqliteEternity eternity(database);
-		SqliteTemporality letters(database);
-		World world(eternity, letters);
+		SqliteTemporality temporality(database);
+		World world(eternity, temporality);
 
 		const DeviceToken token_a = *DeviceToken::parse("aaaa1234aaaa1234aaaa1234aaaa1234");
 		const DeviceToken token_b = *DeviceToken::parse("bbbb1234bbbb1234bbbb1234bbbb1234");
@@ -53,10 +52,10 @@ TEST_CASE("sqlite persistence survives reopen")
 		name_b = soul_b.name();
 
 		const id::Abode abode = world.abode().id();
-		letters.append(abode, soul_a.id(), "from-peer", Timestamp{1000});
-		letters.append(abode, soul_b.id(), "from-me", Timestamp{2000});
+		temporality.fix(abode, soul_a.id(), "from-peer");
+		temporality.fix(abode, soul_b.id(), "from-me");
 
-		const auto rows = letters.load_last(abode, 10);
+		const auto rows = temporality.load_last(abode, 10);
 		REQUIRE(rows.size() == 2);
 		CHECK(rows[0].body() == "from-peer");
 		CHECK(rows[0].author_id() == soul_a.id());
@@ -79,8 +78,8 @@ TEST_CASE("sqlite persistence survives reopen")
 	{
 		SqliteDatabase database(db_path);
 		SqliteEternity eternity(database);
-		SqliteTemporality letters(database);
-		World world(eternity, letters);
+		SqliteTemporality temporality(database);
+		World world(eternity, temporality);
 
 		const DeviceToken token_created = *DeviceToken::parse(token_text);
 		const std::optional<Vessel> vessel_created = world.find_vessel_by_token(token_created);

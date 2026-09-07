@@ -62,9 +62,9 @@ private:
 
 class InMemoryTemporality final : public Temporality {
 public:
-	Letter append(id::Abode abode, id::Soul author, std::string_view body, Timestamp ts) override
+	Letter fix(id::Abode abode, id::Soul author, std::string_view body) override
 	{
-		Letter letter{id::Letter{++next_id_}, abode, author, std::string(body), ts};
+		Letter letter{id::Letter{++next_id_}, abode, author, std::string(body), Timestamp{}};
 		letters_.push_back(letter);
 		return letter;
 	}

@@ -38,8 +38,8 @@ SoulName test_name(const char* text)
 TEST_CASE("welcome creates man")
 {
 	InMemoryEternity eternity;
-	InMemoryTemporality letters;
-	World world(eternity, letters);
+	InMemoryTemporality temporality;
+	World world(eternity, temporality);
 
 	const DeviceToken token = DeviceToken::generate();
 	const Man man = world.welcome(token);
@@ -63,9 +63,9 @@ TEST_CASE("welcome creates man")
 TEST_CASE("welcome existing man")
 {
 	InMemoryEternity eternity;
-	InMemoryTemporality letters;
+	InMemoryTemporality temporality;
 	seed_man(eternity, id::Soul{42}, test_token("abcd1234abcd1234abcd1234abcd1234"), test_name("oldname1"));
-	World world(eternity, letters);
+	World world(eternity, temporality);
 
 	const Man man = world.welcome(test_token("abcd1234abcd1234abcd1234abcd1234"));
 	CHECK(man.soul_id() == id::Soul{42});
@@ -75,9 +75,9 @@ TEST_CASE("welcome existing man")
 TEST_CASE("welcome keeps existing name")
 {
 	InMemoryEternity eternity;
-	InMemoryTemporality letters;
+	InMemoryTemporality temporality;
 	seed_man(eternity, id::Soul{7}, test_token("abcd1234abcd1234abcd1234abcd1234"), test_name("keptname"));
-	World world(eternity, letters);
+	World world(eternity, temporality);
 
 	(void)world.welcome(test_token("abcd1234abcd1234abcd1234abcd1234"));
 
@@ -89,21 +89,21 @@ TEST_CASE("welcome keeps existing name")
 
 TEST_CASE("abode inscribe persists and notifies")
 {
-	InMemoryTemporality letters;
+	InMemoryTemporality temporality;
 	FakeEcho notifier;
 	InMemoryEternity eternity;
-	World world(eternity, letters);
+	World world(eternity, temporality);
 	world.abode().echo_through(notifier);
 
 	const id::Soul author{7};
-	const Letter saved = world.abode().inscribe(author, "hello", Timestamp{900});
+	const Letter saved = world.abode().inscribe(author, "hello");
 
 	CHECK(saved.id().value() > 0);
 	CHECK(saved.author_id() == author);
 	CHECK(saved.body() == "hello");
-	CHECK(saved.created_at() == Timestamp{900});
+	CHECK(saved.created_at().value() > 0);
 
-	const auto loaded = letters.load_last(world.abode().id(), 10);
+	const auto loaded = temporality.load_last(world.abode().id(), 10);
 	REQUIRE(loaded.size() == 1);
 	CHECK(loaded[0].body() == "hello");
 
@@ -114,18 +114,18 @@ TEST_CASE("abode inscribe persists and notifies")
 
 TEST_CASE("abode retell limit and is_mine")
 {
-	InMemoryTemporality letters;
+	InMemoryTemporality temporality;
 	InMemoryEternity eternity;
 	const id::Soul me{10};
 	const id::Soul other{20};
 
 	seed_man(eternity, me, test_token("c0ffee00c0ffee00c0ffee00c0ffee00"), test_name("menameaa"));
 	seed_man(eternity, other, test_token("deadbeefdeadbeefdeadbeefdeadbeef"), test_name("peername"));
-	World world(eternity, letters);
+	World world(eternity, temporality);
 
-	letters.append(world.abode().id(), other, "peer", Timestamp{1});
-	letters.append(world.abode().id(), me, "mine", Timestamp{2});
-	letters.append(world.abode().id(), other, "peer2", Timestamp{3});
+	temporality.fix(world.abode().id(), other, "peer");
+	temporality.fix(world.abode().id(), me, "mine");
+	temporality.fix(world.abode().id(), other, "peer2");
 
 	const auto zero_limit = world.abode().retell(me, 0);
 	REQUIRE(std::holds_alternative<DomainError>(zero_limit));
@@ -147,15 +147,15 @@ TEST_CASE("abode retell limit and is_mine")
 
 TEST_CASE("abode retell caps limit")
 {
-	InMemoryTemporality letters;
+	InMemoryTemporality temporality;
 	InMemoryEternity eternity;
 	const id::Soul author{1};
 
 	seed_man(eternity, author, test_token("feedfacefeedfacefeedfacefeedface"), test_name("authoraa"));
-	World world(eternity, letters);
+	World world(eternity, temporality);
 
 	for (int i = 0; i < 5; ++i)
-		letters.append(world.abode().id(), author, "m", Timestamp{i});
+		temporality.fix(world.abode().id(), author, "m");
 
 	const auto ok = world.abode().retell(author, Abode::MaxRetellLimit + 50);
 	REQUIRE(std::holds_alternative<std::vector<RetoldLetter>>(ok));

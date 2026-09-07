@@ -39,7 +39,7 @@ public:
 	void echo_through(Echo& echo) noexcept;
 
 	/// Inscribe a letter from a soul into Temporality and echo it.
-	Letter inscribe(id::Soul author, std::string_view body, Timestamp created_at);
+	Letter inscribe(id::Soul author, std::string_view body);
 
 	/// Retell recent letters for a soul (author names resolved through Heaven).
 	std::variant<std::vector<RetoldLetter>, DomainError> retell(id::Soul soul, std::uint32_t limit) const;

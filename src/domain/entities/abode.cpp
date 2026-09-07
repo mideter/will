@@ -22,12 +22,12 @@ void Abode::echo_through(Echo& echo) noexcept
 }
 
 
-Letter Abode::inscribe(id::Soul author, std::string_view body, Timestamp created_at)
+Letter Abode::inscribe(id::Soul author, std::string_view body)
 {
 	if (!echo_)
 		throw std::logic_error("Abode has no echo");
 
-	Letter saved = temporality_.append(id_, author, body, created_at);
+	Letter saved = temporality_.fix(id_, author, body);
 	echo_->notify_letter(saved);
 	return saved;
 }

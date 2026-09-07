@@ -14,9 +14,10 @@ SqliteTemporality::SqliteTemporality(SqliteDatabase& database)
 {}
 
 
-domain::Letter SqliteTemporality::append(const domain::id::Abode abode, const domain::id::Soul author,
-										 const std::string_view body, const domain::Timestamp ts)
+domain::Letter SqliteTemporality::fix(const domain::id::Abode abode, const domain::id::Soul author,
+									   const std::string_view body)
 {
+	const domain::Timestamp ts{};
 	std::lock_guard lock(database_.mutex());
 
 	sqlite3* const db = database_.db();

@@ -16,7 +16,9 @@ class Temporality {
 public:
 	virtual ~Temporality() = default;
 
-	virtual Letter append(id::Abode abode, id::Soul author, std::string_view body, Timestamp ts) = 0;
+	/// Fix a moment in time: capture now and keep the letter.
+	virtual Letter fix(id::Abode abode, id::Soul author, std::string_view body) = 0;
+
 	virtual std::vector<Letter> load_last(id::Abode abode, std::uint32_t limit) = 0;
 };
 

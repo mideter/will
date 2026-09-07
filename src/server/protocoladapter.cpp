@@ -3,7 +3,6 @@
 #include "inbound_client_message_handler.h"
 
 #include "values/device_token.h"
-#include "values/timestamp.h"
 
 #include <iostream>
 #include <vector>
@@ -85,7 +84,7 @@ void ProtocolAdapter::send_auth_required(const SessionId session_id)
 
 void ProtocolAdapter::handle_user_chat(const SessionId session_id, const v1::ChatMessage& chat)
 {
-	(void)world_.abode().inscribe(*registry_.soul_id(session_id), chat.body(), domain::Timestamp{});
+	(void)world_.abode().inscribe(*registry_.soul_id(session_id), chat.body());
 
 	v1::ServerEvent event;
 	event.mutable_receipt_ack();
