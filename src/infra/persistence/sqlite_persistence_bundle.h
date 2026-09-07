@@ -2,7 +2,7 @@
 
 #include "entities/world.h"
 #include "sqlite_database.h"
-#include "sqlite_store.h"
+#include "sqlite_eternity.h"
 #include "sqlite_temporality.h"
 
 #include <string>
@@ -20,7 +20,7 @@ public:
 
 private:
 	SqliteDatabase database_;
-	SqliteStore store_;
+	SqliteEternity eternity_;
 	SqliteTemporality temporality_;
 	domain::World world_;
 };

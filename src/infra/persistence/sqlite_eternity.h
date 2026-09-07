@@ -8,9 +8,9 @@
 namespace will {
 
 
-class SqliteStore final : public domain::Eternity {
+class SqliteEternity final : public domain::Eternity {
 public:
-	explicit SqliteStore(SqliteDatabase& database);
+	explicit SqliteEternity(SqliteDatabase& database);
 
 	std::vector<domain::Man> recall() override;
 	domain::Man insert_man(const domain::DeviceToken& token, domain::SoulName name) override;

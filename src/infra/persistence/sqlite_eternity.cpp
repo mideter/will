@@ -1,4 +1,4 @@
-#include "sqlite_store.h"
+#include "sqlite_eternity.h"
 
 #include "sqlite_util.h"
 
@@ -11,12 +11,12 @@
 namespace will {
 
 
-SqliteStore::SqliteStore(SqliteDatabase& database)
+SqliteEternity::SqliteEternity(SqliteDatabase& database)
 	: database_(database)
 {}
 
 
-std::vector<domain::Man> SqliteStore::recall()
+std::vector<domain::Man> SqliteEternity::recall()
 {
 	std::lock_guard lock(database_.mutex());
 
@@ -63,7 +63,7 @@ std::vector<domain::Man> SqliteStore::recall()
 }
 
 
-domain::Man SqliteStore::insert_man(const domain::DeviceToken& token, const domain::SoulName name)
+domain::Man SqliteEternity::insert_man(const domain::DeviceToken& token, const domain::SoulName name)
 {
 	std::lock_guard lock(database_.mutex());
 
