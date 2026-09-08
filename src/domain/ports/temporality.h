@@ -19,7 +19,7 @@ public:
 	~Temporality() override = default;
 
 	/// Fix a moment in time: take the present from Time and keep the letter.
-	virtual Letter fix(id::Abode abode, id::Soul author, std::string_view body) = 0;
+	virtual void fix(id::Abode abode, id::Soul author, std::string_view body) = 0;
 
 	/// Letters kept in this abode, bounded by limit.
 	virtual std::vector<Letter> letters(id::Abode abode, std::uint32_t limit) = 0;

@@ -122,10 +122,13 @@ domain::Man SqliteTemporality::enroll(const domain::DeviceToken& token, const do
 }
 
 
-domain::Letter SqliteTemporality::fix(const domain::id::Abode abode, const domain::id::Soul author,
-									   const std::string_view body)
+void SqliteTemporality::fix(const domain::id::Abode abode, const domain::id::Soul author,
+							 const std::string_view body)
 {
 	const domain::Timestamp ts = time_.instant();
+	// Validate body before insert (Letter enforces non-empty / max length).
+	const domain::Letter drafted{domain::id::Letter{1}, abode, author, std::string(body), ts};
+
 	std::lock_guard lock(database_.mutex());
 
 	sqlite3* const db = database_.db();
@@ -139,15 +142,13 @@ domain::Letter SqliteTemporality::fix(const domain::id::Abode abode, const domai
 	check_sqlite(sqlite3_bind_int64(stmt, 1, static_cast<sqlite3_int64>(abode.value())), db, "bind abode_id");
 	check_sqlite(sqlite3_bind_int64(stmt, 2, static_cast<sqlite3_int64>(author.value())), db,
 				 "bind author_soul_id");
-	check_sqlite(sqlite3_bind_text(stmt, 3, body.data(), static_cast<int>(body.size()), SQLITE_TRANSIENT),
+	check_sqlite(sqlite3_bind_text(stmt, 3, drafted.body().data(), static_cast<int>(drafted.body().size()),
+								   SQLITE_TRANSIENT),
 				 db, "bind body");
 	check_sqlite(sqlite3_bind_int64(stmt, 4, ts.value()), db, "bind created_at_ns");
 
 	check_sqlite(sqlite3_step(stmt), db, "insert letter step");
 	sqlite3_finalize(stmt);
-
-	const std::uint64_t id = static_cast<std::uint64_t>(sqlite3_last_insert_rowid(db));
-	return domain::Letter{domain::id::Letter{id}, abode, author, std::string(body), ts};
 }
 
 

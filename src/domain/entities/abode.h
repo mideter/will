@@ -48,8 +48,8 @@ public:
 	/// Whether this man dwells here (participant).
 	bool dwells(const Man& man) const;
 
-	/// Inscribe a letter from a man observing this abode (living Witness).
-	Letter inscribe(const Man& author, std::string_view body);
+	/// Inscribe what a man observing this abode has said (living Witness).
+	void inscribe(const Man& author, std::string_view body);
 
 	/// Retell recent letters for a soul (author names resolved through Heaven).
 	std::variant<std::vector<RetoldLetter>, DomainError> retell(id::Soul soul, std::uint32_t limit) const;

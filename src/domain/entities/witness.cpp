@@ -14,7 +14,7 @@ Witness::Witness(Man&& man, Abode& abode) noexcept
 
 void Witness::say(std::string_view body) const
 {
-	(void)abode().inscribe(*this, body);
+	abode().inscribe(*this, body);
 }
 
 

@@ -108,25 +108,6 @@ TEST_CASE("man say persists via abode")
 }
 
 
-TEST_CASE("abode inscribe persists")
-{
-	InMemoryTemporality temporality;
-	World world(temporality);
-
-	const Man& author = world.welcome(DeviceToken::generate());
-	const Letter saved = world.abode().inscribe(author, "hello");
-
-	CHECK(saved.id().value() > 0);
-	CHECK(saved.author_id() == author.soul_id());
-	CHECK(saved.body() == "hello");
-	CHECK(saved.created_at() == Timestamp{1});
-
-	const auto loaded = temporality.letters(world.abode().id(), 10);
-	REQUIRE(loaded.size() == 1);
-	CHECK(loaded[0].body() == "hello");
-}
-
-
 TEST_CASE("abode retell limit and is_mine")
 {
 	InMemoryTemporality temporality;

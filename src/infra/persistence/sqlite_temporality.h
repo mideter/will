@@ -20,7 +20,7 @@ public:
 	std::vector<domain::Man> men() override;
 	domain::Man enroll(const domain::DeviceToken& token, domain::SoulName name) override;
 
-	domain::Letter fix(domain::id::Abode abode, domain::id::Soul author, std::string_view body) override;
+	void fix(domain::id::Abode abode, domain::id::Soul author, std::string_view body) override;
 	std::vector<domain::Letter> letters(domain::id::Abode abode, std::uint32_t limit) override;
 
 private:
