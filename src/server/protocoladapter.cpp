@@ -81,7 +81,17 @@ void ProtocolAdapter::send_auth_required(const SessionId session_id)
 
 void ProtocolAdapter::handle_user_chat(const SessionId session_id, const v1::ChatMessage& chat)
 {
-	const domain::Letter letter = world_.abode().inscribe(*registry_.soul_id(session_id), chat.body());
+	const auto soul_id = registry_.soul_id(session_id);
+	if (!soul_id)
+		return;
+
+	const domain::Man& man = static_cast<const domain::Man&>(world_.soul(*soul_id));
+	if (!man.shelter()) {
+		close_with_protocol_error(session_id, "Protocol error: no shelter");
+		return;
+	}
+
+	const domain::Letter letter = man.shelter()->abode().inscribe(man, chat.body());
 
 	std::string author_name;
 	if (world_.knows(letter.author_id()))
@@ -107,7 +117,17 @@ void ProtocolAdapter::handle_user_chat(const SessionId session_id, const v1::Cha
 
 void ProtocolAdapter::handle_history_request(const SessionId session_id, const v1::HistoryRequest& request)
 {
-	const auto outcome = world_.abode().retell(*registry_.soul_id(session_id), request.limit());
+	const auto soul_id = registry_.soul_id(session_id);
+	if (!soul_id)
+		return;
+
+	const domain::Man& man = static_cast<const domain::Man&>(world_.soul(*soul_id));
+	if (!man.shelter()) {
+		close_with_protocol_error(session_id, "Protocol error: no shelter");
+		return;
+	}
+
+	const auto outcome = man.shelter()->abode().retell(man.soul_id(), request.limit());
 	if (const auto* error = std::get_if<domain::DomainError>(&outcome)) {
 		(void)error;
 		close_with_protocol_error(session_id, "Protocol error: invalid HistoryRequest");

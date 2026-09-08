@@ -2,6 +2,8 @@
 
 #include <algorithm>
 #include <map>
+#include <stdexcept>
+#include <utility>
 
 
 namespace will::domain {
@@ -15,23 +17,72 @@ Abode::Abode(id::Abode id, AbodeName name, Temporality& temporality, Heaven& hea
 {}
 
 
-void Abode::admit(const Soul& soul)
+void Abode::admit(const Man& man)
 {
 	std::lock_guard lock(mutex_);
-	members_.insert(&soul);
+	dwellers_.insert(&man);
 }
 
 
-bool Abode::shelters(const Soul& soul) const
+bool Abode::dwells(const Man& man) const
 {
 	std::lock_guard lock(mutex_);
-	return members_.contains(&soul);
+	return dwellers_.contains(&man);
 }
 
 
-Letter Abode::inscribe(id::Soul author, std::string_view body)
+Shelter& Abode::shelter(Man& man)
 {
-	return temporality_.fix(id_, author, body);
+	if (Shelter* current = man.shelter(); current && &current->abode() == this)
+		return *current;
+
+	if (Shelter* current = man.shelter())
+		current->abode().release_shelter(man);
+
+	std::lock_guard lock(mutex_);
+	if (!dwellers_.contains(&man))
+		throw std::logic_error("Man does not dwell in this abode");
+
+	if (const auto it = shelters_.find(&man); it != shelters_.end()) {
+		man.bind_shelter(it->second.get());
+		return *it->second;
+	}
+
+	auto cover = std::make_unique<Shelter>(*this, man);
+	Shelter& ref = *cover;
+	man.bind_shelter(&ref);
+	shelters_.emplace(&man, std::move(cover));
+	return ref;
+}
+
+
+void Abode::release_shelter(Man& man)
+{
+	std::lock_guard lock(mutex_);
+	const auto it = shelters_.find(&man);
+	if (it == shelters_.end())
+		return;
+
+	if (man.shelter() == it->second.get())
+		man.bind_shelter(nullptr);
+
+	shelters_.erase(it);
+}
+
+
+bool Abode::shelters(const Man& man) const
+{
+	const Shelter* cover = man.shelter();
+	return cover != nullptr && &cover->abode() == this;
+}
+
+
+Letter Abode::inscribe(const Man& author, std::string_view body)
+{
+	if (!shelters(author))
+		throw std::logic_error("Man has no shelter in this abode");
+
+	return temporality_.fix(id_, author.soul_id(), body);
 }
 
 

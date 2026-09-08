@@ -7,7 +7,7 @@
 namespace will::domain {
 
 
-/// Soul (Душа) — participant of an abode.
+/// Soul (Душа) — enduring identity of a person; focus (Shelter) is held on Man.
 class Soul {
 public:
 	Soul(id::Soul id, SoulName name);

@@ -64,7 +64,8 @@ const Man& World::accept(Man&& man)
 	man_id_by_vessel_.insert_or_assign(vessel_id, man_id);
 	Heaven::index(soul);
 	Earth::index(vessel);
-	abode_.admit(soul);
+	abode_.admit(live);
+	abode_.shelter(live);
 	return live;
 }
 
