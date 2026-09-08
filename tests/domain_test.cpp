@@ -44,15 +44,13 @@ TEST_CASE("welcome creates man")
 	CHECK(world.abode().name() == AbodeName::global());
 
 	const DeviceToken token = DeviceToken::generate();
-	const Man& man = world.welcome(token);
+	const Witness& man = world.welcome(token);
 
 	CHECK(man.soul_id().value() > 0);
 	CHECK(man.id().value() > 0);
 	CHECK(man.vessel_id().value() > 0);
 	CHECK(world.abode().dwells(man));
-	CHECK(world.abode().shelters(man));
-	CHECK(man.shelter() != nullptr);
-	CHECK(&man.shelter()->abode() == &world.abode());
+	CHECK(&man.abode() == &world.abode());
 	CHECK(world.knows(token));
 	CHECK(world.knows(man.soul_id()));
 
@@ -74,11 +72,10 @@ TEST_CASE("welcome existing man")
 	seed_man(temporality, id::Soul{42}, test_token("abcd1234abcd1234abcd1234abcd1234"), test_name("oldname1"));
 	World world(temporality);
 
-	const Man& man = world.welcome(test_token("abcd1234abcd1234abcd1234abcd1234"));
+	const Witness& man = world.welcome(test_token("abcd1234abcd1234abcd1234abcd1234"));
 	CHECK(man.soul_id() == id::Soul{42});
 	CHECK(world.abode().dwells(man));
-	CHECK(world.abode().shelters(man));
-	CHECK(man.shelter() != nullptr);
+	CHECK(&man.abode() == &world.abode());
 }
 
 
@@ -99,7 +96,7 @@ TEST_CASE("abode inscribe persists")
 	InMemoryTemporality temporality;
 	World world(temporality);
 
-	const Man& author = world.welcome(DeviceToken::generate());
+	const Witness& author = world.welcome(DeviceToken::generate());
 	const Letter saved = world.abode().inscribe(author, "hello");
 
 	CHECK(saved.id().value() > 0);
