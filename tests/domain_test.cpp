@@ -47,21 +47,21 @@ TEST_CASE("welcome creates man")
 	const DeviceToken token = DeviceToken::generate();
 	const Man& man = world.welcome(token);
 
-	CHECK(man.soul_id().value() > 0);
+	CHECK(man.Soul::id().value() > 0);
 	CHECK(man.id().value() > 0);
-	CHECK(man.vessel_id().value() > 0);
+	CHECK(man.Vessel::id().value() > 0);
 	CHECK(world.abode().dwells(man));
 	CHECK(&static_cast<const Witness&>(man).abode() == &world.abode());
 	CHECK(world.knows(token));
-	CHECK(world.knows(man.soul_id()));
+	CHECK(world.knows(man.Soul::id()));
 
 	const Vessel& vessel = world.vessel(token);
-	CHECK(vessel.id() == man.vessel_id());
+	CHECK(vessel.id() == man.Vessel::id());
 	CHECK(world.man(vessel).id() == man.id());
 	CHECK(&world.man(vessel) == &man);
-	CHECK(world.man(vessel).soul_id() == man.soul_id());
+	CHECK(world.man(vessel).Soul::id() == man.Soul::id());
 
-	const Soul& soul = world.soul(man.soul_id());
+	const Soul& soul = world.soul(man.Soul::id());
 	CHECK(&soul == static_cast<const Soul*>(&man));
 	CHECK(SoulName::parse(soul.name().text()));
 }
@@ -74,7 +74,7 @@ TEST_CASE("welcome existing man")
 	World world(temporality);
 
 	const Man& man = world.welcome(test_token("abcd1234abcd1234abcd1234abcd1234"));
-	CHECK(man.soul_id() == id::Soul{42});
+	CHECK(man.Soul::id() == id::Soul{42});
 	CHECK(world.abode().dwells(man));
 	CHECK(&static_cast<const Witness&>(man).abode() == &world.abode());
 }
@@ -102,7 +102,7 @@ TEST_CASE("man say persists via abode")
 
 	const auto loaded = temporality.letters(world.abode().id(), 10);
 	REQUIRE(loaded.size() == 1);
-	CHECK(loaded[0].author_id() == author.soul_id());
+	CHECK(loaded[0].author_id() == author.Soul::id());
 	CHECK(loaded[0].body() == "hello");
 	CHECK(loaded[0].created_at() == Timestamp{1});
 }

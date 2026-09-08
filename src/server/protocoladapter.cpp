@@ -63,7 +63,7 @@ void ProtocolAdapter::handle_bind_token(const SessionId session_id, const v1::Bi
 	}
 
 	const domain::Man& man = world_.welcome(*device_token);
-	if (const auto displaced = registry_.bind_soul(session_id, man.soul_id()))
+	if (const auto displaced = registry_.bind_soul(session_id, man.Soul::id()))
 		close_session(*displaced);
 
 	v1::ServerEvent event;
@@ -101,7 +101,7 @@ void ProtocolAdapter::handle_user_chat(const SessionId session_id, const v1::Cha
 				  << " body_len=" << chat.body().size() << std::endl;
 	}
 
-	registry_.broadcast_except_soul(man.soul_id(), chat_event);
+	registry_.broadcast_except_soul(man.Soul::id(), chat_event);
 
 	v1::ServerEvent ack;
 	ack.mutable_receipt_ack();
@@ -117,7 +117,7 @@ void ProtocolAdapter::handle_history_request(const SessionId session_id, const v
 
 	const domain::Man& man = static_cast<const domain::Man&>(world_.soul(*soul_id));
 	const auto& witness = static_cast<const domain::Witness&>(man);
-	const auto outcome = witness.abode().retell(man.soul_id(), request.limit());
+	const auto outcome = witness.abode().retell(man.Soul::id(), request.limit());
 	if (const auto* error = std::get_if<domain::DomainError>(&outcome)) {
 		(void)error;
 		close_with_protocol_error(session_id, "Protocol error: invalid HistoryRequest");

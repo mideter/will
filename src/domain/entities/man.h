@@ -17,9 +17,6 @@ public:
 
 	id::Man id() const noexcept { return id_; }
 
-	id::Soul soul_id() const noexcept { return Soul::id(); }
-	id::Vessel vessel_id() const noexcept { return Vessel::id(); }
-
 	bool operator==(const Man& other) const = default;
 
 private:

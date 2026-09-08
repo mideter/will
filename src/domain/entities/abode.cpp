@@ -36,7 +36,7 @@ void Abode::inscribe(const Man& author, std::string_view body)
 	if (&witness.abode() != this)
 		throw std::logic_error("Man is not observing this abode");
 
-	temporality_.fix(id_, author.soul_id(), body);
+	temporality_.fix(id_, author.Soul::id(), body);
 }
 
 
