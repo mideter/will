@@ -2,6 +2,8 @@
 
 #include "entities/man.h"
 
+#include <string_view>
+
 
 namespace will::domain {
 
@@ -16,6 +18,8 @@ public:
 	Witness(Man&& man, Abode& abode) noexcept;
 
 	Abode& abode() const noexcept { return *abode_; }
+
+	void say(std::string_view body) const override;
 
 private:
 	Abode* abode_;

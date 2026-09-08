@@ -1,5 +1,6 @@
 #include "world.h"
 
+#include "entities/witness.h"
 #include "values/abode_name.h"
 
 #include <stdexcept>
@@ -18,7 +19,7 @@ World::World(Temporality& temporality)
 }
 
 
-const Witness& World::man(const Vessel& vessel) const
+const Man& World::man(const Vessel& vessel) const
 {
 	std::lock_guard lock(mutex_);
 
@@ -30,17 +31,11 @@ const Witness& World::man(const Vessel& vessel) const
 	if (it == men_by_id_.end() || !it->second)
 		throw std::logic_error("Vessel has no man");
 
-	return static_cast<const Witness&>(*it->second);
+	return *it->second;
 }
 
 
-const Witness& World::witness(const id::Soul soul_id) const
-{
-	return static_cast<const Witness&>(soul(soul_id));
-}
-
-
-const Witness& World::welcome(const DeviceToken& token)
+const Man& World::welcome(const DeviceToken& token)
 {
 	if (knows(token))
 		return man(vessel(token));
@@ -49,17 +44,17 @@ const Witness& World::welcome(const DeviceToken& token)
 }
 
 
-const Witness& World::beget(const DeviceToken& token)
+const Man& World::beget(const DeviceToken& token)
 {
 	return accept(Heaven::beget(token));
 }
 
 
-const Witness& World::accept(Man&& man)
+const Man& World::accept(Man&& man)
 {
 	auto ptr = std::make_unique<Witness>(std::move(man), abode_);
 	// Witness stays on the heap; moving unique_ptr does not invalidate these references.
-	Witness& live = *ptr;
+	Man& live = *ptr;
 	const Soul& soul = live;
 	const Vessel& vessel = live;
 	const id::Man man_id = live.id();

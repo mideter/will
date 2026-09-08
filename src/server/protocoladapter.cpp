@@ -2,6 +2,7 @@
 
 #include "inbound_client_message_handler.h"
 
+#include "entities/witness.h"
 #include "values/device_token.h"
 
 #include <iostream>
@@ -85,24 +86,22 @@ void ProtocolAdapter::handle_user_chat(const SessionId session_id, const v1::Cha
 	if (!soul_id)
 		return;
 
-	const domain::Witness& witness = world_.witness(*soul_id);
-	const domain::Letter letter = witness.abode().inscribe(witness, chat.body());
+	const domain::Man& man = static_cast<const domain::Man&>(world_.soul(*soul_id));
+	man.say(chat.body());
 
-	std::string author_name;
-	if (world_.knows(letter.author_id()))
-		author_name = world_.soul(letter.author_id()).name().text();
+	std::string author_name{man.name().text()};
 
 	v1::ServerEvent chat_event;
 	auto* chat_message = chat_event.mutable_chat();
 	chat_message->set_name(author_name);
-	chat_message->set_body(letter.body());
+	chat_message->set_body(chat.body());
 
 	if (const std::string_view sender_address = registry_.peer_address(session_id); !sender_address.empty()) {
 		std::cout << "Broadcast from " << sender_address << ": chat name_len=" << author_name.size()
-				  << " body_len=" << letter.body().size() << std::endl;
+				  << " body_len=" << chat.body().size() << std::endl;
 	}
 
-	registry_.broadcast_except_soul(letter.author_id(), chat_event);
+	registry_.broadcast_except_soul(man.soul_id(), chat_event);
 
 	v1::ServerEvent ack;
 	ack.mutable_receipt_ack();
@@ -116,8 +115,9 @@ void ProtocolAdapter::handle_history_request(const SessionId session_id, const v
 	if (!soul_id)
 		return;
 
-	const domain::Witness& witness = world_.witness(*soul_id);
-	const auto outcome = witness.abode().retell(witness.soul_id(), request.limit());
+	const domain::Man& man = static_cast<const domain::Man&>(world_.soul(*soul_id));
+	const auto& witness = static_cast<const domain::Witness&>(man);
+	const auto outcome = witness.abode().retell(man.soul_id(), request.limit());
 	if (const auto* error = std::get_if<domain::DomainError>(&outcome)) {
 		(void)error;
 		close_with_protocol_error(session_id, "Protocol error: invalid HistoryRequest");

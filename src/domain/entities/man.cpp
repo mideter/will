@@ -1,5 +1,6 @@
 #include "man.h"
 
+#include <stdexcept>
 #include <utility>
 
 
@@ -11,6 +12,12 @@ Man::Man(const id::Man id, Soul&& soul, Vessel&& vessel)
 	, Vessel(std::move(vessel))
 	, id_(id)
 {}
+
+
+void Man::say(std::string_view) const
+{
+	throw std::logic_error("Man outside the living world cannot say");
+}
 
 
 } // namespace will::domain

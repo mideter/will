@@ -4,7 +4,6 @@
 #include "entities/earth.h"
 #include "entities/heaven.h"
 #include "entities/man.h"
-#include "entities/witness.h"
 #include "identity/vessel.h"
 #include "ports/temporality.h"
 #include "values/device_token.h"
@@ -17,8 +16,9 @@
 namespace will::domain {
 
 
-/// World (Мир) — living cosmos: Heaven, Earth, witnesses, and abodes.
-/// Living people are Witness (heap-stable unique_ptr<Man>). Eternity still deals in Man values.
+/// World (Мир) — living cosmos: Heaven, Earth, men, and abodes.
+/// Living people are Witness on the heap (unique_ptr<Man>); APIs hand out Man&.
+/// Eternity still deals in Man values.
 class World : public Heaven, public Earth {
 public:
 	using Earth::knows;
@@ -30,21 +30,18 @@ public:
 	Abode& abode() noexcept { return abode_; }
 	const Abode& abode() const noexcept { return abode_; }
 
-	/// Witness dwelling in this vessel. Throws if the vessel has no man (broken invariant).
-	const Witness& man(const Vessel& vessel) const;
+	/// Man dwelling in this vessel. Throws if the vessel has no man (broken invariant).
+	const Man& man(const Vessel& vessel) const;
 
-	/// Living witness for this soul. Throws if unknown.
-	const Witness& witness(id::Soul soul_id) const;
-
-	/// Welcome a vessel's token: return the dwelling witness, or beget one if unknown.
-	const Witness& welcome(const DeviceToken& token);
+	/// Welcome a vessel's token: return the dwelling man, or beget one if unknown.
+	const Man& welcome(const DeviceToken& token);
 
 private:
 	/// Beget a new man in Eternity and accept him into the living cosmos as Witness.
-	const Witness& beget(const DeviceToken& token);
+	const Man& beget(const DeviceToken& token);
 
-	/// Place a man on the heap as Witness observing the global abode. Returns the living witness.
-	const Witness& accept(Man&& man);
+	/// Place a man on the heap as Witness observing the global abode.
+	const Man& accept(Man&& man);
 
 	Abode abode_;
 	mutable std::mutex mutex_;

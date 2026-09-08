@@ -30,10 +30,11 @@ bool Abode::dwells(const Man& man) const
 }
 
 
-Letter Abode::inscribe(const Witness& author, std::string_view body)
+Letter Abode::inscribe(const Man& author, std::string_view body)
 {
-	if (&author.abode() != this)
-		throw std::logic_error("Witness is not observing this abode");
+	const auto& witness = static_cast<const Witness&>(author);
+	if (&witness.abode() != this)
+		throw std::logic_error("Man is not observing this abode");
 
 	return temporality_.fix(id_, author.soul_id(), body);
 }
