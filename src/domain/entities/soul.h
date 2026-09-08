@@ -1,5 +1,6 @@
 #pragma once
 
+#include "entities/spirit.h"
 #include "identity/soul.h"
 #include "values/soul_name.h"
 
@@ -7,8 +8,8 @@
 namespace will::domain {
 
 
-/// Soul (Душа) — enduring identity of a person.
-class Soul {
+/// Soul (Душа) — enduring identity of a person; inherits Spirit as its highest foundation.
+class Soul : public Spirit {
 public:
 	Soul(id::Soul id, SoulName name);
 
