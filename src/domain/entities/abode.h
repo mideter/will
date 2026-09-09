@@ -1,7 +1,6 @@
 #pragma once
 
 #include "identity/abode.h"
-#include "entities/heaven.h"
 #include "entities/letter.h"
 #include "entities/man.h"
 #include "ports/temporality.h"
@@ -9,20 +8,12 @@
 
 #include <cstdint>
 #include <mutex>
-#include <string>
 #include <string_view>
 #include <unordered_set>
 #include <vector>
 
 
 namespace will::domain {
-
-
-struct RetoldLetter {
-	Letter letter;
-	std::string author_name;
-	bool is_mine = false;
-};
 
 
 /// Abode (Обитель) — named place of communion in the World.
@@ -33,12 +24,10 @@ class Abode {
 public:
 	static constexpr std::uint32_t MaxLetterLimit = 1000;
 
-	Abode(id::Abode id, AbodeName name, Temporality& temporality, Heaven& heaven);
+	Abode(id::Abode id, AbodeName name, Temporality& temporality);
 
 	id::Abode id() const noexcept { return id_; }
 	const AbodeName& name() const noexcept { return name_; }
-
-	const Heaven& heaven() const noexcept { return heaven_; }
 
 	/// Admit a man as dweller (participation).
 	void admit(const Man& man);
@@ -56,7 +45,6 @@ private:
 	id::Abode id_;
 	AbodeName name_;
 	Temporality& temporality_;
-	Heaven& heaven_;
 	mutable std::mutex mutex_;
 	std::unordered_set<const Man*> dwellers_;
 };

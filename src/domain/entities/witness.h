@@ -1,6 +1,7 @@
 #pragma once
 
 #include "entities/abode.h"
+#include "entities/letter.h"
 #include "entities/man.h"
 
 #include <cstdint>
@@ -23,8 +24,8 @@ public:
 
 	void say(std::string_view body) const override;
 
-	/// Hear recent letters of the observed abode (names via Heaven).
-	std::vector<RetoldLetter> hear(std::uint32_t limit) const;
+	/// Hear recent letters of the observed abode.
+	std::vector<Letter> hear(std::uint32_t limit) const;
 
 private:
 	Abode* abode_;

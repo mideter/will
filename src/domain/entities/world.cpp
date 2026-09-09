@@ -12,7 +12,7 @@ namespace will::domain {
 
 World::World(Temporality& temporality)
 	: Heaven(temporality)
-	, abode_(id::Abode::global(), AbodeName::global(), temporality, *this)
+	, abode_(id::Abode::global(), AbodeName::global(), temporality)
 {
 	for (Man man : remember())
 		(void)accept(std::move(man));

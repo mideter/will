@@ -119,21 +119,23 @@ void ProtocolAdapter::handle_history_request(const SessionId session_id, const v
 	const domain::Man& man = world_.man(world_.vessel(*vessel_id));
 	const auto& witness = static_cast<const domain::Witness&>(man);
 
-	std::vector<domain::RetoldLetter> items;
+	std::vector<domain::Letter> letters;
 	try {
-		items = witness.hear(request.limit());
+		letters = witness.hear(request.limit());
 	} catch (const std::exception&) {
 		close_with_protocol_error(session_id, "Protocol error: invalid HistoryRequest");
 		return;
 	}
 
-	for (const domain::RetoldLetter& item : items) {
+	const domain::id::Soul listener_soul = man.Soul::id();
+	for (const domain::Letter& letter : letters) {
 		v1::ServerEvent event;
 		auto* history_item = event.mutable_history_item();
-		history_item->set_message_id(item.letter.id().value());
-		history_item->set_is_mine(item.is_mine);
-		history_item->set_name(item.author_name);
-		history_item->set_body(item.letter.body());
+		history_item->set_message_id(letter.id().value());
+		history_item->set_is_mine(letter.author_id() == listener_soul);
+		if (world_.knows(letter.author_id()))
+			history_item->set_name(std::string{world_.soul(letter.author_id()).name().text()});
+		history_item->set_body(letter.body());
 		send_event(session_id, event);
 	}
 

@@ -107,7 +107,7 @@ TEST_CASE("man say persists via abode")
 }
 
 
-TEST_CASE("witness hear limit and is_mine")
+TEST_CASE("witness hear returns letters")
 {
 	InMemoryTemporality temporality;
 	const id::Soul me{10};
@@ -128,12 +128,10 @@ TEST_CASE("witness hear limit and is_mine")
 
 	const auto items = listener.hear(2);
 	REQUIRE(items.size() == 2);
-	CHECK(items[0].letter.body() == "mine");
-	CHECK(items[0].author_name == "menameaa");
-	CHECK(items[0].is_mine);
-	CHECK(items[1].letter.body() == "peer2");
-	CHECK(items[1].author_name == "peername");
-	CHECK_FALSE(items[1].is_mine);
+	CHECK(items[0].body() == "mine");
+	CHECK(items[0].author_id() == me);
+	CHECK(items[1].body() == "peer2");
+	CHECK(items[1].author_id() == other);
 }
 
 

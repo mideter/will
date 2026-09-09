@@ -9,11 +9,10 @@
 namespace will::domain {
 
 
-Abode::Abode(id::Abode id, AbodeName name, Temporality& temporality, Heaven& heaven)
+Abode::Abode(id::Abode id, AbodeName name, Temporality& temporality)
 	: id_(id)
 	, name_(std::move(name))
 	, temporality_(temporality)
-	, heaven_(heaven)
 {}
 
 
