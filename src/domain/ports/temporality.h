@@ -14,8 +14,7 @@ namespace will::domain {
 
 
 /// Temporality (Временность) — mutable Eternity; what happens in time.
-/// World speaks with this one body: Heaven through the Eternity face,
-/// living Witness through fix; history through letters.
+/// Earth speaks with this face (as Heaven speaks with Eternity).
 class Temporality : public Eternity {
 public:
 	static constexpr std::uint32_t MaxLetterLimit = 1000;

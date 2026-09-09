@@ -3,6 +3,7 @@
 #include "entities/abode.h"
 #include "entities/earth.h"
 #include "entities/heaven.h"
+#include "entities/letter.h"
 #include "entities/man.h"
 #include "identity/vessel.h"
 #include "ports/temporality.h"
@@ -17,7 +18,7 @@
 namespace will::domain {
 
 
-/// World (Мир) — living cosmos: Heaven, Earth, men, and abodes.
+/// World (Мир) — living cosmos: Heaven (Eternity), Earth (Temporality), men, abodes.
 /// Living people are Witness on the heap (unique_ptr<Man>); APIs hand out Man&.
 /// Eternity still deals in Man values.
 class World : public Heaven, public Earth {
@@ -37,7 +38,7 @@ public:
 	/// Welcome a vessel's token: return the dwelling man, or beget one if unknown.
 	const Man& welcome(const DeviceToken& token);
 
-	/// History of the global abode through Temporality (capped).
+	/// History of the global abode through Earth / Temporality (capped).
 	std::vector<Letter> letters(std::uint32_t limit) const;
 
 private:
@@ -48,7 +49,6 @@ private:
 	const Man& accept(Man&& man);
 
 	Abode abode_;
-	Temporality& temporality_;
 	mutable std::mutex mutex_;
 	std::unordered_map<id::Man, std::unique_ptr<Man>> men_by_id_;
 	std::unordered_map<id::Vessel, id::Man> man_id_by_vessel_;

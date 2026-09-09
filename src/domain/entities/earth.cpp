@@ -1,9 +1,15 @@
 #include "earth.h"
 
+#include <algorithm>
 #include <stdexcept>
 
 
 namespace will::domain {
+
+
+Earth::Earth(Temporality& temporality)
+	: temporality_(temporality)
+{}
 
 
 bool Earth::knows(const id::Vessel id) const
@@ -22,6 +28,19 @@ const Vessel& Earth::vessel(const id::Vessel id) const
 		throw std::logic_error("Earth does not know this vessel");
 
 	return *it->second;
+}
+
+
+void Earth::fix(const id::Abode abode, const id::Soul author, const Word& word)
+{
+	temporality_.fix(abode, author, word);
+}
+
+
+std::vector<Letter> Earth::letters(const id::Abode abode, const std::uint32_t limit) const
+{
+	const std::uint32_t capped = std::min(limit, Temporality::MaxLetterLimit);
+	return temporality_.letters(abode, capped);
 }
 
 

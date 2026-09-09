@@ -3,7 +3,6 @@
 #include "entities/witness.h"
 #include "values/abode_name.h"
 
-#include <algorithm>
 #include <stdexcept>
 #include <utility>
 
@@ -13,8 +12,8 @@ namespace will::domain {
 
 World::World(Temporality& temporality)
 	: Heaven(temporality)
+	, Earth(temporality)
 	, abode_(id::Abode::global(), AbodeName::global())
-	, temporality_(temporality)
 {
 	for (Man man : remember())
 		(void)accept(std::move(man));
@@ -51,8 +50,7 @@ std::vector<Letter> World::letters(const std::uint32_t limit) const
 	if (limit == 0)
 		throw std::invalid_argument("History limit must be positive");
 
-	const std::uint32_t capped = std::min(limit, Temporality::MaxLetterLimit);
-	return temporality_.letters(abode_.id(), capped);
+	return Earth::letters(abode_.id(), limit);
 }
 
 
@@ -64,7 +62,7 @@ const Man& World::beget(const DeviceToken& token)
 
 const Man& World::accept(Man&& man)
 {
-	auto ptr = std::make_unique<Witness>(std::move(man), abode_, temporality_);
+	auto ptr = std::make_unique<Witness>(std::move(man), abode_, *this);
 	// Witness stays on the heap; moving unique_ptr does not invalidate these references.
 	Man& live = *ptr;
 	const Soul& soul = live;
