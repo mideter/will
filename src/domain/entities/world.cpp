@@ -37,8 +37,8 @@ const Man& World::man(const Vessel& vessel) const
 
 const Man& World::welcome(const DeviceToken& token)
 {
-	if (knows(token))
-		return man(vessel(token));
+	if (const auto vessel_id = id_of(token))
+		return man(vessel(*vessel_id));
 
 	return beget(token);
 }

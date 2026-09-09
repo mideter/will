@@ -52,10 +52,10 @@ TEST_CASE("welcome creates man")
 	CHECK(man.Vessel::id().value() > 0);
 	CHECK(world.abode().dwells(man));
 	CHECK(&static_cast<const Witness&>(man).abode() == &world.abode());
-	CHECK(world.knows(token));
+	CHECK(world.knows(man.Vessel::id()));
 	CHECK(world.knows(man.Soul::id()));
 
-	const Vessel& vessel = world.vessel(token);
+	const Vessel& vessel = world.vessel(man.Vessel::id());
 	CHECK(vessel.id() == man.Vessel::id());
 	CHECK(world.man(vessel).id() == man.id());
 	CHECK(&world.man(vessel) == &man);

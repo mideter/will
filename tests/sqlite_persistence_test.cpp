@@ -64,8 +64,8 @@ TEST_CASE("sqlite persistence survives reopen")
 		created_id = man_created.Soul::id();
 		name_created = man_created.name();
 		CHECK(man_created.Soul::id().value() > 0);
-		CHECK(world.knows(token_created));
-		CHECK(world.man(world.vessel(token_created)).Soul::id() == man_created.Soul::id());
+		CHECK(world.knows(man_created.Vessel::id()));
+		CHECK(world.man(world.vessel(man_created.Vessel::id())).Soul::id() == man_created.Soul::id());
 		CHECK(world.knows(man_created.Soul::id()));
 	}
 
@@ -75,20 +75,24 @@ TEST_CASE("sqlite persistence survives reopen")
 		World world(temporality);
 
 		const DeviceToken token_created = *DeviceToken::parse(token_text);
-		CHECK(world.knows(token_created));
-		CHECK(world.man(world.vessel(token_created)).Soul::id() == *created_id);
+		const Man& reloaded = world.welcome(token_created);
+		CHECK(reloaded.Soul::id() == *created_id);
+		CHECK(world.knows(reloaded.Vessel::id()));
+		CHECK(world.man(world.vessel(reloaded.Vessel::id())).Soul::id() == *created_id);
 		CHECK(world.soul(*created_id).name() == *name_created);
 
 		CHECK(world.knows(*soul_a_id));
 		CHECK(world.soul(*soul_a_id).name() == *name_a);
 		const DeviceToken token_a = *DeviceToken::parse("aaaa1234aaaa1234aaaa1234aaaa1234");
-		CHECK(world.man(world.vessel(token_a)).Soul::id() == *soul_a_id);
+		const Man& man_a_reloaded = world.welcome(token_a);
+		CHECK(man_a_reloaded.Soul::id() == *soul_a_id);
+		CHECK(world.man(world.vessel(man_a_reloaded.Vessel::id())).Soul::id() == *soul_a_id);
 
 		CHECK(world.knows(*soul_b_id));
 		CHECK(world.soul(*soul_b_id).name() == *name_b);
 
 		CHECK_FALSE(world.knows(id::Soul{999999}));
-		CHECK_FALSE(world.knows(*DeviceToken::parse("ffffffffffffffffffffffffffffffff")));
+		CHECK_FALSE(world.knows(id::Vessel{999999}));
 	}
 
 	::unlink(db_path.c_str());
