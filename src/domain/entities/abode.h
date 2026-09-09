@@ -1,7 +1,6 @@
 #pragma once
 
 #include "identity/abode.h"
-#include "identity/soul.h"
 #include "entities/heaven.h"
 #include "entities/letter.h"
 #include "entities/man.h"
@@ -31,7 +30,7 @@ struct RetoldLetter {
 
 /// Abode (Обитель) — named place of communion in the World.
 /// Dwellers: men who participate here (many abodes per man).
-/// A living Witness observes one abode's life (focus); that is not the same as dwelling.
+/// A living Witness observes one abode; focus implies dwelling there.
 /// Speaks with Temporality.
 class Abode {
 public:
@@ -51,8 +50,9 @@ public:
 	/// Inscribe what a man observing this abode has said (living Witness).
 	void inscribe(const Man& author, std::string_view body);
 
-	/// Retell recent letters for a soul (author names resolved through Heaven).
-	std::variant<std::vector<RetoldLetter>, DomainError> retell(id::Soul soul, std::uint32_t limit) const;
+	/// Retell recent letters to a witness observing this abode (names via Heaven).
+	std::variant<std::vector<RetoldLetter>, DomainError> retell(const Witness& listener,
+																std::uint32_t limit) const;
 
 private:
 	id::Abode id_;

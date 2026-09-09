@@ -117,7 +117,7 @@ void ProtocolAdapter::handle_history_request(const SessionId session_id, const v
 
 	const domain::Man& man = world_.man(world_.vessel(*vessel_id));
 	const auto& witness = static_cast<const domain::Witness&>(man);
-	const auto outcome = witness.abode().retell(man.Soul::id(), request.limit());
+	const auto outcome = witness.abode().retell(witness, request.limit());
 	if (const auto* error = std::get_if<domain::DomainError>(&outcome)) {
 		(void)error;
 		close_with_protocol_error(session_id, "Protocol error: invalid HistoryRequest");

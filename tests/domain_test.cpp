@@ -118,15 +118,18 @@ TEST_CASE("abode retell limit and is_mine")
 	seed_man(temporality, other, test_token("deadbeefdeadbeefdeadbeefdeadbeef"), test_name("peername"));
 	World world(temporality);
 
+	const auto& listener = static_cast<const Witness&>(
+		world.welcome(test_token("c0ffee00c0ffee00c0ffee00c0ffee00")));
+
 	temporality.fix(world.abode().id(), other, "peer");
 	temporality.fix(world.abode().id(), me, "mine");
 	temporality.fix(world.abode().id(), other, "peer2");
 
-	const auto zero_limit = world.abode().retell(me, 0);
+	const auto zero_limit = world.abode().retell(listener, 0);
 	REQUIRE(std::holds_alternative<DomainError>(zero_limit));
 	CHECK(std::get<DomainError>(zero_limit).code == DomainErrorCode::InvalidArgument);
 
-	const auto ok = world.abode().retell(me, 2);
+	const auto ok = world.abode().retell(listener, 2);
 	REQUIRE(std::holds_alternative<std::vector<RetoldLetter>>(ok));
 
 	const auto& items = std::get<std::vector<RetoldLetter>>(ok);
@@ -148,10 +151,13 @@ TEST_CASE("abode retell caps limit")
 	seed_man(temporality, author, test_token("feedfacefeedfacefeedfacefeedface"), test_name("authoraa"));
 	World world(temporality);
 
+	const auto& listener = static_cast<const Witness&>(
+		world.welcome(test_token("feedfacefeedfacefeedfacefeedface")));
+
 	for (int i = 0; i < 5; ++i)
 		temporality.fix(world.abode().id(), author, "m");
 
-	const auto ok = world.abode().retell(author, Abode::MaxRetellLimit + 50);
+	const auto ok = world.abode().retell(listener, Abode::MaxRetellLimit + 50);
 	REQUIRE(std::holds_alternative<std::vector<RetoldLetter>>(ok));
 	CHECK(std::get<std::vector<RetoldLetter>>(ok).size() == 5);
 }

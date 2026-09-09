@@ -40,8 +40,12 @@ void Abode::inscribe(const Man& author, std::string_view body)
 }
 
 
-std::variant<std::vector<RetoldLetter>, DomainError> Abode::retell(id::Soul soul, std::uint32_t limit) const
+std::variant<std::vector<RetoldLetter>, DomainError> Abode::retell(const Witness& listener,
+																   const std::uint32_t limit) const
 {
+	if (&listener.abode() != this)
+		return DomainError{DomainErrorCode::Unauthorized};
+
 	if (limit == 0)
 		return DomainError{DomainErrorCode::InvalidArgument};
 
@@ -52,6 +56,7 @@ std::variant<std::vector<RetoldLetter>, DomainError> Abode::retell(id::Soul soul
 	items.reserve(rows.size());
 
 	std::map<id::Soul, std::string> author_names;
+	const id::Soul listener_soul = listener.Soul::id();
 
 	for (const Letter& row : rows) {
 		std::string author_name;
@@ -65,7 +70,7 @@ std::variant<std::vector<RetoldLetter>, DomainError> Abode::retell(id::Soul soul
 			author_names.emplace(row.author_id(), std::string{});
 		}
 
-		items.push_back(RetoldLetter{row, std::move(author_name), row.author_id() == soul});
+		items.push_back(RetoldLetter{row, std::move(author_name), row.author_id() == listener_soul});
 	}
 
 	return items;
