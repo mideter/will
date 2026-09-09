@@ -3,6 +3,7 @@
 #include "entities/abode.h"
 #include "entities/letter.h"
 #include "entities/man.h"
+#include "ports/temporality.h"
 
 #include <cstdint>
 #include <string_view>
@@ -12,23 +13,21 @@
 namespace will::domain {
 
 
-/// Witness (Свидетель) — living man observing the life of an abode.
+/// Witness (Свидетель) — living man; source of will and hearing in the waking world.
 /// Created in World::accept from an Eternity Man snapshot; stored as Man.
 class Witness : public Man {
 public:
-	static constexpr std::uint32_t MaxHearLimit = Abode::MaxLetterLimit;
-
-	Witness(Man&& man, Abode& abode) noexcept;
+	Witness(Man&& man, Abode& abode, Temporality& temporality) noexcept;
 
 	Abode& abode() const noexcept { return *abode_; }
 
 	void say(std::string_view body) const override;
 
-	/// Hear recent letters of the observed abode.
-	std::vector<Letter> hear(std::uint32_t limit) const;
+	std::vector<Letter> hear(std::uint32_t limit) const override;
 
 private:
 	Abode* abode_;
+	Temporality* temporality_;
 };
 
 

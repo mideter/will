@@ -2,7 +2,6 @@
 
 #include "inbound_client_message_handler.h"
 
-#include "entities/witness.h"
 #include "values/device_token.h"
 
 #include <exception>
@@ -117,11 +116,10 @@ void ProtocolAdapter::handle_history_request(const SessionId session_id, const v
 		return;
 
 	const domain::Man& man = world_.man(world_.vessel(*vessel_id));
-	const auto& witness = static_cast<const domain::Witness&>(man);
 
 	std::vector<domain::Letter> letters;
 	try {
-		letters = witness.hear(request.limit());
+		letters = man.hear(request.limit());
 	} catch (const std::exception&) {
 		close_with_protocol_error(session_id, "Protocol error: invalid HistoryRequest");
 		return;

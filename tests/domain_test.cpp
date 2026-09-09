@@ -91,7 +91,7 @@ TEST_CASE("welcome keeps existing name")
 }
 
 
-TEST_CASE("man say persists via abode")
+TEST_CASE("man say persists via temporality")
 {
 	InMemoryTemporality temporality;
 	World world(temporality);
@@ -149,6 +149,6 @@ TEST_CASE("witness hear caps limit")
 	for (int i = 0; i < 5; ++i)
 		temporality.fix(world.abode().id(), author, "m");
 
-	const auto items = listener.hear(Witness::MaxHearLimit + 50);
+	const auto items = listener.hear(Spirit::MaxHearLimit + 50);
 	CHECK(items.size() == 5);
 }

@@ -13,7 +13,8 @@ namespace will::domain {
 
 
 /// Temporality (Временность) — mutable Eternity; what happens in time.
-/// World speaks with this one body: Heaven through the Eternity face, Abode through fix/letters.
+/// World speaks with this one body: Heaven through the Eternity face,
+/// living Witness through fix/letters.
 class Temporality : public Eternity {
 public:
 	~Temporality() override = default;

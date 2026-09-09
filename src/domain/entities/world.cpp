@@ -12,7 +12,8 @@ namespace will::domain {
 
 World::World(Temporality& temporality)
 	: Heaven(temporality)
-	, abode_(id::Abode::global(), AbodeName::global(), temporality)
+	, abode_(id::Abode::global(), AbodeName::global())
+	, temporality_(temporality)
 {
 	for (Man man : remember())
 		(void)accept(std::move(man));
@@ -52,7 +53,7 @@ const Man& World::beget(const DeviceToken& token)
 
 const Man& World::accept(Man&& man)
 {
-	auto ptr = std::make_unique<Witness>(std::move(man), abode_);
+	auto ptr = std::make_unique<Witness>(std::move(man), abode_, temporality_);
 	// Witness stays on the heap; moving unique_ptr does not invalidate these references.
 	Man& live = *ptr;
 	const Soul& soul = live;
