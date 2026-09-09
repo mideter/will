@@ -121,7 +121,7 @@ void ProtocolAdapter::handle_history_request(const SessionId session_id, const v
 
 	std::vector<domain::RetoldLetter> items;
 	try {
-		items = witness.abode().retell(witness, request.limit());
+		items = witness.hear(request.limit());
 	} catch (const std::exception&) {
 		close_with_protocol_error(session_id, "Protocol error: invalid HistoryRequest");
 		return;

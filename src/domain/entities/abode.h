@@ -4,7 +4,6 @@
 #include "entities/heaven.h"
 #include "entities/letter.h"
 #include "entities/man.h"
-#include "entities/witness.h"
 #include "ports/temporality.h"
 #include "values/abode_name.h"
 
@@ -32,12 +31,14 @@ struct RetoldLetter {
 /// Speaks with Temporality.
 class Abode {
 public:
-	static constexpr std::uint32_t MaxRetellLimit = 1000;
+	static constexpr std::uint32_t MaxLetterLimit = 1000;
 
 	Abode(id::Abode id, AbodeName name, Temporality& temporality, Heaven& heaven);
 
 	id::Abode id() const noexcept { return id_; }
 	const AbodeName& name() const noexcept { return name_; }
+
+	const Heaven& heaven() const noexcept { return heaven_; }
 
 	/// Admit a man as dweller (participation).
 	void admit(const Man& man);
@@ -48,8 +49,8 @@ public:
 	/// Inscribe what a man observing this abode has said (living Witness).
 	void inscribe(const Man& author, std::string_view body);
 
-	/// Retell recent letters to a witness observing this abode (names via Heaven).
-	std::vector<RetoldLetter> retell(const Witness& listener, std::uint32_t limit) const;
+	/// Recent letters fixed in this abode (capped). For Witness::hear.
+	std::vector<Letter> letters(std::uint32_t limit) const;
 
 private:
 	id::Abode id_;

@@ -107,7 +107,7 @@ TEST_CASE("man say persists via abode")
 }
 
 
-TEST_CASE("abode retell limit and is_mine")
+TEST_CASE("witness hear limit and is_mine")
 {
 	InMemoryTemporality temporality;
 	const id::Soul me{10};
@@ -124,9 +124,9 @@ TEST_CASE("abode retell limit and is_mine")
 	temporality.fix(world.abode().id(), me, "mine");
 	temporality.fix(world.abode().id(), other, "peer2");
 
-	CHECK_THROWS_AS(world.abode().retell(listener, 0), std::invalid_argument);
+	CHECK_THROWS_AS(listener.hear(0), std::invalid_argument);
 
-	const auto items = world.abode().retell(listener, 2);
+	const auto items = listener.hear(2);
 	REQUIRE(items.size() == 2);
 	CHECK(items[0].letter.body() == "mine");
 	CHECK(items[0].author_name == "menameaa");
@@ -137,7 +137,7 @@ TEST_CASE("abode retell limit and is_mine")
 }
 
 
-TEST_CASE("abode retell caps limit")
+TEST_CASE("witness hear caps limit")
 {
 	InMemoryTemporality temporality;
 	const id::Soul author{1};
@@ -151,6 +151,6 @@ TEST_CASE("abode retell caps limit")
 	for (int i = 0; i < 5; ++i)
 		temporality.fix(world.abode().id(), author, "m");
 
-	const auto items = world.abode().retell(listener, Abode::MaxRetellLimit + 50);
+	const auto items = listener.hear(Witness::MaxHearLimit + 50);
 	CHECK(items.size() == 5);
 }

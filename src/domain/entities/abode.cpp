@@ -1,7 +1,8 @@
 #include "abode.h"
 
+#include "entities/witness.h"
+
 #include <algorithm>
-#include <map>
 #include <stdexcept>
 
 
@@ -40,39 +41,13 @@ void Abode::inscribe(const Man& author, std::string_view body)
 }
 
 
-std::vector<RetoldLetter> Abode::retell(const Witness& listener, const std::uint32_t limit) const
+std::vector<Letter> Abode::letters(const std::uint32_t limit) const
 {
-	if (&listener.abode() != this)
-		throw std::logic_error("Witness is not observing this abode");
-
 	if (limit == 0)
-		throw std::invalid_argument("Retell limit must be positive");
+		return {};
 
-	const std::uint32_t capped_limit = std::min(limit, MaxRetellLimit);
-	const std::vector<Letter> rows = temporality_.letters(id_, capped_limit);
-
-	std::vector<RetoldLetter> items;
-	items.reserve(rows.size());
-
-	std::map<id::Soul, std::string> author_names;
-	const id::Soul listener_soul = listener.Soul::id();
-
-	for (const Letter& row : rows) {
-		std::string author_name;
-
-		if (const auto cached = author_names.find(row.author_id()); cached != author_names.end()) {
-			author_name = cached->second;
-		} else if (heaven_.knows(row.author_id())) {
-			author_name = heaven_.soul(row.author_id()).name().text();
-			author_names.emplace(row.author_id(), author_name);
-		} else {
-			author_names.emplace(row.author_id(), std::string{});
-		}
-
-		items.push_back(RetoldLetter{row, std::move(author_name), row.author_id() == listener_soul});
-	}
-
-	return items;
+	const std::uint32_t capped_limit = std::min(limit, MaxLetterLimit);
+	return temporality_.letters(id_, capped_limit);
 }
 
 
