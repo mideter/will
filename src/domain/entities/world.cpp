@@ -3,6 +3,7 @@
 #include "entities/witness.h"
 #include "values/abode_name.h"
 
+#include <algorithm>
 #include <stdexcept>
 #include <utility>
 
@@ -42,6 +43,16 @@ const Man& World::welcome(const DeviceToken& token)
 		return man(vessel(*vessel_id));
 
 	return beget(token);
+}
+
+
+std::vector<Letter> World::letters(const std::uint32_t limit) const
+{
+	if (limit == 0)
+		throw std::invalid_argument("History limit must be positive");
+
+	const std::uint32_t capped = std::min(limit, Temporality::MaxLetterLimit);
+	return temporality_.letters(abode_.id(), capped);
 }
 
 

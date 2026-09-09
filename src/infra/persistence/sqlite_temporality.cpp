@@ -1,5 +1,9 @@
 #include "sqlite_temporality.h"
 
+#include "values/word.h"
+
+#include <algorithm>
+
 #include "sqlite_util.h"
 
 #include "values/device_token.h"
@@ -123,11 +127,10 @@ domain::Man SqliteTemporality::enroll(const domain::DeviceToken& token, const do
 
 
 void SqliteTemporality::fix(const domain::id::Abode abode, const domain::id::Soul author,
-							 const std::string_view body)
+							 const domain::Word& word)
 {
 	const domain::Timestamp ts = time_.instant();
-	// Validate body before insert (Letter enforces non-empty / max length).
-	const domain::Letter drafted{domain::id::Letter{1}, abode, author, std::string(body), ts};
+	const domain::Letter drafted{domain::id::Letter{1}, abode, author, word, ts};
 
 	std::lock_guard lock(database_.mutex());
 
@@ -180,7 +183,7 @@ std::vector<domain::Letter> SqliteTemporality::letters(const domain::id::Abode a
 			domain::id::Letter{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 0))},
 			domain::id::Abode{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 1))},
 			domain::id::Soul{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 2))},
-			body_text ? std::string(body_text) : std::string{},
+			domain::Word{std::string(body_text ? body_text : "")},
 			domain::Timestamp{sqlite3_column_int64(stmt, 4)},
 		});
 		rc = sqlite3_step(stmt);

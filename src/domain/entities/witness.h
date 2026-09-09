@@ -1,13 +1,9 @@
 #pragma once
 
 #include "entities/abode.h"
-#include "entities/letter.h"
 #include "entities/man.h"
 #include "ports/temporality.h"
-
-#include <cstdint>
-#include <string_view>
-#include <vector>
+#include "values/word.h"
 
 
 namespace will::domain {
@@ -21,9 +17,9 @@ public:
 
 	Abode& abode() const noexcept { return *abode_; }
 
-	void say(std::string_view body) const override;
+	void say(const Word& word) const override;
 
-	std::vector<Letter> hear(std::uint32_t limit) const override;
+	Word hear() const override;
 
 private:
 	Abode* abode_;

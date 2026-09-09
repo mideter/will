@@ -11,6 +11,7 @@
 #include <memory>
 #include <mutex>
 #include <unordered_map>
+#include <vector>
 
 
 namespace will::domain {
@@ -35,6 +36,9 @@ public:
 
 	/// Welcome a vessel's token: return the dwelling man, or beget one if unknown.
 	const Man& welcome(const DeviceToken& token);
+
+	/// History of the global abode through Temporality (capped).
+	std::vector<Letter> letters(std::uint32_t limit) const;
 
 private:
 	/// Beget a new man in Eternity and accept him into the living cosmos as Witness.

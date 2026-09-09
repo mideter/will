@@ -6,6 +6,7 @@
 
 #include <exception>
 #include <iostream>
+#include <string>
 #include <vector>
 
 
@@ -87,7 +88,12 @@ void ProtocolAdapter::handle_user_chat(const SessionId session_id, const v1::Cha
 		return;
 
 	const domain::Man& man = world_.man(world_.vessel(*vessel_id));
-	man.say(chat.body());
+	try {
+		man.say(domain::Word{std::string{chat.body()}});
+	} catch (const std::exception&) {
+		close_with_protocol_error(session_id, "Protocol error: invalid ChatMessage");
+		return;
+	}
 
 	std::string author_name{man.name().text()};
 
@@ -119,7 +125,7 @@ void ProtocolAdapter::handle_history_request(const SessionId session_id, const v
 
 	std::vector<domain::Letter> letters;
 	try {
-		letters = man.hear(request.limit());
+		letters = world_.letters(request.limit());
 	} catch (const std::exception&) {
 		close_with_protocol_error(session_id, "Protocol error: invalid HistoryRequest");
 		return;

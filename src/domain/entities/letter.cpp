@@ -1,24 +1,19 @@
 #include "letter.h"
 
-#include <stdexcept>
+#include <utility>
 
 
 namespace will::domain {
 
 
-Letter::Letter(const id::Letter id, const id::Abode abode_id, const id::Soul author_id, std::string body,
+Letter::Letter(const id::Letter id, const id::Abode abode_id, const id::Soul author_id, Word word,
 			   const Timestamp created_at)
-	: id_(id)
+	: Word(std::move(word))
+	, id_(id)
 	, abode_id_(abode_id)
 	, author_id_(author_id)
-	, body_(std::move(body))
 	, created_at_(created_at)
-{
-	if (body_.empty())
-		throw std::invalid_argument("Letter body must be non-empty");
-	if (body_.size() > MaxBodyLength)
-		throw std::invalid_argument("Letter body exceeds MaxBodyLength");
-}
+{}
 
 
 } // namespace will::domain

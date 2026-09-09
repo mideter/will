@@ -15,6 +15,7 @@
 #include "values/device_token.h"
 #include "values/soul_name.h"
 #include "values/timestamp.h"
+#include "values/word.h"
 
 #include <cstdint>
 #include <string>
@@ -70,9 +71,9 @@ public:
 			next_man_id_ = man_id.value();
 	}
 
-	void fix(id::Abode abode, id::Soul author, std::string_view body) override
+	void fix(id::Abode abode, id::Soul author, const Word& word) override
 	{
-		letters_.push_back(Letter{id::Letter{++next_id_}, abode, author, std::string(body), time_.instant()});
+		letters_.push_back(Letter{id::Letter{++next_id_}, abode, author, word, time_.instant()});
 	}
 
 	std::vector<Letter> letters(id::Abode abode, std::uint32_t limit) override

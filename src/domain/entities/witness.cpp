@@ -2,8 +2,8 @@
 
 #include "entities/abode.h"
 
-#include <algorithm>
 #include <stdexcept>
+#include <vector>
 
 
 namespace will::domain {
@@ -16,25 +16,25 @@ Witness::Witness(Man&& man, Abode& abode, Temporality& temporality) noexcept
 {}
 
 
-void Witness::say(std::string_view body) const
+void Witness::say(const Word& word) const
 {
 	if (!abode_->dwells(*this))
 		throw std::logic_error("Witness does not dwell in the observed abode");
 
-	temporality_->fix(abode_->id(), Soul::id(), body);
+	temporality_->fix(abode_->id(), Soul::id(), word);
 }
 
 
-std::vector<Letter> Witness::hear(const std::uint32_t limit) const
+Word Witness::hear() const
 {
-	if (limit == 0)
-		throw std::invalid_argument("Hear limit must be positive");
-
 	if (!abode_->dwells(*this))
 		throw std::logic_error("Witness does not dwell in the observed abode");
 
-	const std::uint32_t capped = std::min(limit, MaxHearLimit);
-	return temporality_->letters(abode_->id(), capped);
+	const std::vector<Letter> rows = temporality_->letters(abode_->id(), 1);
+	if (rows.empty())
+		throw std::logic_error("Nothing to hear");
+
+	return rows.front();
 }
 
 

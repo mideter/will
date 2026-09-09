@@ -9,6 +9,7 @@
 #include "values/device_token.h"
 #include "identity/soul.h"
 #include "values/soul_name.h"
+#include "values/word.h"
 
 #include <optional>
 #include <string>
@@ -48,8 +49,8 @@ TEST_CASE("sqlite persistence survives reopen")
 		name_b = man_b.name();
 
 		const id::Abode abode = world.abode().id();
-		temporality.fix(abode, man_a.Soul::id(), "from-peer");
-		temporality.fix(abode, man_b.Soul::id(), "from-me");
+		temporality.fix(abode, man_a.Soul::id(), Word{"from-peer"});
+		temporality.fix(abode, man_b.Soul::id(), Word{"from-me"});
 
 		const auto rows = temporality.letters(abode, 10);
 		REQUIRE(rows.size() == 2);

@@ -9,6 +9,7 @@
 #include "values/device_token.h"
 #include "values/timestamp.h"
 #include "values/soul_name.h"
+#include "values/word.h"
 
 #include <stdexcept>
 #include <vector>
@@ -97,7 +98,7 @@ TEST_CASE("man say persists via temporality")
 	World world(temporality);
 
 	const Man& author = world.welcome(DeviceToken::generate());
-	author.say("hello");
+	author.say(Word{"hello"});
 
 	const auto loaded = temporality.letters(world.abode().id(), 10);
 	REQUIRE(loaded.size() == 1);
@@ -107,7 +108,7 @@ TEST_CASE("man say persists via temporality")
 }
 
 
-TEST_CASE("witness hear returns letters")
+TEST_CASE("witness hear returns latest word")
 {
 	InMemoryTemporality temporality;
 	const id::Soul me{10};
@@ -117,25 +118,18 @@ TEST_CASE("witness hear returns letters")
 	seed_man(temporality, other, test_token("deadbeefdeadbeefdeadbeefdeadbeef"), test_name("peername"));
 	World world(temporality);
 
-	const auto& listener = static_cast<const Witness&>(
-		world.welcome(test_token("c0ffee00c0ffee00c0ffee00c0ffee00")));
+	const Man& listener = world.welcome(test_token("c0ffee00c0ffee00c0ffee00c0ffee00"));
 
-	temporality.fix(world.abode().id(), other, "peer");
-	temporality.fix(world.abode().id(), me, "mine");
-	temporality.fix(world.abode().id(), other, "peer2");
+	CHECK_THROWS_AS(listener.hear(), std::logic_error);
 
-	CHECK_THROWS_AS(listener.hear(0), std::invalid_argument);
+	temporality.fix(world.abode().id(), other, Word{"peer"});
+	temporality.fix(world.abode().id(), me, Word{"mine"});
 
-	const auto items = listener.hear(2);
-	REQUIRE(items.size() == 2);
-	CHECK(items[0].body() == "mine");
-	CHECK(items[0].author_id() == me);
-	CHECK(items[1].body() == "peer2");
-	CHECK(items[1].author_id() == other);
+	CHECK(listener.hear().body() == "mine");
 }
 
 
-TEST_CASE("witness hear caps limit")
+TEST_CASE("world letters is history through port")
 {
 	InMemoryTemporality temporality;
 	const id::Soul author{1};
@@ -143,12 +137,11 @@ TEST_CASE("witness hear caps limit")
 	seed_man(temporality, author, test_token("feedfacefeedfacefeedfacefeedface"), test_name("authoraa"));
 	World world(temporality);
 
-	const auto& listener = static_cast<const Witness&>(
-		world.welcome(test_token("feedfacefeedfacefeedfacefeedface")));
-
 	for (int i = 0; i < 5; ++i)
-		temporality.fix(world.abode().id(), author, "m");
+		temporality.fix(world.abode().id(), author, Word{"m"});
 
-	const auto items = listener.hear(Spirit::MaxHearLimit + 50);
+	CHECK_THROWS_AS(world.letters(0), std::invalid_argument);
+
+	const auto items = world.letters(Temporality::MaxLetterLimit + 50);
 	CHECK(items.size() == 5);
 }
