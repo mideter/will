@@ -37,26 +37,26 @@ std::shared_ptr<Session> SessionRegistry::register_test_session()
 }
 
 
-void SessionRegistry::clear_soul_binding(const SessionId session_id)
+void SessionRegistry::clear_vessel_binding(const SessionId session_id)
 {
 	const auto it = sessions_.find(session_id.value);
 	if (it == sessions_.end())
 		return;
 
-	if (const auto bound_soul = it->second->soul_id()) {
-		const auto rit = session_by_soul_.find(bound_soul->value());
-		if (rit != session_by_soul_.end() && rit->second == session_id)
-			session_by_soul_.erase(rit);
+	if (const auto bound_vessel = it->second->vessel_id()) {
+		const auto rit = session_by_vessel_.find(bound_vessel->value());
+		if (rit != session_by_vessel_.end() && rit->second == session_id)
+			session_by_vessel_.erase(rit);
 	}
 
-	it->second->clear_soul_id();
+	it->second->clear_vessel_id();
 }
 
 
 void SessionRegistry::unregister_session(const SessionId session_id)
 {
 	std::lock_guard lock(mutex_);
-	clear_soul_binding(session_id);
+	clear_vessel_binding(session_id);
 	sessions_.erase(session_id.value);
 }
 
@@ -70,7 +70,7 @@ void SessionRegistry::close_session(const SessionId session_id)
 		if (it == sessions_.end())
 			return;
 		session = it->second;
-		clear_soul_binding(session_id);
+		clear_vessel_binding(session_id);
 		sessions_.erase(it);
 	}
 
@@ -113,14 +113,15 @@ void SessionRegistry::broadcast_except(const SessionId except_session_id, const 
 }
 
 
-void SessionRegistry::broadcast_except_soul(const domain::id::Soul except_soul_id, const v1::ServerEvent& event)
+void SessionRegistry::broadcast_except_vessel(const domain::id::Vessel except_vessel_id,
+											  const v1::ServerEvent& event)
 {
 	std::vector<std::shared_ptr<Session>> targets;
 	{
 		std::lock_guard lock(mutex_);
 		targets.reserve(sessions_.size());
 		for (const auto& [id, session] : sessions_) {
-			if (const auto bound = session->soul_id(); bound && *bound == except_soul_id)
+			if (const auto bound = session->vessel_id(); bound && *bound == except_vessel_id)
 				continue;
 			targets.push_back(session);
 		}
@@ -133,11 +134,11 @@ void SessionRegistry::broadcast_except_soul(const domain::id::Soul except_soul_i
 }
 
 
-std::optional<SessionId> SessionRegistry::session_id_for_soul(const domain::id::Soul soul_id) const
+std::optional<SessionId> SessionRegistry::session_id_for_vessel(const domain::id::Vessel vessel_id) const
 {
 	std::lock_guard lock(mutex_);
-	const auto it = session_by_soul_.find(soul_id.value());
-	if (it == session_by_soul_.end())
+	const auto it = session_by_vessel_.find(vessel_id.value());
+	if (it == session_by_vessel_.end())
 		return std::nullopt;
 	return it->second;
 }
@@ -163,17 +164,18 @@ bool SessionRegistry::is_authenticated(const SessionId session_id) const
 }
 
 
-std::optional<domain::id::Soul> SessionRegistry::soul_id(const SessionId session_id) const
+std::optional<domain::id::Vessel> SessionRegistry::vessel_id(const SessionId session_id) const
 {
 	std::lock_guard lock(mutex_);
 	const auto it = sessions_.find(session_id.value);
 	if (it == sessions_.end())
 		return std::nullopt;
-	return it->second->soul_id();
+	return it->second->vessel_id();
 }
 
 
-std::optional<SessionId> SessionRegistry::bind_soul(const SessionId session_id, const domain::id::Soul soul_id)
+std::optional<SessionId> SessionRegistry::bind_vessel(const SessionId session_id,
+													  const domain::id::Vessel vessel_id)
 {
 	std::lock_guard lock(mutex_);
 
@@ -183,24 +185,24 @@ std::optional<SessionId> SessionRegistry::bind_soul(const SessionId session_id, 
 
 	const auto& session = it->second;
 
-	if (const auto existing = session->soul_id()) {
-		if (*existing != soul_id) {
-			const auto rit = session_by_soul_.find(existing->value());
-			if (rit != session_by_soul_.end() && rit->second == session_id)
-				session_by_soul_.erase(rit);
+	if (const auto existing = session->vessel_id()) {
+		if (*existing != vessel_id) {
+			const auto rit = session_by_vessel_.find(existing->value());
+			if (rit != session_by_vessel_.end() && rit->second == session_id)
+				session_by_vessel_.erase(rit);
 		}
 	}
 
 	std::optional<SessionId> displaced;
-	if (const auto rit = session_by_soul_.find(soul_id.value()); rit != session_by_soul_.end()) {
+	if (const auto rit = session_by_vessel_.find(vessel_id.value()); rit != session_by_vessel_.end()) {
 		if (rit->second != session_id) {
 			displaced = rit->second;
-			clear_soul_binding(*displaced);
+			clear_vessel_binding(*displaced);
 		}
 	}
 
-	session->set_soul_id(soul_id);
-	session_by_soul_[soul_id.value()] = session_id;
+	session->set_vessel_id(vessel_id);
+	session_by_vessel_[vessel_id.value()] = session_id;
 	return displaced;
 }
 
@@ -214,7 +216,7 @@ void SessionRegistry::close_all_sessions()
 		for (auto& [id, session] : sessions_)
 			sessions.push_back(session);
 		sessions_.clear();
-		session_by_soul_.clear();
+		session_by_vessel_.clear();
 	}
 
 	for (const auto& session : sessions)

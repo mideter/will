@@ -20,8 +20,14 @@ public:
 	/// Whether Earth knows a vessel by this token.
 	bool knows(const DeviceToken& token) const;
 
+	/// Whether Earth knows this vessel.
+	bool knows(id::Vessel id) const;
+
 	/// Living vessel for this token. Throws if unknown.
 	const Vessel& vessel(const DeviceToken& token) const;
+
+	/// Living vessel by id. Throws if unknown.
+	const Vessel& vessel(id::Vessel id) const;
 
 protected:
 	Earth() = default;

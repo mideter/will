@@ -13,6 +13,13 @@ bool Earth::knows(const DeviceToken& token) const
 }
 
 
+bool Earth::knows(const id::Vessel id) const
+{
+	std::lock_guard lock(mutex_);
+	return vessels_by_id_.contains(id);
+}
+
+
 const Vessel& Earth::vessel(const DeviceToken& token) const
 {
 	std::lock_guard lock(mutex_);
@@ -24,6 +31,18 @@ const Vessel& Earth::vessel(const DeviceToken& token) const
 	const auto it = vessels_by_id_.find(token_it->second);
 	if (it == vessels_by_id_.end() || !it->second)
 		throw std::logic_error("Earth does not know this vessel token");
+
+	return *it->second;
+}
+
+
+const Vessel& Earth::vessel(const id::Vessel id) const
+{
+	std::lock_guard lock(mutex_);
+
+	const auto it = vessels_by_id_.find(id);
+	if (it == vessels_by_id_.end() || !it->second)
+		throw std::logic_error("Earth does not know this vessel");
 
 	return *it->second;
 }
