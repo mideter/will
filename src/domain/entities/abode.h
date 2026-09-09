@@ -5,7 +5,6 @@
 #include "entities/letter.h"
 #include "entities/man.h"
 #include "entities/witness.h"
-#include "errors/domain_error.h"
 #include "ports/temporality.h"
 #include "values/abode_name.h"
 
@@ -14,7 +13,6 @@
 #include <string>
 #include <string_view>
 #include <unordered_set>
-#include <variant>
 #include <vector>
 
 
@@ -51,8 +49,7 @@ public:
 	void inscribe(const Man& author, std::string_view body);
 
 	/// Retell recent letters to a witness observing this abode (names via Heaven).
-	std::variant<std::vector<RetoldLetter>, DomainError> retell(const Witness& listener,
-																std::uint32_t limit) const;
+	std::vector<RetoldLetter> retell(const Witness& listener, std::uint32_t limit) const;
 
 private:
 	id::Abode id_;

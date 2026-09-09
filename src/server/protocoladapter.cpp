@@ -5,6 +5,7 @@
 #include "entities/witness.h"
 #include "values/device_token.h"
 
+#include <exception>
 #include <iostream>
 #include <vector>
 
@@ -117,14 +118,15 @@ void ProtocolAdapter::handle_history_request(const SessionId session_id, const v
 
 	const domain::Man& man = world_.man(world_.vessel(*vessel_id));
 	const auto& witness = static_cast<const domain::Witness&>(man);
-	const auto outcome = witness.abode().retell(witness, request.limit());
-	if (const auto* error = std::get_if<domain::DomainError>(&outcome)) {
-		(void)error;
+
+	std::vector<domain::RetoldLetter> items;
+	try {
+		items = witness.abode().retell(witness, request.limit());
+	} catch (const std::exception&) {
 		close_with_protocol_error(session_id, "Protocol error: invalid HistoryRequest");
 		return;
 	}
 
-	const auto& items = std::get<std::vector<domain::RetoldLetter>>(outcome);
 	for (const domain::RetoldLetter& item : items) {
 		v1::ServerEvent event;
 		auto* history_item = event.mutable_history_item();

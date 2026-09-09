@@ -40,14 +40,13 @@ void Abode::inscribe(const Man& author, std::string_view body)
 }
 
 
-std::variant<std::vector<RetoldLetter>, DomainError> Abode::retell(const Witness& listener,
-																   const std::uint32_t limit) const
+std::vector<RetoldLetter> Abode::retell(const Witness& listener, const std::uint32_t limit) const
 {
 	if (&listener.abode() != this)
-		return DomainError{DomainErrorCode::Unauthorized};
+		throw std::logic_error("Witness is not observing this abode");
 
 	if (limit == 0)
-		return DomainError{DomainErrorCode::InvalidArgument};
+		throw std::invalid_argument("Retell limit must be positive");
 
 	const std::uint32_t capped_limit = std::min(limit, MaxRetellLimit);
 	const std::vector<Letter> rows = temporality_.letters(id_, capped_limit);

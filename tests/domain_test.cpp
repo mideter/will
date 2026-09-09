@@ -9,9 +9,8 @@
 #include "values/device_token.h"
 #include "values/timestamp.h"
 #include "values/soul_name.h"
-#include "errors/domain_error.h"
 
-#include <variant>
+#include <stdexcept>
 #include <vector>
 
 
@@ -125,14 +124,9 @@ TEST_CASE("abode retell limit and is_mine")
 	temporality.fix(world.abode().id(), me, "mine");
 	temporality.fix(world.abode().id(), other, "peer2");
 
-	const auto zero_limit = world.abode().retell(listener, 0);
-	REQUIRE(std::holds_alternative<DomainError>(zero_limit));
-	CHECK(std::get<DomainError>(zero_limit).code == DomainErrorCode::InvalidArgument);
+	CHECK_THROWS_AS(world.abode().retell(listener, 0), std::invalid_argument);
 
-	const auto ok = world.abode().retell(listener, 2);
-	REQUIRE(std::holds_alternative<std::vector<RetoldLetter>>(ok));
-
-	const auto& items = std::get<std::vector<RetoldLetter>>(ok);
+	const auto items = world.abode().retell(listener, 2);
 	REQUIRE(items.size() == 2);
 	CHECK(items[0].letter.body() == "mine");
 	CHECK(items[0].author_name == "menameaa");
@@ -157,7 +151,6 @@ TEST_CASE("abode retell caps limit")
 	for (int i = 0; i < 5; ++i)
 		temporality.fix(world.abode().id(), author, "m");
 
-	const auto ok = world.abode().retell(listener, Abode::MaxRetellLimit + 50);
-	REQUIRE(std::holds_alternative<std::vector<RetoldLetter>>(ok));
-	CHECK(std::get<std::vector<RetoldLetter>>(ok).size() == 5);
+	const auto items = world.abode().retell(listener, Abode::MaxRetellLimit + 50);
+	CHECK(items.size() == 5);
 }
