@@ -1,11 +1,9 @@
 #pragma once
 
 #include "entities/letter.h"
-#include "entities/vessel.h"
 #include "identity/abode.h"
 #include "identity/soul.h"
 #include "identity/vessel.h"
-#include "ports/temporality.h"
 #include "values/device_token.h"
 #include "values/word.h"
 
@@ -13,15 +11,19 @@
 #include <mutex>
 #include <optional>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 
 namespace will::domain {
 
 
-/// Earth (Земля) — static pole of the one World: what changes and is fixed in time.
-/// Speaks with Temporality (as Heaven speaks with Eternity).
-/// Also the living index of vessels. World is Earth and raises / clears this state in its life.
+class Vessel;
+class Temporality;
+
+
+/// Earth (Земля) — static pole of the one World; Dust is Earth.
+/// Only World raises / clears the pole (owning shell). Other shells do not.
 class Earth {
 public:
 	/// Whether Earth knows this vessel.
@@ -36,12 +38,21 @@ public:
 	/// Letters kept in an abode, bounded by limit (history).
 	std::vector<Letter> letters(id::Abode abode, std::uint32_t limit) const;
 
+	bool operator==(const Earth&) const noexcept { return true; }
+
 protected:
+	/// Non-owning shell (Dust / Vessel). Does not touch static pole state.
+	Earth() noexcept;
+
+	/// Owning shell (World). Raises the static pole.
 	explicit Earth(Temporality& temporality);
+
 	~Earth();
 
-	Earth(const Earth&) = delete;
-	Earth& operator=(const Earth&) = delete;
+	Earth(const Earth& other) noexcept;
+	Earth& operator=(const Earth& other) noexcept;
+	Earth(Earth&& other) noexcept;
+	Earth& operator=(Earth&& other) noexcept;
 
 	/// Index a vessel owned by a heap-stable Man.
 	void index(const Vessel& vessel);
@@ -50,6 +61,10 @@ protected:
 	std::optional<id::Vessel> id_of(const DeviceToken& token) const;
 
 private:
+	void clear_pole() noexcept;
+
+	bool owns_pole_ = false;
+
 	static Temporality* temporality_;
 	static std::mutex mutex_;
 	static std::unordered_map<id::Vessel, const Vessel*> vessels_by_id_;

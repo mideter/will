@@ -8,7 +8,7 @@
 namespace will::domain {
 
 
-/// Vessel (Сосуд) — device through which a soul reaches the world; inherits Dust as its earthly foundation.
+/// Vessel (Сосуд) — device through which a soul reaches the world; inherits Dust (which is Earth).
 class Vessel : public Dust {
 public:
 	Vessel(id::Vessel id, DeviceToken token);

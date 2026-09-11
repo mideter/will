@@ -1,14 +1,15 @@
 #pragma once
 
+#include "entities/heaven.h"
 #include "values/word.h"
 
 
 namespace will::domain {
 
 
-/// Spirit (Дух) — highest, inseparable foundation of the soul.
+/// Spirit (Дух) — highest foundation of the soul; Spirit is Heaven.
 /// Will (say) and hearing (hear) belong to spirit; only a living Witness enacts them.
-class Spirit {
+class Spirit : public Heaven {
 public:
 	virtual ~Spirit() = default;
 

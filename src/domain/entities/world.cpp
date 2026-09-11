@@ -2,6 +2,7 @@
 
 #include "entities/witness.h"
 #include "values/abode_name.h"
+#include "values/soul_name.h"
 
 #include <stdexcept>
 #include <utility>
@@ -15,7 +16,7 @@ World::World(Temporality& temporality)
 	, Earth(temporality)
 	, abode_(id::Abode::global(), AbodeName::global())
 {
-	for (Man man : remember())
+	for (Man man : eternity().men())
 		(void)accept(std::move(man));
 }
 
@@ -56,7 +57,7 @@ std::vector<Letter> World::letters(const std::uint32_t limit) const
 
 const Man& World::beget(const DeviceToken& token)
 {
-	return accept(Heaven::beget(token));
+	return accept(eternity().enroll(token, SoulName::generate()));
 }
 
 

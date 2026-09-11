@@ -1,22 +1,22 @@
 #pragma once
 
-#include "entities/man.h"
-#include "entities/soul.h"
-#include "ports/eternity.h"
-#include "values/device_token.h"
+#include "identity/soul.h"
 
 #include <mutex>
 #include <unordered_map>
-#include <vector>
+#include <utility>
 
 
 namespace will::domain {
 
 
-/// Heaven (Небо) — static pole of the one World: index of souls living in men.
-/// Speaks with Eternity. World is Heaven and raises / clears this state in its life.
+class Soul;
+class Eternity;
+
+
+/// Heaven (Небо) — static pole of the one World; Spirit is Heaven.
+/// Only World raises / clears the pole (owning shell). Other shells do not.
 /// Pointers address Soul bases of heap-stable Man (unique_ptr).
-/// Lookups hand out those living souls — never snapshots.
 class Heaven {
 public:
 	/// Whether Heaven knows this soul.
@@ -25,23 +25,34 @@ public:
 	/// Living soul in the waking cosmos. Throws if unknown.
 	const Soul& soul(id::Soul id) const;
 
+	bool operator==(const Heaven&) const noexcept { return true; }
+
 protected:
+	/// Non-owning shell (Spirit / Soul). Does not touch static pole state.
+	Heaven() noexcept;
+
+	/// Owning shell (World). Raises the static pole.
 	explicit Heaven(Eternity& eternity);
+
 	~Heaven();
 
-	Heaven(const Heaven&) = delete;
-	Heaven& operator=(const Heaven&) = delete;
+	Heaven(const Heaven& other) noexcept;
+	Heaven& operator=(const Heaven& other) noexcept;
+	Heaven(Heaven&& other) noexcept;
+	Heaven& operator=(Heaven&& other) noexcept;
 
-	/// Give a name and beget a man (with soul and vessel) in Eternity.
-	Man beget(const DeviceToken& token);
-
-	/// Recall men from Eternity into the waking cosmos.
-	std::vector<Man> remember() const;
+	/// Eternity of the raised pole. Throws if Heaven is not raised.
+	Eternity& eternity();
+	const Eternity& eternity() const;
 
 	/// Index a soul owned by a heap-stable Man.
 	void index(const Soul& soul);
 
 private:
+	void clear_pole() noexcept;
+
+	bool owns_pole_ = false;
+
 	static Eternity* eternity_;
 	static std::mutex mutex_;
 	static std::unordered_map<id::Soul, const Soul*> souls_by_id_;

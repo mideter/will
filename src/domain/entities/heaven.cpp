@@ -1,6 +1,7 @@
 #include "heaven.h"
 
-#include "values/soul_name.h"
+#include "entities/soul.h"
+#include "ports/eternity.h"
 
 #include <stdexcept>
 
@@ -13,7 +14,11 @@ std::mutex Heaven::mutex_;
 std::unordered_map<id::Soul, const Soul*> Heaven::souls_by_id_;
 
 
+Heaven::Heaven() noexcept = default;
+
+
 Heaven::Heaven(Eternity& eternity)
+	: owns_pole_(true)
 {
 	std::lock_guard lock(mutex_);
 	if (eternity_ != nullptr)
@@ -24,9 +29,60 @@ Heaven::Heaven(Eternity& eternity)
 
 Heaven::~Heaven()
 {
+	if (owns_pole_)
+		clear_pole();
+}
+
+
+Heaven::Heaven(const Heaven&) noexcept
+	: owns_pole_(false)
+{}
+
+
+Heaven& Heaven::operator=(const Heaven&) noexcept
+{
+	return *this;
+}
+
+
+Heaven::Heaven(Heaven&& other) noexcept
+	: owns_pole_(std::exchange(other.owns_pole_, false))
+{}
+
+
+Heaven& Heaven::operator=(Heaven&& other) noexcept
+{
+	if (this == &other)
+		return *this;
+	if (owns_pole_)
+		clear_pole();
+	owns_pole_ = std::exchange(other.owns_pole_, false);
+	return *this;
+}
+
+
+void Heaven::clear_pole() noexcept
+{
 	std::lock_guard lock(mutex_);
 	souls_by_id_.clear();
 	eternity_ = nullptr;
+	owns_pole_ = false;
+}
+
+
+Eternity& Heaven::eternity()
+{
+	if (eternity_ == nullptr)
+		throw std::logic_error("Heaven is not raised");
+	return *eternity_;
+}
+
+
+const Eternity& Heaven::eternity() const
+{
+	if (eternity_ == nullptr)
+		throw std::logic_error("Heaven is not raised");
+	return *eternity_;
 }
 
 
@@ -46,19 +102,6 @@ const Soul& Heaven::soul(const id::Soul id) const
 		throw std::logic_error("Heaven does not know this soul");
 
 	return *it->second;
-}
-
-
-Man Heaven::beget(const DeviceToken& token)
-{
-	const SoulName name = SoulName::generate();
-	return eternity_->enroll(token, name);
-}
-
-
-std::vector<Man> Heaven::remember() const
-{
-	return eternity_->men();
 }
 
 
