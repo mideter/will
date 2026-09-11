@@ -1,5 +1,6 @@
 #pragma once
 
+#include "entities/dust.h"
 #include "identity/vessel.h"
 #include "values/device_token.h"
 
@@ -7,8 +8,8 @@
 namespace will::domain {
 
 
-/// Vessel (Сосуд) — device through which a soul reaches the world.
-class Vessel {
+/// Vessel (Сосуд) — device through which a soul reaches the world; inherits Dust as its earthly foundation.
+class Vessel : public Dust {
 public:
 	Vessel(id::Vessel id, DeviceToken token);
 
