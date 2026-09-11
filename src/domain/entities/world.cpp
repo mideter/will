@@ -63,7 +63,7 @@ const Man& World::beget(const DeviceToken& token)
 
 const Man& World::accept(Man&& man)
 {
-	auto ptr = std::make_unique<Witness>(std::move(man), abode_, *this);
+	auto ptr = std::make_unique<Witness>(std::move(man), abode_);
 	// Witness stays on the heap; moving unique_ptr does not invalidate these references.
 	Man& live = *ptr;
 	const Soul& soul = live;

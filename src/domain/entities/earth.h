@@ -33,7 +33,7 @@ public:
 	const Vessel& vessel(id::Vessel id) const;
 
 	/// Fix a word in time in an abode.
-	void fix(id::Abode abode, id::Soul author, const Word& word);
+	void fix(id::Abode abode, id::Soul author, const Word& word) const;
 
 	/// Letters kept in an abode, bounded by limit (history).
 	std::vector<Letter> letters(id::Abode abode, std::uint32_t limit) const;

@@ -92,7 +92,7 @@ const Vessel& Earth::vessel(const id::Vessel id) const
 }
 
 
-void Earth::fix(const id::Abode abode, const id::Soul author, const Word& word)
+void Earth::fix(const id::Abode abode, const id::Soul author, const Word& word) const
 {
 	if (temporality_ == nullptr)
 		throw std::logic_error("Earth is not raised");
