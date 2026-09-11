@@ -18,15 +18,16 @@
 namespace will::domain {
 
 
-/// World (Мир) — living cosmos: Heaven (Eternity), Earth (Temporality), men, abodes.
-/// Living people are Witness on the heap (unique_ptr<Man>); APIs hand out Man&.
-/// Eternity still deals in Man values.
+/// World (Мир) — the one living cosmos: is Heaven and Earth, holds men and abodes.
+/// Raises and clears the static poles in ctor/dtor. Living people are Witness on the
+/// heap (unique_ptr<Man>); APIs hand out Man&. Eternity still deals in Man values.
 class World : public Heaven, public Earth {
 public:
 	using Earth::knows;
 	using Heaven::knows;
 
 	explicit World(Temporality& temporality);
+	~World() = default;
 
 	/// Single abode for now; later a registry of abodes in this world.
 	Abode& abode() noexcept { return abode_; }

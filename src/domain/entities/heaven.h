@@ -13,8 +13,8 @@
 namespace will::domain {
 
 
-/// Heaven (Небо) — runtime index of souls living in men. Speaks with Eternity.
-/// Living access is through World (Мир), which is Heaven.
+/// Heaven (Небо) — static pole of the one World: index of souls living in men.
+/// Speaks with Eternity. World is Heaven and raises / clears this state in its life.
 /// Pointers address Soul bases of heap-stable Man (unique_ptr).
 /// Lookups hand out those living souls — never snapshots.
 class Heaven {
@@ -27,6 +27,10 @@ public:
 
 protected:
 	explicit Heaven(Eternity& eternity);
+	~Heaven();
+
+	Heaven(const Heaven&) = delete;
+	Heaven& operator=(const Heaven&) = delete;
 
 	/// Give a name and beget a man (with soul and vessel) in Eternity.
 	Man beget(const DeviceToken& token);
@@ -38,9 +42,9 @@ protected:
 	void index(const Soul& soul);
 
 private:
-	Eternity& eternity_;
-	mutable std::mutex mutex_;
-	std::unordered_map<id::Soul, const Soul*> souls_by_id_;
+	static Eternity* eternity_;
+	static std::mutex mutex_;
+	static std::unordered_map<id::Soul, const Soul*> souls_by_id_;
 };
 
 

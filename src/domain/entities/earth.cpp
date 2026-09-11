@@ -7,9 +7,30 @@
 namespace will::domain {
 
 
+Temporality* Earth::temporality_ = nullptr;
+std::mutex Earth::mutex_;
+std::unordered_map<id::Vessel, const Vessel*> Earth::vessels_by_id_;
+std::unordered_map<DeviceToken, id::Vessel> Earth::id_by_token_;
+
+
 Earth::Earth(Temporality& temporality)
-	: temporality_(temporality)
-{}
+{
+	std::lock_guard lock(mutex_);
+
+	if (temporality_ != nullptr)
+		throw std::logic_error("Only one World");
+
+	temporality_ = &temporality;
+}
+
+
+Earth::~Earth()
+{
+	std::lock_guard lock(mutex_);
+	vessels_by_id_.clear();
+	id_by_token_.clear();
+	temporality_ = nullptr;
+}
 
 
 bool Earth::knows(const id::Vessel id) const
@@ -33,14 +54,14 @@ const Vessel& Earth::vessel(const id::Vessel id) const
 
 void Earth::fix(const id::Abode abode, const id::Soul author, const Word& word)
 {
-	temporality_.fix(abode, author, word);
+	temporality_->fix(abode, author, word);
 }
 
 
 std::vector<Letter> Earth::letters(const id::Abode abode, const std::uint32_t limit) const
 {
 	const std::uint32_t capped = std::min(limit, Temporality::MaxLetterLimit);
-	return temporality_.letters(abode, capped);
+	return temporality_->letters(abode, capped);
 }
 
 

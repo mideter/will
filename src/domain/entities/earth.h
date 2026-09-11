@@ -19,9 +19,9 @@
 namespace will::domain {
 
 
-/// Earth (Земля) — the mutable pole of the World: what changes and is fixed in time.
+/// Earth (Земля) — static pole of the one World: what changes and is fixed in time.
 /// Speaks with Temporality (as Heaven speaks with Eternity).
-/// Also the living index of vessels; access is through World, which is Earth.
+/// Also the living index of vessels. World is Earth and raises / clears this state in its life.
 class Earth {
 public:
 	/// Whether Earth knows this vessel.
@@ -38,6 +38,10 @@ public:
 
 protected:
 	explicit Earth(Temporality& temporality);
+	~Earth();
+
+	Earth(const Earth&) = delete;
+	Earth& operator=(const Earth&) = delete;
 
 	/// Index a vessel owned by a heap-stable Man.
 	void index(const Vessel& vessel);
@@ -46,10 +50,10 @@ protected:
 	std::optional<id::Vessel> id_of(const DeviceToken& token) const;
 
 private:
-	Temporality& temporality_;
-	mutable std::mutex mutex_;
-	std::unordered_map<id::Vessel, const Vessel*> vessels_by_id_;
-	std::unordered_map<DeviceToken, id::Vessel> id_by_token_;
+	static Temporality* temporality_;
+	static std::mutex mutex_;
+	static std::unordered_map<id::Vessel, const Vessel*> vessels_by_id_;
+	static std::unordered_map<DeviceToken, id::Vessel> id_by_token_;
 };
 
 

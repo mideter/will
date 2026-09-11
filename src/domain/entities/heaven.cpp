@@ -8,9 +8,26 @@
 namespace will::domain {
 
 
+Eternity* Heaven::eternity_ = nullptr;
+std::mutex Heaven::mutex_;
+std::unordered_map<id::Soul, const Soul*> Heaven::souls_by_id_;
+
+
 Heaven::Heaven(Eternity& eternity)
-	: eternity_(eternity)
-{}
+{
+	std::lock_guard lock(mutex_);
+	if (eternity_ != nullptr)
+		throw std::logic_error("Only one World");
+	eternity_ = &eternity;
+}
+
+
+Heaven::~Heaven()
+{
+	std::lock_guard lock(mutex_);
+	souls_by_id_.clear();
+	eternity_ = nullptr;
+}
 
 
 bool Heaven::knows(const id::Soul id) const
@@ -35,13 +52,13 @@ const Soul& Heaven::soul(const id::Soul id) const
 Man Heaven::beget(const DeviceToken& token)
 {
 	const SoulName name = SoulName::generate();
-	return eternity_.enroll(token, name);
+	return eternity_->enroll(token, name);
 }
 
 
 std::vector<Man> Heaven::remember() const
 {
-	return eternity_.men();
+	return eternity_->men();
 }
 
 
