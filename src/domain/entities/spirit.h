@@ -16,8 +16,8 @@ public:
 	/// Act of will: speak a word. Outside the living world this fails; Witness overrides.
 	virtual void say(const Word& word) const;
 
-	/// Act of hearing: one word. Outside the living world this fails; Witness overrides.
-	virtual Word hear() const;
+	/// Act of hearing. Outside the living world this fails; Witness overrides.
+	virtual void hear() const;
 
 	bool operator==(const Spirit&) const = default;
 };

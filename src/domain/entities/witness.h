@@ -19,7 +19,7 @@ public:
 
 	void say(const Word& word) const override;
 
-	Word hear() const override;
+	void hear() const override;
 
 private:
 	Abode* abode_;

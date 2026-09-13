@@ -12,7 +12,7 @@ void Spirit::say(const Word&) const
 }
 
 
-Word Spirit::hear() const
+void Spirit::hear() const
 {
 	throw std::logic_error("Spirit outside the living world cannot hear");
 }

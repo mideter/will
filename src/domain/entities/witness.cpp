@@ -25,7 +25,7 @@ void Witness::say(const Word& word) const
 }
 
 
-Word Witness::hear() const
+void Witness::hear() const
 {
 	if (!abode_->dwells(*this))
 		throw std::logic_error("Witness does not dwell in the observed abode");
@@ -33,8 +33,6 @@ Word Witness::hear() const
 	const std::vector<Letter> rows = letters(abode_->id(), 1);
 	if (rows.empty())
 		throw std::logic_error("Nothing to hear");
-
-	return rows.front();
 }
 
 
