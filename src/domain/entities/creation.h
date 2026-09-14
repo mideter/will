@@ -1,5 +1,7 @@
 #pragma once
 
+#include "entities/earth.h"
+#include "entities/heaven.h"
 #include "entities/world.h"
 #include "ports/temporality.h"
 
@@ -7,10 +9,10 @@
 namespace will::domain {
 
 
-/// Creation (Творение) — genesis of the one World; alone may bring it forth.
+/// Creation (Творение) — genesis: raises Heaven and Earth, then brings forth the World.
 class Creation {
 public:
-	explicit Creation(Temporality& temporality) : world_(temporality) {}
+	explicit Creation(Temporality& temporality);
 
 	Creation(const Creation&) = delete;
 	Creation& operator=(const Creation&) = delete;
@@ -21,6 +23,8 @@ public:
 	const World& world() const noexcept { return world_; }
 
 private:
+	Heaven heaven_;
+	Earth earth_;
 	World world_;
 };
 

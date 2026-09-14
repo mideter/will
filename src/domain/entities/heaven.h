@@ -14,7 +14,7 @@ class Eternity;
 
 
 /// Heaven (Небо) — static pole of the one World; Spirit is Heaven.
-/// Only World raises the pole (ctor) and lowers it (dtor). Other shells do not.
+/// Creation raises the pole; World lowers it. Other shells do not.
 /// Pointers address Soul bases of heap-stable Man (unique_ptr).
 class Heaven {
 public:
@@ -27,10 +27,12 @@ public:
 	bool operator==(const Heaven&) const noexcept { return true; }
 
 protected:
+	friend class Creation;
+
 	/// Non-owning shell (Spirit / Soul). Does not touch static pole state.
 	Heaven() noexcept;
 
-	/// Raise the static pole (World).
+	/// Raise the static pole (Creation).
 	explicit Heaven(Eternity& eternity);
 
 	~Heaven() = default;

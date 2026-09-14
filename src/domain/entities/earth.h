@@ -22,7 +22,7 @@ class Temporality;
 
 
 /// Earth (Земля) — static pole of the one World; Dust is Earth.
-/// Only World raises the pole (ctor) and lowers it (dtor). Other shells do not.
+/// Creation raises the pole; World lowers it. Other shells do not.
 /// Public API: live registry of vessels and abodes. Temporality is protected.
 class Earth {
 public:
@@ -46,10 +46,12 @@ public:
 	bool operator==(const Earth&) const noexcept { return true; }
 
 protected:
+	friend class Creation;
+
 	/// Non-owning shell (Dust / Vessel). Does not touch static pole state.
 	Earth() noexcept;
 
-	/// Raise the static pole (World).
+	/// Raise the static pole (Creation).
 	explicit Earth(Temporality& temporality);
 
 	~Earth() = default;
