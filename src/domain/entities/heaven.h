@@ -14,7 +14,7 @@ class Eternity;
 
 
 /// Heaven (Небо) — static pole of the one World; Spirit is Heaven.
-/// Creation raises the pole; World lowers it. Other shells do not.
+/// Creation raises the pole; Creation lowers it. Other shells do not.
 /// Pointers address Soul bases of heap-stable Man (unique_ptr).
 class Heaven {
 public:
@@ -49,7 +49,7 @@ protected:
 	/// Index a soul owned by a heap-stable Man.
 	void index(const Soul& soul);
 
-	/// Lower the static pole (World dtor only).
+	/// Lower the static pole (Creation dtor only).
 	void lower() noexcept;
 
 private:

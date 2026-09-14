@@ -22,7 +22,7 @@ class Temporality;
 
 
 /// Earth (Земля) — static pole of the one World; Dust is Earth.
-/// Creation raises the pole; World lowers it. Other shells do not.
+/// Creation raises the pole; Creation lowers it. Other shells do not.
 /// Public API: live registry of vessels and abodes. Temporality is protected.
 class Earth {
 public:
@@ -77,7 +77,7 @@ protected:
 	/// Resolve device token to vessel id for World::welcome. Empty if unknown.
 	std::optional<id::Vessel> id_of(const DeviceToken& token) const;
 
-	/// Lower the static pole (World dtor only).
+	/// Lower the static pole (Creation dtor only).
 	void lower() noexcept;
 
 private:

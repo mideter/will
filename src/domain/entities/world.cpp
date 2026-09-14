@@ -23,13 +23,6 @@ World::World(Heaven heaven, Earth earth)
 }
 
 
-World::~World()
-{
-	Earth::lower();
-	Heaven::lower();
-}
-
-
 const Man& World::man(const Vessel& vessel) const
 {
 	std::lock_guard lock(mutex_);

@@ -1,12 +1,10 @@
 #pragma once
 
-#include "entities/abode.h"
 #include "entities/earth.h"
 #include "entities/heaven.h"
 #include "entities/man.h"
 #include "identity/man.h"
 #include "identity/vessel.h"
-#include "ports/temporality.h"
 #include "values/device_token.h"
 
 #include <memory>
@@ -19,15 +17,15 @@ namespace will::domain {
 
 /// World (Мир) — the one living cosmos: is Heaven and Earth, holds living men.
 /// Brought forth only by Creation with already raised Heaven and Earth.
-/// Lowers poles in dtor. Living people are Witness on the heap (unique_ptr<Man>);
-/// APIs hand out Man&. Eternity still deals in Man values.
+/// Living people are Witness on the heap (unique_ptr<Man>);
+/// Eternity still deals in Man values.
 class World : public Heaven, public Earth {
 public:
 	using Earth::abode;
 	using Earth::knows;
 	using Heaven::knows;
 
-	~World();
+	~World() = default;
 
 	World(const World&) = delete;
 	World& operator=(const World&) = delete;
