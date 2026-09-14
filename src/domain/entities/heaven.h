@@ -55,7 +55,7 @@ private:
 
 	static Eternity* eternity_;
 	static std::mutex mutex_;
-	static std::unordered_map<id::Soul, const Soul*> souls_by_id_;
+	static std::unordered_map<id::Soul, const Soul*> souls_;
 };
 
 

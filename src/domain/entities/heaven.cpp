@@ -11,7 +11,7 @@ namespace will::domain {
 
 Eternity* Heaven::eternity_ = nullptr;
 std::mutex Heaven::mutex_;
-std::unordered_map<id::Soul, const Soul*> Heaven::souls_by_id_;
+std::unordered_map<id::Soul, const Soul*> Heaven::souls_;
 
 
 Heaven::Heaven() noexcept = default;
@@ -64,7 +64,7 @@ Heaven& Heaven::operator=(Heaven&& other) noexcept
 void Heaven::clear_pole() noexcept
 {
 	std::lock_guard lock(mutex_);
-	souls_by_id_.clear();
+	souls_.clear();
 	eternity_ = nullptr;
 	owns_pole_ = false;
 }
@@ -89,7 +89,7 @@ const Eternity& Heaven::eternity() const
 bool Heaven::knows(const id::Soul id) const
 {
 	std::lock_guard lock(mutex_);
-	return souls_by_id_.contains(id);
+	return souls_.contains(id);
 }
 
 
@@ -97,8 +97,8 @@ const Soul& Heaven::soul(const id::Soul id) const
 {
 	std::lock_guard lock(mutex_);
 
-	const auto it = souls_by_id_.find(id);
-	if (it == souls_by_id_.end() || !it->second)
+	const auto it = souls_.find(id);
+	if (it == souls_.end() || !it->second)
 		throw std::logic_error("Heaven does not know this soul");
 
 	return *it->second;
@@ -108,7 +108,7 @@ const Soul& Heaven::soul(const id::Soul id) const
 void Heaven::index(const Soul& soul)
 {
 	std::lock_guard lock(mutex_);
-	souls_by_id_.insert_or_assign(soul.id(), &soul);
+	souls_.insert_or_assign(soul.id(), &soul);
 }
 
 

@@ -13,9 +13,9 @@ namespace will::domain {
 
 Temporality* Earth::temporality_ = nullptr;
 std::mutex Earth::mutex_;
-std::unordered_map<id::Vessel, const Vessel*> Earth::vessels_by_id_;
+std::unordered_map<id::Vessel, const Vessel*> Earth::vessels_;
 std::unordered_map<DeviceToken, id::Vessel> Earth::id_by_token_;
-std::unordered_map<id::Abode, std::unique_ptr<Abode>> Earth::abodes_by_id_;
+std::unordered_map<id::Abode, std::unique_ptr<Abode>> Earth::abodes_;
 
 
 Earth::Earth() noexcept = default;
@@ -31,10 +31,10 @@ Earth::Earth(Temporality& temporality)
 
 	for (Abode& place : temporality_->abodes()) {
 		const id::Abode id = place.id();
-		abodes_by_id_.emplace(id, std::make_unique<Abode>(std::move(place)));
+		abodes_.emplace(id, std::make_unique<Abode>(std::move(place)));
 	}
 
-	if (!abodes_by_id_.contains(id::Abode::global()))
+	if (!abodes_.contains(id::Abode::global()))
 		throw std::logic_error("Earth requires the global abode");
 }
 
@@ -76,9 +76,9 @@ Earth& Earth::operator=(Earth&& other) noexcept
 void Earth::clear_pole() noexcept
 {
 	std::lock_guard lock(mutex_);
-	vessels_by_id_.clear();
+	vessels_.clear();
 	id_by_token_.clear();
-	abodes_by_id_.clear();
+	abodes_.clear();
 	temporality_ = nullptr;
 	owns_pole_ = false;
 }
@@ -87,22 +87,22 @@ void Earth::clear_pole() noexcept
 bool Earth::knows(const id::Vessel id) const
 {
 	std::lock_guard lock(mutex_);
-	return vessels_by_id_.contains(id);
+	return vessels_.contains(id);
 }
 
 
 bool Earth::knows(const id::Abode id) const
 {
 	std::lock_guard lock(mutex_);
-	return abodes_by_id_.contains(id);
+	return abodes_.contains(id);
 }
 
 
 Abode& Earth::abode(const id::Abode id)
 {
 	std::lock_guard lock(mutex_);
-	const auto it = abodes_by_id_.find(id);
-	if (it == abodes_by_id_.end() || !it->second)
+	const auto it = abodes_.find(id);
+	if (it == abodes_.end() || !it->second)
 		throw std::logic_error("Earth does not know this abode");
 	return *it->second;
 }
@@ -111,8 +111,8 @@ Abode& Earth::abode(const id::Abode id)
 const Abode& Earth::abode(const id::Abode id) const
 {
 	std::lock_guard lock(mutex_);
-	const auto it = abodes_by_id_.find(id);
-	if (it == abodes_by_id_.end() || !it->second)
+	const auto it = abodes_.find(id);
+	if (it == abodes_.end() || !it->second)
 		throw std::logic_error("Earth does not know this abode");
 	return *it->second;
 }
@@ -122,8 +122,8 @@ const Vessel& Earth::vessel(const id::Vessel id) const
 {
 	std::lock_guard lock(mutex_);
 
-	const auto it = vessels_by_id_.find(id);
-	if (it == vessels_by_id_.end() || !it->second)
+	const auto it = vessels_.find(id);
+	if (it == vessels_.end() || !it->second)
 		throw std::logic_error("Earth does not know this vessel");
 
 	return *it->second;
@@ -171,7 +171,7 @@ void Earth::index(const Vessel& vessel)
 {
 	std::lock_guard lock(mutex_);
 	id_by_token_.insert_or_assign(vessel.token(), vessel.id());
-	vessels_by_id_.insert_or_assign(vessel.id(), &vessel);
+	vessels_.insert_or_assign(vessel.id(), &vessel);
 }
 
 
@@ -179,7 +179,7 @@ void Earth::index(Abode place)
 {
 	const id::Abode id = place.id();
 	std::lock_guard lock(mutex_);
-	abodes_by_id_.insert_or_assign(id, std::make_unique<Abode>(std::move(place)));
+	abodes_.insert_or_assign(id, std::make_unique<Abode>(std::move(place)));
 }
 
 

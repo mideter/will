@@ -28,8 +28,8 @@ const Man& World::man(const Vessel& vessel) const
 	if (man_it == man_id_by_vessel_.end())
 		throw std::logic_error("Vessel has no man");
 
-	const auto it = men_by_id_.find(man_it->second);
-	if (it == men_by_id_.end() || !it->second)
+	const auto it = men_.find(man_it->second);
+	if (it == men_.end() || !it->second)
 		throw std::logic_error("Vessel has no man");
 
 	return *it->second;
@@ -72,7 +72,7 @@ const Man& World::accept(Man&& man)
 	const id::Vessel vessel_id = vessel.id();
 
 	std::lock_guard lock(mutex_);
-	men_by_id_.insert_or_assign(man_id, std::move(ptr));
+	men_.insert_or_assign(man_id, std::move(ptr));
 	man_id_by_vessel_.insert_or_assign(vessel_id, man_id);
 	Heaven::index(soul);
 	Earth::index(vessel);

@@ -48,7 +48,7 @@ private:
 	const Man& accept(Man&& man);
 
 	mutable std::mutex mutex_;
-	std::unordered_map<id::Man, std::unique_ptr<Man>> men_by_id_;
+	std::unordered_map<id::Man, std::unique_ptr<Man>> men_;
 	std::unordered_map<id::Vessel, id::Man> man_id_by_vessel_;
 };
 

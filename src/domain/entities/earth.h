@@ -86,9 +86,9 @@ private:
 
 	static Temporality* temporality_;
 	static std::mutex mutex_;
-	static std::unordered_map<id::Vessel, const Vessel*> vessels_by_id_;
+	static std::unordered_map<id::Vessel, const Vessel*> vessels_;
 	static std::unordered_map<DeviceToken, id::Vessel> id_by_token_;
-	static std::unordered_map<id::Abode, std::unique_ptr<Abode>> abodes_by_id_;
+	static std::unordered_map<id::Abode, std::unique_ptr<Abode>> abodes_;
 };
 
 
