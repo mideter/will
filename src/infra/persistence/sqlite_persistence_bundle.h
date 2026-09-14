@@ -1,6 +1,6 @@
 #pragma once
 
-#include "entities/world.h"
+#include "entities/creation.h"
 #include "sqlite_database.h"
 #include "sqlite_temporality.h"
 
@@ -10,7 +10,7 @@
 namespace will {
 
 
-/** Owns SQLite database and domain World (one Temporality — mutable Eternity). */
+/** Owns SQLite database and Creation of the domain World. */
 class SqlitePersistenceBundle {
 public:
 	explicit SqlitePersistenceBundle(std::string db_path);
@@ -20,7 +20,7 @@ public:
 private:
 	SqliteDatabase database_;
 	SqliteTemporality temporality_;
-	domain::World world_;
+	domain::Creation creation_;
 };
 
 

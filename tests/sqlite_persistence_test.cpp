@@ -1,7 +1,7 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest/doctest.h>
 
-#include "entities/world.h"
+#include "entities/creation.h"
 #include "sqlite_database.h"
 #include "sqlite_temporality.h"
 
@@ -36,7 +36,8 @@ TEST_CASE("sqlite persistence survives reopen")
 	{
 		SqliteDatabase database(db_path);
 		SqliteTemporality temporality(database);
-		World world(temporality);
+		Creation creation(temporality);
+		World& world = creation.world();
 
 		const DeviceToken token_a = *DeviceToken::parse("aaaa1234aaaa1234aaaa1234aaaa1234");
 		const DeviceToken token_b = *DeviceToken::parse("bbbb1234bbbb1234bbbb1234bbbb1234");
@@ -74,7 +75,8 @@ TEST_CASE("sqlite persistence survives reopen")
 	{
 		SqliteDatabase database(db_path);
 		SqliteTemporality temporality(database);
-		World world(temporality);
+		Creation creation(temporality);
+		World& world = creation.world();
 
 		const DeviceToken token_created = *DeviceToken::parse(token_text);
 		const Man& reloaded = world.welcome(token_created);

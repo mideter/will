@@ -3,7 +3,7 @@
 
 #include "domain_fakes.h"
 
-#include "entities/world.h"
+#include "entities/creation.h"
 #include "entities/witness.h"
 #include "values/abode_name.h"
 #include "values/device_token.h"
@@ -40,7 +40,8 @@ SoulName test_name(const char* text)
 TEST_CASE("world holds global abode in registry")
 {
 	InMemoryTemporality temporality;
-	World world(temporality);
+	Creation creation(temporality);
+	World& world = creation.world();
 
 	CHECK(world.knows(id::Abode::global()));
 	CHECK(world.abode().name() == AbodeName::global());
@@ -52,7 +53,8 @@ TEST_CASE("world holds global abode in registry")
 TEST_CASE("welcome creates man")
 {
 	InMemoryTemporality temporality;
-	World world(temporality);
+	Creation creation(temporality);
+	World& world = creation.world();
 
 	CHECK(world.abode().name() == AbodeName::global());
 
@@ -83,7 +85,8 @@ TEST_CASE("welcome existing man")
 {
 	InMemoryTemporality temporality;
 	seed_man(temporality, id::Soul{42}, test_token("abcd1234abcd1234abcd1234abcd1234"), test_name("oldname1"));
-	World world(temporality);
+	Creation creation(temporality);
+	World& world = creation.world();
 
 	const Man& man = world.welcome(test_token("abcd1234abcd1234abcd1234abcd1234"));
 	CHECK(man.Soul::id() == id::Soul{42});
@@ -96,7 +99,8 @@ TEST_CASE("welcome keeps existing name")
 {
 	InMemoryTemporality temporality;
 	seed_man(temporality, id::Soul{7}, test_token("abcd1234abcd1234abcd1234abcd1234"), test_name("keptname"));
-	World world(temporality);
+	Creation creation(temporality);
+	World& world = creation.world();
 
 	(void)world.welcome(test_token("abcd1234abcd1234abcd1234abcd1234"));
 
@@ -107,7 +111,8 @@ TEST_CASE("welcome keeps existing name")
 TEST_CASE("man say persists via temporality")
 {
 	InMemoryTemporality temporality;
-	World world(temporality);
+	Creation creation(temporality);
+	World& world = creation.world();
 
 	const Man& author = world.welcome(DeviceToken::generate());
 	author.say(Word{"hello"});
@@ -126,7 +131,8 @@ TEST_CASE("witness retell is history of observed abode")
 	const id::Soul author{1};
 
 	seed_man(temporality, author, test_token("feedfacefeedfacefeedfacefeedface"), test_name("authoraa"));
-	World world(temporality);
+	Creation creation(temporality);
+	World& world = creation.world();
 
 	const Man& man = world.welcome(test_token("feedfacefeedfacefeedfacefeedface"));
 	const auto& witness = static_cast<const Witness&>(man);
