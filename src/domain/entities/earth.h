@@ -6,13 +6,10 @@
 #include "values/device_token.h"
 #include "values/word.h"
 
-#include <cstdint>
 #include <memory>
 #include <mutex>
 #include <optional>
 #include <unordered_map>
-#include <utility>
-#include <vector>
 
 
 namespace will::domain {

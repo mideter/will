@@ -1,7 +1,9 @@
 #include "witness.h"
 
 #include "entities/abode.h"
+#include "ports/temporality.h"
 
+#include <algorithm>
 #include <stdexcept>
 
 
@@ -20,6 +22,16 @@ void Witness::say(const Word& word) const
 		throw std::logic_error("Witness does not dwell in the observed abode");
 
 	fix(abode_->id(), Soul::id(), word);
+}
+
+
+std::vector<Letter> Witness::retell(const std::uint32_t limit) const
+{
+	if (limit == 0)
+		throw std::invalid_argument("History limit must be positive");
+
+	const std::uint32_t capped = std::min(limit, Temporality::MaxLetterLimit);
+	return temporality().letters(abode_->id(), capped);
 }
 
 

@@ -120,7 +120,7 @@ TEST_CASE("man say persists via temporality")
 }
 
 
-TEST_CASE("world letters is history through port")
+TEST_CASE("witness retell is history of observed abode")
 {
 	InMemoryTemporality temporality;
 	const id::Soul author{1};
@@ -128,11 +128,14 @@ TEST_CASE("world letters is history through port")
 	seed_man(temporality, author, test_token("feedfacefeedfacefeedfacefeedface"), test_name("authoraa"));
 	World world(temporality);
 
+	const Man& man = world.welcome(test_token("feedfacefeedfacefeedfacefeedface"));
+	const auto& witness = static_cast<const Witness&>(man);
+
 	for (int i = 0; i < 5; ++i)
-		temporality.fix(world.abode().id(), author, Word{"m"});
+		temporality.fix(witness.abode().id(), author, Word{"m"});
 
-	CHECK_THROWS_AS(world.letters(0), std::invalid_argument);
+	CHECK_THROWS_AS(witness.retell(0), std::invalid_argument);
 
-	const auto items = world.letters(Temporality::MaxLetterLimit + 50);
+	const auto items = witness.retell(Temporality::MaxLetterLimit + 50);
 	CHECK(items.size() == 5);
 }
