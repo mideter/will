@@ -21,6 +21,8 @@ public:
 	domain::Man enroll(const domain::DeviceToken& token, domain::SoulName name) override;
 
 	std::vector<domain::Abode> abodes() override;
+	void join_abode(domain::id::Abode abode, domain::id::Man man) override;
+	std::vector<std::pair<domain::id::Abode, domain::id::Man>> abode_men() override;
 	void fix(domain::id::Abode abode, domain::id::Soul author, const domain::Word& word) override;
 	std::vector<domain::Letter> letters(domain::id::Abode abode, std::uint32_t limit) override;
 

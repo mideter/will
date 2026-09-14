@@ -159,6 +159,50 @@ std::vector<domain::Abode> SqliteTemporality::abodes()
 }
 
 
+void SqliteTemporality::join_abode(const domain::id::Abode abode, const domain::id::Man man)
+{
+	std::lock_guard lock(database_.mutex());
+
+	sqlite3* const db = database_.db();
+	sqlite3_stmt* stmt = nullptr;
+	check_sqlite(sqlite3_prepare_v2(db,
+									"INSERT OR IGNORE INTO abode_men (abode_id, man_id) VALUES (?, ?);",
+									-1, &stmt, nullptr),
+				 db, "prepare join abode_men");
+
+	check_sqlite(sqlite3_bind_int64(stmt, 1, static_cast<sqlite3_int64>(abode.value())), db, "bind abode_id");
+	check_sqlite(sqlite3_bind_int64(stmt, 2, static_cast<sqlite3_int64>(man.value())), db, "bind man_id");
+	check_sqlite(sqlite3_step(stmt), db, "insert abode_men step");
+	sqlite3_finalize(stmt);
+}
+
+
+std::vector<std::pair<domain::id::Abode, domain::id::Man>> SqliteTemporality::abode_men()
+{
+	std::lock_guard lock(database_.mutex());
+
+	sqlite3* const db = database_.db();
+	sqlite3_stmt* stmt = nullptr;
+	check_sqlite(sqlite3_prepare_v2(db, "SELECT abode_id, man_id FROM abode_men ORDER BY abode_id, man_id;",
+									-1, &stmt, nullptr),
+				 db, "prepare abode_men");
+
+	std::vector<std::pair<domain::id::Abode, domain::id::Man>> rows;
+
+	int rc = sqlite3_step(stmt);
+	while (rc == SQLITE_ROW) {
+		rows.emplace_back(
+			domain::id::Abode{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 0))},
+			domain::id::Man{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 1))});
+		rc = sqlite3_step(stmt);
+	}
+
+	check_sqlite(rc, db, "abode_men step");
+	sqlite3_finalize(stmt);
+	return rows;
+}
+
+
 void SqliteTemporality::fix(const domain::id::Abode abode, const domain::id::Soul author,
 							 const domain::Word& word)
 {

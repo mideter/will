@@ -83,6 +83,17 @@ public:
 		return out;
 	}
 
+	void join_abode(const id::Abode abode, const id::Man man) override
+	{
+		for (const auto& row : abode_men_) {
+			if (row.first == abode && row.second == man)
+				return;
+		}
+		abode_men_.emplace_back(abode, man);
+	}
+
+	std::vector<std::pair<id::Abode, id::Man>> abode_men() override { return abode_men_; }
+
 	void fix(id::Abode abode, id::Soul author, const Word& word) override
 	{
 		letters_.push_back(Letter{id::Letter{++next_id_}, abode, author, word, time_.instant()});
@@ -113,6 +124,7 @@ private:
 	std::vector<std::pair<id::Abode, AbodeName>> abode_rows_{
 		{id::Abode::global(), AbodeName::global()},
 	};
+	std::vector<std::pair<id::Abode, id::Man>> abode_men_;
 	std::vector<Letter> letters_;
 };
 

@@ -89,6 +89,7 @@ TEST_CASE("sqlite persistence survives reopen")
 		const Man& man_a_reloaded = world.welcome(token_a);
 		CHECK(man_a_reloaded.Soul::id() == *soul_a_id);
 		CHECK(world.man(world.vessel(man_a_reloaded.Vessel::id())).Soul::id() == *soul_a_id);
+		CHECK(world.abode().dwells(man_a_reloaded));
 
 		CHECK(world.knows(*soul_b_id));
 		CHECK(world.soul(*soul_b_id).name() == *name_b);

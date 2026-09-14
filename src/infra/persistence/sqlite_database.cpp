@@ -111,6 +111,7 @@ void drop_legacy_tables(sqlite3* db)
 {
 	static constexpr const char* DropLegacyTablesSql = R"sql(
 DROP TABLE IF EXISTS letters;
+DROP TABLE IF EXISTS abode_men;
 DROP TABLE IF EXISTS men;
 DROP TABLE IF EXISTS vessels;
 DROP TABLE IF EXISTS abodes;
@@ -247,6 +248,12 @@ CREATE TABLE IF NOT EXISTS abodes (
   name TEXT NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS abode_men (
+  abode_id INTEGER NOT NULL REFERENCES abodes(id),
+  man_id INTEGER NOT NULL REFERENCES men(id),
+  PRIMARY KEY (abode_id, man_id)
+);
+
 CREATE TABLE IF NOT EXISTS letters (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   abode_id INTEGER NOT NULL,
@@ -272,6 +279,12 @@ CREATE INDEX IF NOT EXISTS idx_letters_created_at ON letters(created_at_ns);
 	check_sqlite(sqlite3_exec(db_, "INSERT OR IGNORE INTO abodes (id, name) VALUES (1, 'world');", nullptr,
 							  nullptr, nullptr),
 				 db_, "seed global abode");
+
+	check_sqlite(sqlite3_exec(db_,
+							  "INSERT OR IGNORE INTO abode_men (abode_id, man_id) "
+							  "SELECT 1, id FROM men;",
+							  nullptr, nullptr, nullptr),
+				 db_, "seed global abode_men");
 
 	if (table_has_column(db_, "souls", "id") && !table_has_column(db_, "souls", "name")) {
 		check_sqlite(sqlite3_exec(db_, "ALTER TABLE souls ADD COLUMN name TEXT NOT NULL DEFAULT '';", nullptr,

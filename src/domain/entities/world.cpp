@@ -17,6 +17,8 @@ World::World(Temporality& temporality)
 {
 	for (Man man : eternity().men())
 		(void)accept(std::move(man));
+
+	restore_dwellers();
 }
 
 
@@ -77,7 +79,35 @@ const Man& World::accept(Man&& man)
 	Heaven::index(soul);
 	Earth::index(vessel);
 	place.admit(live);
+	join_abode(place.id(), man_id);
 	return live;
+}
+
+
+const Man& World::living_man(const id::Man id) const
+{
+	std::lock_guard lock(mutex_);
+
+	const auto it = men_.find(id);
+	if (it == men_.end() || !it->second)
+		throw std::logic_error("Unknown man");
+
+	return *it->second;
+}
+
+
+void World::restore_dwellers()
+{
+	for (const auto& [abode_id, man_id] : abode_men()) {
+		if (!knows(abode_id))
+			continue;
+
+		try {
+			abode(abode_id).admit(living_man(man_id));
+		} catch (const std::logic_error&) {
+			continue;
+		}
+	}
 }
 
 

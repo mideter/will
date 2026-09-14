@@ -5,6 +5,7 @@
 #include "entities/heaven.h"
 #include "entities/letter.h"
 #include "entities/man.h"
+#include "identity/man.h"
 #include "identity/vessel.h"
 #include "ports/temporality.h"
 #include "values/device_token.h"
@@ -46,6 +47,9 @@ private:
 
 	/// Place a man on the heap as Witness observing the global abode.
 	const Man& accept(Man&& man);
+
+	const Man& living_man(id::Man id) const;
+	void restore_dwellers();
 
 	mutable std::mutex mutex_;
 	std::unordered_map<id::Man, std::unique_ptr<Man>> men_;

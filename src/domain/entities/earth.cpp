@@ -155,6 +155,22 @@ std::vector<Letter> Earth::letters(const id::Abode abode, const std::uint32_t li
 }
 
 
+void Earth::join_abode(const id::Abode abode, const id::Man man) const
+{
+	if (temporality_ == nullptr)
+		throw std::logic_error("Earth is not raised");
+	temporality_->join_abode(abode, man);
+}
+
+
+std::vector<std::pair<id::Abode, id::Man>> Earth::abode_men() const
+{
+	if (temporality_ == nullptr)
+		throw std::logic_error("Earth is not raised");
+	return temporality_->abode_men();
+}
+
+
 std::optional<id::Vessel> Earth::id_of(const DeviceToken& token) const
 {
 	std::lock_guard lock(mutex_);

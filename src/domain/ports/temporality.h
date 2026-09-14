@@ -3,11 +3,13 @@
 #include "entities/abode.h"
 #include "entities/letter.h"
 #include "identity/abode.h"
+#include "identity/man.h"
 #include "identity/soul.h"
 #include "ports/eternity.h"
 #include "values/word.h"
 
 #include <cstdint>
+#include <utility>
 #include <vector>
 
 
@@ -22,8 +24,14 @@ public:
 
 	~Temporality() override = default;
 
-	/// Abodes kept in time (id + name; dwellers are living World state).
+	/// Abodes kept in time (id + name).
 	virtual std::vector<Abode> abodes() = 0;
+
+	/// Record that a man dwells in an abode (idempotent).
+	virtual void join_abode(id::Abode abode, id::Man man) = 0;
+
+	/// Membership rows for restoring live abodes.
+	virtual std::vector<std::pair<id::Abode, id::Man>> abode_men() = 0;
 
 	/// Fix a word in time: take the present from Time and keep the letter.
 	virtual void fix(id::Abode abode, id::Soul author, const Word& word) = 0;

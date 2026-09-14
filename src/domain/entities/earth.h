@@ -2,6 +2,7 @@
 
 #include "entities/letter.h"
 #include "identity/abode.h"
+#include "identity/man.h"
 #include "identity/soul.h"
 #include "identity/vessel.h"
 #include "values/device_token.h"
@@ -53,6 +54,12 @@ public:
 
 	/// Letters kept in an abode, bounded by limit (history).
 	std::vector<Letter> letters(id::Abode abode, std::uint32_t limit) const;
+
+	/// Record abode membership in Temporality (idempotent).
+	void join_abode(id::Abode abode, id::Man man) const;
+
+	/// Membership rows for restoring live abodes.
+	std::vector<std::pair<id::Abode, id::Man>> abode_men() const;
 
 	bool operator==(const Earth&) const noexcept { return true; }
 
