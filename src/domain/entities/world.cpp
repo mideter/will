@@ -12,7 +12,9 @@
 namespace will::domain {
 
 
-World::World()
+World::World(Heaven heaven, Earth earth)
+	: Heaven(std::move(heaven))
+	, Earth(std::move(earth))
 {
 	for (Man man : eternity().men())
 		(void)accept(std::move(man));

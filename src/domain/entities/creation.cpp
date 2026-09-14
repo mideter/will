@@ -1,13 +1,14 @@
 #include "creation.h"
 
+#include "entities/earth.h"
+#include "entities/heaven.h"
+
 
 namespace will::domain {
 
 
 Creation::Creation(Temporality& temporality)
-	: heaven_(temporality)
-	, earth_(temporality)
-	, world_()
+	: world_(Heaven{temporality}, Earth{temporality})
 {}
 
 

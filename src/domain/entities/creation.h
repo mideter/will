@@ -1,7 +1,5 @@
 #pragma once
 
-#include "entities/earth.h"
-#include "entities/heaven.h"
 #include "entities/world.h"
 #include "ports/temporality.h"
 
@@ -23,8 +21,6 @@ public:
 	const World& world() const noexcept { return world_; }
 
 private:
-	Heaven heaven_;
-	Earth earth_;
 	World world_;
 };
 
