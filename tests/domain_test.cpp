@@ -37,6 +37,18 @@ SoulName test_name(const char* text)
 } // namespace
 
 
+TEST_CASE("world holds global abode in registry")
+{
+	InMemoryTemporality temporality;
+	World world(temporality);
+
+	CHECK(world.knows(id::Abode::global()));
+	CHECK(world.abode().name() == AbodeName::global());
+	CHECK(&world.abode(id::Abode::global()) == &world.abode());
+	CHECK_THROWS_AS(world.abode(id::Abode{99}), std::logic_error);
+}
+
+
 TEST_CASE("welcome creates man")
 {
 	InMemoryTemporality temporality;

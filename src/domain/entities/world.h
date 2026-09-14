@@ -29,9 +29,16 @@ public:
 	explicit World(Temporality& temporality);
 	~World() = default;
 
-	/// Single abode for now; later a registry of abodes in this world.
-	Abode& abode() noexcept { return abode_; }
-	const Abode& abode() const noexcept { return abode_; }
+	/// Whether the world holds this abode.
+	bool knows(id::Abode id) const;
+
+	/// Living abode by id. Throws if unknown.
+	Abode& abode(id::Abode id);
+	const Abode& abode(id::Abode id) const;
+
+	/// Global abode (id 1) — default place until birth/choice of others.
+	Abode& abode() { return abode(id::Abode::global()); }
+	const Abode& abode() const { return abode(id::Abode::global()); }
 
 	/// Man dwelling in this vessel. Throws if the vessel has no man (broken invariant).
 	const Man& man(const Vessel& vessel) const;
@@ -49,8 +56,8 @@ private:
 	/// Place a man on the heap as Witness observing the global abode.
 	const Man& accept(Man&& man);
 
-	Abode abode_;
 	mutable std::mutex mutex_;
+	std::unordered_map<id::Abode, std::unique_ptr<Abode>> abodes_by_id_;
 	std::unordered_map<id::Man, std::unique_ptr<Man>> men_by_id_;
 	std::unordered_map<id::Vessel, id::Man> man_id_by_vessel_;
 };

@@ -1,6 +1,7 @@
 #include "world.h"
 
 #include "entities/witness.h"
+#include "identity/abode.h"
 #include "values/abode_name.h"
 #include "values/soul_name.h"
 
@@ -14,10 +15,40 @@ namespace will::domain {
 World::World(Temporality& temporality)
 	: Heaven(temporality)
 	, Earth(temporality)
-	, abode_(id::Abode::global(), AbodeName::global())
 {
+	abodes_by_id_.emplace(
+		id::Abode::global(),
+		std::make_unique<Abode>(id::Abode::global(), AbodeName::global()));
+
 	for (Man man : eternity().men())
 		(void)accept(std::move(man));
+}
+
+
+bool World::knows(const id::Abode id) const
+{
+	std::lock_guard lock(mutex_);
+	return abodes_by_id_.contains(id);
+}
+
+
+Abode& World::abode(const id::Abode id)
+{
+	std::lock_guard lock(mutex_);
+	const auto it = abodes_by_id_.find(id);
+	if (it == abodes_by_id_.end() || !it->second)
+		throw std::logic_error("Unknown abode");
+	return *it->second;
+}
+
+
+const Abode& World::abode(const id::Abode id) const
+{
+	std::lock_guard lock(mutex_);
+	const auto it = abodes_by_id_.find(id);
+	if (it == abodes_by_id_.end() || !it->second)
+		throw std::logic_error("Unknown abode");
+	return *it->second;
 }
 
 
@@ -51,7 +82,7 @@ std::vector<Letter> World::letters(const std::uint32_t limit) const
 	if (limit == 0)
 		throw std::invalid_argument("History limit must be positive");
 
-	return Earth::letters(abode_.id(), limit);
+	return Earth::letters(abode().id(), limit);
 }
 
 
@@ -63,7 +94,8 @@ const Man& World::beget(const DeviceToken& token)
 
 const Man& World::accept(Man&& man)
 {
-	auto ptr = std::make_unique<Witness>(std::move(man), abode_);
+	Abode& place = abode();
+	auto ptr = std::make_unique<Witness>(std::move(man), place);
 	// Witness stays on the heap; moving unique_ptr does not invalidate these references.
 	Man& live = *ptr;
 	const Soul& soul = live;
@@ -76,7 +108,7 @@ const Man& World::accept(Man&& man)
 	man_id_by_vessel_.insert_or_assign(vessel_id, man_id);
 	Heaven::index(soul);
 	Earth::index(vessel);
-	abode_.admit(live);
+	place.admit(live);
 	return live;
 }
 
