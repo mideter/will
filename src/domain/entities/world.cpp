@@ -2,8 +2,10 @@
 
 #include "entities/witness.h"
 #include "identity/abode.h"
+#include "ports/temporality.h"
 #include "values/soul_name.h"
 
+#include <algorithm>
 #include <stdexcept>
 #include <utility>
 
@@ -52,7 +54,8 @@ std::vector<Letter> World::letters(const std::uint32_t limit) const
 	if (limit == 0)
 		throw std::invalid_argument("History limit must be positive");
 
-	return Earth::letters(abode().id(), limit);
+	const std::uint32_t capped = std::min(limit, Temporality::MaxLetterLimit);
+	return temporality().letters(abode().id(), capped);
 }
 
 
@@ -79,7 +82,7 @@ const Man& World::accept(Man&& man)
 	Heaven::index(soul);
 	Earth::index(vessel);
 	place.admit(live);
-	join_abode(place.id(), man_id);
+	temporality().join_abode(place.id(), man_id);
 	return live;
 }
 
@@ -98,7 +101,7 @@ const Man& World::living_man(const id::Man id) const
 
 void World::restore_dwellers()
 {
-	for (const auto& [abode_id, man_id] : abode_men()) {
+	for (const auto& [abode_id, man_id] : temporality().abode_men()) {
 		if (!knows(abode_id))
 			continue;
 

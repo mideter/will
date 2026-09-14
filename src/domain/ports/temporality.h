@@ -34,10 +34,10 @@ public:
 	virtual std::vector<std::pair<id::Abode, id::Man>> abode_men() = 0;
 
 	/// Fix a word in time: take the present from Time and keep the letter.
-	virtual void fix(id::Abode abode, id::Soul author, const Word& word) = 0;
+	virtual void fix(id::Abode abode, id::Soul author, const Word& word) const = 0;
 
 	/// Letters kept in this abode, bounded by limit (history).
-	virtual std::vector<Letter> letters(id::Abode abode, std::uint32_t limit) = 0;
+	virtual std::vector<Letter> letters(id::Abode abode, std::uint32_t limit) const = 0;
 };
 
 

@@ -204,7 +204,7 @@ std::vector<std::pair<domain::id::Abode, domain::id::Man>> SqliteTemporality::ab
 
 
 void SqliteTemporality::fix(const domain::id::Abode abode, const domain::id::Soul author,
-							 const domain::Word& word)
+							 const domain::Word& word) const
 {
 	const domain::Timestamp ts = time_.instant();
 	const domain::Letter drafted{domain::id::Letter{1}, abode, author, word, ts};
@@ -233,7 +233,7 @@ void SqliteTemporality::fix(const domain::id::Abode abode, const domain::id::Sou
 
 
 std::vector<domain::Letter> SqliteTemporality::letters(const domain::id::Abode abode,
-													  const std::uint32_t limit)
+													  const std::uint32_t limit) const
 {
 	std::lock_guard lock(database_.mutex());
 

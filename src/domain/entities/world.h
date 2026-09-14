@@ -38,7 +38,7 @@ public:
 	/// Welcome a vessel's token: return the dwelling man, or beget one if unknown.
 	const Man& welcome(const DeviceToken& token);
 
-	/// History of the global abode through Earth / Temporality (capped).
+	/// History of the global abode through Temporality (capped).
 	std::vector<Letter> letters(std::uint32_t limit) const;
 
 private:

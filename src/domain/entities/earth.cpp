@@ -4,7 +4,6 @@
 #include "entities/vessel.h"
 #include "ports/temporality.h"
 
-#include <algorithm>
 #include <stdexcept>
 
 
@@ -29,7 +28,7 @@ Earth::Earth(Temporality& temporality)
 		throw std::logic_error("Only one World");
 	temporality_ = &temporality;
 
-	for (Abode& place : temporality_->abodes()) {
+	for (Abode& place : temporality.abodes()) {
 		const id::Abode id = place.id();
 		abodes_.emplace(id, std::make_unique<Abode>(std::move(place)));
 	}
@@ -84,6 +83,22 @@ void Earth::clear_pole() noexcept
 }
 
 
+Temporality& Earth::temporality()
+{
+	if (temporality_ == nullptr)
+		throw std::logic_error("Earth is not raised");
+	return *temporality_;
+}
+
+
+const Temporality& Earth::temporality() const
+{
+	if (temporality_ == nullptr)
+		throw std::logic_error("Earth is not raised");
+	return *temporality_;
+}
+
+
 bool Earth::knows(const id::Vessel id) const
 {
 	std::lock_guard lock(mutex_);
@@ -132,42 +147,7 @@ const Vessel& Earth::vessel(const id::Vessel id) const
 
 void Earth::fix(const id::Abode abode, const id::Soul author, const Word& word) const
 {
-	if (temporality_ == nullptr)
-		throw std::logic_error("Earth is not raised");
-	temporality_->fix(abode, author, word);
-}
-
-
-std::vector<Abode> Earth::remembered_abodes() const
-{
-	if (temporality_ == nullptr)
-		throw std::logic_error("Earth is not raised");
-	return temporality_->abodes();
-}
-
-
-std::vector<Letter> Earth::letters(const id::Abode abode, const std::uint32_t limit) const
-{
-	if (temporality_ == nullptr)
-		throw std::logic_error("Earth is not raised");
-	const std::uint32_t capped = std::min(limit, Temporality::MaxLetterLimit);
-	return temporality_->letters(abode, capped);
-}
-
-
-void Earth::join_abode(const id::Abode abode, const id::Man man) const
-{
-	if (temporality_ == nullptr)
-		throw std::logic_error("Earth is not raised");
-	temporality_->join_abode(abode, man);
-}
-
-
-std::vector<std::pair<id::Abode, id::Man>> Earth::abode_men() const
-{
-	if (temporality_ == nullptr)
-		throw std::logic_error("Earth is not raised");
-	return temporality_->abode_men();
+	temporality().fix(abode, author, word);
 }
 
 

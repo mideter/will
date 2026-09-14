@@ -1,8 +1,6 @@
 #pragma once
 
-#include "entities/letter.h"
 #include "identity/abode.h"
-#include "identity/man.h"
 #include "identity/soul.h"
 #include "identity/vessel.h"
 #include "values/device_token.h"
@@ -21,12 +19,14 @@ namespace will::domain {
 
 
 class Abode;
+class Letter;
 class Vessel;
 class Temporality;
 
 
 /// Earth (Земля) — static pole of the one World; Dust is Earth.
 /// Only World raises / clears the pole (owning shell). Other shells do not.
+/// Public API: live registry of vessels and abodes. Temporality is protected.
 class Earth {
 public:
 	/// Whether Earth knows this vessel.
@@ -46,21 +46,6 @@ public:
 	Abode& abode() { return abode(id::Abode::global()); }
 	const Abode& abode() const { return abode(id::Abode::global()); }
 
-	/// Abode snapshots kept in Temporality (id + name).
-	std::vector<Abode> remembered_abodes() const;
-
-	/// Fix a word in time in an abode.
-	void fix(id::Abode abode, id::Soul author, const Word& word) const;
-
-	/// Letters kept in an abode, bounded by limit (history).
-	std::vector<Letter> letters(id::Abode abode, std::uint32_t limit) const;
-
-	/// Record abode membership in Temporality (idempotent).
-	void join_abode(id::Abode abode, id::Man man) const;
-
-	/// Membership rows for restoring live abodes.
-	std::vector<std::pair<id::Abode, id::Man>> abode_men() const;
-
 	bool operator==(const Earth&) const noexcept { return true; }
 
 protected:
@@ -76,6 +61,13 @@ protected:
 	Earth& operator=(const Earth& other) noexcept;
 	Earth(Earth&& other) noexcept;
 	Earth& operator=(Earth&& other) noexcept;
+
+	/// Temporality of the raised pole. Throws if Earth is not raised.
+	Temporality& temporality();
+	const Temporality& temporality() const;
+
+	/// Fix a word in time (Dust / Witness).
+	void fix(id::Abode abode, id::Soul author, const Word& word) const;
 
 	/// Index a vessel owned by a heap-stable Man.
 	void index(const Vessel& vessel);

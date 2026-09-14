@@ -94,12 +94,12 @@ public:
 
 	std::vector<std::pair<id::Abode, id::Man>> abode_men() override { return abode_men_; }
 
-	void fix(id::Abode abode, id::Soul author, const Word& word) override
+	void fix(id::Abode abode, id::Soul author, const Word& word) const override
 	{
 		letters_.push_back(Letter{id::Letter{++next_id_}, abode, author, word, time_.instant()});
 	}
 
-	std::vector<Letter> letters(id::Abode abode, std::uint32_t limit) override
+	std::vector<Letter> letters(id::Abode abode, std::uint32_t limit) const override
 	{
 		std::vector<Letter> matching;
 		matching.reserve(letters_.size());
@@ -119,13 +119,13 @@ private:
 	std::uint64_t next_soul_id_ = 0;
 	std::uint64_t next_vessel_id_ = 0;
 	std::uint64_t next_man_id_ = 0;
-	std::uint64_t next_id_ = 0;
+	mutable std::uint64_t next_id_ = 0;
 	std::vector<Man> men_;
 	std::vector<std::pair<id::Abode, AbodeName>> abode_rows_{
 		{id::Abode::global(), AbodeName::global()},
 	};
 	std::vector<std::pair<id::Abode, id::Man>> abode_men_;
-	std::vector<Letter> letters_;
+	mutable std::vector<Letter> letters_;
 };
 
 

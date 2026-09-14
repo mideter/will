@@ -23,8 +23,8 @@ public:
 	std::vector<domain::Abode> abodes() override;
 	void join_abode(domain::id::Abode abode, domain::id::Man man) override;
 	std::vector<std::pair<domain::id::Abode, domain::id::Man>> abode_men() override;
-	void fix(domain::id::Abode abode, domain::id::Soul author, const domain::Word& word) override;
-	std::vector<domain::Letter> letters(domain::id::Abode abode, std::uint32_t limit) override;
+	void fix(domain::id::Abode abode, domain::id::Soul author, const domain::Word& word) const override;
+	std::vector<domain::Letter> letters(domain::id::Abode abode, std::uint32_t limit) const override;
 
 private:
 	SqliteDatabase& database_;
