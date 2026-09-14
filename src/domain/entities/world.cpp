@@ -15,44 +15,8 @@ World::World(Temporality& temporality)
 	: Heaven(temporality)
 	, Earth(temporality)
 {
-	auto places = Earth::abodes();
-	for (Abode& place : places) {
-		const id::Abode id = place.id();
-		abodes_by_id_.emplace(id, std::make_unique<Abode>(std::move(place)));
-	}
-
-	if (!abodes_by_id_.contains(id::Abode::global()))
-		throw std::logic_error("World requires the global abode");
-
 	for (Man man : eternity().men())
 		(void)accept(std::move(man));
-}
-
-
-bool World::knows(const id::Abode id) const
-{
-	std::lock_guard lock(mutex_);
-	return abodes_by_id_.contains(id);
-}
-
-
-Abode& World::abode(const id::Abode id)
-{
-	std::lock_guard lock(mutex_);
-	const auto it = abodes_by_id_.find(id);
-	if (it == abodes_by_id_.end() || !it->second)
-		throw std::logic_error("Unknown abode");
-	return *it->second;
-}
-
-
-const Abode& World::abode(const id::Abode id) const
-{
-	std::lock_guard lock(mutex_);
-	const auto it = abodes_by_id_.find(id);
-	if (it == abodes_by_id_.end() || !it->second)
-		throw std::logic_error("Unknown abode");
-	return *it->second;
 }
 
 

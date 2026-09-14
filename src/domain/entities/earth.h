@@ -8,6 +8,7 @@
 #include "values/word.h"
 
 #include <cstdint>
+#include <memory>
 #include <mutex>
 #include <optional>
 #include <unordered_map>
@@ -30,11 +31,22 @@ public:
 	/// Whether Earth knows this vessel.
 	bool knows(id::Vessel id) const;
 
+	/// Whether Earth holds this abode.
+	bool knows(id::Abode id) const;
+
 	/// Living vessel by id. Throws if unknown.
 	const Vessel& vessel(id::Vessel id) const;
 
-	/// Abodes kept in Temporality (id + name).
-	std::vector<Abode> abodes() const;
+	/// Living abode by id. Throws if unknown.
+	Abode& abode(id::Abode id);
+	const Abode& abode(id::Abode id) const;
+
+	/// Global abode (id 1) — default until birth/choice of others.
+	Abode& abode() { return abode(id::Abode::global()); }
+	const Abode& abode() const { return abode(id::Abode::global()); }
+
+	/// Abode snapshots kept in Temporality (id + name).
+	std::vector<Abode> remembered_abodes() const;
 
 	/// Fix a word in time in an abode.
 	void fix(id::Abode abode, id::Soul author, const Word& word) const;
@@ -61,6 +73,9 @@ protected:
 	/// Index a vessel owned by a heap-stable Man.
 	void index(const Vessel& vessel);
 
+	/// Register a living abode (from Temporality snapshot or birth).
+	void index(Abode place);
+
 	/// Resolve device token to vessel id for World::welcome. Empty if unknown.
 	std::optional<id::Vessel> id_of(const DeviceToken& token) const;
 
@@ -73,6 +88,7 @@ private:
 	static std::mutex mutex_;
 	static std::unordered_map<id::Vessel, const Vessel*> vessels_by_id_;
 	static std::unordered_map<DeviceToken, id::Vessel> id_by_token_;
+	static std::unordered_map<id::Abode, std::unique_ptr<Abode>> abodes_by_id_;
 };
 
 
