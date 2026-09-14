@@ -21,8 +21,8 @@ class Vessel;
 class Temporality;
 
 
-/// Earth (Земля) — static pole of the one World; Dust is Earth.
-/// Creation raises the pole; Creation lowers it. Other shells do not.
+/// Earth (Земля) — of the one World; Dust is Earth.
+/// Creation brings forth Earth and rolls it up. Other shells do not.
 /// Public API: live registry of vessels and abodes. Temporality is protected.
 class Earth {
 public:
@@ -48,10 +48,10 @@ public:
 protected:
 	friend class Creation;
 
-	/// Non-owning shell (Dust / Vessel). Does not touch static pole state.
+	/// Non-owning shell (Dust / Vessel). Does not bring forth or roll Earth.
 	Earth() noexcept;
 
-	/// Raise the static pole (Creation).
+	/// Bring forth Earth (Creation).
 	explicit Earth(Temporality& temporality);
 
 	~Earth() = default;
@@ -61,7 +61,7 @@ protected:
 	Earth(Earth&&) noexcept = default;
 	Earth& operator=(Earth&&) noexcept = default;
 
-	/// Temporality of the raised pole. Throws if Earth is not raised.
+	/// Temporality once Earth is brought forth. Throws otherwise.
 	Temporality& temporality();
 	const Temporality& temporality() const;
 
@@ -77,8 +77,8 @@ protected:
 	/// Resolve device token to vessel id for World::welcome. Empty if unknown.
 	std::optional<id::Vessel> id_of(const DeviceToken& token) const;
 
-	/// Lower the static pole (Creation dtor only).
-	void lower() noexcept;
+	/// Roll up Earth (Creation dtor only).
+	void roll() noexcept;
 
 private:
 	static Temporality* temporality_;

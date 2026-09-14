@@ -26,7 +26,7 @@ Heaven::Heaven(Eternity& eternity)
 }
 
 
-void Heaven::lower() noexcept
+void Heaven::roll() noexcept
 {
 	std::lock_guard lock(mutex_);
 	souls_.clear();
@@ -37,7 +37,7 @@ void Heaven::lower() noexcept
 Eternity& Heaven::eternity()
 {
 	if (eternity_ == nullptr)
-		throw std::logic_error("Heaven is not raised");
+		throw std::logic_error("Heaven has not been brought forth");
 	return *eternity_;
 }
 
@@ -45,7 +45,7 @@ Eternity& Heaven::eternity()
 const Eternity& Heaven::eternity() const
 {
 	if (eternity_ == nullptr)
-		throw std::logic_error("Heaven is not raised");
+		throw std::logic_error("Heaven has not been brought forth");
 	return *eternity_;
 }
 

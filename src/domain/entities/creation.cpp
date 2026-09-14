@@ -14,8 +14,8 @@ Creation::Creation(Temporality& temporality)
 
 Creation::~Creation()
 {
-	static_cast<Earth&>(world_).lower();
-	static_cast<Heaven&>(world_).lower();
+	static_cast<Earth&>(world_).roll();
+	static_cast<Heaven&>(world_).roll();
 }
 
 

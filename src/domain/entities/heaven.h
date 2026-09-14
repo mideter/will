@@ -13,8 +13,8 @@ class Soul;
 class Eternity;
 
 
-/// Heaven (Небо) — static pole of the one World; Spirit is Heaven.
-/// Creation raises the pole; Creation lowers it. Other shells do not.
+/// Heaven (Небо) — of the one World; Spirit is Heaven.
+/// Creation brings forth Heaven and rolls it up. Other shells do not.
 /// Pointers address Soul bases of heap-stable Man (unique_ptr).
 class Heaven {
 public:
@@ -29,10 +29,10 @@ public:
 protected:
 	friend class Creation;
 
-	/// Non-owning shell (Spirit / Soul). Does not touch static pole state.
+	/// Non-owning shell (Spirit / Soul). Does not bring forth or roll Heaven.
 	Heaven() noexcept;
 
-	/// Raise the static pole (Creation).
+	/// Bring forth Heaven (Creation).
 	explicit Heaven(Eternity& eternity);
 
 	~Heaven() = default;
@@ -42,15 +42,15 @@ protected:
 	Heaven(Heaven&&) noexcept = default;
 	Heaven& operator=(Heaven&&) noexcept = default;
 
-	/// Eternity of the raised pole. Throws if Heaven is not raised.
+	/// Eternity once Heaven is brought forth. Throws otherwise.
 	Eternity& eternity();
 	const Eternity& eternity() const;
 
 	/// Index a soul owned by a heap-stable Man.
 	void index(const Soul& soul);
 
-	/// Lower the static pole (Creation dtor only).
-	void lower() noexcept;
+	/// Roll up Heaven (Creation dtor only).
+	void roll() noexcept;
 
 private:
 	static Eternity* eternity_;

@@ -16,9 +16,9 @@ namespace will::domain {
 
 
 /// World (Мир) — the one living cosmos: is Heaven and Earth, holds living men.
-/// Brought forth only by Creation with already raised Heaven and Earth.
+/// Brought forth only by Creation with Heaven and Earth already brought forth.
 /// Living people are Witness on the heap (unique_ptr<Man>);
-/// Eternity still deals in Man values.
+/// Eternity still deals in Man values. Heaven and Earth are rolled up by Creation.
 class World : public Heaven, public Earth {
 public:
 	using Earth::abode;

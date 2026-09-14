@@ -37,7 +37,7 @@ Earth::Earth(Temporality& temporality)
 }
 
 
-void Earth::lower() noexcept
+void Earth::roll() noexcept
 {
 	std::lock_guard lock(mutex_);
 	vessels_.clear();
@@ -50,7 +50,7 @@ void Earth::lower() noexcept
 Temporality& Earth::temporality()
 {
 	if (temporality_ == nullptr)
-		throw std::logic_error("Earth is not raised");
+		throw std::logic_error("Earth has not been brought forth");
 	return *temporality_;
 }
 
@@ -58,7 +58,7 @@ Temporality& Earth::temporality()
 const Temporality& Earth::temporality() const
 {
 	if (temporality_ == nullptr)
-		throw std::logic_error("Earth is not raised");
+		throw std::logic_error("Earth has not been brought forth");
 	return *temporality_;
 }
 
