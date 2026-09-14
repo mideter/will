@@ -23,6 +23,13 @@ World::World(Temporality& temporality)
 }
 
 
+World::~World()
+{
+	Earth::lower();
+	Heaven::lower();
+}
+
+
 const Man& World::man(const Vessel& vessel) const
 {
 	std::lock_guard lock(mutex_);

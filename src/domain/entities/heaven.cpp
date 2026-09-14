@@ -18,7 +18,6 @@ Heaven::Heaven() noexcept = default;
 
 
 Heaven::Heaven(Eternity& eternity)
-	: owns_pole_(true)
 {
 	std::lock_guard lock(mutex_);
 	if (eternity_ != nullptr)
@@ -27,46 +26,11 @@ Heaven::Heaven(Eternity& eternity)
 }
 
 
-Heaven::~Heaven()
-{
-	if (owns_pole_)
-		clear_pole();
-}
-
-
-Heaven::Heaven(const Heaven&) noexcept
-	: owns_pole_(false)
-{}
-
-
-Heaven& Heaven::operator=(const Heaven&) noexcept
-{
-	return *this;
-}
-
-
-Heaven::Heaven(Heaven&& other) noexcept
-	: owns_pole_(std::exchange(other.owns_pole_, false))
-{}
-
-
-Heaven& Heaven::operator=(Heaven&& other) noexcept
-{
-	if (this == &other)
-		return *this;
-	if (owns_pole_)
-		clear_pole();
-	owns_pole_ = std::exchange(other.owns_pole_, false);
-	return *this;
-}
-
-
-void Heaven::clear_pole() noexcept
+void Heaven::lower() noexcept
 {
 	std::lock_guard lock(mutex_);
 	souls_.clear();
 	eternity_ = nullptr;
-	owns_pole_ = false;
 }
 
 

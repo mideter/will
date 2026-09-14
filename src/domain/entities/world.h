@@ -18,9 +18,9 @@ namespace will::domain {
 
 
 /// World (Мир) — the one living cosmos: is Heaven and Earth, holds living men.
-/// Abodes live on Earth; souls on Heaven. Raises and clears the static poles in
-/// ctor/dtor. Living people are Witness on the heap (unique_ptr<Man>); APIs hand
-/// out Man&. Eternity still deals in Man values.
+/// Abodes live on Earth; souls on Heaven. Raises poles in ctor, lowers in dtor.
+/// Living people are Witness on the heap (unique_ptr<Man>); APIs hand out Man&.
+/// Eternity still deals in Man values.
 class World : public Heaven, public Earth {
 public:
 	using Earth::abode;
@@ -28,7 +28,12 @@ public:
 	using Heaven::knows;
 
 	explicit World(Temporality& temporality);
-	~World() = default;
+	~World();
+
+	World(const World&) = delete;
+	World& operator=(const World&) = delete;
+	World(World&&) = delete;
+	World& operator=(World&&) = delete;
 
 	/// Man dwelling in this vessel. Throws if the vessel has no man (broken invariant).
 	const Man& man(const Vessel& vessel) const;

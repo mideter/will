@@ -22,7 +22,7 @@ class Temporality;
 
 
 /// Earth (Земля) — static pole of the one World; Dust is Earth.
-/// Only World raises / clears the pole (owning shell). Other shells do not.
+/// Only World raises the pole (ctor) and lowers it (dtor). Other shells do not.
 /// Public API: live registry of vessels and abodes. Temporality is protected.
 class Earth {
 public:
@@ -49,15 +49,15 @@ protected:
 	/// Non-owning shell (Dust / Vessel). Does not touch static pole state.
 	Earth() noexcept;
 
-	/// Owning shell (World). Raises the static pole.
+	/// Raise the static pole (World).
 	explicit Earth(Temporality& temporality);
 
-	~Earth();
+	~Earth() = default;
 
-	Earth(const Earth& other) noexcept;
-	Earth& operator=(const Earth& other) noexcept;
-	Earth(Earth&& other) noexcept;
-	Earth& operator=(Earth&& other) noexcept;
+	Earth(const Earth&) noexcept = default;
+	Earth& operator=(const Earth&) noexcept = default;
+	Earth(Earth&&) noexcept = default;
+	Earth& operator=(Earth&&) noexcept = default;
 
 	/// Temporality of the raised pole. Throws if Earth is not raised.
 	Temporality& temporality();
@@ -75,11 +75,10 @@ protected:
 	/// Resolve device token to vessel id for World::welcome. Empty if unknown.
 	std::optional<id::Vessel> id_of(const DeviceToken& token) const;
 
+	/// Lower the static pole (World dtor only).
+	void lower() noexcept;
+
 private:
-	void clear_pole() noexcept;
-
-	bool owns_pole_ = false;
-
 	static Temporality* temporality_;
 	static std::mutex mutex_;
 	static std::unordered_map<id::Vessel, const Vessel*> vessels_;

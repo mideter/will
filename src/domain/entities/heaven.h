@@ -4,7 +4,6 @@
 
 #include <mutex>
 #include <unordered_map>
-#include <utility>
 
 
 namespace will::domain {
@@ -15,7 +14,7 @@ class Eternity;
 
 
 /// Heaven (Небо) — static pole of the one World; Spirit is Heaven.
-/// Only World raises / clears the pole (owning shell). Other shells do not.
+/// Only World raises the pole (ctor) and lowers it (dtor). Other shells do not.
 /// Pointers address Soul bases of heap-stable Man (unique_ptr).
 class Heaven {
 public:
@@ -31,15 +30,15 @@ protected:
 	/// Non-owning shell (Spirit / Soul). Does not touch static pole state.
 	Heaven() noexcept;
 
-	/// Owning shell (World). Raises the static pole.
+	/// Raise the static pole (World).
 	explicit Heaven(Eternity& eternity);
 
-	~Heaven();
+	~Heaven() = default;
 
-	Heaven(const Heaven& other) noexcept;
-	Heaven& operator=(const Heaven& other) noexcept;
-	Heaven(Heaven&& other) noexcept;
-	Heaven& operator=(Heaven&& other) noexcept;
+	Heaven(const Heaven&) noexcept = default;
+	Heaven& operator=(const Heaven&) noexcept = default;
+	Heaven(Heaven&&) noexcept = default;
+	Heaven& operator=(Heaven&&) noexcept = default;
 
 	/// Eternity of the raised pole. Throws if Heaven is not raised.
 	Eternity& eternity();
@@ -48,11 +47,10 @@ protected:
 	/// Index a soul owned by a heap-stable Man.
 	void index(const Soul& soul);
 
+	/// Lower the static pole (World dtor only).
+	void lower() noexcept;
+
 private:
-	void clear_pole() noexcept;
-
-	bool owns_pole_ = false;
-
 	static Eternity* eternity_;
 	static std::mutex mutex_;
 	static std::unordered_map<id::Soul, const Soul*> souls_;

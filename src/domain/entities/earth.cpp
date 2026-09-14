@@ -21,7 +21,6 @@ Earth::Earth() noexcept = default;
 
 
 Earth::Earth(Temporality& temporality)
-	: owns_pole_(true)
 {
 	std::lock_guard lock(mutex_);
 	if (temporality_ != nullptr)
@@ -38,48 +37,13 @@ Earth::Earth(Temporality& temporality)
 }
 
 
-Earth::~Earth()
-{
-	if (owns_pole_)
-		clear_pole();
-}
-
-
-Earth::Earth(const Earth&) noexcept
-	: owns_pole_(false)
-{}
-
-
-Earth& Earth::operator=(const Earth&) noexcept
-{
-	return *this;
-}
-
-
-Earth::Earth(Earth&& other) noexcept
-	: owns_pole_(std::exchange(other.owns_pole_, false))
-{}
-
-
-Earth& Earth::operator=(Earth&& other) noexcept
-{
-	if (this == &other)
-		return *this;
-	if (owns_pole_)
-		clear_pole();
-	owns_pole_ = std::exchange(other.owns_pole_, false);
-	return *this;
-}
-
-
-void Earth::clear_pole() noexcept
+void Earth::lower() noexcept
 {
 	std::lock_guard lock(mutex_);
 	vessels_.clear();
 	id_by_token_.clear();
 	abodes_.clear();
 	temporality_ = nullptr;
-	owns_pole_ = false;
 }
 
 
