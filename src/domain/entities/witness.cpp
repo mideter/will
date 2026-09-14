@@ -1,10 +1,8 @@
 #include "witness.h"
 
 #include "entities/abode.h"
-#include "entities/letter.h"
 
 #include <stdexcept>
-#include <vector>
 
 
 namespace will::domain {
@@ -22,17 +20,6 @@ void Witness::say(const Word& word) const
 		throw std::logic_error("Witness does not dwell in the observed abode");
 
 	fix(abode_->id(), Soul::id(), word);
-}
-
-
-void Witness::hear() const
-{
-	if (!abode_->dwells(*this))
-		throw std::logic_error("Witness does not dwell in the observed abode");
-
-	const std::vector<Letter> rows = letters(abode_->id(), 1);
-	if (rows.empty())
-		throw std::logic_error("Nothing to hear");
 }
 
 

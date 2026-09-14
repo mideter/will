@@ -8,16 +8,14 @@ namespace will::domain {
 
 
 /// Spirit (Дух) — highest foundation of the soul; Spirit is Heaven.
-/// Will (say) and hearing (hear) belong to spirit; only a living Witness enacts them.
+/// Will (say) belongs to spirit; only a living Witness enacts it.
+/// Hearing is the Witness himself, not a separate act.
 class Spirit : public Heaven {
 public:
 	virtual ~Spirit() = default;
 
 	/// Act of will: speak a word. Outside the living world this fails; Witness overrides.
 	virtual void say(const Word& word) const;
-
-	/// Act of hearing. Outside the living world this fails; Witness overrides.
-	virtual void hear() const;
 
 	bool operator==(const Spirit&) const = default;
 };

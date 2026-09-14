@@ -12,10 +12,4 @@ void Spirit::say(const Word&) const
 }
 
 
-void Spirit::hear() const
-{
-	throw std::logic_error("Spirit outside the living world cannot hear");
-}
-
-
 } // namespace will::domain

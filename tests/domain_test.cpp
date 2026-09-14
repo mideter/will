@@ -108,27 +108,6 @@ TEST_CASE("man say persists via temporality")
 }
 
 
-TEST_CASE("witness hear requires a letter")
-{
-	InMemoryTemporality temporality;
-	const id::Soul me{10};
-	const id::Soul other{20};
-
-	seed_man(temporality, me, test_token("c0ffee00c0ffee00c0ffee00c0ffee00"), test_name("menameaa"));
-	seed_man(temporality, other, test_token("deadbeefdeadbeefdeadbeefdeadbeef"), test_name("peername"));
-	World world(temporality);
-
-	const Man& listener = world.welcome(test_token("c0ffee00c0ffee00c0ffee00c0ffee00"));
-
-	CHECK_THROWS_AS(listener.hear(), std::logic_error);
-
-	temporality.fix(world.abode().id(), other, Word{"peer"});
-	temporality.fix(world.abode().id(), me, Word{"mine"});
-
-	CHECK_NOTHROW(listener.hear());
-}
-
-
 TEST_CASE("world letters is history through port")
 {
 	InMemoryTemporality temporality;
