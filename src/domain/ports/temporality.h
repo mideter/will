@@ -1,5 +1,6 @@
 #pragma once
 
+#include "entities/abode.h"
 #include "entities/letter.h"
 #include "identity/abode.h"
 #include "identity/soul.h"
@@ -20,6 +21,9 @@ public:
 	static constexpr std::uint32_t MaxLetterLimit = 1000;
 
 	~Temporality() override = default;
+
+	/// Abodes kept in time (id + name; dwellers are living World state).
+	virtual std::vector<Abode> abodes() = 0;
 
 	/// Fix a word in time: take the present from Time and keep the letter.
 	virtual void fix(id::Abode abode, id::Soul author, const Word& word) = 0;

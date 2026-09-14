@@ -2,7 +2,6 @@
 
 #include "entities/witness.h"
 #include "identity/abode.h"
-#include "values/abode_name.h"
 #include "values/soul_name.h"
 
 #include <stdexcept>
@@ -16,9 +15,14 @@ World::World(Temporality& temporality)
 	: Heaven(temporality)
 	, Earth(temporality)
 {
-	abodes_by_id_.emplace(
-		id::Abode::global(),
-		std::make_unique<Abode>(id::Abode::global(), AbodeName::global()));
+	auto places = Earth::abodes();
+	for (Abode& place : places) {
+		const id::Abode id = place.id();
+		abodes_by_id_.emplace(id, std::make_unique<Abode>(std::move(place)));
+	}
+
+	if (!abodes_by_id_.contains(id::Abode::global()))
+		throw std::logic_error("World requires the global abode");
 
 	for (Man man : eternity().men())
 		(void)accept(std::move(man));

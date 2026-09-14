@@ -1,5 +1,6 @@
 #include "earth.h"
 
+#include "entities/abode.h"
 #include "entities/vessel.h"
 #include "ports/temporality.h"
 
@@ -97,6 +98,14 @@ void Earth::fix(const id::Abode abode, const id::Soul author, const Word& word) 
 	if (temporality_ == nullptr)
 		throw std::logic_error("Earth is not raised");
 	temporality_->fix(abode, author, word);
+}
+
+
+std::vector<Abode> Earth::abodes() const
+{
+	if (temporality_ == nullptr)
+		throw std::logic_error("Earth is not raised");
+	return temporality_->abodes();
 }
 
 

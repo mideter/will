@@ -1,5 +1,6 @@
 #include "sqlite_temporality.h"
 
+#include "values/abode_name.h"
 #include "values/word.h"
 
 #include <algorithm>
@@ -123,6 +124,38 @@ domain::Man SqliteTemporality::enroll(const domain::DeviceToken& token, const do
 	tx.commit();
 
 	return domain::Man{man_id, domain::Soul{soul_id, name}, domain::Vessel{vessel_id, token}};
+}
+
+
+std::vector<domain::Abode> SqliteTemporality::abodes()
+{
+	std::lock_guard lock(database_.mutex());
+
+	sqlite3* const db = database_.db();
+	sqlite3_stmt* stmt = nullptr;
+	check_sqlite(sqlite3_prepare_v2(db, "SELECT id, name FROM abodes ORDER BY id;", -1, &stmt, nullptr),
+				 db, "prepare abodes");
+
+	std::vector<domain::Abode> abodes;
+
+	int rc = sqlite3_step(stmt);
+	while (rc == SQLITE_ROW) {
+		const domain::id::Abode id{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 0))};
+		const unsigned char* const name_text = sqlite3_column_text(stmt, 1);
+		if (!name_text)
+			throw std::runtime_error("abodes: missing name in database");
+
+		const auto name = domain::AbodeName::parse(reinterpret_cast<const char*>(name_text));
+		if (!name)
+			throw std::runtime_error("abodes: invalid name in database");
+
+		abodes.emplace_back(id, *name);
+		rc = sqlite3_step(stmt);
+	}
+
+	check_sqlite(rc, db, "abodes step");
+	sqlite3_finalize(stmt);
+	return abodes;
 }
 
 

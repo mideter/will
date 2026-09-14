@@ -113,6 +113,7 @@ void drop_legacy_tables(sqlite3* db)
 DROP TABLE IF EXISTS letters;
 DROP TABLE IF EXISTS men;
 DROP TABLE IF EXISTS vessels;
+DROP TABLE IF EXISTS abodes;
 DROP TABLE IF EXISTS messages;
 DROP TABLE IF EXISTS auth_sessions;
 DROP TABLE IF EXISTS otp_challenges;
@@ -241,6 +242,11 @@ CREATE TABLE IF NOT EXISTS men (
   vessel_id INTEGER NOT NULL UNIQUE REFERENCES vessels(id)
 );
 
+CREATE TABLE IF NOT EXISTS abodes (
+  id INTEGER PRIMARY KEY,
+  name TEXT NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS letters (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   abode_id INTEGER NOT NULL,
@@ -262,6 +268,10 @@ CREATE INDEX IF NOT EXISTS idx_letters_created_at ON letters(created_at_ns);
 	check_sqlite(sqlite3_exec(db_, "UPDATE letters SET abode_id = 1 WHERE abode_id = 0;", nullptr, nullptr,
 							  nullptr),
 				 db_, "migrate global abode_id");
+
+	check_sqlite(sqlite3_exec(db_, "INSERT OR IGNORE INTO abodes (id, name) VALUES (1, 'world');", nullptr,
+							  nullptr, nullptr),
+				 db_, "seed global abode");
 
 	if (table_has_column(db_, "souls", "id") && !table_has_column(db_, "souls", "name")) {
 		check_sqlite(sqlite3_exec(db_, "ALTER TABLE souls ADD COLUMN name TEXT NOT NULL DEFAULT '';", nullptr,

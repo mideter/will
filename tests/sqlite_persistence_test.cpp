@@ -6,6 +6,7 @@
 #include "sqlite_temporality.h"
 
 #include "identity/abode.h"
+#include "values/abode_name.h"
 #include "values/device_token.h"
 #include "identity/soul.h"
 #include "values/soul_name.h"
@@ -91,6 +92,10 @@ TEST_CASE("sqlite persistence survives reopen")
 
 		CHECK(world.knows(*soul_b_id));
 		CHECK(world.soul(*soul_b_id).name() == *name_b);
+
+		CHECK(world.knows(id::Abode::global()));
+		CHECK(world.abode().id() == id::Abode::global());
+		CHECK(world.abode().name().text() == "world");
 
 		CHECK_FALSE(world.knows(id::Soul{999999}));
 		CHECK_FALSE(world.knows(id::Vessel{999999}));

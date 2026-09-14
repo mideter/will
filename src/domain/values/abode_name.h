@@ -18,7 +18,7 @@ public:
 
 	static std::optional<AbodeName> parse(std::string_view input);
 
-	/// Name of the single global abode until a registry exists.
+	/// Name of the global abode (id 1).
 	static AbodeName global();
 
 	std::string_view text() const noexcept { return value_; }

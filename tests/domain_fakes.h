@@ -1,17 +1,20 @@
 #pragma once
 
 #include "entities/earth.h"
+#include "entities/abode.h"
 #include "entities/soul.h"
 #include "entities/heaven.h"
 #include "entities/letter.h"
 #include "entities/man.h"
 #include "entities/vessel.h"
 #include "entities/world.h"
+#include "identity/abode.h"
 #include "identity/man.h"
 #include "identity/soul.h"
 #include "identity/vessel.h"
 #include "ports/temporality.h"
 #include "ports/time.h"
+#include "values/abode_name.h"
 #include "values/device_token.h"
 #include "values/soul_name.h"
 #include "values/timestamp.h"
@@ -71,6 +74,15 @@ public:
 			next_man_id_ = man_id.value();
 	}
 
+	std::vector<Abode> abodes() override
+	{
+		std::vector<Abode> out;
+		out.reserve(abode_rows_.size());
+		for (const auto& [id, name] : abode_rows_)
+			out.emplace_back(id, name);
+		return out;
+	}
+
 	void fix(id::Abode abode, id::Soul author, const Word& word) override
 	{
 		letters_.push_back(Letter{id::Letter{++next_id_}, abode, author, word, time_.instant()});
@@ -98,6 +110,9 @@ private:
 	std::uint64_t next_man_id_ = 0;
 	std::uint64_t next_id_ = 0;
 	std::vector<Man> men_;
+	std::vector<std::pair<id::Abode, AbodeName>> abode_rows_{
+		{id::Abode::global(), AbodeName::global()},
+	};
 	std::vector<Letter> letters_;
 };
 

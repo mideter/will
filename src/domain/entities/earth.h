@@ -18,6 +18,7 @@
 namespace will::domain {
 
 
+class Abode;
 class Vessel;
 class Temporality;
 
@@ -31,6 +32,9 @@ public:
 
 	/// Living vessel by id. Throws if unknown.
 	const Vessel& vessel(id::Vessel id) const;
+
+	/// Abodes kept in Temporality (id + name).
+	std::vector<Abode> abodes() const;
 
 	/// Fix a word in time in an abode.
 	void fix(id::Abode abode, id::Soul author, const Word& word) const;
