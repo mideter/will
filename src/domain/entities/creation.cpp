@@ -9,7 +9,10 @@ namespace will::domain {
 
 Creation::Creation(Temporality& temporality)
 	: world_(Heaven{temporality}, Earth{temporality})
-{}
+{
+	static_cast<Earth&>(world_).index(static_cast<Abode&>(world_));
+	world_.awaken();
+}
 
 
 Creation::~Creation()

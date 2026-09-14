@@ -2,7 +2,6 @@
 
 #include <cstddef>
 #include <functional>
-#include <optional>
 #include <string>
 #include <string_view>
 
@@ -16,18 +15,15 @@ public:
 	static constexpr std::size_t MinLength = 1;
 	static constexpr std::size_t MaxLength = 32;
 
-	static std::optional<AbodeName> parse(std::string_view input);
-
-	/// Name of the global abode (id 1).
-	static AbodeName global();
+	/// Throws std::invalid_argument if input is not a valid abode name.
+	explicit AbodeName(std::string_view input);
 
 	std::string_view text() const noexcept { return value_; }
 
 	bool operator==(const AbodeName&) const = default;
+	bool operator==(std::string_view other) const noexcept { return value_ == other; }
 
 private:
-	explicit AbodeName(std::string value);
-
 	std::string value_;
 };
 

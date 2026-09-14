@@ -145,11 +145,7 @@ std::vector<domain::Abode> SqliteTemporality::abodes()
 		if (!name_text)
 			throw std::runtime_error("abodes: missing name in database");
 
-		const auto name = domain::AbodeName::parse(reinterpret_cast<const char*>(name_text));
-		if (!name)
-			throw std::runtime_error("abodes: invalid name in database");
-
-		abodes.emplace_back(id, *name);
+		abodes.emplace_back(id, domain::AbodeName{reinterpret_cast<const char*>(name_text)});
 		rc = sqlite3_step(stmt);
 	}
 

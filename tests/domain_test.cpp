@@ -37,15 +37,16 @@ SoulName test_name(const char* text)
 } // namespace
 
 
-TEST_CASE("world holds global abode in registry")
+TEST_CASE("world is the global abode")
 {
 	InMemoryTemporality temporality;
 	Creation creation(temporality);
 	World& world = creation.world();
 
 	CHECK(world.knows(id::Abode::global()));
-	CHECK(world.abode().name() == AbodeName::global());
-	CHECK(&world.abode(id::Abode::global()) == &world.abode());
+	CHECK(world.name() == "world");
+	CHECK(world.id() == id::Abode::global());
+	CHECK(&world.abode(id::Abode::global()) == static_cast<Abode*>(&world));
 	CHECK_THROWS_AS(world.abode(id::Abode{99}), std::logic_error);
 }
 
@@ -56,7 +57,7 @@ TEST_CASE("welcome creates man")
 	Creation creation(temporality);
 	World& world = creation.world();
 
-	CHECK(world.abode().name() == AbodeName::global());
+	CHECK(world.name() == "world");
 
 	const DeviceToken token = DeviceToken::generate();
 	const Man& man = world.welcome(token);
@@ -64,8 +65,8 @@ TEST_CASE("welcome creates man")
 	CHECK(man.Soul::id().value() > 0);
 	CHECK(man.id().value() > 0);
 	CHECK(man.Vessel::id().value() > 0);
-	CHECK(world.abode().dwells(man));
-	CHECK(&static_cast<const Witness&>(man).abode() == &world.abode());
+	CHECK(world.dwells(man));
+	CHECK(&static_cast<const Witness&>(man).abode() == static_cast<Abode*>(&world));
 	CHECK(world.knows(man.Vessel::id()));
 	CHECK(world.knows(man.Soul::id()));
 
@@ -90,8 +91,8 @@ TEST_CASE("welcome existing man")
 
 	const Man& man = world.welcome(test_token("abcd1234abcd1234abcd1234abcd1234"));
 	CHECK(man.Soul::id() == id::Soul{42});
-	CHECK(world.abode().dwells(man));
-	CHECK(&static_cast<const Witness&>(man).abode() == &world.abode());
+	CHECK(world.dwells(man));
+	CHECK(&static_cast<const Witness&>(man).abode() == static_cast<Abode*>(&world));
 }
 
 
@@ -117,7 +118,7 @@ TEST_CASE("man say persists via temporality")
 	const Man& author = world.welcome(DeviceToken::generate());
 	author.say(Word{"hello"});
 
-	const auto loaded = temporality.letters(world.abode().id(), 10);
+	const auto loaded = temporality.letters(world.id(), 10);
 	REQUIRE(loaded.size() == 1);
 	CHECK(loaded[0].author_id() == author.Soul::id());
 	CHECK(loaded[0].body() == "hello");

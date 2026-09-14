@@ -122,7 +122,7 @@ private:
 	mutable std::uint64_t next_id_ = 0;
 	std::vector<Man> men_;
 	std::vector<std::pair<id::Abode, AbodeName>> abode_rows_{
-		{id::Abode::global(), AbodeName::global()},
+		{id::Abode::global(), AbodeName{"world"}},
 	};
 	std::vector<std::pair<id::Abode, id::Man>> abode_men_;
 	mutable std::vector<Letter> letters_;

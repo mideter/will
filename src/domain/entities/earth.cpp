@@ -14,7 +14,8 @@ Temporality* Earth::temporality_ = nullptr;
 std::mutex Earth::mutex_;
 std::unordered_map<id::Vessel, const Vessel*> Earth::vessels_;
 std::unordered_map<DeviceToken, id::Vessel> Earth::id_by_token_;
-std::unordered_map<id::Abode, std::unique_ptr<Abode>> Earth::abodes_;
+std::unordered_map<id::Abode, Abode*> Earth::abodes_;
+std::unordered_map<id::Abode, std::unique_ptr<Abode>> Earth::owned_abodes_;
 
 
 Earth::Earth() noexcept = default;
@@ -27,13 +28,21 @@ Earth::Earth(Temporality& temporality)
 		throw std::logic_error("Only one World");
 	temporality_ = &temporality;
 
+	bool saw_world_abode = false;
 	for (Abode& place : temporality.abodes()) {
 		const id::Abode id = place.id();
-		abodes_.emplace(id, std::make_unique<Abode>(std::move(place)));
+		if (id == id::Abode::global()) {
+			saw_world_abode = true;
+			continue; // Creation indexes the living World
+		}
+		auto owned = std::make_unique<Abode>(std::move(place));
+		Abode* raw = owned.get();
+		owned_abodes_.emplace(id, std::move(owned));
+		abodes_.emplace(id, raw);
 	}
 
-	if (!abodes_.contains(id::Abode::global()))
-		throw std::logic_error("Earth requires the global abode");
+	if (!saw_world_abode)
+		throw std::logic_error("Earth requires the world abode in Temporality");
 }
 
 
@@ -43,6 +52,7 @@ void Earth::roll() noexcept
 	vessels_.clear();
 	id_by_token_.clear();
 	abodes_.clear();
+	owned_abodes_.clear();
 	temporality_ = nullptr;
 }
 
@@ -135,11 +145,24 @@ void Earth::index(const Vessel& vessel)
 }
 
 
-void Earth::index(Abode place)
+void Earth::index(Abode& place)
+{
+	std::lock_guard lock(mutex_);
+	abodes_.insert_or_assign(place.id(), &place);
+}
+
+
+void Earth::index(Abode&& place)
 {
 	const id::Abode id = place.id();
+	if (id == id::Abode::global())
+		throw std::logic_error("World is the global abode");
+
+	auto owned = std::make_unique<Abode>(std::move(place));
+	Abode* raw = owned.get();
 	std::lock_guard lock(mutex_);
-	abodes_.insert_or_assign(id, std::make_unique<Abode>(std::move(place)));
+	owned_abodes_.insert_or_assign(id, std::move(owned));
+	abodes_.insert_or_assign(id, raw);
 }
 
 

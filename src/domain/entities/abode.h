@@ -12,7 +12,7 @@
 namespace will::domain {
 
 
-/// Abode (Обитель) — named place of communion in the World.
+/// Abode (Обитель) — named place of communion.
 /// Dwellers: men who participate here (many abodes per man).
 /// A living Witness observes one abode; focus implies dwelling there.
 /// Movable: Temporality may hand id+name snapshots; dwellers fill in the living World.

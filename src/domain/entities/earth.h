@@ -23,13 +23,13 @@ class Temporality;
 
 /// Earth (Земля) — of the one World; Dust is Earth.
 /// Creation brings forth Earth and rolls it up. Other shells do not.
-/// Public API: live registry of vessels and abodes. Temporality is protected.
+/// Live registry of vessels and abodes (World as global, others owned here).
 class Earth {
 public:
 	/// Whether Earth knows this vessel.
 	bool knows(id::Vessel id) const;
 
-	/// Whether Earth holds this abode.
+	/// Whether Earth holds this abode (including the World).
 	bool knows(id::Abode id) const;
 
 	/// Living vessel by id. Throws if unknown.
@@ -39,10 +39,6 @@ public:
 	Abode& abode(id::Abode id);
 	const Abode& abode(id::Abode id) const;
 
-	/// Global abode (id 1) — default until birth/choice of others.
-	Abode& abode() { return abode(id::Abode::global()); }
-	const Abode& abode() const { return abode(id::Abode::global()); }
-
 	bool operator==(const Earth&) const noexcept { return true; }
 
 protected:
@@ -51,7 +47,7 @@ protected:
 	/// Non-owning shell (Dust / Vessel). Does not bring forth or roll Earth.
 	Earth() noexcept;
 
-	/// Bring forth Earth (Creation).
+	/// Bring forth Earth (Creation). Loads secondary abodes; World is indexed later.
 	explicit Earth(Temporality& temporality);
 
 	~Earth() = default;
@@ -71,8 +67,11 @@ protected:
 	/// Index a vessel owned by a heap-stable Man.
 	void index(const Vessel& vessel);
 
-	/// Register a living abode (from Temporality snapshot or birth).
-	void index(Abode place);
+	/// Non-owning index (Creation registers the World-abode).
+	void index(Abode& place);
+
+	/// Own and index a secondary abode (from Temporality snapshot or birth).
+	void index(Abode&& place);
 
 	/// Resolve device token to vessel id for World::welcome. Empty if unknown.
 	std::optional<id::Vessel> id_of(const DeviceToken& token) const;
@@ -85,7 +84,8 @@ private:
 	static std::mutex mutex_;
 	static std::unordered_map<id::Vessel, const Vessel*> vessels_;
 	static std::unordered_map<DeviceToken, id::Vessel> id_by_token_;
-	static std::unordered_map<id::Abode, std::unique_ptr<Abode>> abodes_;
+	static std::unordered_map<id::Abode, Abode*> abodes_;
+	static std::unordered_map<id::Abode, std::unique_ptr<Abode>> owned_abodes_;
 };
 
 

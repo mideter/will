@@ -1,8 +1,8 @@
 #include "world.h"
 
 #include "entities/witness.h"
-#include "identity/abode.h"
 #include "ports/temporality.h"
+#include "values/abode_name.h"
 #include "values/soul_name.h"
 
 #include <stdexcept>
@@ -15,6 +15,11 @@ namespace will::domain {
 World::World(Heaven heaven, Earth earth)
 	: Heaven(std::move(heaven))
 	, Earth(std::move(earth))
+	, Abode(id::Abode::global(), AbodeName{"world"})
+{}
+
+
+void World::awaken()
 {
 	for (Man man : eternity().men())
 		(void)accept(std::move(man));
@@ -56,7 +61,7 @@ const Man& World::beget(const DeviceToken& token)
 
 const Man& World::accept(Man&& man)
 {
-	Abode& place = abode();
+	Abode& place = *this;
 	auto ptr = std::make_unique<Witness>(std::move(man), place);
 	// Witness stays on the heap; moving unique_ptr does not invalidate these references.
 	Man& live = *ptr;

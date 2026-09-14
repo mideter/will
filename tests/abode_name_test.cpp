@@ -3,30 +3,26 @@
 
 #include "values/abode_name.h"
 
+#include <stdexcept>
+#include <string>
+
 
 using namespace will::domain;
 
 
-TEST_CASE("AbodeName::parse accepts valid names")
+TEST_CASE("AbodeName ctor accepts valid names")
 {
-	CHECK(AbodeName::parse("a"));
-	CHECK(AbodeName::parse("world"));
-	CHECK(AbodeName::parse("abode01"));
-	CHECK(AbodeName::parse(std::string(AbodeName::MaxLength, 'x')));
+	CHECK(AbodeName{"a"} == "a");
+	CHECK(AbodeName{"world"} == "world");
+	CHECK(AbodeName{"abode01"} == "abode01");
+	CHECK(AbodeName{std::string(AbodeName::MaxLength, 'x')}.text().size() == AbodeName::MaxLength);
 }
 
 
-TEST_CASE("AbodeName::parse rejects invalid names")
+TEST_CASE("AbodeName ctor rejects invalid names")
 {
-	CHECK_FALSE(AbodeName::parse(""));
-	CHECK_FALSE(AbodeName::parse("World"));
-	CHECK_FALSE(AbodeName::parse("abode-1"));
-	CHECK_FALSE(AbodeName::parse(std::string(AbodeName::MaxLength + 1, 'x')));
-}
-
-
-TEST_CASE("AbodeName::global is parseable world")
-{
-	CHECK(AbodeName::global().text() == "world");
-	CHECK(AbodeName::parse(AbodeName::global().text()));
+	CHECK_THROWS_AS(AbodeName{""}, std::invalid_argument);
+	CHECK_THROWS_AS(AbodeName{"World"}, std::invalid_argument);
+	CHECK_THROWS_AS(AbodeName{"abode-1"}, std::invalid_argument);
+	CHECK_THROWS_AS(AbodeName{std::string(AbodeName::MaxLength + 1, 'x')}, std::invalid_argument);
 }

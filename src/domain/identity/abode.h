@@ -8,7 +8,7 @@
 namespace will::domain::id {
 
 
-/// Persistent abode identity. The single global abode is id 1 (see global()).
+/// Persistent abode identity. The World abode is id 1 (see global()).
 class Abode : public Id {
 public:
 	explicit Abode(std::uint64_t value) : Id(value) {}
