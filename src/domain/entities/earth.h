@@ -21,7 +21,7 @@ class Vessel;
 class Temporality;
 
 
-/// Earth (Земля) — of the one World; Dust is Earth.
+/// Earth (Земля) — of the one World.
 /// Creation brings forth Earth and rolls it up. Other shells do not.
 /// Live registry of vessels and abodes (World as global, others owned here).
 class Earth {

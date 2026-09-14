@@ -6,8 +6,8 @@
 namespace will::domain {
 
 
-/// Dust (Прах) — earthly foundation of the vessel; Dust is Earth.
-class Dust : public Earth {
+/// Dust (Прах) — earthly foundation of the vessel; Dust is Earth (protected).
+class Dust : protected Earth {
 public:
 	bool operator==(const Dust&) const = default;
 };
