@@ -1,15 +1,16 @@
 #pragma once
 
 #include "identity/abode.h"
-#include "identity/soul.h"
+#include "identity/man.h"
 #include "identity/vessel.h"
 #include "values/device_token.h"
-#include "values/word.h"
 
 #include <memory>
 #include <mutex>
 #include <optional>
 #include <unordered_map>
+#include <utility>
+#include <vector>
 
 
 namespace will::domain {
@@ -19,56 +20,46 @@ class Abode;
 class Letter;
 class Vessel;
 class Temporality;
+class World;
 
 
-/// Earth (Земля) — of the one World.
-/// Creation brings forth Earth and rolls it up. Other shells do not.
-/// Live registry of vessels and abodes (World as global, others owned here).
+/// Earth (Земля) — of the one World; speaks with Temporality.
+/// Dust reaches Temporality via friendship. Creation brings forth Earth.
+/// Live registry of vessels and secondary abodes; global abode is the World itself.
 class Earth {
 public:
+	/// The one living Earth. Throws if not yet brought forth / already destroyed.
+	static Earth& the();
+
 	/// Whether Earth knows this vessel.
 	bool knows(id::Vessel id) const;
 
-	/// Whether Earth holds this abode (including the World).
+	/// Whether Earth holds this abode (World as global, others owned here).
 	bool knows(id::Abode id) const;
 
 	/// Living vessel by id. Throws if unknown.
 	const Vessel& vessel(id::Vessel id) const;
 
-	/// Living abode by id. Throws if unknown.
+	/// Living abode by id. Global abode is World via cast. Throws if unknown.
 	Abode& abode(id::Abode id);
 	const Abode& abode(id::Abode id) const;
 
-	bool operator==(const Earth&) const noexcept { return true; }
-
 protected:
 	friend class Creation;
+	friend class Dust;
 
-	/// Non-owning shell (Dust / Vessel). Does not bring forth or roll Earth.
-	Earth() noexcept;
-
-	/// Bring forth Earth (Creation). Loads secondary abodes; World is indexed later.
+	/// Bring forth Earth (Creation). Loads secondary abodes; World is the global abode.
 	explicit Earth(Temporality& temporality);
 
-	~Earth() = default;
+	~Earth();
 
-	Earth(const Earth&) noexcept = default;
-	Earth& operator=(const Earth&) noexcept = default;
-	Earth(Earth&&) noexcept = default;
-	Earth& operator=(Earth&&) noexcept = default;
-
-	/// Temporality once Earth is brought forth. Throws otherwise.
-	Temporality& temporality();
-	const Temporality& temporality() const;
-
-	/// Fix a word in time (Dust / Witness).
-	void fix(id::Abode abode, id::Soul author, const Word& word) const;
+	Earth(const Earth&) = delete;
+	Earth& operator=(const Earth&) = delete;
+	Earth(Earth&& other) noexcept;
+	Earth& operator=(Earth&&) = delete;
 
 	/// Index a vessel owned by a heap-stable Man.
 	void index(const Vessel& vessel);
-
-	/// Non-owning index (Creation registers the World-abode).
-	void index(Abode& place);
 
 	/// Own and index a secondary abode (from Temporality snapshot or birth).
 	void index(Abode&& place);
@@ -76,16 +67,21 @@ protected:
 	/// Resolve device token to vessel id for World::welcome. Empty if unknown.
 	std::optional<id::Vessel> id_of(const DeviceToken& token) const;
 
-	/// Roll up Earth (Creation dtor only).
-	void roll() noexcept;
+	/// Record that a man dwells in an abode (through Temporality).
+	void join_abode(id::Abode abode, id::Man man);
+
+	/// Membership rows for restoring live abodes (through Temporality).
+	std::vector<std::pair<id::Abode, id::Man>> abode_men() const;
 
 private:
-	static Temporality* temporality_;
-	static std::mutex mutex_;
-	static std::unordered_map<id::Vessel, const Vessel*> vessels_;
-	static std::unordered_map<DeviceToken, id::Vessel> id_by_token_;
-	static std::unordered_map<id::Abode, Abode*> abodes_;
-	static std::unordered_map<id::Abode, std::unique_ptr<Abode>> owned_abodes_;
+	static Earth* current_;
+
+	Temporality& temporality_;
+	mutable std::mutex mutex_;
+	std::unordered_map<id::Vessel, const Vessel*> vessels_;
+	std::unordered_map<DeviceToken, id::Vessel> id_by_token_;
+	std::unordered_map<id::Abode, Abode*> abodes_;
+	std::unordered_map<id::Abode, std::unique_ptr<Abode>> owned_abodes_;
 };
 
 

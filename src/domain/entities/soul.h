@@ -8,7 +8,7 @@
 namespace will::domain {
 
 
-/// Soul (Душа) — enduring identity of a person; inherits Spirit (which is Heaven).
+/// Soul (Душа) — enduring identity of a person; inherits Spirit.
 class Soul : public Spirit {
 public:
 	Soul(id::Soul id, SoulName name);

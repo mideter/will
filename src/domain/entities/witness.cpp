@@ -21,7 +21,7 @@ void Witness::say(const Word& word) const
 	if (!abode_->dwells(*this))
 		throw std::logic_error("Witness does not dwell in the observed abode");
 
-	fix(abode_->id(), Soul::id(), word);
+	temporality().fix(abode_->id(), Soul::id(), word);
 }
 
 

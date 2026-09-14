@@ -4,49 +4,57 @@
 #include "ports/eternity.h"
 
 #include <stdexcept>
+#include <utility>
 
 
 namespace will::domain {
 
 
-Eternity* Heaven::eternity_ = nullptr;
-std::mutex Heaven::mutex_;
-std::unordered_map<id::Soul, const Soul*> Heaven::souls_;
+Heaven* Heaven::current_ = nullptr;
 
 
-Heaven::Heaven() noexcept = default;
-
-
-Heaven::Heaven(Eternity& eternity)
+Heaven& Heaven::the()
 {
-	std::lock_guard lock(mutex_);
-	if (eternity_ != nullptr)
-		throw std::logic_error("Only one World");
-	eternity_ = &eternity;
+	if (current_ == nullptr)
+		throw std::logic_error("Heaven has not been brought forth");
+	return *current_;
 }
 
 
-void Heaven::roll() noexcept
+Heaven::Heaven(Eternity& eternity)
+	: eternity_(eternity)
 {
-	std::lock_guard lock(mutex_);
-	souls_.clear();
-	eternity_ = nullptr;
+	if (current_ != nullptr)
+		throw std::logic_error("Only one World");
+	current_ = this;
+}
+
+
+Heaven::Heaven(Heaven&& other) noexcept
+	: eternity_(other.eternity_)
+	, souls_(std::move(other.souls_))
+{
+	if (current_ == &other)
+		current_ = this;
+}
+
+
+Heaven::~Heaven()
+{
+	if (current_ == this)
+		current_ = nullptr;
 }
 
 
 Eternity& Heaven::eternity()
 {
-	if (eternity_ == nullptr)
-		throw std::logic_error("Heaven has not been brought forth");
-	return *eternity_;
+	return eternity_;
 }
 
 
 const Eternity& Heaven::eternity() const
 {
-	if (eternity_ == nullptr)
-		throw std::logic_error("Heaven has not been brought forth");
-	return *eternity_;
+	return eternity_;
 }
 
 

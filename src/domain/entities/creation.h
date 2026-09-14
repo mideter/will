@@ -8,12 +8,11 @@ namespace will::domain {
 
 
 /// Creation (Творение) — genesis: brings forth Heaven and Earth, the World,
-/// indexes the World-abode on Earth, awakens the living cosmos, and rolls them
-/// up when creation ends.
+/// and awakens the living cosmos.
 class Creation {
 public:
 	explicit Creation(Temporality& temporality);
-	~Creation();
+	~Creation() = default;
 
 	Creation(const Creation&) = delete;
 	Creation& operator=(const Creation&) = delete;

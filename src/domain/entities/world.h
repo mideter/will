@@ -22,7 +22,7 @@ namespace will::domain {
 /// The World itself is the global abode (id 1, name "world").
 /// Brought forth only by Creation with Heaven and Earth already brought forth.
 /// Living people are Witness on the heap (unique_ptr<Man>);
-/// Eternity still deals in Man values. Heaven and Earth are rolled up by Creation.
+/// Eternity still deals in Man values. Heaven and Earth live with the World.
 class World : public Heaven, public Earth, public Abode {
 public:
 	using Heaven::knows;

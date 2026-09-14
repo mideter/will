@@ -1,7 +1,6 @@
 #include "world.h"
 
 #include "entities/witness.h"
-#include "ports/temporality.h"
 #include "values/abode_name.h"
 #include "values/soul_name.h"
 
@@ -76,7 +75,7 @@ const Man& World::accept(Man&& man)
 	Heaven::index(soul);
 	Earth::index(vessel);
 	place.admit(live);
-	temporality().join_abode(place.id(), man_id);
+	join_abode(place.id(), man_id);
 	return live;
 }
 
@@ -95,7 +94,7 @@ const Man& World::living_man(const id::Man id) const
 
 void World::restore_dwellers()
 {
-	for (const auto& [abode_id, man_id] : temporality().abode_men()) {
+	for (const auto& [abode_id, man_id] : abode_men()) {
 		if (!knows(abode_id))
 			continue;
 

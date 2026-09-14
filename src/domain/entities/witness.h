@@ -14,7 +14,7 @@ namespace will::domain {
 
 /// Witness (Свидетель) — living man; source of will in the waking world.
 /// Created in World::accept from an Eternity Man snapshot; stored as Man.
-/// Focus is Abode. Witnesses both ways: say inward, retell outward (through Dust/Earth).
+/// Focus is Abode. Witnesses both ways: say inward, retell outward.
 class Witness : public Man {
 public:
 	Witness(Man&& man, Abode& abode) noexcept;

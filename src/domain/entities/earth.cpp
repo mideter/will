@@ -2,38 +2,39 @@
 
 #include "entities/abode.h"
 #include "entities/vessel.h"
+#include "entities/world.h"
 #include "ports/temporality.h"
 
 #include <stdexcept>
+#include <utility>
 
 
 namespace will::domain {
 
 
-Temporality* Earth::temporality_ = nullptr;
-std::mutex Earth::mutex_;
-std::unordered_map<id::Vessel, const Vessel*> Earth::vessels_;
-std::unordered_map<DeviceToken, id::Vessel> Earth::id_by_token_;
-std::unordered_map<id::Abode, Abode*> Earth::abodes_;
-std::unordered_map<id::Abode, std::unique_ptr<Abode>> Earth::owned_abodes_;
+Earth* Earth::current_ = nullptr;
 
 
-Earth::Earth() noexcept = default;
+Earth& Earth::the()
+{
+	if (current_ == nullptr)
+		throw std::logic_error("Earth has not been brought forth");
+	return *current_;
+}
 
 
 Earth::Earth(Temporality& temporality)
+	: temporality_(temporality)
 {
-	std::lock_guard lock(mutex_);
-	if (temporality_ != nullptr)
+	if (current_ != nullptr)
 		throw std::logic_error("Only one World");
-	temporality_ = &temporality;
 
 	bool saw_world_abode = false;
 	for (Abode& place : temporality.abodes()) {
 		const id::Abode id = place.id();
 		if (id == id::Abode::global()) {
 			saw_world_abode = true;
-			continue; // Creation indexes the living World
+			continue; // World itself is the global abode
 		}
 		auto owned = std::make_unique<Abode>(std::move(place));
 		Abode* raw = owned.get();
@@ -43,33 +44,27 @@ Earth::Earth(Temporality& temporality)
 
 	if (!saw_world_abode)
 		throw std::logic_error("Earth requires the world abode in Temporality");
+
+	current_ = this;
 }
 
 
-void Earth::roll() noexcept
+Earth::Earth(Earth&& other) noexcept
+	: temporality_(other.temporality_)
+	, vessels_(std::move(other.vessels_))
+	, id_by_token_(std::move(other.id_by_token_))
+	, abodes_(std::move(other.abodes_))
+	, owned_abodes_(std::move(other.owned_abodes_))
 {
-	std::lock_guard lock(mutex_);
-	vessels_.clear();
-	id_by_token_.clear();
-	abodes_.clear();
-	owned_abodes_.clear();
-	temporality_ = nullptr;
+	if (current_ == &other)
+		current_ = this;
 }
 
 
-Temporality& Earth::temporality()
+Earth::~Earth()
 {
-	if (temporality_ == nullptr)
-		throw std::logic_error("Earth has not been brought forth");
-	return *temporality_;
-}
-
-
-const Temporality& Earth::temporality() const
-{
-	if (temporality_ == nullptr)
-		throw std::logic_error("Earth has not been brought forth");
-	return *temporality_;
+	if (current_ == this)
+		current_ = nullptr;
 }
 
 
@@ -82,6 +77,9 @@ bool Earth::knows(const id::Vessel id) const
 
 bool Earth::knows(const id::Abode id) const
 {
+	if (id == id::Abode::global())
+		return current_ == this;
+
 	std::lock_guard lock(mutex_);
 	return abodes_.contains(id);
 }
@@ -89,6 +87,9 @@ bool Earth::knows(const id::Abode id) const
 
 Abode& Earth::abode(const id::Abode id)
 {
+	if (id == id::Abode::global())
+		return static_cast<Abode&>(static_cast<World&>(*this));
+
 	std::lock_guard lock(mutex_);
 	const auto it = abodes_.find(id);
 	if (it == abodes_.end() || !it->second)
@@ -99,6 +100,9 @@ Abode& Earth::abode(const id::Abode id)
 
 const Abode& Earth::abode(const id::Abode id) const
 {
+	if (id == id::Abode::global())
+		return static_cast<const Abode&>(static_cast<const World&>(*this));
+
 	std::lock_guard lock(mutex_);
 	const auto it = abodes_.find(id);
 	if (it == abodes_.end() || !it->second)
@@ -116,12 +120,6 @@ const Vessel& Earth::vessel(const id::Vessel id) const
 		throw std::logic_error("Earth does not know this vessel");
 
 	return *it->second;
-}
-
-
-void Earth::fix(const id::Abode abode, const id::Soul author, const Word& word) const
-{
-	temporality().fix(abode, author, word);
 }
 
 
@@ -145,13 +143,6 @@ void Earth::index(const Vessel& vessel)
 }
 
 
-void Earth::index(Abode& place)
-{
-	std::lock_guard lock(mutex_);
-	abodes_.insert_or_assign(place.id(), &place);
-}
-
-
 void Earth::index(Abode&& place)
 {
 	const id::Abode id = place.id();
@@ -163,6 +154,18 @@ void Earth::index(Abode&& place)
 	std::lock_guard lock(mutex_);
 	owned_abodes_.insert_or_assign(id, std::move(owned));
 	abodes_.insert_or_assign(id, raw);
+}
+
+
+void Earth::join_abode(const id::Abode abode, const id::Man man)
+{
+	temporality_.join_abode(abode, man);
+}
+
+
+std::vector<std::pair<id::Abode, id::Man>> Earth::abode_men() const
+{
+	return temporality_.abode_men();
 }
 
 
