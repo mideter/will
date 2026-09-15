@@ -37,36 +37,24 @@ SoulName test_name(const char* text)
 } // namespace
 
 
-TEST_CASE("world is the global abode")
+TEST_CASE("welcome creates man with personal abode")
 {
 	InMemoryTemporality temporality;
 	Creation creation(temporality);
 	World& world = creation.world();
-
-	CHECK(world.knows(id::Abode::global()));
-	CHECK(world.name() == "world");
-	CHECK(world.id() == id::Abode::global());
-	CHECK(&world.abode(id::Abode::global()) == static_cast<Abode*>(&world));
-	CHECK_THROWS_AS(world.abode(id::Abode{99}), std::logic_error);
-}
-
-
-TEST_CASE("welcome creates man")
-{
-	InMemoryTemporality temporality;
-	Creation creation(temporality);
-	World& world = creation.world();
-
-	CHECK(world.name() == "world");
 
 	const DeviceToken token = DeviceToken::generate();
 	const Man& man = world.welcome(token);
+	const auto& witness = static_cast<const Witness&>(man);
+	const id::Abode own{man.id().value()};
 
 	CHECK(man.Soul::id().value() > 0);
 	CHECK(man.id().value() > 0);
 	CHECK(man.Vessel::id().value() > 0);
-	CHECK(world.dwells(man));
-	CHECK(&static_cast<const Witness&>(man).abode() == static_cast<Abode*>(&world));
+	CHECK(world.knows(own));
+	CHECK(witness.abode().id() == own);
+	CHECK(witness.abode().dwells(man));
+	CHECK(&witness.abode() == &world.abode(own));
 	CHECK(world.knows(man.Vessel::id()));
 	CHECK(world.knows(man.Soul::id()));
 
@@ -79,6 +67,7 @@ TEST_CASE("welcome creates man")
 	const Soul& soul = world.soul(man.Soul::id());
 	CHECK(&soul == static_cast<const Soul*>(&man));
 	CHECK(SoulName::parse(soul.name().text()));
+	CHECK_THROWS_AS(world.abode(id::Abode{99}), std::logic_error);
 }
 
 
@@ -91,8 +80,8 @@ TEST_CASE("welcome existing man")
 
 	const Man& man = world.welcome(test_token("abcd1234abcd1234abcd1234abcd1234"));
 	CHECK(man.Soul::id() == id::Soul{42});
-	CHECK(world.dwells(man));
-	CHECK(&static_cast<const Witness&>(man).abode() == static_cast<Abode*>(&world));
+	CHECK(static_cast<const Witness&>(man).abode().dwells(man));
+	CHECK(static_cast<const Witness&>(man).abode().id() == id::Abode{man.id().value()});
 }
 
 
@@ -109,6 +98,26 @@ TEST_CASE("welcome keeps existing name")
 }
 
 
+TEST_CASE("each man has a distinct personal abode")
+{
+	InMemoryTemporality temporality;
+	Creation creation(temporality);
+	World& world = creation.world();
+
+	const Man& a = world.welcome(DeviceToken::generate());
+	const Man& b = world.welcome(DeviceToken::generate());
+	const auto& wa = static_cast<const Witness&>(a);
+	const auto& wb = static_cast<const Witness&>(b);
+
+	CHECK(wa.abode().id() != wb.abode().id());
+	CHECK(&wa.abode() != &wb.abode());
+	CHECK(wa.abode().dwells(a));
+	CHECK_FALSE(wa.abode().dwells(b));
+	CHECK(wb.abode().dwells(b));
+	CHECK_FALSE(wb.abode().dwells(a));
+}
+
+
 TEST_CASE("man say persists via temporality")
 {
 	InMemoryTemporality temporality;
@@ -116,9 +125,10 @@ TEST_CASE("man say persists via temporality")
 	World& world = creation.world();
 
 	const Man& author = world.welcome(DeviceToken::generate());
+	const auto& witness = static_cast<const Witness&>(author);
 	author.say(Word{"hello"});
 
-	const auto loaded = temporality.letters(world.id(), 10);
+	const auto loaded = temporality.letters(witness.abode().id(), 10);
 	REQUIRE(loaded.size() == 1);
 	CHECK(loaded[0].author_id() == author.Soul::id());
 	CHECK(loaded[0].body() == "hello");

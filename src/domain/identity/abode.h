@@ -8,7 +8,8 @@
 namespace will::domain::id {
 
 
-/// Persistent abode identity. The World abode is id 1 (see global()).
+/// Persistent abode identity. Personal abode id matches the host man id.
+/// Id 1 may remain as an orphan letter tail from the former global abode.
 class Abode : public Id {
 public:
 	explicit Abode(std::uint64_t value) : Id(value) {}

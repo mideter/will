@@ -1,8 +1,6 @@
 #include "earth.h"
 
-#include "entities/abode.h"
 #include "entities/vessel.h"
-#include "entities/world.h"
 #include "ports/temporality.h"
 
 #include <stdexcept>
@@ -29,22 +27,6 @@ Earth::Earth(Temporality& temporality)
 	if (current_ != nullptr)
 		throw std::logic_error("Only one World");
 
-	bool saw_world_abode = false;
-	for (Abode& place : temporality.abodes()) {
-		const id::Abode id = place.id();
-		if (id == id::Abode::global()) {
-			saw_world_abode = true;
-			continue; // World itself is the global abode
-		}
-		auto owned = std::make_unique<Abode>(std::move(place));
-		Abode* raw = owned.get();
-		owned_abodes_.emplace(id, std::move(owned));
-		abodes_.emplace(id, raw);
-	}
-
-	if (!saw_world_abode)
-		throw std::logic_error("Earth requires the world abode in Temporality");
-
 	current_ = this;
 }
 
@@ -53,8 +35,6 @@ Earth::Earth(Earth&& other) noexcept
 	: temporality_(other.temporality_)
 	, vessels_(std::move(other.vessels_))
 	, id_by_token_(std::move(other.id_by_token_))
-	, abodes_(std::move(other.abodes_))
-	, owned_abodes_(std::move(other.owned_abodes_))
 {
 	if (current_ == &other)
 		current_ = this;
@@ -72,42 +52,6 @@ bool Earth::knows(const id::Vessel id) const
 {
 	std::lock_guard lock(mutex_);
 	return vessels_.contains(id);
-}
-
-
-bool Earth::knows(const id::Abode id) const
-{
-	if (id == id::Abode::global())
-		return current_ == this;
-
-	std::lock_guard lock(mutex_);
-	return abodes_.contains(id);
-}
-
-
-Abode& Earth::abode(const id::Abode id)
-{
-	if (id == id::Abode::global())
-		return static_cast<Abode&>(static_cast<World&>(*this));
-
-	std::lock_guard lock(mutex_);
-	const auto it = abodes_.find(id);
-	if (it == abodes_.end() || !it->second)
-		throw std::logic_error("Earth does not know this abode");
-	return *it->second;
-}
-
-
-const Abode& Earth::abode(const id::Abode id) const
-{
-	if (id == id::Abode::global())
-		return static_cast<const Abode&>(static_cast<const World&>(*this));
-
-	std::lock_guard lock(mutex_);
-	const auto it = abodes_.find(id);
-	if (it == abodes_.end() || !it->second)
-		throw std::logic_error("Earth does not know this abode");
-	return *it->second;
 }
 
 
@@ -143,17 +87,9 @@ void Earth::index(const Vessel& vessel)
 }
 
 
-void Earth::index(Abode&& place)
+void Earth::keep(const id::Abode id, AbodeName name)
 {
-	const id::Abode id = place.id();
-	if (id == id::Abode::global())
-		throw std::logic_error("World is the global abode");
-
-	auto owned = std::make_unique<Abode>(std::move(place));
-	Abode* raw = owned.get();
-	std::lock_guard lock(mutex_);
-	owned_abodes_.insert_or_assign(id, std::move(owned));
-	abodes_.insert_or_assign(id, raw);
+	temporality_.keep(id, std::move(name));
 }
 
 

@@ -156,7 +156,7 @@ void wait_for_server(std::uint16_t port)
 } // namespace
 
 
-TEST_CASE("history request returns letters with is_mine")
+TEST_CASE("history request returns letters of the witness abode with is_mine")
 {
 	const std::uint16_t port = pick_port();
 	const std::string db_path = "/tmp/will-history-test-" + std::to_string(getpid()) + ".db";
@@ -178,17 +178,10 @@ TEST_CASE("history request returns letters with is_mine")
 	bind_device_token(*viewer.stream, ViewerToken);
 	send_history_request(*viewer.stream, 10);
 
-	will::v1::ServerEvent first_item;
-	REQUIRE(viewer.stream->Read(&first_item));
-	REQUIRE(first_item.has_history_item());
-	CHECK(first_item.history_item().body() == "hello-from-sender");
-	CHECK_FALSE(first_item.history_item().is_mine());
-	CHECK_FALSE(first_item.history_item().name().empty());
-	CHECK(first_item.history_item().name().size() == 8);
-
-	will::v1::ServerEvent end;
-	REQUIRE(viewer.stream->Read(&end));
-	CHECK(end.has_history_end());
+	// Viewer observes their own abode — sender's letters are not there yet.
+	will::v1::ServerEvent viewer_end;
+	REQUIRE(viewer.stream->Read(&viewer_end));
+	CHECK(viewer_end.has_history_end());
 
 	send_chat(*sender.stream, "hello-again");
 	drain_receipt_ack(*sender.stream);
@@ -200,6 +193,7 @@ TEST_CASE("history request returns letters with is_mine")
 	CHECK(own_item.history_item().body() == "hello-from-sender");
 	CHECK(own_item.history_item().is_mine());
 	CHECK_FALSE(own_item.history_item().name().empty());
+	CHECK(own_item.history_item().name().size() == 8);
 
 	will::v1::ServerEvent own_second;
 	REQUIRE(sender.stream->Read(&own_second));

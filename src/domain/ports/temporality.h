@@ -6,6 +6,7 @@
 #include "identity/man.h"
 #include "identity/soul.h"
 #include "ports/eternity.h"
+#include "values/abode_name.h"
 #include "values/word.h"
 
 #include <cstdint>
@@ -26,6 +27,9 @@ public:
 
 	/// Abodes kept in time (id + name).
 	virtual std::vector<Abode> abodes() = 0;
+
+	/// Keep an abode in time (idempotent by id).
+	virtual void keep(id::Abode id, AbodeName name) = 0;
 
 	/// Record that a man dwells in an abode (idempotent).
 	virtual void join_abode(id::Abode abode, id::Man man) = 0;

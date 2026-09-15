@@ -1,10 +1,11 @@
 #include "world.h"
 
 #include "entities/witness.h"
-#include "values/abode_name.h"
+#include "ports/eternity.h"
 #include "values/soul_name.h"
 
 #include <stdexcept>
+#include <string>
 #include <utility>
 
 
@@ -14,7 +15,6 @@ namespace will::domain {
 World::World(Heaven heaven, Earth earth)
 	: Heaven(std::move(heaven))
 	, Earth(std::move(earth))
-	, Abode(id::Abode::global(), AbodeName{"world"})
 {}
 
 
@@ -24,6 +24,37 @@ void World::awaken()
 		(void)accept(std::move(man));
 
 	restore_dwellers();
+}
+
+
+bool World::knows(const id::Abode id) const
+{
+	std::lock_guard lock(mutex_);
+	return abodes_.contains(id);
+}
+
+
+Abode& World::abode(const id::Abode id)
+{
+	std::lock_guard lock(mutex_);
+
+	const auto it = abodes_.find(id);
+	if (it == abodes_.end() || !it->second)
+		throw std::logic_error("Unknown abode");
+
+	return *it->second;
+}
+
+
+const Abode& World::abode(const id::Abode id) const
+{
+	std::lock_guard lock(mutex_);
+
+	const auto it = abodes_.find(id);
+	if (it == abodes_.end() || !it->second)
+		throw std::logic_error("Unknown abode");
+
+	return *it->second;
 }
 
 
@@ -58,9 +89,30 @@ const Man& World::beget(const DeviceToken& token)
 }
 
 
+Abode& World::ensure_abode(const id::Abode id, AbodeName name)
+{
+	{
+		std::lock_guard lock(mutex_);
+		const auto it = abodes_.find(id);
+		if (it != abodes_.end() && it->second)
+			return *it->second;
+	}
+
+	keep(id, name);
+	auto owned = std::make_unique<Abode>(id, std::move(name));
+	Abode& live = *owned;
+	std::lock_guard lock(mutex_);
+	abodes_.insert_or_assign(id, std::move(owned));
+	return live;
+}
+
+
 const Man& World::accept(Man&& man)
 {
-	Abode& place = *this;
+	const id::Abode place_id{man.id().value()};
+	AbodeName place_name{std::string{static_cast<const Soul&>(man).name().text()}};
+	Abode& place = ensure_abode(place_id, std::move(place_name));
+
 	auto ptr = std::make_unique<Witness>(std::move(man), place);
 	// Witness stays on the heap; moving unique_ptr does not invalidate these references.
 	Man& live = *ptr;

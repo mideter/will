@@ -83,6 +83,15 @@ public:
 		return out;
 	}
 
+	void keep(const id::Abode id, AbodeName name) override
+	{
+		for (auto& row : abode_rows_) {
+			if (row.first == id)
+				return;
+		}
+		abode_rows_.emplace_back(id, std::move(name));
+	}
+
 	void join_abode(const id::Abode abode, const id::Man man) override
 	{
 		for (const auto& row : abode_men_) {
@@ -121,9 +130,7 @@ private:
 	std::uint64_t next_man_id_ = 0;
 	mutable std::uint64_t next_id_ = 0;
 	std::vector<Man> men_;
-	std::vector<std::pair<id::Abode, AbodeName>> abode_rows_{
-		{id::Abode::global(), AbodeName{"world"}},
-	};
+	std::vector<std::pair<id::Abode, AbodeName>> abode_rows_;
 	std::vector<std::pair<id::Abode, id::Man>> abode_men_;
 	mutable std::vector<Letter> letters_;
 };

@@ -276,15 +276,12 @@ CREATE INDEX IF NOT EXISTS idx_letters_created_at ON letters(created_at_ns);
 							  nullptr),
 				 db_, "migrate global abode_id");
 
-	check_sqlite(sqlite3_exec(db_, "INSERT OR IGNORE INTO abodes (id, name) VALUES (1, 'world');", nullptr,
-							  nullptr, nullptr),
-				 db_, "seed global abode");
-
-	check_sqlite(sqlite3_exec(db_,
-							  "INSERT OR IGNORE INTO abode_men (abode_id, man_id) "
-							  "SELECT 1, id FROM men;",
-							  nullptr, nullptr, nullptr),
-				 db_, "seed global abode_men");
+	// Retire the former world abode as a living place (letter id 1 may remain orphaned).
+	check_sqlite(sqlite3_exec(db_, "DELETE FROM abode_men WHERE abode_id = 1;", nullptr, nullptr, nullptr),
+				 db_, "retire global abode_men");
+	check_sqlite(sqlite3_exec(db_, "DELETE FROM abodes WHERE id = 1 AND name = 'world';", nullptr, nullptr,
+							  nullptr),
+				 db_, "retire global abode");
 
 	if (table_has_column(db_, "souls", "id") && !table_has_column(db_, "souls", "name")) {
 		check_sqlite(sqlite3_exec(db_, "ALTER TABLE souls ADD COLUMN name TEXT NOT NULL DEFAULT '';", nullptr,

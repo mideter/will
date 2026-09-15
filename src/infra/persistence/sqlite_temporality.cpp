@@ -155,6 +155,25 @@ std::vector<domain::Abode> SqliteTemporality::abodes()
 }
 
 
+void SqliteTemporality::keep(const domain::id::Abode id, domain::AbodeName name)
+{
+	std::lock_guard lock(database_.mutex());
+
+	sqlite3* const db = database_.db();
+	sqlite3_stmt* stmt = nullptr;
+	check_sqlite(sqlite3_prepare_v2(db,
+									"INSERT OR IGNORE INTO abodes (id, name) VALUES (?, ?);",
+									-1, &stmt, nullptr),
+				 db, "prepare keep abode");
+
+	check_sqlite(sqlite3_bind_int64(stmt, 1, static_cast<sqlite3_int64>(id.value())), db, "bind abode id");
+	check_sqlite(sqlite3_bind_text(stmt, 2, std::string(name.text()).c_str(), -1, SQLITE_TRANSIENT), db,
+				 "bind abode name");
+	check_sqlite(sqlite3_step(stmt), db, "keep abode step");
+	sqlite3_finalize(stmt);
+}
+
+
 void SqliteTemporality::join_abode(const domain::id::Abode abode, const domain::id::Man man)
 {
 	std::lock_guard lock(database_.mutex());

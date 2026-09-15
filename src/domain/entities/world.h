@@ -8,6 +8,7 @@
 #include "identity/man.h"
 #include "identity/soul.h"
 #include "identity/vessel.h"
+#include "values/abode_name.h"
 #include "values/device_token.h"
 
 #include <memory>
@@ -18,16 +19,15 @@
 namespace will::domain {
 
 
-/// World (Мир) — the one living cosmos: is Heaven, Earth, and Abode.
-/// The World itself is the global abode (id 1, name "world").
+/// World (Мир) — the one living cosmos: is Heaven and Earth.
+/// Each living man has a personal abode (host); Witness focuses on it.
 /// Brought forth only by Creation with Heaven and Earth already brought forth.
 /// Living people are Witness on the heap (unique_ptr<Man>);
 /// Eternity still deals in Man values. Heaven and Earth live with the World.
-class World : public Heaven, public Earth, public Abode {
+class World : public Heaven, public Earth {
 public:
 	using Heaven::knows;
 	using Earth::knows;
-	using Earth::abode;
 
 	~World() = default;
 
@@ -35,6 +35,13 @@ public:
 	World& operator=(const World&) = delete;
 	World(World&&) = delete;
 	World& operator=(World&&) = delete;
+
+	/// Whether this personal abode is awake in the World.
+	bool knows(id::Abode id) const;
+
+	/// Living personal abode. Throws if unknown.
+	Abode& abode(id::Abode id);
+	const Abode& abode(id::Abode id) const;
 
 	/// Man dwelling in this vessel. Throws if the vessel has no man (broken invariant).
 	const Man& man(const Vessel& vessel) const;
@@ -47,14 +54,17 @@ private:
 
 	World(Heaven heaven, Earth earth);
 
-	/// Index on Earth, then accept remembered men and restore dwellers (Creation).
+	/// Accept remembered men and restore dwellers (Creation).
 	void awaken();
 
 	/// Beget a new man in Eternity and accept him into the living cosmos as Witness.
 	const Man& beget(const DeviceToken& token);
 
-	/// Place a man on the heap as Witness observing the World-abode.
+	/// Place a man on the heap as Witness observing his personal abode.
 	const Man& accept(Man&& man);
+
+	/// Live abode for this host id (man id); keep in Temporality if new.
+	Abode& ensure_abode(id::Abode id, AbodeName name);
 
 	const Man& living_man(id::Man id) const;
 	void restore_dwellers();
@@ -62,6 +72,7 @@ private:
 	mutable std::mutex mutex_;
 	std::unordered_map<id::Man, std::unique_ptr<Man>> men_;
 	std::unordered_map<id::Vessel, id::Man> man_id_by_vessel_;
+	std::unordered_map<id::Abode, std::unique_ptr<Abode>> abodes_;
 };
 
 

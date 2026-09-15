@@ -12,10 +12,10 @@
 namespace will::domain {
 
 
-/// Abode (Обитель) — named place of communion.
-/// Dwellers: men who participate here (many abodes per man).
-/// A living Witness observes one abode; focus implies dwelling there.
-/// Movable: Temporality may hand id+name snapshots; dwellers fill in the living World.
+/// Abode (Обитель) — the host's place: observers may dwell here.
+/// Host identity matches abode id (man id). Rooms come later; for now letters
+/// still fix on the abode. A living Witness observes one abode.
+/// Movable: Temporality may hand id+name snapshots; dwellers fill in the World.
 class Abode {
 public:
 	Abode(id::Abode id, AbodeName name);
