@@ -7,7 +7,7 @@ namespace will::domain {
 
 
 /// Place (Место) — where a Word may be fixed in time.
-/// Abode is a place; Bond space will be another (later).
+/// Abode is a place; Obedience is another.
 class Place {
 public:
 	virtual ~Place() = default;

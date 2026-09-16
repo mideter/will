@@ -1,7 +1,6 @@
 #pragma once
 
 #include "id.h"
-#include "place.h"
 
 #include <compare>
 
@@ -17,9 +16,6 @@ public:
 	explicit Abode(std::uint64_t value) : Id(value) {}
 
 	static Abode global() { return Abode{1}; }
-
-	/// The place id of this abode (same value).
-	Place as_place() const noexcept { return Place{value()}; }
 
 	constexpr auto operator<=>(const Abode&) const noexcept = default;
 	constexpr bool operator==(const Abode&) const noexcept = default;

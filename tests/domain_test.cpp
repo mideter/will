@@ -5,6 +5,7 @@
 
 #include "entities/creation.h"
 #include "entities/executor.h"
+#include "entities/obedience.h"
 #include "entities/testator.h"
 #include "entities/witness.h"
 #include "values/abode_name.h"
@@ -53,7 +54,7 @@ TEST_CASE("welcome creates man with personal abode")
 	CHECK(man.Soul::id().value() > 0);
 	CHECK(man.id().value() > 0);
 	CHECK(man.Vessel::id().value() > 0);
-	CHECK(witness.abode().id() == own.as_place());
+	CHECK(witness.abode().id() == id::Place{own.value()});
 	CHECK(witness.abode().abode_id() == own);
 	CHECK(witness.abode().dwells(man));
 	CHECK(world.knows(man.Vessel::id()));
@@ -159,4 +160,20 @@ TEST_CASE("witness retell is history of observed abode")
 
 	const auto items = witness.retell(Temporality::MaxLetterLimit + 50);
 	CHECK(items.size() == 5);
+}
+
+
+TEST_CASE("obedience is a place for distinct testator and executor")
+{
+	const id::Obedience oid{7};
+	const id::Soul testator{1};
+	const id::Soul executor{2};
+
+	Obedience obedience{oid, testator, executor};
+	CHECK(obedience.id() == id::Place{oid.value()});
+	CHECK(obedience.obedience_id() == oid);
+	CHECK(obedience.testator() == testator);
+	CHECK(obedience.executor() == executor);
+
+	CHECK_THROWS_AS((Obedience{id::Obedience{8}, testator, testator}), std::invalid_argument);
 }
