@@ -1,5 +1,8 @@
 #include "letter.h"
 
+#include "entities/heaven.h"
+#include "entities/soul.h"
+
 #include <utility>
 
 
@@ -14,6 +17,12 @@ Letter::Letter(const id::Letter id, const id::Place place_id, const id::Soul aut
 	, author_id_(author_id)
 	, created_at_(created_at)
 {}
+
+
+const Soul& Letter::author() const
+{
+	return Heaven::the().soul(author_id_);
+}
 
 
 } // namespace will::domain

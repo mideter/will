@@ -22,7 +22,7 @@ public:
 
 	void say(const Word& word) const override;
 
-	/// Outward witnessing: retell letters fixed in the observed abode (capped).
+	/// Outward witnessing: retell letters of authors known to Heaven (capped).
 	std::vector<Letter> retell(std::uint32_t limit) const;
 
 protected:

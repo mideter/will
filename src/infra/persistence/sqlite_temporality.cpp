@@ -486,7 +486,7 @@ domain::Obedience SqliteTemporality::accept(const domain::id::Supplication id)
 
 	if (row.status() != domain::SupplicationStatus::pending)
 		throw std::logic_error("supplication is not pending");
-	if (living_pair_exists(db, row.addressee(), row.suppliant()))
+	if (living_pair_exists(db, row.addressee_id(), row.suppliant_id()))
 		throw std::logic_error("living obedience already exists for this pair");
 
 	sqlite3_stmt* upd = nullptr;
@@ -509,16 +509,16 @@ domain::Obedience SqliteTemporality::accept(const domain::id::Supplication id)
 									-1, &ins, nullptr),
 				 db, "prepare insert obedience");
 	check_sqlite(sqlite3_bind_int64(ins, 1, static_cast<sqlite3_int64>(oid.value())), db, "bind id");
-	check_sqlite(sqlite3_bind_int64(ins, 2, static_cast<sqlite3_int64>(row.addressee().value())), db,
+	check_sqlite(sqlite3_bind_int64(ins, 2, static_cast<sqlite3_int64>(row.addressee_id().value())), db,
 				 "bind testator");
-	check_sqlite(sqlite3_bind_int64(ins, 3, static_cast<sqlite3_int64>(row.suppliant().value())), db,
+	check_sqlite(sqlite3_bind_int64(ins, 3, static_cast<sqlite3_int64>(row.suppliant_id().value())), db,
 				 "bind executor");
 	check_sqlite(sqlite3_bind_int64(ins, 4, ts.value()), db, "bind created_at");
 	check_sqlite(sqlite3_step(ins), db, "insert obedience step");
 	sqlite3_finalize(ins);
 
 	tx.commit();
-	return domain::Obedience{oid, row.addressee(), row.suppliant(), true};
+	return domain::Obedience{oid, row.addressee_id(), row.suppliant_id(), true};
 }
 
 

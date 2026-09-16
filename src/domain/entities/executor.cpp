@@ -15,14 +15,15 @@ Executor::Executor(Man&& man)
 {}
 
 
-Supplication Executor::supplicate(const id::Soul testator) const
+Supplication Executor::supplicate(const Soul& testator) const
 {
-	if (testator == Soul::id())
+	if (testator.id() == Soul::id())
 		throw std::invalid_argument("cannot supplicate oneself");
-	if (!heaven().knows(testator))
+
+	if (!heaven().knows(testator.id()))
 		throw std::invalid_argument("unknown testator soul");
 
-	return temporality().supplicate(Soul::id(), testator);
+	return temporality().supplicate(Soul::id(), testator.id());
 }
 
 

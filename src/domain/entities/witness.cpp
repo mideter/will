@@ -39,7 +39,16 @@ std::vector<Letter> Witness::retell(const std::uint32_t limit) const
 		throw std::invalid_argument("History limit must be positive");
 
 	const std::uint32_t capped = std::min(limit, Temporality::MaxLetterLimit);
-	return temporality().letters(abode_->id(), capped);
+	std::vector<Letter> letters = temporality().letters(abode_->id(), capped);
+	std::vector<Letter> living;
+	living.reserve(letters.size());
+
+	for (Letter& letter : letters) {
+		if (heaven().knows(letter.author_id()))
+			living.push_back(std::move(letter));
+	}
+
+	return living;
 }
 
 

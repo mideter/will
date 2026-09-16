@@ -135,7 +135,7 @@ TEST_CASE("man say persists via temporality")
 
 	const auto loaded = temporality.letters(witness.abode().id(), 10);
 	REQUIRE(loaded.size() == 1);
-	CHECK(loaded[0].author_id() == author.Soul::id());
+	CHECK(loaded[0].author().id() == author.Soul::id());
 	CHECK(loaded[0].body() == "hello");
 	CHECK(loaded[0].created_at() == Timestamp{1});
 }
@@ -191,9 +191,9 @@ TEST_CASE("supplicate accept creates living obedience; secede ends it")
 	const auto& executor = static_cast<const Executor&>(a);
 	const auto& testator = static_cast<const Testator&>(b);
 
-	const Supplication ask = executor.supplicate(b.Soul::id());
-	CHECK(ask.suppliant() == a.Soul::id());
-	CHECK(ask.addressee() == b.Soul::id());
+	const Supplication ask = executor.supplicate(b);
+	CHECK(ask.suppliant().id() == a.Soul::id());
+	CHECK(ask.addressee().id() == b.Soul::id());
 	CHECK(ask.status() == SupplicationStatus::pending);
 	CHECK(temporality.pending_supplications(b.Soul::id()).size() == 1);
 
@@ -223,7 +223,7 @@ TEST_CASE("refuse closes pending supplication; wrong party cannot accept")
 	const auto& testator = static_cast<const Testator&>(b);
 	const auto& stranger = static_cast<const Testator&>(a);
 
-	const Supplication ask = executor.supplicate(b.Soul::id());
+	const Supplication ask = executor.supplicate(b);
 	CHECK_THROWS_AS(stranger.accept(ask), std::logic_error);
 
 	testator.refuse(ask);

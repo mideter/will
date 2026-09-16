@@ -136,7 +136,7 @@ public:
 		if (living_pair(addressee, suppliant))
 			throw std::logic_error("living obedience already exists for this pair");
 		for (const auto& row : supplications_) {
-			if (row.suppliant() == suppliant && row.addressee() == addressee
+			if (row.suppliant_id() == suppliant && row.addressee_id() == addressee
 				&& row.status() == SupplicationStatus::pending)
 				throw std::logic_error("pending supplication already exists for this pair");
 		}
@@ -151,7 +151,7 @@ public:
 	{
 		std::vector<Supplication> out;
 		for (const auto& row : supplications_) {
-			if (row.addressee() == addressee && row.status() == SupplicationStatus::pending)
+			if (row.addressee_id() == addressee && row.status() == SupplicationStatus::pending)
 				out.push_back(row);
 		}
 		return out;
@@ -162,16 +162,16 @@ public:
 		Supplication& row = mutable_supplication(id);
 		if (row.status() != SupplicationStatus::pending)
 			throw std::logic_error("supplication is not pending");
-		if (living_pair(row.addressee(), row.suppliant()))
+		if (living_pair(row.addressee_id(), row.suppliant_id()))
 			throw std::logic_error("living obedience already exists for this pair");
 
-		row = Supplication{row.id(), row.suppliant(), row.addressee(), SupplicationStatus::accepted,
+		row = Supplication{row.id(), row.suppliant_id(), row.addressee_id(), SupplicationStatus::accepted,
 						   row.created_at()};
 
 		const id::Obedience oid{allocate_place()};
 		obediences_.push_back(
-			ObedienceRow{oid, row.addressee(), row.suppliant(), true});
-		return Obedience{oid, row.addressee(), row.suppliant(), true};
+			ObedienceRow{oid, row.addressee_id(), row.suppliant_id(), true});
+		return Obedience{oid, row.addressee_id(), row.suppliant_id(), true};
 	}
 
 	void refuse(const id::Supplication id) override
@@ -179,7 +179,7 @@ public:
 		Supplication& row = mutable_supplication(id);
 		if (row.status() != SupplicationStatus::pending)
 			throw std::logic_error("supplication is not pending");
-		row = Supplication{row.id(), row.suppliant(), row.addressee(), SupplicationStatus::refused,
+		row = Supplication{row.id(), row.suppliant_id(), row.addressee_id(), SupplicationStatus::refused,
 						   row.created_at()};
 	}
 

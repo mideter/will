@@ -4,10 +4,12 @@
 #include "entities/obedience.h"
 #include "entities/supplication.h"
 #include "entities/witness.h"
-#include "identity/soul.h"
 
 
 namespace will::domain {
+
+
+class Soul;
 
 
 /// Executor (Послушник) — Witness of a will other than his own.
@@ -15,7 +17,7 @@ namespace will::domain {
 class Executor : public Witness {
 public:
 	/// Ask addressee to become testator; this soul will be the executor.
-	Supplication supplicate(id::Soul testator) const;
+	Supplication supplicate(const Soul& testator) const;
 
 	/// Leave a living obedience (as either side of the pair).
 	void secede(const Obedience& obedience) const;

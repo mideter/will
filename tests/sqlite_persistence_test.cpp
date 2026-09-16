@@ -59,11 +59,11 @@ TEST_CASE("sqlite persistence survives reopen")
 		const auto rows = temporality.letters(place_a, 10);
 		REQUIRE(rows.size() == 2);
 		CHECK(rows[0].body() == "from-peer");
-		CHECK(rows[0].author_id() == man_a.Soul::id());
-		CHECK(world.soul(rows[0].author_id()).name() == *name_a);
+		CHECK(rows[0].author().id() == man_a.Soul::id());
+		CHECK(rows[0].author().name() == *name_a);
 		CHECK(rows[1].body() == "from-me");
-		CHECK(rows[1].author_id() == man_b.Soul::id());
-		CHECK(world.soul(rows[1].author_id()).name() == *name_b);
+		CHECK(rows[1].author().id() == man_b.Soul::id());
+		CHECK(rows[1].author().name() == *name_b);
 
 		CHECK(static_cast<const Witness&>(man_a).abode().id() !=
 			  static_cast<const Witness&>(man_b).abode().id());

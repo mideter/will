@@ -138,9 +138,8 @@ void ProtocolAdapter::handle_history_request(const SessionId session_id, const v
 		v1::ServerEvent event;
 		auto* history_item = event.mutable_history_item();
 		history_item->set_message_id(letter.id().value());
-		history_item->set_is_mine(letter.author_id() == listener_soul);
-		if (world_.knows(letter.author_id()))
-			history_item->set_name(std::string{world_.soul(letter.author_id()).name().text()});
+		history_item->set_is_mine(letter.author().id() == listener_soul);
+		history_item->set_name(std::string{letter.author().name().text()});
 		history_item->set_body(letter.body());
 		send_event(session_id, event);
 	}
