@@ -9,7 +9,7 @@ namespace will::domain {
 
 
 /// Man (Человек) — soul dwelling in a vessel. One object is both Soul and Vessel.
-/// In Eternity: value snapshots (copyable). In the living World: polymorphic base of Witness.
+/// In Eternity: value snapshots (copyable). In the living World: polymorphic base of Testator.
 class Man : public Soul, public Vessel {
 public:
 	Man(id::Man id, Soul&& soul, Vessel&& vessel);

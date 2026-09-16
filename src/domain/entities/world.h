@@ -22,7 +22,7 @@ namespace will::domain {
 /// World (Мир) — the one living cosmos: is Heaven and Earth.
 /// Each living man has a personal abode (host); Witness focuses on it.
 /// Brought forth only by Creation with Heaven and Earth already brought forth.
-/// Living people are Witness on the heap (unique_ptr<Man>);
+/// Living people are Testator on the heap (unique_ptr<Man>: Witness←Executor←Testator);
 /// Eternity still deals in Man values. Heaven and Earth live with the World.
 class World : public Heaven, public Earth {
 public:
@@ -57,10 +57,10 @@ private:
 	/// Accept remembered men and restore dwellers (Creation).
 	void awaken();
 
-	/// Beget a new man in Eternity and accept him into the living cosmos as Witness.
+	/// Beget a new man in Eternity and accept him into the living cosmos as Testator.
 	const Man& beget(const DeviceToken& token);
 
-	/// Place a man on the heap as Witness observing his personal abode.
+	/// Place a man on the heap as Testator observing his personal abode.
 	const Man& accept(Man&& man);
 
 	/// Live abode for this host id (man id); keep in Temporality if new.

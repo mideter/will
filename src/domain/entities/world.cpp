@@ -1,6 +1,6 @@
 #include "world.h"
 
-#include "entities/witness.h"
+#include "entities/testator.h"
 #include "ports/eternity.h"
 #include "values/soul_name.h"
 
@@ -113,8 +113,8 @@ const Man& World::accept(Man&& man)
 	AbodeName place_name{std::string{static_cast<const Soul&>(man).name().text()}};
 	Abode& place = ensure_abode(place_id, std::move(place_name));
 
-	auto ptr = std::make_unique<Witness>(std::move(man), place);
-	// Witness stays on the heap; moving unique_ptr does not invalidate these references.
+	auto ptr = std::make_unique<Testator>(std::move(man), place);
+	// Testator stays on the heap; moving unique_ptr does not invalidate these references.
 	Man& live = *ptr;
 	const Soul& soul = live;
 	const Vessel& vessel = live;

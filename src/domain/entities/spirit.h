@@ -8,7 +8,7 @@ namespace will::domain {
 
 
 /// Spirit (Дух) — highest foundation of the soul.
-/// Will (say) and outward retelling belong to spirit; only a living Witness enacts them.
+/// Will (say) belongs to spirit; living modes reveal it (speech, later bequest/deed).
 /// Hearing is not a separate act — the Witness himself is the focus.
 class Spirit {
 public:
@@ -16,7 +16,7 @@ public:
 
 	Heaven& heaven() const { return Heaven::the(); }
 
-	/// Act of will: speak a word. Outside the living world this fails; Witness overrides.
+	/// Act of will: speak a word. Outside the living world this fails; Witness reveals it.
 	virtual void say(const Word& word) const;
 
 	bool operator==(const Spirit&) const = default;

@@ -4,6 +4,8 @@
 #include "domain_fakes.h"
 
 #include "entities/creation.h"
+#include "entities/executor.h"
+#include "entities/testator.h"
 #include "entities/witness.h"
 #include "values/abode_name.h"
 #include "values/device_token.h"
@@ -67,6 +69,9 @@ TEST_CASE("welcome creates man with personal abode")
 	const Soul& soul = world.soul(man.Soul::id());
 	CHECK(&soul == static_cast<const Soul*>(&man));
 	CHECK(SoulName::parse(soul.name().text()));
+	CHECK(dynamic_cast<const Testator*>(&man));
+	CHECK(dynamic_cast<const Executor*>(&man));
+	CHECK(dynamic_cast<const Witness*>(&man));
 	CHECK_THROWS_AS(world.abode(id::Abode{99}), std::logic_error);
 }
 
