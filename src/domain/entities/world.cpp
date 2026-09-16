@@ -1,11 +1,11 @@
 #include "world.h"
 
 #include "entities/testator.h"
+#include "entities/witness.h"
 #include "ports/eternity.h"
 #include "values/soul_name.h"
 
 #include <stdexcept>
-#include <string>
 #include <utility>
 
 
@@ -24,37 +24,6 @@ void World::awaken()
 		(void)accept(std::move(man));
 
 	restore_dwellers();
-}
-
-
-bool World::knows(const id::Abode id) const
-{
-	std::lock_guard lock(mutex_);
-	return abodes_.contains(id);
-}
-
-
-Abode& World::abode(const id::Abode id)
-{
-	std::lock_guard lock(mutex_);
-
-	const auto it = abodes_.find(id);
-	if (it == abodes_.end() || !it->second)
-		throw std::logic_error("Unknown abode");
-
-	return *it->second;
-}
-
-
-const Abode& World::abode(const id::Abode id) const
-{
-	std::lock_guard lock(mutex_);
-
-	const auto it = abodes_.find(id);
-	if (it == abodes_.end() || !it->second)
-		throw std::logic_error("Unknown abode");
-
-	return *it->second;
 }
 
 
@@ -89,32 +58,9 @@ const Man& World::beget(const DeviceToken& token)
 }
 
 
-Abode& World::ensure_abode(const id::Abode id, AbodeName name)
-{
-	{
-		std::lock_guard lock(mutex_);
-		const auto it = abodes_.find(id);
-		if (it != abodes_.end() && it->second)
-			return *it->second;
-	}
-
-	keep(id, name);
-	auto owned = std::make_unique<Abode>(id, std::move(name));
-	Abode& live = *owned;
-	std::lock_guard lock(mutex_);
-	abodes_.insert_or_assign(id, std::move(owned));
-	return live;
-}
-
-
 const Man& World::accept(Man&& man)
 {
-	const id::Abode place_id{man.id().value()};
-	AbodeName place_name{std::string{static_cast<const Soul&>(man).name().text()}};
-	Abode& place = ensure_abode(place_id, std::move(place_name));
-
-	auto ptr = std::make_unique<Testator>(std::move(man), place);
-	// Testator stays on the heap; moving unique_ptr does not invalidate these references.
+	auto ptr = std::make_unique<Testator>(std::move(man));
 	Man& live = *ptr;
 	const Soul& soul = live;
 	const Vessel& vessel = live;
@@ -126,8 +72,6 @@ const Man& World::accept(Man&& man)
 	man_id_by_vessel_.insert_or_assign(vessel_id, man_id);
 	Heaven::index(soul);
 	Earth::index(vessel);
-	place.admit(live);
-	join_abode(place.abode_id(), man_id);
 	return live;
 }
 
@@ -147,11 +91,9 @@ const Man& World::living_man(const id::Man id) const
 void World::restore_dwellers()
 {
 	for (const auto& [abode_id, man_id] : abode_men()) {
-		if (!knows(abode_id))
-			continue;
-
 		try {
-			abode(abode_id).admit(living_man(man_id));
+			const Man& host = living_man(id::Man{abode_id.value()});
+			static_cast<const Witness&>(host).abode().admit(living_man(man_id));
 		} catch (const std::logic_error&) {
 			continue;
 		}

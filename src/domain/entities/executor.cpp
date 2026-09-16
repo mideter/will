@@ -1,11 +1,13 @@
 #include "executor.h"
 
+#include <utility>
+
 
 namespace will::domain {
 
 
-Executor::Executor(Man&& man, Abode& abode) noexcept
-	: Witness(std::move(man), abode)
+Executor::Executor(Man&& man)
+	: Witness(std::move(man))
 {}
 
 

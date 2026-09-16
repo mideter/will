@@ -53,11 +53,9 @@ TEST_CASE("welcome creates man with personal abode")
 	CHECK(man.Soul::id().value() > 0);
 	CHECK(man.id().value() > 0);
 	CHECK(man.Vessel::id().value() > 0);
-	CHECK(world.knows(own));
 	CHECK(witness.abode().id() == own.as_place());
 	CHECK(witness.abode().abode_id() == own);
 	CHECK(witness.abode().dwells(man));
-	CHECK(&witness.abode() == &world.abode(own));
 	CHECK(world.knows(man.Vessel::id()));
 	CHECK(world.knows(man.Soul::id()));
 
@@ -73,7 +71,6 @@ TEST_CASE("welcome creates man with personal abode")
 	CHECK(dynamic_cast<const Testator*>(&man));
 	CHECK(dynamic_cast<const Executor*>(&man));
 	CHECK(dynamic_cast<const Witness*>(&man));
-	CHECK_THROWS_AS(world.abode(id::Abode{99}), std::logic_error);
 }
 
 

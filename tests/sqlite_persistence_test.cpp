@@ -107,7 +107,6 @@ TEST_CASE("sqlite persistence survives reopen")
 
 		CHECK_FALSE(world.knows(id::Soul{999999}));
 		CHECK_FALSE(world.knows(id::Vessel{999999}));
-		CHECK_FALSE(world.knows(id::Abode{999999}));
 	}
 
 	::unlink(db_path.c_str());

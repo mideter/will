@@ -1,11 +1,13 @@
 #include "testator.h"
 
+#include <utility>
+
 
 namespace will::domain {
 
 
-Testator::Testator(Man&& man, Abode& abode) noexcept
-	: Executor(std::move(man), abode)
+Testator::Testator(Man&& man)
+	: Executor(std::move(man))
 {}
 
 

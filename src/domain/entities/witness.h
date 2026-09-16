@@ -6,6 +6,7 @@
 #include "values/word.h"
 
 #include <cstdint>
+#include <memory>
 #include <vector>
 
 
@@ -13,7 +14,7 @@ namespace will::domain {
 
 
 /// Witness (Свидетель) — living man; say and retell in the waking world.
-/// Focus is Abode. Further modes: Executor (иная воля), Testator (will as own).
+/// Owns his personal Abode (id = man id, name from soul). Further modes: Executor, Testator.
 /// Heap object is always Testator; Witness is the base living mode.
 class Witness : public Man {
 public:
@@ -25,10 +26,10 @@ public:
 	std::vector<Letter> retell(std::uint32_t limit) const;
 
 protected:
-	Witness(Man&& man, Abode& abode) noexcept;
+	explicit Witness(Man&& man);
 
 private:
-	Abode* abode_;
+	std::unique_ptr<Abode> abode_;
 };
 
 

@@ -1,6 +1,5 @@
 #pragma once
 
-#include "entities/abode.h"
 #include "entities/executor.h"
 #include "entities/man.h"
 
@@ -13,7 +12,7 @@ namespace will::domain {
 /// World::accept always places a Testator on the heap.
 class Testator : public Executor {
 public:
-	Testator(Man&& man, Abode& abode) noexcept;
+	explicit Testator(Man&& man);
 };
 
 

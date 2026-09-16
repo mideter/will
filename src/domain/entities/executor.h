@@ -1,6 +1,5 @@
 #pragma once
 
-#include "entities/abode.h"
 #include "entities/man.h"
 #include "entities/witness.h"
 
@@ -12,7 +11,7 @@ namespace will::domain {
 /// Mode is disclosed in a Bond (later); the living heap object is always Testator.
 class Executor : public Witness {
 protected:
-	Executor(Man&& man, Abode& abode) noexcept;
+	explicit Executor(Man&& man);
 };
 
 

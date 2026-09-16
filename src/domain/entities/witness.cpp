@@ -1,19 +1,27 @@
 #include "witness.h"
 
-#include "entities/abode.h"
 #include "ports/temporality.h"
+#include "values/abode_name.h"
 
 #include <algorithm>
 #include <stdexcept>
+#include <string>
+#include <utility>
 
 
 namespace will::domain {
 
 
-Witness::Witness(Man&& man, Abode& abode) noexcept
+Witness::Witness(Man&& man)
 	: Man(std::move(man))
-	, abode_(&abode)
-{}
+	, abode_(std::make_unique<Abode>(
+		  id::Abode{id().value()},
+		  AbodeName{std::string{Soul::name().text()}}))
+{
+	abode_->admit(*this);
+	temporality().keep(abode_->abode_id(), abode_->name());
+	temporality().join_abode(abode_->abode_id(), id());
+}
 
 
 void Witness::say(const Word& word) const
