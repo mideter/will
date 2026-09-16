@@ -77,7 +77,7 @@ const Soul& Heaven::soul(const id::Soul id) const
 }
 
 
-void Heaven::index(const Soul& soul)
+void Heaven::present(const Soul& soul)
 {
 	std::lock_guard lock(mutex_);
 	souls_.insert_or_assign(soul.id(), &soul);

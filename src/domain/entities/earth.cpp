@@ -79,7 +79,7 @@ std::optional<id::Vessel> Earth::id_of(const DeviceToken& token) const
 }
 
 
-void Earth::index(const Vessel& vessel)
+void Earth::present(const Vessel& vessel)
 {
 	std::lock_guard lock(mutex_);
 	id_by_token_.insert_or_assign(vessel.token(), vessel.id());

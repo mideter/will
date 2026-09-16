@@ -46,8 +46,8 @@ protected:
 	Earth(Earth&& other) noexcept;
 	Earth& operator=(Earth&&) = delete;
 
-	/// Index a vessel owned by a heap-stable Man.
-	void index(const Vessel& vessel);
+	/// Present a vessel owned by a heap-stable Man.
+	void present(const Vessel& vessel);
 
 	/// Resolve device token to vessel id for World::welcome. Empty if unknown.
 	std::optional<id::Vessel> id_of(const DeviceToken& token) const;

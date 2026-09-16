@@ -6,9 +6,9 @@
 namespace will::domain {
 
 
-void Dust::index(const Vessel& vessel) const
+void Dust::present(const Vessel& vessel) const
 {
-	Earth::the().index(vessel);
+	Earth::the().present(vessel);
 }
 
 

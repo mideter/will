@@ -44,8 +44,8 @@ protected:
 	Eternity& eternity();
 	const Eternity& eternity() const;
 
-	/// Index a soul owned by a heap-stable Man.
-	void index(const Soul& soul);
+	/// Present a soul owned by a heap-stable Man.
+	void present(const Soul& soul);
 
 private:
 	static Heaven* current_;

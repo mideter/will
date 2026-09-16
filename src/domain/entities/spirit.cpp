@@ -8,9 +8,9 @@
 namespace will::domain {
 
 
-void Spirit::index(const Soul& soul) const
+void Spirit::present(const Soul& soul) const
 {
-	heaven().index(soul);
+	heaven().present(soul);
 }
 
 

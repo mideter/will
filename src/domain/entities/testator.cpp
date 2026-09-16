@@ -12,8 +12,8 @@ namespace will::domain {
 Testator::Testator(Man&& man)
 	: Executor(std::move(man))
 {
-	Spirit::index(static_cast<const Soul&>(*this));
-	Dust::index(static_cast<const Vessel&>(*this));
+	Spirit::present(static_cast<const Soul&>(*this));
+	Dust::present(static_cast<const Vessel&>(*this));
 }
 
 
