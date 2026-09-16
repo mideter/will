@@ -2,15 +2,19 @@
 
 #include "entities/earth.h"
 #include "entities/abode.h"
+#include "entities/obedience.h"
 #include "entities/soul.h"
 #include "entities/heaven.h"
 #include "entities/letter.h"
 #include "entities/man.h"
+#include "entities/supplication.h"
 #include "entities/vessel.h"
 #include "entities/world.h"
 #include "identity/abode.h"
 #include "identity/man.h"
+#include "identity/obedience.h"
 #include "identity/soul.h"
+#include "identity/supplication.h"
 #include "identity/vessel.h"
 #include "ports/temporality.h"
 #include "ports/time.h"
@@ -21,6 +25,7 @@
 #include "values/word.h"
 
 #include <cstdint>
+#include <stdexcept>
 #include <string>
 #include <utility>
 #include <vector>
@@ -55,6 +60,7 @@ public:
 		const id::Soul soul_id{++next_soul_id_};
 		const id::Vessel vessel_id{++next_vessel_id_};
 		const id::Man man_id{++next_man_id_};
+		note_place(man_id.value());
 		Man man{man_id, Soul{soul_id, name}, Vessel{vessel_id, token}};
 		men_.push_back(man);
 		return man;
@@ -72,6 +78,7 @@ public:
 			next_vessel_id_ = vessel_id.value();
 		if (man_id.value() > next_man_id_)
 			next_man_id_ = man_id.value();
+		note_place(man_id.value());
 	}
 
 	std::vector<Abode> abodes() override
@@ -85,6 +92,7 @@ public:
 
 	void keep(const id::Abode id, AbodeName name) override
 	{
+		note_place(id.value());
 		for (auto& row : abode_rows_) {
 			if (row.first == id)
 				return;
@@ -121,18 +129,131 @@ public:
 		return std::vector<Letter>(matching.end() - static_cast<std::ptrdiff_t>(limit), matching.end());
 	}
 
+	Supplication supplicate(const id::Soul suppliant, const id::Soul addressee) override
+	{
+		if (suppliant == addressee)
+			throw std::invalid_argument("supplication requires distinct suppliant and addressee");
+		if (living_pair(addressee, suppliant))
+			throw std::logic_error("living obedience already exists for this pair");
+		for (const auto& row : supplications_) {
+			if (row.suppliant() == suppliant && row.addressee() == addressee
+				&& row.status() == SupplicationStatus::pending)
+				throw std::logic_error("pending supplication already exists for this pair");
+		}
+
+		Supplication row{id::Supplication{++next_supplication_id_}, suppliant, addressee,
+						 SupplicationStatus::pending, time_.instant()};
+		supplications_.push_back(row);
+		return row;
+	}
+
+	std::vector<Supplication> pending_supplications(const id::Soul addressee) const override
+	{
+		std::vector<Supplication> out;
+		for (const auto& row : supplications_) {
+			if (row.addressee() == addressee && row.status() == SupplicationStatus::pending)
+				out.push_back(row);
+		}
+		return out;
+	}
+
+	Obedience accept(const id::Supplication id) override
+	{
+		Supplication& row = mutable_supplication(id);
+		if (row.status() != SupplicationStatus::pending)
+			throw std::logic_error("supplication is not pending");
+		if (living_pair(row.addressee(), row.suppliant()))
+			throw std::logic_error("living obedience already exists for this pair");
+
+		row = Supplication{row.id(), row.suppliant(), row.addressee(), SupplicationStatus::accepted,
+						   row.created_at()};
+
+		const id::Obedience oid{allocate_place()};
+		obediences_.push_back(
+			ObedienceRow{oid, row.addressee(), row.suppliant(), true});
+		return Obedience{oid, row.addressee(), row.suppliant(), true};
+	}
+
+	void refuse(const id::Supplication id) override
+	{
+		Supplication& row = mutable_supplication(id);
+		if (row.status() != SupplicationStatus::pending)
+			throw std::logic_error("supplication is not pending");
+		row = Supplication{row.id(), row.suppliant(), row.addressee(), SupplicationStatus::refused,
+						   row.created_at()};
+	}
+
+	Obedience obedience(const id::Obedience id) const override
+	{
+		for (const auto& row : obediences_) {
+			if (row.id == id)
+				return Obedience{row.id, row.testator, row.executor, row.living};
+		}
+		throw std::invalid_argument("unknown obedience");
+	}
+
+	void secede(const id::Obedience id) override
+	{
+		for (auto& row : obediences_) {
+			if (row.id != id)
+				continue;
+			if (!row.living)
+				throw std::logic_error("obedience is not living");
+			row.living = false;
+			return;
+		}
+		throw std::invalid_argument("unknown obedience");
+	}
+
 	FakeTime& fake_time() { return time_; }
 
 private:
+	struct ObedienceRow {
+		id::Obedience id;
+		id::Soul testator;
+		id::Soul executor;
+		bool living;
+	};
+
+	void note_place(const std::uint64_t value)
+	{
+		if (value > next_place_id_)
+			next_place_id_ = value;
+	}
+
+	std::uint64_t allocate_place() { return ++next_place_id_; }
+
+	bool living_pair(const id::Soul testator, const id::Soul executor) const
+	{
+		for (const auto& row : obediences_) {
+			if (row.living && row.testator == testator && row.executor == executor)
+				return true;
+		}
+		return false;
+	}
+
+	Supplication& mutable_supplication(const id::Supplication id)
+	{
+		for (auto& row : supplications_) {
+			if (row.id() == id)
+				return row;
+		}
+		throw std::invalid_argument("unknown supplication");
+	}
+
 	FakeTime time_;
 	std::uint64_t next_soul_id_ = 0;
 	std::uint64_t next_vessel_id_ = 0;
 	std::uint64_t next_man_id_ = 0;
+	std::uint64_t next_place_id_ = 0;
+	std::uint64_t next_supplication_id_ = 0;
 	mutable std::uint64_t next_id_ = 0;
 	std::vector<Man> men_;
 	std::vector<std::pair<id::Abode, AbodeName>> abode_rows_;
 	std::vector<std::pair<id::Abode, id::Man>> abode_men_;
 	mutable std::vector<Letter> letters_;
+	std::vector<Supplication> supplications_;
+	std::vector<ObedienceRow> obediences_;
 };
 
 

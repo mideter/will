@@ -2,10 +2,14 @@
 
 #include "entities/abode.h"
 #include "entities/letter.h"
+#include "entities/obedience.h"
+#include "entities/supplication.h"
 #include "identity/abode.h"
 #include "identity/man.h"
+#include "identity/obedience.h"
 #include "identity/place.h"
 #include "identity/soul.h"
+#include "identity/supplication.h"
 #include "ports/eternity.h"
 #include "values/abode_name.h"
 #include "values/word.h"
@@ -43,6 +47,24 @@ public:
 
 	/// Letters kept in this place, bounded by limit (history).
 	virtual std::vector<Letter> letters(id::Place place, std::uint32_t limit) const = 0;
+
+	/// Offer obedience: suppliant asks addressee to become testator.
+	virtual Supplication supplicate(id::Soul suppliant, id::Soul addressee) = 0;
+
+	/// Pending supplications addressed to this soul.
+	virtual std::vector<Supplication> pending_supplications(id::Soul addressee) const = 0;
+
+	/// Accept a pending supplication; creates a living Obedience.
+	virtual Obedience accept(id::Supplication id) = 0;
+
+	/// Refuse a pending supplication.
+	virtual void refuse(id::Supplication id) = 0;
+
+	/// Living or ended obedience by id. Throws if unknown.
+	virtual Obedience obedience(id::Obedience id) const = 0;
+
+	/// End a living obedience.
+	virtual void secede(id::Obedience id) = 0;
 };
 
 

@@ -2,7 +2,9 @@
 
 #include "entities/soul.h"
 #include "entities/vessel.h"
+#include "ports/temporality.h"
 
+#include <stdexcept>
 #include <utility>
 
 
@@ -14,6 +16,28 @@ Testator::Testator(Man&& man)
 {
 	Spirit::present(static_cast<const Soul&>(*this));
 	Dust::present(static_cast<const Vessel&>(*this));
+}
+
+
+Obedience Testator::accept(const Supplication& supplication) const
+{
+	if (supplication.addressee() != Soul::id())
+		throw std::logic_error("supplication is not addressed to this soul");
+	if (supplication.status() != SupplicationStatus::pending)
+		throw std::logic_error("supplication is not pending");
+
+	return temporality().accept(supplication.id());
+}
+
+
+void Testator::refuse(const Supplication& supplication) const
+{
+	if (supplication.addressee() != Soul::id())
+		throw std::logic_error("supplication is not addressed to this soul");
+	if (supplication.status() != SupplicationStatus::pending)
+		throw std::logic_error("supplication is not pending");
+
+	temporality().refuse(supplication.id());
 }
 
 

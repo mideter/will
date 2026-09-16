@@ -12,7 +12,7 @@ namespace will::domain {
 /// Where a Testament may later be fixed; born from accepted Supplication.
 class Obedience : public Place {
 public:
-	Obedience(id::Obedience id, id::Soul testator, id::Soul executor);
+	Obedience(id::Obedience id, id::Soul testator, id::Soul executor, bool living = true);
 	Obedience(Obedience&& other) noexcept;
 	Obedience& operator=(Obedience&& other) noexcept;
 	Obedience(const Obedience&) = delete;
@@ -23,10 +23,12 @@ public:
 
 	id::Soul testator() const noexcept { return testator_; }
 	id::Soul executor() const noexcept { return executor_; }
+	bool living() const noexcept { return living_; }
 
 private:
 	id::Soul testator_;
 	id::Soul executor_;
+	bool living_;
 };
 
 

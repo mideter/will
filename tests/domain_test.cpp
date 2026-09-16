@@ -174,6 +174,59 @@ TEST_CASE("obedience is a place for distinct testator and executor")
 	CHECK(obedience.obedience_id() == oid);
 	CHECK(obedience.testator() == testator);
 	CHECK(obedience.executor() == executor);
+	CHECK(obedience.living());
 
 	CHECK_THROWS_AS((Obedience{id::Obedience{8}, testator, testator}), std::invalid_argument);
+}
+
+
+TEST_CASE("supplicate accept creates living obedience; secede ends it")
+{
+	InMemoryTemporality temporality;
+	Creation creation(temporality);
+	World& world = creation.world();
+
+	const Man& a = world.welcome(DeviceToken::generate());
+	const Man& b = world.welcome(DeviceToken::generate());
+	const auto& executor = static_cast<const Executor&>(a);
+	const auto& testator = static_cast<const Testator&>(b);
+
+	const Supplication ask = executor.supplicate(b.Soul::id());
+	CHECK(ask.suppliant() == a.Soul::id());
+	CHECK(ask.addressee() == b.Soul::id());
+	CHECK(ask.status() == SupplicationStatus::pending);
+	CHECK(temporality.pending_supplications(b.Soul::id()).size() == 1);
+
+	Obedience obedience = testator.accept(ask);
+	CHECK(obedience.living());
+	CHECK(obedience.testator() == b.Soul::id());
+	CHECK(obedience.executor() == a.Soul::id());
+	CHECK(obedience.id().value() != a.id().value());
+	CHECK(obedience.id().value() != b.id().value());
+	CHECK(temporality.pending_supplications(b.Soul::id()).empty());
+
+	executor.secede(obedience);
+	CHECK_FALSE(temporality.obedience(obedience.obedience_id()).living());
+	CHECK_THROWS_AS(executor.secede(obedience), std::logic_error);
+}
+
+
+TEST_CASE("refuse closes pending supplication; wrong party cannot accept")
+{
+	InMemoryTemporality temporality;
+	Creation creation(temporality);
+	World& world = creation.world();
+
+	const Man& a = world.welcome(DeviceToken::generate());
+	const Man& b = world.welcome(DeviceToken::generate());
+	const auto& executor = static_cast<const Executor&>(a);
+	const auto& testator = static_cast<const Testator&>(b);
+	const auto& stranger = static_cast<const Testator&>(a);
+
+	const Supplication ask = executor.supplicate(b.Soul::id());
+	CHECK_THROWS_AS(stranger.accept(ask), std::logic_error);
+
+	testator.refuse(ask);
+	CHECK(temporality.pending_supplications(b.Soul::id()).empty());
+	CHECK_THROWS_AS(testator.accept(ask), std::logic_error);
 }

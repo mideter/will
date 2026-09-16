@@ -1,5 +1,9 @@
 #include "executor.h"
 
+#include "entities/soul.h"
+#include "ports/temporality.h"
+
+#include <stdexcept>
 #include <utility>
 
 
@@ -9,6 +13,28 @@ namespace will::domain {
 Executor::Executor(Man&& man)
 	: Witness(std::move(man))
 {}
+
+
+Supplication Executor::supplicate(const id::Soul testator) const
+{
+	if (testator == Soul::id())
+		throw std::invalid_argument("cannot supplicate oneself");
+	if (!heaven().knows(testator))
+		throw std::invalid_argument("unknown testator soul");
+
+	return temporality().supplicate(Soul::id(), testator);
+}
+
+
+void Executor::secede(const Obedience& obedience) const
+{
+	if (obedience.testator() != Soul::id() && obedience.executor() != Soul::id())
+		throw std::logic_error("not a party to this obedience");
+	if (!obedience.living())
+		throw std::logic_error("obedience is not living");
+
+	temporality().secede(obedience.obedience_id());
+}
 
 
 } // namespace will::domain

@@ -2,6 +2,8 @@
 
 #include "entities/executor.h"
 #include "entities/man.h"
+#include "entities/obedience.h"
+#include "entities/supplication.h"
 
 
 namespace will::domain {
@@ -13,6 +15,12 @@ namespace will::domain {
 class Testator : public Executor {
 public:
 	explicit Testator(Man&& man);
+
+	/// Accept a pending supplication addressed to this soul; births Obedience.
+	Obedience accept(const Supplication& supplication) const;
+
+	/// Refuse a pending supplication addressed to this soul.
+	void refuse(const Supplication& supplication) const;
 };
 
 
