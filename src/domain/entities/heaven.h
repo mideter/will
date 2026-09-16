@@ -29,6 +29,7 @@ public:
 
 protected:
 	friend class Creation;
+	friend class Spirit;
 
 	/// Bring forth Heaven (Creation).
 	explicit Heaven(Eternity& eternity);

@@ -62,7 +62,6 @@ const Man& World::accept(Man&& man)
 {
 	auto ptr = std::make_unique<Testator>(std::move(man));
 	Man& live = *ptr;
-	const Soul& soul = live;
 	const Vessel& vessel = live;
 	const id::Man man_id = live.id();
 	const id::Vessel vessel_id = vessel.id();
@@ -70,8 +69,6 @@ const Man& World::accept(Man&& man)
 	std::lock_guard lock(mutex_);
 	men_.insert_or_assign(man_id, std::move(ptr));
 	man_id_by_vessel_.insert_or_assign(vessel_id, man_id);
-	Heaven::index(soul);
-	Earth::index(vessel);
 	return live;
 }
 

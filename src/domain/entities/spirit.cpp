@@ -1,9 +1,17 @@
 #include "spirit.h"
 
+#include "entities/soul.h"
+
 #include <stdexcept>
 
 
 namespace will::domain {
+
+
+void Spirit::index(const Soul& soul) const
+{
+	heaven().index(soul);
+}
 
 
 void Spirit::say(const Word&) const
