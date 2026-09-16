@@ -103,17 +103,17 @@ public:
 
 	std::vector<std::pair<id::Abode, id::Man>> abode_men() override { return abode_men_; }
 
-	void fix(id::Abode abode, id::Soul author, const Word& word) const override
+	void fix(id::Place place, id::Soul author, const Word& word) const override
 	{
-		letters_.push_back(Letter{id::Letter{++next_id_}, abode, author, word, time_.instant()});
+		letters_.push_back(Letter{id::Letter{++next_id_}, place, author, word, time_.instant()});
 	}
 
-	std::vector<Letter> letters(id::Abode abode, std::uint32_t limit) const override
+	std::vector<Letter> letters(id::Place place, std::uint32_t limit) const override
 	{
 		std::vector<Letter> matching;
 		matching.reserve(letters_.size());
 		for (const Letter& letter : letters_) {
-			if (letter.abode_id() == abode)
+			if (letter.place_id() == place)
 				matching.push_back(letter);
 		}
 		if (limit >= matching.size())

@@ -7,6 +7,7 @@
 #include "sqlite_temporality.h"
 
 #include "identity/abode.h"
+#include "identity/place.h"
 #include "values/abode_name.h"
 #include "values/device_token.h"
 #include "identity/soul.h"
@@ -51,11 +52,11 @@ TEST_CASE("sqlite persistence survives reopen")
 		name_a = man_a.name();
 		name_b = man_b.name();
 
-		const id::Abode abode_a = static_cast<const Witness&>(man_a).abode().id();
-		temporality.fix(abode_a, man_a.Soul::id(), Word{"from-peer"});
-		temporality.fix(abode_a, man_b.Soul::id(), Word{"from-me"});
+		const id::Place place_a = static_cast<const Witness&>(man_a).abode().id();
+		temporality.fix(place_a, man_a.Soul::id(), Word{"from-peer"});
+		temporality.fix(place_a, man_b.Soul::id(), Word{"from-me"});
 
-		const auto rows = temporality.letters(abode_a, 10);
+		const auto rows = temporality.letters(place_a, 10);
 		REQUIRE(rows.size() == 2);
 		CHECK(rows[0].body() == "from-peer");
 		CHECK(rows[0].author_id() == man_a.Soul::id());
@@ -97,6 +98,8 @@ TEST_CASE("sqlite persistence survives reopen")
 		CHECK(world.man(world.vessel(man_a_reloaded.Vessel::id())).Soul::id() == *soul_a_id);
 		CHECK(static_cast<const Witness&>(man_a_reloaded).abode().dwells(man_a_reloaded));
 		CHECK(static_cast<const Witness&>(man_a_reloaded).abode().id() ==
+			  id::Place{man_a_reloaded.id().value()});
+		CHECK(static_cast<const Witness&>(man_a_reloaded).abode().abode_id() ==
 			  id::Abode{man_a_reloaded.id().value()});
 
 		CHECK(world.knows(*soul_b_id));

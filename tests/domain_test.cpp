@@ -54,7 +54,8 @@ TEST_CASE("welcome creates man with personal abode")
 	CHECK(man.id().value() > 0);
 	CHECK(man.Vessel::id().value() > 0);
 	CHECK(world.knows(own));
-	CHECK(witness.abode().id() == own);
+	CHECK(witness.abode().id() == own.as_place());
+	CHECK(witness.abode().abode_id() == own);
 	CHECK(witness.abode().dwells(man));
 	CHECK(&witness.abode() == &world.abode(own));
 	CHECK(world.knows(man.Vessel::id()));
@@ -86,7 +87,8 @@ TEST_CASE("welcome existing man")
 	const Man& man = world.welcome(test_token("abcd1234abcd1234abcd1234abcd1234"));
 	CHECK(man.Soul::id() == id::Soul{42});
 	CHECK(static_cast<const Witness&>(man).abode().dwells(man));
-	CHECK(static_cast<const Witness&>(man).abode().id() == id::Abode{man.id().value()});
+	CHECK(static_cast<const Witness&>(man).abode().abode_id() == id::Abode{man.id().value()});
+	CHECK(static_cast<const Witness&>(man).abode().id() == id::Place{man.id().value()});
 }
 
 

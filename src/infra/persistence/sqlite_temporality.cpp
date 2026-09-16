@@ -218,23 +218,23 @@ std::vector<std::pair<domain::id::Abode, domain::id::Man>> SqliteTemporality::ab
 }
 
 
-void SqliteTemporality::fix(const domain::id::Abode abode, const domain::id::Soul author,
+void SqliteTemporality::fix(const domain::id::Place place, const domain::id::Soul author,
 							 const domain::Word& word) const
 {
 	const domain::Timestamp ts = time_.instant();
-	const domain::Letter drafted{domain::id::Letter{1}, abode, author, word, ts};
+	const domain::Letter drafted{domain::id::Letter{1}, place, author, word, ts};
 
 	std::lock_guard lock(database_.mutex());
 
 	sqlite3* const db = database_.db();
 	sqlite3_stmt* stmt = nullptr;
 	check_sqlite(sqlite3_prepare_v2(db,
-									"INSERT INTO letters (abode_id, author_soul_id, body, created_at_ns) "
+									"INSERT INTO letters (place_id, author_soul_id, body, created_at_ns) "
 									"VALUES (?, ?, ?, ?);",
 									-1, &stmt, nullptr),
 				 db, "prepare insert letter");
 
-	check_sqlite(sqlite3_bind_int64(stmt, 1, static_cast<sqlite3_int64>(abode.value())), db, "bind abode_id");
+	check_sqlite(sqlite3_bind_int64(stmt, 1, static_cast<sqlite3_int64>(place.value())), db, "bind place_id");
 	check_sqlite(sqlite3_bind_int64(stmt, 2, static_cast<sqlite3_int64>(author.value())), db,
 				 "bind author_soul_id");
 	check_sqlite(sqlite3_bind_text(stmt, 3, drafted.body().data(), static_cast<int>(drafted.body().size()),
@@ -247,7 +247,7 @@ void SqliteTemporality::fix(const domain::id::Abode abode, const domain::id::Sou
 }
 
 
-std::vector<domain::Letter> SqliteTemporality::letters(const domain::id::Abode abode,
+std::vector<domain::Letter> SqliteTemporality::letters(const domain::id::Place place,
 													  const std::uint32_t limit) const
 {
 	std::lock_guard lock(database_.mutex());
@@ -255,13 +255,13 @@ std::vector<domain::Letter> SqliteTemporality::letters(const domain::id::Abode a
 	sqlite3* const db = database_.db();
 	sqlite3_stmt* stmt = nullptr;
 	check_sqlite(sqlite3_prepare_v2(db,
-									"SELECT id, abode_id, author_soul_id, body, created_at_ns "
+									"SELECT id, place_id, author_soul_id, body, created_at_ns "
 									"FROM letters "
-									"WHERE abode_id = ? ORDER BY id DESC LIMIT ?;",
+									"WHERE place_id = ? ORDER BY id DESC LIMIT ?;",
 									-1, &stmt, nullptr),
 				 db, "prepare letters");
 
-	check_sqlite(sqlite3_bind_int64(stmt, 1, static_cast<sqlite3_int64>(abode.value())), db, "bind abode_id");
+	check_sqlite(sqlite3_bind_int64(stmt, 1, static_cast<sqlite3_int64>(place.value())), db, "bind place_id");
 	check_sqlite(sqlite3_bind_int64(stmt, 2, static_cast<sqlite3_int64>(limit)), db, "bind limit");
 
 	std::vector<domain::Letter> rows;
@@ -273,7 +273,7 @@ std::vector<domain::Letter> SqliteTemporality::letters(const domain::id::Abode a
 		const char* const body_text = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3));
 		rows.push_back(domain::Letter{
 			domain::id::Letter{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 0))},
-			domain::id::Abode{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 1))},
+			domain::id::Place{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 1))},
 			domain::id::Soul{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 2))},
 			domain::Word{std::string(body_text ? body_text : "")},
 			domain::Timestamp{sqlite3_column_int64(stmt, 4)},

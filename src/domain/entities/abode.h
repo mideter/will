@@ -1,7 +1,8 @@
 #pragma once
 
-#include "identity/abode.h"
 #include "entities/man.h"
+#include "entities/place.h"
+#include "identity/abode.h"
 #include "values/abode_name.h"
 
 #include <memory>
@@ -13,10 +14,10 @@ namespace will::domain {
 
 
 /// Abode (Обитель) — the host's place: observers may dwell here.
-/// Host identity matches abode id (man id). Rooms come later; for now letters
-/// still fix on the abode. A living Witness observes one abode.
-/// Movable: Temporality may hand id+name snapshots; dwellers fill in the World.
-class Abode {
+/// Host identity matches abode / place id (man id). Rooms come later.
+/// A living Witness observes one abode. Movable: Temporality may hand
+/// id+name snapshots; dwellers fill in the World.
+class Abode : public Place {
 public:
 	Abode(id::Abode id, AbodeName name);
 	Abode(Abode&& other) noexcept;
@@ -24,7 +25,9 @@ public:
 	Abode(const Abode&) = delete;
 	Abode& operator=(const Abode&) = delete;
 
-	id::Abode id() const noexcept { return id_; }
+	/// Strongly typed abode id (same value as Place::id()).
+	id::Abode abode_id() const noexcept { return id::Abode{id().value()}; }
+
 	const AbodeName& name() const noexcept { return name_; }
 
 	/// Admit a man as dweller (participation).
@@ -34,7 +37,6 @@ public:
 	bool dwells(const Man& man) const;
 
 private:
-	id::Abode id_;
 	AbodeName name_;
 	mutable std::unique_ptr<std::mutex> mutex_;
 	std::unordered_set<const Man*> dwellers_;

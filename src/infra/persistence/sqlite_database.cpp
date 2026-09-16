@@ -256,7 +256,7 @@ CREATE TABLE IF NOT EXISTS abode_men (
 
 CREATE TABLE IF NOT EXISTS letters (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  abode_id INTEGER NOT NULL,
+  place_id INTEGER NOT NULL,
   author_soul_id INTEGER NOT NULL REFERENCES souls(id),
   body TEXT NOT NULL,
   created_at_ns INTEGER NOT NULL
@@ -267,14 +267,20 @@ CREATE INDEX IF NOT EXISTS idx_letters_created_at ON letters(created_at_ns);
 
 	check_sqlite(sqlite3_exec(db_, InitSchemaSql, nullptr, nullptr, nullptr), db_, "init_schema");
 
+	if (table_has_column(db_, "letters", "abode_id") && !table_has_column(db_, "letters", "place_id")) {
+		check_sqlite(sqlite3_exec(db_, "ALTER TABLE letters RENAME COLUMN abode_id TO place_id;", nullptr,
+								  nullptr, nullptr),
+					 db_, "rename letters.abode_id to place_id");
+	}
+
 	migrate_souls_device_token_to_vessels(db_);
 	// Column renames for DBs that already had vessels/letters before gods→souls.
 	migrate_gods_to_souls(db_);
 	migrate_vessels_soul_id_to_men(db_);
 
-	check_sqlite(sqlite3_exec(db_, "UPDATE letters SET abode_id = 1 WHERE abode_id = 0;", nullptr, nullptr,
+	check_sqlite(sqlite3_exec(db_, "UPDATE letters SET place_id = 1 WHERE place_id = 0;", nullptr, nullptr,
 							  nullptr),
-				 db_, "migrate global abode_id");
+				 db_, "migrate global place_id");
 
 	// Retire the former world abode as a living place (letter id 1 may remain orphaned).
 	check_sqlite(sqlite3_exec(db_, "DELETE FROM abode_men WHERE abode_id = 1;", nullptr, nullptr, nullptr),

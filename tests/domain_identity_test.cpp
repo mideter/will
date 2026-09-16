@@ -4,6 +4,7 @@
 #include "identity/abode.h"
 #include "identity/letter.h"
 #include "identity/man.h"
+#include "identity/place.h"
 #include "identity/soul.h"
 #include "identity/vessel.h"
 
@@ -32,7 +33,16 @@ TEST_CASE("id::Abode global and positive values")
 	CHECK(id::Abode::global() == id::Abode{1});
 	CHECK(id::Abode{5}.value() == 5);
 	CHECK(id::Abode{5} != id::Abode::global());
+	CHECK(id::Abode{5}.as_place() == id::Place{5});
 	CHECK_THROWS_AS(id::Abode{0}, std::invalid_argument);
+}
+
+
+TEST_CASE("id::Place global and positive values")
+{
+	CHECK(id::Place::global() == id::Place{1});
+	CHECK(id::Place{5}.value() == 5);
+	CHECK_THROWS_AS(id::Place{0}, std::invalid_argument);
 }
 
 

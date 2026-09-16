@@ -6,15 +6,15 @@
 namespace will::domain {
 
 
-Abode::Abode(id::Abode id, AbodeName name)
-	: id_(id)
+Abode::Abode(const id::Abode id, AbodeName name)
+	: Place(id::Place{id.value()})
 	, name_(std::move(name))
 	, mutex_(std::make_unique<std::mutex>())
 {}
 
 
 Abode::Abode(Abode&& other) noexcept
-	: id_(other.id_)
+	: Place(std::move(other))
 	, name_(std::move(other.name_))
 	, mutex_(std::move(other.mutex_))
 	, dwellers_(std::move(other.dwellers_))
@@ -25,7 +25,7 @@ Abode& Abode::operator=(Abode&& other) noexcept
 {
 	if (this == &other)
 		return *this;
-	id_ = other.id_;
+	Place::operator=(std::move(other));
 	name_ = std::move(other.name_);
 	mutex_ = std::move(other.mutex_);
 	dwellers_ = std::move(other.dwellers_);

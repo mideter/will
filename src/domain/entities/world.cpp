@@ -127,7 +127,7 @@ const Man& World::accept(Man&& man)
 	Heaven::index(soul);
 	Earth::index(vessel);
 	place.admit(live);
-	join_abode(place.id(), man_id);
+	join_abode(place.abode_id(), man_id);
 	return live;
 }
 
