@@ -11,16 +11,14 @@ namespace will::domain {
 
 class Soul;
 class Eternity;
+class Spirit;
 
 
-/// Heaven (Небо) — of the one World; Spirit knows Heaven via the().
+/// Heaven (Небо) — of the one World; Spirit alone reaches it via the().
 /// Creation brings forth Heaven.
 /// Pointers address Soul bases of heap-stable Man (unique_ptr).
 class Heaven {
 public:
-	/// The one living Heaven. Throws if not yet brought forth / already destroyed.
-	static Heaven& the();
-
 	/// Whether Heaven knows this soul.
 	bool knows(id::Soul id) const;
 
@@ -48,6 +46,9 @@ protected:
 	void present(const Soul& soul);
 
 private:
+	/// The one living Heaven. Throws if not yet brought forth / already destroyed.
+	static Heaven& the();
+
 	static Heaven* current_;
 
 	Eternity& eternity_;

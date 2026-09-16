@@ -1,8 +1,5 @@
 #include "supplication.h"
 
-#include "entities/heaven.h"
-#include "entities/soul.h"
-
 #include <stdexcept>
 #include <utility>
 
@@ -20,18 +17,6 @@ Supplication::Supplication(const id::Supplication id, const id::Soul suppliant, 
 {
 	if (suppliant_id_ == addressee_id_)
 		throw std::invalid_argument("supplication requires distinct suppliant and addressee");
-}
-
-
-const Soul& Supplication::suppliant() const
-{
-	return Heaven::the().soul(suppliant_id_);
-}
-
-
-const Soul& Supplication::addressee() const
-{
-	return Heaven::the().soul(addressee_id_);
 }
 
 
