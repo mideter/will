@@ -54,10 +54,12 @@ domain::Supplication read_supplication(sqlite3_stmt* stmt)
 {
 	const domain::id::Soul suppliant_id{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 1))};
 	const domain::id::Soul addressee_id{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 2))};
+	const domain::Spirit reach;
+	domain::Heaven& heaven = reach.heaven();
 	return domain::Supplication{
 		domain::id::Supplication{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 0))},
-		domain::Spirit::known(suppliant_id),
-		domain::Spirit::known(addressee_id),
+		heaven.soul(suppliant_id),
+		heaven.soul(addressee_id),
 		status_from_text(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3))),
 		domain::Timestamp{sqlite3_column_int64(stmt, 4)},
 	};

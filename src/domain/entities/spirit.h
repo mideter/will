@@ -13,26 +13,18 @@ class Soul;
 /// Spirit (Дух) — highest foundation of the soul.
 /// Will (say) belongs to spirit; living modes reveal it (speech, later bequest/deed).
 /// Hearing is not a separate act — the Witness himself is the focus.
-/// Knows Heaven via the(); presents a living soul to Heaven.
+/// Knows Heaven via the(); presents itself (as Soul) to Heaven.
 class Spirit {
 public:
 	virtual ~Spirit() = default;
 
 	Heaven& heaven() const { return Heaven::the(); }
 
-	/// Living soul on Heaven (lookup for reconstitution). Throws if unknown.
-	static const Soul& known(id::Soul id);
-
-	/// Whether Heaven knows this soul.
-	static bool knows(id::Soul id);
-
 	/// Present this living soul to Heaven (heap-stable address).
-	void present(const Soul& soul) const;
+	void present() const;
 
 	/// Act of will: speak a word. Outside the living world this fails; Witness reveals it.
 	virtual void say(const Word& word) const;
-
-	bool operator==(const Spirit&) const = default;
 };
 
 
