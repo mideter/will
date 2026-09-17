@@ -99,10 +99,4 @@ void Earth::join_abode(const id::Abode abode, const id::Man man)
 }
 
 
-std::vector<std::pair<id::Abode, id::Man>> Earth::abode_men() const
-{
-	return temporality_.abode_men();
-}
-
-
 } // namespace will::domain

@@ -120,16 +120,7 @@ public:
 		abode_rows_.emplace_back(id, std::move(name));
 	}
 
-	void join_abode(const id::Abode abode, const id::Man man) override
-	{
-		for (const auto& row : abode_men_) {
-			if (row.first == abode && row.second == man)
-				return;
-		}
-		abode_men_.emplace_back(abode, man);
-	}
-
-	std::vector<std::pair<id::Abode, id::Man>> abode_men() override { return abode_men_; }
+	void join_abode(const id::Abode, const id::Man) override {}
 
 	void fix(id::Place place, id::Soul author, const Word& word) const override
 	{
@@ -282,7 +273,6 @@ private:
 	std::vector<Soul> souls_;
 	std::vector<Embodiment> embodiments_;
 	std::vector<std::pair<id::Abode, AbodeName>> abode_rows_;
-	std::vector<std::pair<id::Abode, id::Man>> abode_men_;
 	mutable std::vector<Letter> letters_;
 	std::vector<Supplication> supplications_;
 	std::vector<ObedienceRow> obediences_;

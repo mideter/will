@@ -58,9 +58,6 @@ protected:
 	/// Record that a man dwells in an abode (through Temporality).
 	void join_abode(id::Abode abode, id::Man man);
 
-	/// Membership rows for restoring live abodes (through Temporality).
-	std::vector<std::pair<id::Abode, id::Man>> abode_men() const;
-
 	Temporality& temporality() noexcept { return temporality_; }
 	const Temporality& temporality() const noexcept { return temporality_; }
 

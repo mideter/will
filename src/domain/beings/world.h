@@ -45,7 +45,7 @@ private:
 
 	World(Heaven heaven, Earth earth);
 
-	/// Accept remembered embodiments and restore dwellers (Creation).
+	/// Accept remembered embodiments (Creation).
 	void awaken();
 
 	/// Enroll a soul, embody it in a vessel, birth Testator.
@@ -55,7 +55,6 @@ private:
 	const Man& accept(Embodiment embodiment);
 
 	const Man& living_man(id::Man id) const;
-	void restore_dwellers();
 
 	mutable std::mutex mutex_;
 	std::unordered_map<id::Man, std::unique_ptr<Man>> men_;

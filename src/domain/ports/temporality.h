@@ -50,9 +50,6 @@ public:
 	/// Record that a man dwells in an abode (idempotent).
 	virtual void join_abode(id::Abode abode, id::Man man) = 0;
 
-	/// Membership rows for restoring live abodes.
-	virtual std::vector<std::pair<id::Abode, id::Man>> abode_men() = 0;
-
 	/// Fix a word in time: take the present from Time and keep the letter.
 	virtual void fix(id::Place place, id::Soul author, const Word& word) const = 0;
 

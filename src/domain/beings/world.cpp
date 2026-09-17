@@ -1,7 +1,6 @@
 #include "world.h"
 
 #include "beings/testator.h"
-#include "beings/witness.h"
 #include "ports/temporality.h"
 #include "values/soul_name.h"
 
@@ -22,8 +21,6 @@ void World::awaken()
 {
 	for (Embodiment e : temporality().embodiments())
 		(void)accept(std::move(e));
-
-	restore_dwellers();
 }
 
 
@@ -82,19 +79,6 @@ const Man& World::living_man(const id::Man id) const
 		throw std::logic_error("Unknown man");
 
 	return *it->second;
-}
-
-
-void World::restore_dwellers()
-{
-	for (const auto& [abode_id, man_id] : abode_men()) {
-		try {
-			const Man& host = living_man(id::Man{abode_id.value()});
-			static_cast<const Witness&>(host).abode().admit(living_man(man_id));
-		} catch (const std::logic_error&) {
-			continue;
-		}
-	}
 }
 
 

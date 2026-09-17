@@ -24,7 +24,6 @@ public:
 	std::vector<domain::Abode> abodes() override;
 	void keep(domain::id::Abode id, domain::AbodeName name) override;
 	void join_abode(domain::id::Abode abode, domain::id::Man man) override;
-	std::vector<std::pair<domain::id::Abode, domain::id::Man>> abode_men() override;
 	void fix(domain::id::Place place, domain::id::Soul author, const domain::Word& word) const override;
 	std::vector<domain::Letter> letters(domain::id::Place place, std::uint32_t limit) const override;
 
