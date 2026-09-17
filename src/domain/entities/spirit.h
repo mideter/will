@@ -20,6 +20,12 @@ public:
 
 	Heaven& heaven() const { return Heaven::the(); }
 
+	/// Living soul on Heaven (lookup for reconstitution). Throws if unknown.
+	static const Soul& known(id::Soul id);
+
+	/// Whether Heaven knows this soul.
+	static bool knows(id::Soul id);
+
 	/// Present this living soul to Heaven (heap-stable address).
 	void present(const Soul& soul) const;
 

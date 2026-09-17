@@ -3,6 +3,7 @@
 #include "entities/abode.h"
 #include "entities/letter.h"
 #include "entities/obedience.h"
+#include "entities/soul.h"
 #include "entities/supplication.h"
 #include "identity/abode.h"
 #include "identity/man.h"
@@ -49,7 +50,7 @@ public:
 	virtual std::vector<Letter> letters(id::Place place, std::uint32_t limit) const = 0;
 
 	/// Offer obedience: suppliant asks addressee to become testator.
-	virtual Supplication supplicate(id::Soul suppliant, id::Soul addressee) = 0;
+	virtual Supplication supplicate(const Soul& suppliant, const Soul& addressee) = 0;
 
 	/// Pending supplications addressed to this soul.
 	virtual std::vector<Supplication> pending_supplications(id::Soul addressee) const = 0;

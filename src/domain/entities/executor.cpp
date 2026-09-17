@@ -23,7 +23,7 @@ Supplication Executor::supplicate(const Soul& testator) const
 	if (!heaven().knows(testator.id()))
 		throw std::invalid_argument("unknown testator soul");
 
-	return temporality().supplicate(Soul::id(), testator.id());
+	return temporality().supplicate(static_cast<const Soul&>(*this), testator);
 }
 
 

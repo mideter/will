@@ -192,8 +192,8 @@ TEST_CASE("supplicate accept creates living obedience; secede ends it")
 	const auto& testator = static_cast<const Testator&>(b);
 
 	const Supplication ask = executor.supplicate(b);
-	CHECK(ask.suppliant_id() == a.Soul::id());
-	CHECK(ask.addressee_id() == b.Soul::id());
+	CHECK(ask.suppliant().id() == a.Soul::id());
+	CHECK(ask.addressee().id() == b.Soul::id());
 	CHECK(ask.status() == SupplicationStatus::pending);
 	CHECK(temporality.pending_supplications(b.Soul::id()).size() == 1);
 

@@ -27,7 +27,8 @@ public:
 	void fix(domain::id::Place place, domain::id::Soul author, const domain::Word& word) const override;
 	std::vector<domain::Letter> letters(domain::id::Place place, std::uint32_t limit) const override;
 
-	domain::Supplication supplicate(domain::id::Soul suppliant, domain::id::Soul addressee) override;
+	domain::Supplication
+	supplicate(const domain::Soul& suppliant, const domain::Soul& addressee) override;
 	std::vector<domain::Supplication> pending_supplications(domain::id::Soul addressee) const override;
 	domain::Obedience accept(domain::id::Supplication id) override;
 	void refuse(domain::id::Supplication id) override;

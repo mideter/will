@@ -1,11 +1,24 @@
 #include "spirit.h"
 
 #include "entities/soul.h"
+#include "identity/soul.h"
 
 #include <stdexcept>
 
 
 namespace will::domain {
+
+
+const Soul& Spirit::known(const id::Soul id)
+{
+	return Heaven::the().soul(id);
+}
+
+
+bool Spirit::knows(const id::Soul id)
+{
+	return Heaven::the().knows(id);
+}
 
 
 void Spirit::present(const Soul& soul) const

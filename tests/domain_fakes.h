@@ -129,14 +129,17 @@ public:
 		return std::vector<Letter>(matching.end() - static_cast<std::ptrdiff_t>(limit), matching.end());
 	}
 
-	Supplication supplicate(const id::Soul suppliant, const id::Soul addressee) override
+	Supplication
+	supplicate(const Soul& suppliant, const Soul& addressee) override
 	{
-		if (suppliant == addressee)
+		const id::Soul suppliant_id = suppliant.id();
+		const id::Soul addressee_id = addressee.id();
+		if (suppliant_id == addressee_id)
 			throw std::invalid_argument("supplication requires distinct suppliant and addressee");
-		if (living_pair(addressee, suppliant))
+		if (living_pair(addressee_id, suppliant_id))
 			throw std::logic_error("living obedience already exists for this pair");
 		for (const auto& row : supplications_) {
-			if (row.suppliant_id() == suppliant && row.addressee_id() == addressee
+			if (row.suppliant_id() == suppliant_id && row.addressee_id() == addressee_id
 				&& row.status() == SupplicationStatus::pending)
 				throw std::logic_error("pending supplication already exists for this pair");
 		}
@@ -165,7 +168,7 @@ public:
 		if (living_pair(row.addressee_id(), row.suppliant_id()))
 			throw std::logic_error("living obedience already exists for this pair");
 
-		row = Supplication{row.id(), row.suppliant_id(), row.addressee_id(), SupplicationStatus::accepted,
+		row = Supplication{row.id(), row.suppliant(), row.addressee(), SupplicationStatus::accepted,
 						   row.created_at()};
 
 		const id::Obedience oid{allocate_place()};
@@ -179,7 +182,7 @@ public:
 		Supplication& row = mutable_supplication(id);
 		if (row.status() != SupplicationStatus::pending)
 			throw std::logic_error("supplication is not pending");
-		row = Supplication{row.id(), row.suppliant_id(), row.addressee_id(), SupplicationStatus::refused,
+		row = Supplication{row.id(), row.suppliant(), row.addressee(), SupplicationStatus::refused,
 						   row.created_at()};
 	}
 
