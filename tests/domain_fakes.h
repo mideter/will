@@ -25,6 +25,7 @@
 #include "values/word.h"
 
 #include <cstdint>
+#include <memory>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -139,7 +140,7 @@ public:
 		if (living_pair(addressee_id, suppliant_id))
 			throw std::logic_error("living obedience already exists for this pair");
 		for (const auto& row : supplications_) {
-			if (row.suppliant_id() == suppliant_id && row.addressee_id() == addressee_id
+			if (row.suppliant().id() == suppliant_id && row.addressee().id() == addressee_id
 				&& row.status() == SupplicationStatus::pending)
 				throw std::logic_error("pending supplication already exists for this pair");
 		}
@@ -154,7 +155,7 @@ public:
 	{
 		std::vector<Supplication> out;
 		for (const auto& row : supplications_) {
-			if (row.addressee_id() == addressee && row.status() == SupplicationStatus::pending)
+			if (row.addressee().id() == addressee && row.status() == SupplicationStatus::pending)
 				out.push_back(row);
 		}
 		return out;
@@ -165,16 +166,15 @@ public:
 		Supplication& row = mutable_supplication(id);
 		if (row.status() != SupplicationStatus::pending)
 			throw std::logic_error("supplication is not pending");
-		if (living_pair(row.addressee_id(), row.suppliant_id()))
+		if (living_pair(row.addressee().id(), row.suppliant().id()))
 			throw std::logic_error("living obedience already exists for this pair");
 
-		row = Supplication{row.id(), row.suppliant(), row.addressee(), SupplicationStatus::accepted,
-						   row.created_at()};
+		replace_status(row, SupplicationStatus::accepted);
 
 		const id::Obedience oid{allocate_place()};
 		obediences_.push_back(
-			ObedienceRow{oid, row.addressee_id(), row.suppliant_id(), true});
-		return Obedience{oid, row.addressee_id(), row.suppliant_id(), true};
+			ObedienceRow{oid, row.addressee().id(), row.suppliant().id(), true});
+		return Obedience{oid, row.addressee().id(), row.suppliant().id(), true};
 	}
 
 	void refuse(const id::Supplication id) override
@@ -182,8 +182,7 @@ public:
 		Supplication& row = mutable_supplication(id);
 		if (row.status() != SupplicationStatus::pending)
 			throw std::logic_error("supplication is not pending");
-		row = Supplication{row.id(), row.suppliant(), row.addressee(), SupplicationStatus::refused,
-						   row.created_at()};
+		replace_status(row, SupplicationStatus::refused);
 	}
 
 	Obedience obedience(const id::Obedience id) const override
@@ -242,6 +241,16 @@ private:
 				return row;
 		}
 		throw std::invalid_argument("unknown supplication");
+	}
+
+	static void replace_status(Supplication& row, const SupplicationStatus status)
+	{
+		const id::Supplication id = row.id();
+		const Soul& suppliant = row.suppliant();
+		const Soul& addressee = row.addressee();
+		Timestamp created_at = row.created_at();
+		std::destroy_at(&row);
+		std::construct_at(&row, id, suppliant, addressee, status, std::move(created_at));
 	}
 
 	FakeTime time_;

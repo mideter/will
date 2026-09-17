@@ -21,7 +21,7 @@ Testator::Testator(Man&& man)
 
 Obedience Testator::accept(const Supplication& supplication) const
 {
-	if (supplication.addressee_id() != Soul::id())
+	if (supplication.addressee().id() != Soul::id())
 		throw std::logic_error("supplication is not addressed to this soul");
 	if (supplication.status() != SupplicationStatus::pending)
 		throw std::logic_error("supplication is not pending");
@@ -32,7 +32,7 @@ Obedience Testator::accept(const Supplication& supplication) const
 
 void Testator::refuse(const Supplication& supplication) const
 {
-	if (supplication.addressee_id() != Soul::id())
+	if (supplication.addressee().id() != Soul::id())
 		throw std::logic_error("supplication is not addressed to this soul");
 	if (supplication.status() != SupplicationStatus::pending)
 		throw std::logic_error("supplication is not pending");
