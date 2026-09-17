@@ -19,9 +19,6 @@ Supplication::Supplication(const id::Supplication id, const Soul& suppliant, con
 {
 	if (suppliant.id() == addressee.id())
 		throw std::invalid_argument("supplication requires distinct suppliant and addressee");
-
-	if (!suppliant.heaven().knows(suppliant.id()) || !suppliant.heaven().knows(addressee.id()))
-		throw std::invalid_argument("supplication requires souls known to Heaven");
 }
 
 
