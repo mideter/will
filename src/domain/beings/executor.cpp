@@ -27,6 +27,21 @@ Supplication Executor::supplicate(const Soul& testator) const
 }
 
 
+Testament Executor::execute(const Testament& testament) const
+{
+	if (testament.executor().id() != Soul::id())
+		throw std::logic_error("not the executor of this testament");
+	if (!testament.open())
+		throw std::logic_error("testament is not open");
+
+	const Obedience obedience = temporality().obedience(testament.obedience_id());
+	if (!obedience.living())
+		throw std::logic_error("obedience is not living");
+
+	return temporality().execute(testament);
+}
+
+
 void Executor::secede(const Obedience& obedience) const
 {
 	if (obedience.testator().id() != Soul::id() && obedience.executor().id() != Soul::id())

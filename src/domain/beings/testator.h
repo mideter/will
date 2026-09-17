@@ -4,6 +4,8 @@
 #include "acts/obedience.h"
 #include "acts/supplication.h"
 #include "beings/executor.h"
+#include "beings/testament.h"
+#include "values/word.h"
 
 
 namespace will::domain {
@@ -22,6 +24,9 @@ public:
 
 	/// Refuse a pending supplication addressed to this soul.
 	void refuse(const Supplication& supplication) const;
+
+	/// Bequeath a word in a living obedience where this soul is testator.
+	Testament will(const Obedience& obedience, const Word& word) const;
 
 private:
 	friend class World;

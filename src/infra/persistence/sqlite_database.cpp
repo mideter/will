@@ -111,6 +111,7 @@ void drop_legacy_tables(sqlite3* db)
 {
 	static constexpr const char* DropLegacyTablesSql = R"sql(
 DROP TABLE IF EXISTS letters;
+DROP TABLE IF EXISTS testaments;
 DROP TABLE IF EXISTS obediences;
 DROP TABLE IF EXISTS supplications;
 DROP TABLE IF EXISTS abode_men;
@@ -278,6 +279,17 @@ CREATE TABLE IF NOT EXISTS obediences (
   executor_soul_id INTEGER NOT NULL REFERENCES souls(id),
   created_at_ns INTEGER NOT NULL,
   seceded_at_ns INTEGER
+);
+
+CREATE TABLE IF NOT EXISTS testaments (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  obedience_id INTEGER NOT NULL REFERENCES obediences(id),
+  testator_soul_id INTEGER NOT NULL REFERENCES souls(id),
+  executor_soul_id INTEGER NOT NULL REFERENCES souls(id),
+  body TEXT NOT NULL,
+  created_at_ns INTEGER NOT NULL,
+  executed_at_ns INTEGER,
+  cancelled_at_ns INTEGER
 );
 
 CREATE INDEX IF NOT EXISTS idx_letters_created_at ON letters(created_at_ns);

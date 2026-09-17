@@ -21,7 +21,7 @@ class Witness : public Man {
 public:
 	Abode& abode() const noexcept { return *abode_; }
 
-	void say(const Word& word) const override;
+	void say(const Word& word) const final;
 
 	/// Outward witnessing: retell letters of authors known to Heaven (capped).
 	std::vector<Letter> retell(std::uint32_t limit) const;

@@ -3,6 +3,7 @@
 #include "acts/embodiment.h"
 #include "acts/obedience.h"
 #include "acts/supplication.h"
+#include "beings/testament.h"
 #include "beings/witness.h"
 
 
@@ -19,11 +20,17 @@ public:
 	/// Ask addressee to become testator; this soul will be the executor.
 	Supplication supplicate(const Soul& testator) const;
 
+	/// Carry out an open testament in a living obedience where this soul is executor.
+	Testament execute(const Testament& testament) const;
+
 	/// Leave a living obedience (as either side of the pair).
 	void secede(const Obedience& obedience) const;
 
 protected:
 	explicit Executor(Embodiment embodiment);
+
+private:
+	using Witness::say;
 };
 
 

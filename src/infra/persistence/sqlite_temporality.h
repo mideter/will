@@ -35,6 +35,13 @@ public:
 	domain::Obedience obedience(domain::id::Obedience id) const override;
 	void secede(domain::id::Obedience id) override;
 
+	domain::Testament
+	bequeath(const domain::Obedience& obedience, const domain::Soul& testator,
+			 const domain::Word& word) override;
+	domain::Testament execute(const domain::Testament& testament) override;
+	domain::Testament testament(domain::id::Testament id) const override;
+	std::vector<domain::Testament> testaments(domain::id::Obedience obedience) const override;
+
 private:
 	SqliteDatabase& database_;
 	SystemTime time_;

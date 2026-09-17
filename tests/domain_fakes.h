@@ -9,6 +9,7 @@
 #include "beings/letter.h"
 #include "beings/man.h"
 #include "acts/supplication.h"
+#include "beings/testament.h"
 #include "beings/vessel.h"
 #include "beings/world.h"
 #include "identity/abode.h"
@@ -16,6 +17,7 @@
 #include "identity/obedience.h"
 #include "identity/soul.h"
 #include "identity/supplication.h"
+#include "identity/testament.h"
 #include "identity/vessel.h"
 #include "ports/temporality.h"
 #include "ports/time.h"
@@ -27,6 +29,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <optional>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -217,9 +220,67 @@ public:
 			if (!row.living)
 				throw std::logic_error("obedience is not living");
 			row.living = false;
+			const Timestamp now = time_.instant();
+			for (auto& testament : testament_rows_) {
+				if (testament.obedience == id && !testament.executed_at && !testament.cancelled_at)
+					testament.cancelled_at = now;
+			}
 			return;
 		}
 		throw std::invalid_argument("unknown obedience");
+	}
+
+	Testament bequeath(const Obedience& obedience, const Soul& testator, const Word& word) override
+	{
+		if (!living_obedience(obedience.obedience_id()))
+			throw std::logic_error("obedience is not living");
+		if (obedience.testator().id() != testator.id())
+			throw std::logic_error("only the testator may bequeath in this obedience");
+
+		TestamentRow row{id::Testament{++next_testament_id_},
+						 obedience.obedience_id(),
+						 obedience.testator().id(),
+						 obedience.executor().id(),
+						 word.body(),
+						 time_.instant(),
+						 std::nullopt,
+						 std::nullopt};
+		testament_rows_.push_back(row);
+		return Testament{row.id, this->obedience(obedience.obedience_id()), word, row.created_at};
+	}
+
+	Testament execute(const Testament& testament) override
+	{
+		for (auto& row : testament_rows_) {
+			if (row.id.value() != testament.id().value())
+				continue;
+			if (row.executed_at || row.cancelled_at)
+				throw std::logic_error("testament is not open");
+			if (!living_obedience(row.obedience))
+				throw std::logic_error("obedience is not living");
+			row.executed_at = time_.instant();
+			return make_testament(row);
+		}
+		throw std::invalid_argument("unknown testament");
+	}
+
+	Testament testament(const id::Testament id) const override
+	{
+		for (const auto& row : testament_rows_) {
+			if (row.id == id)
+				return make_testament(row);
+		}
+		throw std::invalid_argument("unknown testament");
+	}
+
+	std::vector<Testament> testaments(const id::Obedience obedience) const override
+	{
+		std::vector<Testament> out;
+		for (const auto& row : testament_rows_) {
+			if (row.obedience == obedience)
+				out.push_back(make_testament(row));
+		}
+		return out;
 	}
 
 	FakeTime& fake_time() { return time_; }
@@ -230,6 +291,17 @@ private:
 		id::Soul testator;
 		id::Soul executor;
 		bool living;
+	};
+
+	struct TestamentRow {
+		id::Testament id;
+		id::Obedience obedience;
+		id::Soul testator;
+		id::Soul executor;
+		std::string body;
+		Timestamp created_at;
+		std::optional<Timestamp> executed_at;
+		std::optional<Timestamp> cancelled_at;
 	};
 
 	void note_place(const std::uint64_t value)
@@ -247,6 +319,22 @@ private:
 				return true;
 		}
 		return false;
+	}
+
+	bool living_obedience(const id::Obedience id) const
+	{
+		for (const auto& row : obediences_) {
+			if (row.id == id)
+				return row.living;
+		}
+		return false;
+	}
+
+	Testament make_testament(const TestamentRow& row) const
+	{
+		const Obedience obedience = this->obedience(row.obedience);
+		return Testament{row.id, obedience, Word{row.body}, row.created_at, row.executed_at,
+						 row.cancelled_at};
 	}
 
 	Supplication& mutable_supplication(const id::Supplication id)
@@ -274,6 +362,7 @@ private:
 	std::uint64_t next_man_id_ = 0;
 	std::uint64_t next_place_id_ = 0;
 	std::uint64_t next_supplication_id_ = 0;
+	std::uint64_t next_testament_id_ = 0;
 	mutable std::uint64_t next_id_ = 0;
 	std::vector<Soul> souls_;
 	std::vector<Embodiment> embodiments_;
@@ -281,6 +370,7 @@ private:
 	mutable std::vector<Letter> letters_;
 	std::vector<Supplication> supplications_;
 	std::vector<ObedienceRow> obediences_;
+	std::vector<TestamentRow> testament_rows_;
 };
 
 

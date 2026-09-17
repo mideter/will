@@ -6,8 +6,10 @@
 #include "acts/creation.h"
 #include "beings/executor.h"
 #include "acts/obedience.h"
+#include "beings/testament.h"
 #include "beings/testator.h"
 #include "beings/witness.h"
+#include "identity/testament.h"
 #include "values/abode_name.h"
 #include "values/device_token.h"
 #include "values/timestamp.h"
@@ -229,4 +231,52 @@ TEST_CASE("refuse closes pending supplication; wrong party cannot accept")
 	testator.refuse(ask);
 	CHECK(temporality.pending_supplications(b.Soul::id()).empty());
 	CHECK_THROWS_AS(testator.accept(ask), std::logic_error);
+}
+
+
+TEST_CASE("will and execute within living obedience")
+{
+	InMemoryTemporality temporality;
+	Creation creation(temporality);
+	World& world = creation.world();
+
+	const Man& a = world.welcome(DeviceToken::generate());
+	const Man& b = world.welcome(DeviceToken::generate());
+	const auto& executor = static_cast<const Executor&>(a);
+	const auto& testator = static_cast<const Testator&>(b);
+
+	Obedience obedience = testator.accept(executor.supplicate(b));
+	const Testament bequeathed = testator.will(obedience, Word{"fast"});
+	CHECK(bequeathed.open());
+	CHECK(bequeathed.body() == "fast");
+	CHECK(&bequeathed.testator() == &static_cast<const Soul&>(b));
+	CHECK(&bequeathed.executor() == &static_cast<const Soul&>(a));
+
+	CHECK_THROWS_AS(static_cast<const Testator&>(a).will(obedience, Word{"no"}), std::logic_error);
+
+	const Testament done = executor.execute(bequeathed);
+	CHECK(done.executed());
+	CHECK_FALSE(done.open());
+	CHECK_THROWS_AS(executor.execute(done), std::logic_error);
+}
+
+
+TEST_CASE("secede cancels open testament")
+{
+	InMemoryTemporality temporality;
+	Creation creation(temporality);
+	World& world = creation.world();
+
+	const Man& a = world.welcome(DeviceToken::generate());
+	const Man& b = world.welcome(DeviceToken::generate());
+	const auto& executor = static_cast<const Executor&>(a);
+	const auto& testator = static_cast<const Testator&>(b);
+
+	Obedience obedience = testator.accept(executor.supplicate(b));
+	const Testament open = testator.will(obedience, Word{"later"});
+	executor.secede(obedience);
+
+	CHECK(temporality.testament(id::Testament{open.id().value()}).cancelled());
+	CHECK_THROWS_AS(testator.will(obedience, Word{"no"}), std::logic_error);
+	CHECK_THROWS_AS(executor.execute(open), std::logic_error);
 }

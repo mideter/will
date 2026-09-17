@@ -6,12 +6,14 @@
 #include "beings/abode.h"
 #include "beings/letter.h"
 #include "beings/soul.h"
+#include "beings/testament.h"
 #include "identity/abode.h"
 #include "identity/man.h"
 #include "identity/obedience.h"
 #include "identity/place.h"
 #include "identity/soul.h"
 #include "identity/supplication.h"
+#include "identity/testament.h"
 #include "identity/vessel.h"
 #include "ports/eternity.h"
 #include "values/abode_name.h"
@@ -71,8 +73,20 @@ public:
 	/// Living or ended obedience by id. Throws if unknown.
 	virtual Obedience obedience(id::Obedience id) const = 0;
 
-	/// End a living obedience.
+	/// End a living obedience; cancels open testaments in it.
 	virtual void secede(id::Obedience id) = 0;
+
+	/// Bequeath a word in a living obedience (testator must be the obedience's testator).
+	virtual Testament bequeath(const Obedience& obedience, const Soul& testator, const Word& word) = 0;
+
+	/// Execute an open testament.
+	virtual Testament execute(const Testament& testament) = 0;
+
+	/// Testament by id. Throws if unknown.
+	virtual Testament testament(id::Testament id) const = 0;
+
+	/// Testaments kept in this obedience (any status).
+	virtual std::vector<Testament> testaments(id::Obedience obedience) const = 0;
 };
 
 
