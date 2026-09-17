@@ -7,6 +7,7 @@
 #include "identity/soul.h"
 #include "identity/vessel.h"
 #include "values/device_token.h"
+#include "values/soul_name.h"
 
 #include <memory>
 #include <mutex>
@@ -19,8 +20,7 @@ namespace will::domain {
 /// World (Мир) — the one living cosmos: is Heaven and Earth.
 /// Each living man has a personal abode owned by his Witness.
 /// Brought forth only by Creation with Heaven and Earth already brought forth.
-/// Living people are Testator on the heap (unique_ptr<Man>: Witness←Executor←Testator);
-/// Eternity still deals in Man values. Heaven and Earth live with the World.
+/// Living people are Testator on the heap; World alone births them.
 class World : public Heaven, public Earth {
 public:
 	using Heaven::knows;
@@ -44,14 +44,15 @@ private:
 
 	World(Heaven heaven, Earth earth);
 
-	/// Accept remembered men and restore dwellers (Creation).
+	/// Accept remembered embodiments and restore dwellers (Creation).
 	void awaken();
 
-	/// Beget a new man in Eternity and accept him into the living cosmos as Testator.
+	/// Enroll a soul, embody it in a vessel, birth Testator.
 	const Man& beget(const DeviceToken& token);
 
-	/// Place a man on the heap as Testator with his personal abode.
-	const Man& accept(Man&& man);
+	/// Place a Testator on the heap from embodiment material (in-place construction).
+	const Man& accept(id::Man man_id, id::Soul soul_id, SoulName name, id::Vessel vessel_id,
+					  DeviceToken token);
 
 	const Man& living_man(id::Man id) const;
 	void restore_dwellers();

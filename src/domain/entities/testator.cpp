@@ -1,7 +1,6 @@
 #include "testator.h"
 
 #include "entities/soul.h"
-#include "entities/vessel.h"
 #include "ports/temporality.h"
 
 #include <stdexcept>
@@ -11,12 +10,10 @@
 namespace will::domain {
 
 
-Testator::Testator(Man&& man)
-	: Executor(std::move(man))
-{
-	Spirit::present();
-	Dust::present(static_cast<const Vessel&>(*this));
-}
+Testator::Testator(const id::Man id, const id::Soul soul_id, SoulName name, const id::Vessel vessel_id,
+				   DeviceToken token)
+	: Executor(id, soul_id, std::move(name), vessel_id, std::move(token))
+{}
 
 
 Obedience Testator::accept(const Supplication& supplication) const

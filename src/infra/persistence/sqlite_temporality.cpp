@@ -120,60 +120,43 @@ domain::Time& SqliteTemporality::time()
 }
 
 
-std::vector<domain::Man> SqliteTemporality::men()
+std::vector<domain::Soul> SqliteTemporality::souls()
 {
 	std::lock_guard lock(database_.mutex());
 
 	sqlite3* const db = database_.db();
 	sqlite3_stmt* stmt = nullptr;
-	check_sqlite(sqlite3_prepare_v2(db,
-									"SELECT m.id, m.soul_id, s.name, m.vessel_id, v.device_token "
-									"FROM men AS m "
-									"INNER JOIN souls AS s ON s.id = m.soul_id "
-									"INNER JOIN vessels AS v ON v.id = m.vessel_id;",
-									-1, &stmt, nullptr),
-				 db, "prepare men");
+	check_sqlite(sqlite3_prepare_v2(db, "SELECT id, name FROM souls ORDER BY id;", -1, &stmt, nullptr), db,
+				 "prepare souls");
 
-	std::vector<domain::Man> men;
+	std::vector<domain::Soul> souls;
 
 	int rc = sqlite3_step(stmt);
 	while (rc == SQLITE_ROW) {
-		const domain::id::Man man_id{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 0))};
-		const domain::id::Soul soul_id{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 1))};
-		const unsigned char* const name_text = sqlite3_column_text(stmt, 2);
+		const domain::id::Soul soul_id{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 0))};
+		const unsigned char* const name_text = sqlite3_column_text(stmt, 1);
 		if (!name_text)
-			throw std::runtime_error("men: missing soul name in database");
+			throw std::runtime_error("souls: missing name in database");
 
 		const auto name = domain::SoulName::parse(reinterpret_cast<const char*>(name_text));
 		if (!name)
-			throw std::runtime_error("men: invalid soul name in database");
+			throw std::runtime_error("souls: invalid name in database");
 
-		const domain::id::Vessel vessel_id{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 3))};
-		const char* const device_token = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 4));
-		if (!device_token)
-			throw std::runtime_error("men: missing device_token in database");
-
-		const auto token = domain::DeviceToken::parse(device_token);
-		if (!token)
-			throw std::runtime_error("men: invalid device_token in database");
-
-		men.emplace_back(man_id, domain::Soul{soul_id, *name}, domain::Vessel{vessel_id, *token});
+		souls.emplace_back(soul_id, *name);
 		rc = sqlite3_step(stmt);
 	}
 
-	check_sqlite(rc, db, "men step");
+	check_sqlite(rc, db, "souls step");
 	sqlite3_finalize(stmt);
-	return men;
+	return souls;
 }
 
 
-domain::Man SqliteTemporality::enroll(const domain::DeviceToken& token, const domain::SoulName name)
+domain::Soul SqliteTemporality::enroll(const domain::SoulName name)
 {
 	std::lock_guard lock(database_.mutex());
 
 	sqlite3* const db = database_.db();
-	SqliteTransaction tx(db);
-
 	sqlite3_stmt* soul_stmt = nullptr;
 	check_sqlite(sqlite3_prepare_v2(db, "INSERT INTO souls (name) VALUES (?);", -1, &soul_stmt, nullptr), db,
 				 "prepare insert soul");
@@ -185,6 +168,35 @@ domain::Man SqliteTemporality::enroll(const domain::DeviceToken& token, const do
 	sqlite3_finalize(soul_stmt);
 
 	const domain::id::Soul soul_id{static_cast<std::uint64_t>(sqlite3_last_insert_rowid(db))};
+	return domain::Soul{soul_id, name};
+}
+
+
+domain::Embodiment SqliteTemporality::embody(const domain::id::Soul soul, domain::DeviceToken token)
+{
+	std::lock_guard lock(database_.mutex());
+
+	sqlite3* const db = database_.db();
+	SqliteTransaction tx(db);
+
+	sqlite3_stmt* name_stmt = nullptr;
+	check_sqlite(sqlite3_prepare_v2(db, "SELECT name FROM souls WHERE id = ?;", -1, &name_stmt, nullptr), db,
+				 "prepare soul name");
+	check_sqlite(sqlite3_bind_int64(name_stmt, 1, static_cast<sqlite3_int64>(soul.value())), db, "bind soul");
+	const int name_rc = sqlite3_step(name_stmt);
+	if (name_rc != SQLITE_ROW) {
+		sqlite3_finalize(name_stmt);
+		throw std::invalid_argument("unknown soul");
+	}
+	const unsigned char* const name_text = sqlite3_column_text(name_stmt, 0);
+	if (!name_text) {
+		sqlite3_finalize(name_stmt);
+		throw std::runtime_error("souls: missing name in database");
+	}
+	const auto name = domain::SoulName::parse(reinterpret_cast<const char*>(name_text));
+	sqlite3_finalize(name_stmt);
+	if (!name)
+		throw std::runtime_error("souls: invalid name in database");
 
 	sqlite3_stmt* vessel_stmt = nullptr;
 	check_sqlite(sqlite3_prepare_v2(db, "INSERT INTO vessels (device_token) VALUES (?);", -1, &vessel_stmt,
@@ -204,8 +216,7 @@ domain::Man SqliteTemporality::enroll(const domain::DeviceToken& token, const do
 	check_sqlite(sqlite3_prepare_v2(db, "INSERT INTO men (soul_id, vessel_id) VALUES (?, ?);", -1, &man_stmt,
 									nullptr),
 				 db, "prepare insert man");
-	check_sqlite(sqlite3_bind_int64(man_stmt, 1, static_cast<sqlite3_int64>(soul_id.value())), db,
-				 "bind soul_id");
+	check_sqlite(sqlite3_bind_int64(man_stmt, 1, static_cast<sqlite3_int64>(soul.value())), db, "bind soul_id");
 	check_sqlite(sqlite3_bind_int64(man_stmt, 2, static_cast<sqlite3_int64>(vessel_id.value())), db,
 				 "bind vessel_id");
 	check_sqlite(sqlite3_step(man_stmt), db, "insert man step");
@@ -215,7 +226,55 @@ domain::Man SqliteTemporality::enroll(const domain::DeviceToken& token, const do
 
 	tx.commit();
 
-	return domain::Man{man_id, domain::Soul{soul_id, name}, domain::Vessel{vessel_id, token}};
+	return domain::Embodiment{man_id, soul, *name, vessel_id, std::move(token)};
+}
+
+
+std::vector<domain::Embodiment> SqliteTemporality::embodiments() const
+{
+	std::lock_guard lock(database_.mutex());
+
+	sqlite3* const db = database_.db();
+	sqlite3_stmt* stmt = nullptr;
+	check_sqlite(sqlite3_prepare_v2(db,
+									"SELECT m.id, m.soul_id, s.name, m.vessel_id, v.device_token "
+									"FROM men AS m "
+									"INNER JOIN souls AS s ON s.id = m.soul_id "
+									"INNER JOIN vessels AS v ON v.id = m.vessel_id "
+									"ORDER BY m.id;",
+									-1, &stmt, nullptr),
+				 db, "prepare embodiments");
+
+	std::vector<domain::Embodiment> rows;
+
+	int rc = sqlite3_step(stmt);
+	while (rc == SQLITE_ROW) {
+		const domain::id::Man man_id{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 0))};
+		const domain::id::Soul soul_id{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 1))};
+		const unsigned char* const name_text = sqlite3_column_text(stmt, 2);
+		if (!name_text)
+			throw std::runtime_error("embodiments: missing soul name in database");
+
+		const auto name = domain::SoulName::parse(reinterpret_cast<const char*>(name_text));
+		if (!name)
+			throw std::runtime_error("embodiments: invalid soul name in database");
+
+		const domain::id::Vessel vessel_id{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 3))};
+		const char* const device_token = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 4));
+		if (!device_token)
+			throw std::runtime_error("embodiments: missing device_token in database");
+
+		const auto token = domain::DeviceToken::parse(device_token);
+		if (!token)
+			throw std::runtime_error("embodiments: invalid device_token in database");
+
+		rows.push_back(domain::Embodiment{man_id, soul_id, *name, vessel_id, *token});
+		rc = sqlite3_step(stmt);
+	}
+
+	check_sqlite(rc, db, "embodiments step");
+	sqlite3_finalize(stmt);
+	return rows;
 }
 
 

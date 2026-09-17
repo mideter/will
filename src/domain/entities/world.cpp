@@ -2,7 +2,7 @@
 
 #include "entities/testator.h"
 #include "entities/witness.h"
-#include "ports/eternity.h"
+#include "ports/temporality.h"
 #include "values/soul_name.h"
 
 #include <stdexcept>
@@ -20,8 +20,8 @@ World::World(Heaven heaven, Earth earth)
 
 void World::awaken()
 {
-	for (Man man : eternity().men())
-		(void)accept(std::move(man));
+	for (Embodiment e : temporality().embodiments())
+		(void)accept(e.man, e.soul, std::move(e.name), e.vessel, std::move(e.token));
 
 	restore_dwellers();
 }
@@ -54,21 +54,22 @@ const Man& World::welcome(const DeviceToken& token)
 
 const Man& World::beget(const DeviceToken& token)
 {
-	return accept(eternity().enroll(token, SoulName::generate()));
+	const Soul soul = eternity().enroll(SoulName::generate());
+	Embodiment e = temporality().embody(soul.id(), token);
+	return accept(e.man, e.soul, std::move(e.name), e.vessel, std::move(e.token));
 }
 
 
-const Man& World::accept(Man&& man)
+const Man& World::accept(const id::Man man_id, const id::Soul soul_id, SoulName name,
+						 const id::Vessel vessel_id, DeviceToken token)
 {
-	auto ptr = std::make_unique<Testator>(std::move(man));
+	auto ptr = std::unique_ptr<Man>(new Testator(man_id, soul_id, std::move(name), vessel_id, std::move(token)));
 	Man& live = *ptr;
-	const Vessel& vessel = live;
-	const id::Man man_id = live.id();
-	const id::Vessel vessel_id = vessel.id();
+	const id::Vessel live_vessel = static_cast<const Vessel&>(live).id();
 
 	std::lock_guard lock(mutex_);
 	men_.insert_or_assign(man_id, std::move(ptr));
-	man_id_by_vessel_.insert_or_assign(vessel_id, man_id);
+	man_id_by_vessel_.insert_or_assign(live_vessel, man_id);
 	return live;
 }
 

@@ -11,8 +11,11 @@
 #include "identity/place.h"
 #include "identity/soul.h"
 #include "identity/supplication.h"
+#include "identity/vessel.h"
 #include "ports/eternity.h"
 #include "values/abode_name.h"
+#include "values/device_token.h"
+#include "values/soul_name.h"
 #include "values/word.h"
 
 #include <cstdint>
@@ -23,6 +26,16 @@
 namespace will::domain {
 
 
+/// Soul dwelling recorded in time (vessel binding). Material for World birth — not a living Man.
+struct Embodiment {
+	id::Man man;
+	id::Soul soul;
+	SoulName name;
+	id::Vessel vessel;
+	DeviceToken token;
+};
+
+
 /// Temporality (Временность) — mutable Eternity; what happens in time.
 /// Earth speaks with this face (as Heaven speaks with Eternity).
 class Temporality : public Eternity {
@@ -30,6 +43,12 @@ public:
 	static constexpr std::uint32_t MaxLetterLimit = 1000;
 
 	~Temporality() override = default;
+
+	/// Record that this soul dwells in a new vessel; returns ids and token for World birth.
+	virtual Embodiment embody(id::Soul soul, DeviceToken token) = 0;
+
+	/// All embodiments kept in time (for Creation awaken).
+	virtual std::vector<Embodiment> embodiments() const = 0;
 
 	/// Abodes kept in time (id + name).
 	virtual std::vector<Abode> abodes() = 0;

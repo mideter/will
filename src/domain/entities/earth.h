@@ -61,6 +61,9 @@ protected:
 	/// Membership rows for restoring live abodes (through Temporality).
 	std::vector<std::pair<id::Abode, id::Man>> abode_men() const;
 
+	Temporality& temporality() noexcept { return temporality_; }
+	const Temporality& temporality() const noexcept { return temporality_; }
+
 private:
 	/// The one living Earth. Throws if not yet brought forth / already destroyed.
 	static Earth& the();

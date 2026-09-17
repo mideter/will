@@ -1,9 +1,13 @@
 #pragma once
 
-#include "entities/man.h"
 #include "entities/obedience.h"
 #include "entities/supplication.h"
 #include "entities/witness.h"
+#include "identity/man.h"
+#include "identity/soul.h"
+#include "identity/vessel.h"
+#include "values/device_token.h"
+#include "values/soul_name.h"
 
 
 namespace will::domain {
@@ -23,7 +27,7 @@ public:
 	void secede(const Obedience& obedience) const;
 
 protected:
-	explicit Executor(Man&& man);
+	Executor(id::Man id, id::Soul soul_id, SoulName name, id::Vessel vessel_id, DeviceToken token);
 };
 
 

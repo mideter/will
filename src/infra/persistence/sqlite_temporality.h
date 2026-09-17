@@ -4,21 +4,22 @@
 #include "system_time.h"
 #include "sqlite_database.h"
 
-#include <string_view>
-
 
 namespace will {
 
 
-/// SQLite Temporality — one body for mutable Eternity (men, time, letters).
+/// SQLite Temporality — mutable Eternity (souls, embodiments, time, letters).
 class SqliteTemporality final : public domain::Temporality {
 public:
 	explicit SqliteTemporality(SqliteDatabase& database);
 
 	domain::Time& time() override;
 
-	std::vector<domain::Man> men() override;
-	domain::Man enroll(const domain::DeviceToken& token, domain::SoulName name) override;
+	std::vector<domain::Soul> souls() override;
+	domain::Soul enroll(domain::SoulName name) override;
+
+	domain::Embodiment embody(domain::id::Soul soul, domain::DeviceToken token) override;
+	std::vector<domain::Embodiment> embodiments() const override;
 
 	std::vector<domain::Abode> abodes() override;
 	void keep(domain::id::Abode id, domain::AbodeName name) override;

@@ -54,25 +54,44 @@ class InMemoryTemporality final : public Temporality {
 public:
 	Time& time() override { return time_; }
 
-	std::vector<Man> men() override { return men_; }
+	std::vector<Soul> souls() override { return souls_; }
 
-	Man enroll(const DeviceToken& token, const SoulName name) override
+	Soul enroll(const SoulName name) override
 	{
 		const id::Soul soul_id{++next_soul_id_};
+		souls_.emplace_back(soul_id, name);
+		return Soul{soul_id, name};
+	}
+
+	Embodiment embody(const id::Soul soul, DeviceToken token) override
+	{
+		const SoulName* name = nullptr;
+		for (const Soul& row : souls_) {
+			if (row.id() == soul) {
+				name = &row.name();
+				break;
+			}
+		}
+		if (!name)
+			throw std::invalid_argument("unknown soul");
+
 		const id::Vessel vessel_id{++next_vessel_id_};
 		const id::Man man_id{++next_man_id_};
 		note_place(man_id.value());
-		Man man{man_id, Soul{soul_id, name}, Vessel{vessel_id, token}};
-		men_.push_back(man);
-		return man;
+		Embodiment row{man_id, soul, *name, vessel_id, std::move(token)};
+		embodiments_.push_back(row);
+		return row;
 	}
 
-	/// Remember a man in eternity before the living World wakes (ctor load).
+	std::vector<Embodiment> embodiments() const override { return embodiments_; }
+
+	/// Remember soul + embodiment before the living World wakes (Creation load).
 	void seed_man(const id::Soul soul_id, const DeviceToken& token, const SoulName name)
 	{
+		souls_.emplace_back(soul_id, name);
 		const id::Vessel vessel_id{soul_id.value()};
 		const id::Man man_id{soul_id.value()};
-		men_.push_back(Man{man_id, Soul{soul_id, name}, Vessel{vessel_id, token}});
+		embodiments_.push_back(Embodiment{man_id, soul_id, name, vessel_id, token});
 		if (soul_id.value() > next_soul_id_)
 			next_soul_id_ = soul_id.value();
 		if (vessel_id.value() > next_vessel_id_)
@@ -260,7 +279,8 @@ private:
 	std::uint64_t next_place_id_ = 0;
 	std::uint64_t next_supplication_id_ = 0;
 	mutable std::uint64_t next_id_ = 0;
-	std::vector<Man> men_;
+	std::vector<Soul> souls_;
+	std::vector<Embodiment> embodiments_;
 	std::vector<std::pair<id::Abode, AbodeName>> abode_rows_;
 	std::vector<std::pair<id::Abode, id::Man>> abode_men_;
 	mutable std::vector<Letter> letters_;

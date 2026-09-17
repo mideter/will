@@ -12,15 +12,16 @@
 namespace will::domain {
 
 
-Witness::Witness(Man&& man)
-	: Man(std::move(man))
+Witness::Witness(const id::Man id, const id::Soul soul_id, SoulName name, const id::Vessel vessel_id,
+				 DeviceToken token)
+	: Man(id, soul_id, std::move(name), vessel_id, std::move(token))
 	, abode_(std::make_unique<Abode>(
-		  id::Abode{id().value()},
+		  id::Abode{this->id().value()},
 		  AbodeName{std::string{Soul::name().text()}}))
 {
 	abode_->admit(*this);
 	temporality().keep(abode_->abode_id(), abode_->name());
-	temporality().join_abode(abode_->abode_id(), id());
+	temporality().join_abode(abode_->abode_id(), this->id());
 }
 
 

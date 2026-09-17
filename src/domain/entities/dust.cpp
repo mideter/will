@@ -6,9 +6,9 @@
 namespace will::domain {
 
 
-void Dust::present(const Vessel& vessel) const
+void Dust::present() const
 {
-	Earth::the().present(vessel);
+	Earth::the().present(static_cast<const Vessel&>(*this));
 }
 
 
