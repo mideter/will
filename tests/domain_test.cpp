@@ -166,14 +166,14 @@ TEST_CASE("witness retell is history of observed abode")
 TEST_CASE("obedience is a place for distinct testator and executor")
 {
 	const id::Obedience oid{7};
-	const id::Soul testator{1};
-	const id::Soul executor{2};
+	const Soul testator{id::Soul{1}, *SoulName::parse("testator")};
+	const Soul executor{id::Soul{2}, *SoulName::parse("executor")};
 
 	Obedience obedience{oid, testator, executor};
 	CHECK(obedience.id() == id::Place{oid.value()});
 	CHECK(obedience.obedience_id() == oid);
-	CHECK(obedience.testator() == testator);
-	CHECK(obedience.executor() == executor);
+	CHECK(&obedience.testator() == &testator);
+	CHECK(&obedience.executor() == &executor);
 	CHECK(obedience.living());
 
 	CHECK_THROWS_AS((Obedience{id::Obedience{8}, testator, testator}), std::invalid_argument);
@@ -199,8 +199,8 @@ TEST_CASE("supplicate accept creates living obedience; secede ends it")
 
 	Obedience obedience = testator.accept(ask);
 	CHECK(obedience.living());
-	CHECK(obedience.testator() == b.Soul::id());
-	CHECK(obedience.executor() == a.Soul::id());
+	CHECK(&obedience.testator() == &static_cast<const Soul&>(b));
+	CHECK(&obedience.executor() == &static_cast<const Soul&>(a));
 	CHECK(obedience.id().value() != a.id().value());
 	CHECK(obedience.id().value() != b.id().value());
 	CHECK(temporality.pending_supplications(b.Soul::id()).empty());

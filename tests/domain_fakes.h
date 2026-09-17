@@ -1,5 +1,6 @@
 #pragma once
 
+#include "beings/spirit.h"
 #include "beings/earth.h"
 #include "beings/abode.h"
 #include "acts/obedience.h"
@@ -184,7 +185,7 @@ public:
 		const id::Obedience oid{allocate_place()};
 		obediences_.push_back(
 			ObedienceRow{oid, row.addressee().id(), row.suppliant().id(), true});
-		return Obedience{oid, row.addressee().id(), row.suppliant().id(), true};
+		return Obedience{oid, row.addressee(), row.suppliant(), true};
 	}
 
 	void refuse(const id::Supplication id) override
@@ -198,8 +199,12 @@ public:
 	Obedience obedience(const id::Obedience id) const override
 	{
 		for (const auto& row : obediences_) {
-			if (row.id == id)
-				return Obedience{row.id, row.testator, row.executor, row.living};
+			if (row.id != id)
+				continue;
+
+			const Spirit reach;
+			Heaven& heaven = reach.heaven();
+			return Obedience{row.id, heaven.soul(row.testator), heaven.soul(row.executor), row.living};
 		}
 		throw std::invalid_argument("unknown obedience");
 	}

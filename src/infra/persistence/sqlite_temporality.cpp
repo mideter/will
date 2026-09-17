@@ -559,7 +559,7 @@ domain::Obedience SqliteTemporality::accept(const domain::id::Supplication id)
 	sqlite3_finalize(ins);
 
 	tx.commit();
-	return domain::Obedience{oid, row.addressee().id(), row.suppliant().id(), true};
+	return domain::Obedience{oid, row.addressee(), row.suppliant(), true};
 }
 
 
@@ -612,10 +612,12 @@ domain::Obedience SqliteTemporality::obedience(const domain::id::Obedience id) c
 		sqlite3_finalize(stmt);
 		throw std::invalid_argument("unknown obedience");
 	}
+	const domain::Spirit reach;
+	domain::Heaven& heaven = reach.heaven();
 	domain::Obedience out{
 		domain::id::Obedience{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 0))},
-		domain::id::Soul{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 1))},
-		domain::id::Soul{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 2))},
+		heaven.soul(domain::id::Soul{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 1))}),
+		heaven.soul(domain::id::Soul{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 2))}),
 		sqlite3_column_type(stmt, 3) == SQLITE_NULL,
 	};
 	sqlite3_finalize(stmt);

@@ -29,7 +29,7 @@ Supplication Executor::supplicate(const Soul& testator) const
 
 void Executor::secede(const Obedience& obedience) const
 {
-	if (obedience.testator() != Soul::id() && obedience.executor() != Soul::id())
+	if (obedience.testator().id() != Soul::id() && obedience.executor().id() != Soul::id())
 		throw std::logic_error("not a party to this obedience");
 	if (!obedience.living())
 		throw std::logic_error("obedience is not living");
