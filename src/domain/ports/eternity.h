@@ -1,6 +1,6 @@
 #pragma once
 
-#include "entities/soul.h"
+#include "beings/soul.h"
 #include "ports/time.h"
 #include "values/soul_name.h"
 

@@ -1,7 +1,7 @@
 #include "sqlite_temporality.h"
 
-#include "entities/soul.h"
-#include "entities/spirit.h"
+#include "beings/soul.h"
+#include "beings/spirit.h"
 #include "values/abode_name.h"
 #include "values/word.h"
 

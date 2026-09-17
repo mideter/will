@@ -1,7 +1,7 @@
 #include "man.h"
 
-#include "entities/dust.h"
-#include "entities/spirit.h"
+#include "beings/dust.h"
+#include "beings/spirit.h"
 
 #include <utility>
 

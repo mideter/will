@@ -1,6 +1,6 @@
 #include "earth.h"
 
-#include "entities/vessel.h"
+#include "beings/vessel.h"
 #include "ports/temporality.h"
 
 #include <stdexcept>

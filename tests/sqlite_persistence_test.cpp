@@ -2,7 +2,7 @@
 #include <doctest/doctest.h>
 
 #include "acts/creation.h"
-#include "entities/witness.h"
+#include "beings/witness.h"
 #include "sqlite_database.h"
 #include "sqlite_temporality.h"
 

@@ -1,9 +1,9 @@
 #pragma once
 
 #include "acts/embodiment.h"
-#include "entities/earth.h"
-#include "entities/heaven.h"
-#include "entities/man.h"
+#include "beings/earth.h"
+#include "beings/heaven.h"
+#include "beings/man.h"
 #include "identity/man.h"
 #include "identity/soul.h"
 #include "identity/vessel.h"

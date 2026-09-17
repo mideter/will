@@ -1,6 +1,6 @@
 #pragma once
 
-#include "entities/earth.h"
+#include "beings/earth.h"
 
 
 namespace will::domain {

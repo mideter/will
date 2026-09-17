@@ -1,8 +1,8 @@
 #pragma once
 
 #include "acts/embodiment.h"
-#include "entities/soul.h"
-#include "entities/vessel.h"
+#include "beings/soul.h"
+#include "beings/vessel.h"
 #include "identity/man.h"
 
 

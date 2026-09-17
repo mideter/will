@@ -1,6 +1,6 @@
 #pragma once
 
-#include "entities/world.h"
+#include "beings/world.h"
 #include "ports/temporality.h"
 
 

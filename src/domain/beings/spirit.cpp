@@ -1,6 +1,6 @@
 #include "spirit.h"
 
-#include "entities/soul.h"
+#include "beings/soul.h"
 
 #include <stdexcept>
 

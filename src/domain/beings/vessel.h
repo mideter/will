@@ -1,6 +1,6 @@
 #pragma once
 
-#include "entities/dust.h"
+#include "beings/dust.h"
 #include "identity/vessel.h"
 #include "values/device_token.h"
 

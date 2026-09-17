@@ -1,6 +1,6 @@
 #include "executor.h"
 
-#include "entities/soul.h"
+#include "beings/soul.h"
 #include "ports/temporality.h"
 
 #include <stdexcept>

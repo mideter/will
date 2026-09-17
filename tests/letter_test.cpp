@@ -1,7 +1,7 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest/doctest.h>
 
-#include "entities/letter.h"
+#include "beings/letter.h"
 #include "identity/letter.h"
 #include "identity/place.h"
 #include "values/word.h"

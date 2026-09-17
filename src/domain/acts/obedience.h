@@ -1,6 +1,6 @@
 #pragma once
 
-#include "entities/place.h"
+#include "beings/place.h"
 #include "identity/obedience.h"
 #include "identity/soul.h"
 

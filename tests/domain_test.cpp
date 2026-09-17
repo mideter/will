@@ -4,10 +4,10 @@
 #include "domain_fakes.h"
 
 #include "acts/creation.h"
-#include "entities/executor.h"
+#include "beings/executor.h"
 #include "acts/obedience.h"
-#include "entities/testator.h"
-#include "entities/witness.h"
+#include "beings/testator.h"
+#include "beings/witness.h"
 #include "values/abode_name.h"
 #include "values/device_token.h"
 #include "values/timestamp.h"

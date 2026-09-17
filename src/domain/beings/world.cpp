@@ -1,7 +1,7 @@
 #include "world.h"
 
-#include "entities/testator.h"
-#include "entities/witness.h"
+#include "beings/testator.h"
+#include "beings/witness.h"
 #include "ports/temporality.h"
 #include "values/soul_name.h"
 

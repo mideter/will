@@ -2,7 +2,7 @@
 
 #include "inbound_client_message_handler.h"
 
-#include "entities/witness.h"
+#include "beings/witness.h"
 #include "values/device_token.h"
 
 #include <exception>

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "entities/heaven.h"
+#include "beings/heaven.h"
 #include "values/word.h"
 
 

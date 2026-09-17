@@ -1,7 +1,7 @@
 #pragma once
 
-#include "entities/man.h"
-#include "entities/place.h"
+#include "beings/man.h"
+#include "beings/place.h"
 #include "identity/abode.h"
 #include "values/abode_name.h"
 

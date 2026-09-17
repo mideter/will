@@ -3,7 +3,7 @@
 #include "acts/embodiment.h"
 #include "acts/obedience.h"
 #include "acts/supplication.h"
-#include "entities/executor.h"
+#include "beings/executor.h"
 
 
 namespace will::domain {

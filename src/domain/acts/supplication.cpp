@@ -1,6 +1,6 @@
 #include "supplication.h"
 
-#include "entities/soul.h"
+#include "beings/soul.h"
 
 #include <stdexcept>
 #include <utility>

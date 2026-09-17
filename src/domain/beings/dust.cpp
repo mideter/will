@@ -1,6 +1,6 @@
 #include "dust.h"
 
-#include "entities/vessel.h"
+#include "beings/vessel.h"
 
 
 namespace will::domain {
