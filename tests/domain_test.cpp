@@ -3,9 +3,9 @@
 
 #include "domain_fakes.h"
 
-#include "entities/creation.h"
+#include "acts/creation.h"
 #include "entities/executor.h"
-#include "entities/obedience.h"
+#include "acts/obedience.h"
 #include "entities/testator.h"
 #include "entities/witness.h"
 #include "values/abode_name.h"

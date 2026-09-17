@@ -21,7 +21,7 @@ World::World(Heaven heaven, Earth earth)
 void World::awaken()
 {
 	for (Embodiment e : temporality().embodiments())
-		(void)accept(e.man, e.soul, std::move(e.name), e.vessel, std::move(e.token));
+		(void)accept(std::move(e));
 
 	restore_dwellers();
 }
@@ -55,15 +55,15 @@ const Man& World::welcome(const DeviceToken& token)
 const Man& World::beget(const DeviceToken& token)
 {
 	const Soul soul = eternity().enroll(SoulName::generate());
-	Embodiment e = temporality().embody(soul.id(), token);
-	return accept(e.man, e.soul, std::move(e.name), e.vessel, std::move(e.token));
+	return accept(temporality().embody(soul.id(), token));
 }
 
 
-const Man& World::accept(const id::Man man_id, const id::Soul soul_id, SoulName name,
-						 const id::Vessel vessel_id, DeviceToken token)
+const Man& World::accept(Embodiment embodiment)
 {
-	auto ptr = std::unique_ptr<Man>(new Testator(man_id, soul_id, std::move(name), vessel_id, std::move(token)));
+	const id::Man man_id = embodiment.man();
+	auto ptr = std::unique_ptr<Man>(new Testator(man_id, embodiment.soul(), embodiment.name(),
+												 embodiment.vessel(), embodiment.token()));
 	Man& live = *ptr;
 	const id::Vessel live_vessel = static_cast<const Vessel&>(live).id();
 

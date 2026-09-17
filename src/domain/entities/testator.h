@@ -1,8 +1,8 @@
 #pragma once
 
+#include "acts/obedience.h"
+#include "acts/supplication.h"
 #include "entities/executor.h"
-#include "entities/obedience.h"
-#include "entities/supplication.h"
 #include "identity/man.h"
 #include "identity/soul.h"
 #include "identity/vessel.h"

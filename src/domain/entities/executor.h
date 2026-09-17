@@ -1,7 +1,7 @@
 #pragma once
 
-#include "entities/obedience.h"
-#include "entities/supplication.h"
+#include "acts/obedience.h"
+#include "acts/supplication.h"
 #include "entities/witness.h"
 #include "identity/man.h"
 #include "identity/soul.h"

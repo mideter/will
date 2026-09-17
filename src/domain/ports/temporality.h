@@ -1,10 +1,11 @@
 #pragma once
 
+#include "acts/embodiment.h"
+#include "acts/obedience.h"
+#include "acts/supplication.h"
 #include "entities/abode.h"
 #include "entities/letter.h"
-#include "entities/obedience.h"
 #include "entities/soul.h"
-#include "entities/supplication.h"
 #include "identity/abode.h"
 #include "identity/man.h"
 #include "identity/obedience.h"
@@ -26,16 +27,6 @@
 namespace will::domain {
 
 
-/// Soul dwelling recorded in time (vessel binding). Material for World birth — not a living Man.
-struct Embodiment {
-	id::Man man;
-	id::Soul soul;
-	SoulName name;
-	id::Vessel vessel;
-	DeviceToken token;
-};
-
-
 /// Temporality (Временность) — mutable Eternity; what happens in time.
 /// Earth speaks with this face (as Heaven speaks with Eternity).
 class Temporality : public Eternity {
@@ -44,7 +35,7 @@ public:
 
 	~Temporality() override = default;
 
-	/// Record that this soul dwells in a new vessel; returns ids and token for World birth.
+	/// Record that this soul dwells in a new vessel; returns material for World birth.
 	virtual Embodiment embody(id::Soul soul, DeviceToken token) = 0;
 
 	/// All embodiments kept in time (for Creation awaken).

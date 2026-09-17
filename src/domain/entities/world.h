@@ -1,5 +1,6 @@
 #pragma once
 
+#include "acts/embodiment.h"
 #include "entities/earth.h"
 #include "entities/heaven.h"
 #include "entities/man.h"
@@ -50,9 +51,8 @@ private:
 	/// Enroll a soul, embody it in a vessel, birth Testator.
 	const Man& beget(const DeviceToken& token);
 
-	/// Place a Testator on the heap from embodiment material (in-place construction).
-	const Man& accept(id::Man man_id, id::Soul soul_id, SoulName name, id::Vessel vessel_id,
-					  DeviceToken token);
+	/// Place a Testator on the heap from embodiment material.
+	const Man& accept(Embodiment embodiment);
 
 	const Man& living_man(id::Man id) const;
 	void restore_dwellers();
