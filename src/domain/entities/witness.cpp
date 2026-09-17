@@ -12,9 +12,8 @@
 namespace will::domain {
 
 
-Witness::Witness(const id::Man id, const id::Soul soul_id, SoulName name, const id::Vessel vessel_id,
-				 DeviceToken token)
-	: Man(id, soul_id, std::move(name), vessel_id, std::move(token))
+Witness::Witness(Embodiment embodiment)
+	: Man(std::move(embodiment))
 	, abode_(std::make_unique<Abode>(
 		  id::Abode{this->id().value()},
 		  AbodeName{std::string{Soul::name().text()}}))

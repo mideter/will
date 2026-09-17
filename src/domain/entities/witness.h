@@ -1,13 +1,9 @@
 #pragma once
 
+#include "acts/embodiment.h"
 #include "entities/abode.h"
 #include "entities/letter.h"
 #include "entities/man.h"
-#include "identity/man.h"
-#include "identity/soul.h"
-#include "identity/vessel.h"
-#include "values/device_token.h"
-#include "values/soul_name.h"
 #include "values/word.h"
 
 #include <cstdint>
@@ -31,7 +27,7 @@ public:
 	std::vector<Letter> retell(std::uint32_t limit) const;
 
 protected:
-	Witness(id::Man id, id::Soul soul_id, SoulName name, id::Vessel vessel_id, DeviceToken token);
+	explicit Witness(Embodiment embodiment);
 
 private:
 	std::unique_ptr<Abode> abode_;

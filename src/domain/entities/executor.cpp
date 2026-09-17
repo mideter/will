@@ -10,9 +10,8 @@
 namespace will::domain {
 
 
-Executor::Executor(const id::Man id, const id::Soul soul_id, SoulName name, const id::Vessel vessel_id,
-				   DeviceToken token)
-	: Witness(id, soul_id, std::move(name), vessel_id, std::move(token))
+Executor::Executor(Embodiment embodiment)
+	: Witness(std::move(embodiment))
 {}
 
 

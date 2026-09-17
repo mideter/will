@@ -1,13 +1,9 @@
 #pragma once
 
+#include "acts/embodiment.h"
 #include "acts/obedience.h"
 #include "acts/supplication.h"
 #include "entities/executor.h"
-#include "identity/man.h"
-#include "identity/soul.h"
-#include "identity/vessel.h"
-#include "values/device_token.h"
-#include "values/soul_name.h"
 
 
 namespace will::domain {
@@ -30,7 +26,7 @@ public:
 private:
 	friend class World;
 
-	Testator(id::Man id, id::Soul soul_id, SoulName name, id::Vessel vessel_id, DeviceToken token);
+	explicit Testator(Embodiment embodiment);
 };
 
 

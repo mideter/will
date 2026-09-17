@@ -62,14 +62,13 @@ const Man& World::beget(const DeviceToken& token)
 const Man& World::accept(Embodiment embodiment)
 {
 	const id::Man man_id = embodiment.man();
-	auto ptr = std::unique_ptr<Man>(new Testator(man_id, embodiment.soul(), embodiment.name(),
-												 embodiment.vessel(), embodiment.token()));
+	const id::Vessel vessel_id = embodiment.vessel();
+	auto ptr = std::unique_ptr<Man>(new Testator(std::move(embodiment)));
 	Man& live = *ptr;
-	const id::Vessel live_vessel = static_cast<const Vessel&>(live).id();
 
 	std::lock_guard lock(mutex_);
 	men_.insert_or_assign(man_id, std::move(ptr));
-	man_id_by_vessel_.insert_or_assign(live_vessel, man_id);
+	man_id_by_vessel_.insert_or_assign(vessel_id, man_id);
 	return live;
 }
 

@@ -10,9 +10,8 @@
 namespace will::domain {
 
 
-Testator::Testator(const id::Man id, const id::Soul soul_id, SoulName name, const id::Vessel vessel_id,
-				   DeviceToken token)
-	: Executor(id, soul_id, std::move(name), vessel_id, std::move(token))
+Testator::Testator(Embodiment embodiment)
+	: Executor(std::move(embodiment))
 {}
 
 

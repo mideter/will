@@ -9,11 +9,10 @@
 namespace will::domain {
 
 
-Man::Man(const id::Man id, const id::Soul soul_id, SoulName name, const id::Vessel vessel_id,
-		 DeviceToken token)
-	: Soul(soul_id, std::move(name))
-	, Vessel(vessel_id, std::move(token))
-	, id_(id)
+Man::Man(Embodiment embodiment)
+	: Soul(embodiment.soul(), embodiment.name())
+	, Vessel(embodiment.vessel(), embodiment.token())
+	, id_(embodiment.man())
 {
 	Spirit::present();
 	Dust::present();

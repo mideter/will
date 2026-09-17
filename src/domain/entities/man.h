@@ -1,10 +1,9 @@
 #pragma once
 
+#include "acts/embodiment.h"
 #include "entities/soul.h"
 #include "entities/vessel.h"
 #include "identity/man.h"
-#include "values/device_token.h"
-#include "values/soul_name.h"
 
 
 namespace will::domain {
@@ -27,7 +26,7 @@ public:
 	Man& operator=(Man&&) = delete;
 
 protected:
-	Man(id::Man id, id::Soul soul_id, SoulName name, id::Vessel vessel_id, DeviceToken token);
+	explicit Man(Embodiment embodiment);
 
 private:
 	id::Man id_;
