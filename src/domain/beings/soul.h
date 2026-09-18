@@ -12,10 +12,8 @@ namespace will::domain {
 /// Constructed only as the Soul base of a living Man.
 class Soul : public Spirit {
 public:
-	Soul(const Soul&) = delete;
-	Soul& operator=(const Soul&) = delete;
-	Soul(Soul&&) = delete;
-	Soul& operator=(Soul&&) = delete;
+	/// Living soul known to Heaven. Throws if unknown.
+	static const Soul& of(id::Soul id);
 
 	id::Soul id() const noexcept { return id_; }
 	const SoulName& name() const noexcept { return name_; }

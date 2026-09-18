@@ -10,4 +10,10 @@ Soul::Soul(const id::Soul id, SoulName name)
 {}
 
 
+const Soul& Soul::of(const id::Soul id)
+{
+	return the_heaven().soul(id);
+}
+
+
 } // namespace will::domain

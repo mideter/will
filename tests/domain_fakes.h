@@ -1,11 +1,8 @@
 #pragma once
 
-#include "beings/spirit.h"
-#include "beings/earth.h"
 #include "beings/abode.h"
 #include "acts/obedience.h"
 #include "beings/soul.h"
-#include "beings/heaven.h"
 #include "beings/letter.h"
 #include "beings/man.h"
 #include "acts/supplication.h"
@@ -203,9 +200,7 @@ public:
 			if (row.id != id)
 				continue;
 
-			const Spirit reach;
-			Heaven& heaven = reach.heaven();
-			return Obedience{row.id, heaven.soul(row.testator), heaven.soul(row.executor), row.living};
+			return Obedience{row.id, Soul::of(row.testator), Soul::of(row.executor), row.living};
 		}
 		throw std::invalid_argument("unknown obedience");
 	}

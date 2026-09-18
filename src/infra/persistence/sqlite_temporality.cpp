@@ -1,7 +1,6 @@
 #include "sqlite_temporality.h"
 
 #include "beings/soul.h"
-#include "beings/spirit.h"
 #include "values/abode_name.h"
 #include "values/word.h"
 
@@ -55,12 +54,10 @@ domain::Supplication read_supplication(sqlite3_stmt* stmt)
 {
 	const domain::id::Soul suppliant_id{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 1))};
 	const domain::id::Soul addressee_id{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 2))};
-	const domain::Spirit reach;
-	domain::Heaven& heaven = reach.heaven();
 	return domain::Supplication{
 		domain::id::Supplication{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 0))},
-		heaven.soul(suppliant_id),
-		heaven.soul(addressee_id),
+		domain::Soul::of(suppliant_id),
+		domain::Soul::of(addressee_id),
 		status_from_text(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3))),
 		domain::Timestamp{sqlite3_column_int64(stmt, 4)},
 	};
@@ -574,20 +571,22 @@ domain::Obedience SqliteTemporality::obedience(const domain::id::Obedience id) c
 									"FROM obediences WHERE id = ?;",
 									-1, &stmt, nullptr),
 				 db, "prepare obedience");
+
 	check_sqlite(sqlite3_bind_int64(stmt, 1, static_cast<sqlite3_int64>(id.value())), db, "bind id");
+
 	const int rc = sqlite3_step(stmt);
 	if (rc != SQLITE_ROW) {
 		sqlite3_finalize(stmt);
 		throw std::invalid_argument("unknown obedience");
 	}
-	const domain::Spirit reach;
-	domain::Heaven& heaven = reach.heaven();
+
 	domain::Obedience out{
 		domain::id::Obedience{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 0))},
-		heaven.soul(domain::id::Soul{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 1))}),
-		heaven.soul(domain::id::Soul{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 2))}),
+		domain::Soul::of(domain::id::Soul{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 1))}),
+		domain::Soul::of(domain::id::Soul{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 2))}),
 		sqlite3_column_type(stmt, 3) == SQLITE_NULL,
 	};
+
 	sqlite3_finalize(stmt);
 	return out;
 }
