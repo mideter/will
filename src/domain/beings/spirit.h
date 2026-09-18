@@ -24,14 +24,14 @@ public:
 	Spirit(Spirit&&) = delete;
 	Spirit& operator=(Spirit&&) = delete;
 
-	/// The one living Heaven.
-	static Heaven& heaven() { return Heaven::the(); }
-
 	/// Act of will: speak a word. Outside the living world this fails; Witness reveals it.
 	virtual void say(const Word& word) const;
 
 protected:
 	Spirit() = default;
+
+	/// The one living Heaven (static so Soul::of can look up without an instance).
+	static Heaven& heaven() { return Heaven::the(); }
 
 	/// Present this living soul to Heaven (heap-stable address). Used by Man at birth.
 	void present() const;
