@@ -1,0 +1,16 @@
+---
+description: Prefer domain model invariants over short technical fixes
+alwaysApply: true
+---
+
+# Domain model first
+
+When refactoring domain beings (Spirit, Soul, Heaven, Earth, Man, …):
+
+- Preserve stated invariants and comments (who may reach whom, who constructs whom).
+- Prefer a slightly longer path that keeps the model over a shorter one that breaks it
+  (e.g. friend/bypass, public accessors “just for this call”).
+- If a static lookup or helper is needed, put it on the type that already owns the
+  relationship (Spirit→Heaven), not by widening friendship or visibility.
+- Before landing a fix, check: does this still match the ontological story in the
+  headers? If not, redesign the access path.
