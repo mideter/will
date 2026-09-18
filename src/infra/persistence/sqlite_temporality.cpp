@@ -121,39 +121,7 @@ domain::Time& SqliteTemporality::time()
 }
 
 
-std::vector<domain::Soul> SqliteTemporality::souls()
-{
-	std::lock_guard lock(database_.mutex());
-
-	sqlite3* const db = database_.db();
-	sqlite3_stmt* stmt = nullptr;
-	check_sqlite(sqlite3_prepare_v2(db, "SELECT id, name FROM souls ORDER BY id;", -1, &stmt, nullptr), db,
-				 "prepare souls");
-
-	std::vector<domain::Soul> souls;
-
-	int rc = sqlite3_step(stmt);
-	while (rc == SQLITE_ROW) {
-		const domain::id::Soul soul_id{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 0))};
-		const unsigned char* const name_text = sqlite3_column_text(stmt, 1);
-		if (!name_text)
-			throw std::runtime_error("souls: missing name in database");
-
-		const auto name = domain::SoulName::parse(reinterpret_cast<const char*>(name_text));
-		if (!name)
-			throw std::runtime_error("souls: invalid name in database");
-
-		souls.emplace_back(soul_id, *name);
-		rc = sqlite3_step(stmt);
-	}
-
-	check_sqlite(rc, db, "souls step");
-	sqlite3_finalize(stmt);
-	return souls;
-}
-
-
-domain::Soul SqliteTemporality::enroll(const domain::SoulName name)
+domain::id::Soul SqliteTemporality::enroll(const domain::SoulName name)
 {
 	std::lock_guard lock(database_.mutex());
 
@@ -168,8 +136,7 @@ domain::Soul SqliteTemporality::enroll(const domain::SoulName name)
 	check_sqlite(sqlite3_step(soul_stmt), db, "insert soul step");
 	sqlite3_finalize(soul_stmt);
 
-	const domain::id::Soul soul_id{static_cast<std::uint64_t>(sqlite3_last_insert_rowid(db))};
-	return domain::Soul{soul_id, name};
+	return domain::id::Soul{static_cast<std::uint64_t>(sqlite3_last_insert_rowid(db))};
 }
 
 

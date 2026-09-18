@@ -15,8 +15,7 @@ public:
 
 	domain::Time& time() override;
 
-	std::vector<domain::Soul> souls() override;
-	domain::Soul enroll(domain::SoulName name) override;
+	domain::id::Soul enroll(domain::SoulName name) override;
 
 	domain::Embodiment embody(domain::id::Soul soul, domain::DeviceToken token) override;
 	std::vector<domain::Embodiment> embodiments() const override;

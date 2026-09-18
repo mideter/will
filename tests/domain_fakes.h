@@ -58,21 +58,19 @@ class InMemoryTemporality final : public Temporality {
 public:
 	Time& time() override { return time_; }
 
-	std::vector<Soul> souls() override { return souls_; }
-
-	Soul enroll(const SoulName name) override
+	id::Soul enroll(const SoulName name) override
 	{
 		const id::Soul soul_id{++next_soul_id_};
 		souls_.emplace_back(soul_id, name);
-		return Soul{soul_id, name};
+		return soul_id;
 	}
 
 	Embodiment embody(const id::Soul soul, DeviceToken token) override
 	{
 		const SoulName* name = nullptr;
-		for (const Soul& row : souls_) {
-			if (row.id() == soul) {
-				name = &row.name();
+		for (const auto& row : souls_) {
+			if (row.first == soul) {
+				name = &row.second;
 				break;
 			}
 		}
@@ -364,7 +362,7 @@ private:
 	std::uint64_t next_supplication_id_ = 0;
 	std::uint64_t next_testament_id_ = 0;
 	mutable std::uint64_t next_id_ = 0;
-	std::vector<Soul> souls_;
+	std::vector<std::pair<id::Soul, SoulName>> souls_;
 	std::vector<Embodiment> embodiments_;
 	std::vector<std::pair<id::Abode, AbodeName>> abode_rows_;
 	mutable std::vector<Letter> letters_;

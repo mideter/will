@@ -9,9 +9,13 @@ namespace will::domain {
 
 
 /// Soul (Душа) — enduring identity of a person; inherits Spirit.
+/// Constructed only as the Soul base of a living Man.
 class Soul : public Spirit {
 public:
-	Soul(id::Soul id, SoulName name);
+	Soul(const Soul&) = delete;
+	Soul& operator=(const Soul&) = delete;
+	Soul(Soul&&) = delete;
+	Soul& operator=(Soul&&) = delete;
 
 	id::Soul id() const noexcept { return id_; }
 	const SoulName& name() const noexcept { return name_; }
@@ -20,6 +24,9 @@ public:
 	{
 		return id_ == other.id_ && name_ == other.name_;
 	}
+
+protected:
+	Soul(id::Soul id, SoulName name);
 
 private:
 	id::Soul id_;

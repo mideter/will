@@ -20,9 +20,6 @@ Supplication Executor::supplicate(const Soul& testator) const
 	if (testator.id() == Soul::id())
 		throw std::invalid_argument("cannot supplicate oneself");
 
-	if (!heaven().knows(testator.id()))
-		throw std::invalid_argument("unknown testator soul");
-
 	return temporality().supplicate(static_cast<const Soul&>(*this), testator);
 }
 
@@ -31,6 +28,7 @@ Testament Executor::execute(const Testament& testament) const
 {
 	if (testament.executor().id() != Soul::id())
 		throw std::logic_error("not the executor of this testament");
+
 	if (!testament.open())
 		throw std::logic_error("testament is not open");
 

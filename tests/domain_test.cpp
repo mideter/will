@@ -167,15 +167,19 @@ TEST_CASE("witness retell is history of observed abode")
 
 TEST_CASE("obedience is a place for distinct testator and executor")
 {
+	InMemoryTemporality temporality;
+	Creation creation(temporality);
+	World& world = creation.world();
+
+	const Man& testator = world.welcome(DeviceToken::generate());
+	const Man& executor = world.welcome(DeviceToken::generate());
 	const id::Obedience oid{7};
-	const Soul testator{id::Soul{1}, *SoulName::parse("testator")};
-	const Soul executor{id::Soul{2}, *SoulName::parse("executor")};
 
 	Obedience obedience{oid, testator, executor};
 	CHECK(obedience.id() == id::Place{oid.value()});
 	CHECK(obedience.obedience_id() == oid);
-	CHECK(&obedience.testator() == &testator);
-	CHECK(&obedience.executor() == &executor);
+	CHECK(&obedience.testator() == static_cast<const Soul*>(&testator));
+	CHECK(&obedience.executor() == static_cast<const Soul*>(&executor));
 	CHECK(obedience.living());
 
 	CHECK_THROWS_AS((Obedience{id::Obedience{8}, testator, testator}), std::invalid_argument);

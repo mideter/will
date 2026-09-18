@@ -51,8 +51,8 @@ const Man& World::welcome(const DeviceToken& token)
 
 const Man& World::beget(const DeviceToken& token)
 {
-	const Soul soul = eternity().enroll(SoulName::generate());
-	return accept(temporality().embody(soul.id(), token));
+	const id::Soul soul = eternity().enroll(SoulName::generate());
+	return accept(temporality().embody(soul, token));
 }
 
 

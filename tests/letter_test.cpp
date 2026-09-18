@@ -1,15 +1,16 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest/doctest.h>
 
+#include "domain_fakes.h"
+
+#include "acts/creation.h"
 #include "acts/obedience.h"
 #include "beings/letter.h"
-#include "beings/soul.h"
 #include "beings/testament.h"
 #include "identity/letter.h"
 #include "identity/obedience.h"
 #include "identity/place.h"
 #include "identity/testament.h"
-#include "values/soul_name.h"
 #include "values/word.h"
 
 #include <stdexcept>
@@ -17,6 +18,7 @@
 
 
 using namespace will::domain;
+using namespace will::domain::test;
 
 
 TEST_CASE("id::Letter requires positive value")
@@ -64,19 +66,23 @@ TEST_CASE("id::Testament requires positive value")
 
 TEST_CASE("Testament is a letter in an obedience place")
 {
+	InMemoryTemporality temporality;
+	Creation creation(temporality);
+	World& world = creation.world();
+
+	const Man& testator = world.welcome(DeviceToken::generate());
+	const Man& executor = world.welcome(DeviceToken::generate());
 	const id::Testament tid{3};
 	const id::Obedience oid{9};
-	const Soul testator{id::Soul{1}, *SoulName::parse("testator")};
-	const Soul executor{id::Soul{2}, *SoulName::parse("executor")};
 	const Obedience obedience{oid, testator, executor};
 
 	const Testament testament{tid, obedience, Word{"do this"}, Timestamp{50}};
 	CHECK(testament.id() == id::Letter{tid.value()});
 	CHECK(testament.obedience_id() == oid);
 	CHECK(testament.place_id() == id::Place{oid.value()});
-	CHECK(&testament.testator() == &testator);
-	CHECK(testament.author_id() == testator.id());
-	CHECK(&testament.executor() == &executor);
+	CHECK(&testament.testator() == static_cast<const Soul*>(&testator));
+	CHECK(testament.author_id() == testator.Soul::id());
+	CHECK(&testament.executor() == static_cast<const Soul*>(&executor));
 	CHECK(testament.body() == "do this");
 	CHECK(testament.open());
 	CHECK_FALSE(testament.executed());
