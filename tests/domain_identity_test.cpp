@@ -3,7 +3,6 @@
 
 #include "identity/abode.h"
 #include "identity/letter.h"
-#include "identity/man.h"
 #include "identity/obedience.h"
 #include "identity/place.h"
 #include "identity/soul.h"
@@ -69,9 +68,8 @@ TEST_CASE("id::Testament requires positive value")
 }
 
 
-TEST_CASE("id::Vessel and id::Man require positive values")
+TEST_CASE("id::Vessel requires positive value")
 {
-	CHECK(id::Man{3}.value() == 3);
+	CHECK(id::Vessel{3}.value() == 3);
 	CHECK_THROWS_AS(id::Vessel{0}, std::invalid_argument);
-	CHECK_THROWS_AS(id::Man{0}, std::invalid_argument);
 }

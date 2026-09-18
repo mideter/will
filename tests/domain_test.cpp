@@ -51,10 +51,9 @@ TEST_CASE("welcome creates man with personal abode")
 	const DeviceToken token = DeviceToken::generate();
 	const Man& man = world.welcome(token);
 	const auto& witness = static_cast<const Witness&>(man);
-	const id::Abode own{man.id().value()};
+	const id::Abode own{man.Soul::id().value()};
 
 	CHECK(man.Soul::id().value() > 0);
-	CHECK(man.id().value() > 0);
 	CHECK(man.Vessel::id().value() > 0);
 	CHECK(witness.abode().id() == id::Place{own.value()});
 	CHECK(witness.abode().abode_id() == own);
@@ -64,7 +63,7 @@ TEST_CASE("welcome creates man with personal abode")
 
 	const Vessel& vessel = world.vessel(man.Vessel::id());
 	CHECK(vessel.id() == man.Vessel::id());
-	CHECK(world.man(vessel).id() == man.id());
+	CHECK(world.man(vessel).Soul::id() == man.Soul::id());
 	CHECK(&world.man(vessel) == &man);
 	CHECK(world.man(vessel).Soul::id() == man.Soul::id());
 
@@ -87,8 +86,8 @@ TEST_CASE("welcome existing man")
 	const Man& man = world.welcome(test_token("abcd1234abcd1234abcd1234abcd1234"));
 	CHECK(man.Soul::id() == id::Soul{42});
 	CHECK(static_cast<const Witness&>(man).abode().dwells(man));
-	CHECK(static_cast<const Witness&>(man).abode().abode_id() == id::Abode{man.id().value()});
-	CHECK(static_cast<const Witness&>(man).abode().id() == id::Place{man.id().value()});
+	CHECK(static_cast<const Witness&>(man).abode().abode_id() == id::Abode{man.Soul::id().value()});
+	CHECK(static_cast<const Witness&>(man).abode().id() == id::Place{man.Soul::id().value()});
 }
 
 
@@ -207,8 +206,8 @@ TEST_CASE("supplicate accept creates living obedience; secede ends it")
 	CHECK(obedience.living());
 	CHECK(&obedience.testator() == &static_cast<const Soul&>(b));
 	CHECK(&obedience.executor() == &static_cast<const Soul&>(a));
-	CHECK(obedience.id().value() != a.id().value());
-	CHECK(obedience.id().value() != b.id().value());
+	CHECK(obedience.id().value() != a.Soul::id().value());
+	CHECK(obedience.id().value() != b.Soul::id().value());
 	CHECK(temporality.pending_supplications(b.Soul::id()).empty());
 
 	executor.secede(obedience);

@@ -93,9 +93,9 @@ void Earth::keep(const id::Abode id, AbodeName name)
 }
 
 
-void Earth::join_abode(const id::Abode abode, const id::Man man)
+void Earth::join_abode(const id::Abode abode, const id::Soul soul)
 {
-	temporality_.join_abode(abode, man);
+	temporality_.join_abode(abode, soul);
 }
 
 

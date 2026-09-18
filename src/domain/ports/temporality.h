@@ -8,7 +8,6 @@
 #include "beings/soul.h"
 #include "beings/testament.h"
 #include "identity/abode.h"
-#include "identity/man.h"
 #include "identity/obedience.h"
 #include "identity/place.h"
 #include "identity/soul.h"
@@ -49,8 +48,8 @@ public:
 	/// Keep an abode in time (idempotent by id).
 	virtual void keep(id::Abode id, AbodeName name) = 0;
 
-	/// Record that a man dwells in an abode (idempotent).
-	virtual void join_abode(id::Abode abode, id::Man man) = 0;
+	/// Record that a soul dwells in an abode (idempotent).
+	virtual void join_abode(id::Abode abode, id::Soul soul) = 0;
 
 	/// Fix a word in time: take the present from Time and keep the letter.
 	virtual void fix(id::Place place, id::Soul author, const Word& word) const = 0;

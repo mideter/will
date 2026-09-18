@@ -28,11 +28,11 @@ const Man& World::man(const Vessel& vessel) const
 {
 	std::lock_guard lock(mutex_);
 
-	const auto man_it = man_id_by_vessel_.find(vessel.id());
-	if (man_it == man_id_by_vessel_.end())
+	const auto soul_it = soul_id_by_vessel_.find(vessel.id());
+	if (soul_it == soul_id_by_vessel_.end())
 		throw std::logic_error("Vessel has no man");
 
-	const auto it = men_.find(man_it->second);
+	const auto it = men_.find(soul_it->second);
 	if (it == men_.end() || !it->second)
 		throw std::logic_error("Vessel has no man");
 
@@ -58,19 +58,19 @@ const Man& World::beget(const DeviceToken& token)
 
 const Man& World::accept(Embodiment embodiment)
 {
-	const id::Man man_id = embodiment.man();
+	const id::Soul soul_id = embodiment.soul();
 	const id::Vessel vessel_id = embodiment.vessel();
 	auto ptr = std::unique_ptr<Man>(new Testator(std::move(embodiment)));
 	Man& live = *ptr;
 
 	std::lock_guard lock(mutex_);
-	men_.insert_or_assign(man_id, std::move(ptr));
-	man_id_by_vessel_.insert_or_assign(vessel_id, man_id);
+	men_.insert_or_assign(soul_id, std::move(ptr));
+	soul_id_by_vessel_.insert_or_assign(vessel_id, soul_id);
 	return live;
 }
 
 
-const Man& World::living_man(const id::Man id) const
+const Man& World::living_man(const id::Soul id) const
 {
 	std::lock_guard lock(mutex_);
 

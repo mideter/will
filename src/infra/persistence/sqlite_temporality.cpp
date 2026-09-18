@@ -71,7 +71,7 @@ std::uint64_t next_place_id(sqlite3* db)
 									"SELECT COALESCE(MAX(id), 0) FROM ("
 									"  SELECT id FROM abodes"
 									"  UNION ALL SELECT id FROM obediences"
-									"  UNION ALL SELECT id FROM men"
+									"  UNION ALL SELECT id FROM souls"
 									");",
 									-1, &stmt, nullptr),
 				 db, "prepare next_place_id");
@@ -187,11 +187,9 @@ domain::Embodiment SqliteTemporality::embody(const domain::id::Soul soul, domain
 	check_sqlite(sqlite3_step(man_stmt), db, "insert man step");
 	sqlite3_finalize(man_stmt);
 
-	const domain::id::Man man_id{static_cast<std::uint64_t>(sqlite3_last_insert_rowid(db))};
-
 	tx.commit();
 
-	return domain::Embodiment{man_id, soul, *name, vessel_id, std::move(token)};
+	return domain::Embodiment{soul, *name, vessel_id, std::move(token)};
 }
 
 
@@ -202,11 +200,11 @@ std::vector<domain::Embodiment> SqliteTemporality::embodiments() const
 	sqlite3* const db = database_.db();
 	sqlite3_stmt* stmt = nullptr;
 	check_sqlite(sqlite3_prepare_v2(db,
-									"SELECT m.id, m.soul_id, s.name, m.vessel_id, v.device_token "
+									"SELECT m.soul_id, s.name, m.vessel_id, v.device_token "
 									"FROM men AS m "
 									"INNER JOIN souls AS s ON s.id = m.soul_id "
 									"INNER JOIN vessels AS v ON v.id = m.vessel_id "
-									"ORDER BY m.id;",
+									"ORDER BY m.soul_id;",
 									-1, &stmt, nullptr),
 				 db, "prepare embodiments");
 
@@ -214,9 +212,8 @@ std::vector<domain::Embodiment> SqliteTemporality::embodiments() const
 
 	int rc = sqlite3_step(stmt);
 	while (rc == SQLITE_ROW) {
-		const domain::id::Man man_id{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 0))};
-		const domain::id::Soul soul_id{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 1))};
-		const unsigned char* const name_text = sqlite3_column_text(stmt, 2);
+		const domain::id::Soul soul_id{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 0))};
+		const unsigned char* const name_text = sqlite3_column_text(stmt, 1);
 		if (!name_text)
 			throw std::runtime_error("embodiments: missing soul name in database");
 
@@ -224,8 +221,8 @@ std::vector<domain::Embodiment> SqliteTemporality::embodiments() const
 		if (!name)
 			throw std::runtime_error("embodiments: invalid soul name in database");
 
-		const domain::id::Vessel vessel_id{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 3))};
-		const char* const device_token = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 4));
+		const domain::id::Vessel vessel_id{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 2))};
+		const char* const device_token = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3));
 		if (!device_token)
 			throw std::runtime_error("embodiments: missing device_token in database");
 
@@ -233,7 +230,7 @@ std::vector<domain::Embodiment> SqliteTemporality::embodiments() const
 		if (!token)
 			throw std::runtime_error("embodiments: invalid device_token in database");
 
-		rows.push_back(domain::Embodiment{man_id, soul_id, *name, vessel_id, *token});
+		rows.push_back(domain::Embodiment{soul_id, *name, vessel_id, *token});
 		rc = sqlite3_step(stmt);
 	}
 
@@ -290,20 +287,20 @@ void SqliteTemporality::keep(const domain::id::Abode id, domain::AbodeName name)
 }
 
 
-void SqliteTemporality::join_abode(const domain::id::Abode abode, const domain::id::Man man)
+void SqliteTemporality::join_abode(const domain::id::Abode abode, const domain::id::Soul soul)
 {
 	std::lock_guard lock(database_.mutex());
 
 	sqlite3* const db = database_.db();
 	sqlite3_stmt* stmt = nullptr;
 	check_sqlite(sqlite3_prepare_v2(db,
-									"INSERT OR IGNORE INTO abode_men (abode_id, man_id) VALUES (?, ?);",
+									"INSERT OR IGNORE INTO abode_souls (abode_id, soul_id) VALUES (?, ?);",
 									-1, &stmt, nullptr),
-				 db, "prepare join abode_men");
+				 db, "prepare join abode_souls");
 
 	check_sqlite(sqlite3_bind_int64(stmt, 1, static_cast<sqlite3_int64>(abode.value())), db, "bind abode_id");
-	check_sqlite(sqlite3_bind_int64(stmt, 2, static_cast<sqlite3_int64>(man.value())), db, "bind man_id");
-	check_sqlite(sqlite3_step(stmt), db, "insert abode_men step");
+	check_sqlite(sqlite3_bind_int64(stmt, 2, static_cast<sqlite3_int64>(soul.value())), db, "bind soul_id");
+	check_sqlite(sqlite3_step(stmt), db, "insert abode_souls step");
 	sqlite3_finalize(stmt);
 }
 

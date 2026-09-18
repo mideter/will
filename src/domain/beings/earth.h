@@ -1,7 +1,7 @@
 #pragma once
 
 #include "identity/abode.h"
-#include "identity/man.h"
+#include "identity/soul.h"
 #include "identity/vessel.h"
 #include "values/abode_name.h"
 #include "values/device_token.h"
@@ -55,8 +55,8 @@ protected:
 	/// Keep an abode in Temporality (idempotent by id).
 	void keep(id::Abode id, AbodeName name);
 
-	/// Record that a man dwells in an abode (through Temporality).
-	void join_abode(id::Abode abode, id::Man man);
+	/// Record that a soul dwells in an abode (through Temporality).
+	void join_abode(id::Abode abode, id::Soul soul);
 
 	Temporality& temporality() noexcept { return temporality_; }
 	const Temporality& temporality() const noexcept { return temporality_; }

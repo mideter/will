@@ -10,7 +10,6 @@
 #include "beings/vessel.h"
 #include "beings/world.h"
 #include "identity/abode.h"
-#include "identity/man.h"
 #include "identity/obedience.h"
 #include "identity/soul.h"
 #include "identity/supplication.h"
@@ -75,9 +74,8 @@ public:
 			throw std::invalid_argument("unknown soul");
 
 		const id::Vessel vessel_id{++next_vessel_id_};
-		const id::Man man_id{++next_man_id_};
-		note_place(man_id.value());
-		Embodiment row{man_id, soul, *name, vessel_id, std::move(token)};
+		note_place(soul.value());
+		Embodiment row{soul, *name, vessel_id, std::move(token)};
 		embodiments_.push_back(row);
 		return row;
 	}
@@ -89,15 +87,12 @@ public:
 	{
 		souls_.emplace_back(soul_id, name);
 		const id::Vessel vessel_id{soul_id.value()};
-		const id::Man man_id{soul_id.value()};
-		embodiments_.push_back(Embodiment{man_id, soul_id, name, vessel_id, token});
+		embodiments_.push_back(Embodiment{soul_id, name, vessel_id, token});
 		if (soul_id.value() > next_soul_id_)
 			next_soul_id_ = soul_id.value();
 		if (vessel_id.value() > next_vessel_id_)
 			next_vessel_id_ = vessel_id.value();
-		if (man_id.value() > next_man_id_)
-			next_man_id_ = man_id.value();
-		note_place(man_id.value());
+		note_place(soul_id.value());
 	}
 
 	std::vector<Abode> abodes() override
@@ -119,7 +114,7 @@ public:
 		abode_rows_.emplace_back(id, std::move(name));
 	}
 
-	void join_abode(const id::Abode, const id::Man) override {}
+	void join_abode(const id::Abode, const id::Soul) override {}
 
 	void fix(id::Place place, id::Soul author, const Word& word) const override
 	{
@@ -352,7 +347,6 @@ private:
 	FakeTime time_;
 	std::uint64_t next_soul_id_ = 0;
 	std::uint64_t next_vessel_id_ = 0;
-	std::uint64_t next_man_id_ = 0;
 	std::uint64_t next_place_id_ = 0;
 	std::uint64_t next_supplication_id_ = 0;
 	std::uint64_t next_testament_id_ = 0;

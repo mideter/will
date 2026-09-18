@@ -98,9 +98,9 @@ TEST_CASE("sqlite persistence survives reopen")
 		CHECK(world.man(world.vessel(man_a_reloaded.Vessel::id())).Soul::id() == *soul_a_id);
 		CHECK(static_cast<const Witness&>(man_a_reloaded).abode().dwells(man_a_reloaded));
 		CHECK(static_cast<const Witness&>(man_a_reloaded).abode().id() ==
-			  id::Place{man_a_reloaded.id().value()});
+			  id::Place{man_a_reloaded.Soul::id().value()});
 		CHECK(static_cast<const Witness&>(man_a_reloaded).abode().abode_id() ==
-			  id::Abode{man_a_reloaded.id().value()});
+			  id::Abode{man_a_reloaded.Soul::id().value()});
 
 		CHECK(world.knows(*soul_b_id));
 		CHECK(world.soul(*soul_b_id).name() == *name_b);

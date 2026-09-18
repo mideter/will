@@ -4,7 +4,6 @@
 #include "beings/earth.h"
 #include "beings/heaven.h"
 #include "beings/man.h"
-#include "identity/man.h"
 #include "identity/soul.h"
 #include "identity/vessel.h"
 #include "values/device_token.h"
@@ -22,6 +21,7 @@ namespace will::domain {
 /// Each living man has a personal abode owned by his Witness.
 /// Brought forth only by Creation with Heaven and Earth already brought forth.
 /// Living people are Testator on the heap; World alone births them.
+/// One soul — one living man; indexed by id::Soul.
 class World : public Heaven, public Earth {
 public:
 	using Heaven::knows;
@@ -54,11 +54,11 @@ private:
 	/// Place a Testator on the heap from embodiment material.
 	const Man& accept(Embodiment embodiment);
 
-	const Man& living_man(id::Man id) const;
+	const Man& living_man(id::Soul id) const;
 
 	mutable std::mutex mutex_;
-	std::unordered_map<id::Man, std::unique_ptr<Man>> men_;
-	std::unordered_map<id::Vessel, id::Man> man_id_by_vessel_;
+	std::unordered_map<id::Soul, std::unique_ptr<Man>> men_;
+	std::unordered_map<id::Vessel, id::Soul> soul_id_by_vessel_;
 };
 
 

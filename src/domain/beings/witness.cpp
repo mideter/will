@@ -15,12 +15,12 @@ namespace will::domain {
 Witness::Witness(Embodiment embodiment)
 	: Man(std::move(embodiment))
 	, abode_(std::make_unique<Abode>(
-		  id::Abode{this->id().value()},
+		  id::Abode{Soul::id().value()},
 		  AbodeName{std::string{Soul::name().text()}}))
 {
 	abode_->admit(*this);
 	temporality().keep(abode_->abode_id(), abode_->name());
-	temporality().join_abode(abode_->abode_id(), this->id());
+	temporality().join_abode(abode_->abode_id(), Soul::id());
 }
 
 

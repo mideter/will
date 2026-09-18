@@ -12,7 +12,6 @@ namespace will::domain {
 Man::Man(Embodiment embodiment)
 	: Soul(embodiment.soul(), embodiment.name())
 	, Vessel(embodiment.vessel(), embodiment.token())
-	, Hypostasis(embodiment.man())
 {
 	Spirit::present();
 	Dust::present();

@@ -4,6 +4,7 @@
 
 #include <cstring>
 #include <format>
+#include <string>
 #include <sqlite3.h>
 
 
@@ -114,6 +115,7 @@ DROP TABLE IF EXISTS letters;
 DROP TABLE IF EXISTS testaments;
 DROP TABLE IF EXISTS obediences;
 DROP TABLE IF EXISTS supplications;
+DROP TABLE IF EXISTS abode_souls;
 DROP TABLE IF EXISTS abode_men;
 DROP TABLE IF EXISTS men;
 DROP TABLE IF EXISTS vessels;
@@ -217,6 +219,74 @@ void migrate_vessels_soul_id_to_men(sqlite3* db)
 }
 
 
+void migrate_abode_men_to_abode_souls(sqlite3* db)
+{
+	if (!table_exists(db, "abode_men"))
+		return;
+
+	check_sqlite(sqlite3_exec(db,
+							  "CREATE TABLE IF NOT EXISTS abode_souls ("
+							  "  abode_id INTEGER NOT NULL REFERENCES abodes(id),"
+							  "  soul_id INTEGER NOT NULL REFERENCES souls(id),"
+							  "  PRIMARY KEY (abode_id, soul_id)"
+							  ");",
+							  nullptr, nullptr, nullptr),
+				 db, "create abode_souls");
+
+	check_sqlite(sqlite3_exec(db,
+							  "INSERT OR IGNORE INTO abode_souls (abode_id, soul_id) "
+							  "SELECT am.abode_id, m.soul_id FROM abode_men AS am "
+							  "INNER JOIN men AS m ON m.id = am.man_id;",
+							  nullptr, nullptr, nullptr),
+				 db, "copy abode_men to abode_souls");
+
+	check_sqlite(sqlite3_exec(db, "DROP TABLE abode_men;", nullptr, nullptr, nullptr), db, "drop abode_men");
+}
+
+
+void migrate_men_unique_soul(sqlite3* db)
+{
+	if (!table_exists(db, "men") || !table_has_column(db, "men", "soul_id"))
+		return;
+
+	sqlite3_stmt* stmt = nullptr;
+	check_sqlite(sqlite3_prepare_v2(db, "SELECT sql FROM sqlite_master WHERE type='table' AND name='men';",
+									-1, &stmt, nullptr),
+				 db, "prepare men sql");
+	const int rc = sqlite3_step(stmt);
+	std::string sql;
+	if (rc == SQLITE_ROW) {
+		const char* text = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
+		if (text)
+			sql = text;
+	}
+	sqlite3_finalize(stmt);
+	check_sqlite(rc == SQLITE_ROW || rc == SQLITE_DONE ? SQLITE_OK : rc, db, "men sql step");
+	if (sql.find("soul_id INTEGER NOT NULL UNIQUE") != std::string::npos)
+		return;
+
+	check_sqlite(sqlite3_exec(db, "BEGIN IMMEDIATE;", nullptr, nullptr, nullptr), db,
+				 "begin migrate men unique soul");
+	check_sqlite(sqlite3_exec(db,
+							  "CREATE TABLE men_new ("
+							  "  id INTEGER PRIMARY KEY AUTOINCREMENT,"
+							  "  soul_id INTEGER NOT NULL UNIQUE REFERENCES souls(id),"
+							  "  vessel_id INTEGER NOT NULL UNIQUE REFERENCES vessels(id)"
+							  ");",
+							  nullptr, nullptr, nullptr),
+				 db, "create men_new");
+	check_sqlite(sqlite3_exec(db,
+							  "INSERT OR IGNORE INTO men_new (id, soul_id, vessel_id) "
+							  "SELECT id, soul_id, vessel_id FROM men;",
+							  nullptr, nullptr, nullptr),
+				 db, "copy men to men_new");
+	check_sqlite(sqlite3_exec(db, "DROP TABLE men;", nullptr, nullptr, nullptr), db, "drop old men");
+	check_sqlite(sqlite3_exec(db, "ALTER TABLE men_new RENAME TO men;", nullptr, nullptr, nullptr), db,
+				 "rename men_new");
+	check_sqlite(sqlite3_exec(db, "COMMIT;", nullptr, nullptr, nullptr), db, "commit migrate men unique soul");
+}
+
+
 } // namespace
 
 
@@ -242,7 +312,7 @@ CREATE TABLE IF NOT EXISTS vessels (
 
 CREATE TABLE IF NOT EXISTS men (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  soul_id INTEGER NOT NULL REFERENCES souls(id),
+  soul_id INTEGER NOT NULL UNIQUE REFERENCES souls(id),
   vessel_id INTEGER NOT NULL UNIQUE REFERENCES vessels(id)
 );
 
@@ -251,10 +321,10 @@ CREATE TABLE IF NOT EXISTS abodes (
   name TEXT NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS abode_men (
+CREATE TABLE IF NOT EXISTS abode_souls (
   abode_id INTEGER NOT NULL REFERENCES abodes(id),
-  man_id INTEGER NOT NULL REFERENCES men(id),
-  PRIMARY KEY (abode_id, man_id)
+  soul_id INTEGER NOT NULL REFERENCES souls(id),
+  PRIMARY KEY (abode_id, soul_id)
 );
 
 CREATE TABLE IF NOT EXISTS letters (
@@ -307,14 +377,16 @@ CREATE INDEX IF NOT EXISTS idx_letters_created_at ON letters(created_at_ns);
 	// Column renames for DBs that already had vessels/letters before gods→souls.
 	migrate_gods_to_souls(db_);
 	migrate_vessels_soul_id_to_men(db_);
+	migrate_men_unique_soul(db_);
+	migrate_abode_men_to_abode_souls(db_);
 
 	check_sqlite(sqlite3_exec(db_, "UPDATE letters SET place_id = 1 WHERE place_id = 0;", nullptr, nullptr,
 							  nullptr),
 				 db_, "migrate global place_id");
 
 	// Retire the former world abode as a living place (letter id 1 may remain orphaned).
-	check_sqlite(sqlite3_exec(db_, "DELETE FROM abode_men WHERE abode_id = 1;", nullptr, nullptr, nullptr),
-				 db_, "retire global abode_men");
+	check_sqlite(sqlite3_exec(db_, "DELETE FROM abode_souls WHERE abode_id = 1;", nullptr, nullptr, nullptr),
+				 db_, "retire global abode_souls");
 	check_sqlite(sqlite3_exec(db_, "DELETE FROM abodes WHERE id = 1 AND name = 'world';", nullptr, nullptr,
 							  nullptr),
 				 db_, "retire global abode");
