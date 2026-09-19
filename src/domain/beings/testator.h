@@ -43,7 +43,7 @@ public:
 	const Supplication& supplication(id::Supplication id) const;
 
 	/// Incoming pending supplications kept on this testator.
-	std::vector<std::reference_wrapper<const Supplication>> pending_supplications() const;
+	std::vector<std::reference_wrapper<const Supplication>> supplications() const;
 
 private:
 	friend class World;

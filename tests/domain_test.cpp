@@ -197,15 +197,15 @@ TEST_CASE("supplicate accept creates obedience owned on both faces")
 	const auto& testator = static_cast<const Testator&>(b);
 
 	executor.supplicate(testator);
-	CHECK(testator.pending_supplications().size() == 1);
-	const Supplication& ask = testator.supplication(testator.pending_supplications().front().get().id());
+	CHECK(testator.supplications().size() == 1);
+	const Supplication& ask = testator.supplication(testator.supplications().front().get().id());
 	CHECK(ask.suppliant().id() == a.Soul::id());
 	CHECK(ask.testator().id() == b.Soul::id());
 	CHECK(ask.status() == SupplicationStatus::pending);
 	CHECK(temporality.pending_supplications(b.Soul::id()).size() == 1);
 
 	const Obedience& obedience = testator.accept(ask);
-	CHECK(testator.pending_supplications().empty());
+	CHECK(testator.supplications().empty());
 	CHECK(&obedience.testator() == &testator);
 	CHECK(&obedience.executor() == &executor);
 	CHECK(obedience.id().value() != a.Soul::id().value());
@@ -229,12 +229,12 @@ TEST_CASE("refuse closes pending supplication; wrong party cannot accept")
 	const auto& stranger = static_cast<const Testator&>(a);
 
 	executor.supplicate(testator);
-	const id::Supplication sid = testator.pending_supplications().front().get().id();
+	const id::Supplication sid = testator.supplications().front().get().id();
 	const Supplication& ask = testator.supplication(sid);
 	CHECK_THROWS_AS(stranger.accept(ask), std::logic_error);
 
 	testator.refuse(ask);
-	CHECK(testator.pending_supplications().empty());
+	CHECK(testator.supplications().empty());
 	CHECK(temporality.pending_supplications(b.Soul::id()).empty());
 	CHECK_THROWS_AS(testator.supplication(sid), std::invalid_argument);
 }
@@ -253,7 +253,7 @@ TEST_CASE("will and execute within obedience")
 
 	executor.supplicate(testator);
 	const Obedience& obedience =
-		testator.accept(testator.supplication(testator.pending_supplications().front().get().id()));
+		testator.accept(testator.supplication(testator.supplications().front().get().id()));
 	const Shepherding& shepherding = testator.shepherding(obedience.obedience_id());
 	const Deed bequeathed = testator.will(shepherding, Word{"fast"});
 	CHECK(bequeathed.open());

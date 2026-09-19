@@ -83,7 +83,7 @@ const Supplication& Testator::supplication(const id::Supplication id) const
 }
 
 
-std::vector<std::reference_wrapper<const Supplication>> Testator::pending_supplications() const
+std::vector<std::reference_wrapper<const Supplication>> Testator::supplications() const
 {
 	std::vector<std::reference_wrapper<const Supplication>> out;
 	out.reserve(incoming_.size());
