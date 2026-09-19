@@ -33,7 +33,6 @@ public:
 	void refuse(domain::id::Supplication id) override;
 	domain::Obedience obedience(domain::id::Obedience id) const override;
 	std::vector<domain::Obedience> obediences() const override;
-	void secede(domain::id::Obedience id) override;
 
 	domain::Deed
 	bequeath(const domain::Obedience& obedience, const domain::Soul& testator,

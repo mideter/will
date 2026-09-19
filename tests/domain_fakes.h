@@ -141,8 +141,8 @@ public:
 		const id::Soul addressee_id = addressee.id();
 		if (suppliant_id == addressee_id)
 			throw std::invalid_argument("supplication requires distinct suppliant and addressee");
-		if (living_pair(addressee_id, suppliant_id))
-			throw std::logic_error("living obedience already exists for this pair");
+		if (pair_exists(addressee_id, suppliant_id))
+			throw std::logic_error("obedience already exists for this pair");
 		for (const auto& row : supplications_) {
 			if (row.suppliant().id() == suppliant_id && row.addressee().id() == addressee_id
 				&& row.status() == SupplicationStatus::pending)
@@ -170,15 +170,14 @@ public:
 		Supplication& row = mutable_supplication(id);
 		if (row.status() != SupplicationStatus::pending)
 			throw std::logic_error("supplication is not pending");
-		if (living_pair(row.addressee().id(), row.suppliant().id()))
-			throw std::logic_error("living obedience already exists for this pair");
+		if (pair_exists(row.addressee().id(), row.suppliant().id()))
+			throw std::logic_error("obedience already exists for this pair");
 
 		replace_status(row, SupplicationStatus::accepted);
 
 		const id::Obedience oid{allocate_place()};
-		obediences_.push_back(
-			ObedienceRow{oid, row.addressee().id(), row.suppliant().id(), true});
-		return Obedience{oid, row.addressee(), row.suppliant(), true};
+		obediences_.push_back(ObedienceRow{oid, row.addressee().id(), row.suppliant().id()});
+		return Obedience{oid, row.addressee(), row.suppliant()};
 	}
 
 	void refuse(const id::Supplication id) override
@@ -195,7 +194,7 @@ public:
 			if (row.id != id)
 				continue;
 
-			return Obedience{row.id, Soul::of(row.testator), Soul::of(row.executor), row.living};
+			return Obedience{row.id, Soul::of(row.testator), Soul::of(row.executor)};
 		}
 		throw std::invalid_argument("unknown obedience");
 	}
@@ -205,34 +204,15 @@ public:
 		std::vector<Obedience> out;
 		out.reserve(obediences_.size());
 		for (const auto& row : obediences_) {
-			out.push_back(
-				Obedience{row.id, Soul::of(row.testator), Soul::of(row.executor), row.living});
+			out.push_back(Obedience{row.id, Soul::of(row.testator), Soul::of(row.executor)});
 		}
 		return out;
 	}
 
-	void secede(const id::Obedience id) override
-	{
-		for (auto& row : obediences_) {
-			if (row.id != id)
-				continue;
-			if (!row.living)
-				throw std::logic_error("obedience is not living");
-			row.living = false;
-			const Timestamp now = time_.instant();
-			for (auto& deed : deed_rows_) {
-				if (deed.obedience == id && !deed.executed_at && !deed.cancelled_at)
-					deed.cancelled_at = now;
-			}
-			return;
-		}
-		throw std::invalid_argument("unknown obedience");
-	}
-
 	Deed bequeath(const Obedience& obedience, const Soul& testator, const Word& word) override
 	{
-		if (!living_obedience(obedience.obedience_id()))
-			throw std::logic_error("obedience is not living");
+		if (!has_obedience(obedience.obedience_id()))
+			throw std::invalid_argument("unknown obedience");
 		if (obedience.testator().id() != testator.id())
 			throw std::logic_error("only the testator may bequeath in this obedience");
 
@@ -255,8 +235,8 @@ public:
 				continue;
 			if (row.executed_at || row.cancelled_at)
 				throw std::logic_error("deed is not open");
-			if (!living_obedience(row.obedience))
-				throw std::logic_error("obedience is not living");
+			if (!has_obedience(row.obedience))
+				throw std::invalid_argument("unknown obedience");
 			row.executed_at = time_.instant();
 			return make_deed(row);
 		}
@@ -289,7 +269,6 @@ private:
 		id::Obedience id;
 		id::Soul testator;
 		id::Soul executor;
-		bool living;
 	};
 
 	struct DeedRow {
@@ -311,20 +290,20 @@ private:
 
 	std::uint64_t allocate_place() { return ++next_place_id_; }
 
-	bool living_pair(const id::Soul testator, const id::Soul executor) const
+	bool pair_exists(const id::Soul testator, const id::Soul executor) const
 	{
 		for (const auto& row : obediences_) {
-			if (row.living && row.testator == testator && row.executor == executor)
+			if (row.testator == testator && row.executor == executor)
 				return true;
 		}
 		return false;
 	}
 
-	bool living_obedience(const id::Obedience id) const
+	bool has_obedience(const id::Obedience id) const
 	{
 		for (const auto& row : obediences_) {
 			if (row.id == id)
-				return row.living;
+				return true;
 		}
 		return false;
 	}

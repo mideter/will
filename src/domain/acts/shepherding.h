@@ -11,11 +11,12 @@ class Soul;
 
 
 /// Shepherding (Ведение) — Testator-facing interface of the shared Place
-/// also seen as Obedience (Послушание). One id, one living flag; owned on the
-/// heap by the Testator; also kept in Temporality.
+/// also seen as Obedience (Послушание). One id; owned on the heap by the
+/// Testator; also kept in Temporality.
+/// Ending a place (secede) is deferred for now — all kept places are active.
 class Shepherding : public Place {
 public:
-	Shepherding(id::Obedience id, const Soul& testator, const Soul& executor, bool living = true);
+	Shepherding(id::Obedience id, const Soul& testator, const Soul& executor);
 	Shepherding(Shepherding&& other) noexcept;
 	Shepherding& operator=(Shepherding&&) = delete;
 	Shepherding(const Shepherding&) = delete;
@@ -26,15 +27,10 @@ public:
 
 	const Soul& testator() const noexcept { return testator_; }
 	const Soul& executor() const noexcept { return executor_; }
-	bool living() const noexcept { return living_; }
-
-	/// End this face of the place (secede). Idempotent throw if already ended.
-	void end();
 
 private:
 	const Soul& testator_;
 	const Soul& executor_;
-	bool living_;
 };
 
 

@@ -69,16 +69,13 @@ public:
 	/// Refuse a pending supplication.
 	virtual void refuse(id::Supplication id) = 0;
 
-	/// Living or ended shared place by id (Obedience face). Throws if unknown.
+	/// Shared place by id (Obedience face). Throws if unknown.
 	virtual Obedience obedience(id::Obedience id) const = 0;
 
-	/// All shared places kept in time (Obedience faces; any living status).
+	/// All shared places kept in time (Obedience faces).
 	virtual std::vector<Obedience> obediences() const = 0;
 
-	/// End a living shared place; cancels open deeds in it.
-	virtual void secede(id::Obedience id) = 0;
-
-	/// Bequeath a word in a living shared place (testator must be that place's testator).
+	/// Bequeath a word in a shared place (testator must be that place's testator).
 	virtual Deed bequeath(const Obedience& obedience, const Soul& testator, const Word& word) = 0;
 
 	/// Execute an open deed.

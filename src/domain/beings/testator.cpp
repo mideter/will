@@ -27,9 +27,9 @@ const Obedience& Testator::accept(const Supplication& supplication) const
 	const Soul& executor_soul = created.executor();
 	const id::Obedience id = created.obedience_id();
 
-	keep(Shepherding{id, testator_soul, executor_soul, true});
+	keep(Shepherding{id, testator_soul, executor_soul});
 	return static_cast<const Executor&>(executor_soul)
-		.keep(Obedience{id, testator_soul, executor_soul, true});
+		.keep(Obedience{id, testator_soul, executor_soul});
 }
 
 
@@ -48,27 +48,9 @@ Deed Testator::will(const Shepherding& shepherding, const Word& word) const
 {
 	if (shepherding.testator().id() != Soul::id())
 		throw std::logic_error("not the testator of this shepherding");
-	if (!shepherding.living())
-		throw std::logic_error("shepherding is not living");
 
-	const Obedience face{shepherding.obedience_id(), shepherding.testator(), shepherding.executor(),
-						 shepherding.living()};
+	const Obedience face{shepherding.obedience_id(), shepherding.testator(), shepherding.executor()};
 	return temporality().bequeath(face, static_cast<const Soul&>(*this), word);
-}
-
-
-void Testator::secede(const Shepherding& shepherding) const
-{
-	if (shepherding.testator().id() != Soul::id() && shepherding.executor().id() != Soul::id())
-		throw std::logic_error("not a party to this shepherding");
-	if (!shepherding.living())
-		throw std::logic_error("shepherding is not living");
-
-	const id::Obedience id = shepherding.obedience_id();
-	temporality().secede(id);
-
-	static_cast<const Executor&>(shepherding.executor()).end_obedience(id);
-	end_shepherding(id);
 }
 
 
@@ -91,18 +73,6 @@ const Shepherding& Testator::keep(Shepherding place) const
 	}
 	shepherdings_.push_back(std::make_unique<Shepherding>(std::move(place)));
 	return *shepherdings_.back();
-}
-
-
-void Testator::end_shepherding(const id::Obedience id) const
-{
-	for (auto& place : shepherdings_) {
-		if (place->obedience_id() == id) {
-			place->end();
-			return;
-		}
-	}
-	throw std::invalid_argument("unknown shepherding");
 }
 
 

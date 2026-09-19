@@ -27,10 +27,12 @@ void World::awaken()
 	for (const Obedience& place : temporality().obediences()) {
 		const Soul& testator_soul = place.testator();
 		const Soul& executor_soul = place.executor();
+
 		static_cast<const Executor&>(executor_soul)
-			.keep(Obedience{place.obedience_id(), testator_soul, executor_soul, place.living()});
+			.keep(Obedience{place.obedience_id(), testator_soul, executor_soul});
+
 		static_cast<const Testator&>(testator_soul)
-			.keep(Shepherding{place.obedience_id(), testator_soul, executor_soul, place.living()});
+			.keep(Shepherding{place.obedience_id(), testator_soul, executor_soul});
 	}
 }
 

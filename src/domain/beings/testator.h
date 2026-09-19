@@ -31,26 +31,19 @@ public:
 	/// Refuse a pending supplication addressed to this soul.
 	void refuse(const Supplication& supplication) const;
 
-	/// Bequeath a word through the Shepherding face of a living shared place.
+	/// Bequeath a word through the Shepherding face of a shared place.
 	Deed will(const Shepherding& shepherding, const Word& word) const;
-
-	/// Leave a living shared place (Shepherding face).
-	void secede(const Shepherding& shepherding) const;
 
 	/// Owned Shepherding face by place id. Throws if unknown.
 	const Shepherding& shepherding(id::Obedience id) const;
 
 private:
 	friend class World;
-	friend class Executor;
 
 	explicit Testator(Embodiment embodiment);
 
 	/// Keep a Shepherding face on this testator (accept / awaken).
 	const Shepherding& keep(Shepherding place) const;
-
-	/// End the owned Shepherding face. Throws if unknown or already ended.
-	void end_shepherding(id::Obedience id) const;
 
 	mutable std::vector<std::unique_ptr<Shepherding>> shepherdings_;
 };

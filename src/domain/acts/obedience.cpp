@@ -9,12 +9,10 @@
 namespace will::domain {
 
 
-Obedience::Obedience(const id::Obedience id, const Soul& testator, const Soul& executor,
-					 const bool living)
+Obedience::Obedience(const id::Obedience id, const Soul& testator, const Soul& executor)
 	: Place(id::Place{id.value()})
 	, testator_(testator)
 	, executor_(executor)
-	, living_(living)
 {
 	if (testator_.id() == executor_.id())
 		throw std::invalid_argument("obedience requires distinct testator and executor");
@@ -25,16 +23,7 @@ Obedience::Obedience(Obedience&& other) noexcept
 	: Place(std::move(other))
 	, testator_(other.testator_)
 	, executor_(other.executor_)
-	, living_(other.living_)
 {}
-
-
-void Obedience::end()
-{
-	if (!living_)
-		throw std::logic_error("obedience is not living");
-	living_ = false;
-}
 
 
 } // namespace will::domain

@@ -180,13 +180,12 @@ TEST_CASE("obedience is a place for distinct testator and executor")
 	CHECK(obedience.obedience_id() == oid);
 	CHECK(&obedience.testator() == static_cast<const Soul*>(&testator));
 	CHECK(&obedience.executor() == static_cast<const Soul*>(&executor));
-	CHECK(obedience.living());
 
 	CHECK_THROWS_AS((Obedience{id::Obedience{8}, testator, testator}), std::invalid_argument);
 }
 
 
-TEST_CASE("supplicate accept creates living obedience; secede ends it")
+TEST_CASE("supplicate accept creates obedience owned on both faces")
 {
 	InMemoryTemporality temporality;
 	Creation creation(temporality);
@@ -204,20 +203,13 @@ TEST_CASE("supplicate accept creates living obedience; secede ends it")
 	CHECK(temporality.pending_supplications(b.Soul::id()).size() == 1);
 
 	const Obedience& obedience = testator.accept(ask);
-	CHECK(obedience.living());
 	CHECK(&obedience.testator() == &static_cast<const Soul&>(b));
 	CHECK(&obedience.executor() == &static_cast<const Soul&>(a));
 	CHECK(obedience.id().value() != a.Soul::id().value());
 	CHECK(obedience.id().value() != b.Soul::id().value());
 	CHECK(temporality.pending_supplications(b.Soul::id()).empty());
 	CHECK(&executor.obedience(obedience.obedience_id()) == &obedience);
-	CHECK(testator.shepherding(obedience.obedience_id()).living());
-
-	executor.secede(obedience);
-	CHECK_FALSE(temporality.obedience(obedience.obedience_id()).living());
-	CHECK_FALSE(executor.obedience(obedience.obedience_id()).living());
-	CHECK_FALSE(testator.shepherding(obedience.obedience_id()).living());
-	CHECK_THROWS_AS(executor.secede(obedience), std::logic_error);
+	CHECK(&testator.shepherding(obedience.obedience_id()).testator() == &static_cast<const Soul&>(b));
 }
 
 
@@ -242,7 +234,7 @@ TEST_CASE("refuse closes pending supplication; wrong party cannot accept")
 }
 
 
-TEST_CASE("will and execute within living obedience")
+TEST_CASE("will and execute within obedience")
 {
 	InMemoryTemporality temporality;
 	Creation creation(temporality);
@@ -267,47 +259,4 @@ TEST_CASE("will and execute within living obedience")
 	CHECK(done.executed());
 	CHECK_FALSE(done.open());
 	CHECK_THROWS_AS(executor.execute(done), std::logic_error);
-}
-
-
-TEST_CASE("secede cancels open deed")
-{
-	InMemoryTemporality temporality;
-	Creation creation(temporality);
-	World& world = creation.world();
-
-	const Man& a = world.welcome(DeviceToken::generate());
-	const Man& b = world.welcome(DeviceToken::generate());
-	const auto& executor = static_cast<const Executor&>(a);
-	const auto& testator = static_cast<const Testator&>(b);
-
-	const Obedience& obedience = testator.accept(executor.supplicate(b));
-	const Shepherding& shepherding = testator.shepherding(obedience.obedience_id());
-	const Deed open = testator.will(shepherding, Word{"later"});
-	executor.secede(obedience);
-
-	CHECK(temporality.deed(id::Deed{open.id().value()}).cancelled());
-	CHECK_THROWS_AS(testator.will(shepherding, Word{"no"}), std::logic_error);
-	CHECK_THROWS_AS(executor.execute(open), std::logic_error);
-}
-
-
-TEST_CASE("testator secede via shepherding ends both faces")
-{
-	InMemoryTemporality temporality;
-	Creation creation(temporality);
-	World& world = creation.world();
-
-	const Man& a = world.welcome(DeviceToken::generate());
-	const Man& b = world.welcome(DeviceToken::generate());
-	const auto& executor = static_cast<const Executor&>(a);
-	const auto& testator = static_cast<const Testator&>(b);
-
-	const Obedience& obedience = testator.accept(executor.supplicate(b));
-	const Shepherding& shepherding = testator.shepherding(obedience.obedience_id());
-	testator.secede(shepherding);
-
-	CHECK_FALSE(temporality.obedience(obedience.obedience_id()).living());
-	CHECK_FALSE(obedience.living());
-	CHECK_FALSE(shepherding.living());
 }

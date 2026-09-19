@@ -12,11 +12,12 @@ class Soul;
 
 /// Obedience (Послушание) — Executor-facing interface of a shared Place:
 /// ordered pair (testator, executor). Same place as Shepherding (Ведение);
-/// one id, one living flag. Where a Deed (Дело) is kept; born from accepted
-/// Supplication. Owned on the heap by the Executor; also kept in Temporality.
+/// one id. Where a Deed (Дело) is kept; born from accepted Supplication.
+/// Owned on the heap by the Executor; also kept in Temporality.
+/// Ending a place (secede) is deferred for now — all kept places are active.
 class Obedience : public Place {
 public:
-	Obedience(id::Obedience id, const Soul& testator, const Soul& executor, bool living = true);
+	Obedience(id::Obedience id, const Soul& testator, const Soul& executor);
 	Obedience(Obedience&& other) noexcept;
 	Obedience& operator=(Obedience&&) = delete;
 	Obedience(const Obedience&) = delete;
@@ -27,15 +28,10 @@ public:
 
 	const Soul& testator() const noexcept { return testator_; }
 	const Soul& executor() const noexcept { return executor_; }
-	bool living() const noexcept { return living_; }
-
-	/// End this face of the place (secede). Throws if already ended.
-	void end();
 
 private:
 	const Soul& testator_;
 	const Soul& executor_;
-	bool living_;
 };
 
 

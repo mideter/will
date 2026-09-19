@@ -18,19 +18,15 @@ class Testator;
 
 
 /// Executor (Послушник) — Исполнитель: исполняет Дело в Послушании.
-/// Owns Obedience faces on the heap (ended ones kept); Temporality keeps the
-/// same places in time. Mode is disclosed in an Obedience; the living heap
-/// object is always Testator.
+/// Owns Obedience faces on the heap; Temporality keeps the same places in time.
+/// Mode is disclosed in an Obedience; the living heap object is always Testator.
 class Executor : public Witness {
 public:
 	/// Ask addressee to become testator; this soul will be the executor.
 	Supplication supplicate(const Soul& testator) const;
 
-	/// Carry out an open deed in a living obedience where this soul is executor.
+	/// Carry out an open deed in an obedience where this soul is executor.
 	Deed execute(const Deed& deed) const;
-
-	/// Leave a living shared place (Obedience face).
-	void secede(const Obedience& obedience) const;
 
 	/// Owned Obedience face by place id. Throws if unknown.
 	const Obedience& obedience(id::Obedience id) const;
@@ -40,9 +36,6 @@ protected:
 
 	/// Keep an Obedience face on this executor (accept / awaken).
 	const Obedience& keep(Obedience place) const;
-
-	/// End the owned Obedience face. Throws if unknown or already ended.
-	void end_obedience(id::Obedience id) const;
 
 private:
 	friend class Testator;
