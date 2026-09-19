@@ -63,19 +63,22 @@ public:
 	/// Pending supplications addressed to this soul.
 	virtual std::vector<Supplication> pending_supplications(id::Soul addressee) const = 0;
 
-	/// Accept a pending supplication; creates a living Obedience.
+	/// Accept a pending supplication; keeps the shared Obedience/Shepherding place in time.
 	virtual Obedience accept(id::Supplication id) = 0;
 
 	/// Refuse a pending supplication.
 	virtual void refuse(id::Supplication id) = 0;
 
-	/// Living or ended obedience by id. Throws if unknown.
+	/// Living or ended shared place by id (Obedience face). Throws if unknown.
 	virtual Obedience obedience(id::Obedience id) const = 0;
 
-	/// End a living obedience; cancels open deeds in it.
+	/// All shared places kept in time (Obedience faces; any living status).
+	virtual std::vector<Obedience> obediences() const = 0;
+
+	/// End a living shared place; cancels open deeds in it.
 	virtual void secede(id::Obedience id) = 0;
 
-	/// Bequeath a word in a living obedience (testator must be the obedience's testator).
+	/// Bequeath a word in a living shared place (testator must be that place's testator).
 	virtual Deed bequeath(const Obedience& obedience, const Soul& testator, const Word& word) = 0;
 
 	/// Execute an open deed.
@@ -84,7 +87,7 @@ public:
 	/// Deed by id. Throws if unknown.
 	virtual Deed deed(id::Deed id) const = 0;
 
-	/// Deeds kept in this obedience (any status).
+	/// Deeds kept in this shared place (any status).
 	virtual std::vector<Deed> deeds(id::Obedience obedience) const = 0;
 };
 

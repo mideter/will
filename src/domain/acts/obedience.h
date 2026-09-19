@@ -10,8 +10,10 @@ namespace will::domain {
 class Soul;
 
 
-/// Obedience (Послушание) — ordered pair (testator, executor) as a Place.
-/// Where a Deed (Дело) is kept; born from accepted Supplication.
+/// Obedience (Послушание) — Executor-facing interface of a shared Place:
+/// ordered pair (testator, executor). Same place as Shepherding (Ведение);
+/// one id, one living flag. Where a Deed (Дело) is kept; born from accepted
+/// Supplication. Owned on the heap by the Executor; also kept in Temporality.
 class Obedience : public Place {
 public:
 	Obedience(id::Obedience id, const Soul& testator, const Soul& executor, bool living = true);
@@ -26,6 +28,9 @@ public:
 	const Soul& testator() const noexcept { return testator_; }
 	const Soul& executor() const noexcept { return executor_; }
 	bool living() const noexcept { return living_; }
+
+	/// End this face of the place (secede). Throws if already ended.
+	void end();
 
 private:
 	const Soul& testator_;

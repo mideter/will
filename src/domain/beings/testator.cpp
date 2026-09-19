@@ -15,14 +15,21 @@ Testator::Testator(Embodiment embodiment)
 {}
 
 
-Obedience Testator::accept(const Supplication& supplication) const
+const Obedience& Testator::accept(const Supplication& supplication) const
 {
 	if (supplication.addressee().id() != Soul::id())
 		throw std::logic_error("supplication is not addressed to this soul");
 	if (supplication.status() != SupplicationStatus::pending)
 		throw std::logic_error("supplication is not pending");
 
-	return temporality().accept(supplication.id());
+	const Obedience created = temporality().accept(supplication.id());
+	const Soul& testator_soul = created.testator();
+	const Soul& executor_soul = created.executor();
+	const id::Obedience id = created.obedience_id();
+
+	keep(Shepherding{id, testator_soul, executor_soul, true});
+	return static_cast<const Executor&>(executor_soul)
+		.keep(Obedience{id, testator_soul, executor_soul, true});
 }
 
 
@@ -37,12 +44,65 @@ void Testator::refuse(const Supplication& supplication) const
 }
 
 
-Deed Testator::will(const Obedience& obedience, const Word& word) const
+Deed Testator::will(const Shepherding& shepherding, const Word& word) const
 {
-	if (obedience.testator().id() != Soul::id())
-		throw std::logic_error("not the testator of this obedience");
+	if (shepherding.testator().id() != Soul::id())
+		throw std::logic_error("not the testator of this shepherding");
+	if (!shepherding.living())
+		throw std::logic_error("shepherding is not living");
 
-	return temporality().bequeath(obedience, static_cast<const Soul&>(*this), word);
+	const Obedience face{shepherding.obedience_id(), shepherding.testator(), shepherding.executor(),
+						 shepherding.living()};
+	return temporality().bequeath(face, static_cast<const Soul&>(*this), word);
+}
+
+
+void Testator::secede(const Shepherding& shepherding) const
+{
+	if (shepherding.testator().id() != Soul::id() && shepherding.executor().id() != Soul::id())
+		throw std::logic_error("not a party to this shepherding");
+	if (!shepherding.living())
+		throw std::logic_error("shepherding is not living");
+
+	const id::Obedience id = shepherding.obedience_id();
+	temporality().secede(id);
+
+	static_cast<const Executor&>(shepherding.executor()).end_obedience(id);
+	end_shepherding(id);
+}
+
+
+const Shepherding& Testator::shepherding(const id::Obedience id) const
+{
+	for (const auto& place : shepherdings_) {
+		if (place->obedience_id() == id)
+			return *place;
+	}
+	throw std::invalid_argument("unknown shepherding");
+}
+
+
+const Shepherding& Testator::keep(Shepherding place) const
+{
+	const id::Obedience id = place.obedience_id();
+	for (const auto& existing : shepherdings_) {
+		if (existing->obedience_id() == id)
+			return *existing;
+	}
+	shepherdings_.push_back(std::make_unique<Shepherding>(std::move(place)));
+	return *shepherdings_.back();
+}
+
+
+void Testator::end_shepherding(const id::Obedience id) const
+{
+	for (auto& place : shepherdings_) {
+		if (place->obedience_id() == id) {
+			place->end();
+			return;
+		}
+	}
+	throw std::invalid_argument("unknown shepherding");
 }
 
 

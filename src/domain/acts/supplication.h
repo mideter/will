@@ -20,7 +20,7 @@ enum class SupplicationStatus : std::uint8_t {
 };
 
 
-/// Supplication (Прошение) — request to enter Obedience.
+/// Supplication (Прошение) — request to enter the shared Obedience/Shepherding place.
 /// Suppliant is the future executor; addressee is the future testator.
 /// Holds living souls known to Heaven (stable while World lives).
 class Supplication {

@@ -200,6 +200,17 @@ public:
 		throw std::invalid_argument("unknown obedience");
 	}
 
+	std::vector<Obedience> obediences() const override
+	{
+		std::vector<Obedience> out;
+		out.reserve(obediences_.size());
+		for (const auto& row : obediences_) {
+			out.push_back(
+				Obedience{row.id, Soul::of(row.testator), Soul::of(row.executor), row.living});
+		}
+		return out;
+	}
+
 	void secede(const id::Obedience id) override
 	{
 		for (auto& row : obediences_) {

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "acts/obedience.h"
+#include "acts/shepherding.h"
 #include "beings/letter.h"
 #include "identity/deed.h"
 #include "values/timestamp.h"
@@ -13,11 +14,15 @@ namespace will::domain {
 
 
 /// Deed (Дело) — минимальная единица волеизъявления Завещателя Исполнителю;
-/// хранится в Послушании. Letter fixed in that place; sides from the living pair;
-/// open unless restored with timestamps.
+/// хранится в общем месте Послушания / Ведения (Obedience / Shepherding).
+/// Letter fixed in that place; sides from the living pair; open unless restored
+/// with timestamps.
 class Deed : public Letter {
 public:
 	Deed(id::Deed id, const Obedience& obedience, Word word, Timestamp created_at,
+		 std::optional<Timestamp> executed_at = std::nullopt,
+		 std::optional<Timestamp> cancelled_at = std::nullopt);
+	Deed(id::Deed id, const Shepherding& shepherding, Word word, Timestamp created_at,
 		 std::optional<Timestamp> executed_at = std::nullopt,
 		 std::optional<Timestamp> cancelled_at = std::nullopt);
 

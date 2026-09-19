@@ -8,7 +8,8 @@
 namespace will::domain::id {
 
 
-/// Persistent obedience identity. Same numeric value as the obedience's Place id.
+/// Persistent id of the Obedience/Shepherding place (Послушание / Ведение).
+/// Same numeric value as Place::id().
 class Obedience : public Id {
 public:
 	explicit Obedience(std::uint64_t value) : Id(value) {}

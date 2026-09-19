@@ -589,6 +589,33 @@ domain::Obedience SqliteTemporality::obedience(const domain::id::Obedience id) c
 }
 
 
+std::vector<domain::Obedience> SqliteTemporality::obediences() const
+{
+	std::vector<domain::id::Obedience> ids;
+	{
+		std::lock_guard lock(database_.mutex());
+		sqlite3* const db = database_.db();
+		sqlite3_stmt* stmt = nullptr;
+		check_sqlite(sqlite3_prepare_v2(db, "SELECT id FROM obediences ORDER BY id;", -1, &stmt, nullptr),
+					 db, "prepare obediences");
+
+		int rc = sqlite3_step(stmt);
+		while (rc == SQLITE_ROW) {
+			ids.push_back(domain::id::Obedience{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 0))});
+			rc = sqlite3_step(stmt);
+		}
+		check_sqlite(rc, db, "obediences step");
+		sqlite3_finalize(stmt);
+	}
+
+	std::vector<domain::Obedience> out;
+	out.reserve(ids.size());
+	for (const domain::id::Obedience id : ids)
+		out.push_back(obedience(id));
+	return out;
+}
+
+
 void SqliteTemporality::secede(const domain::id::Obedience id)
 {
 	const domain::Timestamp ts = time_.instant();

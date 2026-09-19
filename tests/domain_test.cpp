@@ -4,9 +4,10 @@
 #include "domain_fakes.h"
 
 #include "acts/creation.h"
-#include "beings/executor.h"
 #include "acts/obedience.h"
+#include "acts/shepherding.h"
 #include "beings/deed.h"
+#include "beings/executor.h"
 #include "beings/testator.h"
 #include "beings/witness.h"
 #include "identity/deed.h"
@@ -202,16 +203,20 @@ TEST_CASE("supplicate accept creates living obedience; secede ends it")
 	CHECK(ask.status() == SupplicationStatus::pending);
 	CHECK(temporality.pending_supplications(b.Soul::id()).size() == 1);
 
-	Obedience obedience = testator.accept(ask);
+	const Obedience& obedience = testator.accept(ask);
 	CHECK(obedience.living());
 	CHECK(&obedience.testator() == &static_cast<const Soul&>(b));
 	CHECK(&obedience.executor() == &static_cast<const Soul&>(a));
 	CHECK(obedience.id().value() != a.Soul::id().value());
 	CHECK(obedience.id().value() != b.Soul::id().value());
 	CHECK(temporality.pending_supplications(b.Soul::id()).empty());
+	CHECK(&executor.obedience(obedience.obedience_id()) == &obedience);
+	CHECK(testator.shepherding(obedience.obedience_id()).living());
 
 	executor.secede(obedience);
 	CHECK_FALSE(temporality.obedience(obedience.obedience_id()).living());
+	CHECK_FALSE(executor.obedience(obedience.obedience_id()).living());
+	CHECK_FALSE(testator.shepherding(obedience.obedience_id()).living());
 	CHECK_THROWS_AS(executor.secede(obedience), std::logic_error);
 }
 
@@ -248,14 +253,15 @@ TEST_CASE("will and execute within living obedience")
 	const auto& executor = static_cast<const Executor&>(a);
 	const auto& testator = static_cast<const Testator&>(b);
 
-	Obedience obedience = testator.accept(executor.supplicate(b));
-	const Deed bequeathed = testator.will(obedience, Word{"fast"});
+	const Obedience& obedience = testator.accept(executor.supplicate(b));
+	const Shepherding& shepherding = testator.shepherding(obedience.obedience_id());
+	const Deed bequeathed = testator.will(shepherding, Word{"fast"});
 	CHECK(bequeathed.open());
 	CHECK(bequeathed.body() == "fast");
 	CHECK(&bequeathed.testator() == &static_cast<const Soul&>(b));
 	CHECK(&bequeathed.executor() == &static_cast<const Soul&>(a));
 
-	CHECK_THROWS_AS(static_cast<const Testator&>(a).will(obedience, Word{"no"}), std::logic_error);
+	CHECK_THROWS_AS(static_cast<const Testator&>(a).will(shepherding, Word{"no"}), std::logic_error);
 
 	const Deed done = executor.execute(bequeathed);
 	CHECK(done.executed());
@@ -275,11 +281,33 @@ TEST_CASE("secede cancels open deed")
 	const auto& executor = static_cast<const Executor&>(a);
 	const auto& testator = static_cast<const Testator&>(b);
 
-	Obedience obedience = testator.accept(executor.supplicate(b));
-	const Deed open = testator.will(obedience, Word{"later"});
+	const Obedience& obedience = testator.accept(executor.supplicate(b));
+	const Shepherding& shepherding = testator.shepherding(obedience.obedience_id());
+	const Deed open = testator.will(shepherding, Word{"later"});
 	executor.secede(obedience);
 
 	CHECK(temporality.deed(id::Deed{open.id().value()}).cancelled());
-	CHECK_THROWS_AS(testator.will(obedience, Word{"no"}), std::logic_error);
+	CHECK_THROWS_AS(testator.will(shepherding, Word{"no"}), std::logic_error);
 	CHECK_THROWS_AS(executor.execute(open), std::logic_error);
+}
+
+
+TEST_CASE("testator secede via shepherding ends both faces")
+{
+	InMemoryTemporality temporality;
+	Creation creation(temporality);
+	World& world = creation.world();
+
+	const Man& a = world.welcome(DeviceToken::generate());
+	const Man& b = world.welcome(DeviceToken::generate());
+	const auto& executor = static_cast<const Executor&>(a);
+	const auto& testator = static_cast<const Testator&>(b);
+
+	const Obedience& obedience = testator.accept(executor.supplicate(b));
+	const Shepherding& shepherding = testator.shepherding(obedience.obedience_id());
+	testator.secede(shepherding);
+
+	CHECK_FALSE(temporality.obedience(obedience.obedience_id()).living());
+	CHECK_FALSE(obedience.living());
+	CHECK_FALSE(shepherding.living());
 }

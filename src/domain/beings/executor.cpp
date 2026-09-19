@@ -1,6 +1,7 @@
 #include "executor.h"
 
 #include "beings/soul.h"
+#include "beings/testator.h"
 #include "ports/temporality.h"
 
 #include <stdexcept>
@@ -32,7 +33,7 @@ Deed Executor::execute(const Deed& deed) const
 	if (!deed.open())
 		throw std::logic_error("deed is not open");
 
-	const Obedience obedience = temporality().obedience(deed.obedience_id());
+	const Obedience& obedience = this->obedience(deed.obedience_id());
 	if (!obedience.living())
 		throw std::logic_error("obedience is not living");
 
@@ -47,7 +48,45 @@ void Executor::secede(const Obedience& obedience) const
 	if (!obedience.living())
 		throw std::logic_error("obedience is not living");
 
-	temporality().secede(obedience.obedience_id());
+	const id::Obedience id = obedience.obedience_id();
+	temporality().secede(id);
+
+	static_cast<const Executor&>(obedience.executor()).end_obedience(id);
+	static_cast<const Testator&>(obedience.testator()).end_shepherding(id);
+}
+
+
+const Obedience& Executor::obedience(const id::Obedience id) const
+{
+	for (const auto& place : obediences_) {
+		if (place->obedience_id() == id)
+			return *place;
+	}
+	throw std::invalid_argument("unknown obedience");
+}
+
+
+const Obedience& Executor::keep(Obedience place) const
+{
+	const id::Obedience id = place.obedience_id();
+	for (const auto& existing : obediences_) {
+		if (existing->obedience_id() == id)
+			return *existing;
+	}
+	obediences_.push_back(std::make_unique<Obedience>(std::move(place)));
+	return *obediences_.back();
+}
+
+
+void Executor::end_obedience(const id::Obedience id) const
+{
+	for (auto& place : obediences_) {
+		if (place->obedience_id() == id) {
+			place->end();
+			return;
+		}
+	}
+	throw std::invalid_argument("unknown obedience");
 }
 
 
