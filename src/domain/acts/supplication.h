@@ -1,6 +1,5 @@
 #pragma once
 
-#include "identity/supplication.h"
 #include "values/timestamp.h"
 
 #include <cstdint>
@@ -26,16 +25,16 @@ enum class SupplicationStatus : std::uint8_t {
 /// Supplication (Прошение) — request to enter the shared Obedience/Shepherding place.
 /// Suppliant is the future executor; testator is asked to become Завещатель.
 /// Holds living souls known to Heaven (stable while World lives).
+/// Living identity is the ordered pair (suppliant, testator) while pending.
 ///
 /// Each side entrusts this act to do what is necessary on its behalf:
 /// the executor at send (lodge; later keep Obedience), the testator at consent
 /// (Shepherding, Temporality, drop). Roles do not reach each other.
 class Supplication {
 public:
-	Supplication(id::Supplication id, const Soul& suppliant, const Soul& testator,
-				 SupplicationStatus status, Timestamp created_at);
+	Supplication(const Soul& suppliant, const Soul& testator, SupplicationStatus status,
+				 Timestamp created_at);
 
-	id::Supplication id() const noexcept { return id_; }
 	const Soul& suppliant() const noexcept { return suppliant_; }
 	const Soul& testator() const noexcept { return testator_; }
 	SupplicationStatus status() const noexcept { return status_; }
@@ -51,7 +50,6 @@ public:
 	void dismiss(const Testator& testator) const;
 
 private:
-	id::Supplication id_;
 	const Soul& suppliant_;
 	const Soul& testator_;
 	SupplicationStatus status_;

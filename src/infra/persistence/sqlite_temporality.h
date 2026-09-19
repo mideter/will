@@ -29,8 +29,8 @@ public:
 	domain::Supplication
 	supplicate(const domain::Soul& suppliant, const domain::Soul& testator) override;
 	std::vector<domain::Supplication> pending_supplications(domain::id::Soul testator) const override;
-	domain::Obedience accept(domain::id::Supplication id) override;
-	void refuse(domain::id::Supplication id) override;
+	domain::Obedience accept(const domain::Supplication& ask) override;
+	void refuse(const domain::Supplication& ask) override;
 	domain::Obedience obedience(domain::id::Obedience id) const override;
 	std::vector<domain::Obedience> obediences() const override;
 

@@ -15,7 +15,6 @@
 #include "identity/deed.h"
 #include "identity/obedience.h"
 #include "identity/soul.h"
-#include "identity/supplication.h"
 #include "identity/vessel.h"
 #include "ports/temporality.h"
 #include "ports/time.h"
@@ -151,8 +150,7 @@ public:
 				throw std::logic_error("pending supplication already exists for this pair");
 		}
 
-		Supplication row{id::Supplication{++next_supplication_id_}, suppliant, testator,
-						 SupplicationStatus::pending, time_.instant()};
+		Supplication row{suppliant, testator, SupplicationStatus::pending, time_.instant()};
 		supplications_.push_back(row);
 		return row;
 	}
@@ -167,11 +165,9 @@ public:
 		return out;
 	}
 
-	Obedience accept(const id::Supplication id) override
+	Obedience accept(const Supplication& ask) override
 	{
-		Supplication& row = mutable_supplication(id);
-		if (row.status() != SupplicationStatus::pending)
-			throw std::logic_error("supplication is not pending");
+		Supplication& row = mutable_pending(ask);
 		if (pair_exists(row.testator().id(), row.suppliant().id()))
 			throw std::logic_error("obedience already exists for this pair");
 
@@ -183,11 +179,9 @@ public:
 						 static_cast<const Executor&>(row.suppliant())};
 	}
 
-	void refuse(const id::Supplication id) override
+	void refuse(const Supplication& ask) override
 	{
-		Supplication& row = mutable_supplication(id);
-		if (row.status() != SupplicationStatus::pending)
-			throw std::logic_error("supplication is not pending");
+		Supplication& row = mutable_pending(ask);
 		replace_status(row, SupplicationStatus::refused);
 	}
 
@@ -319,10 +313,11 @@ private:
 		return Deed{row.id, obedience, Word{row.body}, row.created_at, row.executed_at, row.cancelled_at};
 	}
 
-	Supplication& mutable_supplication(const id::Supplication id)
+	Supplication& mutable_pending(const Supplication& ask)
 	{
 		for (auto& row : supplications_) {
-			if (row.id() == id)
+			if (row.suppliant().id() == ask.suppliant().id() && row.testator().id() == ask.testator().id()
+				&& row.status() == SupplicationStatus::pending)
 				return row;
 		}
 		throw std::invalid_argument("unknown supplication");
@@ -330,19 +325,17 @@ private:
 
 	static void replace_status(Supplication& row, const SupplicationStatus status)
 	{
-		const id::Supplication id = row.id();
 		const Soul& suppliant = row.suppliant();
 		const Soul& testator = row.testator();
 		Timestamp created_at = row.created_at();
 		std::destroy_at(&row);
-		std::construct_at(&row, id, suppliant, testator, status, std::move(created_at));
+		std::construct_at(&row, suppliant, testator, status, std::move(created_at));
 	}
 
 	FakeTime time_;
 	std::uint64_t next_soul_id_ = 0;
 	std::uint64_t next_vessel_id_ = 0;
 	std::uint64_t next_place_id_ = 0;
-	std::uint64_t next_supplication_id_ = 0;
 	std::uint64_t next_deed_id_ = 0;
 	mutable std::uint64_t next_id_ = 0;
 	std::vector<std::pair<id::Soul, SoulName>> souls_;

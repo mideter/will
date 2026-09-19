@@ -14,10 +14,9 @@
 namespace will::domain {
 
 
-Supplication::Supplication(const id::Supplication id, const Soul& suppliant, const Soul& testator,
+Supplication::Supplication(const Soul& suppliant, const Soul& testator,
 						   const SupplicationStatus status, Timestamp created_at)
-	: id_(id)
-	, suppliant_(suppliant)
+	: suppliant_(suppliant)
 	, testator_(testator)
 	, status_(status)
 	, created_at_(std::move(created_at))
@@ -31,7 +30,6 @@ void Supplication::entrust(const Executor& executor) const
 {
 	if (executor.Soul::id() != suppliant_.id())
 		throw std::logic_error("only the suppliant may entrust this supplication");
-
 	if (status_ != SupplicationStatus::pending)
 		throw std::logic_error("supplication is not pending");
 
@@ -44,12 +42,11 @@ const Obedience& Supplication::consent(const Testator& testator) const
 	if (testator.Soul::id() != testator_.id())
 		throw std::logic_error("supplication is not addressed to this soul");
 
-	const Supplication& incoming = testator.supplication(id_);
+	const Supplication& incoming = testator.supplication(suppliant_);
 	if (incoming.status() != SupplicationStatus::pending)
 		throw std::logic_error("supplication is not pending");
 
-	const id::Supplication sid = incoming.id();
-	const Obedience created = testator.temporality().accept(sid);
+	const Obedience created = testator.temporality().accept(incoming);
 	const Testator& place_testator = created.testator();
 	const Executor& place_executor = created.executor();
 	const id::Obedience oid = created.obedience_id();
@@ -57,7 +54,7 @@ const Obedience& Supplication::consent(const Testator& testator) const
 	testator.keep(Shepherding{oid, place_testator, place_executor});
 	const Obedience& obedience =
 		place_executor.keep(Obedience{oid, place_testator, place_executor});
-	testator.drop_supplication(sid);
+	testator.drop_supplication(suppliant_);
 	return obedience;
 }
 
@@ -67,13 +64,12 @@ void Supplication::dismiss(const Testator& testator) const
 	if (testator.Soul::id() != testator_.id())
 		throw std::logic_error("supplication is not addressed to this soul");
 
-	const Supplication& incoming = testator.supplication(id_);
+	const Supplication& incoming = testator.supplication(suppliant_);
 	if (incoming.status() != SupplicationStatus::pending)
 		throw std::logic_error("supplication is not pending");
 
-	const id::Supplication sid = incoming.id();
-	testator.temporality().refuse(sid);
-	testator.drop_supplication(sid);
+	testator.temporality().refuse(incoming);
+	testator.drop_supplication(suppliant_);
 }
 
 

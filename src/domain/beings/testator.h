@@ -6,7 +6,6 @@
 #include "acts/supplication.h"
 #include "beings/executor.h"
 #include "beings/deed.h"
-#include "identity/supplication.h"
 #include "values/word.h"
 
 #include <functional>
@@ -38,8 +37,8 @@ public:
 	/// Owned Shepherding face by place id. Throws if unknown.
 	const Shepherding& shepherding(id::Obedience id) const;
 
-	/// Owned incoming pending Supplication by id. Throws if unknown.
-	const Supplication& supplication(id::Supplication id) const;
+	/// Owned incoming pending from this suppliant. Throws if unknown.
+	const Supplication& supplication(const Soul& suppliant) const;
 
 	/// Incoming pending supplications kept on this testator.
 	std::vector<std::reference_wrapper<const Supplication>> supplications() const;
@@ -56,8 +55,8 @@ private:
 	/// Receive an incoming pending (entrusted Supplication / awaken).
 	const Supplication& receive(Supplication supplication) const;
 
-	/// Drop an incoming after consent or dismiss.
-	void drop_supplication(id::Supplication id) const;
+	/// Drop an incoming after consent or dismiss (keyed by suppliant).
+	void drop_supplication(const Soul& suppliant) const;
 
 	mutable std::vector<std::unique_ptr<Shepherding>> shepherdings_;
 	mutable std::vector<std::unique_ptr<Supplication>> incoming_;

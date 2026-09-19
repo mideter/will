@@ -12,7 +12,6 @@
 #include "identity/obedience.h"
 #include "identity/place.h"
 #include "identity/soul.h"
-#include "identity/supplication.h"
 #include "identity/vessel.h"
 #include "ports/eternity.h"
 #include "values/abode_name.h"
@@ -64,10 +63,11 @@ public:
 	virtual std::vector<Supplication> pending_supplications(id::Soul testator) const = 0;
 
 	/// Accept a pending supplication; keeps the shared Obedience/Shepherding place in time.
-	virtual Obedience accept(id::Supplication id) = 0;
+	/// Keyed by the living pair (suppliant, testator).
+	virtual Obedience accept(const Supplication& ask) = 0;
 
-	/// Refuse a pending supplication.
-	virtual void refuse(id::Supplication id) = 0;
+	/// Refuse a pending supplication (same living pair).
+	virtual void refuse(const Supplication& ask) = 0;
 
 	/// Shared place by id (Obedience face). Throws if unknown.
 	virtual Obedience obedience(id::Obedience id) const = 0;

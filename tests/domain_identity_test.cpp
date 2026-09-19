@@ -6,7 +6,6 @@
 #include "identity/obedience.h"
 #include "identity/place.h"
 #include "identity/soul.h"
-#include "identity/supplication.h"
 #include "identity/deed.h"
 #include "identity/vessel.h"
 
@@ -51,13 +50,6 @@ TEST_CASE("id::Obedience requires positive value")
 {
 	CHECK(id::Obedience{9}.value() == 9);
 	CHECK_THROWS_AS(id::Obedience{0}, std::invalid_argument);
-}
-
-
-TEST_CASE("id::Supplication requires positive value")
-{
-	CHECK(id::Supplication{3}.value() == 3);
-	CHECK_THROWS_AS(id::Supplication{0}, std::invalid_argument);
 }
 
 

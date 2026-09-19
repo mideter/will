@@ -54,14 +54,13 @@ domain::SupplicationStatus status_from_text(const char* text)
 
 domain::Supplication read_supplication(sqlite3_stmt* stmt)
 {
-	const domain::id::Soul suppliant_id{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 1))};
-	const domain::id::Soul testator_id{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 2))};
+	const domain::id::Soul suppliant_id{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 0))};
+	const domain::id::Soul testator_id{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 1))};
 	return domain::Supplication{
-		domain::id::Supplication{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 0))},
 		domain::Soul::of(suppliant_id),
 		domain::Soul::of(testator_id),
-		status_from_text(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3))),
-		domain::Timestamp{sqlite3_column_int64(stmt, 4)},
+		status_from_text(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2))),
+		domain::Timestamp{sqlite3_column_int64(stmt, 3)},
 	};
 }
 
@@ -430,13 +429,7 @@ domain::Supplication SqliteTemporality::supplicate(const domain::Soul& suppliant
 	check_sqlite(sqlite3_step(stmt), db, "insert supplication step");
 	sqlite3_finalize(stmt);
 
-	return domain::Supplication{
-		domain::id::Supplication{static_cast<std::uint64_t>(sqlite3_last_insert_rowid(db))},
-		suppliant,
-		testator,
-		domain::SupplicationStatus::pending,
-		ts,
-	};
+	return domain::Supplication{suppliant, testator, domain::SupplicationStatus::pending, ts};
 }
 
 
@@ -447,7 +440,7 @@ std::vector<domain::Supplication> SqliteTemporality::pending_supplications(
 	sqlite3* const db = database_.db();
 	sqlite3_stmt* stmt = nullptr;
 	check_sqlite(sqlite3_prepare_v2(db,
-									"SELECT id, suppliant_soul_id, testator_soul_id, status, created_at_ns "
+									"SELECT suppliant_soul_id, testator_soul_id, status, created_at_ns "
 									"FROM supplications "
 									"WHERE testator_soul_id = ? AND status = 'pending' ORDER BY id;",
 									-1, &stmt, nullptr),
@@ -467,7 +460,7 @@ std::vector<domain::Supplication> SqliteTemporality::pending_supplications(
 }
 
 
-domain::Obedience SqliteTemporality::accept(const domain::id::Supplication id)
+domain::Obedience SqliteTemporality::accept(const domain::Supplication& ask)
 {
 	const domain::Timestamp ts = time_.instant();
 	std::lock_guard lock(database_.mutex());
@@ -476,11 +469,16 @@ domain::Obedience SqliteTemporality::accept(const domain::id::Supplication id)
 
 	sqlite3_stmt* load = nullptr;
 	check_sqlite(sqlite3_prepare_v2(db,
-									"SELECT id, suppliant_soul_id, testator_soul_id, status, created_at_ns "
-									"FROM supplications WHERE id = ?;",
+									"SELECT suppliant_soul_id, testator_soul_id, status, created_at_ns "
+									"FROM supplications "
+									"WHERE suppliant_soul_id = ? AND testator_soul_id = ? "
+									"AND status = 'pending' LIMIT 1;",
 									-1, &load, nullptr),
-				 db, "prepare load supplication");
-	check_sqlite(sqlite3_bind_int64(load, 1, static_cast<sqlite3_int64>(id.value())), db, "bind id");
+				 db, "prepare load pending supplication");
+	check_sqlite(sqlite3_bind_int64(load, 1, static_cast<sqlite3_int64>(ask.suppliant().id().value())),
+				 db, "bind suppliant");
+	check_sqlite(sqlite3_bind_int64(load, 2, static_cast<sqlite3_int64>(ask.testator().id().value())),
+				 db, "bind testator");
 	const int load_rc = sqlite3_step(load);
 	if (load_rc != SQLITE_ROW) {
 		sqlite3_finalize(load);
@@ -489,19 +487,23 @@ domain::Obedience SqliteTemporality::accept(const domain::id::Supplication id)
 	const auto row = read_supplication(load);
 	sqlite3_finalize(load);
 
-	if (row.status() != domain::SupplicationStatus::pending)
-		throw std::logic_error("supplication is not pending");
 	if (pair_exists(db, row.testator().id(), row.suppliant().id()))
 		throw std::logic_error("obedience already exists for this pair");
 
 	sqlite3_stmt* upd = nullptr;
-	check_sqlite(sqlite3_prepare_v2(db, "UPDATE supplications SET status = ? WHERE id = ?;", -1, &upd,
-									nullptr),
+	check_sqlite(sqlite3_prepare_v2(db,
+									"UPDATE supplications SET status = ? "
+									"WHERE suppliant_soul_id = ? AND testator_soul_id = ? "
+									"AND status = 'pending';",
+									-1, &upd, nullptr),
 				 db, "prepare accept status");
 	check_sqlite(sqlite3_bind_text(upd, 1, status_text(domain::SupplicationStatus::accepted), -1,
 								   SQLITE_STATIC),
 				 db, "bind status");
-	check_sqlite(sqlite3_bind_int64(upd, 2, static_cast<sqlite3_int64>(id.value())), db, "bind id");
+	check_sqlite(sqlite3_bind_int64(upd, 2, static_cast<sqlite3_int64>(row.suppliant().id().value())),
+				 db, "bind suppliant");
+	check_sqlite(sqlite3_bind_int64(upd, 3, static_cast<sqlite3_int64>(row.testator().id().value())),
+				 db, "bind testator");
 	check_sqlite(sqlite3_step(upd), db, "accept status step");
 	sqlite3_finalize(upd);
 
@@ -528,36 +530,30 @@ domain::Obedience SqliteTemporality::accept(const domain::id::Supplication id)
 }
 
 
-void SqliteTemporality::refuse(const domain::id::Supplication id)
+void SqliteTemporality::refuse(const domain::Supplication& ask)
 {
 	std::lock_guard lock(database_.mutex());
 	sqlite3* const db = database_.db();
 
-	sqlite3_stmt* load = nullptr;
-	check_sqlite(sqlite3_prepare_v2(db, "SELECT status FROM supplications WHERE id = ?;", -1, &load,
-									nullptr),
-				 db, "prepare load status");
-	check_sqlite(sqlite3_bind_int64(load, 1, static_cast<sqlite3_int64>(id.value())), db, "bind id");
-	const int load_rc = sqlite3_step(load);
-	if (load_rc != SQLITE_ROW) {
-		sqlite3_finalize(load);
-		throw std::invalid_argument("unknown supplication");
-	}
-	const auto status = status_from_text(reinterpret_cast<const char*>(sqlite3_column_text(load, 0)));
-	sqlite3_finalize(load);
-	if (status != domain::SupplicationStatus::pending)
-		throw std::logic_error("supplication is not pending");
-
 	sqlite3_stmt* upd = nullptr;
-	check_sqlite(sqlite3_prepare_v2(db, "UPDATE supplications SET status = ? WHERE id = ?;", -1, &upd,
-									nullptr),
+	check_sqlite(sqlite3_prepare_v2(db,
+									"UPDATE supplications SET status = ? "
+									"WHERE suppliant_soul_id = ? AND testator_soul_id = ? "
+									"AND status = 'pending';",
+									-1, &upd, nullptr),
 				 db, "prepare refuse");
 	check_sqlite(sqlite3_bind_text(upd, 1, status_text(domain::SupplicationStatus::refused), -1,
 								   SQLITE_STATIC),
 				 db, "bind status");
-	check_sqlite(sqlite3_bind_int64(upd, 2, static_cast<sqlite3_int64>(id.value())), db, "bind id");
+	check_sqlite(sqlite3_bind_int64(upd, 2, static_cast<sqlite3_int64>(ask.suppliant().id().value())),
+				 db, "bind suppliant");
+	check_sqlite(sqlite3_bind_int64(upd, 3, static_cast<sqlite3_int64>(ask.testator().id().value())),
+				 db, "bind testator");
 	check_sqlite(sqlite3_step(upd), db, "refuse step");
+	const int changed = sqlite3_changes(db);
 	sqlite3_finalize(upd);
+	if (changed != 1)
+		throw std::invalid_argument("unknown supplication");
 }
 
 
