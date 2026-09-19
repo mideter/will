@@ -4,7 +4,7 @@
 #include "acts/obedience.h"
 #include "acts/supplication.h"
 #include "beings/executor.h"
-#include "beings/testament.h"
+#include "beings/deed.h"
 #include "values/word.h"
 
 
@@ -26,7 +26,7 @@ public:
 	void refuse(const Supplication& supplication) const;
 
 	/// Bequeath a word in a living obedience where this soul is testator.
-	Testament will(const Obedience& obedience, const Word& word) const;
+	Deed will(const Obedience& obedience, const Word& word) const;
 
 private:
 	friend class World;

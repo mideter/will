@@ -1,4 +1,4 @@
-#include "testament.h"
+#include "deed.h"
 
 #include "beings/soul.h"
 
@@ -9,9 +9,8 @@
 namespace will::domain {
 
 
-Testament::Testament(const id::Testament id, const Obedience& obedience, Word word,
-					 const Timestamp created_at, std::optional<Timestamp> executed_at,
-					 std::optional<Timestamp> cancelled_at)
+Deed::Deed(const id::Deed id, const Obedience& obedience, Word word, const Timestamp created_at,
+		   std::optional<Timestamp> executed_at, std::optional<Timestamp> cancelled_at)
 	: Letter(id::Letter{id.value()}, obedience.id(), obedience.testator().id(), std::move(word),
 			 created_at)
 	, obedience_id_(obedience.obedience_id())
@@ -21,7 +20,7 @@ Testament::Testament(const id::Testament id, const Obedience& obedience, Word wo
 	, cancelled_at_(std::move(cancelled_at))
 {
 	if (executed_at_ && cancelled_at_)
-		throw std::invalid_argument("testament cannot be both executed and cancelled");
+		throw std::invalid_argument("deed cannot be both executed and cancelled");
 }
 
 

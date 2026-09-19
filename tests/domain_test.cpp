@@ -6,10 +6,10 @@
 #include "acts/creation.h"
 #include "beings/executor.h"
 #include "acts/obedience.h"
-#include "beings/testament.h"
+#include "beings/deed.h"
 #include "beings/testator.h"
 #include "beings/witness.h"
-#include "identity/testament.h"
+#include "identity/deed.h"
 #include "values/abode_name.h"
 #include "values/device_token.h"
 #include "values/timestamp.h"
@@ -249,7 +249,7 @@ TEST_CASE("will and execute within living obedience")
 	const auto& testator = static_cast<const Testator&>(b);
 
 	Obedience obedience = testator.accept(executor.supplicate(b));
-	const Testament bequeathed = testator.will(obedience, Word{"fast"});
+	const Deed bequeathed = testator.will(obedience, Word{"fast"});
 	CHECK(bequeathed.open());
 	CHECK(bequeathed.body() == "fast");
 	CHECK(&bequeathed.testator() == &static_cast<const Soul&>(b));
@@ -257,14 +257,14 @@ TEST_CASE("will and execute within living obedience")
 
 	CHECK_THROWS_AS(static_cast<const Testator&>(a).will(obedience, Word{"no"}), std::logic_error);
 
-	const Testament done = executor.execute(bequeathed);
+	const Deed done = executor.execute(bequeathed);
 	CHECK(done.executed());
 	CHECK_FALSE(done.open());
 	CHECK_THROWS_AS(executor.execute(done), std::logic_error);
 }
 
 
-TEST_CASE("secede cancels open testament")
+TEST_CASE("secede cancels open deed")
 {
 	InMemoryTemporality temporality;
 	Creation creation(temporality);
@@ -276,10 +276,10 @@ TEST_CASE("secede cancels open testament")
 	const auto& testator = static_cast<const Testator&>(b);
 
 	Obedience obedience = testator.accept(executor.supplicate(b));
-	const Testament open = testator.will(obedience, Word{"later"});
+	const Deed open = testator.will(obedience, Word{"later"});
 	executor.secede(obedience);
 
-	CHECK(temporality.testament(id::Testament{open.id().value()}).cancelled());
+	CHECK(temporality.deed(id::Deed{open.id().value()}).cancelled());
 	CHECK_THROWS_AS(testator.will(obedience, Word{"no"}), std::logic_error);
 	CHECK_THROWS_AS(executor.execute(open), std::logic_error);
 }

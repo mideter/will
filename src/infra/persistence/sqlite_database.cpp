@@ -112,6 +112,7 @@ void drop_legacy_tables(sqlite3* db)
 {
 	static constexpr const char* DropLegacyTablesSql = R"sql(
 DROP TABLE IF EXISTS letters;
+DROP TABLE IF EXISTS deeds;
 DROP TABLE IF EXISTS testaments;
 DROP TABLE IF EXISTS obediences;
 DROP TABLE IF EXISTS supplications;
@@ -219,6 +220,14 @@ void migrate_vessels_soul_id_to_men(sqlite3* db)
 }
 
 
+void migrate_testaments_to_deeds(sqlite3* db)
+{
+	if (table_exists(db, "testaments") && !table_exists(db, "deeds"))
+		check_sqlite(sqlite3_exec(db, "ALTER TABLE testaments RENAME TO deeds;", nullptr, nullptr, nullptr),
+					 db, "rename testaments to deeds");
+}
+
+
 void migrate_abode_men_to_abode_souls(sqlite3* db)
 {
 	if (!table_exists(db, "abode_men"))
@@ -298,6 +307,7 @@ void SqliteDatabase::init_schema()
 	// Rename legacy gods* identifiers before CREATE IF NOT EXISTS, so we do not
 	// create an empty souls table alongside an existing gods table.
 	migrate_gods_to_souls(db_);
+	migrate_testaments_to_deeds(db_);
 
 	static constexpr const char* InitSchemaSql = R"sql(
 CREATE TABLE IF NOT EXISTS souls (
@@ -351,7 +361,7 @@ CREATE TABLE IF NOT EXISTS obediences (
   seceded_at_ns INTEGER
 );
 
-CREATE TABLE IF NOT EXISTS testaments (
+CREATE TABLE IF NOT EXISTS deeds (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   obedience_id INTEGER NOT NULL REFERENCES obediences(id),
   testator_soul_id INTEGER NOT NULL REFERENCES souls(id),

@@ -6,11 +6,11 @@
 #include "acts/creation.h"
 #include "acts/obedience.h"
 #include "beings/letter.h"
-#include "beings/testament.h"
+#include "beings/deed.h"
 #include "identity/letter.h"
 #include "identity/obedience.h"
 #include "identity/place.h"
-#include "identity/testament.h"
+#include "identity/deed.h"
 #include "values/word.h"
 
 #include <stdexcept>
@@ -57,14 +57,14 @@ TEST_CASE("Letter accepts max body length")
 }
 
 
-TEST_CASE("id::Testament requires positive value")
+TEST_CASE("id::Deed requires positive value")
 {
-	CHECK(id::Testament{4}.value() == 4);
-	CHECK_THROWS_AS(id::Testament{0}, std::invalid_argument);
+	CHECK(id::Deed{4}.value() == 4);
+	CHECK_THROWS_AS(id::Deed{0}, std::invalid_argument);
 }
 
 
-TEST_CASE("Testament is a letter in an obedience place")
+TEST_CASE("Deed is a letter in an obedience place")
 {
 	InMemoryTemporality temporality;
 	Creation creation(temporality);
@@ -72,23 +72,22 @@ TEST_CASE("Testament is a letter in an obedience place")
 
 	const Man& testator = world.welcome(DeviceToken::generate());
 	const Man& executor = world.welcome(DeviceToken::generate());
-	const id::Testament tid{3};
+	const id::Deed did{3};
 	const id::Obedience oid{9};
 	const Obedience obedience{oid, testator, executor};
 
-	const Testament testament{tid, obedience, Word{"do this"}, Timestamp{50}};
-	CHECK(testament.id() == id::Letter{tid.value()});
-	CHECK(testament.obedience_id() == oid);
-	CHECK(testament.place_id() == id::Place{oid.value()});
-	CHECK(&testament.testator() == static_cast<const Soul*>(&testator));
-	CHECK(testament.author_id() == testator.Soul::id());
-	CHECK(&testament.executor() == static_cast<const Soul*>(&executor));
-	CHECK(testament.body() == "do this");
-	CHECK(testament.open());
-	CHECK_FALSE(testament.executed());
-	CHECK_FALSE(testament.cancelled());
+	const Deed deed{did, obedience, Word{"do this"}, Timestamp{50}};
+	CHECK(deed.id() == id::Letter{did.value()});
+	CHECK(deed.obedience_id() == oid);
+	CHECK(deed.place_id() == id::Place{oid.value()});
+	CHECK(&deed.testator() == static_cast<const Soul*>(&testator));
+	CHECK(deed.author_id() == testator.Soul::id());
+	CHECK(&deed.executor() == static_cast<const Soul*>(&executor));
+	CHECK(deed.body() == "do this");
+	CHECK(deed.open());
+	CHECK_FALSE(deed.executed());
+	CHECK_FALSE(deed.cancelled());
 
-	CHECK_THROWS_AS((Testament{id::Testament{6}, obedience, Word{"x"}, Timestamp{1}, Timestamp{2},
-							   Timestamp{3}}),
+	CHECK_THROWS_AS((Deed{id::Deed{6}, obedience, Word{"x"}, Timestamp{1}, Timestamp{2}, Timestamp{3}}),
 					std::invalid_argument);
 }

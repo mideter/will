@@ -6,14 +6,14 @@
 #include "beings/letter.h"
 #include "beings/man.h"
 #include "acts/supplication.h"
-#include "beings/testament.h"
+#include "beings/deed.h"
 #include "beings/vessel.h"
 #include "beings/world.h"
 #include "identity/abode.h"
+#include "identity/deed.h"
 #include "identity/obedience.h"
 #include "identity/soul.h"
 #include "identity/supplication.h"
-#include "identity/testament.h"
 #include "identity/vessel.h"
 #include "ports/temporality.h"
 #include "ports/time.h"
@@ -209,64 +209,64 @@ public:
 				throw std::logic_error("obedience is not living");
 			row.living = false;
 			const Timestamp now = time_.instant();
-			for (auto& testament : testament_rows_) {
-				if (testament.obedience == id && !testament.executed_at && !testament.cancelled_at)
-					testament.cancelled_at = now;
+			for (auto& deed : deed_rows_) {
+				if (deed.obedience == id && !deed.executed_at && !deed.cancelled_at)
+					deed.cancelled_at = now;
 			}
 			return;
 		}
 		throw std::invalid_argument("unknown obedience");
 	}
 
-	Testament bequeath(const Obedience& obedience, const Soul& testator, const Word& word) override
+	Deed bequeath(const Obedience& obedience, const Soul& testator, const Word& word) override
 	{
 		if (!living_obedience(obedience.obedience_id()))
 			throw std::logic_error("obedience is not living");
 		if (obedience.testator().id() != testator.id())
 			throw std::logic_error("only the testator may bequeath in this obedience");
 
-		TestamentRow row{id::Testament{++next_testament_id_},
-						 obedience.obedience_id(),
-						 obedience.testator().id(),
-						 obedience.executor().id(),
-						 word.body(),
-						 time_.instant(),
-						 std::nullopt,
-						 std::nullopt};
-		testament_rows_.push_back(row);
-		return Testament{row.id, this->obedience(obedience.obedience_id()), word, row.created_at};
+		DeedRow row{id::Deed{++next_deed_id_},
+					obedience.obedience_id(),
+					obedience.testator().id(),
+					obedience.executor().id(),
+					word.body(),
+					time_.instant(),
+					std::nullopt,
+					std::nullopt};
+		deed_rows_.push_back(row);
+		return Deed{row.id, this->obedience(obedience.obedience_id()), word, row.created_at};
 	}
 
-	Testament execute(const Testament& testament) override
+	Deed execute(const Deed& deed) override
 	{
-		for (auto& row : testament_rows_) {
-			if (row.id.value() != testament.id().value())
+		for (auto& row : deed_rows_) {
+			if (row.id.value() != deed.id().value())
 				continue;
 			if (row.executed_at || row.cancelled_at)
-				throw std::logic_error("testament is not open");
+				throw std::logic_error("deed is not open");
 			if (!living_obedience(row.obedience))
 				throw std::logic_error("obedience is not living");
 			row.executed_at = time_.instant();
-			return make_testament(row);
+			return make_deed(row);
 		}
-		throw std::invalid_argument("unknown testament");
+		throw std::invalid_argument("unknown deed");
 	}
 
-	Testament testament(const id::Testament id) const override
+	Deed deed(const id::Deed id) const override
 	{
-		for (const auto& row : testament_rows_) {
+		for (const auto& row : deed_rows_) {
 			if (row.id == id)
-				return make_testament(row);
+				return make_deed(row);
 		}
-		throw std::invalid_argument("unknown testament");
+		throw std::invalid_argument("unknown deed");
 	}
 
-	std::vector<Testament> testaments(const id::Obedience obedience) const override
+	std::vector<Deed> deeds(const id::Obedience obedience) const override
 	{
-		std::vector<Testament> out;
-		for (const auto& row : testament_rows_) {
+		std::vector<Deed> out;
+		for (const auto& row : deed_rows_) {
 			if (row.obedience == obedience)
-				out.push_back(make_testament(row));
+				out.push_back(make_deed(row));
 		}
 		return out;
 	}
@@ -281,8 +281,8 @@ private:
 		bool living;
 	};
 
-	struct TestamentRow {
-		id::Testament id;
+	struct DeedRow {
+		id::Deed id;
 		id::Obedience obedience;
 		id::Soul testator;
 		id::Soul executor;
@@ -318,11 +318,10 @@ private:
 		return false;
 	}
 
-	Testament make_testament(const TestamentRow& row) const
+	Deed make_deed(const DeedRow& row) const
 	{
 		const Obedience obedience = this->obedience(row.obedience);
-		return Testament{row.id, obedience, Word{row.body}, row.created_at, row.executed_at,
-						 row.cancelled_at};
+		return Deed{row.id, obedience, Word{row.body}, row.created_at, row.executed_at, row.cancelled_at};
 	}
 
 	Supplication& mutable_supplication(const id::Supplication id)
@@ -349,7 +348,7 @@ private:
 	std::uint64_t next_vessel_id_ = 0;
 	std::uint64_t next_place_id_ = 0;
 	std::uint64_t next_supplication_id_ = 0;
-	std::uint64_t next_testament_id_ = 0;
+	std::uint64_t next_deed_id_ = 0;
 	mutable std::uint64_t next_id_ = 0;
 	std::vector<std::pair<id::Soul, SoulName>> souls_;
 	std::vector<Embodiment> embodiments_;
@@ -357,7 +356,7 @@ private:
 	mutable std::vector<Letter> letters_;
 	std::vector<Supplication> supplications_;
 	std::vector<ObedienceRow> obediences_;
-	std::vector<TestamentRow> testament_rows_;
+	std::vector<DeedRow> deed_rows_;
 };
 
 

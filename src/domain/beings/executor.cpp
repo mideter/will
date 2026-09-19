@@ -24,19 +24,19 @@ Supplication Executor::supplicate(const Soul& testator) const
 }
 
 
-Testament Executor::execute(const Testament& testament) const
+Deed Executor::execute(const Deed& deed) const
 {
-	if (testament.executor().id() != Soul::id())
-		throw std::logic_error("not the executor of this testament");
+	if (deed.executor().id() != Soul::id())
+		throw std::logic_error("not the executor of this deed");
 
-	if (!testament.open())
-		throw std::logic_error("testament is not open");
+	if (!deed.open())
+		throw std::logic_error("deed is not open");
 
-	const Obedience obedience = temporality().obedience(testament.obedience_id());
+	const Obedience obedience = temporality().obedience(deed.obedience_id());
 	if (!obedience.living())
 		throw std::logic_error("obedience is not living");
 
-	return temporality().execute(testament);
+	return temporality().execute(deed);
 }
 
 

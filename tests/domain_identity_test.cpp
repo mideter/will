@@ -7,7 +7,7 @@
 #include "identity/place.h"
 #include "identity/soul.h"
 #include "identity/supplication.h"
-#include "identity/testament.h"
+#include "identity/deed.h"
 #include "identity/vessel.h"
 
 #include <stdexcept>
@@ -61,10 +61,10 @@ TEST_CASE("id::Supplication requires positive value")
 }
 
 
-TEST_CASE("id::Testament requires positive value")
+TEST_CASE("id::Deed requires positive value")
 {
-	CHECK(id::Testament{4}.value() == 4);
-	CHECK_THROWS_AS(id::Testament{0}, std::invalid_argument);
+	CHECK(id::Deed{4}.value() == 4);
+	CHECK_THROWS_AS(id::Deed{0}, std::invalid_argument);
 }
 
 

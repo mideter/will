@@ -621,21 +621,21 @@ void SqliteTemporality::secede(const domain::id::Obedience id)
 
 	sqlite3_stmt* cancel = nullptr;
 	check_sqlite(sqlite3_prepare_v2(db,
-									"UPDATE testaments SET cancelled_at_ns = ? "
+									"UPDATE deeds SET cancelled_at_ns = ? "
 									"WHERE obedience_id = ? AND executed_at_ns IS NULL "
 									"AND cancelled_at_ns IS NULL;",
 									-1, &cancel, nullptr),
-				 db, "prepare cancel testaments");
+				 db, "prepare cancel deeds");
 	check_sqlite(sqlite3_bind_int64(cancel, 1, ts.value()), db, "bind cancelled_at");
 	check_sqlite(sqlite3_bind_int64(cancel, 2, static_cast<sqlite3_int64>(id.value())), db,
 				 "bind obedience_id");
-	check_sqlite(sqlite3_step(cancel), db, "cancel testaments step");
+	check_sqlite(sqlite3_step(cancel), db, "cancel deeds step");
 	sqlite3_finalize(cancel);
 }
 
 
-domain::Testament SqliteTemporality::bequeath(const domain::Obedience& obedience,
-											 const domain::Soul& testator, const domain::Word& word)
+domain::Deed SqliteTemporality::bequeath(const domain::Obedience& obedience,
+										 const domain::Soul& testator, const domain::Word& word)
 {
 	if (obedience.testator().id() != testator.id())
 		throw std::logic_error("only the testator may bequeath in this obedience");
@@ -662,12 +662,12 @@ domain::Testament SqliteTemporality::bequeath(const domain::Obedience& obedience
 
 	sqlite3_stmt* stmt = nullptr;
 	check_sqlite(sqlite3_prepare_v2(db,
-									"INSERT INTO testaments "
+									"INSERT INTO deeds "
 									"(obedience_id, testator_soul_id, executor_soul_id, body, "
 									"created_at_ns, executed_at_ns, cancelled_at_ns) "
 									"VALUES (?, ?, ?, ?, ?, NULL, NULL);",
 									-1, &stmt, nullptr),
-				 db, "prepare insert testament");
+				 db, "prepare insert deed");
 	check_sqlite(sqlite3_bind_int64(stmt, 1, static_cast<sqlite3_int64>(obedience.obedience_id().value())),
 				 db, "bind obedience_id");
 	check_sqlite(sqlite3_bind_int64(stmt, 2, static_cast<sqlite3_int64>(obedience.testator().id().value())),
@@ -678,21 +678,21 @@ domain::Testament SqliteTemporality::bequeath(const domain::Obedience& obedience
 								   SQLITE_TRANSIENT),
 				 db, "bind body");
 	check_sqlite(sqlite3_bind_int64(stmt, 5, ts.value()), db, "bind created_at");
-	check_sqlite(sqlite3_step(stmt), db, "insert testament step");
+	check_sqlite(sqlite3_step(stmt), db, "insert deed step");
 	sqlite3_finalize(stmt);
 
-	const domain::id::Testament tid{static_cast<std::uint64_t>(sqlite3_last_insert_rowid(db))};
-	return domain::Testament{tid, obedience, word, ts};
+	const domain::id::Deed did{static_cast<std::uint64_t>(sqlite3_last_insert_rowid(db))};
+	return domain::Deed{did, obedience, word, ts};
 }
 
 
-domain::Testament SqliteTemporality::execute(const domain::Testament& testament)
+domain::Deed SqliteTemporality::execute(const domain::Deed& deed)
 {
 	const domain::Timestamp ts = time_.instant();
 	domain::id::Obedience oid{1};
-	domain::Word word{std::string{testament.body()}};
-	domain::Timestamp created = testament.created_at();
-	domain::id::Testament tid{testament.id().value()};
+	domain::Word word{std::string{deed.body()}};
+	domain::Timestamp created = deed.created_at();
+	domain::id::Deed did{deed.id().value()};
 
 	{
 		std::lock_guard lock(database_.mutex());
@@ -701,22 +701,22 @@ domain::Testament SqliteTemporality::execute(const domain::Testament& testament)
 		sqlite3_stmt* load = nullptr;
 		check_sqlite(sqlite3_prepare_v2(db,
 										"SELECT obedience_id, executed_at_ns, cancelled_at_ns "
-										"FROM testaments WHERE id = ?;",
+										"FROM deeds WHERE id = ?;",
 										-1, &load, nullptr),
-					 db, "prepare load testament");
-		check_sqlite(sqlite3_bind_int64(load, 1, static_cast<sqlite3_int64>(testament.id().value())), db,
+					 db, "prepare load deed");
+		check_sqlite(sqlite3_bind_int64(load, 1, static_cast<sqlite3_int64>(deed.id().value())), db,
 					 "bind id");
 		const int load_rc = sqlite3_step(load);
 		if (load_rc != SQLITE_ROW) {
 			sqlite3_finalize(load);
-			throw std::invalid_argument("unknown testament");
+			throw std::invalid_argument("unknown deed");
 		}
 		oid = domain::id::Obedience{static_cast<std::uint64_t>(sqlite3_column_int64(load, 0))};
 		const bool open =
 			sqlite3_column_type(load, 1) == SQLITE_NULL && sqlite3_column_type(load, 2) == SQLITE_NULL;
 		sqlite3_finalize(load);
 		if (!open)
-			throw std::logic_error("testament is not open");
+			throw std::logic_error("deed is not open");
 
 		sqlite3_stmt* living = nullptr;
 		check_sqlite(sqlite3_prepare_v2(db, "SELECT seceded_at_ns FROM obediences WHERE id = ?;", -1,
@@ -734,28 +734,28 @@ domain::Testament SqliteTemporality::execute(const domain::Testament& testament)
 			throw std::logic_error("obedience is not living");
 
 		sqlite3_stmt* upd = nullptr;
-		check_sqlite(sqlite3_prepare_v2(db, "UPDATE testaments SET executed_at_ns = ? WHERE id = ?;", -1, &upd,
+		check_sqlite(sqlite3_prepare_v2(db, "UPDATE deeds SET executed_at_ns = ? WHERE id = ?;", -1, &upd,
 										nullptr),
 					 db, "prepare execute");
 		check_sqlite(sqlite3_bind_int64(upd, 1, ts.value()), db, "bind executed_at");
-		check_sqlite(sqlite3_bind_int64(upd, 2, static_cast<sqlite3_int64>(testament.id().value())), db,
+		check_sqlite(sqlite3_bind_int64(upd, 2, static_cast<sqlite3_int64>(deed.id().value())), db,
 					 "bind id");
 		check_sqlite(sqlite3_step(upd), db, "execute step");
 		sqlite3_finalize(upd);
 	}
 
-	return domain::Testament{tid, obedience(oid), word, created, ts, std::nullopt};
+	return domain::Deed{did, obedience(oid), word, created, ts, std::nullopt};
 }
 
 
-domain::Testament SqliteTemporality::testament(const domain::id::Testament id) const
+domain::Deed SqliteTemporality::deed(const domain::id::Deed id) const
 {
 	domain::id::Obedience oid{1};
 	std::string body_str;
 	domain::Timestamp created{0};
 	std::optional<domain::Timestamp> executed;
 	std::optional<domain::Timestamp> cancelled;
-	domain::id::Testament tid{1};
+	domain::id::Deed did{1};
 
 	{
 		std::lock_guard lock(database_.mutex());
@@ -763,17 +763,17 @@ domain::Testament SqliteTemporality::testament(const domain::id::Testament id) c
 		sqlite3_stmt* stmt = nullptr;
 		check_sqlite(sqlite3_prepare_v2(db,
 										"SELECT id, obedience_id, body, created_at_ns, executed_at_ns, "
-										"cancelled_at_ns FROM testaments WHERE id = ?;",
+										"cancelled_at_ns FROM deeds WHERE id = ?;",
 										-1, &stmt, nullptr),
-					 db, "prepare testament");
+					 db, "prepare deed");
 		check_sqlite(sqlite3_bind_int64(stmt, 1, static_cast<sqlite3_int64>(id.value())), db, "bind id");
 		const int rc = sqlite3_step(stmt);
 		if (rc != SQLITE_ROW) {
 			sqlite3_finalize(stmt);
-			throw std::invalid_argument("unknown testament");
+			throw std::invalid_argument("unknown deed");
 		}
 
-		tid = domain::id::Testament{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 0))};
+		did = domain::id::Deed{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 0))};
 		oid = domain::id::Obedience{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 1))};
 		const char* body = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2));
 		created = domain::Timestamp{sqlite3_column_int64(stmt, 3)};
@@ -785,37 +785,37 @@ domain::Testament SqliteTemporality::testament(const domain::id::Testament id) c
 		sqlite3_finalize(stmt);
 	}
 
-	return domain::Testament{tid, obedience(oid), domain::Word{body_str}, created, executed, cancelled};
+	return domain::Deed{did, obedience(oid), domain::Word{body_str}, created, executed, cancelled};
 }
 
 
-std::vector<domain::Testament> SqliteTemporality::testaments(const domain::id::Obedience obedience) const
+std::vector<domain::Deed> SqliteTemporality::deeds(const domain::id::Obedience obedience) const
 {
-	std::vector<domain::id::Testament> ids;
+	std::vector<domain::id::Deed> ids;
 	{
 		std::lock_guard lock(database_.mutex());
 		sqlite3* const db = database_.db();
 		sqlite3_stmt* stmt = nullptr;
 		check_sqlite(sqlite3_prepare_v2(db,
-										"SELECT id FROM testaments WHERE obedience_id = ? ORDER BY id;", -1,
+										"SELECT id FROM deeds WHERE obedience_id = ? ORDER BY id;", -1,
 										&stmt, nullptr),
-					 db, "prepare testaments");
+					 db, "prepare deeds");
 		check_sqlite(sqlite3_bind_int64(stmt, 1, static_cast<sqlite3_int64>(obedience.value())), db,
 					 "bind oid");
 
 		int rc = sqlite3_step(stmt);
 		while (rc == SQLITE_ROW) {
-			ids.push_back(domain::id::Testament{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 0))});
+			ids.push_back(domain::id::Deed{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 0))});
 			rc = sqlite3_step(stmt);
 		}
-		check_sqlite(rc, db, "testaments step");
+		check_sqlite(rc, db, "deeds step");
 		sqlite3_finalize(stmt);
 	}
 
-	std::vector<domain::Testament> out;
+	std::vector<domain::Deed> out;
 	out.reserve(ids.size());
-	for (const domain::id::Testament id : ids)
-		out.push_back(this->testament(id));
+	for (const domain::id::Deed id : ids)
+		out.push_back(this->deed(id));
 	return out;
 }
 

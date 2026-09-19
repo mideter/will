@@ -2,7 +2,7 @@
 
 #include "acts/obedience.h"
 #include "beings/letter.h"
-#include "identity/testament.h"
+#include "identity/deed.h"
 #include "values/timestamp.h"
 #include "values/word.h"
 
@@ -12,13 +12,14 @@
 namespace will::domain {
 
 
-/// Testament (Завещание) — Letter fixed in an Obedience place; will as bequest.
-/// Sides come from the living Obedience; open unless restored with timestamps.
-class Testament : public Letter {
+/// Deed (Дело) — минимальная единица волеизъявления Завещателя Исполнителю;
+/// хранится в Послушании. Letter fixed in that place; sides from the living pair;
+/// open unless restored with timestamps.
+class Deed : public Letter {
 public:
-	Testament(id::Testament id, const Obedience& obedience, Word word, Timestamp created_at,
-			  std::optional<Timestamp> executed_at = std::nullopt,
-			  std::optional<Timestamp> cancelled_at = std::nullopt);
+	Deed(id::Deed id, const Obedience& obedience, Word word, Timestamp created_at,
+		 std::optional<Timestamp> executed_at = std::nullopt,
+		 std::optional<Timestamp> cancelled_at = std::nullopt);
 
 	id::Obedience obedience_id() const noexcept { return obedience_id_; }
 	const Soul& testator() const noexcept { return testator_; }

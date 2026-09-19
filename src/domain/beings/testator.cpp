@@ -37,7 +37,7 @@ void Testator::refuse(const Supplication& supplication) const
 }
 
 
-Testament Testator::will(const Obedience& obedience, const Word& word) const
+Deed Testator::will(const Obedience& obedience, const Word& word) const
 {
 	if (obedience.testator().id() != Soul::id())
 		throw std::logic_error("not the testator of this obedience");

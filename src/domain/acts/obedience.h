@@ -11,7 +11,7 @@ class Soul;
 
 
 /// Obedience (Послушание) — ordered pair (testator, executor) as a Place.
-/// Where a Testament is fixed; born from accepted Supplication.
+/// Where a Deed (Дело) is kept; born from accepted Supplication.
 class Obedience : public Place {
 public:
 	Obedience(id::Obedience id, const Soul& testator, const Soul& executor, bool living = true);
