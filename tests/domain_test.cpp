@@ -198,7 +198,7 @@ TEST_CASE("supplicate accept creates obedience owned on both faces")
 
 	const Supplication ask = executor.supplicate(b);
 	CHECK(ask.suppliant().id() == a.Soul::id());
-	CHECK(ask.addressee().id() == b.Soul::id());
+	CHECK(ask.testator().id() == b.Soul::id());
 	CHECK(ask.status() == SupplicationStatus::pending);
 	CHECK(temporality.pending_supplications(b.Soul::id()).size() == 1);
 

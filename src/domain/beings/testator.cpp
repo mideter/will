@@ -17,8 +17,9 @@ Testator::Testator(Embodiment embodiment)
 
 const Obedience& Testator::accept(const Supplication& supplication) const
 {
-	if (supplication.addressee().id() != Soul::id())
+	if (supplication.testator().id() != Soul::id())
 		throw std::logic_error("supplication is not addressed to this soul");
+
 	if (supplication.status() != SupplicationStatus::pending)
 		throw std::logic_error("supplication is not pending");
 
@@ -28,6 +29,7 @@ const Obedience& Testator::accept(const Supplication& supplication) const
 	const id::Obedience id = created.obedience_id();
 
 	keep(Shepherding{id, testator_soul, executor_soul});
+
 	return static_cast<const Executor&>(executor_soul)
 		.keep(Obedience{id, testator_soul, executor_soul});
 }
@@ -35,7 +37,7 @@ const Obedience& Testator::accept(const Supplication& supplication) const
 
 void Testator::refuse(const Supplication& supplication) const
 {
-	if (supplication.addressee().id() != Soul::id())
+	if (supplication.testator().id() != Soul::id())
 		throw std::logic_error("supplication is not addressed to this soul");
 	if (supplication.status() != SupplicationStatus::pending)
 		throw std::logic_error("supplication is not pending");

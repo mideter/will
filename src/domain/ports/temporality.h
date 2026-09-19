@@ -57,11 +57,11 @@ public:
 	/// Letters kept in this place, bounded by limit (history).
 	virtual std::vector<Letter> letters(id::Place place, std::uint32_t limit) const = 0;
 
-	/// Offer obedience: suppliant asks addressee to become testator.
-	virtual Supplication supplicate(const Soul& suppliant, const Soul& addressee) = 0;
+	/// Offer obedience: suppliant asks testator to become Завещатель.
+	virtual Supplication supplicate(const Soul& suppliant, const Soul& testator) = 0;
 
-	/// Pending supplications addressed to this soul.
-	virtual std::vector<Supplication> pending_supplications(id::Soul addressee) const = 0;
+	/// Pending supplications addressed to this testator.
+	virtual std::vector<Supplication> pending_supplications(id::Soul testator) const = 0;
 
 	/// Accept a pending supplication; keeps the shared Obedience/Shepherding place in time.
 	virtual Obedience accept(id::Supplication id) = 0;

@@ -228,6 +228,18 @@ void migrate_testaments_to_deeds(sqlite3* db)
 }
 
 
+void migrate_supplications_addressee_to_testator(sqlite3* db)
+{
+	if (table_has_column(db, "supplications", "addressee_soul_id")
+		&& !table_has_column(db, "supplications", "testator_soul_id")) {
+		check_sqlite(sqlite3_exec(db,
+								  "ALTER TABLE supplications RENAME COLUMN addressee_soul_id TO testator_soul_id;",
+								  nullptr, nullptr, nullptr),
+					 db, "rename supplications.addressee_soul_id to testator_soul_id");
+	}
+}
+
+
 void migrate_abode_men_to_abode_souls(sqlite3* db)
 {
 	if (!table_exists(db, "abode_men"))
@@ -348,7 +360,7 @@ CREATE TABLE IF NOT EXISTS letters (
 CREATE TABLE IF NOT EXISTS supplications (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   suppliant_soul_id INTEGER NOT NULL REFERENCES souls(id),
-  addressee_soul_id INTEGER NOT NULL REFERENCES souls(id),
+  testator_soul_id INTEGER NOT NULL REFERENCES souls(id),
   status TEXT NOT NULL,
   created_at_ns INTEGER NOT NULL
 );
@@ -389,6 +401,7 @@ CREATE INDEX IF NOT EXISTS idx_letters_created_at ON letters(created_at_ns);
 	migrate_vessels_soul_id_to_men(db_);
 	migrate_men_unique_soul(db_);
 	migrate_abode_men_to_abode_souls(db_);
+	migrate_supplications_addressee_to_testator(db_);
 
 	check_sqlite(sqlite3_exec(db_, "UPDATE letters SET place_id = 1 WHERE place_id = 0;", nullptr, nullptr,
 							  nullptr),

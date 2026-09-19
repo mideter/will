@@ -135,31 +135,31 @@ public:
 	}
 
 	Supplication
-	supplicate(const Soul& suppliant, const Soul& addressee) override
+	supplicate(const Soul& suppliant, const Soul& testator) override
 	{
 		const id::Soul suppliant_id = suppliant.id();
-		const id::Soul addressee_id = addressee.id();
-		if (suppliant_id == addressee_id)
-			throw std::invalid_argument("supplication requires distinct suppliant and addressee");
-		if (pair_exists(addressee_id, suppliant_id))
+		const id::Soul testator_id = testator.id();
+		if (suppliant_id == testator_id)
+			throw std::invalid_argument("supplication requires distinct suppliant and testator");
+		if (pair_exists(testator_id, suppliant_id))
 			throw std::logic_error("obedience already exists for this pair");
 		for (const auto& row : supplications_) {
-			if (row.suppliant().id() == suppliant_id && row.addressee().id() == addressee_id
+			if (row.suppliant().id() == suppliant_id && row.testator().id() == testator_id
 				&& row.status() == SupplicationStatus::pending)
 				throw std::logic_error("pending supplication already exists for this pair");
 		}
 
-		Supplication row{id::Supplication{++next_supplication_id_}, suppliant, addressee,
+		Supplication row{id::Supplication{++next_supplication_id_}, suppliant, testator,
 						 SupplicationStatus::pending, time_.instant()};
 		supplications_.push_back(row);
 		return row;
 	}
 
-	std::vector<Supplication> pending_supplications(const id::Soul addressee) const override
+	std::vector<Supplication> pending_supplications(const id::Soul testator) const override
 	{
 		std::vector<Supplication> out;
 		for (const auto& row : supplications_) {
-			if (row.addressee().id() == addressee && row.status() == SupplicationStatus::pending)
+			if (row.testator().id() == testator && row.status() == SupplicationStatus::pending)
 				out.push_back(row);
 		}
 		return out;
@@ -170,14 +170,14 @@ public:
 		Supplication& row = mutable_supplication(id);
 		if (row.status() != SupplicationStatus::pending)
 			throw std::logic_error("supplication is not pending");
-		if (pair_exists(row.addressee().id(), row.suppliant().id()))
+		if (pair_exists(row.testator().id(), row.suppliant().id()))
 			throw std::logic_error("obedience already exists for this pair");
 
 		replace_status(row, SupplicationStatus::accepted);
 
 		const id::Obedience oid{allocate_place()};
-		obediences_.push_back(ObedienceRow{oid, row.addressee().id(), row.suppliant().id()});
-		return Obedience{oid, row.addressee(), row.suppliant()};
+		obediences_.push_back(ObedienceRow{oid, row.testator().id(), row.suppliant().id()});
+		return Obedience{oid, row.testator(), row.suppliant()};
 	}
 
 	void refuse(const id::Supplication id) override
@@ -327,10 +327,10 @@ private:
 	{
 		const id::Supplication id = row.id();
 		const Soul& suppliant = row.suppliant();
-		const Soul& addressee = row.addressee();
+		const Soul& testator = row.testator();
 		Timestamp created_at = row.created_at();
 		std::destroy_at(&row);
-		std::construct_at(&row, id, suppliant, addressee, status, std::move(created_at));
+		std::construct_at(&row, id, suppliant, testator, status, std::move(created_at));
 	}
 
 	FakeTime time_;

@@ -22,7 +22,7 @@ class Testator;
 /// Mode is disclosed in an Obedience; the living heap object is always Testator.
 class Executor : public Witness {
 public:
-	/// Ask addressee to become testator; this soul will be the executor.
+	/// Ask testator to become Завещатель; this soul will be the executor.
 	Supplication supplicate(const Soul& testator) const;
 
 	/// Carry out an open deed in an obedience where this soul is executor.
