@@ -51,7 +51,7 @@ const Shepherding& Testator::shepherding(const id::Obedience id) const
 const Supplication& Testator::supplication(const Executor& executor) const
 {
 	for (const auto& row : incoming_) {
-		if (row->suppliant().id() == executor.Soul::id())
+		if (row->suppliant().Soul::id() == executor.Soul::id())
 			return *row;
 	}
 	throw std::invalid_argument("unknown supplication");
@@ -82,14 +82,14 @@ const Shepherding& Testator::keep(Shepherding place) const
 
 const Supplication& Testator::receive(Supplication supplication) const
 {
-	if (supplication.testator().id() != Soul::id())
+	if (supplication.testator().Soul::id() != Soul::id())
 		throw std::logic_error("supplication is not addressed to this soul");
 	if (supplication.status() != SupplicationStatus::pending)
 		throw std::logic_error("supplication is not pending");
 
-	const id::Soul suppliant_id = supplication.suppliant().id();
+	const id::Soul suppliant_id = supplication.suppliant().Soul::id();
 	for (const auto& existing : incoming_) {
-		if (existing->suppliant().id() == suppliant_id)
+		if (existing->suppliant().Soul::id() == suppliant_id)
 			return *existing;
 	}
 	incoming_.push_back(std::make_unique<Supplication>(std::move(supplication)));
@@ -101,7 +101,7 @@ void Testator::drop_supplication(const Executor& executor) const
 {
 	const auto it = std::find_if(incoming_.begin(), incoming_.end(),
 								 [&](const std::unique_ptr<Supplication>& row) {
-									 return row->suppliant().id() == executor.Soul::id();
+									 return row->suppliant().Soul::id() == executor.Soul::id();
 								 });
 	if (it == incoming_.end())
 		throw std::invalid_argument("unknown supplication");

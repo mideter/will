@@ -57,8 +57,8 @@ domain::Supplication read_supplication(sqlite3_stmt* stmt)
 	const domain::id::Soul suppliant_id{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 0))};
 	const domain::id::Soul testator_id{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 1))};
 	return domain::Supplication{
-		domain::Soul::of(suppliant_id),
-		domain::Soul::of(testator_id),
+		static_cast<const domain::Executor&>(domain::Soul::of(suppliant_id)),
+		static_cast<const domain::Testator&>(domain::Soul::of(testator_id)),
 		status_from_text(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2))),
 		domain::Timestamp{sqlite3_column_int64(stmt, 3)},
 	};
@@ -376,11 +376,11 @@ std::vector<domain::Letter> SqliteTemporality::letters(const domain::id::Place p
 }
 
 
-domain::Supplication SqliteTemporality::supplicate(const domain::Soul& suppliant,
-												   const domain::Soul& testator)
+domain::Supplication SqliteTemporality::supplicate(const domain::Executor& suppliant,
+												   const domain::Testator& testator)
 {
-	const domain::id::Soul suppliant_id = suppliant.id();
-	const domain::id::Soul testator_id = testator.id();
+	const domain::id::Soul suppliant_id = suppliant.Soul::id();
+	const domain::id::Soul testator_id = testator.Soul::id();
 	if (suppliant_id == testator_id)
 		throw std::invalid_argument("supplication requires distinct suppliant and testator");
 
@@ -475,9 +475,9 @@ domain::Obedience SqliteTemporality::accept(const domain::Supplication& ask)
 									"AND status = 'pending' LIMIT 1;",
 									-1, &load, nullptr),
 				 db, "prepare load pending supplication");
-	check_sqlite(sqlite3_bind_int64(load, 1, static_cast<sqlite3_int64>(ask.suppliant().id().value())),
+	check_sqlite(sqlite3_bind_int64(load, 1, static_cast<sqlite3_int64>(ask.suppliant().Soul::id().value())),
 				 db, "bind suppliant");
-	check_sqlite(sqlite3_bind_int64(load, 2, static_cast<sqlite3_int64>(ask.testator().id().value())),
+	check_sqlite(sqlite3_bind_int64(load, 2, static_cast<sqlite3_int64>(ask.testator().Soul::id().value())),
 				 db, "bind testator");
 	const int load_rc = sqlite3_step(load);
 	if (load_rc != SQLITE_ROW) {
@@ -487,7 +487,7 @@ domain::Obedience SqliteTemporality::accept(const domain::Supplication& ask)
 	const auto row = read_supplication(load);
 	sqlite3_finalize(load);
 
-	if (pair_exists(db, row.testator().id(), row.suppliant().id()))
+	if (pair_exists(db, row.testator().Soul::id(), row.suppliant().Soul::id()))
 		throw std::logic_error("obedience already exists for this pair");
 
 	sqlite3_stmt* upd = nullptr;
@@ -500,9 +500,9 @@ domain::Obedience SqliteTemporality::accept(const domain::Supplication& ask)
 	check_sqlite(sqlite3_bind_text(upd, 1, status_text(domain::SupplicationStatus::accepted), -1,
 								   SQLITE_STATIC),
 				 db, "bind status");
-	check_sqlite(sqlite3_bind_int64(upd, 2, static_cast<sqlite3_int64>(row.suppliant().id().value())),
+	check_sqlite(sqlite3_bind_int64(upd, 2, static_cast<sqlite3_int64>(row.suppliant().Soul::id().value())),
 				 db, "bind suppliant");
-	check_sqlite(sqlite3_bind_int64(upd, 3, static_cast<sqlite3_int64>(row.testator().id().value())),
+	check_sqlite(sqlite3_bind_int64(upd, 3, static_cast<sqlite3_int64>(row.testator().Soul::id().value())),
 				 db, "bind testator");
 	check_sqlite(sqlite3_step(upd), db, "accept status step");
 	sqlite3_finalize(upd);
@@ -516,17 +516,16 @@ domain::Obedience SqliteTemporality::accept(const domain::Supplication& ask)
 									-1, &ins, nullptr),
 				 db, "prepare insert obedience");
 	check_sqlite(sqlite3_bind_int64(ins, 1, static_cast<sqlite3_int64>(oid.value())), db, "bind id");
-	check_sqlite(sqlite3_bind_int64(ins, 2, static_cast<sqlite3_int64>(row.testator().id().value())), db,
+	check_sqlite(sqlite3_bind_int64(ins, 2, static_cast<sqlite3_int64>(row.testator().Soul::id().value())), db,
 				 "bind testator");
-	check_sqlite(sqlite3_bind_int64(ins, 3, static_cast<sqlite3_int64>(row.suppliant().id().value())), db,
+	check_sqlite(sqlite3_bind_int64(ins, 3, static_cast<sqlite3_int64>(row.suppliant().Soul::id().value())), db,
 				 "bind executor");
 	check_sqlite(sqlite3_bind_int64(ins, 4, ts.value()), db, "bind created_at");
 	check_sqlite(sqlite3_step(ins), db, "insert obedience step");
 	sqlite3_finalize(ins);
 
 	tx.commit();
-	return domain::Obedience{oid, static_cast<const domain::Testator&>(row.testator()),
-							 static_cast<const domain::Executor&>(row.suppliant())};
+	return domain::Obedience{oid, row.testator(), row.suppliant()};
 }
 
 
@@ -545,9 +544,9 @@ void SqliteTemporality::refuse(const domain::Supplication& ask)
 	check_sqlite(sqlite3_bind_text(upd, 1, status_text(domain::SupplicationStatus::refused), -1,
 								   SQLITE_STATIC),
 				 db, "bind status");
-	check_sqlite(sqlite3_bind_int64(upd, 2, static_cast<sqlite3_int64>(ask.suppliant().id().value())),
+	check_sqlite(sqlite3_bind_int64(upd, 2, static_cast<sqlite3_int64>(ask.suppliant().Soul::id().value())),
 				 db, "bind suppliant");
-	check_sqlite(sqlite3_bind_int64(upd, 3, static_cast<sqlite3_int64>(ask.testator().id().value())),
+	check_sqlite(sqlite3_bind_int64(upd, 3, static_cast<sqlite3_int64>(ask.testator().Soul::id().value())),
 				 db, "bind testator");
 	check_sqlite(sqlite3_step(upd), db, "refuse step");
 	const int changed = sqlite3_changes(db);

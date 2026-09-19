@@ -136,16 +136,16 @@ public:
 	}
 
 	Supplication
-	supplicate(const Soul& suppliant, const Soul& testator) override
+	supplicate(const Executor& suppliant, const Testator& testator) override
 	{
-		const id::Soul suppliant_id = suppliant.id();
-		const id::Soul testator_id = testator.id();
+		const id::Soul suppliant_id = suppliant.Soul::id();
+		const id::Soul testator_id = testator.Soul::id();
 		if (suppliant_id == testator_id)
 			throw std::invalid_argument("supplication requires distinct suppliant and testator");
 		if (pair_exists(testator_id, suppliant_id))
 			throw std::logic_error("obedience already exists for this pair");
 		for (const auto& row : supplications_) {
-			if (row.suppliant().id() == suppliant_id && row.testator().id() == testator_id
+			if (row.suppliant().Soul::id() == suppliant_id && row.testator().Soul::id() == testator_id
 				&& row.status() == SupplicationStatus::pending)
 				throw std::logic_error("pending supplication already exists for this pair");
 		}
@@ -159,7 +159,7 @@ public:
 	{
 		std::vector<Supplication> out;
 		for (const auto& row : supplications_) {
-			if (row.testator().id() == testator && row.status() == SupplicationStatus::pending)
+			if (row.testator().Soul::id() == testator && row.status() == SupplicationStatus::pending)
 				out.push_back(row);
 		}
 		return out;
@@ -168,15 +168,14 @@ public:
 	Obedience accept(const Supplication& ask) override
 	{
 		Supplication& row = mutable_pending(ask);
-		if (pair_exists(row.testator().id(), row.suppliant().id()))
+		if (pair_exists(row.testator().Soul::id(), row.suppliant().Soul::id()))
 			throw std::logic_error("obedience already exists for this pair");
 
 		replace_status(row, SupplicationStatus::accepted);
 
 		const id::Obedience oid{allocate_place()};
-		obediences_.push_back(ObedienceRow{oid, row.testator().id(), row.suppliant().id()});
-		return Obedience{oid, static_cast<const Testator&>(row.testator()),
-						 static_cast<const Executor&>(row.suppliant())};
+		obediences_.push_back(ObedienceRow{oid, row.testator().Soul::id(), row.suppliant().Soul::id()});
+		return Obedience{oid, row.testator(), row.suppliant()};
 	}
 
 	void refuse(const Supplication& ask) override
@@ -316,7 +315,8 @@ private:
 	Supplication& mutable_pending(const Supplication& ask)
 	{
 		for (auto& row : supplications_) {
-			if (row.suppliant().id() == ask.suppliant().id() && row.testator().id() == ask.testator().id()
+			if (row.suppliant().Soul::id() == ask.suppliant().Soul::id()
+				&& row.testator().Soul::id() == ask.testator().Soul::id()
 				&& row.status() == SupplicationStatus::pending)
 				return row;
 		}
@@ -325,8 +325,8 @@ private:
 
 	static void replace_status(Supplication& row, const SupplicationStatus status)
 	{
-		const Soul& suppliant = row.suppliant();
-		const Soul& testator = row.testator();
+		const Executor& suppliant = row.suppliant();
+		const Testator& testator = row.testator();
 		Timestamp created_at = row.created_at();
 		std::destroy_at(&row);
 		std::construct_at(&row, suppliant, testator, status, std::move(created_at));

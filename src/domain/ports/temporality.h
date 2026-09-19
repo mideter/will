@@ -27,6 +27,10 @@
 namespace will::domain {
 
 
+class Executor;
+class Testator;
+
+
 /// Temporality (Временность) — mutable Eternity; what happens in time.
 /// Earth speaks with this face (as Heaven speaks with Eternity).
 class Temporality : public Eternity {
@@ -57,7 +61,7 @@ public:
 	virtual std::vector<Letter> letters(id::Place place, std::uint32_t limit) const = 0;
 
 	/// Offer obedience: suppliant asks testator to become Завещатель.
-	virtual Supplication supplicate(const Soul& suppliant, const Soul& testator) = 0;
+	virtual Supplication supplicate(const Executor& suppliant, const Testator& testator) = 0;
 
 	/// Pending supplications addressed to this testator.
 	virtual std::vector<Supplication> pending_supplications(id::Soul testator) const = 0;
