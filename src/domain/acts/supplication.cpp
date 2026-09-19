@@ -42,7 +42,8 @@ const Obedience& Supplication::consent(const Testator& testator) const
 	if (testator.Soul::id() != testator_.id())
 		throw std::logic_error("supplication is not addressed to this soul");
 
-	const Supplication& incoming = testator.supplication(suppliant_);
+	const Supplication& incoming =
+		testator.supplication(static_cast<const Executor&>(suppliant_));
 	if (incoming.status() != SupplicationStatus::pending)
 		throw std::logic_error("supplication is not pending");
 
@@ -54,7 +55,7 @@ const Obedience& Supplication::consent(const Testator& testator) const
 	testator.keep(Shepherding{oid, place_testator, place_executor});
 	const Obedience& obedience =
 		place_executor.keep(Obedience{oid, place_testator, place_executor});
-	testator.drop_supplication(suppliant_);
+	testator.drop_supplication(static_cast<const Executor&>(suppliant_));
 	return obedience;
 }
 
@@ -64,12 +65,13 @@ void Supplication::dismiss(const Testator& testator) const
 	if (testator.Soul::id() != testator_.id())
 		throw std::logic_error("supplication is not addressed to this soul");
 
-	const Supplication& incoming = testator.supplication(suppliant_);
+	const Supplication& incoming =
+		testator.supplication(static_cast<const Executor&>(suppliant_));
 	if (incoming.status() != SupplicationStatus::pending)
 		throw std::logic_error("supplication is not pending");
 
 	testator.temporality().refuse(incoming);
-	testator.drop_supplication(suppliant_);
+	testator.drop_supplication(static_cast<const Executor&>(suppliant_));
 }
 
 

@@ -198,7 +198,7 @@ TEST_CASE("supplicate accept creates obedience owned on both faces")
 
 	executor.supplicate(testator);
 	CHECK(testator.supplications().size() == 1);
-	const Supplication& ask = testator.supplication(a);
+	const Supplication& ask = testator.supplication(executor);
 	CHECK(ask.suppliant().id() == a.Soul::id());
 	CHECK(ask.testator().id() == b.Soul::id());
 	CHECK(ask.status() == SupplicationStatus::pending);
@@ -229,13 +229,13 @@ TEST_CASE("refuse closes pending supplication; wrong party cannot accept")
 	const auto& stranger = static_cast<const Testator&>(a);
 
 	executor.supplicate(testator);
-	const Supplication& ask = testator.supplication(a);
+	const Supplication& ask = testator.supplication(executor);
 	CHECK_THROWS_AS(stranger.accept(ask), std::logic_error);
 
 	testator.refuse(ask);
 	CHECK(testator.supplications().empty());
 	CHECK(temporality.pending_supplications(b.Soul::id()).empty());
-	CHECK_THROWS_AS(testator.supplication(a), std::invalid_argument);
+	CHECK_THROWS_AS(testator.supplication(executor), std::invalid_argument);
 }
 
 
@@ -251,7 +251,8 @@ TEST_CASE("will and execute within obedience")
 	const auto& testator = static_cast<const Testator&>(b);
 
 	executor.supplicate(testator);
-	const Obedience& obedience = testator.accept(testator.supplication(a));
+	const Supplication& pending = testator.supplication(executor);
+	const Obedience& obedience = testator.accept(pending);
 	const Shepherding& shepherding = testator.shepherding(obedience.obedience_id());
 	const Deed bequeathed = testator.will(shepherding, Word{"fast"});
 	CHECK(bequeathed.open());

@@ -37,8 +37,8 @@ public:
 	/// Owned Shepherding face by place id. Throws if unknown.
 	const Shepherding& shepherding(id::Obedience id) const;
 
-	/// Owned incoming pending from this suppliant. Throws if unknown.
-	const Supplication& supplication(const Soul& suppliant) const;
+	/// Owned incoming pending from this executor (suppliant). Throws if unknown.
+	const Supplication& supplication(const Executor& executor) const;
 
 	/// Incoming pending supplications kept on this testator.
 	std::vector<std::reference_wrapper<const Supplication>> supplications() const;
@@ -55,8 +55,8 @@ private:
 	/// Receive an incoming pending (entrusted Supplication / awaken).
 	const Supplication& receive(Supplication supplication) const;
 
-	/// Drop an incoming after consent or dismiss (keyed by suppliant).
-	void drop_supplication(const Soul& suppliant) const;
+	/// Drop an incoming after consent or dismiss (keyed by executor).
+	void drop_supplication(const Executor& executor) const;
 
 	mutable std::vector<std::unique_ptr<Shepherding>> shepherdings_;
 	mutable std::vector<std::unique_ptr<Supplication>> incoming_;
