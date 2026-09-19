@@ -204,8 +204,11 @@ TEST_CASE("supplicate accept creates obedience owned on both faces")
 	CHECK(ask.status() == SupplicationStatus::pending);
 	CHECK(temporality.pending_supplications(b.Soul::id()).size() == 1);
 
-	const Obedience& obedience = testator.accept(ask);
+	testator.accept(ask);
 	CHECK(testator.supplications().empty());
+	REQUIRE(temporality.obediences().size() == 1);
+	const Obedience& obedience =
+		executor.obedience(temporality.obediences().front().obedience_id());
 	CHECK(&obedience.testator() == &testator);
 	CHECK(&obedience.executor() == &executor);
 	CHECK(obedience.id().value() != a.Soul::id().value());
@@ -251,8 +254,10 @@ TEST_CASE("will and execute within obedience")
 	const auto& testator = static_cast<const Testator&>(b);
 
 	executor.supplicate(testator);
-	const Supplication& pending = testator.supplication(executor);
-	const Obedience& obedience = testator.accept(pending);
+	testator.accept(testator.supplication(executor));
+	REQUIRE(temporality.obediences().size() == 1);
+	const Obedience& obedience =
+		executor.obedience(temporality.obediences().front().obedience_id());
 	const Shepherding& shepherding = testator.shepherding(obedience.obedience_id());
 	const Deed bequeathed = testator.will(shepherding, Word{"fast"});
 	CHECK(bequeathed.open());

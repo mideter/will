@@ -25,11 +25,10 @@ class World;
 class Testator : public Executor {
 public:
 	/// Accept a pending incoming; the act signs and births both faces.
-	/// Returns the Executor-owned Obedience.
-	const Obedience& accept(const Supplication& supplication) const;
+	void accept(const Supplication& ask) const;
 
 	/// Refuse a pending incoming; the act rejects itself.
-	void refuse(const Supplication& supplication) const;
+	void refuse(const Supplication& ask) const;
 
 	/// Bequeath a word through the Shepherding face of a shared place.
 	Deed will(const Shepherding& shepherding, const Word& word) const;
