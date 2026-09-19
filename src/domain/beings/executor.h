@@ -22,7 +22,7 @@ class Testator;
 class Executor : public Witness {
 public:
 	/// Ask testator to become Завещатель; this soul will be the executor.
-	/// Keeps the pending Supplication on the testator (and in Temporality).
+	/// Entrusts the pending Supplication to lodge with the testator (and Temporality).
 	void supplicate(const Testator& testator) const;
 
 	/// Carry out an open deed in an obedience where this soul is executor.
@@ -34,11 +34,11 @@ public:
 protected:
 	explicit Executor(Embodiment embodiment);
 
-	/// Keep an Obedience face on this executor (accept / awaken).
+	/// Keep an Obedience face on this executor (entrusted Supplication / awaken).
 	const Obedience& keep(Obedience place) const;
 
 private:
-	friend class Testator;
+	friend class Supplication;
 	friend class World;
 
 	using Witness::say;

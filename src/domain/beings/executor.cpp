@@ -21,11 +21,9 @@ void Executor::supplicate(const Testator& testator) const
 	if (testator.Soul::id() == Soul::id())
 		throw std::invalid_argument("cannot supplicate oneself");
 
-	Supplication ask =
-		temporality().supplicate(static_cast<const Soul&>(*this),
-					 static_cast<const Soul&>(testator));
+	Supplication ask = temporality().supplicate(*this, testator);
 
-	testator.receive(std::move(ask));
+	ask.entrust(*this);
 }
 
 

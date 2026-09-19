@@ -18,38 +18,13 @@ Testator::Testator(Embodiment embodiment)
 
 const Obedience& Testator::accept(const Supplication& supplication) const
 {
-	if (supplication.testator().id() != Soul::id())
-		throw std::logic_error("supplication is not addressed to this soul");
-
-	const Supplication& incoming = this->supplication(supplication.id());
-	if (incoming.status() != SupplicationStatus::pending)
-		throw std::logic_error("supplication is not pending");
-
-	const id::Supplication sid = incoming.id();
-	const Obedience created = temporality().accept(sid);
-	const Testator& testator = created.testator();
-	const Executor& executor = created.executor();
-	const id::Obedience id = created.obedience_id();
-
-	keep(Shepherding{id, testator, executor});
-	const Obedience& obedience = executor.keep(Obedience{id, testator, executor});
-	drop_supplication(sid);
-	return obedience;
+	return supplication.consent(*this);
 }
 
 
 void Testator::refuse(const Supplication& supplication) const
 {
-	if (supplication.testator().id() != Soul::id())
-		throw std::logic_error("supplication is not addressed to this soul");
-
-	const Supplication& incoming = this->supplication(supplication.id());
-	if (incoming.status() != SupplicationStatus::pending)
-		throw std::logic_error("supplication is not pending");
-
-	const id::Supplication sid = incoming.id();
-	temporality().refuse(sid);
-	drop_supplication(sid);
+	supplication.dismiss(*this);
 }
 
 

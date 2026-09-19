@@ -1,6 +1,11 @@
 #include "supplication.h"
 
+#include "acts/obedience.h"
+#include "acts/shepherding.h"
+#include "beings/executor.h"
 #include "beings/soul.h"
+#include "beings/testator.h"
+#include "ports/temporality.h"
 
 #include <stdexcept>
 #include <utility>
@@ -19,6 +24,56 @@ Supplication::Supplication(const id::Supplication id, const Soul& suppliant, con
 {
 	if (suppliant.id() == testator.id())
 		throw std::invalid_argument("supplication requires distinct suppliant and testator");
+}
+
+
+void Supplication::entrust(const Executor& executor) const
+{
+	if (executor.Soul::id() != suppliant_.id())
+		throw std::logic_error("only the suppliant may entrust this supplication");
+
+	if (status_ != SupplicationStatus::pending)
+		throw std::logic_error("supplication is not pending");
+
+	static_cast<const Testator&>(testator_).receive(Supplication{*this});
+}
+
+
+const Obedience& Supplication::consent(const Testator& testator) const
+{
+	if (testator.Soul::id() != testator_.id())
+		throw std::logic_error("supplication is not addressed to this soul");
+
+	const Supplication& incoming = testator.supplication(id_);
+	if (incoming.status() != SupplicationStatus::pending)
+		throw std::logic_error("supplication is not pending");
+
+	const id::Supplication sid = incoming.id();
+	const Obedience created = testator.temporality().accept(sid);
+	const Testator& place_testator = created.testator();
+	const Executor& place_executor = created.executor();
+	const id::Obedience oid = created.obedience_id();
+
+	testator.keep(Shepherding{oid, place_testator, place_executor});
+	const Obedience& obedience =
+		place_executor.keep(Obedience{oid, place_testator, place_executor});
+	testator.drop_supplication(sid);
+	return obedience;
+}
+
+
+void Supplication::dismiss(const Testator& testator) const
+{
+	if (testator.Soul::id() != testator_.id())
+		throw std::logic_error("supplication is not addressed to this soul");
+
+	const Supplication& incoming = testator.supplication(id_);
+	if (incoming.status() != SupplicationStatus::pending)
+		throw std::logic_error("supplication is not pending");
+
+	const id::Supplication sid = incoming.id();
+	testator.temporality().refuse(sid);
+	testator.drop_supplication(sid);
 }
 
 
