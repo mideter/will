@@ -1,6 +1,7 @@
 #include "executor.h"
 
 #include "beings/soul.h"
+#include "beings/testator.h"
 #include "ports/temporality.h"
 
 #include <stdexcept>
@@ -15,18 +16,22 @@ Executor::Executor(Embodiment embodiment)
 {}
 
 
-Supplication Executor::supplicate(const Soul& testator) const
+void Executor::supplicate(const Testator& testator) const
 {
-	if (testator.id() == Soul::id())
+	if (testator.Soul::id() == Soul::id())
 		throw std::invalid_argument("cannot supplicate oneself");
 
-	return temporality().supplicate(static_cast<const Soul&>(*this), testator);
+	Supplication ask =
+		temporality().supplicate(static_cast<const Soul&>(*this),
+					 static_cast<const Soul&>(testator));
+
+	testator.receive(std::move(ask));
 }
 
 
 Deed Executor::execute(const Deed& deed) const
 {
-	if (deed.executor().id() != Soul::id())
+	if (deed.executor().Soul::id() != Soul::id())
 		throw std::logic_error("not the executor of this deed");
 
 	if (!deed.open())

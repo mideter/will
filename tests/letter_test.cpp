@@ -7,6 +7,8 @@
 #include "acts/obedience.h"
 #include "beings/letter.h"
 #include "beings/deed.h"
+#include "beings/executor.h"
+#include "beings/testator.h"
 #include "identity/letter.h"
 #include "identity/obedience.h"
 #include "identity/place.h"
@@ -70,8 +72,8 @@ TEST_CASE("Deed is a letter in an obedience place")
 	Creation creation(temporality);
 	World& world = creation.world();
 
-	const Man& testator = world.welcome(DeviceToken::generate());
-	const Man& executor = world.welcome(DeviceToken::generate());
+	const auto& testator = static_cast<const Testator&>(world.welcome(DeviceToken::generate()));
+	const auto& executor = static_cast<const Executor&>(world.welcome(DeviceToken::generate()));
 	const id::Deed did{3};
 	const id::Obedience oid{9};
 	const Obedience obedience{oid, testator, executor};
@@ -80,9 +82,9 @@ TEST_CASE("Deed is a letter in an obedience place")
 	CHECK(deed.id() == id::Letter{did.value()});
 	CHECK(deed.obedience_id() == oid);
 	CHECK(deed.place_id() == id::Place{oid.value()});
-	CHECK(&deed.testator() == static_cast<const Soul*>(&testator));
+	CHECK(&deed.testator() == &testator);
 	CHECK(deed.author_id() == testator.Soul::id());
-	CHECK(&deed.executor() == static_cast<const Soul*>(&executor));
+	CHECK(&deed.executor() == &executor);
 	CHECK(deed.body() == "do this");
 	CHECK(deed.open());
 	CHECK_FALSE(deed.executed());

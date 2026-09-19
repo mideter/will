@@ -1,6 +1,7 @@
 #include "world.h"
 
 #include "acts/shepherding.h"
+#include "acts/supplication.h"
 #include "beings/executor.h"
 #include "beings/testator.h"
 #include "ports/temporality.h"
@@ -8,6 +9,7 @@
 
 #include <stdexcept>
 #include <utility>
+#include <vector>
 
 
 namespace will::domain {
@@ -25,14 +27,17 @@ void World::awaken()
 		(void)accept(std::move(e));
 
 	for (const Obedience& place : temporality().obediences()) {
-		const Soul& testator_soul = place.testator();
-		const Soul& executor_soul = place.executor();
+		const Testator& testator = place.testator();
+		const Executor& executor = place.executor();
 
-		static_cast<const Executor&>(executor_soul)
-			.keep(Obedience{place.obedience_id(), testator_soul, executor_soul});
+		executor.keep(Obedience{place.obedience_id(), testator, executor});
+		testator.keep(Shepherding{place.obedience_id(), testator, executor});
+	}
 
-		static_cast<const Testator&>(testator_soul)
-			.keep(Shepherding{place.obedience_id(), testator_soul, executor_soul});
+	for (const auto& [soul_id, man] : men_) {
+		std::vector<Supplication> pending = temporality().pending_supplications(soul_id);
+		for (Supplication& ask : pending)
+			static_cast<const Testator&>(*man).receive(std::move(ask));
 	}
 }
 

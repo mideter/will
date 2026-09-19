@@ -1,6 +1,8 @@
 #include "sqlite_temporality.h"
 
+#include "beings/executor.h"
 #include "beings/soul.h"
+#include "beings/testator.h"
 #include "values/abode_name.h"
 #include "values/word.h"
 
@@ -520,7 +522,8 @@ domain::Obedience SqliteTemporality::accept(const domain::id::Supplication id)
 	sqlite3_finalize(ins);
 
 	tx.commit();
-	return domain::Obedience{oid, row.testator(), row.suppliant()};
+	return domain::Obedience{oid, static_cast<const domain::Testator&>(row.testator()),
+							 static_cast<const domain::Executor&>(row.suppliant())};
 }
 
 
@@ -578,8 +581,10 @@ domain::Obedience SqliteTemporality::obedience(const domain::id::Obedience id) c
 
 	domain::Obedience out{
 		domain::id::Obedience{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 0))},
-		domain::Soul::of(domain::id::Soul{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 1))}),
-		domain::Soul::of(domain::id::Soul{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 2))}),
+		static_cast<const domain::Testator&>(domain::Soul::of(
+			domain::id::Soul{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 1))})),
+		static_cast<const domain::Executor&>(domain::Soul::of(
+			domain::id::Soul{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 2))})),
 	};
 
 	sqlite3_finalize(stmt);
@@ -617,7 +622,7 @@ std::vector<domain::Obedience> SqliteTemporality::obediences() const
 domain::Deed SqliteTemporality::bequeath(const domain::Obedience& obedience,
 										 const domain::Soul& testator, const domain::Word& word)
 {
-	if (obedience.testator().id() != testator.id())
+	if (obedience.testator().Soul::id() != testator.id())
 		throw std::logic_error("only the testator may bequeath in this obedience");
 
 	const domain::Timestamp ts = time_.instant();
@@ -644,9 +649,9 @@ domain::Deed SqliteTemporality::bequeath(const domain::Obedience& obedience,
 				 db, "prepare insert deed");
 	check_sqlite(sqlite3_bind_int64(stmt, 1, static_cast<sqlite3_int64>(obedience.obedience_id().value())),
 				 db, "bind obedience_id");
-	check_sqlite(sqlite3_bind_int64(stmt, 2, static_cast<sqlite3_int64>(obedience.testator().id().value())),
+	check_sqlite(sqlite3_bind_int64(stmt, 2, static_cast<sqlite3_int64>(obedience.testator().Soul::id().value())),
 				 db, "bind testator");
-	check_sqlite(sqlite3_bind_int64(stmt, 3, static_cast<sqlite3_int64>(obedience.executor().id().value())),
+	check_sqlite(sqlite3_bind_int64(stmt, 3, static_cast<sqlite3_int64>(obedience.executor().Soul::id().value())),
 				 db, "bind executor");
 	check_sqlite(sqlite3_bind_text(stmt, 4, word.body().data(), static_cast<int>(word.body().size()),
 								   SQLITE_TRANSIENT),

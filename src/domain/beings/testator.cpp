@@ -3,6 +3,7 @@
 #include "beings/soul.h"
 #include "ports/temporality.h"
 
+#include <algorithm>
 #include <stdexcept>
 #include <utility>
 
@@ -20,18 +21,20 @@ const Obedience& Testator::accept(const Supplication& supplication) const
 	if (supplication.testator().id() != Soul::id())
 		throw std::logic_error("supplication is not addressed to this soul");
 
-	if (supplication.status() != SupplicationStatus::pending)
+	const Supplication& incoming = this->supplication(supplication.id());
+	if (incoming.status() != SupplicationStatus::pending)
 		throw std::logic_error("supplication is not pending");
 
-	const Obedience created = temporality().accept(supplication.id());
-	const Soul& testator_soul = created.testator();
-	const Soul& executor_soul = created.executor();
+	const id::Supplication sid = incoming.id();
+	const Obedience created = temporality().accept(sid);
+	const Testator& testator = created.testator();
+	const Executor& executor = created.executor();
 	const id::Obedience id = created.obedience_id();
 
-	keep(Shepherding{id, testator_soul, executor_soul});
-
-	return static_cast<const Executor&>(executor_soul)
-		.keep(Obedience{id, testator_soul, executor_soul});
+	keep(Shepherding{id, testator, executor});
+	const Obedience& obedience = executor.keep(Obedience{id, testator, executor});
+	drop_supplication(sid);
+	return obedience;
 }
 
 
@@ -39,16 +42,20 @@ void Testator::refuse(const Supplication& supplication) const
 {
 	if (supplication.testator().id() != Soul::id())
 		throw std::logic_error("supplication is not addressed to this soul");
-	if (supplication.status() != SupplicationStatus::pending)
+
+	const Supplication& incoming = this->supplication(supplication.id());
+	if (incoming.status() != SupplicationStatus::pending)
 		throw std::logic_error("supplication is not pending");
 
-	temporality().refuse(supplication.id());
+	const id::Supplication sid = incoming.id();
+	temporality().refuse(sid);
+	drop_supplication(sid);
 }
 
 
 Deed Testator::will(const Shepherding& shepherding, const Word& word) const
 {
-	if (shepherding.testator().id() != Soul::id())
+	if (shepherding.testator().Soul::id() != Soul::id())
 		throw std::logic_error("not the testator of this shepherding");
 
 	const Obedience face{shepherding.obedience_id(), shepherding.testator(), shepherding.executor()};
@@ -66,6 +73,26 @@ const Shepherding& Testator::shepherding(const id::Obedience id) const
 }
 
 
+const Supplication& Testator::supplication(const id::Supplication id) const
+{
+	for (const auto& row : incoming_) {
+		if (row->id() == id)
+			return *row;
+	}
+	throw std::invalid_argument("unknown supplication");
+}
+
+
+std::vector<std::reference_wrapper<const Supplication>> Testator::pending_supplications() const
+{
+	std::vector<std::reference_wrapper<const Supplication>> out;
+	out.reserve(incoming_.size());
+	for (const auto& row : incoming_)
+		out.emplace_back(*row);
+	return out;
+}
+
+
 const Shepherding& Testator::keep(Shepherding place) const
 {
 	const id::Obedience id = place.obedience_id();
@@ -75,6 +102,35 @@ const Shepherding& Testator::keep(Shepherding place) const
 	}
 	shepherdings_.push_back(std::make_unique<Shepherding>(std::move(place)));
 	return *shepherdings_.back();
+}
+
+
+const Supplication& Testator::receive(Supplication supplication) const
+{
+	if (supplication.testator().id() != Soul::id())
+		throw std::logic_error("supplication is not addressed to this soul");
+	if (supplication.status() != SupplicationStatus::pending)
+		throw std::logic_error("supplication is not pending");
+
+	const id::Supplication id = supplication.id();
+	for (const auto& existing : incoming_) {
+		if (existing->id() == id)
+			return *existing;
+	}
+	incoming_.push_back(std::make_unique<Supplication>(std::move(supplication)));
+	return *incoming_.back();
+}
+
+
+void Testator::drop_supplication(const id::Supplication id) const
+{
+	const auto it = std::find_if(incoming_.begin(), incoming_.end(),
+								 [&](const std::unique_ptr<Supplication>& row) {
+									 return row->id() == id;
+								 });
+	if (it == incoming_.end())
+		throw std::invalid_argument("unknown supplication");
+	incoming_.erase(it);
 }
 
 

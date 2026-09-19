@@ -7,7 +7,8 @@
 namespace will::domain {
 
 
-class Soul;
+class Executor;
+class Testator;
 
 
 /// Shepherding (Ведение) — Testator-facing interface of the shared Place
@@ -16,7 +17,7 @@ class Soul;
 /// Ending a place (secede) is deferred for now — all kept places are active.
 class Shepherding : public Place {
 public:
-	Shepherding(id::Obedience id, const Soul& testator, const Soul& executor);
+	Shepherding(id::Obedience id, const Testator& testator, const Executor& executor);
 	Shepherding(Shepherding&& other) noexcept;
 	Shepherding& operator=(Shepherding&&) = delete;
 	Shepherding(const Shepherding&) = delete;
@@ -25,12 +26,12 @@ public:
 	/// Shared place id (same value as the Obedience face).
 	id::Obedience obedience_id() const noexcept { return id::Obedience{id().value()}; }
 
-	const Soul& testator() const noexcept { return testator_; }
-	const Soul& executor() const noexcept { return executor_; }
+	const Testator& testator() const noexcept { return testator_; }
+	const Executor& executor() const noexcept { return executor_; }
 
 private:
-	const Soul& testator_;
-	const Soul& executor_;
+	const Testator& testator_;
+	const Executor& executor_;
 };
 
 

@@ -13,7 +13,6 @@
 namespace will::domain {
 
 
-class Soul;
 class Testator;
 
 
@@ -23,7 +22,8 @@ class Testator;
 class Executor : public Witness {
 public:
 	/// Ask testator to become Завещатель; this soul will be the executor.
-	Supplication supplicate(const Soul& testator) const;
+	/// Keeps the pending Supplication on the testator (and in Temporality).
+	void supplicate(const Testator& testator) const;
 
 	/// Carry out an open deed in an obedience where this soul is executor.
 	Deed execute(const Deed& deed) const;

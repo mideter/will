@@ -1,6 +1,8 @@
 #include "obedience.h"
 
+#include "beings/executor.h"
 #include "beings/soul.h"
+#include "beings/testator.h"
 
 #include <stdexcept>
 #include <utility>
@@ -9,12 +11,12 @@
 namespace will::domain {
 
 
-Obedience::Obedience(const id::Obedience id, const Soul& testator, const Soul& executor)
+Obedience::Obedience(const id::Obedience id, const Testator& testator, const Executor& executor)
 	: Place(id::Place{id.value()})
 	, testator_(testator)
 	, executor_(executor)
 {
-	if (testator_.id() == executor_.id())
+	if (testator_.Soul::id() == executor_.Soul::id())
 		throw std::invalid_argument("obedience requires distinct testator and executor");
 }
 

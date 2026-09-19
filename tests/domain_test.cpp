@@ -171,15 +171,15 @@ TEST_CASE("obedience is a place for distinct testator and executor")
 	Creation creation(temporality);
 	World& world = creation.world();
 
-	const Man& testator = world.welcome(DeviceToken::generate());
-	const Man& executor = world.welcome(DeviceToken::generate());
+	const auto& testator = static_cast<const Testator&>(world.welcome(DeviceToken::generate()));
+	const auto& executor = static_cast<const Executor&>(world.welcome(DeviceToken::generate()));
 	const id::Obedience oid{7};
 
 	Obedience obedience{oid, testator, executor};
 	CHECK(obedience.id() == id::Place{oid.value()});
 	CHECK(obedience.obedience_id() == oid);
-	CHECK(&obedience.testator() == static_cast<const Soul*>(&testator));
-	CHECK(&obedience.executor() == static_cast<const Soul*>(&executor));
+	CHECK(&obedience.testator() == &testator);
+	CHECK(&obedience.executor() == &executor);
 
 	CHECK_THROWS_AS((Obedience{id::Obedience{8}, testator, testator}), std::invalid_argument);
 }
@@ -196,20 +196,23 @@ TEST_CASE("supplicate accept creates obedience owned on both faces")
 	const auto& executor = static_cast<const Executor&>(a);
 	const auto& testator = static_cast<const Testator&>(b);
 
-	const Supplication ask = executor.supplicate(b);
+	executor.supplicate(testator);
+	CHECK(testator.pending_supplications().size() == 1);
+	const Supplication& ask = testator.supplication(testator.pending_supplications().front().get().id());
 	CHECK(ask.suppliant().id() == a.Soul::id());
 	CHECK(ask.testator().id() == b.Soul::id());
 	CHECK(ask.status() == SupplicationStatus::pending);
 	CHECK(temporality.pending_supplications(b.Soul::id()).size() == 1);
 
 	const Obedience& obedience = testator.accept(ask);
-	CHECK(&obedience.testator() == &static_cast<const Soul&>(b));
-	CHECK(&obedience.executor() == &static_cast<const Soul&>(a));
+	CHECK(testator.pending_supplications().empty());
+	CHECK(&obedience.testator() == &testator);
+	CHECK(&obedience.executor() == &executor);
 	CHECK(obedience.id().value() != a.Soul::id().value());
 	CHECK(obedience.id().value() != b.Soul::id().value());
 	CHECK(temporality.pending_supplications(b.Soul::id()).empty());
 	CHECK(&executor.obedience(obedience.obedience_id()) == &obedience);
-	CHECK(&testator.shepherding(obedience.obedience_id()).testator() == &static_cast<const Soul&>(b));
+	CHECK(&testator.shepherding(obedience.obedience_id()).testator() == &testator);
 }
 
 
@@ -225,12 +228,15 @@ TEST_CASE("refuse closes pending supplication; wrong party cannot accept")
 	const auto& testator = static_cast<const Testator&>(b);
 	const auto& stranger = static_cast<const Testator&>(a);
 
-	const Supplication ask = executor.supplicate(b);
+	executor.supplicate(testator);
+	const id::Supplication sid = testator.pending_supplications().front().get().id();
+	const Supplication& ask = testator.supplication(sid);
 	CHECK_THROWS_AS(stranger.accept(ask), std::logic_error);
 
 	testator.refuse(ask);
+	CHECK(testator.pending_supplications().empty());
 	CHECK(temporality.pending_supplications(b.Soul::id()).empty());
-	CHECK_THROWS_AS(testator.accept(ask), std::logic_error);
+	CHECK_THROWS_AS(testator.supplication(sid), std::invalid_argument);
 }
 
 
@@ -245,13 +251,15 @@ TEST_CASE("will and execute within obedience")
 	const auto& executor = static_cast<const Executor&>(a);
 	const auto& testator = static_cast<const Testator&>(b);
 
-	const Obedience& obedience = testator.accept(executor.supplicate(b));
+	executor.supplicate(testator);
+	const Obedience& obedience =
+		testator.accept(testator.supplication(testator.pending_supplications().front().get().id()));
 	const Shepherding& shepherding = testator.shepherding(obedience.obedience_id());
 	const Deed bequeathed = testator.will(shepherding, Word{"fast"});
 	CHECK(bequeathed.open());
 	CHECK(bequeathed.body() == "fast");
-	CHECK(&bequeathed.testator() == &static_cast<const Soul&>(b));
-	CHECK(&bequeathed.executor() == &static_cast<const Soul&>(a));
+	CHECK(&bequeathed.testator() == &testator);
+	CHECK(&bequeathed.executor() == &executor);
 
 	CHECK_THROWS_AS(static_cast<const Testator&>(a).will(shepherding, Word{"no"}), std::logic_error);
 

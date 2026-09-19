@@ -5,6 +5,8 @@
 #include "beings/soul.h"
 #include "beings/letter.h"
 #include "beings/man.h"
+#include "beings/executor.h"
+#include "beings/testator.h"
 #include "acts/supplication.h"
 #include "beings/deed.h"
 #include "beings/vessel.h"
@@ -177,7 +179,8 @@ public:
 
 		const id::Obedience oid{allocate_place()};
 		obediences_.push_back(ObedienceRow{oid, row.testator().id(), row.suppliant().id()});
-		return Obedience{oid, row.testator(), row.suppliant()};
+		return Obedience{oid, static_cast<const Testator&>(row.testator()),
+						 static_cast<const Executor&>(row.suppliant())};
 	}
 
 	void refuse(const id::Supplication id) override
@@ -194,7 +197,8 @@ public:
 			if (row.id != id)
 				continue;
 
-			return Obedience{row.id, Soul::of(row.testator), Soul::of(row.executor)};
+			return Obedience{row.id, static_cast<const Testator&>(Soul::of(row.testator)),
+							 static_cast<const Executor&>(Soul::of(row.executor))};
 		}
 		throw std::invalid_argument("unknown obedience");
 	}
@@ -204,7 +208,8 @@ public:
 		std::vector<Obedience> out;
 		out.reserve(obediences_.size());
 		for (const auto& row : obediences_) {
-			out.push_back(Obedience{row.id, Soul::of(row.testator), Soul::of(row.executor)});
+			out.push_back(Obedience{row.id, static_cast<const Testator&>(Soul::of(row.testator)),
+									static_cast<const Executor&>(Soul::of(row.executor))});
 		}
 		return out;
 	}
@@ -213,13 +218,13 @@ public:
 	{
 		if (!has_obedience(obedience.obedience_id()))
 			throw std::invalid_argument("unknown obedience");
-		if (obedience.testator().id() != testator.id())
+		if (obedience.testator().Soul::id() != testator.id())
 			throw std::logic_error("only the testator may bequeath in this obedience");
 
 		DeedRow row{id::Deed{++next_deed_id_},
 					obedience.obedience_id(),
-					obedience.testator().id(),
-					obedience.executor().id(),
+					obedience.testator().Soul::id(),
+					obedience.executor().Soul::id(),
 					word.body(),
 					time_.instant(),
 					std::nullopt,

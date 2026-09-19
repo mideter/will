@@ -13,6 +13,10 @@
 namespace will::domain {
 
 
+class Executor;
+class Testator;
+
+
 /// Deed (Дело) — минимальная единица волеизъявления Завещателя Исполнителю;
 /// хранится в общем месте Послушания / Ведения (Obedience / Shepherding).
 /// Letter fixed in that place; sides from the living pair; open unless restored
@@ -27,8 +31,8 @@ public:
 		 std::optional<Timestamp> cancelled_at = std::nullopt);
 
 	id::Obedience obedience_id() const noexcept { return obedience_id_; }
-	const Soul& testator() const noexcept { return testator_; }
-	const Soul& executor() const noexcept { return executor_; }
+	const Testator& testator() const noexcept { return testator_; }
+	const Executor& executor() const noexcept { return executor_; }
 
 	const std::optional<Timestamp>& executed_at() const noexcept { return executed_at_; }
 	const std::optional<Timestamp>& cancelled_at() const noexcept { return cancelled_at_; }
@@ -39,8 +43,8 @@ public:
 
 private:
 	id::Obedience obedience_id_;
-	const Soul& testator_;
-	const Soul& executor_;
+	const Testator& testator_;
+	const Executor& executor_;
 	std::optional<Timestamp> executed_at_;
 	std::optional<Timestamp> cancelled_at_;
 };

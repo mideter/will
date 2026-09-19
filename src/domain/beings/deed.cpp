@@ -1,6 +1,8 @@
 #include "deed.h"
 
+#include "beings/executor.h"
 #include "beings/soul.h"
+#include "beings/testator.h"
 
 #include <stdexcept>
 #include <utility>
@@ -11,7 +13,7 @@ namespace will::domain {
 
 Deed::Deed(const id::Deed id, const Obedience& obedience, Word word, const Timestamp created_at,
 		   std::optional<Timestamp> executed_at, std::optional<Timestamp> cancelled_at)
-	: Letter(id::Letter{id.value()}, obedience.id(), obedience.testator().id(), std::move(word),
+	: Letter(id::Letter{id.value()}, obedience.id(), obedience.testator().Soul::id(), std::move(word),
 			 created_at)
 	, obedience_id_(obedience.obedience_id())
 	, testator_(obedience.testator())
@@ -26,8 +28,8 @@ Deed::Deed(const id::Deed id, const Obedience& obedience, Word word, const Times
 
 Deed::Deed(const id::Deed id, const Shepherding& shepherding, Word word, const Timestamp created_at,
 		   std::optional<Timestamp> executed_at, std::optional<Timestamp> cancelled_at)
-	: Letter(id::Letter{id.value()}, shepherding.id(), shepherding.testator().id(), std::move(word),
-			 created_at)
+	: Letter(id::Letter{id.value()}, shepherding.id(), shepherding.testator().Soul::id(),
+			 std::move(word), created_at)
 	, obedience_id_(shepherding.obedience_id())
 	, testator_(shepherding.testator())
 	, executor_(shepherding.executor())
