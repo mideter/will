@@ -5,7 +5,7 @@
 #include "beings/soul.h"
 #include "beings/letter.h"
 #include "beings/man.h"
-#include "beings/executor.h"
+#include "beings/novice.h"
 #include "beings/testator.h"
 #include "acts/supplication.h"
 #include "beings/deed.h"
@@ -136,7 +136,7 @@ public:
 	}
 
 	Supplication
-	supplicate(const Executor& suppliant, const Testator& testator) override
+	supplicate(const Novice& suppliant, const Testator& testator) override
 	{
 		const id::Soul suppliant_id = suppliant.Soul::id();
 		const id::Soul testator_id = testator.Soul::id();
@@ -191,7 +191,7 @@ public:
 				continue;
 
 			return Obedience{row.id, static_cast<const Testator&>(Soul::of(row.testator)),
-							 static_cast<const Executor&>(Soul::of(row.executor))};
+							 static_cast<const Novice&>(Soul::of(row.novice))};
 		}
 		throw std::invalid_argument("unknown obedience");
 	}
@@ -202,7 +202,7 @@ public:
 		out.reserve(obediences_.size());
 		for (const auto& row : obediences_) {
 			out.push_back(Obedience{row.id, static_cast<const Testator&>(Soul::of(row.testator)),
-									static_cast<const Executor&>(Soul::of(row.executor))});
+									static_cast<const Novice&>(Soul::of(row.novice))});
 		}
 		return out;
 	}
@@ -217,7 +217,7 @@ public:
 		DeedRow row{id::Deed{++next_deed_id_},
 					obedience.obedience_id(),
 					obedience.testator().Soul::id(),
-					obedience.executor().Soul::id(),
+					obedience.novice().Soul::id(),
 					word.body(),
 					time_.instant(),
 					std::nullopt,
@@ -266,14 +266,14 @@ private:
 	struct ObedienceRow {
 		id::Obedience id;
 		id::Soul testator;
-		id::Soul executor;
+		id::Soul novice;
 	};
 
 	struct DeedRow {
 		id::Deed id;
 		id::Obedience obedience;
 		id::Soul testator;
-		id::Soul executor;
+		id::Soul novice;
 		std::string body;
 		Timestamp created_at;
 		std::optional<Timestamp> executed_at;
@@ -288,10 +288,10 @@ private:
 
 	std::uint64_t allocate_place() { return ++next_place_id_; }
 
-	bool pair_exists(const id::Soul testator, const id::Soul executor) const
+	bool pair_exists(const id::Soul testator, const id::Soul novice) const
 	{
 		for (const auto& row : obediences_) {
-			if (row.testator == testator && row.executor == executor)
+			if (row.testator == testator && row.novice == novice)
 				return true;
 		}
 		return false;
@@ -325,7 +325,7 @@ private:
 
 	static void replace_status(Supplication& row, const SupplicationStatus status)
 	{
-		const Executor& suppliant = row.suppliant();
+		const Novice& suppliant = row.suppliant();
 		const Testator& testator = row.testator();
 		Timestamp created_at = row.created_at();
 		std::destroy_at(&row);

@@ -240,6 +240,25 @@ void migrate_supplications_addressee_to_testator(sqlite3* db)
 }
 
 
+void migrate_executor_soul_id_to_novice(sqlite3* db)
+{
+	if (table_has_column(db, "obediences", "executor_soul_id")
+		&& !table_has_column(db, "obediences", "novice_soul_id")) {
+		check_sqlite(sqlite3_exec(db,
+								  "ALTER TABLE obediences RENAME COLUMN executor_soul_id TO novice_soul_id;",
+								  nullptr, nullptr, nullptr),
+					 db, "rename obediences.executor_soul_id to novice_soul_id");
+	}
+	if (table_has_column(db, "deeds", "executor_soul_id")
+		&& !table_has_column(db, "deeds", "novice_soul_id")) {
+		check_sqlite(sqlite3_exec(db,
+								  "ALTER TABLE deeds RENAME COLUMN executor_soul_id TO novice_soul_id;",
+								  nullptr, nullptr, nullptr),
+					 db, "rename deeds.executor_soul_id to novice_soul_id");
+	}
+}
+
+
 void migrate_abode_men_to_abode_souls(sqlite3* db)
 {
 	if (!table_exists(db, "abode_men"))
@@ -368,7 +387,7 @@ CREATE TABLE IF NOT EXISTS supplications (
 CREATE TABLE IF NOT EXISTS obediences (
   id INTEGER PRIMARY KEY,
   testator_soul_id INTEGER NOT NULL REFERENCES souls(id),
-  executor_soul_id INTEGER NOT NULL REFERENCES souls(id),
+  novice_soul_id INTEGER NOT NULL REFERENCES souls(id),
   created_at_ns INTEGER NOT NULL,
   seceded_at_ns INTEGER
 );
@@ -377,7 +396,7 @@ CREATE TABLE IF NOT EXISTS deeds (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   obedience_id INTEGER NOT NULL REFERENCES obediences(id),
   testator_soul_id INTEGER NOT NULL REFERENCES souls(id),
-  executor_soul_id INTEGER NOT NULL REFERENCES souls(id),
+  novice_soul_id INTEGER NOT NULL REFERENCES souls(id),
   body TEXT NOT NULL,
   created_at_ns INTEGER NOT NULL,
   executed_at_ns INTEGER,
@@ -402,6 +421,7 @@ CREATE INDEX IF NOT EXISTS idx_letters_created_at ON letters(created_at_ns);
 	migrate_men_unique_soul(db_);
 	migrate_abode_men_to_abode_souls(db_);
 	migrate_supplications_addressee_to_testator(db_);
+	migrate_executor_soul_id_to_novice(db_);
 
 	check_sqlite(sqlite3_exec(db_, "UPDATE letters SET place_id = 1 WHERE place_id = 0;", nullptr, nullptr,
 							  nullptr),

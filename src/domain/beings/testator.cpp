@@ -12,7 +12,7 @@ namespace will::domain {
 
 
 Testator::Testator(Embodiment embodiment)
-	: Executor(std::move(embodiment))
+	: Novice(std::move(embodiment))
 {}
 
 
@@ -33,7 +33,7 @@ Deed Testator::will(const Shepherding& shepherding, const Word& word) const
 	if (shepherding.testator().Soul::id() != Soul::id())
 		throw std::logic_error("not the testator of this shepherding");
 
-	const Obedience face{shepherding.obedience_id(), shepherding.testator(), shepherding.executor()};
+	const Obedience face{shepherding.obedience_id(), shepherding.testator(), shepherding.novice()};
 	return temporality().bequeath(face, static_cast<const Soul&>(*this), word);
 }
 
@@ -48,10 +48,10 @@ const Shepherding& Testator::shepherding(const id::Obedience id) const
 }
 
 
-const Supplication& Testator::supplication(const Executor& executor) const
+const Supplication& Testator::supplication(const Novice& novice) const
 {
 	for (const auto& row : incoming_) {
-		if (row->suppliant().Soul::id() == executor.Soul::id())
+		if (row->suppliant().Soul::id() == novice.Soul::id())
 			return *row;
 	}
 	throw std::invalid_argument("unknown supplication");
@@ -97,11 +97,11 @@ const Supplication& Testator::receive(Supplication supplication) const
 }
 
 
-void Testator::drop_supplication(const Executor& executor) const
+void Testator::drop_supplication(const Novice& novice) const
 {
 	const auto it = std::find_if(incoming_.begin(), incoming_.end(),
 								 [&](const std::unique_ptr<Supplication>& row) {
-									 return row->suppliant().Soul::id() == executor.Soul::id();
+									 return row->suppliant().Soul::id() == novice.Soul::id();
 								 });
 	if (it == incoming_.end())
 		throw std::invalid_argument("unknown supplication");

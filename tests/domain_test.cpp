@@ -7,7 +7,7 @@
 #include "acts/obedience.h"
 #include "acts/shepherding.h"
 #include "beings/deed.h"
-#include "beings/executor.h"
+#include "beings/novice.h"
 #include "beings/testator.h"
 #include "beings/witness.h"
 #include "identity/deed.h"
@@ -72,7 +72,7 @@ TEST_CASE("welcome creates man with personal abode")
 	CHECK(&soul == static_cast<const Soul*>(&man));
 	CHECK(SoulName::parse(soul.name().text()));
 	CHECK(dynamic_cast<const Testator*>(&man));
-	CHECK(dynamic_cast<const Executor*>(&man));
+	CHECK(dynamic_cast<const Novice*>(&man));
 	CHECK(dynamic_cast<const Witness*>(&man));
 }
 
@@ -165,21 +165,21 @@ TEST_CASE("witness retell is history of observed abode")
 }
 
 
-TEST_CASE("obedience is a place for distinct testator and executor")
+TEST_CASE("obedience is a place for distinct testator and novice")
 {
 	InMemoryTemporality temporality;
 	Creation creation(temporality);
 	World& world = creation.world();
 
 	const auto& testator = static_cast<const Testator&>(world.welcome(DeviceToken::generate()));
-	const auto& executor = static_cast<const Executor&>(world.welcome(DeviceToken::generate()));
+	const auto& novice = static_cast<const Novice&>(world.welcome(DeviceToken::generate()));
 	const id::Obedience oid{7};
 
-	Obedience obedience{oid, testator, executor};
+	Obedience obedience{oid, testator, novice};
 	CHECK(obedience.id() == id::Place{oid.value()});
 	CHECK(obedience.obedience_id() == oid);
 	CHECK(&obedience.testator() == &testator);
-	CHECK(&obedience.executor() == &executor);
+	CHECK(&obedience.novice() == &novice);
 
 	CHECK_THROWS_AS((Obedience{id::Obedience{8}, testator, testator}), std::invalid_argument);
 }
@@ -193,12 +193,12 @@ TEST_CASE("supplicate accept creates obedience owned on both faces")
 
 	const Man& a = world.welcome(DeviceToken::generate());
 	const Man& b = world.welcome(DeviceToken::generate());
-	const auto& executor = static_cast<const Executor&>(a);
+	const auto& novice = static_cast<const Novice&>(a);
 	const auto& testator = static_cast<const Testator&>(b);
 
-	executor.supplicate(testator);
+	novice.supplicate(testator);
 	CHECK(testator.supplications().size() == 1);
-	const Supplication& ask = testator.supplication(executor);
+	const Supplication& ask = testator.supplication(novice);
 	CHECK(ask.suppliant().Soul::id() == a.Soul::id());
 	CHECK(ask.testator().Soul::id() == b.Soul::id());
 	CHECK(ask.status() == SupplicationStatus::pending);
@@ -208,13 +208,13 @@ TEST_CASE("supplicate accept creates obedience owned on both faces")
 	CHECK(testator.supplications().empty());
 	REQUIRE(temporality.obediences().size() == 1);
 	const Obedience& obedience =
-		executor.obedience(temporality.obediences().front().obedience_id());
+		novice.obedience(temporality.obediences().front().obedience_id());
 	CHECK(&obedience.testator() == &testator);
-	CHECK(&obedience.executor() == &executor);
+	CHECK(&obedience.novice() == &novice);
 	CHECK(obedience.id().value() != a.Soul::id().value());
 	CHECK(obedience.id().value() != b.Soul::id().value());
 	CHECK(temporality.pending_supplications(b.Soul::id()).empty());
-	CHECK(&executor.obedience(obedience.obedience_id()) == &obedience);
+	CHECK(&novice.obedience(obedience.obedience_id()) == &obedience);
 	CHECK(&testator.shepherding(obedience.obedience_id()).testator() == &testator);
 }
 
@@ -227,18 +227,18 @@ TEST_CASE("refuse closes pending supplication; wrong party cannot accept")
 
 	const Man& a = world.welcome(DeviceToken::generate());
 	const Man& b = world.welcome(DeviceToken::generate());
-	const auto& executor = static_cast<const Executor&>(a);
+	const auto& novice = static_cast<const Novice&>(a);
 	const auto& testator = static_cast<const Testator&>(b);
 	const auto& stranger = static_cast<const Testator&>(a);
 
-	executor.supplicate(testator);
-	const Supplication& ask = testator.supplication(executor);
+	novice.supplicate(testator);
+	const Supplication& ask = testator.supplication(novice);
 	CHECK_THROWS_AS(stranger.accept(ask), std::logic_error);
 
 	testator.refuse(ask);
 	CHECK(testator.supplications().empty());
 	CHECK(temporality.pending_supplications(b.Soul::id()).empty());
-	CHECK_THROWS_AS(testator.supplication(executor), std::invalid_argument);
+	CHECK_THROWS_AS(testator.supplication(novice), std::invalid_argument);
 }
 
 
@@ -250,25 +250,25 @@ TEST_CASE("will and execute within obedience")
 
 	const Man& a = world.welcome(DeviceToken::generate());
 	const Man& b = world.welcome(DeviceToken::generate());
-	const auto& executor = static_cast<const Executor&>(a);
+	const auto& novice = static_cast<const Novice&>(a);
 	const auto& testator = static_cast<const Testator&>(b);
 
-	executor.supplicate(testator);
-	testator.accept(testator.supplication(executor));
+	novice.supplicate(testator);
+	testator.accept(testator.supplication(novice));
 	REQUIRE(temporality.obediences().size() == 1);
 	const Obedience& obedience =
-		executor.obedience(temporality.obediences().front().obedience_id());
+		novice.obedience(temporality.obediences().front().obedience_id());
 	const Shepherding& shepherding = testator.shepherding(obedience.obedience_id());
 	const Deed bequeathed = testator.will(shepherding, Word{"fast"});
 	CHECK(bequeathed.open());
 	CHECK(bequeathed.body() == "fast");
 	CHECK(&bequeathed.testator() == &testator);
-	CHECK(&bequeathed.executor() == &executor);
+	CHECK(&bequeathed.novice() == &novice);
 
 	CHECK_THROWS_AS(static_cast<const Testator&>(a).will(shepherding, Word{"no"}), std::logic_error);
 
-	const Deed done = executor.execute(bequeathed);
+	const Deed done = novice.execute(bequeathed);
 	CHECK(done.executed());
 	CHECK_FALSE(done.open());
-	CHECK_THROWS_AS(executor.execute(done), std::logic_error);
+	CHECK_THROWS_AS(novice.execute(done), std::logic_error);
 }

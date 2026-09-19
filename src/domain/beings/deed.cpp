@@ -1,6 +1,6 @@
 #include "deed.h"
 
-#include "beings/executor.h"
+#include "beings/novice.h"
 #include "beings/soul.h"
 #include "beings/testator.h"
 
@@ -17,7 +17,7 @@ Deed::Deed(const id::Deed id, const Obedience& obedience, Word word, const Times
 			 created_at)
 	, obedience_id_(obedience.obedience_id())
 	, testator_(obedience.testator())
-	, executor_(obedience.executor())
+	, novice_(obedience.novice())
 	, executed_at_(std::move(executed_at))
 	, cancelled_at_(std::move(cancelled_at))
 {
@@ -32,7 +32,7 @@ Deed::Deed(const id::Deed id, const Shepherding& shepherding, Word word, const T
 			 std::move(word), created_at)
 	, obedience_id_(shepherding.obedience_id())
 	, testator_(shepherding.testator())
-	, executor_(shepherding.executor())
+	, novice_(shepherding.novice())
 	, executed_at_(std::move(executed_at))
 	, cancelled_at_(std::move(cancelled_at))
 {

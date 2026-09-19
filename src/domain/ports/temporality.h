@@ -27,7 +27,7 @@
 namespace will::domain {
 
 
-class Executor;
+class Novice;
 class Testator;
 
 
@@ -61,7 +61,7 @@ public:
 	virtual std::vector<Letter> letters(id::Place place, std::uint32_t limit) const = 0;
 
 	/// Offer obedience: suppliant asks testator to become Завещатель.
-	virtual Supplication supplicate(const Executor& suppliant, const Testator& testator) = 0;
+	virtual Supplication supplicate(const Novice& suppliant, const Testator& testator) = 0;
 
 	/// Pending supplications addressed to this testator.
 	virtual std::vector<Supplication> pending_supplications(id::Soul testator) const = 0;

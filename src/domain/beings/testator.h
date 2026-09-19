@@ -4,7 +4,7 @@
 #include "acts/obedience.h"
 #include "acts/shepherding.h"
 #include "acts/supplication.h"
-#include "beings/executor.h"
+#include "beings/novice.h"
 #include "beings/deed.h"
 #include "values/word.h"
 
@@ -19,10 +19,10 @@ namespace will::domain {
 class World;
 
 
-/// Testator (Завещатель, Тренер) — Executor who may pass received will on as his own.
+/// Testator (Завещатель, Тренер) — Novice who may pass received will on as his own.
 /// Owns Shepherding (Ведение) faces and incoming pending Supplications on the heap;
 /// Temporality keeps the same in time. Only World may birth a Testator onto the heap.
-class Testator : public Executor {
+class Testator : public Novice {
 public:
 	/// Accept a pending incoming; the act signs and births both faces.
 	void accept(const Supplication& ask) const;
@@ -36,8 +36,8 @@ public:
 	/// Owned Shepherding face by place id. Throws if unknown.
 	const Shepherding& shepherding(id::Obedience id) const;
 
-	/// Owned incoming pending from this executor (suppliant). Throws if unknown.
-	const Supplication& supplication(const Executor& executor) const;
+	/// Owned incoming pending from this novice (suppliant). Throws if unknown.
+	const Supplication& supplication(const Novice& novice) const;
 
 	/// Incoming pending supplications kept on this testator.
 	std::vector<std::reference_wrapper<const Supplication>> supplications() const;
@@ -54,8 +54,8 @@ private:
 	/// Receive an incoming pending (signed Supplication / awaken).
 	const Supplication& receive(Supplication supplication) const;
 
-	/// Drop an incoming after sign or reject (keyed by executor).
-	void drop_supplication(const Executor& executor) const;
+	/// Drop an incoming after sign or reject (keyed by novice).
+	void drop_supplication(const Novice& novice) const;
 
 	mutable std::vector<std::unique_ptr<Shepherding>> shepherdings_;
 	mutable std::vector<std::unique_ptr<Supplication>> incoming_;

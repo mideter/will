@@ -7,18 +7,18 @@
 namespace will::domain {
 
 
-class Executor;
+class Novice;
 class Testator;
 
 
-/// Obedience (Послушание) — Executor-facing interface of a shared Place:
-/// ordered pair (testator, executor). Same place as Shepherding (Ведение);
+/// Obedience (Послушание) — Novice-facing interface of a shared Place:
+/// ordered pair (testator, novice). Same place as Shepherding (Ведение);
 /// one id. Where a Deed (Дело) is kept; born from accepted Supplication.
-/// Owned on the heap by the Executor; also kept in Temporality.
+/// Owned on the heap by the Novice; also kept in Temporality.
 /// Ending a place (secede) is deferred for now — all kept places are active.
 class Obedience : public Place {
 public:
-	Obedience(id::Obedience id, const Testator& testator, const Executor& executor);
+	Obedience(id::Obedience id, const Testator& testator, const Novice& novice);
 	Obedience(Obedience&& other) noexcept;
 	Obedience& operator=(Obedience&&) = delete;
 	Obedience(const Obedience&) = delete;
@@ -28,11 +28,11 @@ public:
 	id::Obedience obedience_id() const noexcept { return id::Obedience{id().value()}; }
 
 	const Testator& testator() const noexcept { return testator_; }
-	const Executor& executor() const noexcept { return executor_; }
+	const Novice& novice() const noexcept { return novice_; }
 
 private:
 	const Testator& testator_;
-	const Executor& executor_;
+	const Novice& novice_;
 };
 
 

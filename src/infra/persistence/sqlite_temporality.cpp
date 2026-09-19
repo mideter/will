@@ -1,6 +1,6 @@
 #include "sqlite_temporality.h"
 
-#include "beings/executor.h"
+#include "beings/novice.h"
 #include "beings/soul.h"
 #include "beings/testator.h"
 #include "values/abode_name.h"
@@ -57,7 +57,7 @@ domain::Supplication read_supplication(sqlite3_stmt* stmt)
 	const domain::id::Soul suppliant_id{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 0))};
 	const domain::id::Soul testator_id{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 1))};
 	return domain::Supplication{
-		static_cast<const domain::Executor&>(domain::Soul::of(suppliant_id)),
+		static_cast<const domain::Novice&>(domain::Soul::of(suppliant_id)),
 		static_cast<const domain::Testator&>(domain::Soul::of(testator_id)),
 		status_from_text(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2))),
 		domain::Timestamp{sqlite3_column_int64(stmt, 3)},
@@ -84,18 +84,18 @@ std::uint64_t next_place_id(sqlite3* db)
 }
 
 
-bool pair_exists(sqlite3* db, const domain::id::Soul testator, const domain::id::Soul executor)
+bool pair_exists(sqlite3* db, const domain::id::Soul testator, const domain::id::Soul novice)
 {
 	sqlite3_stmt* stmt = nullptr;
 	check_sqlite(sqlite3_prepare_v2(db,
 									"SELECT 1 FROM obediences "
-									"WHERE testator_soul_id = ? AND executor_soul_id = ? LIMIT 1;",
+									"WHERE testator_soul_id = ? AND novice_soul_id = ? LIMIT 1;",
 									-1, &stmt, nullptr),
 				 db, "prepare pair_exists");
 	check_sqlite(sqlite3_bind_int64(stmt, 1, static_cast<sqlite3_int64>(testator.value())), db,
 				 "bind testator");
-	check_sqlite(sqlite3_bind_int64(stmt, 2, static_cast<sqlite3_int64>(executor.value())), db,
-				 "bind executor");
+	check_sqlite(sqlite3_bind_int64(stmt, 2, static_cast<sqlite3_int64>(novice.value())), db,
+				 "bind novice");
 	const int rc = sqlite3_step(stmt);
 	const bool exists = rc == SQLITE_ROW;
 	sqlite3_finalize(stmt);
@@ -376,7 +376,7 @@ std::vector<domain::Letter> SqliteTemporality::letters(const domain::id::Place p
 }
 
 
-domain::Supplication SqliteTemporality::supplicate(const domain::Executor& suppliant,
+domain::Supplication SqliteTemporality::supplicate(const domain::Novice& suppliant,
 												   const domain::Testator& testator)
 {
 	const domain::id::Soul suppliant_id = suppliant.Soul::id();
@@ -511,7 +511,7 @@ domain::Obedience SqliteTemporality::accept(const domain::Supplication& ask)
 	sqlite3_stmt* ins = nullptr;
 	check_sqlite(sqlite3_prepare_v2(db,
 									"INSERT INTO obediences "
-									"(id, testator_soul_id, executor_soul_id, created_at_ns, seceded_at_ns) "
+									"(id, testator_soul_id, novice_soul_id, created_at_ns, seceded_at_ns) "
 									"VALUES (?, ?, ?, ?, NULL);",
 									-1, &ins, nullptr),
 				 db, "prepare insert obedience");
@@ -519,7 +519,7 @@ domain::Obedience SqliteTemporality::accept(const domain::Supplication& ask)
 	check_sqlite(sqlite3_bind_int64(ins, 2, static_cast<sqlite3_int64>(row.testator().Soul::id().value())), db,
 				 "bind testator");
 	check_sqlite(sqlite3_bind_int64(ins, 3, static_cast<sqlite3_int64>(row.suppliant().Soul::id().value())), db,
-				 "bind executor");
+				 "bind novice");
 	check_sqlite(sqlite3_bind_int64(ins, 4, ts.value()), db, "bind created_at");
 	check_sqlite(sqlite3_step(ins), db, "insert obedience step");
 	sqlite3_finalize(ins);
@@ -562,7 +562,7 @@ domain::Obedience SqliteTemporality::obedience(const domain::id::Obedience id) c
 	sqlite3* const db = database_.db();
 	sqlite3_stmt* stmt = nullptr;
 	check_sqlite(sqlite3_prepare_v2(db,
-									"SELECT id, testator_soul_id, executor_soul_id "
+									"SELECT id, testator_soul_id, novice_soul_id "
 									"FROM obediences WHERE id = ?;",
 									-1, &stmt, nullptr),
 				 db, "prepare obedience");
@@ -579,7 +579,7 @@ domain::Obedience SqliteTemporality::obedience(const domain::id::Obedience id) c
 		domain::id::Obedience{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 0))},
 		static_cast<const domain::Testator&>(domain::Soul::of(
 			domain::id::Soul{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 1))})),
-		static_cast<const domain::Executor&>(domain::Soul::of(
+		static_cast<const domain::Novice&>(domain::Soul::of(
 			domain::id::Soul{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 2))})),
 	};
 
@@ -638,7 +638,7 @@ domain::Deed SqliteTemporality::bequeath(const domain::Obedience& obedience,
 	sqlite3_stmt* stmt = nullptr;
 	check_sqlite(sqlite3_prepare_v2(db,
 									"INSERT INTO deeds "
-									"(obedience_id, testator_soul_id, executor_soul_id, body, "
+									"(obedience_id, testator_soul_id, novice_soul_id, body, "
 									"created_at_ns, executed_at_ns, cancelled_at_ns) "
 									"VALUES (?, ?, ?, ?, ?, NULL, NULL);",
 									-1, &stmt, nullptr),
@@ -647,8 +647,8 @@ domain::Deed SqliteTemporality::bequeath(const domain::Obedience& obedience,
 				 db, "bind obedience_id");
 	check_sqlite(sqlite3_bind_int64(stmt, 2, static_cast<sqlite3_int64>(obedience.testator().Soul::id().value())),
 				 db, "bind testator");
-	check_sqlite(sqlite3_bind_int64(stmt, 3, static_cast<sqlite3_int64>(obedience.executor().Soul::id().value())),
-				 db, "bind executor");
+	check_sqlite(sqlite3_bind_int64(stmt, 3, static_cast<sqlite3_int64>(obedience.novice().Soul::id().value())),
+				 db, "bind novice");
 	check_sqlite(sqlite3_bind_text(stmt, 4, word.body().data(), static_cast<int>(word.body().size()),
 								   SQLITE_TRANSIENT),
 				 db, "bind body");

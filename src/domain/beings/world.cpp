@@ -2,7 +2,7 @@
 
 #include "acts/shepherding.h"
 #include "acts/supplication.h"
-#include "beings/executor.h"
+#include "beings/novice.h"
 #include "beings/testator.h"
 #include "ports/temporality.h"
 #include "values/soul_name.h"
@@ -28,10 +28,10 @@ void World::awaken()
 
 	for (const Obedience& place : temporality().obediences()) {
 		const Testator& testator = place.testator();
-		const Executor& executor = place.executor();
+		const Novice& novice = place.novice();
 
-		executor.keep(Obedience{place.obedience_id(), testator, executor});
-		testator.keep(Shepherding{place.obedience_id(), testator, executor});
+		novice.keep(Obedience{place.obedience_id(), testator, novice});
+		testator.keep(Shepherding{place.obedience_id(), testator, novice});
 	}
 
 	for (const auto& [soul_id, man] : men_) {

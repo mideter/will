@@ -2,7 +2,7 @@
 
 #include "acts/obedience.h"
 #include "acts/shepherding.h"
-#include "beings/executor.h"
+#include "beings/novice.h"
 #include "beings/soul.h"
 #include "beings/testator.h"
 #include "ports/temporality.h"
@@ -14,7 +14,7 @@
 namespace will::domain {
 
 
-Supplication::Supplication(const Executor& suppliant, const Testator& testator,
+Supplication::Supplication(const Novice& suppliant, const Testator& testator,
 						   const SupplicationStatus status, Timestamp created_at)
 	: suppliant_(suppliant)
 	, testator_(testator)
@@ -26,9 +26,9 @@ Supplication::Supplication(const Executor& suppliant, const Testator& testator,
 }
 
 
-void Supplication::sign(const Executor& executor) const
+void Supplication::sign(const Novice& novice) const
 {
-	if (executor.Soul::id() != suppliant_.Soul::id())
+	if (novice.Soul::id() != suppliant_.Soul::id())
 		throw std::logic_error("only the suppliant may sign this supplication");
 	if (status_ != SupplicationStatus::pending)
 		throw std::logic_error("supplication is not pending");
@@ -48,11 +48,11 @@ void Supplication::sign(const Testator& testator) const
 
 	const Obedience created = testator.temporality().accept(incoming);
 	const Testator& place_testator = created.testator();
-	const Executor& place_executor = created.executor();
+	const Novice& place_novice = created.novice();
 	const id::Obedience oid = created.obedience_id();
 
-	testator.keep(Shepherding{oid, place_testator, place_executor});
-	place_executor.keep(Obedience{oid, place_testator, place_executor});
+	testator.keep(Shepherding{oid, place_testator, place_novice});
+	place_novice.keep(Obedience{oid, place_testator, place_novice});
 	testator.drop_supplication(suppliant_);
 }
 

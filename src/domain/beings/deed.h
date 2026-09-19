@@ -13,7 +13,7 @@
 namespace will::domain {
 
 
-class Executor;
+class Novice;
 class Testator;
 
 
@@ -32,7 +32,7 @@ public:
 
 	id::Obedience obedience_id() const noexcept { return obedience_id_; }
 	const Testator& testator() const noexcept { return testator_; }
-	const Executor& executor() const noexcept { return executor_; }
+	const Novice& novice() const noexcept { return novice_; }
 
 	const std::optional<Timestamp>& executed_at() const noexcept { return executed_at_; }
 	const std::optional<Timestamp>& cancelled_at() const noexcept { return cancelled_at_; }
@@ -44,7 +44,7 @@ public:
 private:
 	id::Obedience obedience_id_;
 	const Testator& testator_;
-	const Executor& executor_;
+	const Novice& novice_;
 	std::optional<Timestamp> executed_at_;
 	std::optional<Timestamp> cancelled_at_;
 };

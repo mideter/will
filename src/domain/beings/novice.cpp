@@ -1,4 +1,4 @@
-#include "executor.h"
+#include "novice.h"
 
 #include "beings/soul.h"
 #include "beings/testator.h"
@@ -11,26 +11,25 @@
 namespace will::domain {
 
 
-Executor::Executor(Embodiment embodiment)
+Novice::Novice(Embodiment embodiment)
 	: Witness(std::move(embodiment))
 {}
 
 
-void Executor::supplicate(const Testator& testator) const
+void Novice::supplicate(const Testator& testator) const
 {
 	if (testator.Soul::id() == Soul::id())
 		throw std::invalid_argument("cannot supplicate oneself");
 
 	Supplication ask = temporality().supplicate(*this, testator);
-
 	ask.sign(*this);
 }
 
 
-Deed Executor::execute(const Deed& deed) const
+Deed Novice::execute(const Deed& deed) const
 {
-	if (deed.executor().Soul::id() != Soul::id())
-		throw std::logic_error("not the executor of this deed");
+	if (deed.novice().Soul::id() != Soul::id())
+		throw std::logic_error("not the novice of this deed");
 
 	if (!deed.open())
 		throw std::logic_error("deed is not open");
@@ -41,7 +40,7 @@ Deed Executor::execute(const Deed& deed) const
 }
 
 
-const Obedience& Executor::obedience(const id::Obedience id) const
+const Obedience& Novice::obedience(const id::Obedience id) const
 {
 	for (const auto& place : obediences_) {
 		if (place->obedience_id() == id)
@@ -51,7 +50,7 @@ const Obedience& Executor::obedience(const id::Obedience id) const
 }
 
 
-const Obedience& Executor::keep(Obedience place) const
+const Obedience& Novice::keep(Obedience place) const
 {
 	const id::Obedience id = place.obedience_id();
 	for (const auto& existing : obediences_) {

@@ -16,25 +16,25 @@ namespace will::domain {
 class Testator;
 
 
-/// Executor (Послушник) — Исполнитель: исполняет Дело в Послушании.
+/// Novice (Послушник) — Исполнитель: исполняет Дело в Послушании.
 /// Owns Obedience faces on the heap; Temporality keeps the same places in time.
 /// Mode is disclosed in an Obedience; the living heap object is always Testator.
-class Executor : public Witness {
+class Novice : public Witness {
 public:
-	/// Ask testator to become Завещатель; this soul will be the executor.
-	/// The pending Supplication is signed by this executor (lodge + Temporality).
+	/// Ask testator to become Завещатель; this soul will be the novice.
+	/// The pending Supplication is signed by this novice (lodge + Temporality).
 	void supplicate(const Testator& testator) const;
 
-	/// Carry out an open deed in an obedience where this soul is executor.
+	/// Carry out an open deed in an obedience where this soul is novice.
 	Deed execute(const Deed& deed) const;
 
 	/// Owned Obedience face by place id. Throws if unknown.
 	const Obedience& obedience(id::Obedience id) const;
 
 protected:
-	explicit Executor(Embodiment embodiment);
+	explicit Novice(Embodiment embodiment);
 
-	/// Keep an Obedience face on this executor (signed Supplication / awaken).
+	/// Keep an Obedience face on this novice (signed Supplication / awaken).
 	const Obedience& keep(Obedience place) const;
 
 private:
