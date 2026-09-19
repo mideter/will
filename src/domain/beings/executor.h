@@ -13,7 +13,7 @@ namespace will::domain {
 class Soul;
 
 
-/// Executor (Послушник) — Witness of a will other than his own.
+/// Executor (Послушник) — Исполнитель: исполняет Дело в Послушании.
 /// Mode is disclosed in an Obedience; the living heap object is always Testator.
 class Executor : public Witness {
 public:
