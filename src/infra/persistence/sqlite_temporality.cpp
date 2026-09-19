@@ -408,6 +408,7 @@ domain::Supplication SqliteTemporality::supplicate(const domain::Soul& suppliant
 	sqlite3_finalize(pending_stmt);
 	check_sqlite(pending_rc == SQLITE_ROW || pending_rc == SQLITE_DONE ? SQLITE_OK : pending_rc, db,
 				 "pending step");
+
 	if (pending_exists)
 		throw std::logic_error("pending supplication already exists for this pair");
 
