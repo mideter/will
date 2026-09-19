@@ -26,10 +26,10 @@ Supplication::Supplication(const Executor& suppliant, const Testator& testator,
 }
 
 
-void Supplication::entrust(const Executor& executor) const
+void Supplication::sign(const Executor& executor) const
 {
 	if (executor.Soul::id() != suppliant_.Soul::id())
-		throw std::logic_error("only the suppliant may entrust this supplication");
+		throw std::logic_error("only the suppliant may sign this supplication");
 	if (status_ != SupplicationStatus::pending)
 		throw std::logic_error("supplication is not pending");
 
@@ -37,7 +37,7 @@ void Supplication::entrust(const Executor& executor) const
 }
 
 
-const Obedience& Supplication::consent(const Testator& testator) const
+void Supplication::sign(const Testator& testator) const
 {
 	if (testator.Soul::id() != testator_.Soul::id())
 		throw std::logic_error("supplication is not addressed to this soul");
@@ -52,14 +52,12 @@ const Obedience& Supplication::consent(const Testator& testator) const
 	const id::Obedience oid = created.obedience_id();
 
 	testator.keep(Shepherding{oid, place_testator, place_executor});
-	const Obedience& obedience =
-		place_executor.keep(Obedience{oid, place_testator, place_executor});
+	place_executor.keep(Obedience{oid, place_testator, place_executor});
 	testator.drop_supplication(suppliant_);
-	return obedience;
 }
 
 
-void Supplication::dismiss(const Testator& testator) const
+void Supplication::reject(const Testator& testator) const
 {
 	if (testator.Soul::id() != testator_.Soul::id())
 		throw std::logic_error("supplication is not addressed to this soul");

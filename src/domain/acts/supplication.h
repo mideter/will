@@ -9,7 +9,6 @@ namespace will::domain {
 
 
 class Executor;
-class Obedience;
 class Testator;
 
 
@@ -26,9 +25,9 @@ enum class SupplicationStatus : std::uint8_t {
 /// Holds living beings known to Heaven (stable while World lives).
 /// Living identity is the ordered pair (suppliant, testator) while pending.
 ///
-/// Each side entrusts this act to do what is necessary on its behalf:
-/// the executor at send (lodge; later keep Obedience), the testator at consent
-/// (Shepherding, Temporality, drop). Roles do not reach each other.
+/// Each side signs this act to authorize what is necessary on its behalf:
+/// the executor at send (lodge; later keep Obedience), the testator at accept
+/// (Shepherding, Temporality, drop) or reject. Roles do not reach each other.
 class Supplication {
 public:
 	Supplication(const Executor& suppliant, const Testator& testator, SupplicationStatus status,
@@ -39,14 +38,14 @@ public:
 	SupplicationStatus status() const noexcept { return status_; }
 	Timestamp created_at() const noexcept { return created_at_; }
 
-	/// Executor entrusts this pending act: lodge with the testator; on consent, keep Obedience.
-	void entrust(const Executor& executor) const;
+	/// Executor signs: lodge with the testator; on testator sign, keep Obedience.
+	void sign(const Executor& executor) const;
 
-	/// Testator entrusts this pending act: birth both faces in Temporality and on the heap.
-	const Obedience& consent(const Testator& testator) const;
+	/// Testator signs: birth both faces in Temporality and on the heap.
+	void sign(const Testator& testator) const;
 
-	/// Testator entrusts this pending act: refuse in Temporality and drop from the heap.
-	void dismiss(const Testator& testator) const;
+	/// Testator rejects: refuse in Temporality and drop from the heap.
+	void reject(const Testator& testator) const;
 
 private:
 	const Executor& suppliant_;

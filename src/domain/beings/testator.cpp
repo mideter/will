@@ -16,15 +16,23 @@ Testator::Testator(Embodiment embodiment)
 {}
 
 
-const Obedience& Testator::accept(const Supplication& supplication) const
+const Obedience& Testator::accept(const Supplication& ask) const
 {
-	return supplication.consent(*this);
+	const Executor& executor = ask.suppliant();
+	ask.sign(*this);
+
+	for (const auto& place : shepherdings_) {
+		if (place->executor().Soul::id() == executor.Soul::id())
+			return executor.obedience(place->obedience_id());
+	}
+
+	throw std::logic_error("obedience not born");
 }
 
 
-void Testator::refuse(const Supplication& supplication) const
+void Testator::refuse(const Supplication& ask) const
 {
-	supplication.dismiss(*this);
+	ask.reject(*this);
 }
 
 

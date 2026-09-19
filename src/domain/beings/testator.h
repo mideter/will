@@ -24,11 +24,11 @@ class World;
 /// Temporality keeps the same in time. Only World may birth a Testator onto the heap.
 class Testator : public Executor {
 public:
-	/// Accept a pending incoming supplication; entrusts the act to birth both faces.
+	/// Accept a pending incoming; the act signs and births both faces.
 	/// Returns the Executor-owned Obedience.
 	const Obedience& accept(const Supplication& supplication) const;
 
-	/// Refuse a pending incoming; entrusts the act to dismiss itself.
+	/// Refuse a pending incoming; the act rejects itself.
 	void refuse(const Supplication& supplication) const;
 
 	/// Bequeath a word through the Shepherding face of a shared place.
@@ -49,13 +49,13 @@ private:
 
 	explicit Testator(Embodiment embodiment);
 
-	/// Keep a Shepherding face on this testator (entrusted Supplication / awaken).
+	/// Keep a Shepherding face on this testator (signed Supplication / awaken).
 	const Shepherding& keep(Shepherding place) const;
 
-	/// Receive an incoming pending (entrusted Supplication / awaken).
+	/// Receive an incoming pending (signed Supplication / awaken).
 	const Supplication& receive(Supplication supplication) const;
 
-	/// Drop an incoming after consent or dismiss (keyed by executor).
+	/// Drop an incoming after sign or reject (keyed by executor).
 	void drop_supplication(const Executor& executor) const;
 
 	mutable std::vector<std::unique_ptr<Shepherding>> shepherdings_;

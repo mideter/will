@@ -23,7 +23,7 @@ void Executor::supplicate(const Testator& testator) const
 
 	Supplication ask = temporality().supplicate(*this, testator);
 
-	ask.entrust(*this);
+	ask.sign(*this);
 }
 
 
