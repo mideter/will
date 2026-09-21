@@ -306,10 +306,9 @@ private:
 
 	Deed make_deed(const DeedRow& row) const
 	{
-		return Deed{row.id, row.obedience,
-					static_cast<const Testator&>(Soul::of(row.testator)),
-					static_cast<const Novice&>(Soul::of(row.novice)), Word{row.body},
-					row.created_at, row.executed_at, row.cancelled_at};
+		const auto& place = static_cast<const Novice&>(Soul::of(row.novice)).obedience(row.obedience);
+		return Deed{row.id, dynamic_cast<const Tie&>(place), Word{row.body}, row.created_at,
+					row.executed_at, row.cancelled_at};
 	}
 
 	std::vector<Supplication>::const_iterator find_pending(const Supplication& ask) const

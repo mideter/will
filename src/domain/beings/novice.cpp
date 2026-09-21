@@ -30,12 +30,12 @@ void Novice::supplicate(const Testator& addressee) const
 
 Deed Novice::execute(const Deed& deed) const
 {
-	if (deed.novice().Soul::id() != Soul::id())
+	if (deed.tie().novice().Soul::id() != Soul::id())
 		throw std::logic_error("not the novice of this deed");
 	if (!deed.open())
 		throw std::logic_error("deed is not open");
 
-	(void)obedience(deed.tie_id());
+	(void)obedience(id::Tie{deed.tie().id().value()});
 
 	return temporality().execute(deed);
 }

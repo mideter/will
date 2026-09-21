@@ -1,5 +1,6 @@
 #include "sqlite_temporality.h"
 
+#include "acts/tie.h"
 #include "beings/novice.h"
 #include "beings/soul.h"
 #include "beings/testator.h"
@@ -29,6 +30,13 @@ domain::Supplication read_pending_supplication(sqlite3_stmt* stmt)
 		static_cast<const domain::Novice&>(domain::Soul::of(suppliant_id)),
 		static_cast<const domain::Testator&>(domain::Soul::of(addressee_id)),
 	};
+}
+
+
+const domain::Tie& live_tie(const domain::id::Tie id, const domain::id::Soul novice)
+{
+	const auto& place = static_cast<const domain::Novice&>(domain::Soul::of(novice)).obedience(id);
+	return dynamic_cast<const domain::Tie&>(place);
 }
 
 
@@ -468,7 +476,7 @@ domain::Deed SqliteTemporality::will(const domain::Obedience& obedience,
 
 	const domain::id::Deed did{sqlite_last_insert_id(db)};
 
-	return domain::Deed{did, obedience, word, ts};
+	return domain::Deed{did, dynamic_cast<const domain::Tie&>(obedience), word, ts};
 }
 
 
@@ -512,11 +520,7 @@ domain::Deed SqliteTemporality::execute(const domain::Deed& deed)
 	}
 
 	const domain::Tying kept = tying(oid);
-	return domain::Deed{
-		did, kept.id(),
-		static_cast<const domain::Testator&>(domain::Soul::of(kept.testator())),
-		static_cast<const domain::Novice&>(domain::Soul::of(kept.novice())),
-		word, created, ts, std::nullopt};
+	return domain::Deed{did, live_tie(kept.id(), kept.novice()), word, created, ts, std::nullopt};
 }
 
 
@@ -551,11 +555,8 @@ domain::Deed SqliteTemporality::deed(const domain::id::Deed id) const
 	}
 
 	const domain::Tying kept = tying(oid);
-	return domain::Deed{
-		did, kept.id(),
-		static_cast<const domain::Testator&>(domain::Soul::of(kept.testator())),
-		static_cast<const domain::Novice&>(domain::Soul::of(kept.novice())),
-		domain::Word{body_str}, created, executed, cancelled};
+	return domain::Deed{did, live_tie(kept.id(), kept.novice()), domain::Word{body_str}, created,
+						executed, cancelled};
 }
 
 

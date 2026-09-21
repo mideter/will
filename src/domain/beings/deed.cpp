@@ -1,6 +1,5 @@
 #include "deed.h"
 
-#include "beings/novice.h"
 #include "beings/soul.h"
 #include "beings/testator.h"
 
@@ -11,21 +10,11 @@
 namespace will::domain {
 
 
-Deed::Deed(const id::Deed id, const Obedience& obedience, Word word, const Timestamp created_at,
+Deed::Deed(const id::Deed id, const Tie& tie, Word word, const Timestamp created_at,
 		   std::optional<Timestamp> executed_at, std::optional<Timestamp> cancelled_at)
-	: Deed(id, id::Tie{obedience.id().value()}, obedience.testator(), obedience.novice(),
-		   std::move(word), created_at, std::move(executed_at), std::move(cancelled_at))
-{}
-
-
-Deed::Deed(const id::Deed id, const id::Tie place, const Testator& testator,
-		   const Novice& novice, Word word, const Timestamp created_at,
-		   std::optional<Timestamp> executed_at, std::optional<Timestamp> cancelled_at)
-	: Letter(id::Letter{id.value()}, id::Place{place.value()}, testator.Soul::id(), std::move(word),
+	: Letter(id::Letter{id.value()}, tie.id(), tie.testator().Soul::id(), std::move(word),
 			 created_at)
-	, tie_id_(place)
-	, testator_(testator)
-	, novice_(novice)
+	, tie_(tie)
 	, executed_at_(std::move(executed_at))
 	, cancelled_at_(std::move(cancelled_at))
 {

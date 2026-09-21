@@ -263,8 +263,8 @@ TEST_CASE("will and execute within obedience")
 	const Deed deed = testator.will(shepherding, Word{"fast"});
 	CHECK(deed.open());
 	CHECK(deed.body() == "fast");
-	CHECK(&deed.testator() == &testator);
-	CHECK(&deed.novice() == &novice);
+	CHECK(&deed.tie().testator() == &testator);
+	CHECK(&deed.tie().novice() == &novice);
 
 	CHECK_THROWS_AS(static_cast<const Testator&>(a).will(shepherding, Word{"no"}), std::logic_error);
 
