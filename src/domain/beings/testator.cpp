@@ -48,10 +48,10 @@ const Shepherding& Testator::shepherding(const id::Obedience id) const
 }
 
 
-const Supplication& Testator::supplication(const Novice& novice) const
+const Supplication& Testator::supplication(const Novice& suppliant) const
 {
 	for (const auto& row : incoming_) {
-		if (row->suppliant().Soul::id() == novice.Soul::id())
+		if (row->suppliant().Soul::id() == suppliant.Soul::id())
 			return *row;
 	}
 	throw std::invalid_argument("unknown supplication");
@@ -95,11 +95,11 @@ const Supplication& Testator::receive(Supplication supplication) const
 }
 
 
-void Testator::drop_supplication(const Novice& novice) const
+void Testator::drop_supplication(const Novice& suppliant) const
 {
 	const auto it = std::find_if(incoming_.begin(), incoming_.end(),
 								 [&](const std::unique_ptr<Supplication>& row) {
-									 return row->suppliant().Soul::id() == novice.Soul::id();
+									 return row->suppliant().Soul::id() == suppliant.Soul::id();
 								 });
 	if (it == incoming_.end())
 		throw std::invalid_argument("unknown supplication");

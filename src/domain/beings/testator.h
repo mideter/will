@@ -29,7 +29,7 @@ public:
 	Deed will(const Shepherding& shepherding, const Word& word) const;
 
 	const Shepherding& shepherding(id::Obedience id) const;
-	const Supplication& supplication(const Novice& novice) const;
+	const Supplication& supplication(const Novice& suppliant) const;
 	std::vector<std::reference_wrapper<const Supplication>> supplications() const;
 
 private:
@@ -40,7 +40,7 @@ private:
 
 	const Shepherding& keep(Shepherding place) const;
 	const Supplication& receive(Supplication supplication) const;
-	void drop_supplication(const Novice& novice) const;
+	void drop_supplication(const Novice& suppliant) const;
 
 	mutable std::vector<std::unique_ptr<Shepherding>> shepherdings_;
 	mutable std::vector<std::unique_ptr<Supplication>> incoming_;
