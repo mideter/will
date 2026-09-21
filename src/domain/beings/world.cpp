@@ -1,5 +1,7 @@
 #include "world.h"
 
+#include "acts/obedience.h"
+#include "acts/shepherding.h"
 #include "acts/supplication.h"
 #include "acts/tying.h"
 #include "beings/novice.h"
@@ -29,7 +31,9 @@ void World::awaken()
 
 	for (Tying tying : temporality().tyings()) {
 		const auto& novice = static_cast<const Novice&>(Soul::of(tying.novice()));
-		novice.keep(std::move(tying));
+		const Obedience& place = novice.keep(std::move(tying));
+		static_cast<const Testator&>(place.testator()).keep(
+			dynamic_cast<const Shepherding&>(place));
 	}
 
 	for (const auto& [soul_id, man] : men_) {

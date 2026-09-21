@@ -36,7 +36,6 @@ public:
 private:
 	friend class World;
 	friend class Supplication;
-	friend class Novice;
 	friend class Tie;
 
 	explicit Testator(Embodiment embodiment);
