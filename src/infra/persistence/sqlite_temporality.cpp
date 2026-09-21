@@ -11,7 +11,6 @@
 #include "values/device_token.h"
 
 #include <algorithm>
-#include <cstring>
 #include <optional>
 #include <stdexcept>
 #include <string>
@@ -22,45 +21,13 @@ namespace will {
 namespace {
 
 
-const char* status_text(const domain::SupplicationStatus status)
-{
-	switch (status) {
-	case domain::SupplicationStatus::pending:
-		return "pending";
-	case domain::SupplicationStatus::accepted:
-		return "accepted";
-	case domain::SupplicationStatus::refused:
-		return "refused";
-	case domain::SupplicationStatus::withdrawn:
-		return "withdrawn";
-	}
-	throw std::logic_error("unknown supplication status");
-}
-
-
-domain::SupplicationStatus status_from_text(const char* text)
-{
-	if (text && std::strcmp(text, "pending") == 0)
-		return domain::SupplicationStatus::pending;
-	if (text && std::strcmp(text, "accepted") == 0)
-		return domain::SupplicationStatus::accepted;
-	if (text && std::strcmp(text, "refused") == 0)
-		return domain::SupplicationStatus::refused;
-	if (text && std::strcmp(text, "withdrawn") == 0)
-		return domain::SupplicationStatus::withdrawn;
-	throw std::runtime_error("supplications: invalid status in database");
-}
-
-
-domain::Supplication read_supplication(sqlite3_stmt* stmt)
+domain::Supplication read_pending_supplication(sqlite3_stmt* stmt)
 {
 	const domain::id::Soul suppliant_id{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 0))};
 	const domain::id::Soul testator_id{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 1))};
 	return domain::Supplication{
 		static_cast<const domain::Novice&>(domain::Soul::of(suppliant_id)),
 		static_cast<const domain::Testator&>(domain::Soul::of(testator_id)),
-		status_from_text(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2))),
-		domain::Timestamp{sqlite3_column_int64(stmt, 3)},
 	};
 }
 
@@ -422,14 +389,12 @@ domain::Supplication SqliteTemporality::supplicate(const domain::Novice& supplia
 				 "bind suppliant");
 	check_sqlite(sqlite3_bind_int64(stmt, 2, static_cast<sqlite3_int64>(testator_id.value())), db,
 				 "bind testator");
-	check_sqlite(sqlite3_bind_text(stmt, 3, status_text(domain::SupplicationStatus::pending), -1,
-								   SQLITE_STATIC),
-				 db, "bind status");
+	check_sqlite(sqlite3_bind_text(stmt, 3, "pending", -1, SQLITE_STATIC), db, "bind status");
 	check_sqlite(sqlite3_bind_int64(stmt, 4, ts.value()), db, "bind created_at");
 	check_sqlite(sqlite3_step(stmt), db, "insert supplication step");
 	sqlite3_finalize(stmt);
 
-	return domain::Supplication{suppliant, testator, domain::SupplicationStatus::pending, ts};
+	return domain::Supplication{suppliant, testator};
 }
 
 
@@ -440,7 +405,7 @@ std::vector<domain::Supplication> SqliteTemporality::pending_supplications(
 	sqlite3* const db = database_.db();
 	sqlite3_stmt* stmt = nullptr;
 	check_sqlite(sqlite3_prepare_v2(db,
-									"SELECT suppliant_soul_id, testator_soul_id, status, created_at_ns "
+									"SELECT suppliant_soul_id, testator_soul_id "
 									"FROM supplications "
 									"WHERE testator_soul_id = ? AND status = 'pending' ORDER BY id;",
 									-1, &stmt, nullptr),
@@ -451,7 +416,7 @@ std::vector<domain::Supplication> SqliteTemporality::pending_supplications(
 	std::vector<domain::Supplication> rows;
 	int rc = sqlite3_step(stmt);
 	while (rc == SQLITE_ROW) {
-		rows.push_back(read_supplication(stmt));
+		rows.push_back(read_pending_supplication(stmt));
 		rc = sqlite3_step(stmt);
 	}
 	check_sqlite(rc, db, "pending_supplications step");
@@ -469,7 +434,7 @@ domain::Obedience SqliteTemporality::accept(const domain::Supplication& ask)
 
 	sqlite3_stmt* load = nullptr;
 	check_sqlite(sqlite3_prepare_v2(db,
-									"SELECT suppliant_soul_id, testator_soul_id, status, created_at_ns "
+									"SELECT suppliant_soul_id, testator_soul_id "
 									"FROM supplications "
 									"WHERE suppliant_soul_id = ? AND testator_soul_id = ? "
 									"AND status = 'pending' LIMIT 1;",
@@ -484,7 +449,7 @@ domain::Obedience SqliteTemporality::accept(const domain::Supplication& ask)
 		sqlite3_finalize(load);
 		throw std::invalid_argument("unknown supplication");
 	}
-	const auto row = read_supplication(load);
+	const auto row = read_pending_supplication(load);
 	sqlite3_finalize(load);
 
 	if (pair_exists(db, row.testator().Soul::id(), row.suppliant().Soul::id()))
@@ -492,17 +457,14 @@ domain::Obedience SqliteTemporality::accept(const domain::Supplication& ask)
 
 	sqlite3_stmt* upd = nullptr;
 	check_sqlite(sqlite3_prepare_v2(db,
-									"UPDATE supplications SET status = ? "
+									"UPDATE supplications SET status = 'accepted' "
 									"WHERE suppliant_soul_id = ? AND testator_soul_id = ? "
 									"AND status = 'pending';",
 									-1, &upd, nullptr),
 				 db, "prepare accept status");
-	check_sqlite(sqlite3_bind_text(upd, 1, status_text(domain::SupplicationStatus::accepted), -1,
-								   SQLITE_STATIC),
-				 db, "bind status");
-	check_sqlite(sqlite3_bind_int64(upd, 2, static_cast<sqlite3_int64>(row.suppliant().Soul::id().value())),
+	check_sqlite(sqlite3_bind_int64(upd, 1, static_cast<sqlite3_int64>(row.suppliant().Soul::id().value())),
 				 db, "bind suppliant");
-	check_sqlite(sqlite3_bind_int64(upd, 3, static_cast<sqlite3_int64>(row.testator().Soul::id().value())),
+	check_sqlite(sqlite3_bind_int64(upd, 2, static_cast<sqlite3_int64>(row.testator().Soul::id().value())),
 				 db, "bind testator");
 	check_sqlite(sqlite3_step(upd), db, "accept status step");
 	sqlite3_finalize(upd);
@@ -536,17 +498,14 @@ void SqliteTemporality::refuse(const domain::Supplication& ask)
 
 	sqlite3_stmt* upd = nullptr;
 	check_sqlite(sqlite3_prepare_v2(db,
-									"UPDATE supplications SET status = ? "
+									"UPDATE supplications SET status = 'refused' "
 									"WHERE suppliant_soul_id = ? AND testator_soul_id = ? "
 									"AND status = 'pending';",
 									-1, &upd, nullptr),
 				 db, "prepare refuse");
-	check_sqlite(sqlite3_bind_text(upd, 1, status_text(domain::SupplicationStatus::refused), -1,
-								   SQLITE_STATIC),
-				 db, "bind status");
-	check_sqlite(sqlite3_bind_int64(upd, 2, static_cast<sqlite3_int64>(ask.suppliant().Soul::id().value())),
+	check_sqlite(sqlite3_bind_int64(upd, 1, static_cast<sqlite3_int64>(ask.suppliant().Soul::id().value())),
 				 db, "bind suppliant");
-	check_sqlite(sqlite3_bind_int64(upd, 3, static_cast<sqlite3_int64>(ask.testator().Soul::id().value())),
+	check_sqlite(sqlite3_bind_int64(upd, 2, static_cast<sqlite3_int64>(ask.testator().Soul::id().value())),
 				 db, "bind testator");
 	check_sqlite(sqlite3_step(upd), db, "refuse step");
 	const int changed = sqlite3_changes(db);

@@ -84,8 +84,6 @@ const Supplication& Testator::receive(Supplication supplication) const
 {
 	if (supplication.testator().Soul::id() != Soul::id())
 		throw std::logic_error("supplication is not addressed to this soul");
-	if (supplication.status() != SupplicationStatus::pending)
-		throw std::logic_error("supplication is not pending");
 
 	const id::Soul suppliant_id = supplication.suppliant().Soul::id();
 	for (const auto& existing : incoming_) {

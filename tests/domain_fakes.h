@@ -25,7 +25,6 @@
 #include "values/word.h"
 
 #include <cstdint>
-#include <memory>
 #include <optional>
 #include <stdexcept>
 #include <string>
@@ -144,22 +143,21 @@ public:
 			throw std::invalid_argument("supplication requires distinct suppliant and testator");
 		if (pair_exists(testator_id, suppliant_id))
 			throw std::logic_error("obedience already exists for this pair");
-		for (const auto& row : supplications_) {
-			if (row.suppliant().Soul::id() == suppliant_id && row.testator().Soul::id() == testator_id
-				&& row.status() == SupplicationStatus::pending)
+		for (const auto& row : pending_supplications_) {
+			if (row.suppliant().Soul::id() == suppliant_id && row.testator().Soul::id() == testator_id)
 				throw std::logic_error("pending supplication already exists for this pair");
 		}
 
-		Supplication row{suppliant, testator, SupplicationStatus::pending, time_.instant()};
-		supplications_.push_back(row);
+		Supplication row{suppliant, testator};
+		pending_supplications_.push_back(row);
 		return row;
 	}
 
 	std::vector<Supplication> pending_supplications(const id::Soul testator) const override
 	{
 		std::vector<Supplication> out;
-		for (const auto& row : supplications_) {
-			if (row.testator().Soul::id() == testator && row.status() == SupplicationStatus::pending)
+		for (const auto& row : pending_supplications_) {
+			if (row.testator().Soul::id() == testator)
 				out.push_back(row);
 		}
 		return out;
@@ -167,21 +165,22 @@ public:
 
 	Obedience accept(const Supplication& ask) override
 	{
-		Supplication& row = mutable_pending(ask);
-		if (pair_exists(row.testator().Soul::id(), row.suppliant().Soul::id()))
+		const auto it = find_pending(ask);
+		if (pair_exists(it->testator().Soul::id(), it->suppliant().Soul::id()))
 			throw std::logic_error("obedience already exists for this pair");
 
-		replace_status(row, SupplicationStatus::accepted);
+		const Testator& place_testator = it->testator();
+		const Novice& place_novice = it->suppliant();
+		drop_pending(it);
 
 		const id::Obedience oid{allocate_place()};
-		obediences_.push_back(ObedienceRow{oid, row.testator().Soul::id(), row.suppliant().Soul::id()});
-		return Obedience{oid, row.testator(), row.suppliant()};
+		obediences_.push_back(ObedienceRow{oid, place_testator.Soul::id(), place_novice.Soul::id()});
+		return Obedience{oid, place_testator, place_novice};
 	}
 
 	void refuse(const Supplication& ask) override
 	{
-		Supplication& row = mutable_pending(ask);
-		replace_status(row, SupplicationStatus::refused);
+		drop_pending(find_pending(ask));
 	}
 
 	Obedience obedience(const id::Obedience id) const override
@@ -312,24 +311,27 @@ private:
 		return Deed{row.id, obedience, Word{row.body}, row.created_at, row.executed_at, row.cancelled_at};
 	}
 
-	Supplication& mutable_pending(const Supplication& ask)
+	std::vector<Supplication>::const_iterator find_pending(const Supplication& ask) const
 	{
-		for (auto& row : supplications_) {
-			if (row.suppliant().Soul::id() == ask.suppliant().Soul::id()
-				&& row.testator().Soul::id() == ask.testator().Soul::id()
-				&& row.status() == SupplicationStatus::pending)
-				return row;
+		for (auto it = pending_supplications_.begin(); it != pending_supplications_.end(); ++it) {
+			if (it->suppliant().Soul::id() == ask.suppliant().Soul::id()
+				&& it->testator().Soul::id() == ask.testator().Soul::id())
+				return it;
 		}
 		throw std::invalid_argument("unknown supplication");
 	}
 
-	static void replace_status(Supplication& row, const SupplicationStatus status)
+	/// Supplication holds references — not assignable; rebuild instead of erase.
+	void drop_pending(const std::vector<Supplication>::const_iterator drop)
 	{
-		const Novice& suppliant = row.suppliant();
-		const Testator& testator = row.testator();
-		Timestamp created_at = row.created_at();
-		std::destroy_at(&row);
-		std::construct_at(&row, suppliant, testator, status, std::move(created_at));
+		std::vector<Supplication> kept;
+		kept.reserve(pending_supplications_.size() - 1);
+		for (auto it = pending_supplications_.begin(); it != pending_supplications_.end(); ++it) {
+			if (it == drop)
+				continue;
+			kept.push_back(*it);
+		}
+		pending_supplications_.swap(kept);
 	}
 
 	FakeTime time_;
@@ -342,7 +344,7 @@ private:
 	std::vector<Embodiment> embodiments_;
 	std::vector<std::pair<id::Abode, AbodeName>> abode_rows_;
 	mutable std::vector<Letter> letters_;
-	std::vector<Supplication> supplications_;
+	std::vector<Supplication> pending_supplications_;
 	std::vector<ObedienceRow> obediences_;
 	std::vector<DeedRow> deed_rows_;
 };
