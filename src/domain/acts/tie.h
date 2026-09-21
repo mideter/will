@@ -3,7 +3,6 @@
 #include "acts/obedience.h"
 #include "acts/shepherding.h"
 #include "acts/tying.h"
-#include "identity/obedience.h"
 
 
 namespace will::domain {
@@ -26,8 +25,6 @@ public:
 	Tie& operator=(const Tie&) = delete;
 	Tie(Tie&&) = delete;
 	Tie& operator=(Tie&&) = delete;
-
-	using Obedience::obedience_id;
 
 	const Testator& testator() const override;
 	const Novice& novice() const override;

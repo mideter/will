@@ -4,7 +4,7 @@
 namespace will::domain {
 
 
-Shepherding::Shepherding(const id::Obedience id)
+Shepherding::Shepherding(const id::Tie id)
 	: Place(id::Place{id.value()})
 {}
 

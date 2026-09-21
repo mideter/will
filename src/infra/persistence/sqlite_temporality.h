@@ -31,7 +31,7 @@ public:
 	std::vector<domain::Supplication> pending_supplications(domain::id::Soul addressee) const override;
 	domain::Tying accept(const domain::Supplication& ask) override;
 	void reject(const domain::Supplication& ask) override;
-	domain::Tying tying(domain::id::Obedience id) const override;
+	domain::Tying tying(domain::id::Tie id) const override;
 	std::vector<domain::Tying> tyings() const override;
 
 	domain::Deed
@@ -39,7 +39,7 @@ public:
 		 const domain::Word& word) override;
 	domain::Deed execute(const domain::Deed& deed) override;
 	domain::Deed deed(domain::id::Deed id) const override;
-	std::vector<domain::Deed> deeds(domain::id::Obedience obedience) const override;
+	std::vector<domain::Deed> deeds(domain::id::Tie tie) const override;
 
 private:
 	SqliteDatabase& database_;

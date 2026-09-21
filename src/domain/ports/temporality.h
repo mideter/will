@@ -10,9 +10,9 @@
 #include "beings/deed.h"
 #include "identity/abode.h"
 #include "identity/deed.h"
-#include "identity/obedience.h"
 #include "identity/place.h"
 #include "identity/soul.h"
+#include "identity/tie.h"
 #include "identity/vessel.h"
 #include "ports/eternity.h"
 #include "values/abode_name.h"
@@ -75,7 +75,7 @@ public:
 	virtual void reject(const Supplication& ask) = 0;
 
 	/// Tying remembered in time. Throws if unknown.
-	virtual Tying tying(id::Obedience id) const = 0;
+	virtual Tying tying(id::Tie id) const = 0;
 
 	/// All tyings kept in time.
 	virtual std::vector<Tying> tyings() const = 0;
@@ -90,7 +90,7 @@ public:
 	virtual Deed deed(id::Deed id) const = 0;
 
 	/// Deeds kept in this shared place (any status).
-	virtual std::vector<Deed> deeds(id::Obedience obedience) const = 0;
+	virtual std::vector<Deed> deeds(id::Tie tie) const = 0;
 };
 
 

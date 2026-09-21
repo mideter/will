@@ -15,7 +15,7 @@
 #include "beings/world.h"
 #include "identity/abode.h"
 #include "identity/deed.h"
-#include "identity/obedience.h"
+#include "identity/tie.h"
 #include "identity/soul.h"
 #include "identity/vessel.h"
 #include "ports/temporality.h"
@@ -175,7 +175,7 @@ public:
 		const Novice& place_novice = it->suppliant();
 		drop_pending(it);
 
-		const id::Obedience oid{allocate_place()};
+		const id::Tie oid{allocate_place()};
 		obediences_.push_back(ObedienceRow{oid, place_testator.Soul::id(), place_novice.Soul::id()});
 		return Tying{oid, place_testator.Soul::id(), place_novice.Soul::id()};
 	}
@@ -185,7 +185,7 @@ public:
 		drop_pending(find_pending(ask));
 	}
 
-	Tying tying(const id::Obedience id) const override
+	Tying tying(const id::Tie id) const override
 	{
 		for (const auto& row : obediences_) {
 			if (row.id != id)
@@ -206,13 +206,14 @@ public:
 
 	Deed will(const Obedience& obedience, const Soul& testator, const Word& word) override
 	{
-		if (!has_obedience(obedience.obedience_id()))
+		const id::Tie tid{obedience.id().value()};
+		if (!has_obedience(tid))
 			throw std::invalid_argument("unknown obedience");
 		if (obedience.testator().Soul::id() != testator.id())
 			throw std::logic_error("only the testator may will in this obedience");
 
 		DeedRow row{id::Deed{++next_deed_id_},
-					obedience.obedience_id(),
+					tid,
 					obedience.testator().Soul::id(),
 					obedience.novice().Soul::id(),
 					word.body(),
@@ -247,11 +248,11 @@ public:
 		throw std::invalid_argument("unknown deed");
 	}
 
-	std::vector<Deed> deeds(const id::Obedience obedience) const override
+	std::vector<Deed> deeds(const id::Tie tie) const override
 	{
 		std::vector<Deed> out;
 		for (const auto& row : deed_rows_) {
-			if (row.obedience == obedience)
+			if (row.obedience == tie)
 				out.push_back(make_deed(row));
 		}
 		return out;
@@ -261,14 +262,14 @@ public:
 
 private:
 	struct ObedienceRow {
-		id::Obedience id;
+		id::Tie id;
 		id::Soul testator;
 		id::Soul novice;
 	};
 
 	struct DeedRow {
 		id::Deed id;
-		id::Obedience obedience;
+		id::Tie obedience;
 		id::Soul testator;
 		id::Soul novice;
 		std::string body;
@@ -294,7 +295,7 @@ private:
 		return false;
 	}
 
-	bool has_obedience(const id::Obedience id) const
+	bool has_obedience(const id::Tie id) const
 	{
 		for (const auto& row : obediences_) {
 			if (row.id == id)

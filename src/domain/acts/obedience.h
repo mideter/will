@@ -1,7 +1,7 @@
 #pragma once
 
 #include "beings/place.h"
-#include "identity/obedience.h"
+#include "identity/tie.h"
 
 
 namespace will::domain {
@@ -21,13 +21,11 @@ public:
 	Obedience(const Obedience&) = delete;
 	Obedience& operator=(const Obedience&) = delete;
 
-	id::Obedience obedience_id() const noexcept { return id::Obedience{id().value()}; }
-
 	virtual const Testator& testator() const = 0;
 	virtual const Novice& novice() const = 0;
 
 protected:
-	explicit Obedience(id::Obedience id);
+	explicit Obedience(id::Tie id);
 	Obedience& operator=(Obedience&&) = delete;
 };
 

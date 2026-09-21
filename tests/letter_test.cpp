@@ -11,7 +11,7 @@
 #include "beings/novice.h"
 #include "beings/testator.h"
 #include "identity/letter.h"
-#include "identity/obedience.h"
+#include "identity/tie.h"
 #include "identity/place.h"
 #include "identity/deed.h"
 #include "values/word.h"
@@ -76,12 +76,12 @@ TEST_CASE("Deed is a letter in an obedience place")
 	const auto& testator = static_cast<const Testator&>(world.welcome(DeviceToken::generate()));
 	const auto& novice = static_cast<const Novice&>(world.welcome(DeviceToken::generate()));
 	const id::Deed did{3};
-	const id::Obedience oid{9};
+	const id::Tie oid{9};
 	const Tie tie{Tying{oid, testator.Soul::id(), novice.Soul::id()}};
 
 	const Deed deed{did, tie, Word{"do this"}, Timestamp{50}};
 	CHECK(deed.id() == id::Letter{did.value()});
-	CHECK(deed.obedience_id() == oid);
+	CHECK(deed.tie_id() == oid);
 	CHECK(deed.place_id() == id::Place{oid.value()});
 	CHECK(&deed.testator() == &testator);
 	CHECK(deed.author_id() == testator.Soul::id());

@@ -35,16 +35,16 @@ Deed Novice::execute(const Deed& deed) const
 	if (!deed.open())
 		throw std::logic_error("deed is not open");
 
-	(void)obedience(deed.obedience_id());
+	(void)obedience(deed.tie_id());
 
 	return temporality().execute(deed);
 }
 
 
-const Obedience& Novice::obedience(const id::Obedience id) const
+const Obedience& Novice::obedience(const id::Tie id) const
 {
 	for (const auto& place : obediences_) {
-		if (place->obedience_id() == id)
+		if (place->id().value() == id.value())
 			return *place;
 	}
 
@@ -66,10 +66,10 @@ const Obedience& Novice::keep(std::unique_ptr<Obedience> place) const
 	if (!place)
 		throw std::invalid_argument("obedience required");
 
-	const id::Obedience id = place->obedience_id();
+	const id::Place id = place->id();
 
 	for (const auto& existing : obediences_) {
-		if (existing->obedience_id() == id)
+		if (existing->id() == id)
 			return *existing;
 	}
 

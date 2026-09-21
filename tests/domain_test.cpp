@@ -175,15 +175,14 @@ TEST_CASE("tie is a place for distinct testator and novice")
 
 	const auto& testator = static_cast<const Testator&>(world.welcome(DeviceToken::generate()));
 	const auto& novice = static_cast<const Novice&>(world.welcome(DeviceToken::generate()));
-	const id::Obedience oid{7};
+	const id::Tie oid{7};
 
 	const Tie tie{Tying{oid, testator.Soul::id(), novice.Soul::id()}};
 	CHECK(tie.id() == id::Place{oid.value()});
-	CHECK(tie.obedience_id() == oid);
 	CHECK(&tie.testator() == &testator);
 	CHECK(&tie.novice() == &novice);
 
-	CHECK_THROWS_AS((Tying{id::Obedience{8}, testator.Soul::id(), testator.Soul::id()}),
+	CHECK_THROWS_AS((Tying{id::Tie{8}, testator.Soul::id(), testator.Soul::id()}),
 					std::invalid_argument);
 }
 
@@ -216,8 +215,8 @@ TEST_CASE("supplicate accept creates tie owned as obedience")
 	CHECK(obedience.id().value() != a.Soul::id().value());
 	CHECK(obedience.id().value() != b.Soul::id().value());
 	CHECK(temporality.pending_supplications(b.Soul::id()).empty());
-	CHECK(&novice.obedience(obedience.obedience_id()) == &obedience);
-	CHECK(&testator.shepherding(obedience.obedience_id()).testator() == &testator);
+	CHECK(&novice.obedience(id::Tie{obedience.id().value()}) == &obedience);
+	CHECK(&testator.shepherding(id::Tie{obedience.id().value()}).testator() == &testator);
 }
 
 
@@ -260,7 +259,7 @@ TEST_CASE("will and execute within obedience")
 	REQUIRE(temporality.tyings().size() == 1);
 	const Obedience& obedience =
 		novice.obedience(temporality.tyings().front().id());
-	const Shepherding& shepherding = testator.shepherding(obedience.obedience_id());
+	const Shepherding& shepherding = testator.shepherding(id::Tie{obedience.id().value()});
 	const Deed deed = testator.will(shepherding, Word{"fast"});
 	CHECK(deed.open());
 	CHECK(deed.body() == "fast");

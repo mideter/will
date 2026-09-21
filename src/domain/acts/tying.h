@@ -1,7 +1,7 @@
 #pragma once
 
-#include "identity/obedience.h"
 #include "identity/soul.h"
+#include "identity/tie.h"
 
 
 namespace will::domain {
@@ -11,14 +11,14 @@ namespace will::domain {
 /// Material for living Tie on the heap; not the Tie itself.
 class Tying {
 public:
-	Tying(id::Obedience id, id::Soul testator, id::Soul novice);
+	Tying(id::Tie id, id::Soul testator, id::Soul novice);
 
-	id::Obedience id() const noexcept { return id_; }
+	id::Tie id() const noexcept { return id_; }
 	id::Soul testator() const noexcept { return testator_; }
 	id::Soul novice() const noexcept { return novice_; }
 
 private:
-	id::Obedience id_;
+	id::Tie id_;
 	id::Soul testator_;
 	id::Soul novice_;
 };

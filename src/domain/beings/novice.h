@@ -30,8 +30,8 @@ public:
 	/// Carry out an open deed in an obedience where this soul is novice.
 	Deed execute(const Deed& deed) const;
 
-	/// Owned Obedience face by place id. Throws if unknown.
-	const Obedience& obedience(id::Obedience id) const;
+	/// Owned Obedience face by tie id. Throws if unknown.
+	const Obedience& obedience(id::Tie id) const;
 
 protected:
 	explicit Novice(Embodiment embodiment);

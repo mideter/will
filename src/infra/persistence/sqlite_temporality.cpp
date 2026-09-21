@@ -360,7 +360,7 @@ domain::Tying SqliteTemporality::accept(const domain::Supplication& ask)
 		upd.step_done("accept status step");
 	}
 
-	const domain::id::Obedience oid{next_place_id(db)};
+	const domain::id::Tie oid{next_place_id(db)};
 	SqliteStmt ins(db,
 				   "INSERT INTO obediences "
 				   "(id, testator_soul_id, novice_soul_id, created_at_ns, seceded_at_ns) "
@@ -397,7 +397,7 @@ void SqliteTemporality::reject(const domain::Supplication& ask)
 }
 
 
-domain::Tying SqliteTemporality::tying(const domain::id::Obedience id) const
+domain::Tying SqliteTemporality::tying(const domain::id::Tie id) const
 {
 	std::lock_guard lock(database_.mutex());
 	sqlite3* const db = database_.db();
@@ -410,7 +410,7 @@ domain::Tying SqliteTemporality::tying(const domain::id::Obedience id) const
 		throw std::invalid_argument("unknown obedience");
 
 	return domain::Tying{
-		domain::id::Obedience{static_cast<std::uint64_t>(stmt.column_i64(0))},
+		domain::id::Tie{static_cast<std::uint64_t>(stmt.column_i64(0))},
 		domain::id::Soul{static_cast<std::uint64_t>(stmt.column_i64(1))},
 		domain::id::Soul{static_cast<std::uint64_t>(stmt.column_i64(2))},
 	};
@@ -427,7 +427,7 @@ std::vector<domain::Tying> SqliteTemporality::tyings() const
 					"prepare tyings");
 	while (stmt.step_row("tyings step")) {
 		out.push_back(domain::Tying{
-			domain::id::Obedience{static_cast<std::uint64_t>(stmt.column_i64(0))},
+			domain::id::Tie{static_cast<std::uint64_t>(stmt.column_i64(0))},
 			domain::id::Soul{static_cast<std::uint64_t>(stmt.column_i64(1))},
 			domain::id::Soul{static_cast<std::uint64_t>(stmt.column_i64(2))},
 		});
@@ -448,7 +448,7 @@ domain::Deed SqliteTemporality::will(const domain::Obedience& obedience,
 
 	{
 		SqliteStmt known(db, "SELECT 1 FROM obediences WHERE id = ?;", "prepare known obedience");
-		known.bind_i64(1, static_cast<std::int64_t>(obedience.obedience_id().value()), "bind oid");
+		known.bind_i64(1, static_cast<std::int64_t>(obedience.id().value()), "bind oid");
 		if (!known.step_row("known obedience step"))
 			throw std::invalid_argument("unknown obedience");
 	}
@@ -459,7 +459,7 @@ domain::Deed SqliteTemporality::will(const domain::Obedience& obedience,
 					"created_at_ns, executed_at_ns, cancelled_at_ns) "
 					"VALUES (?, ?, ?, ?, ?, NULL, NULL);",
 					"prepare insert deed");
-	stmt.bind_i64(1, static_cast<std::int64_t>(obedience.obedience_id().value()), "bind obedience_id");
+	stmt.bind_i64(1, static_cast<std::int64_t>(obedience.id().value()), "bind obedience_id");
 	stmt.bind_i64(2, static_cast<std::int64_t>(obedience.testator().Soul::id().value()), "bind testator");
 	stmt.bind_i64(3, static_cast<std::int64_t>(obedience.novice().Soul::id().value()), "bind novice");
 	stmt.bind_text(4, word.body(), "bind body");
@@ -475,7 +475,7 @@ domain::Deed SqliteTemporality::will(const domain::Obedience& obedience,
 domain::Deed SqliteTemporality::execute(const domain::Deed& deed)
 {
 	const domain::Timestamp ts = time_.instant();
-	domain::id::Obedience oid{1};
+	domain::id::Tie oid{1};
 	domain::Word word{std::string{deed.body()}};
 	domain::Timestamp created = deed.created_at();
 	domain::id::Deed did{deed.id().value()};
@@ -492,7 +492,7 @@ domain::Deed SqliteTemporality::execute(const domain::Deed& deed)
 			load.bind_i64(1, static_cast<std::int64_t>(deed.id().value()), "bind id");
 			if (!load.step_row("load deed step"))
 				throw std::invalid_argument("unknown deed");
-			oid = domain::id::Obedience{static_cast<std::uint64_t>(load.column_i64(0))};
+			oid = domain::id::Tie{static_cast<std::uint64_t>(load.column_i64(0))};
 			const bool open = load.column_is_null(1) && load.column_is_null(2);
 			if (!open)
 				throw std::logic_error("deed is not open");
@@ -522,7 +522,7 @@ domain::Deed SqliteTemporality::execute(const domain::Deed& deed)
 
 domain::Deed SqliteTemporality::deed(const domain::id::Deed id) const
 {
-	domain::id::Obedience oid{1};
+	domain::id::Tie oid{1};
 	std::string body_str;
 	domain::Timestamp created{0};
 	std::optional<domain::Timestamp> executed;
@@ -541,7 +541,7 @@ domain::Deed SqliteTemporality::deed(const domain::id::Deed id) const
 			throw std::invalid_argument("unknown deed");
 
 		did = domain::id::Deed{static_cast<std::uint64_t>(stmt.column_i64(0))};
-		oid = domain::id::Obedience{static_cast<std::uint64_t>(stmt.column_i64(1))};
+		oid = domain::id::Tie{static_cast<std::uint64_t>(stmt.column_i64(1))};
 		body_str = std::string(stmt.column_text(2));
 		created = domain::Timestamp{stmt.column_i64(3)};
 		if (!stmt.column_is_null(4))
@@ -559,7 +559,7 @@ domain::Deed SqliteTemporality::deed(const domain::id::Deed id) const
 }
 
 
-std::vector<domain::Deed> SqliteTemporality::deeds(const domain::id::Obedience obedience) const
+std::vector<domain::Deed> SqliteTemporality::deeds(const domain::id::Tie tie) const
 {
 	std::vector<domain::id::Deed> ids;
 	{
@@ -567,7 +567,7 @@ std::vector<domain::Deed> SqliteTemporality::deeds(const domain::id::Obedience o
 		sqlite3* const db = database_.db();
 		SqliteStmt stmt(db, "SELECT id FROM deeds WHERE obedience_id = ? ORDER BY id;",
 						"prepare deeds");
-		stmt.bind_i64(1, static_cast<std::int64_t>(obedience.value()), "bind oid");
+		stmt.bind_i64(1, static_cast<std::int64_t>(tie.value()), "bind oid");
 		while (stmt.step_row("deeds step"))
 			ids.push_back(domain::id::Deed{static_cast<std::uint64_t>(stmt.column_i64(0))});
 	}

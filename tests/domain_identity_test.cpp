@@ -3,7 +3,7 @@
 
 #include "identity/abode.h"
 #include "identity/letter.h"
-#include "identity/obedience.h"
+#include "identity/tie.h"
 #include "identity/place.h"
 #include "identity/soul.h"
 #include "identity/deed.h"
@@ -46,10 +46,10 @@ TEST_CASE("id::Place global and positive values")
 }
 
 
-TEST_CASE("id::Obedience requires positive value")
+TEST_CASE("id::Tie requires positive value")
 {
-	CHECK(id::Obedience{9}.value() == 9);
-	CHECK_THROWS_AS(id::Obedience{0}, std::invalid_argument);
+	CHECK(id::Tie{9}.value() == 9);
+	CHECK_THROWS_AS(id::Tie{0}, std::invalid_argument);
 }
 
 

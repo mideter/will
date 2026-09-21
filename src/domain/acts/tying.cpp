@@ -6,7 +6,7 @@
 namespace will::domain {
 
 
-Tying::Tying(const id::Obedience id, const id::Soul testator, const id::Soul novice)
+Tying::Tying(const id::Tie id, const id::Soul testator, const id::Soul novice)
 	: id_(id)
 	, testator_(testator)
 	, novice_(novice)

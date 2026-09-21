@@ -29,7 +29,7 @@ public:
 	void reject(const Supplication& ask) const;
 	Deed will(const Shepherding& shepherding, const Word& word) const;
 
-	const Shepherding& shepherding(id::Obedience id) const;
+	const Shepherding& shepherding(id::Tie id) const;
 	const Supplication& supplication(const Novice& suppliant) const;
 	std::vector<std::reference_wrapper<const Supplication>> supplications() const;
 

@@ -39,10 +39,10 @@ Deed Testator::will(const Shepherding& shepherding, const Word& word) const
 }
 
 
-const Shepherding& Testator::shepherding(const id::Obedience id) const
+const Shepherding& Testator::shepherding(const id::Tie id) const
 {
 	for (const Shepherding* place : shepherdings_) {
-		if (place && place->obedience_id() == id)
+		if (place && place->id().value() == id.value())
 			return *place;
 	}
 
@@ -56,7 +56,7 @@ const Shepherding& Testator::keep(const Shepherding& place) const
 		throw std::logic_error("not the testator of this shepherding");
 
 	for (const Shepherding* existing : shepherdings_) {
-		if (existing && existing->obedience_id() == place.obedience_id())
+		if (existing && existing->id() == place.id())
 			return *existing;
 	}
 
