@@ -70,8 +70,8 @@ public:
 	/// Keyed by the living pair (suppliant, addressee).
 	virtual Obedience accept(const Supplication& ask) = 0;
 
-	/// Refuse a pending supplication (same living pair).
-	virtual void refuse(const Supplication& ask) = 0;
+	/// Reject a pending supplication (same living pair).
+	virtual void reject(const Supplication& ask) = 0;
 
 	/// Shared place by id (Obedience face). Throws if unknown.
 	virtual Obedience obedience(id::Obedience id) const = 0;

@@ -18,9 +18,9 @@ public:
 	const Novice& suppliant() const noexcept { return suppliant_; }
 	const Testator& addressee() const noexcept { return addressee_; }
 
-	void sign(const Novice& novice) const;
-	void sign(const Testator& testator) const;
-	void reject(const Testator& testator) const;
+	void sign(const Novice& suppliant) const;
+	void sign(const Testator& addressee) const;
+	void reject(const Testator& addressee) const;
 
 private:
 	const Novice& suppliant_;

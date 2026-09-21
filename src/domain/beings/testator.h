@@ -27,8 +27,8 @@ public:
 	/// Accept a pending incoming; the act signs and births both faces.
 	void accept(const Supplication& ask) const;
 
-	/// Refuse a pending incoming; the act rejects itself.
-	void refuse(const Supplication& ask) const;
+	/// Reject a pending incoming; the act rejects itself.
+	void reject(const Supplication& ask) const;
 
 	/// Bequeath a word through the Shepherding face of a shared place.
 	Deed will(const Shepherding& shepherding, const Word& word) const;

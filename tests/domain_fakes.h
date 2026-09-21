@@ -178,7 +178,7 @@ public:
 		return Obedience{oid, place_testator, place_novice};
 	}
 
-	void refuse(const Supplication& ask) override
+	void reject(const Supplication& ask) override
 	{
 		drop_pending(find_pending(ask));
 	}

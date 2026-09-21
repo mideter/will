@@ -218,7 +218,7 @@ TEST_CASE("supplicate accept creates obedience owned on both faces")
 }
 
 
-TEST_CASE("refuse closes pending supplication; wrong party cannot accept")
+TEST_CASE("reject closes pending supplication; wrong party cannot accept")
 {
 	InMemoryTemporality temporality;
 	Creation creation(temporality);
@@ -234,7 +234,7 @@ TEST_CASE("refuse closes pending supplication; wrong party cannot accept")
 	const Supplication& ask = testator.supplication(novice);
 	CHECK_THROWS_AS(stranger.accept(ask), std::logic_error);
 
-	testator.refuse(ask);
+	testator.reject(ask);
 	CHECK(testator.supplications().empty());
 	CHECK(temporality.pending_supplications(b.Soul::id()).empty());
 	CHECK_THROWS_AS(testator.supplication(novice), std::invalid_argument);

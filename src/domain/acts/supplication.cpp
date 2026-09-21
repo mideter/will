@@ -22,42 +22,42 @@ Supplication::Supplication(const Novice& suppliant, const Testator& addressee)
 }
 
 
-void Supplication::sign(const Novice& novice) const
+void Supplication::sign(const Novice& suppliant) const
 {
-	if (novice.Soul::id() != suppliant_.Soul::id())
+	if (suppliant.Soul::id() != suppliant_.Soul::id())
 		throw std::logic_error("only the suppliant may sign this supplication");
 
 	addressee_.receive(Supplication{*this});
 }
 
 
-void Supplication::sign(const Testator& testator) const
+void Supplication::sign(const Testator& addressee) const
 {
-	if (testator.Soul::id() != addressee_.Soul::id())
+	if (addressee.Soul::id() != addressee_.Soul::id())
 		throw std::logic_error("supplication is not addressed to this soul");
 
-	const Supplication& incoming = testator.supplication(suppliant_);
+	const Supplication& incoming = addressee.supplication(suppliant_);
 
-	const Obedience created = testator.temporality().accept(incoming);
+	const Obedience created = addressee.temporality().accept(incoming);
 	const Testator& place_testator = created.testator();
 	const Novice& place_novice = created.novice();
 	const id::Obedience oid = created.obedience_id();
 
-	testator.keep(Shepherding{oid, place_testator, place_novice});
+	addressee.keep(Shepherding{oid, place_testator, place_novice});
 	place_novice.keep(Obedience{oid, place_testator, place_novice});
-	testator.drop_supplication(suppliant_);
+	addressee.drop_supplication(suppliant_);
 }
 
 
-void Supplication::reject(const Testator& testator) const
+void Supplication::reject(const Testator& addressee) const
 {
-	if (testator.Soul::id() != addressee_.Soul::id())
+	if (addressee.Soul::id() != addressee_.Soul::id())
 		throw std::logic_error("supplication is not addressed to this soul");
 
-	const Supplication& incoming = testator.supplication(suppliant_);
+	const Supplication& incoming = addressee.supplication(suppliant_);
 
-	testator.temporality().refuse(incoming);
-	testator.drop_supplication(suppliant_);
+	addressee.temporality().reject(incoming);
+	addressee.drop_supplication(suppliant_);
 }
 
 

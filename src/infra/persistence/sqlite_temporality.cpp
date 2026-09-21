@@ -370,19 +370,19 @@ domain::Obedience SqliteTemporality::accept(const domain::Supplication& ask)
 }
 
 
-void SqliteTemporality::refuse(const domain::Supplication& ask)
+void SqliteTemporality::reject(const domain::Supplication& ask)
 {
 	std::lock_guard lock(database_.mutex());
 	sqlite3* const db = database_.db();
 
 	SqliteStmt upd(db,
-				   "UPDATE supplications SET status = 'refused' "
+				   "UPDATE supplications SET status = 'rejected' "
 				   "WHERE suppliant_soul_id = ? AND testator_soul_id = ? "
 				   "AND status = 'pending';",
-				   "prepare refuse");
+				   "prepare reject");
 	upd.bind_i64(1, static_cast<std::int64_t>(ask.suppliant().Soul::id().value()), "bind suppliant");
 	upd.bind_i64(2, static_cast<std::int64_t>(ask.addressee().Soul::id().value()), "bind addressee");
-	upd.step_done("refuse step");
+	upd.step_done("reject step");
 	if (sqlite3_changes(db) != 1)
 		throw std::invalid_argument("unknown supplication");
 }

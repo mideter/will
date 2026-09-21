@@ -22,7 +22,7 @@ void Testator::accept(const Supplication& ask) const
 }
 
 
-void Testator::refuse(const Supplication& ask) const
+void Testator::reject(const Supplication& ask) const
 {
 	ask.reject(*this);
 }
