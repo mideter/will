@@ -27,8 +27,7 @@ public:
 	virtual const Novice& novice() const = 0;
 
 protected:
-	enum class AsTieFace : std::uint8_t { v };
-	Shepherding(AsTieFace, id::Obedience id);
+	explicit Shepherding(id::Obedience id);
 	Shepherding& operator=(Shepherding&&) = delete;
 };
 

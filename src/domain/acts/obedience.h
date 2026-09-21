@@ -27,8 +27,7 @@ public:
 	virtual const Novice& novice() const = 0;
 
 protected:
-	enum class AsTieFace : std::uint8_t { v };
-	Obedience(AsTieFace, id::Obedience id);
+	explicit Obedience(id::Obedience id);
 	Obedience& operator=(Obedience&&) = delete;
 };
 

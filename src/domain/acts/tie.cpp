@@ -25,8 +25,8 @@ std::unordered_map<std::uint64_t, const Tie*>& registry()
 
 Tie::Tie(Tying tying)
 	: Place(id::Place{tying.id().value()})
-	, Obedience(Obedience::AsTieFace::v, tying.id())
-	, Shepherding(Shepherding::AsTieFace::v, tying.id())
+	, Obedience(tying.id())
+	, Shepherding(tying.id())
 	, testator_(static_cast<const Testator&>(Soul::of(tying.testator())))
 	, novice_(static_cast<const Novice&>(Soul::of(tying.novice())))
 {}
