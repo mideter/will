@@ -74,9 +74,12 @@ const Obedience& Novice::keep(std::unique_ptr<Obedience> place) const
 	}
 
 	obediences_.push_back(std::move(place));
-	if (auto* tie = dynamic_cast<Tie*>(obediences_.back().get()))
-		tie->enroll();
-	return *obediences_.back();
+
+	auto& kept = *obediences_.back();
+	if (auto* tie = dynamic_cast<Tie*>(&kept))
+		static_cast<const Testator&>(tie->testator()).keep(*tie);
+
+	return kept;
 }
 
 

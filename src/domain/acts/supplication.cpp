@@ -39,7 +39,7 @@ void Supplication::sign(const Testator& addressee) const
 
 	const Tying tying = addressee.temporality().accept(incoming);
 	static_cast<const Novice&>(Soul::of(tying.novice())).keep(tying);
-	addressee.drop_supplication(suppliant_);
+	addressee.drop(incoming);
 }
 
 
@@ -51,7 +51,7 @@ void Supplication::reject(const Testator& addressee) const
 	const Supplication& incoming = addressee.supplication(suppliant_);
 
 	addressee.temporality().reject(incoming);
-	addressee.drop_supplication(suppliant_);
+	addressee.drop(incoming);
 }
 
 

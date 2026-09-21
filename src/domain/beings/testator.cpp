@@ -1,7 +1,6 @@
 #include "testator.h"
 
 #include "acts/obedience.h"
-#include "acts/tie.h"
 #include "beings/soul.h"
 #include "ports/temporality.h"
 
@@ -42,10 +41,35 @@ Deed Testator::will(const Shepherding& shepherding, const Word& word) const
 
 const Shepherding& Testator::shepherding(const id::Obedience id) const
 {
-	const Tie& tie = Tie::of(id);
-	if (tie.testator().Soul::id() != Soul::id())
+	for (const Shepherding* place : shepherdings_) {
+		if (place && place->obedience_id() == id)
+			return *place;
+	}
+
+	throw std::invalid_argument("unknown shepherding");
+}
+
+
+const Shepherding& Testator::keep(const Shepherding& place) const
+{
+	if (place.testator().Soul::id() != Soul::id())
 		throw std::logic_error("not the testator of this shepherding");
-	return tie;
+
+	for (const Shepherding* existing : shepherdings_) {
+		if (existing && existing->obedience_id() == place.obedience_id())
+			return *existing;
+	}
+
+	shepherdings_.push_back(&place);
+	return place;
+}
+
+
+void Testator::drop(const Shepherding& place) const
+{
+	const auto it = std::find(shepherdings_.begin(), shepherdings_.end(), &place);
+	if (it != shepherdings_.end())
+		shepherdings_.erase(it);
 }
 
 
@@ -90,11 +114,11 @@ const Supplication& Testator::receive(Supplication supplication) const
 }
 
 
-void Testator::drop_supplication(const Novice& suppliant) const
+void Testator::drop(const Supplication& ask) const
 {
 	const auto it = std::find_if(incoming_.begin(), incoming_.end(),
 								 [&](const std::unique_ptr<Supplication>& row) {
-									 return row->suppliant().Soul::id() == suppliant.Soul::id();
+									 return row->suppliant().Soul::id() == ask.suppliant().Soul::id();
 								 });
 
 	if (it == incoming_.end())

@@ -4,23 +4,10 @@
 #include "beings/soul.h"
 #include "beings/testator.h"
 
-#include <stdexcept>
-#include <unordered_map>
 #include <utility>
 
 
 namespace will::domain {
-namespace {
-
-
-std::unordered_map<std::uint64_t, const Tie*>& registry()
-{
-	static std::unordered_map<std::uint64_t, const Tie*> ties;
-	return ties;
-}
-
-
-} // namespace
 
 
 Tie::Tie(Tying tying)
@@ -34,7 +21,7 @@ Tie::Tie(Tying tying)
 
 Tie::~Tie()
 {
-	withdraw();
+	testator_.drop(*this);
 }
 
 
@@ -47,30 +34,6 @@ const Testator& Tie::testator() const
 const Novice& Tie::novice() const
 {
 	return novice_;
-}
-
-
-const Tie& Tie::of(const id::Obedience id)
-{
-	const auto it = registry().find(id.value());
-	if (it == registry().end() || !it->second)
-		throw std::invalid_argument("unknown tie");
-	return *it->second;
-}
-
-
-void Tie::enroll() const
-{
-	registry()[obedience_id().value()] = this;
-}
-
-
-void Tie::withdraw() const
-{
-	auto& ties = registry();
-	const auto it = ties.find(obedience_id().value());
-	if (it != ties.end() && it->second == this)
-		ties.erase(it);
 }
 
 
