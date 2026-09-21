@@ -44,6 +44,7 @@ const Shepherding& Testator::shepherding(const id::Obedience id) const
 		if (place->obedience_id() == id)
 			return *place;
 	}
+
 	throw std::invalid_argument("unknown shepherding");
 }
 
@@ -54,6 +55,7 @@ const Supplication& Testator::supplication(const Novice& suppliant) const
 		if (row->suppliant().Soul::id() == suppliant.Soul::id())
 			return *row;
 	}
+
 	throw std::invalid_argument("unknown supplication");
 }
 
@@ -62,8 +64,10 @@ std::vector<std::reference_wrapper<const Supplication>> Testator::supplications(
 {
 	std::vector<std::reference_wrapper<const Supplication>> out;
 	out.reserve(incoming_.size());
+
 	for (const auto& row : incoming_)
 		out.emplace_back(*row);
+
 	return out;
 }
 
@@ -71,10 +75,12 @@ std::vector<std::reference_wrapper<const Supplication>> Testator::supplications(
 const Shepherding& Testator::keep(Shepherding place) const
 {
 	const id::Obedience id = place.obedience_id();
+
 	for (const auto& existing : shepherdings_) {
 		if (existing->obedience_id() == id)
 			return *existing;
 	}
+
 	shepherdings_.push_back(std::make_unique<Shepherding>(std::move(place)));
 	return *shepherdings_.back();
 }
@@ -90,6 +96,7 @@ const Supplication& Testator::receive(Supplication supplication) const
 		if (existing->suppliant().Soul::id() == suppliant_id)
 			return *existing;
 	}
+
 	incoming_.push_back(std::make_unique<Supplication>(std::move(supplication)));
 	return *incoming_.back();
 }
@@ -101,8 +108,10 @@ void Testator::drop_supplication(const Novice& suppliant) const
 								 [&](const std::unique_ptr<Supplication>& row) {
 									 return row->suppliant().Soul::id() == suppliant.Soul::id();
 								 });
+
 	if (it == incoming_.end())
 		throw std::invalid_argument("unknown supplication");
+
 	incoming_.erase(it);
 }
 
