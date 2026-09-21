@@ -1,0 +1,16 @@
+---
+description: Domain class comments are ontology, not an API guide
+globs: src/domain/**/*.h
+alwaysApply: false
+---
+
+# Domain class comments
+
+Class docs are ontology, not an API guide.
+
+- One block above the class: English name + Russian term, then a few lines on
+  what it is, who owns it, and lasting invariants.
+- Do not narrate the lifecycle step-by-step when method names already do.
+- Comment a method only when the contract is non-obvious from the name and
+  signature; never restate the signature in prose.
+- Prefer cutting comments over growing them when the type is thin.
