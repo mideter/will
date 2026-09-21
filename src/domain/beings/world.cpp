@@ -1,8 +1,9 @@
 #include "world.h"
 
-#include "acts/shepherding.h"
 #include "acts/supplication.h"
+#include "acts/tying.h"
 #include "beings/novice.h"
+#include "beings/soul.h"
 #include "beings/testator.h"
 #include "ports/temporality.h"
 #include "values/soul_name.h"
@@ -26,12 +27,9 @@ void World::awaken()
 	for (Embodiment e : temporality().embodiments())
 		(void)accept(std::move(e));
 
-	for (const Obedience& place : temporality().obediences()) {
-		const Testator& testator = place.testator();
-		const Novice& novice = place.novice();
-
-		novice.keep(Obedience{place.obedience_id(), testator, novice});
-		testator.keep(Shepherding{place.obedience_id(), testator, novice});
+	for (Tying tying : temporality().tyings()) {
+		const auto& novice = static_cast<const Novice&>(Soul::of(tying.novice()));
+		novice.keep(std::move(tying));
 	}
 
 	for (const auto& [soul_id, man] : men_) {
@@ -84,7 +82,6 @@ const Man& World::accept(Embodiment embodiment)
 	std::lock_guard lock(mutex_);
 	men_.insert_or_assign(soul_id, std::move(ptr));
 	soul_id_by_vessel_.insert_or_assign(vessel_id, soul_id);
-
 	return live;
 }
 

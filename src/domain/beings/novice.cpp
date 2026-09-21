@@ -1,9 +1,11 @@
 #include "novice.h"
 
+#include "acts/tie.h"
 #include "beings/soul.h"
 #include "beings/testator.h"
 #include "ports/temporality.h"
 
+#include <memory>
 #include <stdexcept>
 #include <utility>
 
@@ -50,17 +52,30 @@ const Obedience& Novice::obedience(const id::Obedience id) const
 }
 
 
-const Obedience& Novice::keep(Obedience place) const
+const Obedience& Novice::keep(Tying tying) const
 {
-	const id::Obedience id = place.obedience_id();
+	if (tying.novice() != Soul::id())
+		throw std::logic_error("tying is not for this novice");
+
+	return keep(std::make_unique<Tie>(std::move(tying)));
+}
+
+
+const Obedience& Novice::keep(std::unique_ptr<Obedience> place) const
+{
+	if (!place)
+		throw std::invalid_argument("obedience required");
+
+	const id::Obedience id = place->obedience_id();
 
 	for (const auto& existing : obediences_) {
 		if (existing->obedience_id() == id)
 			return *existing;
 	}
 
-	obediences_.push_back(std::make_unique<Obedience>(std::move(place)));
-
+	obediences_.push_back(std::move(place));
+	if (auto* tie = dynamic_cast<Tie*>(obediences_.back().get()))
+		tie->enroll();
 	return *obediences_.back();
 }
 

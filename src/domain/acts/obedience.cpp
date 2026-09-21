@@ -1,30 +1,11 @@
 #include "obedience.h"
 
-#include "beings/novice.h"
-#include "beings/soul.h"
-#include "beings/testator.h"
-
-#include <stdexcept>
-#include <utility>
-
 
 namespace will::domain {
 
 
-Obedience::Obedience(const id::Obedience id, const Testator& testator, const Novice& novice)
+Obedience::Obedience(AsTieFace, const id::Obedience id)
 	: Place(id::Place{id.value()})
-	, testator_(testator)
-	, novice_(novice)
-{
-	if (testator_.Soul::id() == novice_.Soul::id())
-		throw std::invalid_argument("obedience requires distinct testator and novice");
-}
-
-
-Obedience::Obedience(Obedience&& other) noexcept
-	: Place(std::move(other))
-	, testator_(other.testator_)
-	, novice_(other.novice_)
 {}
 
 

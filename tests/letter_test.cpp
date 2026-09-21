@@ -4,7 +4,8 @@
 #include "domain_fakes.h"
 
 #include "acts/creation.h"
-#include "acts/obedience.h"
+#include "acts/tie.h"
+#include "acts/tying.h"
 #include "beings/letter.h"
 #include "beings/deed.h"
 #include "beings/novice.h"
@@ -76,9 +77,9 @@ TEST_CASE("Deed is a letter in an obedience place")
 	const auto& novice = static_cast<const Novice&>(world.welcome(DeviceToken::generate()));
 	const id::Deed did{3};
 	const id::Obedience oid{9};
-	const Obedience obedience{oid, testator, novice};
+	const Tie tie{Tying{oid, testator.Soul::id(), novice.Soul::id()}};
 
-	const Deed deed{did, obedience, Word{"do this"}, Timestamp{50}};
+	const Deed deed{did, tie, Word{"do this"}, Timestamp{50}};
 	CHECK(deed.id() == id::Letter{did.value()});
 	CHECK(deed.obedience_id() == oid);
 	CHECK(deed.place_id() == id::Place{oid.value()});
@@ -90,6 +91,6 @@ TEST_CASE("Deed is a letter in an obedience place")
 	CHECK_FALSE(deed.executed());
 	CHECK_FALSE(deed.cancelled());
 
-	CHECK_THROWS_AS((Deed{id::Deed{6}, obedience, Word{"x"}, Timestamp{1}, Timestamp{2}, Timestamp{3}}),
+	CHECK_THROWS_AS((Deed{id::Deed{6}, tie, Word{"x"}, Timestamp{1}, Timestamp{2}, Timestamp{3}}),
 					std::invalid_argument);
 }

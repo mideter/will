@@ -1,9 +1,9 @@
 #pragma once
 
 #include "acts/obedience.h"
-#include "acts/shepherding.h"
 #include "beings/letter.h"
 #include "identity/deed.h"
+#include "identity/obedience.h"
 #include "values/timestamp.h"
 #include "values/word.h"
 
@@ -26,7 +26,8 @@ public:
 	Deed(id::Deed id, const Obedience& obedience, Word word, Timestamp created_at,
 		 std::optional<Timestamp> executed_at = std::nullopt,
 		 std::optional<Timestamp> cancelled_at = std::nullopt);
-	Deed(id::Deed id, const Shepherding& shepherding, Word word, Timestamp created_at,
+	Deed(id::Deed id, id::Obedience place, const Testator& testator, const Novice& novice,
+		 Word word, Timestamp created_at,
 		 std::optional<Timestamp> executed_at = std::nullopt,
 		 std::optional<Timestamp> cancelled_at = std::nullopt);
 

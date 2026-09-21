@@ -13,26 +13,19 @@ namespace will::domain {
 
 Deed::Deed(const id::Deed id, const Obedience& obedience, Word word, const Timestamp created_at,
 		   std::optional<Timestamp> executed_at, std::optional<Timestamp> cancelled_at)
-	: Letter(id::Letter{id.value()}, obedience.id(), obedience.testator().Soul::id(), std::move(word),
-			 created_at)
-	, obedience_id_(obedience.obedience_id())
-	, testator_(obedience.testator())
-	, novice_(obedience.novice())
-	, executed_at_(std::move(executed_at))
-	, cancelled_at_(std::move(cancelled_at))
-{
-	if (executed_at_ && cancelled_at_)
-		throw std::invalid_argument("deed cannot be both executed and cancelled");
-}
+	: Deed(id, obedience.obedience_id(), obedience.testator(), obedience.novice(), std::move(word),
+		   created_at, std::move(executed_at), std::move(cancelled_at))
+{}
 
 
-Deed::Deed(const id::Deed id, const Shepherding& shepherding, Word word, const Timestamp created_at,
+Deed::Deed(const id::Deed id, const id::Obedience place, const Testator& testator,
+		   const Novice& novice, Word word, const Timestamp created_at,
 		   std::optional<Timestamp> executed_at, std::optional<Timestamp> cancelled_at)
-	: Letter(id::Letter{id.value()}, shepherding.id(), shepherding.testator().Soul::id(),
-			 std::move(word), created_at)
-	, obedience_id_(shepherding.obedience_id())
-	, testator_(shepherding.testator())
-	, novice_(shepherding.novice())
+	: Letter(id::Letter{id.value()}, id::Place{place.value()}, testator.Soul::id(), std::move(word),
+			 created_at)
+	, obedience_id_(place)
+	, testator_(testator)
+	, novice_(novice)
 	, executed_at_(std::move(executed_at))
 	, cancelled_at_(std::move(cancelled_at))
 {

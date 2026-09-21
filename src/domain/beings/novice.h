@@ -3,6 +3,7 @@
 #include "acts/embodiment.h"
 #include "acts/obedience.h"
 #include "acts/supplication.h"
+#include "acts/tying.h"
 #include "beings/deed.h"
 #include "beings/witness.h"
 
@@ -17,8 +18,9 @@ class Testator;
 
 
 /// Novice (Послушник) — Исполнитель: исполняет Дело в Послушании.
-/// Owns Obedience faces on the heap; Temporality keeps the same places in time.
-/// Mode is disclosed in an Obedience; the living heap object is always Testator.
+/// Owns living Ties as Obedience (Послушание) on the heap; Temporality keeps
+/// Tyings in time. Mode is disclosed in an Obedience; the living heap object
+/// is always Testator.
 class Novice : public Witness {
 public:
 	/// Ask addressee to become Завещатель; this soul will be the novice.
@@ -34,14 +36,15 @@ public:
 protected:
 	explicit Novice(Embodiment embodiment);
 
-	/// Keep an Obedience face on this novice (signed Supplication / awaken).
-	const Obedience& keep(Obedience place) const;
+	const Obedience& keep(Tying tying) const;
 
 private:
 	friend class Supplication;
 	friend class World;
 
 	using Witness::say;
+
+	const Obedience& keep(std::unique_ptr<Obedience> place) const;
 
 	mutable std::vector<std::unique_ptr<Obedience>> obediences_;
 };

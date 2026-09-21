@@ -6,6 +6,8 @@
 #include "acts/creation.h"
 #include "acts/obedience.h"
 #include "acts/shepherding.h"
+#include "acts/tie.h"
+#include "acts/tying.h"
 #include "beings/deed.h"
 #include "beings/novice.h"
 #include "beings/testator.h"
@@ -165,7 +167,7 @@ TEST_CASE("witness retell is history of observed abode")
 }
 
 
-TEST_CASE("obedience is a place for distinct testator and novice")
+TEST_CASE("tie is a place for distinct testator and novice")
 {
 	InMemoryTemporality temporality;
 	Creation creation(temporality);
@@ -175,17 +177,18 @@ TEST_CASE("obedience is a place for distinct testator and novice")
 	const auto& novice = static_cast<const Novice&>(world.welcome(DeviceToken::generate()));
 	const id::Obedience oid{7};
 
-	Obedience obedience{oid, testator, novice};
-	CHECK(obedience.id() == id::Place{oid.value()});
-	CHECK(obedience.obedience_id() == oid);
-	CHECK(&obedience.testator() == &testator);
-	CHECK(&obedience.novice() == &novice);
+	const Tie tie{Tying{oid, testator.Soul::id(), novice.Soul::id()}};
+	CHECK(tie.id() == id::Place{oid.value()});
+	CHECK(tie.obedience_id() == oid);
+	CHECK(&tie.testator() == &testator);
+	CHECK(&tie.novice() == &novice);
 
-	CHECK_THROWS_AS((Obedience{id::Obedience{8}, testator, testator}), std::invalid_argument);
+	CHECK_THROWS_AS((Tying{id::Obedience{8}, testator.Soul::id(), testator.Soul::id()}),
+					std::invalid_argument);
 }
 
 
-TEST_CASE("supplicate accept creates obedience owned on both faces")
+TEST_CASE("supplicate accept creates tie owned as obedience")
 {
 	InMemoryTemporality temporality;
 	Creation creation(temporality);
@@ -205,9 +208,9 @@ TEST_CASE("supplicate accept creates obedience owned on both faces")
 
 	testator.accept(ask);
 	CHECK(testator.supplications().empty());
-	REQUIRE(temporality.obediences().size() == 1);
+	REQUIRE(temporality.tyings().size() == 1);
 	const Obedience& obedience =
-		novice.obedience(temporality.obediences().front().obedience_id());
+		novice.obedience(temporality.tyings().front().id());
 	CHECK(&obedience.testator() == &testator);
 	CHECK(&obedience.novice() == &novice);
 	CHECK(obedience.id().value() != a.Soul::id().value());
@@ -254,9 +257,9 @@ TEST_CASE("will and execute within obedience")
 
 	novice.supplicate(testator);
 	testator.accept(testator.supplication(novice));
-	REQUIRE(temporality.obediences().size() == 1);
+	REQUIRE(temporality.tyings().size() == 1);
 	const Obedience& obedience =
-		novice.obedience(temporality.obediences().front().obedience_id());
+		novice.obedience(temporality.tyings().front().id());
 	const Shepherding& shepherding = testator.shepherding(obedience.obedience_id());
 	const Deed deed = testator.will(shepherding, Word{"fast"});
 	CHECK(deed.open());

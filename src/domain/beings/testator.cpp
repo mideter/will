@@ -1,5 +1,7 @@
 #include "testator.h"
 
+#include "acts/obedience.h"
+#include "acts/tie.h"
 #include "beings/soul.h"
 #include "ports/temporality.h"
 
@@ -33,20 +35,17 @@ Deed Testator::will(const Shepherding& shepherding, const Word& word) const
 	if (shepherding.testator().Soul::id() != Soul::id())
 		throw std::logic_error("not the testator of this shepherding");
 
-	const Obedience face{shepherding.obedience_id(), shepherding.testator(), shepherding.novice()};
-
-	return temporality().will(face, static_cast<const Soul&>(*this), word);
+	return temporality().will(dynamic_cast<const Obedience&>(shepherding),
+							  static_cast<const Soul&>(*this), word);
 }
 
 
 const Shepherding& Testator::shepherding(const id::Obedience id) const
 {
-	for (const auto& place : shepherdings_) {
-		if (place->obedience_id() == id)
-			return *place;
-	}
-
-	throw std::invalid_argument("unknown shepherding");
+	const Tie& tie = Tie::of(id);
+	if (tie.testator().Soul::id() != Soul::id())
+		throw std::logic_error("not the testator of this shepherding");
+	return tie;
 }
 
 
@@ -70,21 +69,6 @@ std::vector<std::reference_wrapper<const Supplication>> Testator::supplications(
 		out.emplace_back(*row);
 
 	return out;
-}
-
-
-const Shepherding& Testator::keep(Shepherding place) const
-{
-	const id::Obedience id = place.obedience_id();
-
-	for (const auto& existing : shepherdings_) {
-		if (existing->obedience_id() == id)
-			return *existing;
-	}
-
-	shepherdings_.push_back(std::make_unique<Shepherding>(std::move(place)));
-
-	return *shepherdings_.back();
 }
 
 

@@ -29,10 +29,10 @@ public:
 	domain::Supplication
 	supplicate(const domain::Novice& suppliant, const domain::Testator& addressee) override;
 	std::vector<domain::Supplication> pending_supplications(domain::id::Soul addressee) const override;
-	domain::Obedience accept(const domain::Supplication& ask) override;
+	domain::Tying accept(const domain::Supplication& ask) override;
 	void reject(const domain::Supplication& ask) override;
-	domain::Obedience obedience(domain::id::Obedience id) const override;
-	std::vector<domain::Obedience> obediences() const override;
+	domain::Tying tying(domain::id::Obedience id) const override;
+	std::vector<domain::Tying> tyings() const override;
 
 	domain::Deed
 	will(const domain::Obedience& obedience, const domain::Soul& testator,

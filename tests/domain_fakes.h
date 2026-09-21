@@ -1,7 +1,9 @@
 #pragma once
 
 #include "beings/abode.h"
+#include "acts/tying.h"
 #include "acts/obedience.h"
+#include "acts/tie.h"
 #include "beings/soul.h"
 #include "beings/letter.h"
 #include "beings/man.h"
@@ -163,7 +165,7 @@ public:
 		return out;
 	}
 
-	Obedience accept(const Supplication& ask) override
+	Tying accept(const Supplication& ask) override
 	{
 		const auto it = find_pending(ask);
 		if (pair_exists(it->addressee().Soul::id(), it->suppliant().Soul::id()))
@@ -175,7 +177,7 @@ public:
 
 		const id::Obedience oid{allocate_place()};
 		obediences_.push_back(ObedienceRow{oid, place_testator.Soul::id(), place_novice.Soul::id()});
-		return Obedience{oid, place_testator, place_novice};
+		return Tying{oid, place_testator.Soul::id(), place_novice.Soul::id()};
 	}
 
 	void reject(const Supplication& ask) override
@@ -183,26 +185,22 @@ public:
 		drop_pending(find_pending(ask));
 	}
 
-	Obedience obedience(const id::Obedience id) const override
+	Tying tying(const id::Obedience id) const override
 	{
 		for (const auto& row : obediences_) {
 			if (row.id != id)
 				continue;
-
-			return Obedience{row.id, static_cast<const Testator&>(Soul::of(row.testator)),
-							 static_cast<const Novice&>(Soul::of(row.novice))};
+			return Tying{row.id, row.testator, row.novice};
 		}
 		throw std::invalid_argument("unknown obedience");
 	}
 
-	std::vector<Obedience> obediences() const override
+	std::vector<Tying> tyings() const override
 	{
-		std::vector<Obedience> out;
+		std::vector<Tying> out;
 		out.reserve(obediences_.size());
-		for (const auto& row : obediences_) {
-			out.push_back(Obedience{row.id, static_cast<const Testator&>(Soul::of(row.testator)),
-									static_cast<const Novice&>(Soul::of(row.novice))});
-		}
+		for (const auto& row : obediences_)
+			out.push_back(Tying{row.id, row.testator, row.novice});
 		return out;
 	}
 
@@ -222,7 +220,7 @@ public:
 					std::nullopt,
 					std::nullopt};
 		deed_rows_.push_back(row);
-		return Deed{row.id, this->obedience(obedience.obedience_id()), word, row.created_at};
+		return make_deed(row);
 	}
 
 	Deed execute(const Deed& deed) override
@@ -307,8 +305,10 @@ private:
 
 	Deed make_deed(const DeedRow& row) const
 	{
-		const Obedience obedience = this->obedience(row.obedience);
-		return Deed{row.id, obedience, Word{row.body}, row.created_at, row.executed_at, row.cancelled_at};
+		return Deed{row.id, row.obedience,
+					static_cast<const Testator&>(Soul::of(row.testator)),
+					static_cast<const Novice&>(Soul::of(row.novice)), Word{row.body},
+					row.created_at, row.executed_at, row.cancelled_at};
 	}
 
 	std::vector<Supplication>::const_iterator find_pending(const Supplication& ask) const

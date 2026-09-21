@@ -1,7 +1,6 @@
 #include "supplication.h"
 
-#include "acts/obedience.h"
-#include "acts/shepherding.h"
+#include "acts/tying.h"
 #include "beings/novice.h"
 #include "beings/soul.h"
 #include "beings/testator.h"
@@ -38,13 +37,8 @@ void Supplication::sign(const Testator& addressee) const
 
 	const Supplication& incoming = addressee.supplication(suppliant_);
 
-	const Obedience created = addressee.temporality().accept(incoming);
-	const Testator& place_testator = created.testator();
-	const Novice& place_novice = created.novice();
-	const id::Obedience oid = created.obedience_id();
-
-	addressee.keep(Shepherding{oid, place_testator, place_novice});
-	place_novice.keep(Obedience{oid, place_testator, place_novice});
+	const Tying tying = addressee.temporality().accept(incoming);
+	static_cast<const Novice&>(Soul::of(tying.novice())).keep(tying);
 	addressee.drop_supplication(suppliant_);
 }
 

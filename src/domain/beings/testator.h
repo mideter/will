@@ -1,7 +1,6 @@
 #pragma once
 
 #include "acts/embodiment.h"
-#include "acts/obedience.h"
 #include "acts/shepherding.h"
 #include "acts/supplication.h"
 #include "beings/novice.h"
@@ -20,8 +19,9 @@ class World;
 
 
 /// Testator (Завещатель, Тренер) — Novice who may pass received will on as his own.
-/// Owns Shepherding (Ведение) faces and incoming pending Supplications on the heap;
-/// Temporality keeps the same in time. Only World may birth a Testator onto the heap.
+/// Owns incoming pending Supplications on the heap; living Ties are owned by the
+/// Novice as Obedience — this soul reaches them as Shepherding. Temporality keeps
+/// the same in time. Only World may birth a Testator onto the heap.
 class Testator : public Novice {
 public:
 	void accept(const Supplication& ask) const;
@@ -38,11 +38,9 @@ private:
 
 	explicit Testator(Embodiment embodiment);
 
-	const Shepherding& keep(Shepherding place) const;
 	const Supplication& receive(Supplication supplication) const;
 	void drop_supplication(const Novice& suppliant) const;
 
-	mutable std::vector<std::unique_ptr<Shepherding>> shepherdings_;
 	mutable std::vector<std::unique_ptr<Supplication>> incoming_;
 };
 

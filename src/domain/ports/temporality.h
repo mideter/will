@@ -3,6 +3,7 @@
 #include "acts/embodiment.h"
 #include "acts/obedience.h"
 #include "acts/supplication.h"
+#include "acts/tying.h"
 #include "beings/abode.h"
 #include "beings/letter.h"
 #include "beings/soul.h"
@@ -66,18 +67,18 @@ public:
 	/// Pending supplications addressed to this soul.
 	virtual std::vector<Supplication> pending_supplications(id::Soul addressee) const = 0;
 
-	/// Accept a pending supplication; keeps the shared Obedience/Shepherding place in time.
+	/// Accept a pending; keeps the tying in time. Living Tie is born on the heap.
 	/// Keyed by the living pair (suppliant, addressee).
-	virtual Obedience accept(const Supplication& ask) = 0;
+	virtual Tying accept(const Supplication& ask) = 0;
 
 	/// Reject a pending supplication (same living pair).
 	virtual void reject(const Supplication& ask) = 0;
 
-	/// Shared place by id (Obedience face). Throws if unknown.
-	virtual Obedience obedience(id::Obedience id) const = 0;
+	/// Tying remembered in time. Throws if unknown.
+	virtual Tying tying(id::Obedience id) const = 0;
 
-	/// All shared places kept in time (Obedience faces).
-	virtual std::vector<Obedience> obediences() const = 0;
+	/// All tyings kept in time.
+	virtual std::vector<Tying> tyings() const = 0;
 
 	/// Will a word in a shared place (testator must be that place's testator).
 	virtual Deed will(const Obedience& obedience, const Soul& testator, const Word& word) = 0;
