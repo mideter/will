@@ -84,6 +84,7 @@ const Man& World::accept(Embodiment embodiment)
 	std::lock_guard lock(mutex_);
 	men_.insert_or_assign(soul_id, std::move(ptr));
 	soul_id_by_vessel_.insert_or_assign(vessel_id, soul_id);
+
 	return live;
 }
 

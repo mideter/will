@@ -43,6 +43,7 @@ std::uint64_t next_place_id(sqlite3* db)
 					"prepare next_place_id");
 	if (!stmt.step_row("next_place_id step"))
 		throw std::runtime_error("next_place_id: no row");
+
 	return static_cast<std::uint64_t>(stmt.column_i64(0)) + 1;
 }
 
@@ -156,6 +157,7 @@ std::vector<domain::Embodiment> SqliteTemporality::embodiments() const
 
 		rows.push_back(domain::Embodiment{soul_id, *name, vessel_id, *token});
 	}
+
 	return rows;
 }
 
@@ -176,6 +178,7 @@ std::vector<domain::Abode> SqliteTemporality::abodes()
 
 		abodes.emplace_back(id, domain::AbodeName{name_text});
 	}
+
 	return abodes;
 }
 
@@ -242,6 +245,7 @@ std::vector<domain::Letter> SqliteTemporality::letters(const domain::id::Place p
 
 	std::vector<domain::Letter> rows;
 	rows.reserve(limit);
+
 	while (stmt.step_row("letters step")) {
 		rows.push_back(domain::Letter{
 			domain::id::Letter{static_cast<std::uint64_t>(stmt.column_i64(0))},
@@ -253,6 +257,7 @@ std::vector<domain::Letter> SqliteTemporality::letters(const domain::id::Place p
 	}
 
 	std::reverse(rows.begin(), rows.end());
+
 	return rows;
 }
 
@@ -314,6 +319,7 @@ std::vector<domain::Supplication> SqliteTemporality::pending_supplications(
 	std::vector<domain::Supplication> rows;
 	while (stmt.step_row("pending_supplications step"))
 		rows.push_back(read_pending_supplication(stmt.get()));
+
 	return rows;
 }
 
@@ -336,6 +342,7 @@ domain::Obedience SqliteTemporality::accept(const domain::Supplication& ask)
 		load.bind_i64(2, static_cast<std::int64_t>(ask.addressee().Soul::id().value()), "bind addressee");
 		if (!load.step_row("load pending step"))
 			throw std::invalid_argument("unknown supplication");
+
 		return read_pending_supplication(load.get());
 	}();
 
@@ -366,6 +373,7 @@ domain::Obedience SqliteTemporality::accept(const domain::Supplication& ask)
 	ins.step_done("insert obedience step");
 
 	tx.commit();
+
 	return domain::Obedience{oid, row.addressee(), row.suppliant()};
 }
 
@@ -383,6 +391,7 @@ void SqliteTemporality::reject(const domain::Supplication& ask)
 	upd.bind_i64(1, static_cast<std::int64_t>(ask.suppliant().Soul::id().value()), "bind suppliant");
 	upd.bind_i64(2, static_cast<std::int64_t>(ask.addressee().Soul::id().value()), "bind addressee");
 	upd.step_done("reject step");
+
 	if (sqlite3_changes(db) != 1)
 		throw std::invalid_argument("unknown supplication");
 }
@@ -423,8 +432,10 @@ std::vector<domain::Obedience> SqliteTemporality::obediences() const
 
 	std::vector<domain::Obedience> out;
 	out.reserve(ids.size());
+
 	for (const domain::id::Obedience id : ids)
 		out.push_back(obedience(id));
+
 	return out;
 }
 
@@ -460,6 +471,7 @@ domain::Deed SqliteTemporality::bequeath(const domain::Obedience& obedience,
 	stmt.step_done("insert deed step");
 
 	const domain::id::Deed did{sqlite_last_insert_id(db)};
+
 	return domain::Deed{did, obedience, word, ts};
 }
 
@@ -556,8 +568,10 @@ std::vector<domain::Deed> SqliteTemporality::deeds(const domain::id::Obedience o
 
 	std::vector<domain::Deed> out;
 	out.reserve(ids.size());
+
 	for (const domain::id::Deed id : ids)
 		out.push_back(this->deed(id));
+
 	return out;
 }
 

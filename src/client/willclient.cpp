@@ -208,6 +208,7 @@ bool WillClient::requestHistory(const std::uint32_t limit) const
 	event.mutable_history_request()->set_limit(limit);
 	if (!write_event(event))
 		throw std::runtime_error("Will protocol: failed to send HistoryRequest");
+
 	return true;
 }
 

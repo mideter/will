@@ -17,6 +17,7 @@ Earth& Earth::the()
 {
 	if (current_ == nullptr)
 		throw std::logic_error("Earth has not been brought forth");
+
 	return *current_;
 }
 

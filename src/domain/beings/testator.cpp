@@ -34,6 +34,7 @@ Deed Testator::will(const Shepherding& shepherding, const Word& word) const
 		throw std::logic_error("not the testator of this shepherding");
 
 	const Obedience face{shepherding.obedience_id(), shepherding.testator(), shepherding.novice()};
+
 	return temporality().bequeath(face, static_cast<const Soul&>(*this), word);
 }
 
@@ -82,6 +83,7 @@ const Shepherding& Testator::keep(Shepherding place) const
 	}
 
 	shepherdings_.push_back(std::make_unique<Shepherding>(std::move(place)));
+
 	return *shepherdings_.back();
 }
 
@@ -92,12 +94,14 @@ const Supplication& Testator::receive(Supplication supplication) const
 		throw std::logic_error("supplication is not addressed to this soul");
 
 	const id::Soul suppliant_id = supplication.suppliant().Soul::id();
+
 	for (const auto& existing : incoming_) {
 		if (existing->suppliant().Soul::id() == suppliant_id)
 			return *existing;
 	}
 
 	incoming_.push_back(std::make_unique<Supplication>(std::move(supplication)));
+
 	return *incoming_.back();
 }
 

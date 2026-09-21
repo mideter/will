@@ -30,7 +30,6 @@ Deed Novice::execute(const Deed& deed) const
 {
 	if (deed.novice().Soul::id() != Soul::id())
 		throw std::logic_error("not the novice of this deed");
-
 	if (!deed.open())
 		throw std::logic_error("deed is not open");
 
@@ -46,6 +45,7 @@ const Obedience& Novice::obedience(const id::Obedience id) const
 		if (place->obedience_id() == id)
 			return *place;
 	}
+
 	throw std::invalid_argument("unknown obedience");
 }
 
@@ -53,11 +53,14 @@ const Obedience& Novice::obedience(const id::Obedience id) const
 const Obedience& Novice::keep(Obedience place) const
 {
 	const id::Obedience id = place.obedience_id();
+
 	for (const auto& existing : obediences_) {
 		if (existing->obedience_id() == id)
 			return *existing;
 	}
+
 	obediences_.push_back(std::make_unique<Obedience>(std::move(place)));
+
 	return *obediences_.back();
 }
 

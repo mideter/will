@@ -97,7 +97,6 @@ void ProtocolAdapter::handle_user_chat(const SessionId session_id, const v1::Cha
 	}
 
 	std::string author_name{man.name().text()};
-
 	v1::ServerEvent chat_event;
 	auto* chat_message = chat_event.mutable_chat();
 	chat_message->set_name(author_name);

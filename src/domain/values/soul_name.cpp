@@ -38,8 +38,10 @@ SoulName SoulName::generate()
 	std::uniform_int_distribution<std::size_t> dist(0, AlphabetSize - 1);
 
 	std::string name(Length, '\0');
+
 	for (char& ch : name)
 		ch = Alphabet[dist(gen)];
+
 	return SoulName{std::move(name)};
 }
 

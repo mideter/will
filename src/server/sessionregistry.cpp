@@ -22,6 +22,7 @@ std::shared_ptr<Session> SessionRegistry::register_session(grpc::ServerContext* 
 
 	std::lock_guard lock(mutex_);
 	sessions_.emplace(id.value, session);
+
 	return session;
 }
 
@@ -33,6 +34,7 @@ std::shared_ptr<Session> SessionRegistry::register_test_session()
 
 	std::lock_guard lock(mutex_);
 	sessions_.emplace(id.value, session);
+
 	return session;
 }
 
@@ -100,6 +102,7 @@ void SessionRegistry::broadcast_except(const SessionId except_session_id, const 
 	{
 		std::lock_guard lock(mutex_);
 		targets.reserve(sessions_.size());
+
 		for (const auto& [id, session] : sessions_) {
 			if (id != except_session_id.value)
 				targets.push_back(session);
@@ -120,6 +123,7 @@ void SessionRegistry::broadcast_except_vessel(const domain::id::Vessel except_ve
 	{
 		std::lock_guard lock(mutex_);
 		targets.reserve(sessions_.size());
+
 		for (const auto& [id, session] : sessions_) {
 			if (const auto bound = session->vessel_id(); bound && *bound == except_vessel_id)
 				continue;
@@ -203,6 +207,7 @@ std::optional<SessionId> SessionRegistry::bind_vessel(const SessionId session_id
 
 	session->set_vessel_id(vessel_id);
 	session_by_vessel_[vessel_id.value()] = session_id;
+
 	return displaced;
 }
 
@@ -213,6 +218,7 @@ void SessionRegistry::close_all_sessions()
 	{
 		std::lock_guard lock(mutex_);
 		sessions.reserve(sessions_.size());
+
 		for (auto& [id, session] : sessions_)
 			sessions.push_back(session);
 		sessions_.clear();

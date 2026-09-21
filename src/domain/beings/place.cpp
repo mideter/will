@@ -18,7 +18,9 @@ Place& Place::operator=(Place&& other) noexcept
 {
 	if (this == &other)
 		return *this;
+
 	id_ = other.id_;
+
 	return *this;
 }
 

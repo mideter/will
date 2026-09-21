@@ -17,6 +17,7 @@ Heaven& Heaven::the()
 {
 	if (current_ == nullptr)
 		throw std::logic_error("Heaven has not been brought forth");
+
 	return *current_;
 }
 
@@ -26,6 +27,7 @@ Heaven::Heaven(Eternity& eternity)
 {
 	if (current_ != nullptr)
 		throw std::logic_error("Only one World");
+
 	current_ = this;
 }
 
