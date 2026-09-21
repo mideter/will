@@ -1,0 +1,20 @@
+---
+description: Blank lines separate phases inside a function body
+globs: src/**/*.{cpp,h}
+alwaysApply: false
+---
+
+# Function body phases
+
+Inside a function, put a blank line between distinct phases — not between
+tightly related lines of the same phase.
+
+Typical phases: locals/setup, search/loop, failure (`throw` / early exit),
+mutation (`push_back` / `erase`), `return`.
+
+- Do blank: after a lookup loop before `throw` or before inserting; after
+  `reserve` before the fill loop; after `find_if` before the miss check;
+  before a final `return` when the body had more than one phase.
+- Do not blank: inside a short `for`/`if` that only matches and returns;
+  between a guard `if` and its immediate `throw` when that is the whole
+  phase; between every statement “for air”.
