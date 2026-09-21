@@ -1,0 +1,16 @@
+---
+description: Name act sides by act role, not place role or heap-type name
+globs: src/domain/acts/**
+alwaysApply: false
+---
+
+# Act role names in APIs
+
+On petition and place acts, name sides by the role in that act — not by the
+heap type's place-facing name and not by the future place role.
+
+- Supplication: `suppliant`, `addressee` (not `novice` / `testator` in
+  parameters or members).
+- Obedience / Shepherding: `testator`, `novice`.
+- Parameter type may still be `Novice&` / `Testator&`; the *name* carries the
+  act role.
