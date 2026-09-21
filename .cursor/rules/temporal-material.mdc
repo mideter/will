@@ -1,0 +1,17 @@
+---
+description: Temporal material births living heap objects; do not unpack by hand
+globs: src/domain/**
+alwaysApply: false
+---
+
+# Temporal material → living heap
+
+Temporality remembers **material** (ids / values), not living beings or faces.
+
+- Material from the port births the living heap object; construct that type
+  **from the material** (`Soul::of` and similar belong inside the living ctor).
+- Do not re-unpack material into ctor args at every call site.
+- Faces are views of the living place, not owners of sides and not what
+  Temporality stores.
+
+Examples: `Embodiment` → `Man` / `Testator`; `Tying` → `Tie` (kept as Obedience).
