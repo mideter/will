@@ -440,11 +440,11 @@ std::vector<domain::Obedience> SqliteTemporality::obediences() const
 }
 
 
-domain::Deed SqliteTemporality::bequeath(const domain::Obedience& obedience,
-										 const domain::Soul& testator, const domain::Word& word)
+domain::Deed SqliteTemporality::will(const domain::Obedience& obedience,
+									  const domain::Soul& testator, const domain::Word& word)
 {
 	if (obedience.testator().Soul::id() != testator.id())
-		throw std::logic_error("only the testator may bequeath in this obedience");
+		throw std::logic_error("only the testator may will in this obedience");
 
 	const domain::Timestamp ts = time_.instant();
 	std::lock_guard lock(database_.mutex());

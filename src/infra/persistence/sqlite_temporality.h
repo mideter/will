@@ -35,8 +35,8 @@ public:
 	std::vector<domain::Obedience> obediences() const override;
 
 	domain::Deed
-	bequeath(const domain::Obedience& obedience, const domain::Soul& testator,
-			 const domain::Word& word) override;
+	will(const domain::Obedience& obedience, const domain::Soul& testator,
+		 const domain::Word& word) override;
 	domain::Deed execute(const domain::Deed& deed) override;
 	domain::Deed deed(domain::id::Deed id) const override;
 	std::vector<domain::Deed> deeds(domain::id::Obedience obedience) const override;

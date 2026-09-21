@@ -206,12 +206,12 @@ public:
 		return out;
 	}
 
-	Deed bequeath(const Obedience& obedience, const Soul& testator, const Word& word) override
+	Deed will(const Obedience& obedience, const Soul& testator, const Word& word) override
 	{
 		if (!has_obedience(obedience.obedience_id()))
 			throw std::invalid_argument("unknown obedience");
 		if (obedience.testator().Soul::id() != testator.id())
-			throw std::logic_error("only the testator may bequeath in this obedience");
+			throw std::logic_error("only the testator may will in this obedience");
 
 		DeedRow row{id::Deed{++next_deed_id_},
 					obedience.obedience_id(),

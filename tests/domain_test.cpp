@@ -258,15 +258,15 @@ TEST_CASE("will and execute within obedience")
 	const Obedience& obedience =
 		novice.obedience(temporality.obediences().front().obedience_id());
 	const Shepherding& shepherding = testator.shepherding(obedience.obedience_id());
-	const Deed bequeathed = testator.will(shepherding, Word{"fast"});
-	CHECK(bequeathed.open());
-	CHECK(bequeathed.body() == "fast");
-	CHECK(&bequeathed.testator() == &testator);
-	CHECK(&bequeathed.novice() == &novice);
+	const Deed deed = testator.will(shepherding, Word{"fast"});
+	CHECK(deed.open());
+	CHECK(deed.body() == "fast");
+	CHECK(&deed.testator() == &testator);
+	CHECK(&deed.novice() == &novice);
 
 	CHECK_THROWS_AS(static_cast<const Testator&>(a).will(shepherding, Word{"no"}), std::logic_error);
 
-	const Deed done = novice.execute(bequeathed);
+	const Deed done = novice.execute(deed);
 	CHECK(done.executed());
 	CHECK_FALSE(done.open());
 	CHECK_THROWS_AS(novice.execute(done), std::logic_error);

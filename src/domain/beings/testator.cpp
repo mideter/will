@@ -35,7 +35,7 @@ Deed Testator::will(const Shepherding& shepherding, const Word& word) const
 
 	const Obedience face{shepherding.obedience_id(), shepherding.testator(), shepherding.novice()};
 
-	return temporality().bequeath(face, static_cast<const Soul&>(*this), word);
+	return temporality().will(face, static_cast<const Soul&>(*this), word);
 }
 
 
