@@ -135,29 +135,29 @@ public:
 	}
 
 	Supplication
-	supplicate(const Novice& suppliant, const Testator& testator) override
+	supplicate(const Novice& suppliant, const Testator& addressee) override
 	{
 		const id::Soul suppliant_id = suppliant.Soul::id();
-		const id::Soul testator_id = testator.Soul::id();
-		if (suppliant_id == testator_id)
-			throw std::invalid_argument("supplication requires distinct suppliant and testator");
-		if (pair_exists(testator_id, suppliant_id))
+		const id::Soul addressee_id = addressee.Soul::id();
+		if (suppliant_id == addressee_id)
+			throw std::invalid_argument("supplication requires distinct suppliant and addressee");
+		if (pair_exists(addressee_id, suppliant_id))
 			throw std::logic_error("obedience already exists for this pair");
 		for (const auto& row : pending_supplications_) {
-			if (row.suppliant().Soul::id() == suppliant_id && row.testator().Soul::id() == testator_id)
+			if (row.suppliant().Soul::id() == suppliant_id && row.addressee().Soul::id() == addressee_id)
 				throw std::logic_error("pending supplication already exists for this pair");
 		}
 
-		Supplication row{suppliant, testator};
+		Supplication row{suppliant, addressee};
 		pending_supplications_.push_back(row);
 		return row;
 	}
 
-	std::vector<Supplication> pending_supplications(const id::Soul testator) const override
+	std::vector<Supplication> pending_supplications(const id::Soul addressee) const override
 	{
 		std::vector<Supplication> out;
 		for (const auto& row : pending_supplications_) {
-			if (row.testator().Soul::id() == testator)
+			if (row.addressee().Soul::id() == addressee)
 				out.push_back(row);
 		}
 		return out;
@@ -166,10 +166,10 @@ public:
 	Obedience accept(const Supplication& ask) override
 	{
 		const auto it = find_pending(ask);
-		if (pair_exists(it->testator().Soul::id(), it->suppliant().Soul::id()))
+		if (pair_exists(it->addressee().Soul::id(), it->suppliant().Soul::id()))
 			throw std::logic_error("obedience already exists for this pair");
 
-		const Testator& place_testator = it->testator();
+		const Testator& place_testator = it->addressee();
 		const Novice& place_novice = it->suppliant();
 		drop_pending(it);
 
@@ -315,7 +315,7 @@ private:
 	{
 		for (auto it = pending_supplications_.begin(); it != pending_supplications_.end(); ++it) {
 			if (it->suppliant().Soul::id() == ask.suppliant().Soul::id()
-				&& it->testator().Soul::id() == ask.testator().Soul::id())
+				&& it->addressee().Soul::id() == ask.addressee().Soul::id())
 				return it;
 		}
 		throw std::invalid_argument("unknown supplication");

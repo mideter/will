@@ -16,12 +16,12 @@ Novice::Novice(Embodiment embodiment)
 {}
 
 
-void Novice::supplicate(const Testator& testator) const
+void Novice::supplicate(const Testator& addressee) const
 {
-	if (testator.Soul::id() == Soul::id())
+	if (addressee.Soul::id() == Soul::id())
 		throw std::invalid_argument("cannot supplicate oneself");
 
-	Supplication ask = temporality().supplicate(*this, testator);
+	Supplication ask = temporality().supplicate(*this, addressee);
 	ask.sign(*this);
 }
 

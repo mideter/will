@@ -24,10 +24,10 @@ namespace {
 domain::Supplication read_pending_supplication(sqlite3_stmt* stmt)
 {
 	const domain::id::Soul suppliant_id{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 0))};
-	const domain::id::Soul testator_id{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 1))};
+	const domain::id::Soul addressee_id{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 1))};
 	return domain::Supplication{
 		static_cast<const domain::Novice&>(domain::Soul::of(suppliant_id)),
-		static_cast<const domain::Testator&>(domain::Soul::of(testator_id)),
+		static_cast<const domain::Testator&>(domain::Soul::of(addressee_id)),
 	};
 }
 
@@ -344,18 +344,18 @@ std::vector<domain::Letter> SqliteTemporality::letters(const domain::id::Place p
 
 
 domain::Supplication SqliteTemporality::supplicate(const domain::Novice& suppliant,
-												   const domain::Testator& testator)
+												   const domain::Testator& addressee)
 {
 	const domain::id::Soul suppliant_id = suppliant.Soul::id();
-	const domain::id::Soul testator_id = testator.Soul::id();
-	if (suppliant_id == testator_id)
-		throw std::invalid_argument("supplication requires distinct suppliant and testator");
+	const domain::id::Soul addressee_id = addressee.Soul::id();
+	if (suppliant_id == addressee_id)
+		throw std::invalid_argument("supplication requires distinct suppliant and addressee");
 
 	const domain::Timestamp ts = time_.instant();
 	std::lock_guard lock(database_.mutex());
 	sqlite3* const db = database_.db();
 
-	if (pair_exists(db, testator_id, suppliant_id))
+	if (pair_exists(db, addressee_id, suppliant_id))
 		throw std::logic_error("obedience already exists for this pair");
 
 	sqlite3_stmt* pending_stmt = nullptr;
@@ -367,8 +367,8 @@ domain::Supplication SqliteTemporality::supplicate(const domain::Novice& supplia
 				 db, "prepare pending supplication");
 	check_sqlite(sqlite3_bind_int64(pending_stmt, 1, static_cast<sqlite3_int64>(suppliant_id.value())), db,
 				 "bind suppliant");
-	check_sqlite(sqlite3_bind_int64(pending_stmt, 2, static_cast<sqlite3_int64>(testator_id.value())), db,
-				 "bind testator");
+	check_sqlite(sqlite3_bind_int64(pending_stmt, 2, static_cast<sqlite3_int64>(addressee_id.value())), db,
+				 "bind addressee");
 	const int pending_rc = sqlite3_step(pending_stmt);
 	const bool pending_exists = pending_rc == SQLITE_ROW;
 	sqlite3_finalize(pending_stmt);
@@ -387,19 +387,19 @@ domain::Supplication SqliteTemporality::supplicate(const domain::Novice& supplia
 				 db, "prepare insert supplication");
 	check_sqlite(sqlite3_bind_int64(stmt, 1, static_cast<sqlite3_int64>(suppliant_id.value())), db,
 				 "bind suppliant");
-	check_sqlite(sqlite3_bind_int64(stmt, 2, static_cast<sqlite3_int64>(testator_id.value())), db,
-				 "bind testator");
+	check_sqlite(sqlite3_bind_int64(stmt, 2, static_cast<sqlite3_int64>(addressee_id.value())), db,
+				 "bind addressee");
 	check_sqlite(sqlite3_bind_text(stmt, 3, "pending", -1, SQLITE_STATIC), db, "bind status");
 	check_sqlite(sqlite3_bind_int64(stmt, 4, ts.value()), db, "bind created_at");
 	check_sqlite(sqlite3_step(stmt), db, "insert supplication step");
 	sqlite3_finalize(stmt);
 
-	return domain::Supplication{suppliant, testator};
+	return domain::Supplication{suppliant, addressee};
 }
 
 
 std::vector<domain::Supplication> SqliteTemporality::pending_supplications(
-	const domain::id::Soul testator) const
+	const domain::id::Soul addressee) const
 {
 	std::lock_guard lock(database_.mutex());
 	sqlite3* const db = database_.db();
@@ -410,8 +410,8 @@ std::vector<domain::Supplication> SqliteTemporality::pending_supplications(
 									"WHERE testator_soul_id = ? AND status = 'pending' ORDER BY id;",
 									-1, &stmt, nullptr),
 				 db, "prepare pending_supplications");
-	check_sqlite(sqlite3_bind_int64(stmt, 1, static_cast<sqlite3_int64>(testator.value())), db,
-				 "bind testator");
+	check_sqlite(sqlite3_bind_int64(stmt, 1, static_cast<sqlite3_int64>(addressee.value())), db,
+				 "bind addressee");
 
 	std::vector<domain::Supplication> rows;
 	int rc = sqlite3_step(stmt);
@@ -442,8 +442,8 @@ domain::Obedience SqliteTemporality::accept(const domain::Supplication& ask)
 				 db, "prepare load pending supplication");
 	check_sqlite(sqlite3_bind_int64(load, 1, static_cast<sqlite3_int64>(ask.suppliant().Soul::id().value())),
 				 db, "bind suppliant");
-	check_sqlite(sqlite3_bind_int64(load, 2, static_cast<sqlite3_int64>(ask.testator().Soul::id().value())),
-				 db, "bind testator");
+	check_sqlite(sqlite3_bind_int64(load, 2, static_cast<sqlite3_int64>(ask.addressee().Soul::id().value())),
+				 db, "bind addressee");
 	const int load_rc = sqlite3_step(load);
 	if (load_rc != SQLITE_ROW) {
 		sqlite3_finalize(load);
@@ -452,7 +452,7 @@ domain::Obedience SqliteTemporality::accept(const domain::Supplication& ask)
 	const auto row = read_pending_supplication(load);
 	sqlite3_finalize(load);
 
-	if (pair_exists(db, row.testator().Soul::id(), row.suppliant().Soul::id()))
+	if (pair_exists(db, row.addressee().Soul::id(), row.suppliant().Soul::id()))
 		throw std::logic_error("obedience already exists for this pair");
 
 	sqlite3_stmt* upd = nullptr;
@@ -464,8 +464,8 @@ domain::Obedience SqliteTemporality::accept(const domain::Supplication& ask)
 				 db, "prepare accept status");
 	check_sqlite(sqlite3_bind_int64(upd, 1, static_cast<sqlite3_int64>(row.suppliant().Soul::id().value())),
 				 db, "bind suppliant");
-	check_sqlite(sqlite3_bind_int64(upd, 2, static_cast<sqlite3_int64>(row.testator().Soul::id().value())),
-				 db, "bind testator");
+	check_sqlite(sqlite3_bind_int64(upd, 2, static_cast<sqlite3_int64>(row.addressee().Soul::id().value())),
+				 db, "bind addressee");
 	check_sqlite(sqlite3_step(upd), db, "accept status step");
 	sqlite3_finalize(upd);
 
@@ -478,7 +478,7 @@ domain::Obedience SqliteTemporality::accept(const domain::Supplication& ask)
 									-1, &ins, nullptr),
 				 db, "prepare insert obedience");
 	check_sqlite(sqlite3_bind_int64(ins, 1, static_cast<sqlite3_int64>(oid.value())), db, "bind id");
-	check_sqlite(sqlite3_bind_int64(ins, 2, static_cast<sqlite3_int64>(row.testator().Soul::id().value())), db,
+	check_sqlite(sqlite3_bind_int64(ins, 2, static_cast<sqlite3_int64>(row.addressee().Soul::id().value())), db,
 				 "bind testator");
 	check_sqlite(sqlite3_bind_int64(ins, 3, static_cast<sqlite3_int64>(row.suppliant().Soul::id().value())), db,
 				 "bind novice");
@@ -487,7 +487,7 @@ domain::Obedience SqliteTemporality::accept(const domain::Supplication& ask)
 	sqlite3_finalize(ins);
 
 	tx.commit();
-	return domain::Obedience{oid, row.testator(), row.suppliant()};
+	return domain::Obedience{oid, row.addressee(), row.suppliant()};
 }
 
 
@@ -505,8 +505,8 @@ void SqliteTemporality::refuse(const domain::Supplication& ask)
 				 db, "prepare refuse");
 	check_sqlite(sqlite3_bind_int64(upd, 1, static_cast<sqlite3_int64>(ask.suppliant().Soul::id().value())),
 				 db, "bind suppliant");
-	check_sqlite(sqlite3_bind_int64(upd, 2, static_cast<sqlite3_int64>(ask.testator().Soul::id().value())),
-				 db, "bind testator");
+	check_sqlite(sqlite3_bind_int64(upd, 2, static_cast<sqlite3_int64>(ask.addressee().Soul::id().value())),
+				 db, "bind addressee");
 	check_sqlite(sqlite3_step(upd), db, "refuse step");
 	const int changed = sqlite3_changes(db);
 	sqlite3_finalize(upd);

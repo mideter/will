@@ -21,9 +21,9 @@ class Testator;
 /// Mode is disclosed in an Obedience; the living heap object is always Testator.
 class Novice : public Witness {
 public:
-	/// Ask testator to become Завещатель; this soul will be the novice.
+	/// Ask addressee to become Завещатель; this soul will be the novice.
 	/// The pending Supplication is signed by this novice (lodge + Temporality).
-	void supplicate(const Testator& testator) const;
+	void supplicate(const Testator& addressee) const;
 
 	/// Carry out an open deed in an obedience where this soul is novice.
 	Deed execute(const Deed& deed) const;

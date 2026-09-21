@@ -13,12 +13,12 @@
 namespace will::domain {
 
 
-Supplication::Supplication(const Novice& suppliant, const Testator& testator)
+Supplication::Supplication(const Novice& suppliant, const Testator& addressee)
 	: suppliant_(suppliant)
-	, testator_(testator)
+	, addressee_(addressee)
 {
-	if (suppliant.Soul::id() == testator.Soul::id())
-		throw std::invalid_argument("supplication requires distinct suppliant and testator");
+	if (suppliant.Soul::id() == addressee.Soul::id())
+		throw std::invalid_argument("supplication requires distinct suppliant and addressee");
 }
 
 
@@ -27,13 +27,13 @@ void Supplication::sign(const Novice& novice) const
 	if (novice.Soul::id() != suppliant_.Soul::id())
 		throw std::logic_error("only the suppliant may sign this supplication");
 
-	testator_.receive(Supplication{*this});
+	addressee_.receive(Supplication{*this});
 }
 
 
 void Supplication::sign(const Testator& testator) const
 {
-	if (testator.Soul::id() != testator_.Soul::id())
+	if (testator.Soul::id() != addressee_.Soul::id())
 		throw std::logic_error("supplication is not addressed to this soul");
 
 	const Supplication& incoming = testator.supplication(suppliant_);
@@ -51,7 +51,7 @@ void Supplication::sign(const Testator& testator) const
 
 void Supplication::reject(const Testator& testator) const
 {
-	if (testator.Soul::id() != testator_.Soul::id())
+	if (testator.Soul::id() != addressee_.Soul::id())
 		throw std::logic_error("supplication is not addressed to this soul");
 
 	const Supplication& incoming = testator.supplication(suppliant_);
