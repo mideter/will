@@ -24,7 +24,7 @@ Space& Space::the()
 Space::Space()
 {
 	if (current_ != nullptr)
-		throw std::logic_error("Only one World");
+		throw std::logic_error("Only one Space");
 
 	current_ = this;
 }

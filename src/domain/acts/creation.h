@@ -1,5 +1,6 @@
 #pragma once
 
+#include "beings/space.h"
 #include "beings/world.h"
 #include "ports/temporality.h"
 
@@ -7,8 +8,8 @@
 namespace will::domain {
 
 
-/// Creation (Творение) — genesis: brings forth Heaven, Earth, and Space, the World,
-/// and awakens the living cosmos.
+/// Creation (Творение) — genesis: brings forth Space, Heaven, Earth, the World,
+/// and awakens the living cosmos. Space is an environment; World is Heaven and Earth.
 class Creation {
 public:
 	explicit Creation(Temporality& temporality);
@@ -23,6 +24,7 @@ public:
 	const World& world() const noexcept { return world_; }
 
 private:
+	Space space_;
 	World world_;
 };
 

@@ -18,10 +18,9 @@
 namespace will::domain {
 
 
-World::World(Heaven heaven, Earth earth, Space space)
+World::World(Heaven heaven, Earth earth)
 	: Heaven(std::move(heaven))
 	, Earth(std::move(earth))
-	, Space(std::move(space))
 {}
 
 
