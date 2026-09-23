@@ -1,19 +1,22 @@
 #include "letter.h"
 
+#include <stdexcept>
 #include <utility>
 
 
 namespace will::domain {
 
 
-Letter::Letter(const id::Letter id, const id::Place place_id, const id::Soul author_id, Word word,
-			   const Timestamp created_at)
-	: Word(std::move(word))
-	, id_(id)
-	, place_id_(place_id)
-	, author_id_(author_id)
-	, created_at_(created_at)
-{}
+Letter::Letter(Inscription inscription, const Place& place)
+	: Word(inscription.word())
+	, id_(inscription.id())
+	, place_(place)
+	, author_(Soul::of(inscription.author()))
+	, created_at_(inscription.created_at())
+{
+	if (place.id() != inscription.place())
+		throw std::invalid_argument("letter place must match inscription");
+}
 
 
 } // namespace will::domain

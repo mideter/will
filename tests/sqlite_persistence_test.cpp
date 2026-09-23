@@ -53,17 +53,17 @@ TEST_CASE("sqlite persistence survives reopen")
 		name_b = man_b.name();
 
 		const id::Place place_a = static_cast<const Witness&>(man_a).abode().id();
-		temporality.fix(place_a, man_a.Soul::id(), Word{"from-peer"});
-		temporality.fix(place_a, man_b.Soul::id(), Word{"from-me"});
+		temporality.inscribe(place_a, man_a.Soul::id(), Word{"from-peer"});
+		temporality.inscribe(place_a, man_b.Soul::id(), Word{"from-me"});
 
-		const auto rows = temporality.letters(place_a, 10);
+		const auto rows = temporality.inscriptions(place_a, 10);
 		REQUIRE(rows.size() == 2);
-		CHECK(rows[0].body() == "from-peer");
-		CHECK(rows[0].author_id() == man_a.Soul::id());
-		CHECK(world.soul(rows[0].author_id()).name() == *name_a);
-		CHECK(rows[1].body() == "from-me");
-		CHECK(rows[1].author_id() == man_b.Soul::id());
-		CHECK(world.soul(rows[1].author_id()).name() == *name_b);
+		CHECK(rows[0].word().body() == "from-peer");
+		CHECK(rows[0].author() == man_a.Soul::id());
+		CHECK(world.soul(rows[0].author()).name() == *name_a);
+		CHECK(rows[1].word().body() == "from-me");
+		CHECK(rows[1].author() == man_b.Soul::id());
+		CHECK(world.soul(rows[1].author()).name() == *name_b);
 
 		CHECK(static_cast<const Witness&>(man_a).abode().id() !=
 			  static_cast<const Witness&>(man_b).abode().id());

@@ -216,11 +216,11 @@ void SqliteTemporality::join_abode(const domain::id::Abode abode, const domain::
 }
 
 
-void SqliteTemporality::fix(const domain::id::Place place, const domain::id::Soul author,
-							 const domain::Word& word) const
+void SqliteTemporality::inscribe(const domain::id::Place place, const domain::id::Soul author,
+								 const domain::Word& word) const
 {
 	const domain::Timestamp ts = time_.instant();
-	const domain::Letter drafted{domain::id::Letter{1}, place, author, word, ts};
+	const domain::Inscription drafted{domain::id::Letter{1}, place, author, word, ts};
 
 	std::lock_guard lock(database_.mutex());
 
@@ -231,14 +231,14 @@ void SqliteTemporality::fix(const domain::id::Place place, const domain::id::Sou
 					"prepare insert letter");
 	stmt.bind_i64(1, static_cast<std::int64_t>(place.value()), "bind place_id");
 	stmt.bind_i64(2, static_cast<std::int64_t>(author.value()), "bind author_soul_id");
-	stmt.bind_text(3, drafted.body(), "bind body");
+	stmt.bind_text(3, drafted.word().body(), "bind body");
 	stmt.bind_i64(4, ts.value(), "bind created_at_ns");
 	stmt.step_done("insert letter step");
 }
 
 
-std::vector<domain::Letter> SqliteTemporality::letters(const domain::id::Place place,
-													  const std::uint32_t limit) const
+std::vector<domain::Inscription> SqliteTemporality::inscriptions(const domain::id::Place place,
+																 const std::uint32_t limit) const
 {
 	std::lock_guard lock(database_.mutex());
 
@@ -251,11 +251,11 @@ std::vector<domain::Letter> SqliteTemporality::letters(const domain::id::Place p
 	stmt.bind_i64(1, static_cast<std::int64_t>(place.value()), "bind place_id");
 	stmt.bind_i64(2, static_cast<std::int64_t>(limit), "bind limit");
 
-	std::vector<domain::Letter> rows;
+	std::vector<domain::Inscription> rows;
 	rows.reserve(limit);
 
 	while (stmt.step_row("letters step")) {
-		rows.push_back(domain::Letter{
+		rows.push_back(domain::Inscription{
 			domain::id::Letter{static_cast<std::uint64_t>(stmt.column_i64(0))},
 			domain::id::Place{static_cast<std::uint64_t>(stmt.column_i64(1))},
 			domain::id::Soul{static_cast<std::uint64_t>(stmt.column_i64(2))},

@@ -1,11 +1,11 @@
 #pragma once
 
 #include "beings/abode.h"
+#include "acts/inscription.h"
 #include "acts/tying.h"
 #include "acts/obedience.h"
 #include "acts/tie.h"
 #include "beings/soul.h"
-#include "beings/letter.h"
 #include "beings/man.h"
 #include "beings/novice.h"
 #include "beings/testator.h"
@@ -118,22 +118,24 @@ public:
 
 	void join_abode(const id::Abode, const id::Soul) override {}
 
-	void fix(id::Place place, id::Soul author, const Word& word) const override
+	void inscribe(id::Place place, id::Soul author, const Word& word) const override
 	{
-		letters_.push_back(Letter{id::Letter{++next_id_}, place, author, word, time_.instant()});
+		inscriptions_.push_back(
+			Inscription{id::Letter{++next_id_}, place, author, word, time_.instant()});
 	}
 
-	std::vector<Letter> letters(id::Place place, std::uint32_t limit) const override
+	std::vector<Inscription> inscriptions(id::Place place, std::uint32_t limit) const override
 	{
-		std::vector<Letter> matching;
-		matching.reserve(letters_.size());
-		for (const Letter& letter : letters_) {
-			if (letter.place_id() == place)
-				matching.push_back(letter);
+		std::vector<Inscription> matching;
+		matching.reserve(inscriptions_.size());
+		for (const Inscription& row : inscriptions_) {
+			if (row.place() == place)
+				matching.push_back(row);
 		}
 		if (limit >= matching.size())
 			return matching;
-		return std::vector<Letter>(matching.end() - static_cast<std::ptrdiff_t>(limit), matching.end());
+		return std::vector<Inscription>(matching.end() - static_cast<std::ptrdiff_t>(limit),
+										matching.end());
 	}
 
 	Supplication
@@ -343,7 +345,7 @@ private:
 	std::vector<std::pair<id::Soul, SoulName>> souls_;
 	std::vector<Embodiment> embodiments_;
 	std::vector<std::pair<id::Abode, AbodeName>> abode_rows_;
-	mutable std::vector<Letter> letters_;
+	mutable std::vector<Inscription> inscriptions_;
 	std::vector<Supplication> pending_supplications_;
 	std::vector<ObedienceRow> obediences_;
 	std::vector<DeedRow> deed_rows_;

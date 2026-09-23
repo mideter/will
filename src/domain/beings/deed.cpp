@@ -1,5 +1,6 @@
 #include "deed.h"
 
+#include "acts/inscription.h"
 #include "beings/soul.h"
 #include "beings/testator.h"
 
@@ -12,8 +13,9 @@ namespace will::domain {
 
 Deed::Deed(const id::Deed id, const Tie& tie, Word word, const Timestamp created_at,
 		   std::optional<Timestamp> executed_at, std::optional<Timestamp> cancelled_at)
-	: Letter(id::Letter{id.value()}, tie.id(), tie.testator().Soul::id(), std::move(word),
-			 created_at)
+	: Letter(Inscription{id::Letter{id.value()}, tie.id(), tie.testator().Soul::id(), std::move(word),
+						 created_at},
+			 tie)
 	, tie_(tie)
 	, executed_at_(std::move(executed_at))
 	, cancelled_at_(std::move(cancelled_at))

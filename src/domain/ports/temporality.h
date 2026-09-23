@@ -1,11 +1,11 @@
 #pragma once
 
 #include "acts/embodiment.h"
+#include "acts/inscription.h"
 #include "acts/obedience.h"
 #include "acts/supplication.h"
 #include "acts/tying.h"
 #include "beings/abode.h"
-#include "beings/letter.h"
 #include "beings/soul.h"
 #include "beings/deed.h"
 #include "identity/abode.h"
@@ -55,11 +55,11 @@ public:
 	/// Record that a soul dwells in an abode (idempotent).
 	virtual void join_abode(id::Abode abode, id::Soul soul) = 0;
 
-	/// Fix a word in time: take the present from Time and keep the letter.
-	virtual void fix(id::Place place, id::Soul author, const Word& word) const = 0;
+	/// Inscribe a word in time: take the present from Time and keep the inscription.
+	virtual void inscribe(id::Place place, id::Soul author, const Word& word) const = 0;
 
-	/// Letters kept in this place, bounded by limit (history).
-	virtual std::vector<Letter> letters(id::Place place, std::uint32_t limit) const = 0;
+	/// Inscriptions kept in this place, bounded by limit (history).
+	virtual std::vector<Inscription> inscriptions(id::Place place, std::uint32_t limit) const = 0;
 
 	/// Offer obedience: suppliant asks addressee to become Завещатель.
 	virtual Supplication supplicate(const Novice& suppliant, const Testator& addressee) = 0;

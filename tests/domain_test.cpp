@@ -137,10 +137,10 @@ TEST_CASE("man say persists via temporality")
 	const auto& witness = static_cast<const Witness&>(author);
 	author.say(Word{"hello"});
 
-	const auto loaded = temporality.letters(witness.abode().id(), 10);
+	const auto loaded = temporality.inscriptions(witness.abode().id(), 10);
 	REQUIRE(loaded.size() == 1);
-	CHECK(loaded[0].author_id() == author.Soul::id());
-	CHECK(loaded[0].body() == "hello");
+	CHECK(loaded[0].author() == author.Soul::id());
+	CHECK(loaded[0].word().body() == "hello");
 	CHECK(loaded[0].created_at() == Timestamp{1});
 }
 
@@ -158,7 +158,7 @@ TEST_CASE("witness retell is history of observed abode")
 	const auto& witness = static_cast<const Witness&>(man);
 
 	for (int i = 0; i < 5; ++i)
-		temporality.fix(witness.abode().id(), author, Word{"m"});
+		temporality.inscribe(witness.abode().id(), author, Word{"m"});
 
 	CHECK_THROWS_AS(witness.retell(0), std::invalid_argument);
 

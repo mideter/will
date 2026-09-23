@@ -1,5 +1,6 @@
 #include "witness.h"
 
+#include "acts/inscription.h"
 #include "ports/temporality.h"
 #include "values/abode_name.h"
 
@@ -29,7 +30,7 @@ void Witness::say(const Word& word) const
 	if (!abode_->dwells(*this))
 		throw std::logic_error("Witness does not dwell in the observed abode");
 
-	temporality().fix(abode_->id(), Soul::id(), word);
+	temporality().inscribe(abode_->id(), Soul::id(), word);
 }
 
 
@@ -39,13 +40,13 @@ std::vector<Letter> Witness::retell(const std::uint32_t limit) const
 		throw std::invalid_argument("History limit must be positive");
 
 	const std::uint32_t capped = std::min(limit, Temporality::MaxLetterLimit);
-	std::vector<Letter> letters = temporality().letters(abode_->id(), capped);
+	std::vector<Inscription> rows = temporality().inscriptions(abode_->id(), capped);
 	std::vector<Letter> living;
-	living.reserve(letters.size());
+	living.reserve(rows.size());
 
-	for (Letter& letter : letters) {
-		if (heaven().knows(letter.author_id()))
-			living.push_back(std::move(letter));
+	for (Inscription& row : rows) {
+		if (heaven().knows(row.author()))
+			living.push_back(Letter{std::move(row), *abode_});
 	}
 
 	return living;

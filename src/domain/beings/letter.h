@@ -1,8 +1,9 @@
 #pragma once
 
+#include "acts/inscription.h"
+#include "beings/place.h"
+#include "beings/soul.h"
 #include "identity/letter.h"
-#include "identity/place.h"
-#include "identity/soul.h"
 #include "values/timestamp.h"
 #include "values/word.h"
 
@@ -10,21 +11,22 @@
 namespace will::domain {
 
 
-/// Letter (Письмо) — Word fixed in time in a Place; kept by Temporality.
-/// Author id names a soul; living author is reached through Spirit/Heaven.
+/// Letter (Письмо) — Word fixed in time in a Place; born from Inscription.
+/// Living place and author; Temporality keeps Inscriptions, not Letters.
 class Letter : public Word {
 public:
-	Letter(id::Letter id, id::Place place_id, id::Soul author_id, Word word, Timestamp created_at);
+	/// Place must match inscription.place(); author via Soul::of (throws if unknown).
+	Letter(Inscription inscription, const Place& place);
 
 	id::Letter id() const noexcept { return id_; }
-	id::Place place_id() const noexcept { return place_id_; }
-	id::Soul author_id() const noexcept { return author_id_; }
+	const Place& place() const noexcept { return place_; }
+	const Soul& author() const noexcept { return author_; }
 	Timestamp created_at() const noexcept { return created_at_; }
 
 private:
 	id::Letter id_;
-	id::Place place_id_;
-	id::Soul author_id_;
+	const Place& place_;
+	const Soul& author_;
 	Timestamp created_at_;
 };
 
