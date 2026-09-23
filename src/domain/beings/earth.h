@@ -16,7 +16,6 @@
 namespace will::domain {
 
 
-class Letter;
 class Vessel;
 class Temporality;
 

@@ -10,11 +10,10 @@
 namespace will::domain {
 
 
-/// Letter (Письмо) — Word fixed in time in a Place.
+/// Letter (Письмо) — Word fixed in time in a Place; kept by Temporality.
 /// Author id names a soul; living author is reached through Spirit/Heaven.
 class Letter : public Word {
 public:
-	/// author_id must be non-zero (enforced by id::Soul).
 	Letter(id::Letter id, id::Place place_id, id::Soul author_id, Word word, Timestamp created_at);
 
 	id::Letter id() const noexcept { return id_; }
