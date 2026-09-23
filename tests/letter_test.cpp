@@ -106,7 +106,7 @@ TEST_CASE("id::Deed requires positive value")
 }
 
 
-TEST_CASE("Deed is a letter in an obedience place")
+TEST_CASE("Deed is a word of will in a living Tie")
 {
 	InMemoryTemporality temporality;
 	Creation creation(temporality);
@@ -119,13 +119,12 @@ TEST_CASE("Deed is a letter in an obedience place")
 	const Tie tie{Tying{oid, testator.Soul::id(), novice.Soul::id()}};
 
 	const Deed deed{did, tie, Word{"do this"}, Timestamp{50}};
-	CHECK(deed.id() == id::Letter{did.value()});
+	CHECK(deed.id() == did);
 	CHECK(&deed.tie() == &tie);
-	CHECK(&deed.place() == &tie);
 	CHECK(&deed.tie().testator() == &testator);
-	CHECK(&deed.author() == &testator);
 	CHECK(&deed.tie().novice() == &novice);
 	CHECK(deed.body() == "do this");
+	CHECK(deed.created_at() == Timestamp{50});
 	CHECK(deed.open());
 	CHECK_FALSE(deed.executed());
 	CHECK_FALSE(deed.cancelled());

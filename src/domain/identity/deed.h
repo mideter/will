@@ -8,7 +8,7 @@
 namespace will::domain::id {
 
 
-/// Persistent Deed (Дело) identity. Same numeric value as the underlying Letter id.
+/// Persistent Deed (Дело) identity assigned by storage.
 class Deed : public Id {
 public:
 	explicit Deed(std::uint64_t value) : Id(value) {}

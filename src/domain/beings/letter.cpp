@@ -1,7 +1,6 @@
 #include "letter.h"
 
 #include <stdexcept>
-#include <utility>
 
 
 namespace will::domain {
