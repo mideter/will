@@ -7,7 +7,7 @@
 namespace will::domain {
 
 
-/// Creation (Творение) — genesis: brings forth Heaven and Earth, the World,
+/// Creation (Творение) — genesis: brings forth Heaven, Earth, and Space, the World,
 /// and awakens the living cosmos.
 class Creation {
 public:

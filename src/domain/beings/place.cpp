@@ -1,5 +1,7 @@
 #include "place.h"
 
+#include "beings/space.h"
+
 
 namespace will::domain {
 
@@ -22,6 +24,18 @@ Place& Place::operator=(Place&& other) noexcept
 	id_ = other.id_;
 
 	return *this;
+}
+
+
+const Place& Place::of(const id::Place id)
+{
+	return Space::the().place(id);
+}
+
+
+void Place::present() const
+{
+	Space::the().present(*this);
 }
 
 

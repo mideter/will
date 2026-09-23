@@ -73,7 +73,7 @@ TEST_CASE("Letter is born from Inscription with living place and author")
 
 	const Inscription inscription{id::Letter{1}, witness.abode().id(), man.Soul::id(), Word{"hello"},
 						Timestamp{100}};
-	const Letter letter{inscription, witness.abode()};
+	const Letter letter{inscription};
 
 	CHECK(letter.id() == id::Letter{1});
 	CHECK(&letter.place() == &witness.abode());
@@ -83,19 +83,17 @@ TEST_CASE("Letter is born from Inscription with living place and author")
 }
 
 
-TEST_CASE("Letter rejects place mismatch")
+TEST_CASE("Letter rejects unknown place")
 {
 	InMemoryTemporality temporality;
 	Creation creation(temporality);
 	World& world = creation.world();
 
-	const Man& a = world.welcome(DeviceToken::generate());
-	const Man& b = world.welcome(DeviceToken::generate());
-	const auto& wa = static_cast<const Witness&>(a);
-	const auto& wb = static_cast<const Witness&>(b);
+	const Man& man = world.welcome(DeviceToken::generate());
 
-	const Inscription inscription{id::Letter{1}, wa.abode().id(), a.Soul::id(), Word{"x"}, Timestamp{0}};
-	CHECK_THROWS_AS((Letter{inscription, wb.abode()}), std::invalid_argument);
+	const Inscription inscription{id::Letter{1}, id::Place{999}, man.Soul::id(), Word{"x"},
+								  Timestamp{0}};
+	CHECK_THROWS_AS((Letter{inscription}), std::logic_error);
 }
 
 

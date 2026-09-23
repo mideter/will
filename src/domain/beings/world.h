@@ -4,6 +4,7 @@
 #include "beings/earth.h"
 #include "beings/heaven.h"
 #include "beings/man.h"
+#include "beings/space.h"
 #include "identity/soul.h"
 #include "identity/vessel.h"
 #include "values/device_token.h"
@@ -17,15 +18,17 @@
 namespace will::domain {
 
 
-/// World (Мир) — the one living cosmos: is Heaven and Earth.
+/// World (Мир) — the one living cosmos: is Heaven, Earth, and Space.
+/// Heaven and Earth are in space and time; Eternity is reached from Heaven.
 /// Each living man has a personal abode owned by his Witness.
-/// Brought forth only by Creation with Heaven and Earth already brought forth.
+/// Brought forth only by Creation with Heaven, Earth, and Space already brought forth.
 /// Living people are Testator on the heap; World alone births them.
 /// One soul — one living man; indexed by id::Soul.
-class World : public Heaven, public Earth {
+class World : public Heaven, public Earth, public Space {
 public:
 	using Heaven::knows;
 	using Earth::knows;
+	using Space::knows;
 
 	~World() = default;
 
@@ -43,7 +46,7 @@ public:
 private:
 	friend class Creation;
 
-	World(Heaven heaven, Earth earth);
+	World(Heaven heaven, Earth earth, Space space);
 
 	/// Accept remembered embodiments (Creation).
 	void awaken();

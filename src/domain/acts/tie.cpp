@@ -16,7 +16,9 @@ Tie::Tie(Tying tying)
 	, Shepherding(tying.id())
 	, testator_(static_cast<const Testator&>(Soul::of(tying.testator())))
 	, novice_(static_cast<const Novice&>(Soul::of(tying.novice())))
-{}
+{
+	present();
+}
 
 
 Tie::~Tie()

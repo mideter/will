@@ -12,11 +12,11 @@ namespace will::domain {
 
 
 /// Letter (Письмо) — Word fixed in time in a Place; born from Inscription.
-/// Living place and author; Temporality keeps Inscriptions, not Letters.
+/// Living place and author via Place::of / Soul::of; Temporality keeps Inscriptions.
 class Letter : public Word {
 public:
-	/// Place must match inscription.place(); author via Soul::of (throws if unknown).
-	Letter(Inscription inscription, const Place& place);
+	/// Place and author must be known to Space and Heaven (throws if unknown).
+	explicit Letter(Inscription inscription);
 
 	id::Letter id() const noexcept { return id_; }
 	const Place& place() const noexcept { return place_; }

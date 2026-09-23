@@ -22,7 +22,8 @@ class Temporality;
 
 /// Earth (Земля) — of the one World; speaks with Temporality.
 /// Dust reaches Temporality via friendship. Creation brings forth Earth.
-/// Live registry of vessels; abodes live with men in the World.
+/// Earth is in space and time. Live registry of vessels; abodes live with men;
+/// places are known to Space.
 class Earth {
 public:
 	/// Whether Earth knows this vessel.

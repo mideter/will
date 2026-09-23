@@ -19,6 +19,7 @@ Witness::Witness(Embodiment embodiment)
 		  id::Abode{Soul::id().value()},
 		  AbodeName{std::string{Soul::name().text()}}))
 {
+	abode_->present();
 	abode_->admit(*this);
 	temporality().keep(abode_->abode_id(), abode_->name());
 	temporality().join_abode(abode_->abode_id(), Soul::id());
@@ -46,7 +47,7 @@ std::vector<Letter> Witness::retell(const std::uint32_t limit) const
 
 	for (Inscription& row : rows) {
 		if (heaven().knows(row.author()))
-			living.push_back(Letter{std::move(row), *abode_});
+			living.push_back(Letter{std::move(row)});
 	}
 
 	return living;
