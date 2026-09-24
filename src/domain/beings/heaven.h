@@ -20,10 +20,10 @@ class Spirit;
 class Heaven {
 public:
 	/// Whether Heaven knows this soul.
-	bool knows(id::Soul id) const;
+	bool knows(id::Soul soul_id) const;
 
 	/// Living soul in the waking cosmos. Throws if unknown.
-	const Soul& soul(id::Soul id) const;
+	const Soul& soul(id::Soul soul_id) const;
 
 protected:
 	friend class Creation;
@@ -39,6 +39,7 @@ protected:
 	Heaven(Heaven&& other) noexcept;
 	Heaven& operator=(Heaven&&) = delete;
 
+	/// Eternity reached from Heaven (Spirit / Creation / World as Heaven).
 	Eternity& eternity();
 	const Eternity& eternity() const;
 

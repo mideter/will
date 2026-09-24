@@ -2,17 +2,16 @@
 
 #include "sqlite_util.h"
 
-#include <cstring>
-#include <format>
-#include <string>
+#include <stdexcept>
 #include <sqlite3.h>
 
 
 namespace will {
 
 
-SqliteDatabase::SqliteDatabase(std::string db_path)
+SqliteDatabase::SqliteDatabase(std::string db_path, SqliteFace face)
 	: db_path_(std::move(db_path))
+	, face_(face)
 {
 	open_database();
 	init_schema();
@@ -38,314 +37,47 @@ void SqliteDatabase::open_database()
 }
 
 
-namespace {
-
-
-bool table_has_column(sqlite3* db, const char* table, const char* column)
-{
-	const std::string pragma = std::format("PRAGMA table_info({});", table);
-	sqlite3_stmt* stmt = nullptr;
-	check_sqlite(sqlite3_prepare_v2(db, pragma.c_str(), -1, &stmt, nullptr), db, "prepare table_info");
-
-	bool found = false;
-	int rc = sqlite3_step(stmt);
-	while (rc == SQLITE_ROW) {
-		const char* name = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
-		if (name && std::strcmp(name, column) == 0)
-			found = true;
-		rc = sqlite3_step(stmt);
-	}
-
-	check_sqlite(rc, db, "table_info step");
-	sqlite3_finalize(stmt);
-	return found;
-}
-
-
-bool table_exists(sqlite3* db, const char* table)
-{
-	sqlite3_stmt* stmt = nullptr;
-	check_sqlite(sqlite3_prepare_v2(db,
-									"SELECT 1 FROM sqlite_master WHERE type='table' AND name=? LIMIT 1;",
-									-1, &stmt, nullptr),
-				 db, "prepare table_exists");
-	check_sqlite(sqlite3_bind_text(stmt, 1, table, -1, SQLITE_STATIC), db, "bind table_exists");
-	const int rc = sqlite3_step(stmt);
-	const bool exists = rc == SQLITE_ROW;
-	sqlite3_finalize(stmt);
-	check_sqlite(rc == SQLITE_ROW || rc == SQLITE_DONE ? SQLITE_OK : rc, db, "table_exists step");
-	return exists;
-}
-
-
-bool needs_schema_reset(sqlite3* db)
-{
-	if (table_exists(db, "messages"))
-		return true;
-	if (table_exists(db, "users"))
-		return true;
-	if (table_has_column(db, "letters", "author_user_id"))
-		return true;
-	if (table_has_column(db, "messages", "chat_id"))
-		return true;
-	if (table_has_column(db, "messages", "sender_ip"))
-		return true;
-	if (table_has_column(db, "messages", "created_at_ms"))
-		return true;
-	if (table_has_column(db, "users", "password_hash"))
-		return true;
-	if (table_has_column(db, "users", "phone"))
-		return true;
-	if (table_has_column(db, "souls", "password_hash") || table_has_column(db, "gods", "password_hash"))
-		return true;
-	if (table_has_column(db, "souls", "phone") || table_has_column(db, "gods", "phone"))
-		return true;
-
-	const bool has_souls = table_exists(db, "souls");
-	const bool has_gods = table_exists(db, "gods");
-
-	return !has_souls && !has_gods && table_has_column(db, "letters", "body");
-}
-
-
-void drop_legacy_tables(sqlite3* db)
-{
-	static constexpr const char* DropLegacyTablesSql = R"sql(
-DROP TABLE IF EXISTS letters;
-DROP TABLE IF EXISTS deeds;
-DROP TABLE IF EXISTS testaments;
-DROP TABLE IF EXISTS obediences;
-DROP TABLE IF EXISTS supplications;
-DROP TABLE IF EXISTS abode_souls;
-DROP TABLE IF EXISTS abode_men;
-DROP TABLE IF EXISTS men;
-DROP TABLE IF EXISTS vessels;
-DROP TABLE IF EXISTS abodes;
-DROP TABLE IF EXISTS messages;
-DROP TABLE IF EXISTS auth_sessions;
-DROP TABLE IF EXISTS otp_challenges;
-DROP TABLE IF EXISTS souls;
-DROP TABLE IF EXISTS gods;
-DROP TABLE IF EXISTS users;
-)sql";
-	check_sqlite(sqlite3_exec(db, DropLegacyTablesSql, nullptr, nullptr, nullptr), db,
-				 "drop_legacy_tables");
-}
-
-
-void migrate_souls_device_token_to_vessels(sqlite3* db)
-{
-	if (!table_has_column(db, "souls", "device_token"))
-		return;
-
-	check_sqlite(
-		sqlite3_exec(db, "INSERT OR IGNORE INTO vessels (device_token) SELECT device_token FROM souls;",
-					 nullptr, nullptr, nullptr),
-		db, "migrate device_token to vessels");
-
-	check_sqlite(
-		sqlite3_exec(db,
-					 "INSERT OR IGNORE INTO men (soul_id, vessel_id) "
-					 "SELECT s.id, v.id FROM souls s "
-					 "JOIN vessels v ON v.device_token = s.device_token;",
-					 nullptr, nullptr, nullptr),
-		db, "migrate souls/vessels to men");
-
-	check_sqlite(sqlite3_exec(db, "BEGIN IMMEDIATE;", nullptr, nullptr, nullptr), db,
-				 "begin migrate souls schema");
-	check_sqlite(sqlite3_exec(db,
-							  "CREATE TABLE souls_new ("
-							  "  id INTEGER PRIMARY KEY,"
-							  "  name TEXT NOT NULL DEFAULT ''"
-							  ");",
-							  nullptr, nullptr, nullptr),
-				 db, "create souls_new");
-	check_sqlite(sqlite3_exec(db, "INSERT INTO souls_new (id, name) SELECT id, name FROM souls;", nullptr, nullptr,
-							  nullptr),
-				 db, "copy souls to souls_new");
-	check_sqlite(sqlite3_exec(db, "DROP TABLE souls;", nullptr, nullptr, nullptr), db, "drop old souls");
-	check_sqlite(sqlite3_exec(db, "ALTER TABLE souls_new RENAME TO souls;", nullptr, nullptr, nullptr), db,
-				 "rename souls_new");
-	check_sqlite(sqlite3_exec(db, "COMMIT;", nullptr, nullptr, nullptr), db, "commit migrate souls schema");
-}
-
-
-void migrate_gods_to_souls(sqlite3* db)
-{
-	if (table_exists(db, "gods") && !table_exists(db, "souls"))
-		check_sqlite(sqlite3_exec(db, "ALTER TABLE gods RENAME TO souls;", nullptr, nullptr, nullptr), db,
-					 "rename gods to souls");
-
-	if (table_has_column(db, "vessels", "god_id") && !table_has_column(db, "vessels", "soul_id"))
-		check_sqlite(sqlite3_exec(db, "ALTER TABLE vessels RENAME COLUMN god_id TO soul_id;", nullptr, nullptr,
-								  nullptr),
-					 db, "rename vessels.god_id");
-
-	if (table_has_column(db, "letters", "author_god_id") && !table_has_column(db, "letters", "author_soul_id"))
-		check_sqlite(sqlite3_exec(db, "ALTER TABLE letters RENAME COLUMN author_god_id TO author_soul_id;",
-								  nullptr, nullptr, nullptr),
-					 db, "rename letters.author_god_id");
-}
-
-
-void migrate_vessels_soul_id_to_men(sqlite3* db)
-{
-	if (!table_has_column(db, "vessels", "soul_id"))
-		return;
-
-	check_sqlite(
-		sqlite3_exec(db,
-					 "INSERT OR IGNORE INTO men (soul_id, vessel_id) "
-					 "SELECT soul_id, id FROM vessels;",
-					 nullptr, nullptr, nullptr),
-		db, "migrate vessels.soul_id to men");
-
-	check_sqlite(sqlite3_exec(db, "BEGIN IMMEDIATE;", nullptr, nullptr, nullptr), db,
-				 "begin migrate vessels schema");
-	check_sqlite(sqlite3_exec(db,
-							  "CREATE TABLE vessels_new ("
-							  "  id INTEGER PRIMARY KEY AUTOINCREMENT,"
-							  "  device_token TEXT UNIQUE NOT NULL"
-							  ");",
-							  nullptr, nullptr, nullptr),
-				 db, "create vessels_new");
-	check_sqlite(sqlite3_exec(db,
-							  "INSERT INTO vessels_new (id, device_token) SELECT id, device_token FROM vessels;",
-							  nullptr, nullptr, nullptr),
-				 db, "copy vessels to vessels_new");
-	check_sqlite(sqlite3_exec(db, "DROP TABLE vessels;", nullptr, nullptr, nullptr), db, "drop old vessels");
-	check_sqlite(sqlite3_exec(db, "ALTER TABLE vessels_new RENAME TO vessels;", nullptr, nullptr, nullptr), db,
-				 "rename vessels_new");
-	check_sqlite(sqlite3_exec(db, "COMMIT;", nullptr, nullptr, nullptr), db, "commit migrate vessels schema");
-}
-
-
-void migrate_testaments_to_deeds(sqlite3* db)
-{
-	if (table_exists(db, "testaments") && !table_exists(db, "deeds"))
-		check_sqlite(sqlite3_exec(db, "ALTER TABLE testaments RENAME TO deeds;", nullptr, nullptr, nullptr),
-					 db, "rename testaments to deeds");
-}
-
-
-void migrate_supplications_addressee_to_testator(sqlite3* db)
-{
-	if (table_has_column(db, "supplications", "addressee_soul_id")
-		&& !table_has_column(db, "supplications", "testator_soul_id")) {
-		check_sqlite(sqlite3_exec(db,
-								  "ALTER TABLE supplications RENAME COLUMN addressee_soul_id TO testator_soul_id;",
-								  nullptr, nullptr, nullptr),
-					 db, "rename supplications.addressee_soul_id to testator_soul_id");
-	}
-}
-
-
-void migrate_executor_soul_id_to_novice(sqlite3* db)
-{
-	if (table_has_column(db, "obediences", "executor_soul_id")
-		&& !table_has_column(db, "obediences", "novice_soul_id")) {
-		check_sqlite(sqlite3_exec(db,
-								  "ALTER TABLE obediences RENAME COLUMN executor_soul_id TO novice_soul_id;",
-								  nullptr, nullptr, nullptr),
-					 db, "rename obediences.executor_soul_id to novice_soul_id");
-	}
-	if (table_has_column(db, "deeds", "executor_soul_id")
-		&& !table_has_column(db, "deeds", "novice_soul_id")) {
-		check_sqlite(sqlite3_exec(db,
-								  "ALTER TABLE deeds RENAME COLUMN executor_soul_id TO novice_soul_id;",
-								  nullptr, nullptr, nullptr),
-					 db, "rename deeds.executor_soul_id to novice_soul_id");
-	}
-}
-
-
-void migrate_abode_men_to_abode_souls(sqlite3* db)
-{
-	if (!table_exists(db, "abode_men"))
-		return;
-
-	check_sqlite(sqlite3_exec(db,
-							  "CREATE TABLE IF NOT EXISTS abode_souls ("
-							  "  abode_id INTEGER NOT NULL REFERENCES abodes(id),"
-							  "  soul_id INTEGER NOT NULL REFERENCES souls(id),"
-							  "  PRIMARY KEY (abode_id, soul_id)"
-							  ");",
-							  nullptr, nullptr, nullptr),
-				 db, "create abode_souls");
-
-	check_sqlite(sqlite3_exec(db,
-							  "INSERT OR IGNORE INTO abode_souls (abode_id, soul_id) "
-							  "SELECT am.abode_id, m.soul_id FROM abode_men AS am "
-							  "INNER JOIN men AS m ON m.id = am.man_id;",
-							  nullptr, nullptr, nullptr),
-				 db, "copy abode_men to abode_souls");
-
-	check_sqlite(sqlite3_exec(db, "DROP TABLE abode_men;", nullptr, nullptr, nullptr), db, "drop abode_men");
-}
-
-
-void migrate_men_unique_soul(sqlite3* db)
-{
-	if (!table_exists(db, "men") || !table_has_column(db, "men", "soul_id"))
-		return;
-
-	sqlite3_stmt* stmt = nullptr;
-	check_sqlite(sqlite3_prepare_v2(db, "SELECT sql FROM sqlite_master WHERE type='table' AND name='men';",
-									-1, &stmt, nullptr),
-				 db, "prepare men sql");
-	const int rc = sqlite3_step(stmt);
-	std::string sql;
-	if (rc == SQLITE_ROW) {
-		const char* text = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
-		if (text)
-			sql = text;
-	}
-	sqlite3_finalize(stmt);
-	check_sqlite(rc == SQLITE_ROW || rc == SQLITE_DONE ? SQLITE_OK : rc, db, "men sql step");
-	if (sql.find("soul_id INTEGER NOT NULL UNIQUE") != std::string::npos)
-		return;
-
-	check_sqlite(sqlite3_exec(db, "BEGIN IMMEDIATE;", nullptr, nullptr, nullptr), db,
-				 "begin migrate men unique soul");
-	check_sqlite(sqlite3_exec(db,
-							  "CREATE TABLE men_new ("
-							  "  id INTEGER PRIMARY KEY AUTOINCREMENT,"
-							  "  soul_id INTEGER NOT NULL UNIQUE REFERENCES souls(id),"
-							  "  vessel_id INTEGER NOT NULL UNIQUE REFERENCES vessels(id)"
-							  ");",
-							  nullptr, nullptr, nullptr),
-				 db, "create men_new");
-	check_sqlite(sqlite3_exec(db,
-							  "INSERT OR IGNORE INTO men_new (id, soul_id, vessel_id) "
-							  "SELECT id, soul_id, vessel_id FROM men;",
-							  nullptr, nullptr, nullptr),
-				 db, "copy men to men_new");
-	check_sqlite(sqlite3_exec(db, "DROP TABLE men;", nullptr, nullptr, nullptr), db, "drop old men");
-	check_sqlite(sqlite3_exec(db, "ALTER TABLE men_new RENAME TO men;", nullptr, nullptr, nullptr), db,
-				 "rename men_new");
-	check_sqlite(sqlite3_exec(db, "COMMIT;", nullptr, nullptr, nullptr), db, "commit migrate men unique soul");
-}
-
-
-} // namespace
-
-
 void SqliteDatabase::init_schema()
 {
-	if (needs_schema_reset(db_))
-		drop_legacy_tables(db_);
-
-	// Rename legacy gods* identifiers before CREATE IF NOT EXISTS, so we do not
-	// create an empty souls table alongside an existing gods table.
-	migrate_gods_to_souls(db_);
-	migrate_testaments_to_deeds(db_);
-
-	static constexpr const char* InitSchemaSql = R"sql(
+	const char* sql = nullptr;
+	switch (face_) {
+	case SqliteFace::Eternity:
+		sql = R"sql(
 CREATE TABLE IF NOT EXISTS souls (
   id INTEGER PRIMARY KEY,
   name TEXT NOT NULL DEFAULT ''
 );
 
+CREATE TABLE IF NOT EXISTS utterances (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  author_soul_id INTEGER NOT NULL,
+  body TEXT NOT NULL
+);
+)sql";
+		break;
+	case SqliteFace::Spatiality:
+		sql = R"sql(
+CREATE TABLE IF NOT EXISTS abodes (
+  id INTEGER PRIMARY KEY,
+  name TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS abode_souls (
+  abode_id INTEGER NOT NULL,
+  soul_id INTEGER NOT NULL,
+  PRIMARY KEY (abode_id, soul_id)
+);
+
+CREATE TABLE IF NOT EXISTS placements (
+  letter_id INTEGER PRIMARY KEY,
+  place_id INTEGER NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_placements_place ON placements(place_id);
+)sql";
+		break;
+	case SqliteFace::Temporality:
+		sql = R"sql(
 CREATE TABLE IF NOT EXISTS vessels (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   device_token TEXT UNIQUE NOT NULL
@@ -353,92 +85,56 @@ CREATE TABLE IF NOT EXISTS vessels (
 
 CREATE TABLE IF NOT EXISTS men (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  soul_id INTEGER NOT NULL UNIQUE REFERENCES souls(id),
-  vessel_id INTEGER NOT NULL UNIQUE REFERENCES vessels(id)
+  soul_id INTEGER NOT NULL UNIQUE,
+  vessel_id INTEGER NOT NULL UNIQUE,
+  soul_name TEXT NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS abodes (
-  id INTEGER PRIMARY KEY,
-  name TEXT NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS abode_souls (
-  abode_id INTEGER NOT NULL REFERENCES abodes(id),
-  soul_id INTEGER NOT NULL REFERENCES souls(id),
-  PRIMARY KEY (abode_id, soul_id)
-);
-
-CREATE TABLE IF NOT EXISTS letters (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  place_id INTEGER NOT NULL,
-  author_soul_id INTEGER NOT NULL REFERENCES souls(id),
-  body TEXT NOT NULL,
+CREATE TABLE IF NOT EXISTS datings (
+  letter_id INTEGER PRIMARY KEY,
   created_at_ns INTEGER NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS supplications (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  suppliant_soul_id INTEGER NOT NULL REFERENCES souls(id),
-  testator_soul_id INTEGER NOT NULL REFERENCES souls(id),
+  suppliant_soul_id INTEGER NOT NULL,
+  testator_soul_id INTEGER NOT NULL,
   status TEXT NOT NULL,
   created_at_ns INTEGER NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS obediences (
   id INTEGER PRIMARY KEY,
-  testator_soul_id INTEGER NOT NULL REFERENCES souls(id),
-  novice_soul_id INTEGER NOT NULL REFERENCES souls(id),
+  testator_soul_id INTEGER NOT NULL,
+  novice_soul_id INTEGER NOT NULL,
   created_at_ns INTEGER NOT NULL,
   seceded_at_ns INTEGER
 );
 
 CREATE TABLE IF NOT EXISTS deeds (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  obedience_id INTEGER NOT NULL REFERENCES obediences(id),
-  testator_soul_id INTEGER NOT NULL REFERENCES souls(id),
-  novice_soul_id INTEGER NOT NULL REFERENCES souls(id),
+  obedience_id INTEGER NOT NULL,
+  testator_soul_id INTEGER NOT NULL,
+  novice_soul_id INTEGER NOT NULL,
   body TEXT NOT NULL,
   created_at_ns INTEGER NOT NULL,
   executed_at_ns INTEGER,
   cancelled_at_ns INTEGER
 );
 
-CREATE INDEX IF NOT EXISTS idx_letters_created_at ON letters(created_at_ns);
+CREATE TABLE IF NOT EXISTS place_hwm (
+  id INTEGER PRIMARY KEY CHECK (id = 1),
+  value INTEGER NOT NULL
+);
+INSERT OR IGNORE INTO place_hwm (id, value) VALUES (1, 0);
 )sql";
-
-	check_sqlite(sqlite3_exec(db_, InitSchemaSql, nullptr, nullptr, nullptr), db_, "init_schema");
-
-	if (table_has_column(db_, "letters", "abode_id") && !table_has_column(db_, "letters", "place_id")) {
-		check_sqlite(sqlite3_exec(db_, "ALTER TABLE letters RENAME COLUMN abode_id TO place_id;", nullptr,
-								  nullptr, nullptr),
-					 db_, "rename letters.abode_id to place_id");
+		break;
 	}
 
-	migrate_souls_device_token_to_vessels(db_);
-	// Column renames for DBs that already had vessels/letters before gods→souls.
-	migrate_gods_to_souls(db_);
-	migrate_vessels_soul_id_to_men(db_);
-	migrate_men_unique_soul(db_);
-	migrate_abode_men_to_abode_souls(db_);
-	migrate_supplications_addressee_to_testator(db_);
-	migrate_executor_soul_id_to_novice(db_);
+	if (!sql)
+		throw std::logic_error("unknown sqlite face");
 
-	check_sqlite(sqlite3_exec(db_, "UPDATE letters SET place_id = 1 WHERE place_id = 0;", nullptr, nullptr,
-							  nullptr),
-				 db_, "migrate global place_id");
-
-	// Retire the former world abode as a living place (letter id 1 may remain orphaned).
-	check_sqlite(sqlite3_exec(db_, "DELETE FROM abode_souls WHERE abode_id = 1;", nullptr, nullptr, nullptr),
-				 db_, "retire global abode_souls");
-	check_sqlite(sqlite3_exec(db_, "DELETE FROM abodes WHERE id = 1 AND name = 'world';", nullptr, nullptr,
-							  nullptr),
-				 db_, "retire global abode");
-
-	if (table_has_column(db_, "souls", "id") && !table_has_column(db_, "souls", "name")) {
-		check_sqlite(sqlite3_exec(db_, "ALTER TABLE souls ADD COLUMN name TEXT NOT NULL DEFAULT '';", nullptr,
-								  nullptr, nullptr),
-					 db_, "add souls.name");
-	}
+	check_sqlite(sqlite3_exec(db_, sql, nullptr, nullptr, nullptr), db_, "init_schema");
 }
 
 

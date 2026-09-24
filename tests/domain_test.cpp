@@ -47,8 +47,8 @@ SoulName test_name(const char* text)
 
 TEST_CASE("welcome creates man with personal abode")
 {
-	InMemoryTemporality temporality;
-	Creation creation(temporality);
+	InMemoryCosmos cosmos;
+	Creation creation(cosmos.eternity(), cosmos.spatiality(), cosmos.temporality());
 	World& world = creation.world();
 
 	const DeviceToken token = DeviceToken::generate();
@@ -81,9 +81,9 @@ TEST_CASE("welcome creates man with personal abode")
 
 TEST_CASE("welcome existing man")
 {
-	InMemoryTemporality temporality;
-	seed_man(temporality, id::Soul{42}, test_token("abcd1234abcd1234abcd1234abcd1234"), test_name("oldname1"));
-	Creation creation(temporality);
+	InMemoryCosmos cosmos;
+	seed_man(cosmos.temporality(), id::Soul{42}, test_token("abcd1234abcd1234abcd1234abcd1234"), test_name("oldname1"));
+	Creation creation(cosmos.eternity(), cosmos.spatiality(), cosmos.temporality());
 	World& world = creation.world();
 
 	const Man& man = world.welcome(test_token("abcd1234abcd1234abcd1234abcd1234"));
@@ -96,9 +96,9 @@ TEST_CASE("welcome existing man")
 
 TEST_CASE("welcome keeps existing name")
 {
-	InMemoryTemporality temporality;
-	seed_man(temporality, id::Soul{7}, test_token("abcd1234abcd1234abcd1234abcd1234"), test_name("keptname"));
-	Creation creation(temporality);
+	InMemoryCosmos cosmos;
+	seed_man(cosmos.temporality(), id::Soul{7}, test_token("abcd1234abcd1234abcd1234abcd1234"), test_name("keptname"));
+	Creation creation(cosmos.eternity(), cosmos.spatiality(), cosmos.temporality());
 	World& world = creation.world();
 
 	(void)world.welcome(test_token("abcd1234abcd1234abcd1234abcd1234"));
@@ -109,8 +109,8 @@ TEST_CASE("welcome keeps existing name")
 
 TEST_CASE("each man has a distinct personal abode")
 {
-	InMemoryTemporality temporality;
-	Creation creation(temporality);
+	InMemoryCosmos cosmos;
+	Creation creation(cosmos.eternity(), cosmos.spatiality(), cosmos.temporality());
 	World& world = creation.world();
 
 	const Man& a = world.welcome(DeviceToken::generate());
@@ -129,48 +129,51 @@ TEST_CASE("each man has a distinct personal abode")
 
 TEST_CASE("man say persists via temporality")
 {
-	InMemoryTemporality temporality;
-	Creation creation(temporality);
+	InMemoryCosmos cosmos;
+	Creation creation(cosmos.eternity(), cosmos.spatiality(), cosmos.temporality());
 	World& world = creation.world();
 
 	const Man& author = world.welcome(DeviceToken::generate());
 	const auto& witness = static_cast<const Witness&>(author);
 	author.say(Word{"hello"});
 
-	const auto loaded = temporality.inscriptions(witness.abode().id(), 10);
-	REQUIRE(loaded.size() == 1);
-	CHECK(loaded[0].author() == author.Soul::id());
-	CHECK(loaded[0].word().body() == "hello");
-	CHECK(loaded[0].created_at() == Timestamp{1});
+	const auto placed = cosmos.spatiality().placements(witness.abode().id(), 10);
+	REQUIRE(placed.size() == 1);
+	const auto dated = cosmos.temporality().datings({placed[0].id()});
+	REQUIRE(dated.size() == 1);
+	const auto uttered = cosmos.eternity().utterance(placed[0].id());
+	CHECK(uttered.author() == author.Soul::id());
+	CHECK(uttered.word().body() == "hello");
+	CHECK(dated[0].created_at() == Timestamp{1});
 }
 
 
 TEST_CASE("witness retell is history of observed abode")
 {
-	InMemoryTemporality temporality;
+	InMemoryCosmos cosmos;
 	const id::Soul author{1};
 
-	seed_man(temporality, author, test_token("feedfacefeedfacefeedfacefeedface"), test_name("authoraa"));
-	Creation creation(temporality);
+	seed_man(cosmos.temporality(), author, test_token("feedfacefeedfacefeedfacefeedface"), test_name("authoraa"));
+	Creation creation(cosmos.eternity(), cosmos.spatiality(), cosmos.temporality());
 	World& world = creation.world();
 
 	const Man& man = world.welcome(test_token("feedfacefeedfacefeedfacefeedface"));
 	const auto& witness = static_cast<const Witness&>(man);
 
 	for (int i = 0; i < 5; ++i)
-		temporality.inscribe(witness.abode().id(), author, Word{"m"});
+		man.say(Word{"m"});
 
 	CHECK_THROWS_AS(witness.retell(0), std::invalid_argument);
 
-	const auto items = witness.retell(Temporality::MaxLetterLimit + 50);
+	const auto items = witness.retell(Spatiality::MaxLetterLimit + 50);
 	CHECK(items.size() == 5);
 }
 
 
 TEST_CASE("tie is a place for distinct testator and novice")
 {
-	InMemoryTemporality temporality;
-	Creation creation(temporality);
+	InMemoryCosmos cosmos;
+	Creation creation(cosmos.eternity(), cosmos.spatiality(), cosmos.temporality());
 	World& world = creation.world();
 
 	const auto& testator = static_cast<const Testator&>(world.welcome(DeviceToken::generate()));
@@ -189,8 +192,8 @@ TEST_CASE("tie is a place for distinct testator and novice")
 
 TEST_CASE("supplicate accept creates tie owned as obedience")
 {
-	InMemoryTemporality temporality;
-	Creation creation(temporality);
+	InMemoryCosmos cosmos;
+	Creation creation(cosmos.eternity(), cosmos.spatiality(), cosmos.temporality());
 	World& world = creation.world();
 
 	const Man& a = world.welcome(DeviceToken::generate());
@@ -203,18 +206,18 @@ TEST_CASE("supplicate accept creates tie owned as obedience")
 	const Supplication& ask = testator.supplication(novice);
 	CHECK(ask.suppliant().Soul::id() == a.Soul::id());
 	CHECK(ask.addressee().Soul::id() == b.Soul::id());
-	CHECK(temporality.pending_supplications(b.Soul::id()).size() == 1);
+	CHECK(cosmos.temporality().pending_supplications(b.Soul::id()).size() == 1);
 
 	testator.accept(ask);
 	CHECK(testator.supplications().empty());
-	REQUIRE(temporality.tyings().size() == 1);
+	REQUIRE(cosmos.temporality().tyings().size() == 1);
 	const Obedience& obedience =
-		novice.obedience(temporality.tyings().front().id());
+		novice.obedience(cosmos.temporality().tyings().front().id());
 	CHECK(&obedience.testator() == &testator);
 	CHECK(&obedience.novice() == &novice);
 	CHECK(obedience.id().value() != a.Soul::id().value());
 	CHECK(obedience.id().value() != b.Soul::id().value());
-	CHECK(temporality.pending_supplications(b.Soul::id()).empty());
+	CHECK(cosmos.temporality().pending_supplications(b.Soul::id()).empty());
 	CHECK(&novice.obedience(id::Tie{obedience.id().value()}) == &obedience);
 	CHECK(&testator.shepherding(id::Tie{obedience.id().value()}).testator() == &testator);
 }
@@ -222,8 +225,8 @@ TEST_CASE("supplicate accept creates tie owned as obedience")
 
 TEST_CASE("reject closes pending supplication; wrong party cannot accept")
 {
-	InMemoryTemporality temporality;
-	Creation creation(temporality);
+	InMemoryCosmos cosmos;
+	Creation creation(cosmos.eternity(), cosmos.spatiality(), cosmos.temporality());
 	World& world = creation.world();
 
 	const Man& a = world.welcome(DeviceToken::generate());
@@ -238,15 +241,15 @@ TEST_CASE("reject closes pending supplication; wrong party cannot accept")
 
 	testator.reject(ask);
 	CHECK(testator.supplications().empty());
-	CHECK(temporality.pending_supplications(b.Soul::id()).empty());
+	CHECK(cosmos.temporality().pending_supplications(b.Soul::id()).empty());
 	CHECK_THROWS_AS(testator.supplication(novice), std::invalid_argument);
 }
 
 
 TEST_CASE("will and execute within obedience")
 {
-	InMemoryTemporality temporality;
-	Creation creation(temporality);
+	InMemoryCosmos cosmos;
+	Creation creation(cosmos.eternity(), cosmos.spatiality(), cosmos.temporality());
 	World& world = creation.world();
 
 	const Man& a = world.welcome(DeviceToken::generate());
@@ -256,9 +259,9 @@ TEST_CASE("will and execute within obedience")
 
 	novice.supplicate(testator);
 	testator.accept(testator.supplication(novice));
-	REQUIRE(temporality.tyings().size() == 1);
+	REQUIRE(cosmos.temporality().tyings().size() == 1);
 	const Obedience& obedience =
-		novice.obedience(temporality.tyings().front().id());
+		novice.obedience(cosmos.temporality().tyings().front().id());
 	const Shepherding& shepherding = testator.shepherding(id::Tie{obedience.id().value()});
 	const Deed deed = testator.will(shepherding, Word{"fast"});
 	CHECK(deed.open());

@@ -1,30 +1,25 @@
 #pragma once
 
 #include "ports/temporality.h"
-#include "system_time.h"
+#include "ports/time.h"
 #include "sqlite_database.h"
 
 
 namespace will {
 
 
-/// SQLite Temporality — mutable Eternity (souls, embodiments, time, letters).
+/// SQLite Temporality — embodiments, datings, ties, deeds in time.
+/// Owns only the time database; clock is Time from Eternity.
 class SqliteTemporality final : public domain::Temporality {
 public:
-	explicit SqliteTemporality(SqliteDatabase& database);
+	SqliteTemporality(SqliteDatabase& time_db, domain::Time& time);
 
-	domain::Time& time() override;
-
-	domain::id::Soul enroll(domain::SoulName name) override;
-
-	domain::Embodiment embody(domain::id::Soul soul, domain::DeviceToken token) override;
+	domain::Embodiment
+	embody(domain::id::Soul soul, domain::SoulName name, domain::DeviceToken token) override;
 	std::vector<domain::Embodiment> embodiments() const override;
 
-	std::vector<domain::Abode> abodes() override;
-	void keep(domain::id::Abode id, domain::AbodeName name) override;
-	void join_abode(domain::id::Abode abode, domain::id::Soul soul) override;
-	void inscribe(domain::id::Place place, domain::id::Soul author, const domain::Word& word) const override;
-	std::vector<domain::Inscription> inscriptions(domain::id::Place place, std::uint32_t limit) const override;
+	void date(domain::id::Letter id, domain::Timestamp at) override;
+	std::vector<domain::Dating> datings(const std::vector<domain::id::Letter>& ids) const override;
 
 	domain::Supplication
 	supplicate(const domain::Novice& suppliant, const domain::Testator& addressee) override;
@@ -42,8 +37,8 @@ public:
 	std::vector<domain::Deed> deeds(domain::id::Tie tie) const override;
 
 private:
-	SqliteDatabase& database_;
-	SystemTime time_;
+	SqliteDatabase& time_db_;
+	domain::Time& time_;
 };
 
 

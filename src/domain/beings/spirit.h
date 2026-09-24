@@ -1,6 +1,7 @@
 #pragma once
 
 #include "beings/heaven.h"
+#include "ports/eternity.h"
 #include "values/word.h"
 
 
@@ -32,6 +33,9 @@ protected:
 
 	/// The one living Heaven (static so Soul::of can look up without an instance).
 	static Heaven& heaven() { return Heaven::the(); }
+
+	/// Eternity reached from Heaven (Spirit is friend of Heaven).
+	static Eternity& eternity() { return heaven().eternity(); }
 
 	/// Present this living soul to Heaven (heap-stable address). Used by Man at birth.
 	void present() const;

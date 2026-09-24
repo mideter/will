@@ -1,6 +1,7 @@
 #include "earth.h"
 
 #include "beings/vessel.h"
+#include "ports/spatiality.h"
 #include "ports/temporality.h"
 
 #include <stdexcept>
@@ -22,8 +23,9 @@ Earth& Earth::the()
 }
 
 
-Earth::Earth(Temporality& temporality)
+Earth::Earth(Temporality& temporality, Spatiality& spatiality)
 	: temporality_(temporality)
+	, spatiality_(spatiality)
 {
 	if (current_ != nullptr)
 		throw std::logic_error("Only one World");
@@ -34,6 +36,7 @@ Earth::Earth(Temporality& temporality)
 
 Earth::Earth(Earth&& other) noexcept
 	: temporality_(other.temporality_)
+	, spatiality_(other.spatiality_)
 	, vessels_(std::move(other.vessels_))
 	, id_by_token_(std::move(other.id_by_token_))
 {
@@ -90,13 +93,13 @@ void Earth::present(const Vessel& vessel)
 
 void Earth::keep(const id::Abode id, AbodeName name)
 {
-	temporality_.keep(id, std::move(name));
+	spatiality_.keep(id, std::move(name));
 }
 
 
 void Earth::join_abode(const id::Abode abode, const id::Soul soul)
 {
-	temporality_.join_abode(abode, soul);
+	spatiality_.join_abode(abode, soul);
 }
 
 

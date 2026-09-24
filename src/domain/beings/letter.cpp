@@ -1,16 +1,22 @@
 #include "letter.h"
 
+#include <stdexcept>
+#include <utility>
+
 
 namespace will::domain {
 
 
-Letter::Letter(Inscription inscription)
-	: Word(inscription.word())
-	, id_(inscription.id())
-	, place_(Place::of(inscription.place()))
-	, author_(Soul::of(inscription.author()))
-	, created_at_(inscription.created_at())
-{}
+Letter::Letter(Utterance utterance, Placement placement, Dating dating)
+	: Word(utterance.word())
+	, id_(utterance.id())
+	, place_(Place::of(placement.place()))
+	, author_(Soul::of(utterance.author()))
+	, created_at_(dating.created_at())
+{
+	if (utterance.id() != placement.id() || utterance.id() != dating.id())
+		throw std::invalid_argument("letter projections must share id");
+}
 
 
 } // namespace will::domain

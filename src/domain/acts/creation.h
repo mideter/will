@@ -2,6 +2,8 @@
 
 #include "beings/space.h"
 #include "beings/world.h"
+#include "ports/eternity.h"
+#include "ports/spatiality.h"
 #include "ports/temporality.h"
 
 
@@ -12,7 +14,7 @@ namespace will::domain {
 /// and awakens the living cosmos. Space is an environment; World is Heaven and Earth.
 class Creation {
 public:
-	explicit Creation(Temporality& temporality);
+	Creation(Eternity& eternity, Spatiality& spatiality, Temporality& temporality);
 	~Creation() = default;
 
 	Creation(const Creation&) = delete;

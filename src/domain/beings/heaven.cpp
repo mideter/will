@@ -60,18 +60,18 @@ const Eternity& Heaven::eternity() const
 }
 
 
-bool Heaven::knows(const id::Soul id) const
+bool Heaven::knows(const id::Soul soul_id) const
 {
 	std::lock_guard lock(mutex_);
-	return souls_.contains(id);
+	return souls_.contains(soul_id);
 }
 
 
-const Soul& Heaven::soul(const id::Soul id) const
+const Soul& Heaven::soul(const id::Soul soul_id) const
 {
 	std::lock_guard lock(mutex_);
 
-	const auto it = souls_.find(id);
+	const auto it = souls_.find(soul_id);
 	if (it == souls_.end() || !it->second)
 		throw std::logic_error("Heaven does not know this soul");
 

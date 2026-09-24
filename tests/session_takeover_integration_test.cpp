@@ -174,7 +174,9 @@ TEST_CASE("second session with same device token displaces the first")
 	const std::uint16_t port = pick_port();
 	const std::string db_path = "/tmp/will-session-takeover-test-" + std::to_string(getpid()) + ".db";
 
-	::unlink(db_path.c_str());
+	::unlink((db_path.substr(0, db_path.size() - 3) + ".eternity.db").c_str());
+	::unlink((db_path.substr(0, db_path.size() - 3) + ".space.db").c_str());
+	::unlink((db_path.substr(0, db_path.size() - 3) + ".time.db").c_str());
 
 	const pid_t server_pid = start_server(g_server_exe, port, db_path);
 	REQUIRE(server_pid > 0);
@@ -197,7 +199,10 @@ TEST_CASE("second session with same device token displaces the first")
 
 	second.context->TryCancel();
 	stop_server(server_pid);
-	::unlink(db_path.c_str());
+	const std::string prefix = db_path.substr(0, db_path.size() - 3);
+	::unlink((prefix + ".eternity.db").c_str());
+	::unlink((prefix + ".space.db").c_str());
+	::unlink((prefix + ".time.db").c_str());
 }
 
 

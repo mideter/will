@@ -1,3 +1,4 @@
+#include "ports/eternity.h"
 #include "world.h"
 
 #include "acts/obedience.h"
@@ -71,8 +72,9 @@ const Man& World::welcome(const DeviceToken& token)
 
 const Man& World::beget(const DeviceToken& token)
 {
-	const id::Soul soul = eternity().enroll(SoulName::generate());
-	return accept(temporality().embody(soul, token));
+	const SoulName name = SoulName::generate();
+	const id::Soul soul = eternity().enroll(name);
+	return accept(temporality().embody(soul, name, token));
 }
 
 

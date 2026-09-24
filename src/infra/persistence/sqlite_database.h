@@ -10,10 +10,17 @@ struct sqlite3;
 namespace will {
 
 
-/** Owns the SQLite connection and schema. */
+enum class SqliteFace {
+	Eternity,
+	Spatiality,
+	Temporality,
+};
+
+
+/** Owns one SQLite connection and the schema for one face of being. */
 class SqliteDatabase {
 public:
-	explicit SqliteDatabase(std::string db_path);
+	SqliteDatabase(std::string db_path, SqliteFace face);
 	~SqliteDatabase();
 
 	SqliteDatabase(const SqliteDatabase&) = delete;
@@ -21,12 +28,14 @@ public:
 
 	[[nodiscard]] sqlite3* db() const noexcept { return db_; }
 	[[nodiscard]] std::mutex& mutex() noexcept { return mutex_; }
+	[[nodiscard]] SqliteFace face() const noexcept { return face_; }
 
 private:
 	void open_database();
 	void init_schema();
 
 	std::string db_path_;
+	SqliteFace face_;
 	sqlite3* db_ = nullptr;
 	std::mutex mutex_;
 };

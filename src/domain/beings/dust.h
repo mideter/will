@@ -7,14 +7,16 @@ namespace will::domain {
 
 
 class Temporality;
+class Spatiality;
 class Vessel;
 
 
-/// Dust (Прах) — earthly foundation of the vessel; knows Temporality through the one Earth.
+/// Dust (Прах) — earthly foundation of the vessel; knows Temporality and Spatiality through Earth.
 /// Living Man presents the vessel to Earth at birth.
 class Dust {
 public:
 	Temporality& temporality() const { return Earth::the().temporality(); }
+	Spatiality& spatiality() const { return Earth::the().spatiality(); }
 
 	bool operator==(const Dust&) const = default;
 

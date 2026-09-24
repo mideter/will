@@ -1,23 +1,28 @@
 #pragma once
 
-#include "beings/abode.h"
-#include "acts/inscription.h"
+#include "acts/dating.h"
+#include "acts/placement.h"
 #include "acts/tying.h"
 #include "acts/obedience.h"
 #include "acts/tie.h"
+#include "acts/utterance.h"
+#include "acts/supplication.h"
+#include "beings/abode.h"
 #include "beings/soul.h"
 #include "beings/man.h"
 #include "beings/novice.h"
 #include "beings/testator.h"
-#include "acts/supplication.h"
 #include "beings/deed.h"
 #include "beings/vessel.h"
 #include "beings/world.h"
 #include "identity/abode.h"
 #include "identity/deed.h"
+#include "identity/letter.h"
 #include "identity/tie.h"
 #include "identity/soul.h"
 #include "identity/vessel.h"
+#include "ports/eternity.h"
+#include "ports/spatiality.h"
 #include "ports/temporality.h"
 #include "ports/time.h"
 #include "values/abode_name.h"
@@ -52,50 +57,85 @@ private:
 };
 
 
-class InMemoryTemporality final : public Temporality {
+struct InMemoryShared {
+	FakeTime time;
+	std::uint64_t next_soul_id = 0;
+	std::uint64_t next_vessel_id = 0;
+	std::uint64_t next_place_id = 0;
+	std::uint64_t next_letter_id = 0;
+	std::uint64_t next_deed_id = 0;
+	std::vector<std::pair<id::Soul, SoulName>> souls;
+};
+
+
+class InMemoryEternity final : public Eternity {
 public:
-	Time& time() override { return time_; }
+	explicit InMemoryEternity(InMemoryShared& shared)
+		: shared_(shared)
+	{}
+
+	Time& time() override { return shared_.time; }
 
 	id::Soul enroll(const SoulName name) override
 	{
-		const id::Soul soul_id{++next_soul_id_};
-		souls_.emplace_back(soul_id, name);
+		const id::Soul soul_id{++shared_.next_soul_id};
+		shared_.souls.emplace_back(soul_id, name);
+		note_place(soul_id.value());
 		return soul_id;
 	}
 
-	Embodiment embody(const id::Soul soul, DeviceToken token) override
+	Utterance utter(const id::Soul author, const Word& word) override
 	{
-		const SoulName* name = nullptr;
-		for (const auto& row : souls_) {
-			if (row.first == soul) {
-				name = &row.second;
-				break;
-			}
-		}
-		if (!name)
-			throw std::invalid_argument("unknown soul");
-
-		const id::Vessel vessel_id{++next_vessel_id_};
-		note_place(soul.value());
-		Embodiment row{soul, *name, vessel_id, std::move(token)};
-		embodiments_.push_back(row);
+		Utterance row{id::Letter{++shared_.next_letter_id}, author, word};
+		utterances_.push_back(row);
 		return row;
 	}
 
-	std::vector<Embodiment> embodiments() const override { return embodiments_; }
-
-	/// Remember soul + embodiment before the living World wakes (Creation load).
-	void seed_man(const id::Soul soul_id, const DeviceToken& token, const SoulName name)
+	Utterance utterance(const id::Letter id) const override
 	{
-		souls_.emplace_back(soul_id, name);
-		const id::Vessel vessel_id{soul_id.value()};
-		embodiments_.push_back(Embodiment{soul_id, name, vessel_id, token});
-		if (soul_id.value() > next_soul_id_)
-			next_soul_id_ = soul_id.value();
-		if (vessel_id.value() > next_vessel_id_)
-			next_vessel_id_ = vessel_id.value();
-		note_place(soul_id.value());
+		for (const Utterance& row : utterances_) {
+			if (row.id() == id)
+				return row;
+		}
+		throw std::invalid_argument("unknown utterance");
 	}
+
+	std::vector<Utterance> utterances(const std::vector<id::Letter>& ids) const override
+	{
+		std::vector<Utterance> out;
+		out.reserve(ids.size());
+		for (const id::Letter id : ids) {
+			try {
+				out.push_back(utterance(id));
+			} catch (const std::invalid_argument&) {
+			}
+		}
+		return out;
+	}
+
+	void remember(Utterance row) { utterances_.push_back(std::move(row)); }
+
+	FakeTime& fake_time() { return shared_.time; }
+
+	InMemoryShared& shared() { return shared_; }
+
+private:
+	void note_place(const std::uint64_t value)
+	{
+		if (value > shared_.next_place_id)
+			shared_.next_place_id = value;
+	}
+
+	InMemoryShared& shared_;
+	std::vector<Utterance> utterances_;
+};
+
+
+class InMemorySpatiality final : public Spatiality {
+public:
+	explicit InMemorySpatiality(InMemoryShared& shared)
+		: shared_(shared)
+	{}
 
 	std::vector<Abode> abodes() override
 	{
@@ -118,24 +158,95 @@ public:
 
 	void join_abode(const id::Abode, const id::Soul) override {}
 
-	void inscribe(id::Place place, id::Soul author, const Word& word) const override
+	void place(const id::Letter id, const id::Place place) override
 	{
-		inscriptions_.push_back(
-			Inscription{id::Letter{++next_id_}, place, author, word, time_.instant()});
+		for (auto& row : placements_) {
+			if (row.id() == id) {
+				row = Placement{id, place};
+				return;
+			}
+		}
+		placements_.emplace_back(id, place);
 	}
 
-	std::vector<Inscription> inscriptions(id::Place place, std::uint32_t limit) const override
+	std::vector<Placement> placements(const id::Place place, const std::uint32_t limit) const override
 	{
-		std::vector<Inscription> matching;
-		matching.reserve(inscriptions_.size());
-		for (const Inscription& row : inscriptions_) {
+		std::vector<Placement> matching;
+		for (const Placement& row : placements_) {
 			if (row.place() == place)
 				matching.push_back(row);
 		}
 		if (limit >= matching.size())
 			return matching;
-		return std::vector<Inscription>(matching.end() - static_cast<std::ptrdiff_t>(limit),
-										matching.end());
+		return std::vector<Placement>(matching.end() - static_cast<std::ptrdiff_t>(limit), matching.end());
+	}
+
+private:
+	void note_place(const std::uint64_t value)
+	{
+		if (value > shared_.next_place_id)
+			shared_.next_place_id = value;
+	}
+
+	InMemoryShared& shared_;
+	std::vector<std::pair<id::Abode, AbodeName>> abode_rows_;
+	std::vector<Placement> placements_;
+};
+
+
+class InMemoryTemporality final : public Temporality {
+public:
+	explicit InMemoryTemporality(InMemoryShared& shared)
+		: shared_(shared)
+	{}
+
+	Embodiment embody(const id::Soul soul, SoulName name, DeviceToken token) override
+	{
+		const id::Vessel vessel_id{++shared_.next_vessel_id};
+		note_place(soul.value());
+		Embodiment row{soul, std::move(name), vessel_id, std::move(token)};
+		embodiments_.push_back(row);
+		return row;
+	}
+
+	std::vector<Embodiment> embodiments() const override { return embodiments_; }
+
+	/// Remember soul + embodiment before the living World wakes (Creation load).
+	void seed_man(const id::Soul soul_id, const DeviceToken& token, const SoulName name)
+	{
+		shared_.souls.emplace_back(soul_id, name);
+		const id::Vessel vessel_id{soul_id.value()};
+		embodiments_.push_back(Embodiment{soul_id, name, vessel_id, token});
+		if (soul_id.value() > shared_.next_soul_id)
+			shared_.next_soul_id = soul_id.value();
+		if (vessel_id.value() > shared_.next_vessel_id)
+			shared_.next_vessel_id = vessel_id.value();
+		note_place(soul_id.value());
+	}
+
+	void date(const id::Letter id, const Timestamp at) override
+	{
+		for (auto& row : datings_) {
+			if (row.id() == id) {
+				row = Dating{id, at};
+				return;
+			}
+		}
+		datings_.emplace_back(id, at);
+	}
+
+	std::vector<Dating> datings(const std::vector<id::Letter>& ids) const override
+	{
+		std::vector<Dating> out;
+		for (const id::Letter id : ids) {
+			for (const Dating& row : datings_) {
+				if (row.id() == id) {
+					out.push_back(row);
+					break;
+				}
+			}
+		}
+		return out;
 	}
 
 	Supplication
@@ -214,12 +325,12 @@ public:
 		if (obedience.testator().Soul::id() != testator.id())
 			throw std::logic_error("only the testator may will in this obedience");
 
-		DeedRow row{id::Deed{++next_deed_id_},
+		DeedRow row{id::Deed{++shared_.next_deed_id},
 					tid,
 					obedience.testator().Soul::id(),
 					obedience.novice().Soul::id(),
 					word.body(),
-					time_.instant(),
+					shared_.time.instant(),
 					std::nullopt,
 					std::nullopt};
 		deed_rows_.push_back(row);
@@ -235,7 +346,7 @@ public:
 				throw std::logic_error("deed is not open");
 			if (!has_obedience(row.obedience))
 				throw std::invalid_argument("unknown obedience");
-			row.executed_at = time_.instant();
+			row.executed_at = shared_.time.instant();
 			return make_deed(row);
 		}
 		throw std::invalid_argument("unknown deed");
@@ -260,7 +371,7 @@ public:
 		return out;
 	}
 
-	FakeTime& fake_time() { return time_; }
+	FakeTime& fake_time() { return shared_.time; }
 
 private:
 	struct ObedienceRow {
@@ -282,11 +393,11 @@ private:
 
 	void note_place(const std::uint64_t value)
 	{
-		if (value > next_place_id_)
-			next_place_id_ = value;
+		if (value > shared_.next_place_id)
+			shared_.next_place_id = value;
 	}
 
-	std::uint64_t allocate_place() { return ++next_place_id_; }
+	std::uint64_t allocate_place() { return ++shared_.next_place_id; }
 
 	bool pair_exists(const id::Soul testator, const id::Soul novice) const
 	{
@@ -323,7 +434,6 @@ private:
 		throw std::invalid_argument("unknown supplication");
 	}
 
-	/// Supplication holds references — not assignable; rebuild instead of erase.
 	void drop_pending(const std::vector<Supplication>::const_iterator drop)
 	{
 		std::vector<Supplication> kept;
@@ -336,19 +446,35 @@ private:
 		pending_supplications_.swap(kept);
 	}
 
-	FakeTime time_;
-	std::uint64_t next_soul_id_ = 0;
-	std::uint64_t next_vessel_id_ = 0;
-	std::uint64_t next_place_id_ = 0;
-	std::uint64_t next_deed_id_ = 0;
-	mutable std::uint64_t next_id_ = 0;
-	std::vector<std::pair<id::Soul, SoulName>> souls_;
+	InMemoryShared& shared_;
 	std::vector<Embodiment> embodiments_;
-	std::vector<std::pair<id::Abode, AbodeName>> abode_rows_;
-	mutable std::vector<Inscription> inscriptions_;
+	std::vector<Dating> datings_;
 	std::vector<Supplication> pending_supplications_;
 	std::vector<ObedienceRow> obediences_;
 	std::vector<DeedRow> deed_rows_;
+};
+
+
+/// In-memory three faces for tests; wire Creation with eternity/spatiality/temporality.
+class InMemoryCosmos {
+public:
+	InMemoryCosmos()
+		: eternity_(shared_)
+		, spatiality_(shared_)
+		, temporality_(shared_)
+	{}
+
+	InMemoryEternity& eternity() { return eternity_; }
+	InMemorySpatiality& spatiality() { return spatiality_; }
+	InMemoryTemporality& temporality() { return temporality_; }
+
+	FakeTime& fake_time() { return shared_.time; }
+
+private:
+	InMemoryShared shared_;
+	InMemoryEternity eternity_;
+	InMemorySpatiality spatiality_;
+	InMemoryTemporality temporality_;
 };
 
 

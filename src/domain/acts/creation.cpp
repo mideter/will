@@ -4,9 +4,9 @@
 namespace will::domain {
 
 
-Creation::Creation(Temporality& temporality)
+Creation::Creation(Eternity& eternity, Spatiality& spatiality, Temporality& temporality)
 	: space_()
-	, world_(Heaven{temporality}, Earth{temporality})
+	, world_(Heaven{eternity}, Earth{temporality, spatiality})
 {
 	world_.awaken();
 }

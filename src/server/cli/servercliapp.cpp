@@ -22,7 +22,7 @@ ServerCliApp::ServerCliApp(const ServerConfig& defaults)
 
 	app_.add_option("--port", port_)->description("Listen port");
 	app_.add_option("--max-clients", max_clients_)->description("Max concurrent connections");
-	app_.add_option("--db-path", db_path_)->description("SQLite database path");
+	app_.add_option("--db-path", db_path_)->description("SQLite path prefix (opens .eternity/.space/.time)");
 	app_.add_option("--keepalive-interval", keepalive_interval_seconds_)
 		->description("gRPC HTTP/2 keepalive ping interval in seconds");
 	app_.add_option("--keepalive-timeout", keepalive_timeout_seconds_)

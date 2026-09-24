@@ -4,9 +4,11 @@
 #include "domain_fakes.h"
 
 #include "acts/creation.h"
-#include "acts/inscription.h"
+#include "acts/dating.h"
+#include "acts/placement.h"
 #include "acts/tie.h"
 #include "acts/tying.h"
+#include "acts/utterance.h"
 #include "beings/letter.h"
 #include "beings/deed.h"
 #include "beings/novice.h"
@@ -32,48 +34,43 @@ TEST_CASE("id::Letter requires positive value")
 }
 
 
-TEST_CASE("Inscription stores fields")
+TEST_CASE("Utterance stores fields")
 {
-	const Inscription inscription{id::Letter{1}, id::Place::global(), id::Soul{7}, Word{"hello"},
-						Timestamp{100}};
-	CHECK(inscription.id() == id::Letter{1});
-	CHECK(inscription.place() == id::Place::global());
-	CHECK(inscription.author() == id::Soul{7});
-	CHECK(inscription.word().body() == "hello");
-	CHECK(inscription.created_at() == Timestamp{100});
+	const Utterance utterance{id::Letter{1}, id::Soul{7}, Word{"hello"}};
+	CHECK(utterance.id() == id::Letter{1});
+	CHECK(utterance.author() == id::Soul{7});
+	CHECK(utterance.word().body() == "hello");
 }
 
 
-TEST_CASE("Inscription rejects invalid construction")
+TEST_CASE("Utterance rejects invalid construction")
 {
-	CHECK_THROWS_AS(
-		(Inscription{id::Letter{1}, id::Place::global(), id::Soul{0}, Word{"x"}, Timestamp{0}}),
-		std::invalid_argument);
+	CHECK_THROWS_AS((Utterance{id::Letter{1}, id::Soul{0}, Word{"x"}}), std::invalid_argument);
 	CHECK_THROWS_AS((Word{""}), std::invalid_argument);
 	CHECK_THROWS_AS((Word{std::string(Word::MaxBodyLength + 1, 'a')}), std::invalid_argument);
 }
 
 
-TEST_CASE("Inscription accepts max body length")
+TEST_CASE("Utterance accepts max body length")
 {
-	const Inscription max_body{id::Letter{1}, id::Place::global(), id::Soul{1},
-						  Word{std::string(Word::MaxBodyLength, 'a')}, Timestamp{0}};
+	const Utterance max_body{id::Letter{1}, id::Soul{1}, Word{std::string(Word::MaxBodyLength, 'a')}};
 	CHECK(max_body.word().body().size() == Word::MaxBodyLength);
 }
 
 
-TEST_CASE("Letter is born from Inscription with living place and author")
+TEST_CASE("Letter is born from three projections with living place and author")
 {
-	InMemoryTemporality temporality;
-	Creation creation(temporality);
+	InMemoryCosmos cosmos;
+	Creation creation(cosmos.eternity(), cosmos.spatiality(), cosmos.temporality());
 	World& world = creation.world();
 
 	const Man& man = world.welcome(DeviceToken::generate());
 	const auto& witness = static_cast<const Witness&>(man);
 
-	const Inscription inscription{id::Letter{1}, witness.abode().id(), man.Soul::id(), Word{"hello"},
-						Timestamp{100}};
-	const Letter letter{inscription};
+	const Utterance utterance{id::Letter{1}, man.Soul::id(), Word{"hello"}};
+	const Placement placement{id::Letter{1}, witness.abode().id()};
+	const Dating dating{id::Letter{1}, Timestamp{100}};
+	const Letter letter{utterance, placement, dating};
 
 	CHECK(letter.id() == id::Letter{1});
 	CHECK(&letter.place() == &witness.abode());
@@ -85,15 +82,32 @@ TEST_CASE("Letter is born from Inscription with living place and author")
 
 TEST_CASE("Letter rejects unknown place")
 {
-	InMemoryTemporality temporality;
-	Creation creation(temporality);
+	InMemoryCosmos cosmos;
+	Creation creation(cosmos.eternity(), cosmos.spatiality(), cosmos.temporality());
 	World& world = creation.world();
 
 	const Man& man = world.welcome(DeviceToken::generate());
 
-	const Inscription inscription{id::Letter{1}, id::Place{999}, man.Soul::id(), Word{"x"},
-								  Timestamp{0}};
-	CHECK_THROWS_AS((Letter{inscription}), std::logic_error);
+	const Utterance utterance{id::Letter{1}, man.Soul::id(), Word{"x"}};
+	const Placement placement{id::Letter{1}, id::Place{999}};
+	const Dating dating{id::Letter{1}, Timestamp{0}};
+	CHECK_THROWS_AS((Letter{utterance, placement, dating}), std::logic_error);
+}
+
+
+TEST_CASE("Letter rejects mismatched projection ids")
+{
+	InMemoryCosmos cosmos;
+	Creation creation(cosmos.eternity(), cosmos.spatiality(), cosmos.temporality());
+	World& world = creation.world();
+
+	const Man& man = world.welcome(DeviceToken::generate());
+	const auto& witness = static_cast<const Witness&>(man);
+
+	const Utterance utterance{id::Letter{1}, man.Soul::id(), Word{"x"}};
+	const Placement placement{id::Letter{2}, witness.abode().id()};
+	const Dating dating{id::Letter{1}, Timestamp{0}};
+	CHECK_THROWS_AS((Letter{utterance, placement, dating}), std::invalid_argument);
 }
 
 
@@ -106,8 +120,8 @@ TEST_CASE("id::Deed requires positive value")
 
 TEST_CASE("Deed is a word of will in a living Tie")
 {
-	InMemoryTemporality temporality;
-	Creation creation(temporality);
+	InMemoryCosmos cosmos;
+	Creation creation(cosmos.eternity(), cosmos.spatiality(), cosmos.temporality());
 	World& world = creation.world();
 
 	const auto& testator = static_cast<const Testator&>(world.welcome(DeviceToken::generate()));

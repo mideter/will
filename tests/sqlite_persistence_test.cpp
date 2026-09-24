@@ -3,12 +3,10 @@
 
 #include "acts/creation.h"
 #include "beings/witness.h"
-#include "sqlite_database.h"
-#include "sqlite_temporality.h"
+#include "sqlite_persistence_bundle.h"
 
 #include "identity/abode.h"
 #include "identity/place.h"
-#include "values/abode_name.h"
 #include "values/device_token.h"
 #include "identity/soul.h"
 #include "values/soul_name.h"
@@ -24,8 +22,10 @@ TEST_CASE("sqlite persistence survives reopen")
 	using namespace will;
 	using namespace will::domain;
 
-	const std::string db_path = "/tmp/will-sqlite-persistence-test-" + std::to_string(getpid()) + ".db";
-	::unlink(db_path.c_str());
+	const std::string prefix = "/tmp/will-sqlite-persistence-test-" + std::to_string(getpid());
+	::unlink((prefix + ".eternity.db").c_str());
+	::unlink((prefix + ".space.db").c_str());
+	::unlink((prefix + ".time.db").c_str());
 
 	std::optional<id::Soul> soul_a_id;
 	std::optional<id::Soul> soul_b_id;
@@ -36,10 +36,8 @@ TEST_CASE("sqlite persistence survives reopen")
 	const std::string token_text = "abcd1234abcd1234abcd1234abcd1234";
 
 	{
-		SqliteDatabase database(db_path);
-		SqliteTemporality temporality(database);
-		Creation creation(temporality);
-		World& world = creation.world();
+		SqlitePersistenceBundle bundle(prefix);
+		World& world = bundle.world();
 
 		const DeviceToken token_a = *DeviceToken::parse("aaaa1234aaaa1234aaaa1234aaaa1234");
 		const DeviceToken token_b = *DeviceToken::parse("bbbb1234bbbb1234bbbb1234bbbb1234");
@@ -52,18 +50,19 @@ TEST_CASE("sqlite persistence survives reopen")
 		name_a = man_a.name();
 		name_b = man_b.name();
 
-		const id::Place place_a = static_cast<const Witness&>(man_a).abode().id();
-		temporality.inscribe(place_a, man_a.Soul::id(), Word{"from-peer"});
-		temporality.inscribe(place_a, man_b.Soul::id(), Word{"from-me"});
+		man_a.say(Word{"from-peer"});
+		man_b.say(Word{"from-me"});
 
-		const auto rows = temporality.inscriptions(place_a, 10);
-		REQUIRE(rows.size() == 2);
-		CHECK(rows[0].word().body() == "from-peer");
-		CHECK(rows[0].author() == man_a.Soul::id());
-		CHECK(world.soul(rows[0].author()).name() == *name_a);
-		CHECK(rows[1].word().body() == "from-me");
-		CHECK(rows[1].author() == man_b.Soul::id());
-		CHECK(world.soul(rows[1].author()).name() == *name_b);
+		const auto& witness_a = static_cast<const Witness&>(man_a);
+		const auto letters = witness_a.retell(10);
+		REQUIRE(letters.size() == 1);
+		CHECK(letters[0].body() == "from-peer");
+		CHECK(letters[0].author().id() == man_a.Soul::id());
+		CHECK(world.soul(letters[0].author().id()).name() == *name_a);
+
+		// man_b spoke in his own abode; check via spatiality/eternity on place_a only has man_a
+		const auto placed = bundle.spatiality().placements(witness_a.abode().id(), 10);
+		REQUIRE(placed.size() == 1);
 
 		CHECK(static_cast<const Witness&>(man_a).abode().id() !=
 			  static_cast<const Witness&>(man_b).abode().id());
@@ -78,10 +77,8 @@ TEST_CASE("sqlite persistence survives reopen")
 	}
 
 	{
-		SqliteDatabase database(db_path);
-		SqliteTemporality temporality(database);
-		Creation creation(temporality);
-		World& world = creation.world();
+		SqlitePersistenceBundle bundle(prefix);
+		World& world = bundle.world();
 
 		const DeviceToken token_created = *DeviceToken::parse(token_text);
 		const Man& reloaded = world.welcome(token_created);
@@ -102,6 +99,10 @@ TEST_CASE("sqlite persistence survives reopen")
 		CHECK(static_cast<const Witness&>(man_a_reloaded).abode().abode_id() ==
 			  id::Abode{man_a_reloaded.Soul::id().value()});
 
+		const auto letters = static_cast<const Witness&>(man_a_reloaded).retell(10);
+		REQUIRE(letters.size() == 1);
+		CHECK(letters[0].body() == "from-peer");
+
 		CHECK(world.knows(*soul_b_id));
 		CHECK(world.soul(*soul_b_id).name() == *name_b);
 
@@ -109,5 +110,7 @@ TEST_CASE("sqlite persistence survives reopen")
 		CHECK_FALSE(world.knows(id::Vessel{999999}));
 	}
 
-	::unlink(db_path.c_str());
+	::unlink((prefix + ".eternity.db").c_str());
+	::unlink((prefix + ".space.db").c_str());
+	::unlink((prefix + ".time.db").c_str());
 }
