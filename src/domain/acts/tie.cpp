@@ -4,18 +4,14 @@
 #include "beings/soul.h"
 #include "beings/testator.h"
 
-#include <utility>
-
 
 namespace will::domain {
 
 
 Tie::Tie(Tying tying)
 	: Place(id::Place{tying.id().value()})
-	, Obedience(tying.id())
-	, Shepherding(tying.id())
-	, testator_(static_cast<const Testator&>(Soul::of(tying.testator())))
-	, novice_(static_cast<const Novice&>(Soul::of(tying.novice())))
+	, Obedience(tying.id(), static_cast<const Testator&>(Soul::of(tying.testator())))
+	, Shepherding(tying.id(), static_cast<const Novice&>(Soul::of(tying.novice())))
 {
 	present();
 }

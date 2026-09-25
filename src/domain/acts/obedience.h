@@ -12,8 +12,9 @@ class Testator;
 
 
 /// Obedience (Послушание) — Novice-facing interface of a shared Place.
-/// Living heap object is Tie (Узы), owned by the Novice. Ending a place
-/// (secede) is deferred for now — all kept places are active.
+/// Living heap object is Tie (Узы), owned by the Novice. Holds the
+/// counterpart side (testator); accessors are completed by Tie. Ending a
+/// place (secede) is deferred for now — all kept places are active.
 class Obedience : public virtual Place {
 public:
 	~Obedience() override = default;
@@ -25,8 +26,10 @@ public:
 	virtual const Novice& novice() const = 0;
 
 protected:
-	explicit Obedience(id::Tie id);
+	Obedience(id::Tie id, const Testator& testator);
 	Obedience& operator=(Obedience&&) = delete;
+
+	const Testator& testator_;
 };
 
 

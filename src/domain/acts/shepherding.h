@@ -13,6 +13,7 @@ class Testator;
 
 /// Shepherding (Ведение) — Testator-facing interface of the shared Place.
 /// Living heap object is Tie (Узы), owned by the Novice as Obedience.
+/// Holds the counterpart side (novice); accessors are completed by Tie.
 /// Ending a place (secede) is deferred for now — all kept places are active.
 class Shepherding : public virtual Place {
 public:
@@ -25,8 +26,10 @@ public:
 	virtual const Novice& novice() const = 0;
 
 protected:
-	explicit Shepherding(id::Tie id);
+	Shepherding(id::Tie id, const Novice& novice);
 	Shepherding& operator=(Shepherding&&) = delete;
+
+	const Novice& novice_;
 };
 
 
