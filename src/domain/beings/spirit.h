@@ -9,7 +9,6 @@ namespace will::domain {
 
 
 class Soul;
-class Supplication;
 
 
 /// Spirit (Дух) — highest foundation of the soul.
@@ -30,8 +29,6 @@ public:
 	virtual void say(const Word& word) const;
 
 protected:
-	friend class Supplication;
-
 	Spirit() = default;
 
 	/// The one living Heaven (static so Soul::of can look up without an instance).
