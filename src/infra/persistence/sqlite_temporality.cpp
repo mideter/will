@@ -48,6 +48,51 @@ bool pair_exists(sqlite3* db, const domain::id::Soul testator, const domain::id:
 }
 
 
+domain::Supplication require_pending(sqlite3* db, const domain::Supplication& ask)
+{
+	SqliteStmt load(db,
+					"SELECT suppliant_soul_id, testator_soul_id "
+					"FROM supplications "
+					"WHERE suppliant_soul_id = ? AND testator_soul_id = ? "
+					"AND status = 'pending' LIMIT 1;",
+					"prepare load pending supplication");
+	load.bind_i64(1, static_cast<std::int64_t>(ask.suppliant().Soul::id().value()), "bind suppliant");
+	load.bind_i64(2, static_cast<std::int64_t>(ask.addressee().Soul::id().value()), "bind addressee");
+	if (!load.step_row("load pending step"))
+		throw std::invalid_argument("unknown supplication");
+
+	return read_pending_supplication(load.get());
+}
+
+
+void mark_accepted(sqlite3* db, const domain::Supplication& row)
+{
+	SqliteStmt upd(db,
+				   "UPDATE supplications SET status = 'accepted' "
+				   "WHERE suppliant_soul_id = ? AND testator_soul_id = ? "
+				   "AND status = 'pending';",
+				   "prepare accept status");
+	upd.bind_i64(1, static_cast<std::int64_t>(row.suppliant().Soul::id().value()), "bind suppliant");
+	upd.bind_i64(2, static_cast<std::int64_t>(row.addressee().Soul::id().value()), "bind addressee");
+	upd.step_done("accept status step");
+}
+
+
+void insert_tying(sqlite3* db, const domain::Tying& tying, const domain::Timestamp ts)
+{
+	SqliteStmt ins(db,
+				   "INSERT INTO obediences "
+				   "(id, testator_soul_id, novice_soul_id, created_at_ns, seceded_at_ns) "
+				   "VALUES (?, ?, ?, ?, NULL);",
+				   "prepare insert obedience");
+	ins.bind_i64(1, static_cast<std::int64_t>(tying.id().value()), "bind id");
+	ins.bind_i64(2, static_cast<std::int64_t>(tying.testator().value()), "bind testator");
+	ins.bind_i64(3, static_cast<std::int64_t>(tying.novice().value()), "bind novice");
+	ins.bind_i64(4, ts.value(), "bind created_at");
+	ins.step_done("insert obedience step");
+}
+
+
 } // namespace
 
 
@@ -217,57 +262,24 @@ std::vector<domain::Supplication> SqliteTemporality::pending_supplications(
 }
 
 
-void SqliteTemporality::accept(const domain::Supplication& ask, domain::Tying tying)
+domain::Tying SqliteTemporality::accept(const domain::Supplication& ask, domain::id::Place place)
 {
 	const domain::Timestamp ts = eternity_.time().instant();
 	std::lock_guard lock(time_db_.mutex());
 	sqlite3* const db = time_db_.db();
 	SqliteTransaction tx(db);
 
-	domain::Supplication row = [&] {
-		SqliteStmt load(db,
-						"SELECT suppliant_soul_id, testator_soul_id "
-						"FROM supplications "
-						"WHERE suppliant_soul_id = ? AND testator_soul_id = ? "
-						"AND status = 'pending' LIMIT 1;",
-						"prepare load pending supplication");
-		load.bind_i64(1, static_cast<std::int64_t>(ask.suppliant().Soul::id().value()), "bind suppliant");
-		load.bind_i64(2, static_cast<std::int64_t>(ask.addressee().Soul::id().value()), "bind addressee");
-		if (!load.step_row("load pending step"))
-			throw std::invalid_argument("unknown supplication");
-
-		return read_pending_supplication(load.get());
-	}();
-
-	if (tying.testator() != row.addressee().Soul::id() || tying.novice() != row.suppliant().Soul::id())
-		throw std::invalid_argument("tying does not match supplication");
-
+	const domain::Supplication row = require_pending(db, ask);
 	if (pair_exists(db, row.addressee().Soul::id(), row.suppliant().Soul::id()))
 		throw std::logic_error("obedience already exists for this pair");
 
-	{
-		SqliteStmt upd(db,
-					   "UPDATE supplications SET status = 'accepted' "
-					   "WHERE suppliant_soul_id = ? AND testator_soul_id = ? "
-					   "AND status = 'pending';",
-					   "prepare accept status");
-		upd.bind_i64(1, static_cast<std::int64_t>(row.suppliant().Soul::id().value()), "bind suppliant");
-		upd.bind_i64(2, static_cast<std::int64_t>(row.addressee().Soul::id().value()), "bind addressee");
-		upd.step_done("accept status step");
-	}
-
-	SqliteStmt ins(db,
-				   "INSERT INTO obediences "
-				   "(id, testator_soul_id, novice_soul_id, created_at_ns, seceded_at_ns) "
-				   "VALUES (?, ?, ?, ?, NULL);",
-				   "prepare insert obedience");
-	ins.bind_i64(1, static_cast<std::int64_t>(tying.id().value()), "bind id");
-	ins.bind_i64(2, static_cast<std::int64_t>(tying.testator().value()), "bind testator");
-	ins.bind_i64(3, static_cast<std::int64_t>(tying.novice().value()), "bind novice");
-	ins.bind_i64(4, ts.value(), "bind created_at");
-	ins.step_done("insert obedience step");
+	mark_accepted(db, row);
+	const domain::Tying tying{domain::id::Tie{place}, row.addressee().Soul::id(),
+							  row.suppliant().Soul::id()};
+	insert_tying(db, tying, ts);
 
 	tx.commit();
+	return tying;
 }
 
 

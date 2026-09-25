@@ -288,16 +288,16 @@ public:
 		return out;
 	}
 
-	void accept(const Supplication& ask, Tying tying) override
+	Tying accept(const Supplication& ask, id::Place place) override
 	{
 		const auto it = find_pending(ask);
-		if (tying.testator() != it->addressee().Soul::id() || tying.novice() != it->suppliant().Soul::id())
-			throw std::invalid_argument("tying does not match supplication");
 		if (pair_exists(it->addressee().Soul::id(), it->suppliant().Soul::id()))
 			throw std::logic_error("obedience already exists for this pair");
 
+		const Tying tying{id::Tie{place}, it->addressee().Soul::id(), it->suppliant().Soul::id()};
 		drop_pending(it);
 		obediences_.push_back(ObedienceRow{tying.id(), tying.testator(), tying.novice()});
+		return tying;
 	}
 
 	void reject(const Supplication& ask) override
