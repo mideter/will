@@ -28,7 +28,7 @@ Witness::Witness(Embodiment embodiment)
 		abode_ = std::make_unique<Abode>(kept->abode_id(), kept->name());
 	} else {
 		abode_ = std::make_unique<Abode>(
-			id::Abode{eternity().space().point().value()},
+			id::Abode{eternity().space().point()},
 			AbodeName{std::string{Soul::name().text()}});
 		spatiality().keep(abode_->abode_id(), abode_->name());
 		spatiality().join_abode(abode_->abode_id(), Soul::id());

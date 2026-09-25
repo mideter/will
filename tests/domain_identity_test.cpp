@@ -52,6 +52,14 @@ TEST_CASE("id::Tie requires positive value")
 }
 
 
+TEST_CASE("id::Tie and id::Abode from Place")
+{
+	const id::Place place{9};
+	CHECK(id::Tie{place}.value() == 9);
+	CHECK(id::Abode{place}.value() == 9);
+}
+
+
 TEST_CASE("id::Deed requires positive value")
 {
 	CHECK(id::Deed{4}.value() == 4);

@@ -41,7 +41,7 @@ void Supplication::sign(const Testator& addressee) const
 
 	const Supplication& incoming = addressee.supplication(suppliant_);
 
-	const Tying tying{id::Tie{addressee.eternity().space().point().value()},
+	const Tying tying{id::Tie{addressee.eternity().space().point()},
 					  incoming.addressee().Soul::id(),
 					  incoming.suppliant().Soul::id()};
 

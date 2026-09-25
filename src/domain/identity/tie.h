@@ -1,6 +1,7 @@
 #pragma once
 
 #include "id.h"
+#include "place.h"
 
 #include <compare>
 
@@ -9,9 +10,10 @@ namespace will::domain::id {
 
 
 /// Persistent id of a Tie (Узы) — the shared Obedience/Shepherding place.
-/// Same numeric value as Place::id() for that place.
+/// Same numeric value as that place's Place id (from Space::point).
 class Tie : public Id {
 public:
+	explicit Tie(Place place) : Id(place.value()) {}
 	explicit Tie(std::uint64_t value) : Id(value) {}
 
 	constexpr auto operator<=>(const Tie&) const noexcept = default;

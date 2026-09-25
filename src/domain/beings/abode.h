@@ -26,7 +26,7 @@ public:
 	Abode& operator=(const Abode&) = delete;
 
 	/// Strongly typed abode id (same value as Place::id()).
-	id::Abode abode_id() const noexcept { return id::Abode{id().value()}; }
+	id::Abode abode_id() const noexcept { return id::Abode{id()}; }
 
 	const AbodeName& name() const noexcept { return name_; }
 

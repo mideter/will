@@ -58,7 +58,7 @@ TEST_CASE("welcome creates man with personal abode")
 	CHECK(man.Soul::id().value() > 0);
 	CHECK(man.Vessel::id().value() > 0);
 	CHECK(witness.abode().id().value() > 0);
-	CHECK(witness.abode().abode_id() == id::Abode{witness.abode().id().value()});
+	CHECK(witness.abode().abode_id() == id::Abode{witness.abode().id()});
 	CHECK(witness.abode().dwells(man));
 	CHECK(world.knows(man.Vessel::id()));
 	CHECK(world.knows(man.Soul::id()));
@@ -217,8 +217,8 @@ TEST_CASE("supplicate accept creates tie owned as obedience")
 	CHECK(obedience.id().value() != a.Soul::id().value());
 	CHECK(obedience.id().value() != b.Soul::id().value());
 	CHECK(cosmos.temporality().pending_supplications(b.Soul::id()).empty());
-	CHECK(&novice.obedience(id::Tie{obedience.id().value()}) == &obedience);
-	CHECK(&testator.shepherding(id::Tie{obedience.id().value()}).testator() == &testator);
+	CHECK(&novice.obedience(id::Tie{obedience.id()}) == &obedience);
+	CHECK(&testator.shepherding(id::Tie{obedience.id()}).testator() == &testator);
 }
 
 
@@ -261,7 +261,7 @@ TEST_CASE("will and execute within obedience")
 	REQUIRE(cosmos.temporality().tyings().size() == 1);
 	const Obedience& obedience =
 		novice.obedience(cosmos.temporality().tyings().front().id());
-	const Shepherding& shepherding = testator.shepherding(id::Tie{obedience.id().value()});
+	const Shepherding& shepherding = testator.shepherding(id::Tie{obedience.id()});
 	const Deed deed = testator.will(shepherding, Word{"fast"});
 	CHECK(deed.open());
 	CHECK(deed.body() == "fast");

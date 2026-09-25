@@ -1,6 +1,7 @@
 #pragma once
 
 #include "id.h"
+#include "place.h"
 
 #include <compare>
 
@@ -13,6 +14,7 @@ namespace will::domain::id {
 /// Id 1 may remain as an orphan letter tail from the former global abode.
 class Abode : public Id {
 public:
+	explicit Abode(Place place) : Id(place.value()) {}
 	explicit Abode(std::uint64_t value) : Id(value) {}
 
 	static Abode global() { return Abode{1}; }
