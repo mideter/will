@@ -15,8 +15,6 @@ class Place : public Id {
 public:
 	explicit Place(std::uint64_t value) : Id(value) {}
 
-	static Place global() { return Place{1}; }
-
 	constexpr auto operator<=>(const Place&) const noexcept = default;
 	constexpr bool operator==(const Place&) const noexcept = default;
 };

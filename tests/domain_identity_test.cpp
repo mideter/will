@@ -38,9 +38,8 @@ TEST_CASE("id::Abode global and positive values")
 }
 
 
-TEST_CASE("id::Place global and positive values")
+TEST_CASE("id::Place requires positive value")
 {
-	CHECK(id::Place::global() == id::Place{1});
 	CHECK(id::Place{5}.value() == 5);
 	CHECK_THROWS_AS(id::Place{0}, std::invalid_argument);
 }

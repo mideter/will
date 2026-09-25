@@ -9,7 +9,7 @@ namespace will::domain {
 
 
 Place::Place()
-	: id_(id::Place::global())
+	: id_(id::Place{1})
 {
 	throw std::logic_error("Place default ctor is only for virtual-base faces");
 }
