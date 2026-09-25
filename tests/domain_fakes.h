@@ -288,13 +288,14 @@ public:
 		return out;
 	}
 
-	Tying accept(const Supplication& ask, id::Place place) override
+	Tying accept(const Supplication& ask) override
 	{
 		const auto it = find_pending(ask);
 		if (pair_exists(it->addressee().Soul::id(), it->suppliant().Soul::id()))
 			throw std::logic_error("obedience already exists for this pair");
 
-		const Tying tying{id::Tie{place}, it->addressee().Soul::id(), it->suppliant().Soul::id()};
+		const Tying tying{id::Tie{eternity_.space().point()}, it->addressee().Soul::id(),
+						  it->suppliant().Soul::id()};
 		drop_pending(it);
 		obediences_.push_back(ObedienceRow{tying.id(), tying.testator(), tying.novice()});
 		return tying;

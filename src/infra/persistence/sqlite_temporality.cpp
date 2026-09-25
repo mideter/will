@@ -3,6 +3,7 @@
 #include "acts/tie.h"
 #include "beings/novice.h"
 #include "beings/soul.h"
+#include "beings/space.h"
 #include "beings/testator.h"
 #include "values/word.h"
 
@@ -262,9 +263,10 @@ std::vector<domain::Supplication> SqliteTemporality::pending_supplications(
 }
 
 
-domain::Tying SqliteTemporality::accept(const domain::Supplication& ask, domain::id::Place place)
+domain::Tying SqliteTemporality::accept(const domain::Supplication& ask)
 {
 	const domain::Timestamp ts = eternity_.time().instant();
+	const domain::id::Place place = eternity_.space().point();
 	std::lock_guard lock(time_db_.mutex());
 	sqlite3* const db = time_db_.db();
 	SqliteTransaction tx(db);

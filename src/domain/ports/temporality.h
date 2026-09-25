@@ -9,7 +9,6 @@
 #include "beings/soul.h"
 #include "identity/deed.h"
 #include "identity/letter.h"
-#include "identity/place.h"
 #include "identity/soul.h"
 #include "identity/tie.h"
 #include "identity/vessel.h"
@@ -55,8 +54,8 @@ public:
 	virtual std::vector<Supplication> pending_supplications(id::Soul addressee) const = 0;
 
 	/// Accept a pending; keeps the tying in time. Living Tie is born on the heap.
-	/// Place id is pointed by Space before the keep. Keyed by the living pair.
-	virtual Tying accept(const Supplication& ask, id::Place place) = 0;
+	/// Keyed by the living pair (suppliant, addressee).
+	virtual Tying accept(const Supplication& ask) = 0;
 
 	/// Reject a pending supplication (same living pair).
 	virtual void reject(const Supplication& ask) = 0;
