@@ -1,6 +1,5 @@
 #include "tie.h"
 
-#include "beings/novice.h"
 #include "beings/soul.h"
 #include "beings/testator.h"
 
@@ -10,8 +9,8 @@ namespace will::domain {
 
 Tie::Tie(Tying tying)
 	: Place(id::Place{tying.id().value()})
-	, Obedience(static_cast<const Testator&>(Soul::of(tying.testator())))
-	, Shepherding(static_cast<const Novice&>(Soul::of(tying.novice())))
+	, Obedience(Soul::of(tying.testator()))
+	, Shepherding(Soul::of(tying.novice()))
 {
 	present();
 }

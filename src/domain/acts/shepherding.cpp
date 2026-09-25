@@ -1,11 +1,13 @@
 #include "shepherding.h"
 
+#include "beings/novice.h"
+
 
 namespace will::domain {
 
 
-Shepherding::Shepherding(const Novice& novice)
-	: novice_(novice)
+Shepherding::Shepherding(const Soul& novice)
+	: novice_(static_cast<const Novice&>(novice))
 {}
 
 

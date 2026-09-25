@@ -7,6 +7,7 @@ namespace will::domain {
 
 
 class Novice;
+class Soul;
 class Testator;
 
 
@@ -25,7 +26,7 @@ public:
 	virtual const Novice& novice() const = 0;
 
 protected:
-	explicit Shepherding(const Novice& novice);
+	explicit Shepherding(const Soul& novice);
 	Shepherding& operator=(Shepherding&&) = delete;
 
 	const Novice& novice_;

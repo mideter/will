@@ -7,6 +7,7 @@ namespace will::domain {
 
 
 class Novice;
+class Soul;
 class Testator;
 
 
@@ -25,7 +26,7 @@ public:
 	virtual const Novice& novice() const = 0;
 
 protected:
-	explicit Obedience(const Testator& testator);
+	explicit Obedience(const Soul& testator);
 	Obedience& operator=(Obedience&&) = delete;
 
 	const Testator& testator_;
