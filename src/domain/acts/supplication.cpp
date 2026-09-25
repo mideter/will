@@ -5,6 +5,7 @@
 #include "acts/tying.h"
 #include "beings/novice.h"
 #include "beings/soul.h"
+#include "beings/space.h"
 #include "beings/testator.h"
 #include "ports/temporality.h"
 
@@ -39,7 +40,11 @@ void Supplication::sign(const Testator& addressee) const
 
 	const Supplication& incoming = addressee.supplication(suppliant_);
 
-	const Tying tying = addressee.temporality().accept(incoming);
+	const Tying tying{id::Tie{Space::point().value()},
+					  incoming.addressee().Soul::id(),
+					  incoming.suppliant().Soul::id()};
+
+	addressee.temporality().accept(incoming, tying);
 	const Obedience& place = static_cast<const Novice&>(Soul::of(tying.novice())).keep(tying);
 	addressee.keep(dynamic_cast<const Shepherding&>(place));
 	addressee.drop(incoming);

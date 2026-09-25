@@ -8,7 +8,6 @@
 
 #include "sqlite_util.h"
 
-#include <algorithm>
 #include <optional>
 #include <stdexcept>
 #include <string>
@@ -34,38 +33,6 @@ const domain::Tie& live_tie(const domain::id::Tie id, const domain::id::Soul nov
 {
 	const auto& place = static_cast<const domain::Novice&>(domain::Soul::of(novice)).obedience(id);
 	return dynamic_cast<const domain::Tie&>(place);
-}
-
-
-std::uint64_t read_hwm(sqlite3* db)
-{
-	SqliteStmt stmt(db, "SELECT value FROM place_hwm WHERE id = 1;", "prepare read hwm");
-	if (!stmt.step_row("read hwm step"))
-		return 0;
-	return static_cast<std::uint64_t>(stmt.column_i64(0));
-}
-
-
-void note_place(sqlite3* db, const std::uint64_t value)
-{
-	SqliteStmt stmt(db, "UPDATE place_hwm SET value = MAX(value, ?) WHERE id = 1;", "prepare note place");
-	stmt.bind_i64(1, static_cast<std::int64_t>(value), "bind value");
-	stmt.step_done("note place step");
-}
-
-
-std::uint64_t next_place_id(sqlite3* db)
-{
-	SqliteStmt max_tie(db, "SELECT COALESCE(MAX(id), 0) FROM obediences;", "prepare max obedience");
-	std::uint64_t ties = 0;
-	if (max_tie.step_row("max obedience step"))
-		ties = static_cast<std::uint64_t>(max_tie.column_i64(0));
-
-	const std::uint64_t next = std::max(read_hwm(db), ties) + 1;
-	SqliteStmt bump(db, "UPDATE place_hwm SET value = ? WHERE id = 1;", "prepare bump hwm");
-	bump.bind_i64(1, static_cast<std::int64_t>(next), "bind next");
-	bump.step_done("bump hwm step");
-	return next;
 }
 
 
@@ -96,8 +63,6 @@ domain::Embodiment SqliteTemporality::embody(const domain::id::Soul soul, domain
 	std::lock_guard lock(time_db_.mutex());
 	sqlite3* const db = time_db_.db();
 	SqliteTransaction tx(db);
-
-	note_place(db, soul.value());
 
 	SqliteStmt vessel_stmt(db, "INSERT INTO vessels (device_token) VALUES (?);", "prepare insert vessel");
 	vessel_stmt.bind_text(1, token.text(), "bind device_token");
@@ -252,7 +217,7 @@ std::vector<domain::Supplication> SqliteTemporality::pending_supplications(
 }
 
 
-domain::Tying SqliteTemporality::accept(const domain::Supplication& ask)
+void SqliteTemporality::accept(const domain::Supplication& ask, domain::Tying tying)
 {
 	const domain::Timestamp ts = time_.instant();
 	std::lock_guard lock(time_db_.mutex());
@@ -274,6 +239,9 @@ domain::Tying SqliteTemporality::accept(const domain::Supplication& ask)
 		return read_pending_supplication(load.get());
 	}();
 
+	if (tying.testator() != row.addressee().Soul::id() || tying.novice() != row.suppliant().Soul::id())
+		throw std::invalid_argument("tying does not match supplication");
+
 	if (pair_exists(db, row.addressee().Soul::id(), row.suppliant().Soul::id()))
 		throw std::logic_error("obedience already exists for this pair");
 
@@ -288,21 +256,18 @@ domain::Tying SqliteTemporality::accept(const domain::Supplication& ask)
 		upd.step_done("accept status step");
 	}
 
-	const domain::id::Tie oid{next_place_id(db)};
 	SqliteStmt ins(db,
 				   "INSERT INTO obediences "
 				   "(id, testator_soul_id, novice_soul_id, created_at_ns, seceded_at_ns) "
 				   "VALUES (?, ?, ?, ?, NULL);",
 				   "prepare insert obedience");
-	ins.bind_i64(1, static_cast<std::int64_t>(oid.value()), "bind id");
-	ins.bind_i64(2, static_cast<std::int64_t>(row.addressee().Soul::id().value()), "bind testator");
-	ins.bind_i64(3, static_cast<std::int64_t>(row.suppliant().Soul::id().value()), "bind novice");
+	ins.bind_i64(1, static_cast<std::int64_t>(tying.id().value()), "bind id");
+	ins.bind_i64(2, static_cast<std::int64_t>(tying.testator().value()), "bind testator");
+	ins.bind_i64(3, static_cast<std::int64_t>(tying.novice().value()), "bind novice");
 	ins.bind_i64(4, ts.value(), "bind created_at");
 	ins.step_done("insert obedience step");
 
 	tx.commit();
-
-	return domain::Tying{oid, row.addressee().Soul::id(), row.suppliant().Soul::id()};
 }
 
 

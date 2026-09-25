@@ -53,9 +53,9 @@ public:
 	/// Pending supplications addressed to this soul.
 	virtual std::vector<Supplication> pending_supplications(id::Soul addressee) const = 0;
 
-	/// Accept a pending; keeps the tying in time. Living Tie is born on the heap.
+	/// Accept a pending; keeps the given tying in time. Living Tie is born on the heap.
 	/// Keyed by the living pair (suppliant, addressee).
-	virtual Tying accept(const Supplication& ask) = 0;
+	virtual void accept(const Supplication& ask, Tying tying) = 0;
 
 	/// Reject a pending supplication (same living pair).
 	virtual void reject(const Supplication& ask) = 0;

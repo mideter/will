@@ -18,6 +18,7 @@
 #include "identity/abode.h"
 #include "identity/deed.h"
 #include "identity/letter.h"
+#include "identity/place.h"
 #include "identity/tie.h"
 #include "identity/soul.h"
 #include "identity/vessel.h"
@@ -80,7 +81,6 @@ public:
 	{
 		const id::Soul soul_id{++shared_.next_soul_id};
 		shared_.souls.emplace_back(soul_id, name);
-		note_place(soul_id.value());
 		return soul_id;
 	}
 
@@ -120,12 +120,6 @@ public:
 	InMemoryShared& shared() { return shared_; }
 
 private:
-	void note_place(const std::uint64_t value)
-	{
-		if (value > shared_.next_place_id)
-			shared_.next_place_id = value;
-	}
-
 	InMemoryShared& shared_;
 	std::vector<Utterance> utterances_;
 };
@@ -136,6 +130,14 @@ public:
 	explicit InMemorySpatiality(InMemoryShared& shared)
 		: shared_(shared)
 	{}
+
+	id::Place point() override { return id::Place{++shared_.next_place_id}; }
+
+	void point(const id::Place id) override
+	{
+		if (id.value() > shared_.next_place_id)
+			shared_.next_place_id = id.value();
+	}
 
 	std::vector<Abode> abodes() override
 	{
@@ -148,7 +150,7 @@ public:
 
 	void keep(const id::Abode id, AbodeName name) override
 	{
-		note_place(id.value());
+		point(id::Place{id.value()});
 		for (auto& row : abode_rows_) {
 			if (row.first == id)
 				return;
@@ -182,12 +184,6 @@ public:
 	}
 
 private:
-	void note_place(const std::uint64_t value)
-	{
-		if (value > shared_.next_place_id)
-			shared_.next_place_id = value;
-	}
-
 	InMemoryShared& shared_;
 	std::vector<std::pair<id::Abode, AbodeName>> abode_rows_;
 	std::vector<Placement> placements_;
@@ -203,7 +199,6 @@ public:
 	Embodiment embody(const id::Soul soul, SoulName name, DeviceToken token) override
 	{
 		const id::Vessel vessel_id{++shared_.next_vessel_id};
-		note_place(soul.value());
 		Embodiment row{soul, std::move(name), vessel_id, std::move(token)};
 		embodiments_.push_back(row);
 		return row;
@@ -221,7 +216,6 @@ public:
 			shared_.next_soul_id = soul_id.value();
 		if (vessel_id.value() > shared_.next_vessel_id)
 			shared_.next_vessel_id = vessel_id.value();
-		note_place(soul_id.value());
 	}
 
 	void date(const id::Letter id, const Timestamp at) override
@@ -278,19 +272,16 @@ public:
 		return out;
 	}
 
-	Tying accept(const Supplication& ask) override
+	void accept(const Supplication& ask, Tying tying) override
 	{
 		const auto it = find_pending(ask);
+		if (tying.testator() != it->addressee().Soul::id() || tying.novice() != it->suppliant().Soul::id())
+			throw std::invalid_argument("tying does not match supplication");
 		if (pair_exists(it->addressee().Soul::id(), it->suppliant().Soul::id()))
 			throw std::logic_error("obedience already exists for this pair");
 
-		const Testator& place_testator = it->addressee();
-		const Novice& place_novice = it->suppliant();
 		drop_pending(it);
-
-		const id::Tie oid{allocate_place()};
-		obediences_.push_back(ObedienceRow{oid, place_testator.Soul::id(), place_novice.Soul::id()});
-		return Tying{oid, place_testator.Soul::id(), place_novice.Soul::id()};
+		obediences_.push_back(ObedienceRow{tying.id(), tying.testator(), tying.novice()});
 	}
 
 	void reject(const Supplication& ask) override
@@ -390,14 +381,6 @@ private:
 		std::optional<Timestamp> executed_at;
 		std::optional<Timestamp> cancelled_at;
 	};
-
-	void note_place(const std::uint64_t value)
-	{
-		if (value > shared_.next_place_id)
-			shared_.next_place_id = value;
-	}
-
-	std::uint64_t allocate_place() { return ++shared_.next_place_id; }
 
 	bool pair_exists(const id::Soul testator, const id::Soul novice) const
 	{

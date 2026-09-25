@@ -74,6 +74,12 @@ CREATE TABLE IF NOT EXISTS placements (
 );
 
 CREATE INDEX IF NOT EXISTS idx_placements_place ON placements(place_id);
+
+CREATE TABLE IF NOT EXISTS place_hwm (
+  id INTEGER PRIMARY KEY CHECK (id = 1),
+  value INTEGER NOT NULL
+);
+INSERT OR IGNORE INTO place_hwm (id, value) VALUES (1, 0);
 )sql";
 		break;
 	case SqliteFace::Temporality:
@@ -121,12 +127,6 @@ CREATE TABLE IF NOT EXISTS deeds (
   executed_at_ns INTEGER,
   cancelled_at_ns INTEGER
 );
-
-CREATE TABLE IF NOT EXISTS place_hwm (
-  id INTEGER PRIMARY KEY CHECK (id = 1),
-  value INTEGER NOT NULL
-);
-INSERT OR IGNORE INTO place_hwm (id, value) VALUES (1, 0);
 )sql";
 		break;
 	}

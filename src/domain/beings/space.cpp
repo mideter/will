@@ -1,6 +1,7 @@
 #include "space.h"
 
 #include "beings/place.h"
+#include "ports/spatiality.h"
 
 #include <stdexcept>
 #include <utility>
@@ -21,7 +22,14 @@ Space& Space::the()
 }
 
 
-Space::Space()
+id::Place Space::point()
+{
+	return the().spatiality_.point();
+}
+
+
+Space::Space(Spatiality& spatiality)
+	: spatiality_(spatiality)
 {
 	if (current_ != nullptr)
 		throw std::logic_error("Only one Space");
@@ -31,7 +39,8 @@ Space::Space()
 
 
 Space::Space(Space&& other) noexcept
-	: places_(std::move(other.places_))
+	: spatiality_(other.spatiality_)
+	, places_(std::move(other.places_))
 {
 	if (current_ == &other)
 		current_ = this;
@@ -66,6 +75,8 @@ const Place& Space::place(const id::Place id) const
 
 void Space::present(const Place& place)
 {
+	spatiality_.point(place.id());
+
 	std::lock_guard lock(mutex_);
 	places_.insert_or_assign(place.id(), &place);
 }
