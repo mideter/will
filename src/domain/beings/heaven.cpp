@@ -4,7 +4,6 @@
 #include "ports/eternity.h"
 
 #include <stdexcept>
-#include <utility>
 
 
 namespace will::domain {
@@ -29,15 +28,6 @@ Heaven::Heaven(Eternity& eternity)
 		throw std::logic_error("Only one World");
 
 	current_ = this;
-}
-
-
-Heaven::Heaven(Heaven&& other) noexcept
-	: eternity_(other.eternity_)
-	, souls_(std::move(other.souls_))
-{
-	if (current_ == &other)
-		current_ = this;
 }
 
 

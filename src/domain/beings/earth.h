@@ -1,5 +1,6 @@
 #pragma once
 
+#include "beings/immanent.h"
 #include "identity/abode.h"
 #include "identity/soul.h"
 #include "identity/vessel.h"
@@ -25,7 +26,7 @@ class Spatiality;
 /// Dust reaches both via friendship. Creation brings forth Earth.
 /// Earth is in space and time. Live registry of vessels; abodes live with men;
 /// places are known to Space; spatial material to Spatiality.
-class Earth {
+class Earth : private Immanent {
 public:
 	/// Whether Earth knows this vessel.
 	bool knows(id::Vessel id) const;
@@ -34,18 +35,12 @@ public:
 	const Vessel& vessel(id::Vessel id) const;
 
 protected:
-	friend class Creation;
 	friend class Dust;
 
-	/// Bring forth Earth (Creation).
+	/// Bring forth Earth (as World).
 	Earth(Temporality& temporality, Spatiality& spatiality);
 
 	~Earth();
-
-	Earth(const Earth&) = delete;
-	Earth& operator=(const Earth&) = delete;
-	Earth(Earth&& other) noexcept;
-	Earth& operator=(Earth&&) = delete;
 
 	/// Present a vessel owned by a heap-stable Man.
 	void present(const Vessel& vessel);

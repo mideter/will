@@ -1,5 +1,6 @@
 #pragma once
 
+#include "beings/immanent.h"
 #include "identity/soul.h"
 
 #include <mutex>
@@ -17,7 +18,7 @@ class Spirit;
 /// Heaven (Небо) — of the one World; Spirit alone reaches it via heaven().
 /// Creation brings forth Heaven. Heaven is in space and time; Eternity is reached from here.
 /// Pointers address Soul bases of heap-stable Man (unique_ptr).
-class Heaven {
+class Heaven : private Immanent {
 public:
 	/// Whether Heaven knows this soul.
 	bool knows(id::Soul soul_id) const;
@@ -26,18 +27,12 @@ public:
 	const Soul& soul(id::Soul soul_id) const;
 
 protected:
-	friend class Creation;
 	friend class Spirit;
 
-	/// Bring forth Heaven (Creation).
+	/// Bring forth Heaven (as World).
 	explicit Heaven(Eternity& eternity);
 
 	~Heaven();
-
-	Heaven(const Heaven&) = delete;
-	Heaven& operator=(const Heaven&) = delete;
-	Heaven(Heaven&& other) noexcept;
-	Heaven& operator=(Heaven&&) = delete;
 
 	/// Eternity reached from Heaven (Spirit / Creation / World as Heaven).
 	Eternity& eternity();

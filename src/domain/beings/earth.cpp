@@ -5,7 +5,6 @@
 #include "ports/temporality.h"
 
 #include <stdexcept>
-#include <utility>
 
 
 namespace will::domain {
@@ -31,17 +30,6 @@ Earth::Earth(Temporality& temporality, Spatiality& spatiality)
 		throw std::logic_error("Only one World");
 
 	current_ = this;
-}
-
-
-Earth::Earth(Earth&& other) noexcept
-	: temporality_(other.temporality_)
-	, spatiality_(other.spatiality_)
-	, vessels_(std::move(other.vessels_))
-	, id_by_token_(std::move(other.id_by_token_))
-{
-	if (current_ == &other)
-		current_ = this;
 }
 
 

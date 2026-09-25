@@ -19,9 +19,9 @@
 namespace will::domain {
 
 
-World::World(Heaven heaven, Earth earth)
-	: Heaven(std::move(heaven))
-	, Earth(std::move(earth))
+World::World(Eternity& eternity, Temporality& temporality, Spatiality& spatiality)
+	: Heaven(eternity)
+	, Earth(temporality, spatiality)
 {}
 
 
