@@ -30,6 +30,7 @@ TEST_CASE("sqlite persistence survives reopen")
 	std::optional<id::Soul> soul_a_id;
 	std::optional<id::Soul> soul_b_id;
 	std::optional<id::Soul> created_id;
+	std::optional<id::Place> abode_a_place;
 	std::optional<SoulName> name_a;
 	std::optional<SoulName> name_b;
 	std::optional<SoulName> name_created;
@@ -49,6 +50,7 @@ TEST_CASE("sqlite persistence survives reopen")
 		soul_b_id = man_b.Soul::id();
 		name_a = man_a.name();
 		name_b = man_b.name();
+		abode_a_place = static_cast<const Witness&>(man_a).abode().id();
 
 		man_a.say(Word{"from-peer"});
 		man_b.say(Word{"from-me"});
@@ -94,10 +96,7 @@ TEST_CASE("sqlite persistence survives reopen")
 		CHECK(man_a_reloaded.Soul::id() == *soul_a_id);
 		CHECK(world.man(world.vessel(man_a_reloaded.Vessel::id())).Soul::id() == *soul_a_id);
 		CHECK(static_cast<const Witness&>(man_a_reloaded).abode().dwells(man_a_reloaded));
-		CHECK(static_cast<const Witness&>(man_a_reloaded).abode().id() ==
-			  id::Place{man_a_reloaded.Soul::id().value()});
-		CHECK(static_cast<const Witness&>(man_a_reloaded).abode().abode_id() ==
-			  id::Abode{man_a_reloaded.Soul::id().value()});
+		CHECK(static_cast<const Witness&>(man_a_reloaded).abode().id() == *abode_a_place);
 
 		const auto letters = static_cast<const Witness&>(man_a_reloaded).retell(10);
 		REQUIRE(letters.size() == 1);

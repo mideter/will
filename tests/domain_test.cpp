@@ -54,12 +54,11 @@ TEST_CASE("welcome creates man with personal abode")
 	const DeviceToken token = DeviceToken::generate();
 	const Man& man = world.welcome(token);
 	const auto& witness = static_cast<const Witness&>(man);
-	const id::Abode own{man.Soul::id().value()};
 
 	CHECK(man.Soul::id().value() > 0);
 	CHECK(man.Vessel::id().value() > 0);
-	CHECK(witness.abode().id() == id::Place{own.value()});
-	CHECK(witness.abode().abode_id() == own);
+	CHECK(witness.abode().id().value() > 0);
+	CHECK(witness.abode().abode_id() == id::Abode{witness.abode().id().value()});
 	CHECK(witness.abode().dwells(man));
 	CHECK(world.knows(man.Vessel::id()));
 	CHECK(world.knows(man.Soul::id()));
@@ -89,8 +88,8 @@ TEST_CASE("welcome existing man")
 	const Man& man = world.welcome(test_token("abcd1234abcd1234abcd1234abcd1234"));
 	CHECK(man.Soul::id() == id::Soul{42});
 	CHECK(static_cast<const Witness&>(man).abode().dwells(man));
-	CHECK(static_cast<const Witness&>(man).abode().abode_id() == id::Abode{man.Soul::id().value()});
-	CHECK(static_cast<const Witness&>(man).abode().id() == id::Place{man.Soul::id().value()});
+	CHECK(static_cast<const Witness&>(man).abode().id().value() > 0);
+	CHECK(static_cast<const Witness&>(man).abode().id() != id::Place{man.Soul::id().value()});
 }
 
 

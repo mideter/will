@@ -43,9 +43,7 @@ domain::id::Soul SqliteEternity::enroll(const domain::SoulName name)
 		soul_value = sqlite_last_insert_id(db);
 	}
 
-	const domain::id::Soul soul_id{soul_value};
-	space_.note(domain::id::Place{soul_id.value()});
-	return soul_id;
+	return domain::id::Soul{soul_value};
 }
 
 

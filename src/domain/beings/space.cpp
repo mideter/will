@@ -39,18 +39,9 @@ Space::~Space()
 id::Place Space::point()
 {
 	const id::Place id{high_water_ + 1};
-	note(id);
-	return id;
-}
-
-
-void Space::note(const id::Place id)
-{
-	if (id.value() <= high_water_)
-		return;
-
 	high_water_ = id.value();
 	persist_mark(id);
+	return id;
 }
 
 
@@ -82,8 +73,6 @@ const Place& Space::place(const id::Place id) const
 
 void Space::present(const Place& place)
 {
-	note(place.id());
-
 	std::lock_guard lock(mutex_);
 	places_.insert_or_assign(place.id(), &place);
 }

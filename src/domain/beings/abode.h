@@ -14,8 +14,8 @@ namespace will::domain {
 
 
 /// Abode (Обитель) — the host's place: observers may dwell here.
-/// Host identity matches abode / place id (man id). Rooms come later.
-/// A living Witness observes one abode. Movable: Temporality may hand
+/// Place id from Space::point; host is the Witness who keeps it. Rooms come later.
+/// A living Witness observes one abode. Movable: Spatiality may hand
 /// id+name snapshots; dwellers fill in the World.
 class Abode : public Place {
 public:

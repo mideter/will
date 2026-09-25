@@ -13,6 +13,7 @@ public:
 	explicit SqliteSpatiality(SqliteDatabase& database);
 
 	std::vector<domain::Abode> abodes() override;
+	std::optional<domain::Abode> abode_of(domain::id::Soul soul) const override;
 	void keep(domain::id::Abode id, domain::AbodeName name) override;
 	void join_abode(domain::id::Abode abode, domain::id::Soul soul) override;
 	void place(domain::id::Letter id, domain::id::Place place) override;

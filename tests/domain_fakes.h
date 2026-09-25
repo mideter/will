@@ -83,7 +83,6 @@ public:
 	{
 		const id::Soul soul_id{++shared_.next_soul_id};
 		shared_.souls.emplace_back(soul_id, name);
-		space_.note(id::Place{soul_id.value()});
 		return soul_id;
 	}
 
@@ -144,6 +143,19 @@ public:
 		return out;
 	}
 
+	std::optional<Abode> abode_of(const id::Soul soul) const override
+	{
+		for (const auto& [abode_id, soul_id] : abode_souls_) {
+			if (soul_id != soul)
+				continue;
+			for (const auto& [id, name] : abode_rows_) {
+				if (id == abode_id)
+					return Abode{id, name};
+			}
+		}
+		return std::nullopt;
+	}
+
 	void keep(const id::Abode id, AbodeName name) override
 	{
 		for (auto& row : abode_rows_) {
@@ -153,7 +165,14 @@ public:
 		abode_rows_.emplace_back(id, std::move(name));
 	}
 
-	void join_abode(const id::Abode, const id::Soul) override {}
+	void join_abode(const id::Abode abode, const id::Soul soul) override
+	{
+		for (const auto& row : abode_souls_) {
+			if (row.first == abode && row.second == soul)
+				return;
+		}
+		abode_souls_.emplace_back(abode, soul);
+	}
 
 	void place(const id::Letter id, const id::Place place) override
 	{
@@ -181,6 +200,7 @@ public:
 private:
 	InMemoryShared& shared_;
 	std::vector<std::pair<id::Abode, AbodeName>> abode_rows_;
+	std::vector<std::pair<id::Abode, id::Soul>> abode_souls_;
 	std::vector<Placement> placements_;
 };
 

@@ -29,9 +29,6 @@ public:
 	/// Point a new place — persistent id, like Time::instant for the when.
 	id::Place point();
 
-	/// Raise the place high-water mark to at least this id.
-	void note(id::Place id);
-
 	/// Whether Space knows this place.
 	bool knows(id::Place id) const;
 

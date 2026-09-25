@@ -3,12 +3,14 @@
 #include "acts/dating.h"
 #include "acts/placement.h"
 #include "acts/utterance.h"
+#include "beings/space.h"
 #include "ports/eternity.h"
 #include "ports/spatiality.h"
 #include "ports/temporality.h"
 #include "values/abode_name.h"
 
 #include <algorithm>
+#include <optional>
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
@@ -21,14 +23,19 @@ namespace will::domain {
 
 Witness::Witness(Embodiment embodiment)
 	: Man(std::move(embodiment))
-	, abode_(std::make_unique<Abode>(
-		  id::Abode{Soul::id().value()},
-		  AbodeName{std::string{Soul::name().text()}}))
 {
+	if (const std::optional<Abode> kept = spatiality().abode_of(Soul::id())) {
+		abode_ = std::make_unique<Abode>(kept->abode_id(), kept->name());
+	} else {
+		abode_ = std::make_unique<Abode>(
+			id::Abode{eternity().space().point().value()},
+			AbodeName{std::string{Soul::name().text()}});
+		spatiality().keep(abode_->abode_id(), abode_->name());
+		spatiality().join_abode(abode_->abode_id(), Soul::id());
+	}
+
 	abode_->present();
 	abode_->admit(*this);
-	spatiality().keep(abode_->abode_id(), abode_->name());
-	spatiality().join_abode(abode_->abode_id(), Soul::id());
 }
 
 

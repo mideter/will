@@ -3,6 +3,7 @@
 #include "sqlite_util.h"
 #include "values/abode_name.h"
 
+#include <optional>
 #include <stdexcept>
 #include <string>
 #include <sqlite3.h>
@@ -34,6 +35,30 @@ std::vector<domain::Abode> SqliteSpatiality::abodes()
 	}
 
 	return rows;
+}
+
+
+std::optional<domain::Abode> SqliteSpatiality::abode_of(const domain::id::Soul soul) const
+{
+	std::lock_guard lock(database_.mutex());
+
+	sqlite3* const db = database_.db();
+	SqliteStmt stmt(db,
+					"SELECT a.id, a.name FROM abodes a "
+					"INNER JOIN abode_souls s ON s.abode_id = a.id "
+					"WHERE s.soul_id = ? ORDER BY a.id LIMIT 1;",
+					"prepare abode_of");
+	stmt.bind_i64(1, static_cast<std::int64_t>(soul.value()), "bind soul_id");
+
+	if (!stmt.step_row("abode_of step"))
+		return std::nullopt;
+
+	const domain::id::Abode id{static_cast<std::uint64_t>(stmt.column_i64(0))};
+	const std::string_view name_text = stmt.column_text(1);
+	if (name_text.empty())
+		throw std::runtime_error("abode_of: missing name in database");
+
+	return domain::Abode{id, domain::AbodeName{name_text}};
 }
 
 

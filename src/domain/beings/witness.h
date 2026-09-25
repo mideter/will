@@ -15,7 +15,7 @@ namespace will::domain {
 
 
 /// Witness (Свидетель) — living man; say and retell in the waking world.
-/// Owns his personal Abode (id = man id, name from soul). Further modes: Novice, Testator.
+/// Owns his personal Abode (id from Space::point, name from soul). Further modes: Novice, Testator.
 /// Heap object is always Testator; Witness is the base living mode.
 class Witness : public Man {
 public:

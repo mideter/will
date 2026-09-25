@@ -9,7 +9,7 @@ namespace will::domain::id {
 
 
 /// Persistent place identity — where a Word may be fixed in time.
-/// Personal abode place id matches the host man id.
+/// Minted only by Space::point (abodes, ties, …).
 /// Id 1 may remain as an orphan letter tail from the former global abode.
 class Place : public Id {
 public:

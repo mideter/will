@@ -9,6 +9,7 @@
 #include "values/abode_name.h"
 
 #include <cstdint>
+#include <optional>
 #include <vector>
 
 
@@ -25,6 +26,9 @@ public:
 
 	/// Abodes kept in space (id + name).
 	virtual std::vector<Abode> abodes() = 0;
+
+	/// Abode this soul already dwells in, if kept.
+	virtual std::optional<Abode> abode_of(id::Soul soul) const = 0;
 
 	/// Keep an abode in space (idempotent by id).
 	virtual void keep(id::Abode id, AbodeName name) = 0;
