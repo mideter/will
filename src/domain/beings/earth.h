@@ -1,6 +1,6 @@
 #pragma once
 
-#include "beings/immanent.h"
+#include "properties/immanent.h"
 #include "identity/abode.h"
 #include "identity/soul.h"
 #include "identity/vessel.h"
