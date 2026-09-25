@@ -9,6 +9,7 @@
 #include "acts/supplication.h"
 #include "beings/abode.h"
 #include "beings/soul.h"
+#include "beings/space.h"
 #include "beings/man.h"
 #include "beings/novice.h"
 #include "beings/testator.h"
@@ -62,7 +63,6 @@ struct InMemoryShared {
 	FakeTime time;
 	std::uint64_t next_soul_id = 0;
 	std::uint64_t next_vessel_id = 0;
-	std::uint64_t next_place_id = 0;
 	std::uint64_t next_letter_id = 0;
 	std::uint64_t next_deed_id = 0;
 	std::vector<std::pair<id::Soul, SoulName>> souls;
@@ -77,10 +77,13 @@ public:
 
 	Time& time() override { return shared_.time; }
 
+	Space& space() override { return space_; }
+
 	id::Soul enroll(const SoulName name) override
 	{
 		const id::Soul soul_id{++shared_.next_soul_id};
 		shared_.souls.emplace_back(soul_id, name);
+		space_.note(id::Place{soul_id.value()});
 		return soul_id;
 	}
 
@@ -121,6 +124,7 @@ public:
 
 private:
 	InMemoryShared& shared_;
+	Space space_;
 	std::vector<Utterance> utterances_;
 };
 
@@ -130,14 +134,6 @@ public:
 	explicit InMemorySpatiality(InMemoryShared& shared)
 		: shared_(shared)
 	{}
-
-	id::Place point() override { return id::Place{++shared_.next_place_id}; }
-
-	void point(const id::Place id) override
-	{
-		if (id.value() > shared_.next_place_id)
-			shared_.next_place_id = id.value();
-	}
 
 	std::vector<Abode> abodes() override
 	{
@@ -150,7 +146,6 @@ public:
 
 	void keep(const id::Abode id, AbodeName name) override
 	{
-		point(id::Place{id.value()});
 		for (auto& row : abode_rows_) {
 			if (row.first == id)
 				return;
@@ -192,8 +187,9 @@ private:
 
 class InMemoryTemporality final : public Temporality {
 public:
-	explicit InMemoryTemporality(InMemoryShared& shared)
+	InMemoryTemporality(InMemoryShared& shared, Eternity& eternity)
 		: shared_(shared)
+		, eternity_(eternity)
 	{}
 
 	Embodiment embody(const id::Soul soul, SoulName name, DeviceToken token) override
@@ -321,7 +317,7 @@ public:
 					obedience.testator().Soul::id(),
 					obedience.novice().Soul::id(),
 					word.body(),
-					shared_.time.instant(),
+					eternity_.time().instant(),
 					std::nullopt,
 					std::nullopt};
 		deed_rows_.push_back(row);
@@ -337,7 +333,7 @@ public:
 				throw std::logic_error("deed is not open");
 			if (!has_obedience(row.obedience))
 				throw std::invalid_argument("unknown obedience");
-			row.executed_at = shared_.time.instant();
+			row.executed_at = eternity_.time().instant();
 			return make_deed(row);
 		}
 		throw std::invalid_argument("unknown deed");
@@ -361,8 +357,6 @@ public:
 		}
 		return out;
 	}
-
-	FakeTime& fake_time() { return shared_.time; }
 
 private:
 	struct ObedienceRow {
@@ -430,6 +424,7 @@ private:
 	}
 
 	InMemoryShared& shared_;
+	Eternity& eternity_;
 	std::vector<Embodiment> embodiments_;
 	std::vector<Dating> datings_;
 	std::vector<Supplication> pending_supplications_;
@@ -444,7 +439,7 @@ public:
 	InMemoryCosmos()
 		: eternity_(shared_)
 		, spatiality_(shared_)
-		, temporality_(shared_)
+		, temporality_(shared_, eternity_)
 	{}
 
 	InMemoryEternity& eternity() { return eternity_; }

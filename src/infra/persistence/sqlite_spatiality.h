@@ -12,9 +12,6 @@ class SqliteSpatiality final : public domain::Spatiality {
 public:
 	explicit SqliteSpatiality(SqliteDatabase& database);
 
-	domain::id::Place point() override;
-	void point(domain::id::Place id) override;
-
 	std::vector<domain::Abode> abodes() override;
 	void keep(domain::id::Abode id, domain::AbodeName name) override;
 	void join_abode(domain::id::Abode abode, domain::id::Soul soul) override;

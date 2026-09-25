@@ -13,6 +13,7 @@ namespace will {
 
 SqliteEternity::SqliteEternity(SqliteDatabase& database)
 	: database_(database)
+	, space_(database)
 {}
 
 
@@ -22,16 +23,29 @@ domain::Time& SqliteEternity::time()
 }
 
 
+domain::Space& SqliteEternity::space()
+{
+	return space_;
+}
+
+
 domain::id::Soul SqliteEternity::enroll(const domain::SoulName name)
 {
-	std::lock_guard lock(database_.mutex());
+	std::uint64_t soul_value = 0;
+	{
+		std::lock_guard lock(database_.mutex());
 
-	sqlite3* const db = database_.db();
-	SqliteStmt stmt(db, "INSERT INTO souls (name) VALUES (?);", "prepare insert soul");
-	stmt.bind_text(1, name.text(), "bind name");
-	stmt.step_done("insert soul step");
+		sqlite3* const db = database_.db();
+		SqliteStmt stmt(db, "INSERT INTO souls (name) VALUES (?);", "prepare insert soul");
+		stmt.bind_text(1, name.text(), "bind name");
+		stmt.step_done("insert soul step");
 
-	return domain::id::Soul{sqlite_last_insert_id(db)};
+		soul_value = sqlite_last_insert_id(db);
+	}
+
+	const domain::id::Soul soul_id{soul_value};
+	space_.note(domain::id::Place{soul_id.value()});
+	return soul_id;
 }
 
 

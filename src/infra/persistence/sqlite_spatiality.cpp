@@ -11,49 +11,9 @@
 namespace will {
 
 
-namespace {
-
-
-std::uint64_t read_hwm(sqlite3* db)
-{
-	SqliteStmt stmt(db, "SELECT value FROM place_hwm WHERE id = 1;", "prepare read hwm");
-	if (!stmt.step_row("read hwm step"))
-		return 0;
-	return static_cast<std::uint64_t>(stmt.column_i64(0));
-}
-
-
-} // namespace
-
-
 SqliteSpatiality::SqliteSpatiality(SqliteDatabase& database)
 	: database_(database)
 {}
-
-
-domain::id::Place SqliteSpatiality::point()
-{
-	std::lock_guard lock(database_.mutex());
-	sqlite3* const db = database_.db();
-
-	const std::uint64_t next = read_hwm(db) + 1;
-	SqliteStmt bump(db, "UPDATE place_hwm SET value = ? WHERE id = 1;", "prepare bump hwm");
-	bump.bind_i64(1, static_cast<std::int64_t>(next), "bind next");
-	bump.step_done("bump hwm step");
-	return domain::id::Place{next};
-}
-
-
-void SqliteSpatiality::point(const domain::id::Place id)
-{
-	std::lock_guard lock(database_.mutex());
-	sqlite3* const db = database_.db();
-
-	SqliteStmt stmt(db, "UPDATE place_hwm SET value = MAX(value, ?) WHERE id = 1;",
-					"prepare note place");
-	stmt.bind_i64(1, static_cast<std::int64_t>(id.value()), "bind value");
-	stmt.step_done("note place step");
-}
 
 
 std::vector<domain::Abode> SqliteSpatiality::abodes()

@@ -1,10 +1,8 @@
 #include "space.h"
 
 #include "beings/place.h"
-#include "ports/spatiality.h"
 
 #include <stdexcept>
-#include <utility>
 
 
 namespace will::domain {
@@ -22,14 +20,7 @@ Space& Space::the()
 }
 
 
-id::Place Space::point()
-{
-	return the().spatiality_.point();
-}
-
-
-Space::Space(Spatiality& spatiality)
-	: spatiality_(spatiality)
+Space::Space()
 {
 	if (current_ != nullptr)
 		throw std::logic_error("Only one Space");
@@ -38,19 +29,35 @@ Space::Space(Spatiality& spatiality)
 }
 
 
-Space::Space(Space&& other) noexcept
-	: spatiality_(other.spatiality_)
-	, places_(std::move(other.places_))
-{
-	if (current_ == &other)
-		current_ = this;
-}
-
-
 Space::~Space()
 {
 	if (current_ == this)
 		current_ = nullptr;
+}
+
+
+id::Place Space::point()
+{
+	const id::Place id{high_water_ + 1};
+	note(id);
+	return id;
+}
+
+
+void Space::note(const id::Place id)
+{
+	if (id.value() <= high_water_)
+		return;
+
+	high_water_ = id.value();
+	persist_mark(id);
+}
+
+
+void Space::seed(const std::uint64_t value)
+{
+	if (value > high_water_)
+		high_water_ = value;
 }
 
 
@@ -75,7 +82,7 @@ const Place& Space::place(const id::Place id) const
 
 void Space::present(const Place& place)
 {
-	spatiality_.point(place.id());
+	note(place.id());
 
 	std::lock_guard lock(mutex_);
 	places_.insert_or_assign(place.id(), &place);

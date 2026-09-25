@@ -2,6 +2,7 @@
 
 #include "identity/place.h"
 
+#include <cstdint>
 #include <mutex>
 #include <unordered_map>
 
@@ -10,18 +11,26 @@ namespace will::domain {
 
 
 class Place;
-class Creation;
-class Spatiality;
 
 
 /// Space (Пространство) — living field of Places in the World.
-/// Heaven and Earth are in space and time; Space knows places by id (non-owning).
-/// Creation brings forth Space. Place reaches it via Place::of / present().
-/// Space points place ids (as Time gives instants); Spatiality remembers the mark.
+/// One Space, given through Eternity (as Time is). Place reaches it via Place::of / present().
+/// Points place ids as Time gives instants.
 class Space {
 public:
+	Space();
+	virtual ~Space();
+
+	Space(const Space&) = delete;
+	Space& operator=(const Space&) = delete;
+	Space(Space&&) = delete;
+	Space& operator=(Space&&) = delete;
+
 	/// Point a new place — persistent id, like Time::instant for the when.
-	static id::Place point();
+	id::Place point();
+
+	/// Raise the place high-water mark to at least this id.
+	void note(id::Place id);
 
 	/// Whether Space knows this place.
 	bool knows(id::Place id) const;
@@ -30,21 +39,16 @@ public:
 	const Place& place(id::Place id) const;
 
 protected:
-	friend class Creation;
 	friend class Place;
-
-	/// Bring forth Space (Creation); Spatiality holds the place-id mark.
-	explicit Space(Spatiality& spatiality);
-
-	~Space();
-
-	Space(const Space&) = delete;
-	Space& operator=(const Space&) = delete;
-	Space(Space&& other) noexcept;
-	Space& operator=(Space&&) = delete;
 
 	/// Present a place owned on the heap (Abode, Tie).
 	void present(const Place& place);
+
+	/// Load a durable mark without persisting (Eternity impl at bring-forth).
+	void seed(std::uint64_t value);
+
+	/// Durable face may remember the mark.
+	virtual void persist_mark(id::Place id) {}
 
 private:
 	/// The one living Space. Throws if not yet brought forth / already destroyed.
@@ -52,7 +56,7 @@ private:
 
 	static Space* current_;
 
-	Spatiality& spatiality_;
+	std::uint64_t high_water_ = 0;
 	mutable std::mutex mutex_;
 	std::unordered_map<id::Place, const Place*> places_;
 };

@@ -18,9 +18,9 @@ namespace will::domain {
 
 
 /// World (Мир) — the one living cosmos: is Heaven and Earth.
-/// Heaven and Earth are in space and time; Space and Temporality are environments.
+/// Heaven and Earth are in space and time; Time and Space are of Eternity.
 /// Eternity is reached from Heaven. Each living man has a personal abode owned by his Witness.
-/// Brought forth only by Creation with Heaven, Earth, and Space already brought forth.
+/// Brought forth only by Creation with Heaven and Earth; Space already of Eternity.
 /// Living people are Testator on the heap; World alone births them.
 /// One soul — one living man; indexed by id::Soul.
 class World : public Heaven, public Earth {

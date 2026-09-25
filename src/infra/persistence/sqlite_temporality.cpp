@@ -51,9 +51,9 @@ bool pair_exists(sqlite3* db, const domain::id::Soul testator, const domain::id:
 } // namespace
 
 
-SqliteTemporality::SqliteTemporality(SqliteDatabase& time_db, domain::Time& time)
+SqliteTemporality::SqliteTemporality(SqliteDatabase& time_db, domain::Eternity& eternity)
 	: time_db_(time_db)
-	, time_(time)
+	, eternity_(eternity)
 {}
 
 
@@ -163,7 +163,7 @@ domain::Supplication SqliteTemporality::supplicate(const domain::Novice& supplia
 	if (suppliant_id == addressee_id)
 		throw std::invalid_argument("supplication requires distinct suppliant and addressee");
 
-	const domain::Timestamp ts = time_.instant();
+	const domain::Timestamp ts = eternity_.time().instant();
 	std::lock_guard lock(time_db_.mutex());
 	sqlite3* const db = time_db_.db();
 
@@ -219,7 +219,7 @@ std::vector<domain::Supplication> SqliteTemporality::pending_supplications(
 
 void SqliteTemporality::accept(const domain::Supplication& ask, domain::Tying tying)
 {
-	const domain::Timestamp ts = time_.instant();
+	const domain::Timestamp ts = eternity_.time().instant();
 	std::lock_guard lock(time_db_.mutex());
 	sqlite3* const db = time_db_.db();
 	SqliteTransaction tx(db);
@@ -335,7 +335,7 @@ domain::Deed SqliteTemporality::will(const domain::Obedience& obedience,
 	if (obedience.testator().Soul::id() != testator.id())
 		throw std::logic_error("only the testator may will in this obedience");
 
-	const domain::Timestamp ts = time_.instant();
+	const domain::Timestamp ts = eternity_.time().instant();
 	std::lock_guard lock(time_db_.mutex());
 	sqlite3* const db = time_db_.db();
 
@@ -367,7 +367,7 @@ domain::Deed SqliteTemporality::will(const domain::Obedience& obedience,
 
 domain::Deed SqliteTemporality::execute(const domain::Deed& deed)
 {
-	const domain::Timestamp ts = time_.instant();
+	const domain::Timestamp ts = eternity_.time().instant();
 	domain::id::Tie oid{1};
 	domain::Word word{std::string{deed.body()}};
 	domain::Timestamp created = deed.created_at();

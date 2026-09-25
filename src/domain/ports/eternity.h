@@ -13,15 +13,21 @@
 namespace will::domain {
 
 
+class Space;
+
+
 /// Eternity (Вечность) — who endures; indelible Word and author.
-/// Time belongs to Eternity; without the eternal there is no present for the temporal.
+/// Time and Space belong to Eternity; each is one, reached only from here.
 /// Speaks in souls; embodiment in a vessel belongs to Temporality / World.
 class Eternity {
 public:
 	virtual ~Eternity() = default;
 
-	/// Time given by eternity.
+	/// The one Time.
 	virtual Time& time() = 0;
+
+	/// The one Space.
+	virtual Space& space() = 0;
 
 	/// Enroll a soul in the book of life.
 	virtual id::Soul enroll(SoulName name) = 0;

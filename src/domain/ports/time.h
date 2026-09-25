@@ -6,7 +6,7 @@
 namespace will::domain {
 
 
-/// Time — present given through Eternity (and thus through Temporality).
+/// Time — the one present, given only through Eternity.
 class Time {
 public:
 	virtual ~Time() = default;

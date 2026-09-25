@@ -53,6 +53,12 @@ CREATE TABLE IF NOT EXISTS utterances (
   author_soul_id INTEGER NOT NULL,
   body TEXT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS place_hwm (
+  id INTEGER PRIMARY KEY CHECK (id = 1),
+  value INTEGER NOT NULL
+);
+INSERT OR IGNORE INTO place_hwm (id, value) VALUES (1, 0);
 )sql";
 		break;
 	case SqliteFace::Spatiality:
@@ -74,12 +80,6 @@ CREATE TABLE IF NOT EXISTS placements (
 );
 
 CREATE INDEX IF NOT EXISTS idx_placements_place ON placements(place_id);
-
-CREATE TABLE IF NOT EXISTS place_hwm (
-  id INTEGER PRIMARY KEY CHECK (id = 1),
-  value INTEGER NOT NULL
-);
-INSERT OR IGNORE INTO place_hwm (id, value) VALUES (1, 0);
 )sql";
 		break;
 	case SqliteFace::Temporality:

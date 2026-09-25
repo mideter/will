@@ -1,7 +1,7 @@
 #pragma once
 
+#include "ports/eternity.h"
 #include "ports/temporality.h"
-#include "ports/time.h"
 #include "sqlite_database.h"
 
 
@@ -9,10 +9,10 @@ namespace will {
 
 
 /// SQLite Temporality — embodiments, datings, ties, deeds in time.
-/// Owns only the time database; clock is Time from Eternity.
+/// Owns only the time database; the present is taken from Eternity.
 class SqliteTemporality final : public domain::Temporality {
 public:
-	SqliteTemporality(SqliteDatabase& time_db, domain::Time& time);
+	SqliteTemporality(SqliteDatabase& time_db, domain::Eternity& eternity);
 
 	domain::Embodiment
 	embody(domain::id::Soul soul, domain::SoulName name, domain::DeviceToken token) override;
@@ -38,7 +38,7 @@ public:
 
 private:
 	SqliteDatabase& time_db_;
-	domain::Time& time_;
+	domain::Eternity& eternity_;
 };
 
 
