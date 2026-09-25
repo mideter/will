@@ -35,8 +35,6 @@ Deed Novice::execute(const Deed& deed) const
 	if (!deed.open())
 		throw std::logic_error("deed is not open");
 
-	(void)obedience(id::Tie{deed.tie().id()});
-
 	return temporality().execute(deed);
 }
 
