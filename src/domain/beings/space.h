@@ -1,5 +1,6 @@
 #pragma once
 
+#include "beings/immanent.h"
 #include "identity/place.h"
 
 #include <cstdint>
@@ -16,15 +17,10 @@ class Place;
 /// Space (Пространство) — living field of Places in the World.
 /// One Space, given through Eternity (as Time is). Place reaches it via Place::of / present().
 /// Points place ids as Time gives instants.
-class Space {
+class Space : private Immanent {
 public:
 	Space();
 	virtual ~Space();
-
-	Space(const Space&) = delete;
-	Space& operator=(const Space&) = delete;
-	Space(Space&&) = delete;
-	Space& operator=(Space&&) = delete;
 
 	/// Point a new place — persistent id, like Time::instant for the when.
 	id::Place point();
