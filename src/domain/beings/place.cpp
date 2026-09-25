@@ -2,8 +2,17 @@
 
 #include "beings/space.h"
 
+#include <stdexcept>
+
 
 namespace will::domain {
+
+
+Place::Place()
+	: id_(id::Place::global())
+{
+	throw std::logic_error("Place default ctor is only for virtual-base faces");
+}
 
 
 Place::Place(const id::Place id) noexcept

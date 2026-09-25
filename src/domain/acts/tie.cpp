@@ -10,8 +10,8 @@ namespace will::domain {
 
 Tie::Tie(Tying tying)
 	: Place(id::Place{tying.id().value()})
-	, Obedience(tying.id(), static_cast<const Testator&>(Soul::of(tying.testator())))
-	, Shepherding(tying.id(), static_cast<const Novice&>(Soul::of(tying.novice())))
+	, Obedience(static_cast<const Testator&>(Soul::of(tying.testator())))
+	, Shepherding(static_cast<const Novice&>(Soul::of(tying.novice())))
 {
 	present();
 }

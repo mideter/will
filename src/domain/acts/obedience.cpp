@@ -4,9 +4,8 @@
 namespace will::domain {
 
 
-Obedience::Obedience(const id::Tie id, const Testator& testator)
-	: Place(id::Place{id.value()})
-	, testator_(testator)
+Obedience::Obedience(const Testator& testator)
+	: testator_(testator)
 {}
 
 

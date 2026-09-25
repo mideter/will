@@ -1,7 +1,6 @@
 #pragma once
 
 #include "beings/place.h"
-#include "identity/tie.h"
 
 
 namespace will::domain {
@@ -26,7 +25,7 @@ public:
 	virtual const Novice& novice() const = 0;
 
 protected:
-	Shepherding(id::Tie id, const Novice& novice);
+	explicit Shepherding(const Novice& novice);
 	Shepherding& operator=(Shepherding&&) = delete;
 
 	const Novice& novice_;

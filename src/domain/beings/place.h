@@ -24,6 +24,9 @@ public:
 protected:
 	friend class Witness;
 
+	/// For virtual-base faces (Obedience/Shepherding) that are never most-derived;
+	/// the living Tie supplies Place(id). Throws if actually invoked.
+	Place();
 	explicit Place(id::Place id) noexcept;
 	Place(Place&& other) noexcept;
 	Place& operator=(Place&& other) noexcept;
