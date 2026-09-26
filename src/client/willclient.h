@@ -34,12 +34,18 @@ public:
 
 	void send(std::string_view utf8_chat_body) const;
 
+	void ask(std::string_view addressee_name) const;
+	void accept(std::string_view suppliant_name) const;
+	void will(std::string_view novice_name, std::string_view body) const;
+	void done(std::uint64_t deed_id) const;
+
 	/** Sends HistoryRequest; returns false when limit is 0. */
 	bool requestHistory(std::uint32_t limit) const;
 
 	void shutdown() const;
 
 	const ClientConfig& config() const noexcept;
+	const std::string& own_name() const noexcept { return own_name_; }
 
 private:
 	static domain::DeviceToken load_or_create_device_token(const std::string& path);
@@ -69,6 +75,7 @@ private:
 	mutable bool authenticated_ = false;
 	mutable bool shutdown_done_ = false;
 	mutable std::atomic<bool> closed_{false};
+	std::string own_name_;
 };
 
 

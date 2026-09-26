@@ -179,6 +179,7 @@ void WillClient::authenticate_device(const std::string_view device_token)
 	if (!response.has_auth_ok())
 		throw std::runtime_error("Will protocol: expected AuthOk");
 
+	own_name_ = response.auth_ok().name();
 	authenticated_ = true;
 }
 
@@ -193,6 +194,56 @@ void WillClient::send(const std::string_view utf8_chat_body) const
 
 	if (!write_event(event))
 		throw std::runtime_error("Will protocol: failed to send chat message");
+}
+
+
+void WillClient::ask(const std::string_view addressee_name) const
+{
+	if (!authenticated_)
+		throw std::logic_error("WillClient: not authenticated");
+
+	v1::ClientEvent event;
+	event.mutable_supplicate()->set_addressee_name(std::string{addressee_name});
+	if (!write_event(event))
+		throw std::runtime_error("Will protocol: failed to send Supplicate");
+}
+
+
+void WillClient::accept(const std::string_view suppliant_name) const
+{
+	if (!authenticated_)
+		throw std::logic_error("WillClient: not authenticated");
+
+	v1::ClientEvent event;
+	event.mutable_accept_supplication()->set_suppliant_name(std::string{suppliant_name});
+	if (!write_event(event))
+		throw std::runtime_error("Will protocol: failed to send AcceptSupplication");
+}
+
+
+void WillClient::will(const std::string_view novice_name, const std::string_view body) const
+{
+	if (!authenticated_)
+		throw std::logic_error("WillClient: not authenticated");
+
+	v1::ClientEvent event;
+	auto* msg = event.mutable_will_deed();
+	msg->set_novice_name(std::string{novice_name});
+	msg->set_body(std::string{body});
+	if (!write_event(event))
+		throw std::runtime_error("Will protocol: failed to send WillDeed");
+}
+
+
+void WillClient::done(const std::uint64_t deed_id) const
+{
+	if (!authenticated_)
+		throw std::logic_error("WillClient: not authenticated");
+
+	v1::ClientEvent event;
+	event.mutable_execute_deed()->set_deed_id(deed_id);
+	if (!write_event(event))
+		throw std::runtime_error("Will protocol: failed to send ExecuteDeed");
 }
 
 

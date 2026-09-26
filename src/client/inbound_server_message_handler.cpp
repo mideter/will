@@ -4,6 +4,7 @@
 #include "willclient.h"
 
 #include <stdexcept>
+#include <string>
 
 
 namespace will {
@@ -66,6 +67,33 @@ void ReceivingMessageHandler::on(const v1::ServerEvent& event)
 		return;
 	case v1::ServerEvent::kChat:
 		ui_.print_peer(event.chat().name(), event.chat().body());
+		return;
+	case v1::ServerEvent::kSupplicationOffer:
+		ui_.print_status("Supplication from " + event.supplication_offer().suppliant_name()
+						 + " — /accept " + event.supplication_offer().suppliant_name());
+		return;
+	case v1::ServerEvent::kTieFormed: {
+		const auto& tie = event.tie_formed();
+		const char* role = tie.as_novice() ? "novice" : "testator";
+		ui_.print_status(std::string("Tie #") + std::to_string(tie.tie_id()) + " with "
+						 + tie.counterpart_name() + " (you are " + role + ")");
+		return;
+	}
+	case v1::ServerEvent::kDeedOffered: {
+		const auto& deed = event.deed_offered();
+		ui_.print_status("Deed #" + std::to_string(deed.deed_id()) + " from "
+						 + deed.testator_name() + ": " + deed.body()
+						 + " — /done " + std::to_string(deed.deed_id()));
+		return;
+	}
+	case v1::ServerEvent::kDeedDone: {
+		const auto& deed = event.deed_done();
+		ui_.print_status("Deed #" + std::to_string(deed.deed_id()) + " done by "
+						 + deed.novice_name());
+		return;
+	}
+	case v1::ServerEvent::kProtocolNotice:
+		ui_.print_status(event.protocol_notice().message());
 		return;
 	case v1::ServerEvent::EVENT_NOT_SET:
 		break;

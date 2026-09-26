@@ -36,6 +36,9 @@ public:
 	/// Welcome a vessel's token: return the dwelling man, or beget one if unknown.
 	const Man& welcome(const DeviceToken& token);
 
+	/// Living man by public soul name. Throws if unknown.
+	const Man& man(const SoulName& name) const;
+
 private:
 	friend class Creation;
 

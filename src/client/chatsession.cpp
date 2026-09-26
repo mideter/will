@@ -8,6 +8,7 @@
 #include <mutex>
 #include <stdexcept>
 #include <string>
+#include <string_view>
 
 
 namespace will {
@@ -24,10 +25,71 @@ bool is_post_auth_server_event(const v1::ServerEvent& event) noexcept
 	case v1::ServerEvent::kChat:
 	case v1::ServerEvent::kHistoryItem:
 	case v1::ServerEvent::kHistoryEnd:
+	case v1::ServerEvent::kSupplicationOffer:
+	case v1::ServerEvent::kTieFormed:
+	case v1::ServerEvent::kDeedOffered:
+	case v1::ServerEvent::kDeedDone:
+	case v1::ServerEvent::kProtocolNotice:
 		return true;
 	default:
 		return false;
 	}
+}
+
+
+bool handle_slash_command(WillClient& client, ConsoleUi& ui, const std::string& line)
+{
+	if (line.empty() || line[0] != '/')
+		return false;
+
+	std::string_view rest{line};
+	rest.remove_prefix(1);
+	const auto space = rest.find(' ');
+	const std::string_view cmd = space == std::string_view::npos ? rest : rest.substr(0, space);
+	std::string_view args = space == std::string_view::npos ? std::string_view{} : rest.substr(space + 1);
+	while (!args.empty() && args.front() == ' ')
+		args.remove_prefix(1);
+
+	if (cmd == "ask") {
+		if (args.empty()) {
+			ui.print_status("usage: /ask <name>");
+			return true;
+		}
+		client.ask(args);
+		return true;
+	}
+	if (cmd == "accept") {
+		if (args.empty()) {
+			ui.print_status("usage: /accept <name>");
+			return true;
+		}
+		client.accept(args);
+		return true;
+	}
+	if (cmd == "will") {
+		const auto sp = args.find(' ');
+		if (sp == std::string_view::npos || sp + 1 >= args.size()) {
+			ui.print_status("usage: /will <name> <text>");
+			return true;
+		}
+		client.will(args.substr(0, sp), args.substr(sp + 1));
+		return true;
+	}
+	if (cmd == "done") {
+		if (args.empty()) {
+			ui.print_status("usage: /done <deed_id>");
+			return true;
+		}
+		try {
+			client.done(std::stoull(std::string{args}));
+		} catch (const std::exception&) {
+			ui.print_status("usage: /done <deed_id>");
+		}
+		return true;
+	}
+
+	ui.print_status("unknown command; try /ask /accept /will /done");
+	return true;
 }
 
 
@@ -62,13 +124,18 @@ void ChatSession::run()
 		}
 	});
 
-	ui_.print_status("Connected to Will chat. Type messages and press Enter.");
-	ui_.print_status("Press Ctrl+D to exit.");
+	ui_.print_status("Connected as " + client_.own_name() + ".");
+	ui_.print_status("Chat: type text. Obedience: /ask /accept /will /done. Ctrl+D to exit.");
 	ui_.set_live_prompt(true);
 	ui_.print_prompt();
 
 	std::string line;
 	while (!disconnected.load() && std::getline(std::cin, line)) {
+		if (handle_slash_command(client_, ui_, line)) {
+			ui_.print_prompt();
+			continue;
+		}
+
 		ui_.print_mine(line, false, !client_.config().quiet_receipts);
 		client_.send(line);
 	}

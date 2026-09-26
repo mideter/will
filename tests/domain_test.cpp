@@ -252,6 +252,10 @@ TEST_CASE("will and execute within obedience")
 
 	const Man& a = world.welcome(DeviceToken::generate());
 	const Man& b = world.welcome(DeviceToken::generate());
+	CHECK(&world.man(a.name()) == &a);
+	CHECK(&world.man(b.name()) == &b);
+	CHECK_THROWS_AS(world.man(*SoulName::parse("zzzzzzzz")), std::invalid_argument);
+
 	const auto& novice = static_cast<const Novice&>(a);
 	const auto& testator = static_cast<const Testator&>(b);
 

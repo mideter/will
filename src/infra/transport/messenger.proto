@@ -27,7 +27,9 @@ message HistoryRequest {
 message AuthRequired {}
 
 
-message AuthOk {}
+message AuthOk {
+    string name = 1;
+}
 
 
 message ReceiptAck {}
@@ -44,11 +46,66 @@ message HistoryItem {
 message HistoryEnd {}
 
 
+message Supplicate {
+    string addressee_name = 1;
+}
+
+
+message AcceptSupplication {
+    string suppliant_name = 1;
+}
+
+
+message WillDeed {
+    string novice_name = 1;
+    string body = 2;
+}
+
+
+message ExecuteDeed {
+    uint64 deed_id = 1;
+}
+
+
+message SupplicationOffer {
+    string suppliant_name = 1;
+}
+
+
+message TieFormed {
+    uint64 tie_id = 1;
+    string counterpart_name = 2;
+    bool as_novice = 3;
+}
+
+
+message DeedOffered {
+    uint64 deed_id = 1;
+    string testator_name = 2;
+    string body = 3;
+}
+
+
+message DeedDone {
+    uint64 deed_id = 1;
+    string novice_name = 2;
+}
+
+
+message ProtocolNotice {
+    string message = 1;
+}
+
+
 message ClientEvent {
     oneof event {
         BindToken bind_token = 1;
         ChatMessage chat = 2;
         HistoryRequest history_request = 3;
+        Supplicate supplicate = 4;
+        AcceptSupplication accept_supplication = 5;
+        WillDeed will_deed = 6;
+        ExecuteDeed execute_deed = 7;
     }
 }
 
@@ -61,5 +118,10 @@ message ServerEvent {
         ReceiptAck receipt_ack = 4;
         HistoryItem history_item = 5;
         HistoryEnd history_end = 6;
+        SupplicationOffer supplication_offer = 7;
+        TieFormed tie_formed = 8;
+        DeedOffered deed_offered = 9;
+        DeedDone deed_done = 10;
+        ProtocolNotice protocol_notice = 11;
     }
 }

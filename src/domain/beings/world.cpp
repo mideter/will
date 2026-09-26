@@ -70,6 +70,19 @@ const Man& World::welcome(const DeviceToken& token)
 }
 
 
+const Man& World::man(const SoulName& name) const
+{
+	std::lock_guard lock(mutex_);
+
+	for (const auto& [soul_id, man_ptr] : men_) {
+		if (man_ptr && man_ptr->name() == name)
+			return *man_ptr;
+	}
+
+	throw std::invalid_argument("unknown soul name");
+}
+
+
 const Man& World::beget(const DeviceToken& token)
 {
 	const SoulName name = SoulName::generate();
