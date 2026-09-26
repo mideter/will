@@ -1,6 +1,7 @@
 #pragma once
 
 #include "acts/contemplation.h"
+#include "acts/utterance.h"
 #include "beings/heaven.h"
 #include "ports/eternity.h"
 #include "properties/immanent.h"
@@ -15,15 +16,15 @@ class Soul;
 
 
 /// Spirit (Дух) — highest foundation of the soul; immanent to Heaven.
-/// Will (say) belongs to spirit; living modes reveal it (speech, later bequest/deed).
+/// Will belongs to spirit (utter); living Witness reveals it as say.
 /// Knows Heaven via heaven(). Living Man presents the soul to Heaven at birth.
 /// Neither copy nor transfer; only Soul may bring forth Spirit.
 class Spirit : public Immanent<Heaven> {
 public:
 	virtual ~Spirit() = default;
 
-	/// Outside the living world this fails; Witness reveals it.
-	virtual void say(const Saying& saying) const;
+	/// Living revelation; implemented by Witness.
+	virtual void say(const Saying& saying) const = 0;
 
 protected:
 	Spirit() = default;
@@ -32,6 +33,8 @@ protected:
 	static Heaven& heaven() { return Heaven::the(); }
 
 	static Eternity& eternity() { return heaven().eternity(); }
+
+	Utterance utter(const Saying& saying) const;
 
 	void contemplate(const Abode& abode) const;
 

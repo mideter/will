@@ -37,7 +37,7 @@ void Witness::say(const Saying& saying) const
 	if (!place.dwells(*this))
 		throw std::logic_error("Witness does not dwell in the contemplated abode");
 
-	const Utterance uttered = eternity().utter(Soul::id(), saying);
+	const Utterance uttered = utter(saying);
 	spatiality().place(uttered.id(), place.id());
 	temporality().date(uttered.id(), eternity().time().instant());
 }

@@ -3,15 +3,14 @@
 #include "beings/immanents/abode.h"
 #include "beings/immanents/soul.h"
 
-#include <stdexcept>
-
 
 namespace will::domain {
 
 
-void Spirit::say(const Saying&) const
+Utterance Spirit::utter(const Saying& saying) const
 {
-	throw std::logic_error("Spirit outside the living world cannot say");
+	const auto& soul = static_cast<const Soul&>(*this);
+	return eternity().utter(soul.id(), saying);
 }
 
 
