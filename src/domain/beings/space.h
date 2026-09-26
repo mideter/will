@@ -35,9 +35,6 @@ protected:
 	friend class Place;
 	friend class Immanent<Space>;
 
-	/// Present a place owned on the heap (Abode, Tie).
-	void present(const Place& place);
-
 	/// Load a durable mark without persisting (Eternity impl at bring-forth).
 	void seed(std::uint64_t value);
 
@@ -45,6 +42,9 @@ protected:
 	virtual void persist_mark(id::Place id) {}
 
 private:
+	/// Present a place owned on the heap (Abode, Tie).
+	void present(const Place& place);
+
 	/// The one living Space. Throws if not yet brought forth / already destroyed.
 	static Space& the();
 

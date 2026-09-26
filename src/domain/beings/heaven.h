@@ -39,10 +39,10 @@ protected:
 	Eternity& eternity();
 	const Eternity& eternity() const;
 
+private:
 	/// Present a soul owned by a heap-stable Man.
 	void present(const Soul& soul);
 
-private:
 	/// The one living Heaven. Throws if not yet brought forth / already destroyed.
 	static Heaven& the();
 
