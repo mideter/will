@@ -16,8 +16,6 @@ class Soul;
 
 /// Spirit (Дух) — highest foundation of the soul; immanent to Heaven.
 /// Will (say) belongs to spirit; living modes reveal it (speech, later bequest/deed).
-/// Contemplation is kept by Heaven; Spirit exercises it only for its own soul.
-/// Hearing is not a separate act — the Witness himself is the focus.
 /// Knows Heaven via heaven(). Living Man presents the soul to Heaven at birth.
 /// Neither copy nor transfer; only Soul may bring forth Spirit.
 class Spirit : public Immanent<Heaven> {
@@ -33,13 +31,13 @@ protected:
 	/// The one living Heaven (static so Soul::of can look up without an instance).
 	static Heaven& heaven() { return Heaven::the(); }
 
-	/// Eternity reached from Heaven (Spirit is friend of Heaven).
+	/// Eternity reached from Heaven.
 	static Eternity& eternity() { return heaven().eternity(); }
 
-	/// Turn own Contemplation toward an abode (Heaven keeps the relation).
+	/// Turn own Contemplation toward an abode.
 	void contemplate(const Abode& abode) const;
 
-	/// Own Contemplation as kept by Heaven.
+	/// Own Contemplation.
 	const Contemplation& contemplation() const;
 };
 

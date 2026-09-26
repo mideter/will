@@ -20,10 +20,9 @@ class Spirit;
 
 
 /// Heaven (Небо) — symbol of the invisible world.
-/// Of the one World with Earth; Spirit alone reaches it via heaven().
-/// Keeps Contemplations (who observes which Abode).
-/// Immanent to itself. Creation brings forth Heaven. Heaven is in space and time;
-/// Eternity is reached from here. Pointers address Soul bases of heap-stable Man.
+/// Keeps Contemplations. Immanent to itself. Creation brings forth Heaven.
+/// Heaven is in space and time; Eternity is reached from here.
+/// Pointers address Soul bases of heap-stable Man.
 class Heaven : private Immanent<Heaven> {
 public:
 	/// Whether Heaven knows this soul.
@@ -55,7 +54,7 @@ private:
 	/// Present a soul owned by a heap-stable Man.
 	void present(const Soul& soul);
 
-	/// Record Contemplation of an abode for a known soul (Spirit).
+	/// Record Contemplation of an abode for a known soul.
 	void contemplate(const Soul& soul, const Abode& abode);
 
 	/// The one living Heaven. Throws if not yet brought forth / already destroyed.
