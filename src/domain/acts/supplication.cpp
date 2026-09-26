@@ -40,8 +40,8 @@ void Supplication::sign(const Testator& addressee) const
 	const Supplication& incoming = addressee.supplication(suppliant_);
 
 	const Tying tying = addressee.temporality().accept(incoming);
-	const Obedience& place = static_cast<const Novice&>(Soul::of(tying.novice())).keep(tying);
-	addressee.keep(dynamic_cast<const Shepherding&>(place));
+	const Obedience& place = static_cast<const Novice&>(Soul::of(tying.novice())).follow(tying);
+	addressee.shepherd(dynamic_cast<const Shepherding&>(place));
 	addressee.drop(incoming);
 }
 

@@ -50,7 +50,7 @@ const Shepherding& Testator::shepherding(const id::Tie id) const
 }
 
 
-const Shepherding& Testator::keep(const Shepherding& place) const
+const Shepherding& Testator::shepherd(const Shepherding& place) const
 {
 	if (place.testator().Soul::id() != Soul::id())
 		throw std::logic_error("not the testator of this shepherding");

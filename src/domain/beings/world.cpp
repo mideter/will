@@ -32,8 +32,8 @@ void World::awaken()
 
 	for (Tying tying : temporality().tyings()) {
 		const auto& novice = static_cast<const Novice&>(Soul::of(tying.novice()));
-		const Obedience& place = novice.keep(std::move(tying));
-		static_cast<const Testator&>(place.testator()).keep(
+		const Obedience& place = novice.follow(std::move(tying));
+		static_cast<const Testator&>(place.testator()).shepherd(
 			dynamic_cast<const Shepherding&>(place));
 	}
 

@@ -42,8 +42,8 @@ private:
 
 	using Witness::say;
 
-	const Obedience& keep(Tying tying) const;
-	const Obedience& keep(std::unique_ptr<Obedience> place) const;
+	const Obedience& follow(Tying tying) const;
+	const Obedience& follow(std::unique_ptr<Obedience> place) const;
 
 	mutable std::vector<std::unique_ptr<Obedience>> obediences_;
 };

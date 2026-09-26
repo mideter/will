@@ -50,16 +50,16 @@ const Obedience& Novice::obedience(const id::Tie id) const
 }
 
 
-const Obedience& Novice::keep(Tying tying) const
+const Obedience& Novice::follow(Tying tying) const
 {
 	if (tying.novice() != Soul::id())
 		throw std::logic_error("tying is not for this novice");
 
-	return keep(std::make_unique<Tie>(std::move(tying)));
+	return follow(std::make_unique<Tie>(std::move(tying)));
 }
 
 
-const Obedience& Novice::keep(std::unique_ptr<Obedience> place) const
+const Obedience& Novice::follow(std::unique_ptr<Obedience> place) const
 {
 	if (!place)
 		throw std::invalid_argument("obedience required");

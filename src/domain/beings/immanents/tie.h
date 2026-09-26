@@ -14,7 +14,7 @@ class Testator;
 
 /// Tie (Узы) — one living shared place: both Obedience and Shepherding.
 /// Born from Tying (Связывание); owned on the heap by the Novice as Послушание.
-/// Testator keeps a non-owning Shepherding view. Counterpart sides live in
+/// Testator shepherds a non-owning Shepherding view. Counterpart sides live in
 /// the faces (testator in Obedience, novice in Shepherding); accessors are
 /// completed here. Temporality keeps Tying in time.
 class Tie : public Obedience, public Shepherding {
