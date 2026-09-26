@@ -27,13 +27,13 @@ Witness::Witness(Embodiment embodiment)
 
 void Witness::contemplate(const Abode& abode) const
 {
-	keep_contemplation(*this, abode);
+	Spirit::contemplate(abode);
 }
 
 
 void Witness::say(const Saying& saying) const
 {
-	const Abode& place = contemplation_of(*this).abode();
+	const Abode& place = contemplation().abode();
 	if (!place.dwells(*this))
 		throw std::logic_error("Witness does not dwell in the contemplated abode");
 
@@ -48,7 +48,7 @@ std::vector<Letter> Witness::retell(const std::uint32_t limit) const
 	if (limit == 0)
 		throw std::invalid_argument("History limit must be positive");
 
-	const Abode& place = contemplation_of(*this).abode();
+	const Abode& place = contemplation().abode();
 	const std::uint32_t capped = std::min(limit, Spatiality::MaxLetterLimit);
 	std::vector<Placement> placed = spatiality().placements(place.id(), Spatiality::MaxLetterLimit);
 

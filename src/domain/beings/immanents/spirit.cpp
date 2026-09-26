@@ -15,14 +15,16 @@ void Spirit::say(const Saying&) const
 }
 
 
-void Spirit::keep_contemplation(const Soul& soul, const Abode& abode)
+void Spirit::contemplate(const Abode& abode) const
 {
+	const auto& soul = static_cast<const Soul&>(*this);
 	heaven().contemplate(soul, abode);
 }
 
 
-const Contemplation& Spirit::contemplation_of(const Soul& soul)
+const Contemplation& Spirit::contemplation() const
 {
+	const auto& soul = static_cast<const Soul&>(*this);
 	return heaven().contemplation(soul.id());
 }
 
