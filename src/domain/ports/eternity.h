@@ -23,10 +23,8 @@ class Eternity {
 public:
 	virtual ~Eternity() = default;
 
-	/// The one Time.
 	virtual Time& time() = 0;
 
-	/// The one Space.
 	virtual Space& space() = 0;
 
 	/// Enroll a soul in the book of life.
@@ -35,10 +33,10 @@ public:
 	/// Keep a Saying and author; returns the eternal utterance.
 	virtual Utterance utter(id::Soul author, const Saying& saying) = 0;
 
-	/// Utterance by id. Throws if unknown.
+	/// Throws if unknown.
 	virtual Utterance utterance(id::Letter id) const = 0;
 
-	/// Utterances for the given ids (order preserved; skips unknown).
+	/// Order preserved; skips unknown.
 	virtual std::vector<Utterance> utterances(const std::vector<id::Letter>& ids) const = 0;
 };
 

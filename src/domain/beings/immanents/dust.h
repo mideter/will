@@ -20,7 +20,6 @@ public:
 	Spatiality& spatiality() const { return earth().spatiality(); }
 
 private:
-	/// The one living Earth (Dust is friend of Earth).
 	static Earth& earth() { return Earth::the(); }
 };
 

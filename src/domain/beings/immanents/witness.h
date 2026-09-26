@@ -19,12 +19,11 @@ namespace will::domain {
 /// Witness is the base living mode.
 class Witness : public Man {
 public:
-	/// Turn Contemplation toward an abode.
 	void contemplate(const Abode& abode) const;
 
 	void say(const Saying& saying) const final;
 
-	/// Outward witnessing: retell letters of the contemplated abode (capped).
+	/// Letters of the contemplated abode (capped).
 	std::vector<Letter> retell(std::uint32_t limit) const;
 
 protected:

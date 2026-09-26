@@ -22,22 +22,19 @@ class Spirit : public Immanent<Heaven> {
 public:
 	virtual ~Spirit() = default;
 
-	/// Act of will: utter a Saying. Outside the living world this fails; Witness reveals it.
+	/// Outside the living world this fails; Witness reveals it.
 	virtual void say(const Saying& saying) const;
 
 protected:
 	Spirit() = default;
 
-	/// The one living Heaven (static so Soul::of can look up without an instance).
+	/// Static so Soul::of can look up without an instance.
 	static Heaven& heaven() { return Heaven::the(); }
 
-	/// Eternity reached from Heaven.
 	static Eternity& eternity() { return heaven().eternity(); }
 
-	/// Turn own Contemplation toward an abode.
 	void contemplate(const Abode& abode) const;
 
-	/// Own Contemplation.
 	const Contemplation& contemplation() const;
 };
 

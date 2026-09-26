@@ -15,20 +15,19 @@ class Place;
 
 
 /// Space (Пространство) — living field of Places in the World.
-/// Immanent to itself. One Space, given through Eternity (as Time is).
+/// One Space, given through Eternity (as Time is).
 /// Place is immanent to Space. Points place ids as Time gives instants.
 class Space : private Immanent<Space> {
 public:
 	Space();
 	virtual ~Space();
 
-	/// Point a new place — persistent id, like Time::instant for the when.
+	/// Persistent id, like Time::instant for the when.
 	id::Place point();
 
-	/// Whether Space knows this place.
 	bool knows(id::Place id) const;
 
-	/// Living place in the waking cosmos. Throws if unknown.
+	/// Throws if unknown.
 	const Place& place(id::Place id) const;
 
 protected:
@@ -42,10 +41,10 @@ protected:
 	virtual void persist_mark(id::Place id) {}
 
 private:
-	/// Present a place owned on the heap (Abode, Tie).
+	/// Abode, Tie, …
 	void present(const Place& place);
 
-	/// The one living Space. Throws if not yet brought forth / already destroyed.
+	/// Throws if not yet brought forth / already destroyed.
 	static Space& the();
 
 	static Space* current_;

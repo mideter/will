@@ -19,28 +19,26 @@ class Spatiality;
 
 /// Earth (Земля) — symbol of the visible world.
 /// Speaks with Temporality and Spatiality.
-/// Immanent to itself. Dust reaches Temporality and Spatiality via friendship.
-/// Creation brings forth Earth. Earth is in space and time. Live registry of
-/// vessels; abodes live with men; places are known to Space; spatial material
-/// to Spatiality.
+/// Dust reaches Temporality and Spatiality via friendship.
+/// Earth is in space and time. Live registry of vessels; abodes live with men;
+/// places are known to Space; spatial material to Spatiality.
 class Earth : private Immanent<Earth> {
 public:
-	/// Whether Earth knows this vessel.
 	bool knows(id::Vessel id) const;
 
-	/// Living vessel by id. Throws if unknown.
+	/// Throws if unknown.
 	const Vessel& vessel(id::Vessel id) const;
 
 protected:
 	friend class Dust;
 	friend class Immanent<Earth>;
 
-	/// Bring forth Earth (as World).
+	/// As World.
 	Earth(Temporality& temporality, Spatiality& spatiality);
 
 	~Earth();
 
-	/// Resolve device token to vessel id for World::welcome. Empty if unknown.
+	/// For World::welcome. Empty if unknown.
 	std::optional<id::Vessel> id_of(const DeviceToken& token) const;
 
 	Temporality& temporality() noexcept { return temporality_; }
@@ -50,10 +48,10 @@ protected:
 	const Spatiality& spatiality() const noexcept { return spatiality_; }
 
 private:
-	/// Present a vessel owned by a heap-stable Man.
+	/// Vessel owned by a heap-stable Man.
 	void present(const Vessel& vessel);
 
-	/// The one living Earth. Throws if not yet brought forth / already destroyed.
+	/// Throws if not yet brought forth / already destroyed.
 	static Earth& the();
 
 	static Earth* current_;

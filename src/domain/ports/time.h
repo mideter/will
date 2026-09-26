@@ -11,7 +11,6 @@ class Time {
 public:
 	virtual ~Time() = default;
 
-	/// The present instant.
 	virtual Timestamp instant() const = 0;
 };
 

@@ -17,7 +17,7 @@ class Place : public Immanent<Space> {
 public:
 	virtual ~Place() = default;
 
-	/// Living place known to Space. Throws if unknown.
+	/// Throws if unknown.
 	static const Place& of(id::Place id);
 
 	id::Place id() const noexcept { return id_; }

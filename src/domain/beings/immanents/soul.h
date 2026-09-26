@@ -12,7 +12,7 @@ namespace will::domain {
 /// Constructed only as the Soul base of a living Man.
 class Soul : public Spirit {
 public:
-	/// Living soul known to Heaven. Throws if unknown.
+	/// Throws if unknown.
 	static const Soul& of(id::Soul id);
 
 	id::Soul id() const noexcept { return id_; }

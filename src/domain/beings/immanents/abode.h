@@ -23,15 +23,13 @@ public:
 	Abode(id::Abode id, AbodeName name);
 	explicit Abode(Abiding abiding);
 
-	/// Strongly typed abode id (same value as Place::id()).
+	/// Same value as Place::id().
 	id::Abode abode_id() const noexcept { return id::Abode{id()}; }
 
 	const AbodeName& name() const noexcept { return name_; }
 
-	/// Admit a man as dweller (participation).
 	void admit(const Man& man);
 
-	/// Whether this man dwells here (participant).
 	bool dwells(const Man& man) const;
 
 private:
