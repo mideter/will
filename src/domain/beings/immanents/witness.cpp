@@ -36,6 +36,7 @@ Witness::Witness(Embodiment embodiment)
 	}
 
 	abode_->admit(*this);
+	abode_->observe(*this);
 }
 
 

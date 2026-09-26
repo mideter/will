@@ -131,6 +131,11 @@ void ChatSession::run()
 
 	std::string line;
 	while (!disconnected.load() && std::getline(std::cin, line)) {
+		if (line.empty()) {
+			ui_.print_prompt();
+			continue;
+		}
+
 		if (handle_slash_command(client_, ui_, line)) {
 			ui_.print_prompt();
 			continue;

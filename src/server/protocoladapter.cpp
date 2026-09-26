@@ -140,6 +140,7 @@ void ProtocolAdapter::handle_user_chat(const SessionId session_id, const v1::Cha
 		return;
 
 	const domain::Man& man = world_.man(world_.vessel(*vessel_id));
+	const auto& witness = static_cast<const domain::Witness&>(man);
 	try {
 		man.say(std::string{chat.body()});
 	} catch (const std::exception&) {
@@ -153,12 +154,12 @@ void ProtocolAdapter::handle_user_chat(const SessionId session_id, const v1::Cha
 	chat_message->set_name(author_name);
 	chat_message->set_body(chat.body());
 
-	if (const std::string_view sender_address = registry_.peer_address(session_id); !sender_address.empty()) {
-		std::cout << "Broadcast from " << sender_address << ": chat name_len=" << author_name.size()
-				  << " body_len=" << chat.body().size() << std::endl;
+	const domain::id::Vessel speaker_vessel = man.Vessel::id();
+	for (const domain::Witness& observer : witness.abode().witnesses()) {
+		if (observer.Vessel::id() == speaker_vessel)
+			continue;
+		send_to_vessel(observer.Vessel::id(), chat_event);
 	}
-
-	registry_.broadcast_except_vessel(man.Vessel::id(), chat_event);
 
 	v1::ServerEvent ack;
 	ack.mutable_receipt_ack();

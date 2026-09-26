@@ -59,6 +59,9 @@ TEST_CASE("welcome creates man with personal abode")
 	CHECK(witness.abode().id().value() > 0);
 	CHECK(witness.abode().abode_id() == id::Abode{witness.abode().id()});
 	CHECK(witness.abode().dwells(man));
+	CHECK(witness.abode().observed_by(witness));
+	CHECK(witness.abode().witnesses().size() == 1);
+	CHECK(&witness.abode().witnesses().front().get() == &witness);
 	CHECK(world.knows(man.Vessel::id()));
 	CHECK(world.knows(man.Soul::id()));
 
@@ -122,6 +125,10 @@ TEST_CASE("each man has a distinct personal abode")
 	CHECK_FALSE(wa.abode().dwells(b));
 	CHECK(wb.abode().dwells(b));
 	CHECK_FALSE(wb.abode().dwells(a));
+	CHECK(wa.abode().observed_by(wa));
+	CHECK_FALSE(wa.abode().observed_by(wb));
+	CHECK(wb.abode().observed_by(wb));
+	CHECK_FALSE(wb.abode().observed_by(wa));
 }
 
 
