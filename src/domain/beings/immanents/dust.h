@@ -19,7 +19,7 @@ public:
 	Temporality& temporality() const { return earth().temporality(); }
 	Spatiality& spatiality() const { return earth().spatiality(); }
 
-protected:
+private:
 	/// The one living Earth (Dust is friend of Earth).
 	static Earth& earth() { return Earth::the(); }
 };
