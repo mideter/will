@@ -14,6 +14,18 @@ Utterance Spirit::utter(const Saying& saying) const
 }
 
 
+std::vector<Utterance> Spirit::utterances(const std::vector<id::Letter>& ids) const
+{
+	return eternity().utterances(ids);
+}
+
+
+bool Spirit::knows(const id::Soul soul_id) const
+{
+	return heaven().knows(soul_id);
+}
+
+
 void Spirit::contemplate(const Abode& abode) const
 {
 	const auto& soul = static_cast<const Soul&>(*this);

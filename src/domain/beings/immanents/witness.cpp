@@ -72,7 +72,7 @@ std::vector<Letter> Witness::retell(const std::uint32_t limit) const
 	for (const Dating& row : dated)
 		selected.push_back(row.id());
 
-	std::vector<Utterance> uttered = eternity().utterances(selected);
+	std::vector<Utterance> uttered = utterances(selected);
 	std::unordered_map<id::Letter, Utterance> utterance_by_id;
 	for (Utterance& row : uttered)
 		utterance_by_id.emplace(row.id(), std::move(row));
@@ -89,7 +89,7 @@ std::vector<Letter> Witness::retell(const std::uint32_t limit) const
 		const auto p = place_by_id.find(id);
 		if (u == utterance_by_id.end() || d == dating_by_id.end() || p == place_by_id.end())
 			continue;
-		if (!heaven().knows(u->second.author()))
+		if (!knows(u->second.author()))
 			continue;
 		living.push_back(Letter{std::move(u->second), Placement{id, p->second}, std::move(d->second)});
 	}

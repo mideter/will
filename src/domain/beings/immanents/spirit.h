@@ -3,9 +3,13 @@
 #include "acts/contemplation.h"
 #include "acts/utterance.h"
 #include "beings/heaven.h"
+#include "identity/letter.h"
+#include "identity/soul.h"
 #include "ports/eternity.h"
 #include "properties/immanent.h"
 #include "values/saying.h"
+
+#include <vector>
 
 
 namespace will::domain {
@@ -35,6 +39,10 @@ protected:
 	static Eternity& eternity() { return heaven().eternity(); }
 
 	Utterance utter(const Saying& saying) const;
+
+	std::vector<Utterance> utterances(const std::vector<id::Letter>& ids) const;
+
+	bool knows(id::Soul soul_id) const;
 
 	void contemplate(const Abode& abode) const;
 
