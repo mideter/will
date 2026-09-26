@@ -1,6 +1,7 @@
 #pragma once
 
 #include "acts/dating.h"
+#include "acts/abiding.h"
 #include "acts/placement.h"
 #include "acts/tying.h"
 #include "acts/obedience.h"
@@ -134,23 +135,23 @@ public:
 		: shared_(shared)
 	{}
 
-	std::vector<Abode> abodes() override
+	std::vector<Abiding> abodes() override
 	{
-		std::vector<Abode> out;
+		std::vector<Abiding> out;
 		out.reserve(abode_rows_.size());
 		for (const auto& [id, name] : abode_rows_)
 			out.emplace_back(id, name);
 		return out;
 	}
 
-	std::optional<Abode> abode_of(const id::Soul soul) const override
+	std::optional<Abiding> abode_of(const id::Soul soul) const override
 	{
 		for (const auto& [abode_id, soul_id] : abode_souls_) {
 			if (soul_id != soul)
 				continue;
 			for (const auto& [id, name] : abode_rows_) {
 				if (id == abode_id)
-					return Abode{id, name};
+					return Abiding{id, name};
 			}
 		}
 		return std::nullopt;

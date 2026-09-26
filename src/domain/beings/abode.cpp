@@ -1,5 +1,8 @@
 #include "abode.h"
 
+#include "beings/space.h"
+#include "properties/immanent.h"
+
 #include <utility>
 
 
@@ -10,29 +13,14 @@ Abode::Abode(const id::Abode id, AbodeName name)
 	: Place(id::Place{id.value()})
 	, name_(std::move(name))
 	, mutex_(std::make_unique<std::mutex>())
-{}
-
-
-Abode::Abode(Abode&& other) noexcept
-	: Place(std::move(other))
-	, name_(std::move(other.name_))
-	, mutex_(std::move(other.mutex_))
-	, dwellers_(std::move(other.dwellers_))
-{}
-
-
-Abode& Abode::operator=(Abode&& other) noexcept
 {
-	if (this == &other)
-		return *this;
-
-	Place::operator=(std::move(other));
-	name_ = std::move(other.name_);
-	mutex_ = std::move(other.mutex_);
-	dwellers_ = std::move(other.dwellers_);
-
-	return *this;
+	Immanent<Space>::present<Abode>();
 }
+
+
+Abode::Abode(Abiding abiding)
+	: Abode(abiding.id(), abiding.name())
+{}
 
 
 void Abode::admit(const Man& man)

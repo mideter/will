@@ -1,7 +1,7 @@
 #pragma once
 
 #include "acts/placement.h"
-#include "beings/abode.h"
+#include "acts/abiding.h"
 #include "identity/abode.h"
 #include "identity/letter.h"
 #include "identity/place.h"
@@ -24,11 +24,11 @@ public:
 
 	virtual ~Spatiality() = default;
 
-	/// Abodes kept in space (id + name).
-	virtual std::vector<Abode> abodes() = 0;
+	/// Abodes kept in space (id + name material).
+	virtual std::vector<Abiding> abodes() = 0;
 
-	/// Abode this soul already dwells in, if kept.
-	virtual std::optional<Abode> abode_of(id::Soul soul) const = 0;
+	/// Abiding for the abode this soul already dwells in, if kept.
+	virtual std::optional<Abiding> abode_of(id::Soul soul) const = 0;
 
 	/// Keep an abode in space (idempotent by id).
 	virtual void keep(id::Abode id, AbodeName name) = 0;

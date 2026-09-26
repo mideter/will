@@ -1,20 +1,21 @@
 #pragma once
 
 #include "identity/place.h"
+#include "properties/immanent.h"
 
 
 namespace will::domain {
 
 
-/// Place (Место) — where a Word may be fixed in time.
+class Space;
+
+
+/// Place (Место) — where a Word may be fixed in time; immanent to Space.
 /// Abode is a place; a living Obedience/Shepherding pair is Tie (Узы).
 /// Living places are known to Space; Place::of looks them up.
-class Place {
+class Place : public Immanent<Space> {
 public:
 	virtual ~Place() = default;
-
-	Place(const Place&) = delete;
-	Place& operator=(const Place&) = delete;
 
 	/// Living place known to Space. Throws if unknown.
 	static const Place& of(id::Place id);
@@ -28,11 +29,6 @@ protected:
 	/// the living Tie supplies Place(id). Throws if actually invoked.
 	Place();
 	explicit Place(id::Place id) noexcept;
-	Place(Place&& other) noexcept;
-	Place& operator=(Place&& other) noexcept;
-
-	/// Present this living place to Space (heap-stable address).
-	void present() const;
 
 private:
 	id::Place id_;

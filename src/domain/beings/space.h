@@ -15,7 +15,7 @@ class Place;
 
 
 /// Space (Пространство) — living field of Places in the World.
-/// One Space, given through Eternity (as Time is). Place reaches it via Place::of / present().
+/// One Space, given through Eternity (as Time is). Place is immanent to Space.
 /// Points place ids as Time gives instants.
 class Space : private Immanent<Space> {
 public:
@@ -33,6 +33,7 @@ public:
 
 protected:
 	friend class Place;
+	friend class Immanent<Space>;
 
 	/// Present a place owned on the heap (Abode, Tie).
 	void present(const Place& place);

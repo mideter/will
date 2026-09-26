@@ -17,14 +17,14 @@ SqliteSpatiality::SqliteSpatiality(SqliteDatabase& database)
 {}
 
 
-std::vector<domain::Abode> SqliteSpatiality::abodes()
+std::vector<domain::Abiding> SqliteSpatiality::abodes()
 {
 	std::lock_guard lock(database_.mutex());
 
 	sqlite3* const db = database_.db();
 	SqliteStmt stmt(db, "SELECT id, name FROM abodes ORDER BY id;", "prepare abodes");
 
-	std::vector<domain::Abode> rows;
+	std::vector<domain::Abiding> rows;
 	while (stmt.step_row("abodes step")) {
 		const domain::id::Abode id{static_cast<std::uint64_t>(stmt.column_i64(0))};
 		const std::string_view name_text = stmt.column_text(1);
@@ -38,7 +38,7 @@ std::vector<domain::Abode> SqliteSpatiality::abodes()
 }
 
 
-std::optional<domain::Abode> SqliteSpatiality::abode_of(const domain::id::Soul soul) const
+std::optional<domain::Abiding> SqliteSpatiality::abode_of(const domain::id::Soul soul) const
 {
 	std::lock_guard lock(database_.mutex());
 
@@ -58,7 +58,7 @@ std::optional<domain::Abode> SqliteSpatiality::abode_of(const domain::id::Soul s
 	if (name_text.empty())
 		throw std::runtime_error("abode_of: missing name in database");
 
-	return domain::Abode{id, domain::AbodeName{name_text}};
+	return domain::Abiding{id, domain::AbodeName{name_text}};
 }
 
 

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "acts/abiding.h"
 #include "beings/man.h"
 #include "beings/place.h"
 #include "identity/abode.h"
@@ -15,15 +16,11 @@ namespace will::domain {
 
 /// Abode (Обитель) — the host's place: observers may dwell here.
 /// Place id from Space::point; host is the Witness who keeps it. Rooms come later.
-/// A living Witness observes one abode. Movable: Spatiality may hand
-/// id+name snapshots; dwellers fill in the World.
+/// A living Witness observes one abode. Born from Abiding material or at first welcome.
 class Abode : public Place {
 public:
 	Abode(id::Abode id, AbodeName name);
-	Abode(Abode&& other) noexcept;
-	Abode& operator=(Abode&& other) noexcept;
-	Abode(const Abode&) = delete;
-	Abode& operator=(const Abode&) = delete;
+	explicit Abode(Abiding abiding);
 
 	/// Strongly typed abode id (same value as Place::id()).
 	id::Abode abode_id() const noexcept { return id::Abode{id()}; }

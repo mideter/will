@@ -1,6 +1,7 @@
 #include "witness.h"
 
 #include "acts/dating.h"
+#include "acts/abiding.h"
 #include "acts/placement.h"
 #include "acts/utterance.h"
 #include "beings/space.h"
@@ -24,8 +25,8 @@ namespace will::domain {
 Witness::Witness(Embodiment embodiment)
 	: Man(std::move(embodiment))
 {
-	if (const std::optional<Abode> kept = spatiality().abode_of(Soul::id())) {
-		abode_ = std::make_unique<Abode>(kept->abode_id(), kept->name());
+	if (std::optional<Abiding> abiding = spatiality().abode_of(Soul::id())) {
+		abode_ = std::make_unique<Abode>(std::move(*abiding));
 	} else {
 		abode_ = std::make_unique<Abode>(
 			id::Abode{eternity().space().point()},
@@ -34,7 +35,6 @@ Witness::Witness(Embodiment embodiment)
 		spatiality().join_abode(abode_->abode_id(), Soul::id());
 	}
 
-	abode_->present();
 	abode_->admit(*this);
 }
 
