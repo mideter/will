@@ -23,8 +23,6 @@ public:
 	id::Place id() const noexcept { return id_; }
 
 protected:
-	friend class Witness;
-
 	/// For virtual-base roles (Obedience/Shepherding) that are never most-derived;
 	/// the living Tie supplies Place(id). Throws if actually invoked.
 	Place();
