@@ -42,7 +42,7 @@ private:
 	explicit Testator(Embodiment embodiment);
 
 	const Shepherding& shepherd(const Shepherding& place) const;
-	void drop(const Shepherding& place) const;
+	void release(const Shepherding& place) const;
 
 	const Supplication& receive(Supplication supplication) const;
 	void drop(const Supplication& ask) const;

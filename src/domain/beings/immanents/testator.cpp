@@ -65,7 +65,7 @@ const Shepherding& Testator::shepherd(const Shepherding& place) const
 }
 
 
-void Testator::drop(const Shepherding& place) const
+void Testator::release(const Shepherding& place) const
 {
 	const auto it = std::find(shepherdings_.begin(), shepherdings_.end(), &place);
 	if (it != shepherdings_.end())

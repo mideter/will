@@ -20,7 +20,7 @@ Tie::Tie(Tying tying)
 
 Tie::~Tie()
 {
-	testator_.drop(*this);
+	testator_.release(*this);
 }
 
 
