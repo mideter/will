@@ -85,22 +85,6 @@ const Man& World::man(const SoulName& name) const
 }
 
 
-std::vector<std::reference_wrapper<const Witness>> World::contemplating(const Abode& abode) const
-{
-	std::lock_guard lock(mutex_);
-
-	std::vector<std::reference_wrapper<const Witness>> out;
-	for (const auto& [soul_id, man_ptr] : men_) {
-		if (!man_ptr)
-			continue;
-		const auto& witness = static_cast<const Witness&>(*man_ptr);
-		if (witness.contemplation().abode().id() == abode.id())
-			out.emplace_back(witness);
-	}
-	return out;
-}
-
-
 const Man& World::beget(const DeviceToken& token)
 {
 	const SoulName name = SoulName::generate();

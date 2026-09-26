@@ -140,7 +140,6 @@ void ProtocolAdapter::handle_user_chat(const SessionId session_id, const v1::Cha
 		return;
 
 	const domain::Man& man = world_.man(world_.vessel(*vessel_id));
-	const auto& witness = static_cast<const domain::Witness&>(man);
 	try {
 		man.say(std::string{chat.body()});
 	} catch (const std::exception&) {
@@ -155,10 +154,11 @@ void ProtocolAdapter::handle_user_chat(const SessionId session_id, const v1::Cha
 	chat_message->set_body(chat.body());
 
 	const domain::id::Vessel speaker_vessel = man.Vessel::id();
-	for (const domain::Witness& observer : world_.contemplating(witness.contemplation().abode())) {
-		if (observer.Vessel::id() == speaker_vessel)
+	for (const domain::Soul& observer : world_.contemplating(world_.contemplation(man.Soul::id()).abode())) {
+		const auto& observer_man = static_cast<const domain::Man&>(observer);
+		if (observer_man.Vessel::id() == speaker_vessel)
 			continue;
-		send_to_vessel(observer.Vessel::id(), chat_event);
+		send_to_vessel(observer_man.Vessel::id(), chat_event);
 	}
 
 	v1::ServerEvent ack;

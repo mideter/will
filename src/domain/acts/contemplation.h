@@ -6,8 +6,9 @@
 namespace will::domain {
 
 
-/// Contemplation (Созерцание) — which Abode a Witness observes.
-/// Owned by the Witness; the Abode does not keep its contemplators.
+/// Contemplation (Созерцание) — relation in Heaven: which Abode a soul observes.
+/// Kept by Heaven; the Witness exercises contemplation, does not own it.
+/// The Abode does not keep its contemplators.
 class Contemplation {
 public:
 	explicit Contemplation(const Abode& abode);

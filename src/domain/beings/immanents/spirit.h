@@ -1,5 +1,6 @@
 #pragma once
 
+#include "acts/contemplation.h"
 #include "beings/heaven.h"
 #include "ports/eternity.h"
 #include "properties/immanent.h"
@@ -9,11 +10,13 @@
 namespace will::domain {
 
 
+class Abode;
 class Soul;
 
 
 /// Spirit (Дух) — highest foundation of the soul; immanent to Heaven.
 /// Will (say) belongs to spirit; living modes reveal it (speech, later bequest/deed).
+/// Contemplation is kept by Heaven; living Witness exercises it through Spirit.
 /// Hearing is not a separate act — the Witness himself is the focus.
 /// Knows Heaven via heaven(). Living Man presents the soul to Heaven at birth.
 /// Neither copy nor transfer; only Soul may bring forth Spirit.
@@ -32,6 +35,12 @@ protected:
 
 	/// Eternity reached from Heaven (Spirit is friend of Heaven).
 	static Eternity& eternity() { return heaven().eternity(); }
+
+	/// Record Contemplation in Heaven (friendship is not inherited by Witness).
+	static void keep_contemplation(const Soul& soul, const Abode& abode);
+
+	/// Contemplation of this soul as kept by Heaven.
+	static const Contemplation& contemplation_of(const Soul& soul);
 };
 
 

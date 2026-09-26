@@ -59,9 +59,9 @@ TEST_CASE("welcome creates man with personal abode")
 	CHECK(witness.abode().id().value() > 0);
 	CHECK(witness.abode().abode_id() == id::Abode{witness.abode().id()});
 	CHECK(witness.abode().dwells(man));
-	CHECK(&witness.contemplation().abode() == &man.abode());
+	CHECK(&world.contemplation(man.Soul::id()).abode() == &man.abode());
 	CHECK(world.contemplating(man.abode()).size() == 1);
-	CHECK(&world.contemplating(man.abode()).front().get() == &witness);
+	CHECK(&world.contemplating(man.abode()).front().get() == static_cast<const Soul*>(&man));
 	CHECK(world.knows(man.Vessel::id()));
 	CHECK(world.knows(man.Soul::id()));
 
@@ -125,11 +125,13 @@ TEST_CASE("each man has a distinct personal abode")
 	CHECK_FALSE(wa.abode().dwells(b));
 	CHECK(wb.abode().dwells(b));
 	CHECK_FALSE(wb.abode().dwells(a));
-	CHECK(&wa.contemplation().abode() == &a.abode());
-	CHECK(&wb.contemplation().abode() == &b.abode());
+	CHECK(&world.contemplation(a.Soul::id()).abode() == &a.abode());
+	CHECK(&world.contemplation(b.Soul::id()).abode() == &b.abode());
 	CHECK(world.contemplating(a.abode()).size() == 1);
 	CHECK(world.contemplating(b.abode()).size() == 1);
-	CHECK(&wa.contemplation().abode() != &b.abode());
+	CHECK(&world.contemplation(a.Soul::id()).abode() != &b.abode());
+	CHECK(&world.contemplating(a.abode()).front().get() == static_cast<const Soul*>(&a));
+	CHECK(&world.contemplating(b.abode()).front().get() == static_cast<const Soul*>(&b));
 }
 
 

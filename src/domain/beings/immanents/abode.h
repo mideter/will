@@ -18,7 +18,6 @@ class Man;
 
 /// Abode (Обитель) — a man's own place; others may dwell here.
 /// Place id from Space::point; host keeps it. Rooms come later.
-/// Contemplation of an abode belongs to the Witness, not to the Abode.
 class Abode : public Place {
 public:
 	Abode(id::Abode id, AbodeName name);

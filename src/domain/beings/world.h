@@ -10,17 +10,12 @@
 #include "values/device_token.h"
 #include "values/soul_name.h"
 
-#include <functional>
 #include <memory>
 #include <mutex>
 #include <unordered_map>
-#include <vector>
 
 
 namespace will::domain {
-
-
-class Witness;
 
 
 /// World (Мир) — the one living cosmos: Heaven and Earth as invisible and visible.
@@ -44,9 +39,6 @@ public:
 
 	/// Living man by public soul name. Throws if unknown.
 	const Man& man(const SoulName& name) const;
-
-	/// Living Witnesses whose Contemplation is this abode.
-	std::vector<std::reference_wrapper<const Witness>> contemplating(const Abode& abode) const;
 
 private:
 	friend class Creation;

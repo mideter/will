@@ -1,5 +1,6 @@
 #include "heaven.h"
 
+#include "beings/immanents/abode.h"
 #include "beings/immanents/soul.h"
 #include "ports/eternity.h"
 
@@ -69,10 +70,49 @@ const Soul& Heaven::soul(const id::Soul soul_id) const
 }
 
 
+std::vector<std::reference_wrapper<const Soul>> Heaven::contemplating(const Abode& abode) const
+{
+	std::lock_guard lock(mutex_);
+
+	std::vector<std::reference_wrapper<const Soul>> out;
+	for (const auto& [soul_id, contemplation] : contemplations_) {
+		if (contemplation.abode().id() != abode.id())
+			continue;
+		const auto it = souls_.find(soul_id);
+		if (it == souls_.end() || !it->second)
+			continue;
+		out.emplace_back(*it->second);
+	}
+	return out;
+}
+
+
 void Heaven::present(const Soul& soul)
 {
 	std::lock_guard lock(mutex_);
 	souls_.insert_or_assign(soul.id(), &soul);
+}
+
+
+void Heaven::contemplate(const Soul& soul, const Abode& abode)
+{
+	std::lock_guard lock(mutex_);
+	if (!souls_.contains(soul.id()))
+		throw std::logic_error("Heaven does not know this soul");
+
+	contemplations_.insert_or_assign(soul.id(), Contemplation{abode});
+}
+
+
+const Contemplation& Heaven::contemplation(const id::Soul soul_id) const
+{
+	std::lock_guard lock(mutex_);
+
+	const auto it = contemplations_.find(soul_id);
+	if (it == contemplations_.end())
+		throw std::logic_error("Heaven has no contemplation for this soul");
+
+	return it->second;
 }
 
 
