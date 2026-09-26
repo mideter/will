@@ -1,9 +1,9 @@
 #pragma once
 
 #include "acts/embodiment.h"
-#include "beings/abode.h"
+#include "beings/immanents/abode.h"
 #include "beings/letter.h"
-#include "beings/man.h"
+#include "beings/immanents/man.h"
 #include "values/word.h"
 
 #include <cstdint>

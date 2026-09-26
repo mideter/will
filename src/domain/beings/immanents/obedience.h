@@ -1,6 +1,6 @@
 #pragma once
 
-#include "beings/place.h"
+#include "beings/immanents/place.h"
 
 
 namespace will::domain {

@@ -1,10 +1,10 @@
 #include "sqlite_temporality.h"
 
-#include "acts/tie.h"
-#include "beings/novice.h"
-#include "beings/soul.h"
+#include "beings/immanents/tie.h"
+#include "beings/immanents/novice.h"
+#include "beings/immanents/soul.h"
 #include "beings/space.h"
-#include "beings/testator.h"
+#include "beings/immanents/testator.h"
 #include "values/word.h"
 
 #include "sqlite_util.h"

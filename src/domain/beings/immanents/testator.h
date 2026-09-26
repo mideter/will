@@ -1,9 +1,9 @@
 #pragma once
 
 #include "acts/embodiment.h"
-#include "acts/shepherding.h"
+#include "beings/immanents/shepherding.h"
 #include "acts/supplication.h"
-#include "beings/novice.h"
+#include "beings/immanents/novice.h"
 #include "beings/deed.h"
 #include "values/word.h"
 

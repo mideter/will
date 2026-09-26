@@ -1,13 +1,13 @@
 #include "ports/eternity.h"
 #include "world.h"
 
-#include "acts/obedience.h"
-#include "acts/shepherding.h"
+#include "beings/immanents/obedience.h"
+#include "beings/immanents/shepherding.h"
 #include "acts/supplication.h"
 #include "acts/tying.h"
-#include "beings/novice.h"
-#include "beings/soul.h"
-#include "beings/testator.h"
+#include "beings/immanents/novice.h"
+#include "beings/immanents/soul.h"
+#include "beings/immanents/testator.h"
 #include "ports/temporality.h"
 #include "values/soul_name.h"
 

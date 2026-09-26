@@ -1,8 +1,8 @@
 #pragma once
 
 #include "acts/embodiment.h"
-#include "beings/soul.h"
-#include "beings/vessel.h"
+#include "beings/immanents/soul.h"
+#include "beings/immanents/vessel.h"
 
 
 namespace will::domain {

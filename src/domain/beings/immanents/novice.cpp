@@ -1,8 +1,8 @@
 #include "novice.h"
 
-#include "acts/tie.h"
-#include "beings/soul.h"
-#include "beings/testator.h"
+#include "beings/immanents/tie.h"
+#include "beings/immanents/soul.h"
+#include "beings/immanents/testator.h"
 #include "ports/temporality.h"
 
 #include <memory>

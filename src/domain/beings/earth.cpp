@@ -1,6 +1,6 @@
 #include "earth.h"
 
-#include "beings/vessel.h"
+#include "beings/immanents/vessel.h"
 #include "ports/spatiality.h"
 #include "ports/temporality.h"
 

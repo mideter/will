@@ -1,6 +1,6 @@
 #pragma once
 
-#include "beings/spirit.h"
+#include "beings/immanents/spirit.h"
 #include "identity/soul.h"
 #include "values/soul_name.h"
 

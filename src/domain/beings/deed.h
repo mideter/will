@@ -1,6 +1,6 @@
 #pragma once
 
-#include "acts/tie.h"
+#include "beings/immanents/tie.h"
 #include "identity/deed.h"
 #include "values/timestamp.h"
 #include "values/word.h"

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "acts/obedience.h"
-#include "acts/shepherding.h"
+#include "beings/immanents/obedience.h"
+#include "beings/immanents/shepherding.h"
 #include "acts/tying.h"
 
 

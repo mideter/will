@@ -1,6 +1,6 @@
 #include "heaven.h"
 
-#include "beings/soul.h"
+#include "beings/immanents/soul.h"
 #include "ports/eternity.h"
 
 #include <stdexcept>

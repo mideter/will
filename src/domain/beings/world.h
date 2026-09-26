@@ -3,7 +3,7 @@
 #include "acts/embodiment.h"
 #include "beings/earth.h"
 #include "beings/heaven.h"
-#include "beings/man.h"
+#include "beings/immanents/man.h"
 #include "identity/soul.h"
 #include "identity/vessel.h"
 #include "values/device_token.h"

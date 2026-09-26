@@ -2,7 +2,7 @@
 #include <doctest/doctest.h>
 
 #include "acts/creation.h"
-#include "beings/witness.h"
+#include "beings/immanents/witness.h"
 #include "sqlite_persistence_bundle.h"
 
 #include "identity/abode.h"

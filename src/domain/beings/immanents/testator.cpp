@@ -1,7 +1,7 @@
 #include "testator.h"
 
-#include "acts/obedience.h"
-#include "beings/soul.h"
+#include "beings/immanents/obedience.h"
+#include "beings/immanents/soul.h"
 #include "ports/temporality.h"
 
 #include <algorithm>

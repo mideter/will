@@ -1,6 +1,6 @@
 #include "space.h"
 
-#include "beings/place.h"
+#include "beings/immanents/place.h"
 
 #include <stdexcept>
 

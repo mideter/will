@@ -1,8 +1,8 @@
 #include "tie.h"
 
-#include "beings/soul.h"
+#include "beings/immanents/soul.h"
 #include "beings/space.h"
-#include "beings/testator.h"
+#include "beings/immanents/testator.h"
 #include "properties/immanent.h"
 
 

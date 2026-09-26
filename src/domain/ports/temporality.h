@@ -2,11 +2,11 @@
 
 #include "acts/dating.h"
 #include "acts/embodiment.h"
-#include "acts/obedience.h"
+#include "beings/immanents/obedience.h"
 #include "acts/supplication.h"
 #include "acts/tying.h"
 #include "beings/deed.h"
-#include "beings/soul.h"
+#include "beings/immanents/soul.h"
 #include "identity/deed.h"
 #include "identity/letter.h"
 #include "identity/soul.h"

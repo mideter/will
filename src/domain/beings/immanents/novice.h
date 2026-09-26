@@ -1,11 +1,11 @@
 #pragma once
 
 #include "acts/embodiment.h"
-#include "acts/obedience.h"
+#include "beings/immanents/obedience.h"
 #include "acts/supplication.h"
 #include "acts/tying.h"
 #include "beings/deed.h"
-#include "beings/witness.h"
+#include "beings/immanents/witness.h"
 
 #include <memory>
 #include <vector>

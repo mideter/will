@@ -1,8 +1,8 @@
 #pragma once
 
 #include "acts/abiding.h"
-#include "beings/man.h"
-#include "beings/place.h"
+#include "beings/immanents/man.h"
+#include "beings/immanents/place.h"
 #include "identity/abode.h"
 #include "values/abode_name.h"
 
