@@ -5,11 +5,11 @@ namespace will::domain {
 
 
 /// Immanent (Имманентное) — presence in the waking world; neither copy nor transfer.
-/// Face of the waking world inherits Immanent<Face> — immanent to itself.
-/// Foundations inherit Immanent<Face> — immanent *to* that face; present a Presence
-/// level through present<Presence>(). Material may be handed; the living is only
-/// brought forth and present()'ed.
-template<typename Face>
+/// Heaven, Earth, and Space inherit Immanent of themselves.
+/// Spirit is immanent to Heaven, Dust to Earth, Place to Space; they present a
+/// Presence level through present<Presence>(). Material may be handed; the living
+/// is only brought forth and present()'ed.
+template<typename Horizon>
 class Immanent {
 public:
 	Immanent(const Immanent&) = delete;
@@ -21,11 +21,11 @@ protected:
 	Immanent() = default;
 	~Immanent() = default;
 
-	/// Present this object to Face as Presence (inheritance level at the call site).
+	/// Present this object as Presence (inheritance level at the call site).
 	template<typename Presence>
 	void present() const
 	{
-		Face::the().present(static_cast<const Presence&>(*this));
+		Horizon::the().present(static_cast<const Presence&>(*this));
 	}
 };
 

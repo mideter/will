@@ -17,7 +17,7 @@ namespace will::domain {
 
 
 /// Spatiality (Пространственность) — places and where a Word is fixed.
-/// Living places are known to Space; this face keeps spatial material.
+/// Living places are known to Space; Spatiality keeps spatial material.
 class Spatiality {
 public:
 	static constexpr std::uint32_t MaxLetterLimit = 1000;

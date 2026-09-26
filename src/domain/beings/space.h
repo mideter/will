@@ -15,8 +15,8 @@ class Place;
 
 
 /// Space (Пространство) — living field of Places in the World.
-/// One Space, given through Eternity (as Time is). Place is immanent to Space.
-/// Points place ids as Time gives instants.
+/// Immanent to itself. One Space, given through Eternity (as Time is).
+/// Place is immanent to Space. Points place ids as Time gives instants.
 class Space : private Immanent<Space> {
 public:
 	Space();
@@ -41,7 +41,7 @@ protected:
 	/// Load a durable mark without persisting (Eternity impl at bring-forth).
 	void seed(std::uint64_t value);
 
-	/// Durable face may remember the mark.
+	/// Durable implementation may remember the mark.
 	virtual void persist_mark(id::Place id) {}
 
 private:
