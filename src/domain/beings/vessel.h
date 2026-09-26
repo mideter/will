@@ -16,7 +16,7 @@ public:
 	id::Vessel id() const noexcept { return id_; }
 	const DeviceToken& token() const noexcept { return token_; }
 
-	bool operator==(const Vessel&) const = default;
+	bool operator==(const Vessel& other) const noexcept;
 
 private:
 	id::Vessel id_;

@@ -18,10 +18,7 @@ public:
 	id::Soul id() const noexcept { return id_; }
 	const SoulName& name() const noexcept { return name_; }
 
-	bool operator==(const Soul& other) const noexcept
-	{
-		return id_ == other.id_ && name_ == other.name_;
-	}
+	bool operator==(const Soul& other) const noexcept;
 
 protected:
 	Soul(id::Soul id, SoulName name);
