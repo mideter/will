@@ -155,7 +155,7 @@ void ProtocolAdapter::handle_user_chat(const SessionId session_id, const v1::Cha
 	chat_message->set_body(chat.body());
 
 	const domain::id::Vessel speaker_vessel = man.Vessel::id();
-	for (const domain::Witness& observer : witness.abode().witnesses()) {
+	for (const domain::Witness& observer : world_.contemplating(witness.contemplation().abode())) {
 		if (observer.Vessel::id() == speaker_vessel)
 			continue;
 		send_to_vessel(observer.Vessel::id(), chat_event);

@@ -1,19 +1,15 @@
 #include "witness.h"
 
 #include "acts/dating.h"
-#include "acts/abiding.h"
 #include "acts/placement.h"
 #include "acts/utterance.h"
-#include "beings/space.h"
+#include "beings/immanents/abode.h"
 #include "ports/eternity.h"
 #include "ports/spatiality.h"
 #include "ports/temporality.h"
-#include "values/abode_name.h"
 
 #include <algorithm>
-#include <optional>
 #include <stdexcept>
-#include <string>
 #include <unordered_map>
 #include <utility>
 #include <vector>
@@ -24,29 +20,18 @@ namespace will::domain {
 
 Witness::Witness(Embodiment embodiment)
 	: Man(std::move(embodiment))
-{
-	if (std::optional<Abiding> abiding = spatiality().abode_of(Soul::id())) {
-		abode_ = std::make_unique<Abode>(std::move(*abiding));
-	} else {
-		abode_ = std::make_unique<Abode>(
-			id::Abode{eternity().space().point()},
-			AbodeName{std::string{Soul::name().text()}});
-		spatiality().keep(abode_->abode_id(), abode_->name());
-		spatiality().join_abode(abode_->abode_id(), Soul::id());
-	}
-
-	abode_->admit(*this);
-	abode_->observe(*this);
-}
+	, contemplation_(abode())
+{}
 
 
 void Witness::say(const Saying& saying) const
 {
-	if (!abode_->dwells(*this))
-		throw std::logic_error("Witness does not dwell in the observed abode");
+	const Abode& place = contemplation_.abode();
+	if (!place.dwells(*this))
+		throw std::logic_error("Witness does not dwell in the contemplated abode");
 
 	const Utterance uttered = eternity().utter(Soul::id(), saying);
-	spatiality().place(uttered.id(), abode_->id());
+	spatiality().place(uttered.id(), place.id());
 	temporality().date(uttered.id(), eternity().time().instant());
 }
 
@@ -56,8 +41,9 @@ std::vector<Letter> Witness::retell(const std::uint32_t limit) const
 	if (limit == 0)
 		throw std::invalid_argument("History limit must be positive");
 
+	const Abode& place = contemplation_.abode();
 	const std::uint32_t capped = std::min(limit, Spatiality::MaxLetterLimit);
-	std::vector<Placement> placed = spatiality().placements(abode_->id(), Spatiality::MaxLetterLimit);
+	std::vector<Placement> placed = spatiality().placements(place.id(), Spatiality::MaxLetterLimit);
 
 	std::vector<id::Letter> ids;
 	ids.reserve(placed.size());

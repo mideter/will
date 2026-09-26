@@ -3,23 +3,29 @@
 #include "acts/embodiment.h"
 #include "beings/earth.h"
 #include "beings/heaven.h"
+#include "beings/immanents/abode.h"
 #include "beings/immanents/man.h"
 #include "identity/soul.h"
 #include "identity/vessel.h"
 #include "values/device_token.h"
 #include "values/soul_name.h"
 
+#include <functional>
 #include <memory>
 #include <mutex>
 #include <unordered_map>
+#include <vector>
 
 
 namespace will::domain {
 
 
+class Witness;
+
+
 /// World (Мир) — the one living cosmos: is Heaven and Earth.
 /// Heaven and Earth are in space and time; Time and Space are of Eternity.
-/// Eternity is reached from Heaven. Each living man has a personal abode owned by his Witness.
+/// Eternity is reached from Heaven. Each living man has a personal abode.
 /// Brought forth only by Creation as Heaven and Earth; Space already of Eternity.
 /// Living people are Testator on the heap; World alone births them.
 /// One soul — one living man; indexed by id::Soul.
@@ -38,6 +44,9 @@ public:
 
 	/// Living man by public soul name. Throws if unknown.
 	const Man& man(const SoulName& name) const;
+
+	/// Living Witnesses whose Contemplation is this abode.
+	std::vector<std::reference_wrapper<const Witness>> contemplating(const Abode& abode) const;
 
 private:
 	friend class Creation;

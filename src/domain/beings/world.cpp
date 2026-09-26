@@ -8,9 +8,11 @@
 #include "beings/immanents/novice.h"
 #include "beings/immanents/soul.h"
 #include "beings/immanents/testator.h"
+#include "beings/immanents/witness.h"
 #include "ports/temporality.h"
 #include "values/soul_name.h"
 
+#include <functional>
 #include <stdexcept>
 #include <utility>
 #include <vector>
@@ -80,6 +82,22 @@ const Man& World::man(const SoulName& name) const
 	}
 
 	throw std::invalid_argument("unknown soul name");
+}
+
+
+std::vector<std::reference_wrapper<const Witness>> World::contemplating(const Abode& abode) const
+{
+	std::lock_guard lock(mutex_);
+
+	std::vector<std::reference_wrapper<const Witness>> out;
+	for (const auto& [soul_id, man_ptr] : men_) {
+		if (!man_ptr)
+			continue;
+		const auto& witness = static_cast<const Witness&>(*man_ptr);
+		if (witness.contemplation().abode().id() == abode.id())
+			out.emplace_back(witness);
+	}
+	return out;
 }
 
 
