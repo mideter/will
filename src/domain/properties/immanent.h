@@ -1,17 +1,15 @@
 #pragma once
 
-#include <type_traits>
-
 
 namespace will::domain {
 
 
 /// Immanent (Имманентное) — presence in the waking world; neither copy nor transfer.
-/// Face (default void): a face of the waking world (Heaven, Earth, Space) inherits
-/// Immanent<> — it *is* that presence. Foundations inherit Immanent<Face> — they are
-/// immanent *to* that face and present a Presence level through present<Presence>().
-/// Material may be handed; the living is only brought forth and present()'ed.
-template<typename Face = void>
+/// Face of the waking world inherits Immanent<Face> — immanent to itself.
+/// Foundations inherit Immanent<Face> — immanent *to* that face; present a Presence
+/// level through present<Presence>(). Material may be handed; the living is only
+/// brought forth and present()'ed.
+template<typename Face>
 class Immanent {
 public:
 	Immanent(const Immanent&) = delete;
@@ -27,8 +25,6 @@ protected:
 	template<typename Presence>
 	void present() const
 	{
-		static_assert(!std::is_void_v<Face>,
-					  "Immanent<> faces do not present; foundations use Immanent<Face>");
 		Face::the().present(static_cast<const Presence&>(*this));
 	}
 };

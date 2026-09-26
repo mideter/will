@@ -18,7 +18,7 @@ class Spirit;
 /// Heaven (Небо) — of the one World; Spirit alone reaches it via heaven().
 /// Creation brings forth Heaven. Heaven is in space and time; Eternity is reached from here.
 /// Pointers address Soul bases of heap-stable Man (unique_ptr).
-class Heaven : private Immanent<> {
+class Heaven : private Immanent<Heaven> {
 public:
 	/// Whether Heaven knows this soul.
 	bool knows(id::Soul soul_id) const;
