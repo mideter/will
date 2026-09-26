@@ -16,10 +16,14 @@ class Spatiality;
 /// Knows Temporality and Spatiality through Earth.
 class Dust : public Immanent<Earth> {
 public:
-	Temporality& temporality() const { return Earth::the().temporality(); }
-	Spatiality& spatiality() const { return Earth::the().spatiality(); }
+	Temporality& temporality() const { return earth().temporality(); }
+	Spatiality& spatiality() const { return earth().spatiality(); }
 
 	bool operator==(const Dust&) const = default;
+
+protected:
+	/// The one living Earth (Dust is friend of Earth).
+	static Earth& earth() { return Earth::the(); }
 };
 
 

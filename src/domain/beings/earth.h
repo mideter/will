@@ -22,8 +22,9 @@ class Spatiality;
 
 /// Earth (Земля) — of the one World; speaks with Temporality and Spatiality.
 /// Immanent to itself. Dust reaches Temporality and Spatiality via friendship.
-/// Creation brings forth Earth. Earth is in space and time. Live registry of vessels;
-/// abodes live with men; places are known to Space; spatial material to Spatiality.
+/// Creation brings forth Earth. Earth is in space and time. Live registry of
+/// vessels; abodes live with men; places are known to Space; spatial material
+/// to Spatiality.
 class Earth : private Immanent<Earth> {
 public:
 	/// Whether Earth knows this vessel.
