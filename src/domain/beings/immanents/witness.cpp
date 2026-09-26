@@ -4,7 +4,6 @@
 #include "acts/placement.h"
 #include "acts/utterance.h"
 #include "beings/immanents/abode.h"
-#include "ports/eternity.h"
 #include "ports/spatiality.h"
 #include "ports/temporality.h"
 
@@ -39,7 +38,7 @@ void Witness::say(const Saying& saying) const
 
 	const Utterance uttered = utter(saying);
 	spatiality().place(uttered.id(), place.id());
-	temporality().date(uttered.id(), eternity().time().instant());
+	temporality().date(uttered.id());
 }
 
 

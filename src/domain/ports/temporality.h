@@ -41,8 +41,8 @@ public:
 	/// All embodiments kept in time (for Creation awaken).
 	virtual std::vector<Embodiment> embodiments() const = 0;
 
-	/// Fix a word at a moment in time.
-	virtual void date(id::Letter id, Timestamp at) = 0;
+	/// Fix a word at the present instant.
+	virtual void date(id::Letter id) = 0;
 
 	/// Datings for the given ids (skips undated).
 	virtual std::vector<Dating> datings(const std::vector<id::Letter>& ids) const = 0;

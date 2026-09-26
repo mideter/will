@@ -235,8 +235,9 @@ public:
 			shared_.next_vessel_id = vessel_id.value();
 	}
 
-	void date(const id::Letter id, const Timestamp at) override
+	void date(const id::Letter id) override
 	{
+		const Timestamp at = eternity_.time().instant();
 		for (auto& row : datings_) {
 			if (row.id() == id) {
 				row = Dating{id, at};

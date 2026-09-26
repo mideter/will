@@ -18,7 +18,7 @@ public:
 	embody(domain::id::Soul soul, domain::SoulName name, domain::DeviceToken token) override;
 	std::vector<domain::Embodiment> embodiments() const override;
 
-	void date(domain::id::Letter id, domain::Timestamp at) override;
+	void date(domain::id::Letter id) override;
 	std::vector<domain::Dating> datings(const std::vector<domain::id::Letter>& ids) const override;
 
 	domain::Supplication

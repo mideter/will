@@ -168,8 +168,9 @@ std::vector<domain::Embodiment> SqliteTemporality::embodiments() const
 }
 
 
-void SqliteTemporality::date(const domain::id::Letter id, const domain::Timestamp at)
+void SqliteTemporality::date(const domain::id::Letter id)
 {
+	const domain::Timestamp at = eternity_.time().instant();
 	std::lock_guard lock(time_db_.mutex());
 	sqlite3* const db = time_db_.db();
 	SqliteStmt stmt(db, "INSERT OR REPLACE INTO datings (letter_id, created_at_ns) VALUES (?, ?);",
