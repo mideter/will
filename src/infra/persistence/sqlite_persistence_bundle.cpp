@@ -23,7 +23,7 @@ SqlitePersistenceBundle::SqlitePersistenceBundle(std::string prefix)
 	, space_db_(face_path(prefix, "space"), SqliteFace::Spatiality)
 	, time_db_(face_path(prefix, "time"), SqliteFace::Temporality)
 	, eternity_(eternity_db_)
-	, spatiality_(space_db_)
+	, spatiality_(space_db_, eternity_)
 	, temporality_(time_db_, eternity_)
 	, creation_(eternity_, spatiality_, temporality_)
 {}

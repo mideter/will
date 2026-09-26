@@ -131,8 +131,9 @@ private:
 
 class InMemorySpatiality final : public Spatiality {
 public:
-	explicit InMemorySpatiality(InMemoryShared& shared)
+	InMemorySpatiality(InMemoryShared& shared, Eternity& eternity)
 		: shared_(shared)
+		, eternity_(eternity)
 	{}
 
 	std::vector<Abiding> abodes() override
@@ -142,6 +143,17 @@ public:
 		for (const auto& [id, name] : abode_rows_)
 			out.emplace_back(id, name);
 		return out;
+	}
+
+	Abiding abide(const id::Soul soul, AbodeName name) override
+	{
+		if (std::optional<Abiding> existing = abode_of(soul))
+			return std::move(*existing);
+
+		const id::Abode id{eternity_.space().point()};
+		keep(id, name);
+		join_abode(id, soul);
+		return Abiding{id, std::move(name)};
 	}
 
 	std::optional<Abiding> abode_of(const id::Soul soul) const override
@@ -200,6 +212,7 @@ public:
 
 private:
 	InMemoryShared& shared_;
+	Eternity& eternity_;
 	std::vector<std::pair<id::Abode, AbodeName>> abode_rows_;
 	std::vector<std::pair<id::Abode, id::Soul>> abode_souls_;
 	std::vector<Placement> placements_;
@@ -461,7 +474,7 @@ class InMemoryCosmos {
 public:
 	InMemoryCosmos()
 		: eternity_(shared_)
-		, spatiality_(shared_)
+		, spatiality_(shared_, eternity_)
 		, temporality_(shared_, eternity_)
 	{}
 

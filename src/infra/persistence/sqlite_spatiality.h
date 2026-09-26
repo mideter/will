@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ports/eternity.h"
 #include "ports/spatiality.h"
 #include "sqlite_database.h"
 
@@ -8,11 +9,13 @@ namespace will {
 
 
 /// SQLite Spatiality — abodes and where words are placed.
+/// Place ids are pointed from Eternity's Space.
 class SqliteSpatiality final : public domain::Spatiality {
 public:
-	explicit SqliteSpatiality(SqliteDatabase& database);
+	SqliteSpatiality(SqliteDatabase& database, domain::Eternity& eternity);
 
 	std::vector<domain::Abiding> abodes() override;
+	domain::Abiding abide(domain::id::Soul soul, domain::AbodeName name) override;
 	std::optional<domain::Abiding> abode_of(domain::id::Soul soul) const override;
 	void keep(domain::id::Abode id, domain::AbodeName name) override;
 	void join_abode(domain::id::Abode abode, domain::id::Soul soul) override;
@@ -22,6 +25,7 @@ public:
 
 private:
 	SqliteDatabase& database_;
+	domain::Eternity& eternity_;
 };
 
 

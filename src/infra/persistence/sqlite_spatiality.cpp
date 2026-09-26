@@ -1,19 +1,22 @@
 #include "sqlite_spatiality.h"
 
+#include "beings/space.h"
 #include "sqlite_util.h"
 #include "values/abode_name.h"
 
 #include <optional>
 #include <stdexcept>
 #include <string>
+#include <utility>
 #include <sqlite3.h>
 
 
 namespace will {
 
 
-SqliteSpatiality::SqliteSpatiality(SqliteDatabase& database)
+SqliteSpatiality::SqliteSpatiality(SqliteDatabase& database, domain::Eternity& eternity)
 	: database_(database)
+	, eternity_(eternity)
 {}
 
 
@@ -35,6 +38,18 @@ std::vector<domain::Abiding> SqliteSpatiality::abodes()
 	}
 
 	return rows;
+}
+
+
+domain::Abiding SqliteSpatiality::abide(const domain::id::Soul soul, domain::AbodeName name)
+{
+	if (std::optional<domain::Abiding> existing = abode_of(soul))
+		return std::move(*existing);
+
+	const domain::id::Abode id{eternity_.space().point()};
+	keep(id, name);
+	join_abode(id, soul);
+	return domain::Abiding{id, std::move(name)};
 }
 
 

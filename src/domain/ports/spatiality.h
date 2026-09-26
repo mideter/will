@@ -27,6 +27,9 @@ public:
 	/// Abodes kept in space (id + name material).
 	virtual std::vector<Abiding> abodes() = 0;
 
+	/// Abiding for this soul: restore if kept, otherwise open, keep, and join.
+	virtual Abiding abide(id::Soul soul, AbodeName name) = 0;
+
 	/// Abiding for the abode this soul already dwells in, if kept.
 	virtual std::optional<Abiding> abode_of(id::Soul soul) const = 0;
 
