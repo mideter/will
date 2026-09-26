@@ -21,7 +21,7 @@ class Soul;
 
 /// Spirit (Дух) — highest foundation of the soul; immanent to Heaven.
 /// Will belongs to spirit (utter); living Witness reveals it as say.
-/// Knows Heaven via heaven(). Living Man presents the soul to Heaven at birth.
+/// Living Man presents the soul to Heaven at birth.
 /// Neither copy nor transfer; only Soul may bring forth Spirit.
 class Spirit : public Immanent<Heaven> {
 public:
@@ -33,10 +33,8 @@ public:
 protected:
 	Spirit() = default;
 
-	/// Static so Soul::of can look up without an instance.
-	static Heaven& heaven() { return Heaven::the(); }
-
-	static Eternity& eternity() { return heaven().eternity(); }
+	/// Living soul known to Heaven. Throws if unknown.
+	static const Soul& soul(id::Soul id);
 
 	Utterance utter(const Saying& saying) const;
 
@@ -47,6 +45,11 @@ protected:
 	void contemplate(const Abode& abode) const;
 
 	const Contemplation& contemplation() const;
+
+private:
+	static Heaven& heaven() { return Heaven::the(); }
+
+	static Eternity& eternity() { return heaven().eternity(); }
 };
 
 

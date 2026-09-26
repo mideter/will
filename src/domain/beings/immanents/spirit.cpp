@@ -7,10 +7,16 @@
 namespace will::domain {
 
 
+const Soul& Spirit::soul(const id::Soul id)
+{
+	return heaven().soul(id);
+}
+
+
 Utterance Spirit::utter(const Saying& saying) const
 {
-	const auto& soul = static_cast<const Soul&>(*this);
-	return eternity().utter(soul.id(), saying);
+	const auto& self = static_cast<const Soul&>(*this);
+	return eternity().utter(self.id(), saying);
 }
 
 
@@ -28,15 +34,15 @@ bool Spirit::knows(const id::Soul soul_id) const
 
 void Spirit::contemplate(const Abode& abode) const
 {
-	const auto& soul = static_cast<const Soul&>(*this);
-	heaven().contemplate(soul, abode);
+	const auto& self = static_cast<const Soul&>(*this);
+	heaven().contemplate(self, abode);
 }
 
 
 const Contemplation& Spirit::contemplation() const
 {
-	const auto& soul = static_cast<const Soul&>(*this);
-	return heaven().contemplation(soul.id());
+	const auto& self = static_cast<const Soul&>(*this);
+	return heaven().contemplation(self.id());
 }
 
 
