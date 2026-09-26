@@ -27,6 +27,7 @@ class Testator : public Novice {
 public:
 	void accept(const Supplication& ask) const;
 	void reject(const Supplication& ask) const;
+
 	Deed will(const Shepherding& shepherding, const Word& word) const;
 
 	const Shepherding& shepherding(id::Tie id) const;

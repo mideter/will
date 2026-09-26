@@ -36,14 +36,13 @@ public:
 protected:
 	explicit Novice(Embodiment embodiment);
 
-	const Obedience& keep(Tying tying) const;
-
 private:
 	friend class Supplication;
 	friend class World;
 
 	using Witness::say;
 
+	const Obedience& keep(Tying tying) const;
 	const Obedience& keep(std::unique_ptr<Obedience> place) const;
 
 	mutable std::vector<std::unique_ptr<Obedience>> obediences_;
