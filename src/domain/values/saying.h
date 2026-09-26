@@ -7,17 +7,17 @@
 namespace will::domain {
 
 
-/// Word (Слово) — that which the spirit utters.
-class Word {
+/// Saying (Речение) — external manifestation of Word; text the spirit utters.
+class Saying {
 public:
 	static constexpr std::size_t MaxBodyLength = 4096;
 
 	/// Throws std::invalid_argument if body is empty or too long.
-	explicit Word(std::string body);
+	Saying(std::string body);
 
 	const std::string& body() const noexcept { return body_; }
 
-	bool operator==(const Word&) const = default;
+	bool operator==(const Saying&) const = default;
 
 private:
 	std::string body_;

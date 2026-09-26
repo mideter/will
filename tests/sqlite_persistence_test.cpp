@@ -10,7 +10,6 @@
 #include "values/device_token.h"
 #include "identity/soul.h"
 #include "values/soul_name.h"
-#include "values/word.h"
 
 #include <optional>
 #include <string>
@@ -52,13 +51,13 @@ TEST_CASE("sqlite persistence survives reopen")
 		name_b = man_b.name();
 		abode_a_place = static_cast<const Witness&>(man_a).abode().id();
 
-		man_a.say(Word{"from-peer"});
-		man_b.say(Word{"from-me"});
+		man_a.say("from-peer");
+		man_b.say("from-me");
 
 		const auto& witness_a = static_cast<const Witness&>(man_a);
 		const auto letters = witness_a.retell(10);
 		REQUIRE(letters.size() == 1);
-		CHECK(letters[0].body() == "from-peer");
+		CHECK(letters[0].saying().body() == "from-peer");
 		CHECK(letters[0].author().id() == man_a.Soul::id());
 		CHECK(world.soul(letters[0].author().id()).name() == *name_a);
 
@@ -100,7 +99,7 @@ TEST_CASE("sqlite persistence survives reopen")
 
 		const auto letters = static_cast<const Witness&>(man_a_reloaded).retell(10);
 		REQUIRE(letters.size() == 1);
-		CHECK(letters[0].body() == "from-peer");
+		CHECK(letters[0].saying().body() == "from-peer");
 
 		CHECK(world.knows(*soul_b_id));
 		CHECK(world.soul(*soul_b_id).name() == *name_b);

@@ -17,7 +17,7 @@ public:
 	domain::Time& time() override;
 	domain::Space& space() override;
 	domain::id::Soul enroll(domain::SoulName name) override;
-	domain::Utterance utter(domain::id::Soul author, const domain::Word& word) override;
+	domain::Utterance utter(domain::id::Soul author, const domain::Saying& saying) override;
 	domain::Utterance utterance(domain::id::Letter id) const override;
 	std::vector<domain::Utterance> utterances(const std::vector<domain::id::Letter>& ids) const override;
 

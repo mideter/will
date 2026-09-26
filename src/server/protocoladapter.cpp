@@ -90,7 +90,7 @@ void ProtocolAdapter::handle_user_chat(const SessionId session_id, const v1::Cha
 
 	const domain::Man& man = world_.man(world_.vessel(*vessel_id));
 	try {
-		man.say(domain::Word{std::string{chat.body()}});
+		man.say(std::string{chat.body()});
 	} catch (const std::exception&) {
 		close_with_protocol_error(session_id, "Protocol error: invalid ChatMessage");
 		return;
@@ -139,7 +139,7 @@ void ProtocolAdapter::handle_history_request(const SessionId session_id, const v
 		history_item->set_message_id(letter.id().value());
 		history_item->set_is_mine(letter.author().id() == listener_soul);
 		history_item->set_name(std::string{letter.author().name().text()});
-		history_item->set_body(letter.body());
+		history_item->set_body(letter.saying().body());
 		send_event(session_id, event);
 	}
 

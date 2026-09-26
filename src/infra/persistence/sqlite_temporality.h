@@ -31,7 +31,7 @@ public:
 
 	domain::Deed
 	will(const domain::Obedience& obedience, const domain::Soul& testator,
-		 const domain::Word& word) override;
+		 const domain::Saying& saying) override;
 	domain::Deed execute(const domain::Deed& deed) override;
 	domain::Deed deed(domain::id::Deed id) const override;
 	std::vector<domain::Deed> deeds(domain::id::Tie tie) const override;

@@ -1,9 +1,10 @@
 #pragma once
 
 #include "beings/immanents/tie.h"
+#include "beings/word.h"
 #include "identity/deed.h"
+#include "values/saying.h"
 #include "values/timestamp.h"
-#include "values/word.h"
 
 #include <optional>
 
@@ -15,12 +16,13 @@ namespace will::domain {
 /// open unless restored with timestamps.
 class Deed : public Word {
 public:
-	Deed(id::Deed id, const Tie& tie, Word word, Timestamp created_at,
+	Deed(id::Deed id, const Tie& tie, Saying saying, Timestamp created_at,
 		 std::optional<Timestamp> executed_at = std::nullopt,
 		 std::optional<Timestamp> cancelled_at = std::nullopt);
 
 	id::Deed id() const noexcept { return id_; }
 	const Tie& tie() const noexcept { return tie_; }
+	const Saying& saying() const noexcept { return saying_; }
 	Timestamp created_at() const noexcept { return created_at_; }
 
 	const std::optional<Timestamp>& executed_at() const noexcept { return executed_at_; }
@@ -33,6 +35,7 @@ public:
 private:
 	id::Deed id_;
 	const Tie& tie_;
+	Saying saying_;
 	Timestamp created_at_;
 	std::optional<Timestamp> executed_at_;
 	std::optional<Timestamp> cancelled_at_;

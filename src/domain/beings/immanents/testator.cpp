@@ -29,13 +29,13 @@ void Testator::reject(const Supplication& ask) const
 }
 
 
-Deed Testator::will(const Shepherding& shepherding, const Word& word) const
+Deed Testator::will(const Shepherding& shepherding, const Saying& saying) const
 {
 	if (shepherding.testator().Soul::id() != Soul::id())
 		throw std::logic_error("not the testator of this shepherding");
 
 	return temporality().will(dynamic_cast<const Obedience&>(shepherding),
-							  static_cast<const Soul&>(*this), word);
+							  static_cast<const Soul&>(*this), saying);
 }
 
 

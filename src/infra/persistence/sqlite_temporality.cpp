@@ -5,7 +5,7 @@
 #include "beings/immanents/soul.h"
 #include "beings/space.h"
 #include "beings/immanents/testator.h"
-#include "values/word.h"
+#include "values/saying.h"
 
 #include "sqlite_util.h"
 
@@ -344,7 +344,7 @@ std::vector<domain::Tying> SqliteTemporality::tyings() const
 
 
 domain::Deed SqliteTemporality::will(const domain::Obedience& obedience,
-									  const domain::Soul& testator, const domain::Word& word)
+									  const domain::Soul& testator, const domain::Saying& saying)
 {
 	if (obedience.testator().Soul::id() != testator.id())
 		throw std::logic_error("only the testator may will in this obedience");
@@ -369,13 +369,13 @@ domain::Deed SqliteTemporality::will(const domain::Obedience& obedience,
 	stmt.bind_i64(1, static_cast<std::int64_t>(obedience.id().value()), "bind obedience_id");
 	stmt.bind_i64(2, static_cast<std::int64_t>(obedience.testator().Soul::id().value()), "bind testator");
 	stmt.bind_i64(3, static_cast<std::int64_t>(obedience.novice().Soul::id().value()), "bind novice");
-	stmt.bind_text(4, word.body(), "bind body");
+	stmt.bind_text(4, saying.body(), "bind body");
 	stmt.bind_i64(5, ts.value(), "bind created_at");
 	stmt.step_done("insert deed step");
 
 	const domain::id::Deed did{sqlite_last_insert_id(db)};
 
-	return domain::Deed{did, dynamic_cast<const domain::Tie&>(obedience), word, ts};
+	return domain::Deed{did, dynamic_cast<const domain::Tie&>(obedience), saying, ts};
 }
 
 
@@ -383,7 +383,7 @@ domain::Deed SqliteTemporality::execute(const domain::Deed& deed)
 {
 	const domain::Timestamp ts = eternity_.time().instant();
 	domain::id::Tie oid{1};
-	domain::Word word{std::string{deed.body()}};
+	domain::Saying saying{deed.saying()};
 	domain::Timestamp created = deed.created_at();
 	domain::id::Deed did{deed.id().value()};
 
@@ -419,7 +419,7 @@ domain::Deed SqliteTemporality::execute(const domain::Deed& deed)
 	}
 
 	const domain::Tying kept = tying(oid);
-	return domain::Deed{did, live_tie(kept.id(), kept.novice()), word, created, ts, std::nullopt};
+	return domain::Deed{did, live_tie(kept.id(), kept.novice()), saying, created, ts, std::nullopt};
 }
 
 
@@ -454,7 +454,7 @@ domain::Deed SqliteTemporality::deed(const domain::id::Deed id) const
 	}
 
 	const domain::Tying kept = tying(oid);
-	return domain::Deed{did, live_tie(kept.id(), kept.novice()), domain::Word{body_str}, created,
+	return domain::Deed{did, live_tie(kept.id(), kept.novice()), body_str, created,
 						executed, cancelled};
 }
 

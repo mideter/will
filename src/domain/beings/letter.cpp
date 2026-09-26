@@ -8,10 +8,10 @@ namespace will::domain {
 
 
 Letter::Letter(Utterance utterance, Placement placement, Dating dating)
-	: Word(utterance.word())
-	, id_(utterance.id())
+	: id_(utterance.id())
 	, place_(Place::of(placement.place()))
 	, author_(Soul::of(utterance.author()))
+	, saying_(utterance.saying())
 	, created_at_(dating.created_at())
 {
 	if (utterance.id() != placement.id() || utterance.id() != dating.id())

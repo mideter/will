@@ -3,7 +3,7 @@
 #include "beings/heaven.h"
 #include "ports/eternity.h"
 #include "properties/immanent.h"
-#include "values/word.h"
+#include "values/saying.h"
 
 
 namespace will::domain {
@@ -21,8 +21,8 @@ class Spirit : public Immanent<Heaven> {
 public:
 	virtual ~Spirit() = default;
 
-	/// Act of will: speak a word. Outside the living world this fails; Witness reveals it.
-	virtual void say(const Word& word) const;
+	/// Act of will: utter a Saying. Outside the living world this fails; Witness reveals it.
+	virtual void say(const Saying& saying) const;
 
 protected:
 	Spirit() = default;

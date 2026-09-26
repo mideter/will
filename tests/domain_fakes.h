@@ -32,7 +32,7 @@
 #include "values/device_token.h"
 #include "values/soul_name.h"
 #include "values/timestamp.h"
-#include "values/word.h"
+#include "values/saying.h"
 
 #include <cstdint>
 #include <optional>
@@ -87,9 +87,9 @@ public:
 		return soul_id;
 	}
 
-	Utterance utter(const id::Soul author, const Word& word) override
+	Utterance utter(const id::Soul author, const Saying& saying) override
 	{
-		Utterance row{id::Letter{++shared_.next_letter_id}, author, word};
+		Utterance row{id::Letter{++shared_.next_letter_id}, author, saying};
 		utterances_.push_back(row);
 		return row;
 	}
@@ -326,7 +326,7 @@ public:
 		return out;
 	}
 
-	Deed will(const Obedience& obedience, const Soul& testator, const Word& word) override
+	Deed will(const Obedience& obedience, const Soul& testator, const Saying& saying) override
 	{
 		const id::Tie tid{obedience.id().value()};
 		if (!has_obedience(tid))
@@ -338,7 +338,7 @@ public:
 					tid,
 					obedience.testator().Soul::id(),
 					obedience.novice().Soul::id(),
-					word.body(),
+					saying.body(),
 					eternity_.time().instant(),
 					std::nullopt,
 					std::nullopt};
@@ -419,7 +419,7 @@ private:
 	Deed make_deed(const DeedRow& row) const
 	{
 		const auto& place = static_cast<const Novice&>(Soul::of(row.novice)).obedience(row.obedience);
-		return Deed{row.id, dynamic_cast<const Tie&>(place), Word{row.body}, row.created_at,
+		return Deed{row.id, dynamic_cast<const Tie&>(place), row.body, row.created_at,
 					row.executed_at, row.cancelled_at};
 	}
 

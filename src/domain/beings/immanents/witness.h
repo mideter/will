@@ -4,7 +4,7 @@
 #include "beings/immanents/abode.h"
 #include "beings/letter.h"
 #include "beings/immanents/man.h"
-#include "values/word.h"
+#include "values/saying.h"
 
 #include <cstdint>
 #include <memory>
@@ -21,7 +21,7 @@ class Witness : public Man {
 public:
 	Abode& abode() const noexcept { return *abode_; }
 
-	void say(const Word& word) const final;
+	void say(const Saying& saying) const final;
 
 	/// Outward witnessing: retell letters of authors known to Heaven (capped).
 	std::vector<Letter> retell(std::uint32_t limit) const;

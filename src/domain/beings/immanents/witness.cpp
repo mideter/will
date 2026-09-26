@@ -39,12 +39,12 @@ Witness::Witness(Embodiment embodiment)
 }
 
 
-void Witness::say(const Word& word) const
+void Witness::say(const Saying& saying) const
 {
 	if (!abode_->dwells(*this))
 		throw std::logic_error("Witness does not dwell in the observed abode");
 
-	const Utterance uttered = eternity().utter(Soul::id(), word);
+	const Utterance uttered = eternity().utter(Soul::id(), saying);
 	spatiality().place(uttered.id(), abode_->id());
 	temporality().date(uttered.id(), eternity().time().instant());
 }

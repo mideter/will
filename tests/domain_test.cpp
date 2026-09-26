@@ -17,7 +17,6 @@
 #include "values/device_token.h"
 #include "values/timestamp.h"
 #include "values/soul_name.h"
-#include "values/word.h"
 
 #include <stdexcept>
 #include <vector>
@@ -134,7 +133,7 @@ TEST_CASE("man say persists via temporality")
 
 	const Man& author = world.welcome(DeviceToken::generate());
 	const auto& witness = static_cast<const Witness&>(author);
-	author.say(Word{"hello"});
+	author.say("hello");
 
 	const auto placed = cosmos.spatiality().placements(witness.abode().id(), 10);
 	REQUIRE(placed.size() == 1);
@@ -142,7 +141,7 @@ TEST_CASE("man say persists via temporality")
 	REQUIRE(dated.size() == 1);
 	const auto uttered = cosmos.eternity().utterance(placed[0].id());
 	CHECK(uttered.author() == author.Soul::id());
-	CHECK(uttered.word().body() == "hello");
+	CHECK(uttered.saying().body() == "hello");
 	CHECK(dated[0].created_at() == Timestamp{1});
 }
 
@@ -160,7 +159,7 @@ TEST_CASE("witness retell is history of observed abode")
 	const auto& witness = static_cast<const Witness&>(man);
 
 	for (int i = 0; i < 5; ++i)
-		man.say(Word{"m"});
+		man.say("m");
 
 	CHECK_THROWS_AS(witness.retell(0), std::invalid_argument);
 
@@ -262,13 +261,13 @@ TEST_CASE("will and execute within obedience")
 	const Obedience& obedience =
 		novice.obedience(cosmos.temporality().tyings().front().id());
 	const Shepherding& shepherding = testator.shepherding(id::Tie{obedience.id()});
-	const Deed deed = testator.will(shepherding, Word{"fast"});
+	const Deed deed = testator.will(shepherding, "fast");
 	CHECK(deed.open());
-	CHECK(deed.body() == "fast");
+	CHECK(deed.saying().body() == "fast");
 	CHECK(&deed.tie().testator() == &testator);
 	CHECK(&deed.tie().novice() == &novice);
 
-	CHECK_THROWS_AS(static_cast<const Testator&>(a).will(shepherding, Word{"no"}), std::logic_error);
+	CHECK_THROWS_AS(static_cast<const Testator&>(a).will(shepherding, "no"), std::logic_error);
 
 	const Deed done = novice.execute(deed);
 	CHECK(done.executed());

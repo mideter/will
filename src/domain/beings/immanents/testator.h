@@ -5,7 +5,7 @@
 #include "acts/supplication.h"
 #include "beings/immanents/novice.h"
 #include "beings/deed.h"
-#include "values/word.h"
+#include "values/saying.h"
 
 #include <functional>
 #include <memory>
@@ -28,7 +28,7 @@ public:
 	void accept(const Supplication& ask) const;
 	void reject(const Supplication& ask) const;
 
-	Deed will(const Shepherding& shepherding, const Word& word) const;
+	Deed will(const Shepherding& shepherding, const Saying& saying) const;
 
 	const Shepherding& shepherding(id::Tie id) const;
 	const Supplication& supplication(const Novice& suppliant) const;

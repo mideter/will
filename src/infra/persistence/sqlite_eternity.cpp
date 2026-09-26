@@ -1,7 +1,7 @@
 #include "sqlite_eternity.h"
 
 #include "sqlite_util.h"
-#include "values/word.h"
+#include "values/saying.h"
 
 #include <stdexcept>
 #include <string>
@@ -47,7 +47,7 @@ domain::id::Soul SqliteEternity::enroll(const domain::SoulName name)
 }
 
 
-domain::Utterance SqliteEternity::utter(const domain::id::Soul author, const domain::Word& word)
+domain::Utterance SqliteEternity::utter(const domain::id::Soul author, const domain::Saying& saying)
 {
 	std::lock_guard lock(database_.mutex());
 
@@ -55,10 +55,10 @@ domain::Utterance SqliteEternity::utter(const domain::id::Soul author, const dom
 	SqliteStmt stmt(db, "INSERT INTO utterances (author_soul_id, body) VALUES (?, ?);",
 					"prepare insert utterance");
 	stmt.bind_i64(1, static_cast<std::int64_t>(author.value()), "bind author");
-	stmt.bind_text(2, word.body(), "bind body");
+	stmt.bind_text(2, saying.body(), "bind body");
 	stmt.step_done("insert utterance step");
 
-	return domain::Utterance{domain::id::Letter{sqlite_last_insert_id(db)}, author, word};
+	return domain::Utterance{domain::id::Letter{sqlite_last_insert_id(db)}, author, saying};
 }
 
 
@@ -76,7 +76,7 @@ domain::Utterance SqliteEternity::utterance(const domain::id::Letter id) const
 	return domain::Utterance{
 		domain::id::Letter{static_cast<std::uint64_t>(stmt.column_i64(0))},
 		domain::id::Soul{static_cast<std::uint64_t>(stmt.column_i64(1))},
-		domain::Word{std::string(stmt.column_text(2))},
+		std::string(stmt.column_text(2)),
 	};
 }
 

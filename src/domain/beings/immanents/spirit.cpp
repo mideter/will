@@ -6,7 +6,7 @@
 namespace will::domain {
 
 
-void Spirit::say(const Word&) const
+void Spirit::say(const Saying&) const
 {
 	throw std::logic_error("Spirit outside the living world cannot say");
 }

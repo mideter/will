@@ -15,7 +15,7 @@
 #include "values/device_token.h"
 #include "values/soul_name.h"
 #include "values/timestamp.h"
-#include "values/word.h"
+#include "values/saying.h"
 
 #include <cstdint>
 #include <utility>
@@ -66,8 +66,8 @@ public:
 	/// All tyings kept in time.
 	virtual std::vector<Tying> tyings() const = 0;
 
-	/// Will a word in a shared place (testator must be that place's testator).
-	virtual Deed will(const Obedience& obedience, const Soul& testator, const Word& word) = 0;
+	/// Will a Saying in a shared place (testator must be that place's testator).
+	virtual Deed will(const Obedience& obedience, const Soul& testator, const Saying& saying) = 0;
 
 	/// Execute an open deed.
 	virtual Deed execute(const Deed& deed) = 0;
