@@ -1,8 +1,6 @@
 #include "earth.h"
 
 #include "beings/immanents/vessel.h"
-#include "ports/spatiality.h"
-#include "ports/temporality.h"
 
 #include <stdexcept>
 
@@ -76,18 +74,6 @@ void Earth::present(const Vessel& vessel)
 	std::lock_guard lock(mutex_);
 	id_by_token_.insert_or_assign(vessel.token(), vessel.id());
 	vessels_.insert_or_assign(vessel.id(), &vessel);
-}
-
-
-void Earth::keep(const id::Abode id, AbodeName name)
-{
-	spatiality_.keep(id, std::move(name));
-}
-
-
-void Earth::join_abode(const id::Abode abode, const id::Soul soul)
-{
-	spatiality_.join_abode(abode, soul);
 }
 
 

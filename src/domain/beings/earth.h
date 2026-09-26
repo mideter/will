@@ -1,10 +1,7 @@
 #pragma once
 
 #include "properties/immanent.h"
-#include "identity/abode.h"
-#include "identity/soul.h"
 #include "identity/vessel.h"
-#include "values/abode_name.h"
 #include "values/device_token.h"
 
 #include <mutex>
@@ -42,17 +39,8 @@ protected:
 
 	~Earth();
 
-	/// Present a vessel owned by a heap-stable Man.
-	void present(const Vessel& vessel);
-
 	/// Resolve device token to vessel id for World::welcome. Empty if unknown.
 	std::optional<id::Vessel> id_of(const DeviceToken& token) const;
-
-	/// Keep an abode in Spatiality (idempotent by id).
-	void keep(id::Abode id, AbodeName name);
-
-	/// Record that a soul dwells in an abode (through Spatiality).
-	void join_abode(id::Abode abode, id::Soul soul);
 
 	Temporality& temporality() noexcept { return temporality_; }
 	const Temporality& temporality() const noexcept { return temporality_; }
@@ -61,6 +49,9 @@ protected:
 	const Spatiality& spatiality() const noexcept { return spatiality_; }
 
 private:
+	/// Present a vessel owned by a heap-stable Man.
+	void present(const Vessel& vessel);
+
 	/// The one living Earth. Throws if not yet brought forth / already destroyed.
 	static Earth& the();
 
