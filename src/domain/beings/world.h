@@ -23,8 +23,8 @@ namespace will::domain {
 class Witness;
 
 
-/// World (Мир) — the one living cosmos: is Heaven and Earth.
-/// Heaven and Earth are in space and time; Time and Space are of Eternity.
+/// World (Мир) — the one living cosmos: Heaven and Earth as invisible and visible.
+/// In space and time; Time and Space of Eternity.
 /// Eternity is reached from Heaven. Each living man has a personal abode.
 /// Brought forth only by Creation as Heaven and Earth; Space already of Eternity.
 /// Living people are Testator on the heap; World alone births them.

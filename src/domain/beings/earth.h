@@ -17,7 +17,8 @@ class Temporality;
 class Spatiality;
 
 
-/// Earth (Земля) — of the one World; speaks with Temporality and Spatiality.
+/// Earth (Земля) — symbol of the visible world.
+/// Of the one World with Heaven; speaks with Temporality and Spatiality.
 /// Immanent to itself. Dust reaches Temporality and Spatiality via friendship.
 /// Creation brings forth Earth. Earth is in space and time. Live registry of
 /// vessels; abodes live with men; places are known to Space; spatial material

@@ -15,7 +15,8 @@ class Eternity;
 class Spirit;
 
 
-/// Heaven (Небо) — of the one World; Spirit alone reaches it via heaven().
+/// Heaven (Небо) — symbol of the invisible world.
+/// Of the one World with Earth; Spirit alone reaches it via heaven().
 /// Immanent to itself. Creation brings forth Heaven. Heaven is in space and time;
 /// Eternity is reached from here. Pointers address Soul bases of heap-stable Man.
 class Heaven : private Immanent<Heaven> {
