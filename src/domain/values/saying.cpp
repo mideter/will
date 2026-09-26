@@ -17,4 +17,9 @@ Saying::Saying(std::string body)
 }
 
 
+Saying::Saying(const char* body)
+	: Saying(std::string(body ? body : ""))
+{}
+
+
 } // namespace will::domain

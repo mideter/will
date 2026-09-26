@@ -14,6 +14,7 @@ public:
 
 	/// Throws std::invalid_argument if body is empty or too long.
 	Saying(std::string body);
+	Saying(const char* body);
 
 	const std::string& body() const noexcept { return body_; }
 
