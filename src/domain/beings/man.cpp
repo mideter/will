@@ -1,8 +1,5 @@
 #include "man.h"
 
-#include "beings/dust.h"
-#include "beings/spirit.h"
-
 #include <utility>
 
 
@@ -13,8 +10,8 @@ Man::Man(Embodiment embodiment)
 	: Soul(embodiment.soul(), embodiment.name())
 	, Vessel(embodiment.vessel(), embodiment.token())
 {
-	Spirit::present();
-	Dust::present();
+	Immanent<Heaven>::present<Soul>();
+	Immanent<Earth>::present<Vessel>();
 }
 
 

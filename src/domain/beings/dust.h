@@ -1,6 +1,7 @@
 #pragma once
 
 #include "beings/earth.h"
+#include "properties/immanent.h"
 
 
 namespace will::domain {
@@ -8,21 +9,17 @@ namespace will::domain {
 
 class Temporality;
 class Spatiality;
-class Vessel;
 
 
-/// Dust (Прах) — earthly foundation of the vessel; knows Temporality and Spatiality through Earth.
-/// Living Man presents the vessel to Earth at birth.
-class Dust {
+/// Dust (Прах) — earthly foundation of the vessel; immanent to Earth.
+/// Carrier of immanence: through Dust the vessel participates in Earth.
+/// Knows Temporality and Spatiality through Earth.
+class Dust : public Immanent<Earth> {
 public:
 	Temporality& temporality() const { return Earth::the().temporality(); }
 	Spatiality& spatiality() const { return Earth::the().spatiality(); }
 
 	bool operator==(const Dust&) const = default;
-
-protected:
-	/// Present this living vessel to Earth (heap-stable address). Used by Man at birth.
-	void present() const;
 };
 
 

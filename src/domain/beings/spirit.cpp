@@ -1,17 +1,9 @@
 #include "spirit.h"
 
-#include "beings/soul.h"
-
 #include <stdexcept>
 
 
 namespace will::domain {
-
-
-void Spirit::present() const
-{
-	heaven().present(static_cast<const Soul&>(*this));
-}
 
 
 void Spirit::say(const Word&) const

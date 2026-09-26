@@ -17,7 +17,7 @@ class Place;
 /// Space (Пространство) — living field of Places in the World.
 /// One Space, given through Eternity (as Time is). Place reaches it via Place::of / present().
 /// Points place ids as Time gives instants.
-class Space : private Immanent {
+class Space : private Immanent<> {
 public:
 	Space();
 	virtual ~Space();

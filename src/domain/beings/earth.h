@@ -10,8 +10,6 @@
 #include <mutex>
 #include <optional>
 #include <unordered_map>
-#include <utility>
-#include <vector>
 
 
 namespace will::domain {
@@ -26,7 +24,7 @@ class Spatiality;
 /// Dust reaches both via friendship. Creation brings forth Earth.
 /// Earth is in space and time. Live registry of vessels; abodes live with men;
 /// places are known to Space; spatial material to Spatiality.
-class Earth : private Immanent {
+class Earth : private Immanent<> {
 public:
 	/// Whether Earth knows this vessel.
 	bool knows(id::Vessel id) const;
@@ -36,6 +34,7 @@ public:
 
 protected:
 	friend class Dust;
+	friend class Immanent<Earth>;
 
 	/// Bring forth Earth (as World).
 	Earth(Temporality& temporality, Spatiality& spatiality);
