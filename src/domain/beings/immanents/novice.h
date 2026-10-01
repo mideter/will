@@ -34,8 +34,8 @@ public:
 	/// Deed by id in a tie where this soul is a side. Throws if unknown.
 	Deed deed(id::Word id) const;
 
-	/// Owned Obedience face by tie id. Throws if unknown.
-	const Obedience& obedience(id::Tie id) const;
+	/// Owned Obedience face under this testator. Throws if unknown.
+	const Obedience& obedience(const Testator& testator) const;
 
 protected:
 	explicit Novice(Embodiment embodiment);

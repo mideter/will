@@ -25,12 +25,14 @@ class World;
 /// a Testator onto the heap.
 class Testator : public Novice {
 public:
-	void accept(const Supplication& ask) const;
+	/// The Shepherding of the Tie born from the accepted supplication.
+	const Shepherding& accept(const Supplication& ask) const;
 	void reject(const Supplication& ask) const;
 
 	Deed will(const Shepherding& shepherding, const Saying& saying) const;
 
-	const Shepherding& shepherding(id::Tie id) const;
+	/// Shepherding of the Tie with this novice. Throws if unknown.
+	const Shepherding& shepherding(const Novice& novice) const;
 	const Supplication& supplication(const Novice& suppliant) const;
 	std::vector<std::reference_wrapper<const Supplication>> supplications() const;
 

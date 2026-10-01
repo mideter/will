@@ -1,9 +1,6 @@
 #include "sqlite_temporality.h"
 
-#include "beings/immanents/novice.h"
-#include "beings/immanents/soul.h"
 #include "beings/space.h"
-#include "beings/immanents/testator.h"
 
 #include "sqlite_util.h"
 
@@ -15,17 +12,6 @@
 
 namespace will {
 namespace {
-
-
-domain::Supplication read_pending_supplication(sqlite3_stmt* stmt)
-{
-	const domain::id::Soul suppliant_id{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 0))};
-	const domain::id::Soul addressee_id{static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 1))};
-	return domain::Supplication{
-		static_cast<const domain::Novice&>(domain::Soul::of(suppliant_id)),
-		static_cast<const domain::Testator&>(domain::Soul::of(addressee_id)),
-	};
-}
 
 
 bool pair_exists(sqlite3* db, const domain::id::Soul testator, const domain::id::Soul novice)
@@ -40,33 +26,22 @@ bool pair_exists(sqlite3* db, const domain::id::Soul testator, const domain::id:
 }
 
 
-domain::Supplication require_pending(sqlite3* db, const domain::Supplication& ask)
+/// Row id of the asking of this pair that has no rejection kept, if any.
+std::optional<std::int64_t>
+unrejected_asking(sqlite3* db, const domain::id::Soul suppliant, const domain::id::Soul addressee)
 {
-	SqliteStmt load(db,
-					"SELECT suppliant_soul_id, testator_soul_id "
-					"FROM supplications "
-					"WHERE suppliant_soul_id = ? AND testator_soul_id = ? "
-					"AND status = 'pending' LIMIT 1;",
-					"prepare load pending supplication");
-	load.bind_i64(1, static_cast<std::int64_t>(ask.suppliant().Soul::id().value()), "bind suppliant");
-	load.bind_i64(2, static_cast<std::int64_t>(ask.addressee().Soul::id().value()), "bind addressee");
-	if (!load.step_row("load pending step"))
-		throw std::invalid_argument("unknown supplication");
+	SqliteStmt stmt(db,
+					"SELECT a.id FROM askings AS a "
+					"WHERE a.suppliant_soul_id = ? AND a.addressee_soul_id = ? "
+					"AND NOT EXISTS (SELECT 1 FROM rejections AS r WHERE r.asking_id = a.id) "
+					"LIMIT 1;",
+					"prepare unrejected asking");
+	stmt.bind_i64(1, static_cast<std::int64_t>(suppliant.value()), "bind suppliant");
+	stmt.bind_i64(2, static_cast<std::int64_t>(addressee.value()), "bind addressee");
+	if (!stmt.step_row("unrejected asking step"))
+		return std::nullopt;
 
-	return read_pending_supplication(load.get());
-}
-
-
-void mark_accepted(sqlite3* db, const domain::Supplication& row)
-{
-	SqliteStmt upd(db,
-				   "UPDATE supplications SET status = 'accepted' "
-				   "WHERE suppliant_soul_id = ? AND testator_soul_id = ? "
-				   "AND status = 'pending';",
-				   "prepare accept status");
-	upd.bind_i64(1, static_cast<std::int64_t>(row.suppliant().Soul::id().value()), "bind suppliant");
-	upd.bind_i64(2, static_cast<std::int64_t>(row.addressee().Soul::id().value()), "bind addressee");
-	upd.step_done("accept status step");
+	return stmt.column_i64(0);
 }
 
 
@@ -195,126 +170,90 @@ std::vector<domain::Dating> SqliteTemporality::datings(const std::vector<domain:
 }
 
 
-domain::Supplication SqliteTemporality::supplicate(const domain::Novice& suppliant,
-												   const domain::Testator& addressee)
+domain::Asking SqliteTemporality::ask(const domain::id::Soul suppliant,
+									  const domain::id::Soul addressee)
 {
-	const domain::id::Soul suppliant_id = suppliant.Soul::id();
-	const domain::id::Soul addressee_id = addressee.Soul::id();
-	if (suppliant_id == addressee_id)
-		throw std::invalid_argument("supplication requires distinct suppliant and addressee");
-
-	const domain::Timestamp ts = eternity_.time().instant();
+	const domain::Asking asking{suppliant, addressee};
+	const domain::Timestamp at = eternity_.time().instant();
 	std::lock_guard lock(time_db_.mutex());
 	sqlite3* const db = time_db_.db();
 
-	if (pair_exists(db, addressee_id, suppliant_id))
+	if (pair_exists(db, addressee, suppliant))
 		throw std::logic_error("obedience already exists for this pair");
-
-	{
-		SqliteStmt pending_stmt(db,
-								"SELECT 1 FROM supplications "
-								"WHERE suppliant_soul_id = ? AND testator_soul_id = ? "
-								"AND status = 'pending' LIMIT 1;",
-								"prepare pending supplication");
-		pending_stmt.bind_i64(1, static_cast<std::int64_t>(suppliant_id.value()), "bind suppliant");
-		pending_stmt.bind_i64(2, static_cast<std::int64_t>(addressee_id.value()), "bind addressee");
-		if (pending_stmt.step_row("pending step"))
-			throw std::logic_error("pending supplication already exists for this pair");
-	}
+	if (unrejected_asking(db, suppliant, addressee))
+		throw std::logic_error("pending supplication already exists for this pair");
 
 	SqliteStmt stmt(db,
-					"INSERT INTO supplications "
-					"(suppliant_soul_id, testator_soul_id, status, created_at_ns) "
-					"VALUES (?, ?, ?, ?);",
-					"prepare insert supplication");
-	stmt.bind_i64(1, static_cast<std::int64_t>(suppliant_id.value()), "bind suppliant");
-	stmt.bind_i64(2, static_cast<std::int64_t>(addressee_id.value()), "bind addressee");
-	stmt.bind_text(3, "pending", "bind status");
-	stmt.bind_i64(4, ts.value(), "bind created_at");
-	stmt.step_done("insert supplication step");
+					"INSERT INTO askings (suppliant_soul_id, addressee_soul_id, asked_at_ns) "
+					"VALUES (?, ?, ?);",
+					"prepare ask");
+	stmt.bind_i64(1, static_cast<std::int64_t>(suppliant.value()), "bind suppliant");
+	stmt.bind_i64(2, static_cast<std::int64_t>(addressee.value()), "bind addressee");
+	stmt.bind_i64(3, at.value(), "bind asked_at");
+	stmt.step_done("ask step");
 
-	return domain::Supplication{suppliant, addressee};
+	return asking;
 }
 
 
-std::vector<domain::Supplication> SqliteTemporality::pending_supplications(
-	const domain::id::Soul addressee) const
+std::vector<domain::Asking> SqliteTemporality::askings(const domain::id::Soul addressee) const
 {
 	std::lock_guard lock(time_db_.mutex());
 	sqlite3* const db = time_db_.db();
 	SqliteStmt stmt(db,
-					"SELECT suppliant_soul_id, testator_soul_id "
-					"FROM supplications "
-					"WHERE testator_soul_id = ? AND status = 'pending' ORDER BY id;",
-					"prepare pending_supplications");
+					"SELECT a.suppliant_soul_id, a.addressee_soul_id FROM askings AS a "
+					"WHERE a.addressee_soul_id = ? "
+					"AND NOT EXISTS (SELECT 1 FROM rejections AS r WHERE r.asking_id = a.id) "
+					"AND NOT EXISTS (SELECT 1 FROM obediences AS o "
+					"WHERE o.testator_soul_id = a.addressee_soul_id "
+					"AND o.novice_soul_id = a.suppliant_soul_id) "
+					"ORDER BY a.id;",
+					"prepare askings");
 	stmt.bind_i64(1, static_cast<std::int64_t>(addressee.value()), "bind addressee");
 
-	std::vector<domain::Supplication> rows;
-	while (stmt.step_row("pending_supplications step"))
-		rows.push_back(read_pending_supplication(stmt.get()));
+	std::vector<domain::Asking> rows;
+	while (stmt.step_row("askings step")) {
+		rows.push_back(domain::Asking{
+			domain::id::Soul{static_cast<std::uint64_t>(stmt.column_i64(0))},
+			domain::id::Soul{static_cast<std::uint64_t>(stmt.column_i64(1))},
+		});
+	}
 
 	return rows;
 }
 
 
-domain::Tying SqliteTemporality::accept(const domain::Supplication& ask)
+void SqliteTemporality::reject(const domain::id::Soul suppliant, const domain::id::Soul addressee)
 {
-	const domain::Timestamp ts = eternity_.time().instant();
-	const domain::id::Place place = eternity_.space().point();
+	const domain::Timestamp at = eternity_.time().instant();
 	std::lock_guard lock(time_db_.mutex());
 	sqlite3* const db = time_db_.db();
-	SqliteTransaction tx(db);
 
-	const domain::Supplication row = require_pending(db, ask);
-	if (pair_exists(db, row.addressee().Soul::id(), row.suppliant().Soul::id()))
+	const std::optional<std::int64_t> asking = unrejected_asking(db, suppliant, addressee);
+	if (!asking || pair_exists(db, addressee, suppliant))
+		throw std::invalid_argument("unknown supplication");
+
+	SqliteStmt stmt(db, "INSERT INTO rejections (asking_id, rejected_at_ns) VALUES (?, ?);",
+					"prepare reject");
+	stmt.bind_i64(1, *asking, "bind asking_id");
+	stmt.bind_i64(2, at.value(), "bind rejected_at");
+	stmt.step_done("reject step");
+}
+
+
+domain::Tying SqliteTemporality::tie(const domain::id::Soul testator, const domain::id::Soul novice)
+{
+	const domain::Timestamp at = eternity_.time().instant();
+	std::lock_guard lock(time_db_.mutex());
+	sqlite3* const db = time_db_.db();
+
+	if (pair_exists(db, testator, novice))
 		throw std::logic_error("obedience already exists for this pair");
 
-	mark_accepted(db, row);
-	const domain::Tying tying{domain::id::Tie{place}, row.addressee().Soul::id(),
-							  row.suppliant().Soul::id()};
-	insert_tying(db, tying, ts);
+	const domain::Tying tying{domain::id::Tie{eternity_.space().point()}, testator, novice};
+	insert_tying(db, tying, at);
 
-	tx.commit();
 	return tying;
-}
-
-
-void SqliteTemporality::reject(const domain::Supplication& ask)
-{
-	std::lock_guard lock(time_db_.mutex());
-	sqlite3* const db = time_db_.db();
-
-	SqliteStmt upd(db,
-				   "UPDATE supplications SET status = 'rejected' "
-				   "WHERE suppliant_soul_id = ? AND testator_soul_id = ? "
-				   "AND status = 'pending';",
-				   "prepare reject");
-	upd.bind_i64(1, static_cast<std::int64_t>(ask.suppliant().Soul::id().value()), "bind suppliant");
-	upd.bind_i64(2, static_cast<std::int64_t>(ask.addressee().Soul::id().value()), "bind addressee");
-	upd.step_done("reject step");
-
-	if (sqlite3_changes(db) != 1)
-		throw std::invalid_argument("unknown supplication");
-}
-
-
-domain::Tying SqliteTemporality::tying(const domain::id::Tie id) const
-{
-	std::lock_guard lock(time_db_.mutex());
-	sqlite3* const db = time_db_.db();
-	SqliteStmt stmt(db,
-					"SELECT id, testator_soul_id, novice_soul_id "
-					"FROM obediences WHERE id = ?;",
-					"prepare tying");
-	stmt.bind_i64(1, static_cast<std::int64_t>(id.value()), "bind id");
-	if (!stmt.step_row("tying step"))
-		throw std::invalid_argument("unknown obedience");
-
-	return domain::Tying{
-		domain::id::Tie{static_cast<std::uint64_t>(stmt.column_i64(0))},
-		domain::id::Soul{static_cast<std::uint64_t>(stmt.column_i64(1))},
-		domain::id::Soul{static_cast<std::uint64_t>(stmt.column_i64(2))},
-	};
 }
 
 

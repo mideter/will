@@ -25,7 +25,7 @@ void Novice::supplicate(const Testator& addressee) const
 	if (addressee.Soul::id() == Soul::id())
 		throw std::invalid_argument("cannot supplicate oneself");
 
-	Supplication ask = temporality().supplicate(*this, addressee);
+	const Supplication ask{temporality().ask(Soul::id(), addressee.Soul::id())};
 	ask.sign(*this);
 }
 
@@ -64,10 +64,10 @@ Deed Novice::deed(const id::Word id) const
 }
 
 
-const Obedience& Novice::obedience(const id::Tie id) const
+const Obedience& Novice::obedience(const Testator& testator) const
 {
 	for (const auto& place : obediences_) {
-		if (place->id().value() == id.value())
+		if (place->testator().Soul::id() == testator.Soul::id())
 			return *place;
 	}
 

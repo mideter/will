@@ -40,9 +40,8 @@ void World::awaken()
 	}
 
 	for (const auto& [soul_id, man] : men_) {
-		std::vector<Supplication> pending = temporality().pending_supplications(soul_id);
-		for (Supplication& ask : pending)
-			static_cast<const Testator&>(*man).receive(std::move(ask));
+		for (Asking asking : temporality().askings(soul_id))
+			static_cast<const Testator&>(*man).receive(Supplication{std::move(asking)});
 	}
 }
 

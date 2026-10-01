@@ -14,13 +14,10 @@
 namespace will::domain {
 
 
-Supplication::Supplication(const Novice& suppliant, const Testator& addressee)
-	: suppliant_(suppliant)
-	, addressee_(addressee)
-{
-	if (suppliant.Soul::id() == addressee.Soul::id())
-		throw std::invalid_argument("supplication requires distinct suppliant and addressee");
-}
+Supplication::Supplication(Asking asking)
+	: suppliant_(static_cast<const Novice&>(Soul::of(asking.suppliant())))
+	, addressee_(static_cast<const Testator&>(Soul::of(asking.addressee())))
+{}
 
 
 void Supplication::sign(const Novice& suppliant) const
@@ -32,17 +29,21 @@ void Supplication::sign(const Novice& suppliant) const
 }
 
 
-void Supplication::sign(const Testator& addressee) const
+const Shepherding& Supplication::sign(const Testator& addressee) const
 {
 	if (addressee.Soul::id() != addressee_.Soul::id())
 		throw std::logic_error("supplication is not addressed to this soul");
 
 	const Supplication& incoming = addressee.supplication(suppliant_);
+	const Novice& suppliant = suppliant_;
 
-	const Tying tying = addressee.temporality().accept(incoming);
-	const Obedience& place = static_cast<const Novice&>(Soul::of(tying.novice())).follow(tying);
-	addressee.shepherd(dynamic_cast<const Shepherding&>(place));
+	const Tying tying = addressee.temporality().tie(addressee.Soul::id(), suppliant.Soul::id());
+
+	const Obedience& place = suppliant.follow(tying);
+	const Shepherding& shepherded = addressee.shepherd(dynamic_cast<const Shepherding&>(place));
 	addressee.drop(incoming);
+
+	return shepherded;
 }
 
 
@@ -53,7 +54,7 @@ void Supplication::reject(const Testator& addressee) const
 
 	const Supplication& incoming = addressee.supplication(suppliant_);
 
-	addressee.temporality().reject(incoming);
+	addressee.temporality().reject(suppliant_.Soul::id(), addressee_.Soul::id());
 	addressee.drop(incoming);
 }
 

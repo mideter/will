@@ -1,9 +1,9 @@
 #pragma once
 
+#include "acts/asking.h"
 #include "acts/dating.h"
 #include "acts/embodiment.h"
 #include "acts/execution.h"
-#include "acts/supplication.h"
 #include "acts/tying.h"
 #include "identity/word.h"
 #include "identity/soul.h"
@@ -19,10 +19,6 @@
 
 
 namespace will::domain {
-
-
-class Novice;
-class Testator;
 
 
 /// Temporality (Временность) — what happens in time.
@@ -43,21 +39,19 @@ public:
 	/// Datings for the given ids (skips undated).
 	virtual std::vector<Dating> datings(const std::vector<id::Word>& ids) const = 0;
 
-	/// Offer obedience: suppliant asks addressee to become Завещатель.
-	virtual Supplication supplicate(const Novice& suppliant, const Testator& addressee) = 0;
+	/// Keep a suppliant's asking of an addressee at the present instant.
+	/// Refuses (std::logic_error) if the pair is already tied or an asking awaits answer.
+	virtual Asking ask(id::Soul suppliant, id::Soul addressee) = 0;
 
-	/// Pending supplications addressed to this soul.
-	virtual std::vector<Supplication> pending_supplications(id::Soul addressee) const = 0;
+	/// Askings awaiting this soul's answer.
+	virtual std::vector<Asking> askings(id::Soul addressee) const = 0;
 
-	/// Accept a pending; keeps the tying in time. Living Tie is born on the heap.
-	/// Keyed by the living pair (suppliant, addressee).
-	virtual Tying accept(const Supplication& ask) = 0;
+	/// Keep the rejection of the asking that awaits answer. Throws if none awaits.
+	virtual void reject(id::Soul suppliant, id::Soul addressee) = 0;
 
-	/// Reject a pending supplication (same living pair).
-	virtual void reject(const Supplication& ask) = 0;
-
-	/// Tying remembered in time. Throws if unknown.
-	virtual Tying tying(id::Tie id) const = 0;
+	/// Keep a tying of the pair at the present instant, in a new point of Space.
+	/// Refuses (std::logic_error) if the pair is already tied.
+	virtual Tying tie(id::Soul testator, id::Soul novice) = 0;
 
 	/// All tyings kept in time.
 	virtual std::vector<Tying> tyings() const = 0;

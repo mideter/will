@@ -213,20 +213,27 @@ TEST_CASE("supplicate accept creates tie owned as obedience")
 	const Supplication& ask = testator.supplication(novice);
 	CHECK(ask.suppliant().Soul::id() == a.Soul::id());
 	CHECK(ask.addressee().Soul::id() == b.Soul::id());
-	CHECK(cosmos.temporality().pending_supplications(b.Soul::id()).size() == 1);
+	CHECK(cosmos.temporality().askings(b.Soul::id()).size() == 1);
 
-	testator.accept(ask);
+	const Shepherding& shepherding = testator.accept(ask);
 	CHECK(testator.supplications().empty());
 	REQUIRE(cosmos.temporality().tyings().size() == 1);
-	const Obedience& obedience =
-		novice.obedience(cosmos.temporality().tyings().front().id());
+	CHECK(id::Tie{shepherding.id()} == cosmos.temporality().tyings().front().id());
+	CHECK(&testator.shepherding(novice) == &shepherding);
+	CHECK_THROWS_AS(static_cast<const Testator&>(a).shepherding(novice), std::invalid_argument);
+	const Obedience& obedience = novice.obedience(testator);
 	CHECK(&obedience.testator() == &testator);
 	CHECK(&obedience.novice() == &novice);
+	CHECK(obedience.id() == shepherding.id());
 	CHECK(obedience.id().value() != a.Soul::id().value());
 	CHECK(obedience.id().value() != b.Soul::id().value());
-	CHECK(cosmos.temporality().pending_supplications(b.Soul::id()).empty());
-	CHECK(&novice.obedience(id::Tie{obedience.id()}) == &obedience);
-	CHECK(&testator.shepherding(id::Tie{obedience.id()}).testator() == &testator);
+	CHECK(cosmos.temporality().askings(b.Soul::id()).empty());
+	CHECK_THROWS_AS(testator.obedience(static_cast<const Testator&>(a)), std::invalid_argument);
+
+	// What is kept decides: the pair is tied, so neither a new asking nor a new tying is kept.
+	CHECK_THROWS_AS(novice.supplicate(testator), std::logic_error);
+	CHECK_THROWS_AS(cosmos.temporality().tie(b.Soul::id(), a.Soul::id()), std::logic_error);
+	CHECK(cosmos.temporality().tyings().size() == 1);
 }
 
 
@@ -248,8 +255,16 @@ TEST_CASE("reject closes pending supplication; wrong party cannot accept")
 
 	testator.reject(ask);
 	CHECK(testator.supplications().empty());
-	CHECK(cosmos.temporality().pending_supplications(b.Soul::id()).empty());
+	CHECK(cosmos.temporality().askings(b.Soul::id()).empty());
 	CHECK_THROWS_AS(testator.supplication(novice), std::invalid_argument);
+	CHECK_THROWS_AS(cosmos.temporality().reject(a.Soul::id(), b.Soul::id()), std::invalid_argument);
+	CHECK(cosmos.temporality().tyings().empty());
+
+	// A rejected suppliant may ask again; a second asking while one awaits is refused.
+	novice.supplicate(testator);
+	CHECK(cosmos.temporality().askings(b.Soul::id()).size() == 1);
+	CHECK_THROWS_AS(novice.supplicate(testator), std::logic_error);
+	CHECK_THROWS_AS(novice.supplicate(static_cast<const Testator&>(a)), std::invalid_argument);
 }
 
 
@@ -271,9 +286,7 @@ TEST_CASE("will and execute within obedience")
 	novice.supplicate(testator);
 	testator.accept(testator.supplication(novice));
 	REQUIRE(cosmos.temporality().tyings().size() == 1);
-	const Obedience& obedience =
-		novice.obedience(cosmos.temporality().tyings().front().id());
-	const Shepherding& shepherding = testator.shepherding(id::Tie{obedience.id()});
+	const Shepherding& shepherding = testator.shepherding(novice);
 	const Deed deed = testator.will(shepherding, "fast");
 	CHECK(deed.open());
 	CHECK(deed.saying().body() == "fast");
@@ -310,8 +323,7 @@ TEST_CASE("deed is unknown to a soul outside its tie and is not a letter")
 
 	novice.supplicate(testator);
 	testator.accept(testator.supplication(novice));
-	const id::Tie tie = cosmos.temporality().tyings().front().id();
-	const Deed deed = testator.will(testator.shepherding(tie), "fast");
+	const Deed deed = testator.will(testator.shepherding(novice), "fast");
 
 	CHECK_THROWS_AS(stranger.deed(deed.id()), std::invalid_argument);
 	CHECK_THROWS_AS(novice.deed(id::Word{999}), std::invalid_argument);

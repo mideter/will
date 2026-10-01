@@ -2,6 +2,8 @@
 
 #include "acts/dating.h"
 #include "acts/abiding.h"
+#include "acts/asking.h"
+#include "acts/execution.h"
 #include "acts/placement.h"
 #include "acts/tying.h"
 #include "beings/immanents/obedience.h"
@@ -282,61 +284,45 @@ public:
 		return out;
 	}
 
-	Supplication
-	supplicate(const Novice& suppliant, const Testator& addressee) override
+	Asking ask(const id::Soul suppliant, const id::Soul addressee) override
 	{
-		const id::Soul suppliant_id = suppliant.Soul::id();
-		const id::Soul addressee_id = addressee.Soul::id();
-		if (suppliant_id == addressee_id)
-			throw std::invalid_argument("supplication requires distinct suppliant and addressee");
-		if (pair_exists(addressee_id, suppliant_id))
+		const Asking asking{suppliant, addressee};
+		if (pair_exists(addressee, suppliant))
 			throw std::logic_error("obedience already exists for this pair");
-		for (const auto& row : pending_supplications_) {
-			if (row.suppliant().Soul::id() == suppliant_id && row.addressee().Soul::id() == addressee_id)
-				throw std::logic_error("pending supplication already exists for this pair");
-		}
+		if (awaiting(suppliant, addressee) != askings_.end())
+			throw std::logic_error("pending supplication already exists for this pair");
 
-		Supplication row{suppliant, addressee};
-		pending_supplications_.push_back(row);
-		return row;
+		askings_.push_back(asking);
+		return asking;
 	}
 
-	std::vector<Supplication> pending_supplications(const id::Soul addressee) const override
+	std::vector<Asking> askings(const id::Soul addressee) const override
 	{
-		std::vector<Supplication> out;
-		for (const auto& row : pending_supplications_) {
-			if (row.addressee().Soul::id() == addressee)
+		std::vector<Asking> out;
+		for (const Asking& row : askings_) {
+			if (row.addressee() == addressee && !pair_exists(row.addressee(), row.suppliant()))
 				out.push_back(row);
 		}
 		return out;
 	}
 
-	Tying accept(const Supplication& ask) override
+	void reject(const id::Soul suppliant, const id::Soul addressee) override
 	{
-		const auto it = find_pending(ask);
-		if (pair_exists(it->addressee().Soul::id(), it->suppliant().Soul::id()))
+		const auto it = awaiting(suppliant, addressee);
+		if (it == askings_.end() || pair_exists(addressee, suppliant))
+			throw std::invalid_argument("unknown supplication");
+
+		askings_.erase(it);
+	}
+
+	Tying tie(const id::Soul testator, const id::Soul novice) override
+	{
+		if (pair_exists(testator, novice))
 			throw std::logic_error("obedience already exists for this pair");
 
-		const Tying tying{id::Tie{eternity_.space().point()}, it->addressee().Soul::id(),
-						  it->suppliant().Soul::id()};
-		drop_pending(it);
+		const Tying tying{id::Tie{eternity_.space().point()}, testator, novice};
 		obediences_.push_back(ObedienceRow{tying.id(), tying.testator(), tying.novice()});
 		return tying;
-	}
-
-	void reject(const Supplication& ask) override
-	{
-		drop_pending(find_pending(ask));
-	}
-
-	Tying tying(const id::Tie id) const override
-	{
-		for (const auto& row : obediences_) {
-			if (row.id != id)
-				continue;
-			return Tying{row.id, row.testator, row.novice};
-		}
-		throw std::invalid_argument("unknown obedience");
 	}
 
 	std::vector<Tying> tyings() const override
@@ -387,33 +373,21 @@ private:
 		return false;
 	}
 
-	std::vector<Supplication>::const_iterator find_pending(const Supplication& ask) const
+	/// Askings whose rejection was kept are dropped; the rest await or are tied.
+	std::vector<Asking>::const_iterator awaiting(const id::Soul suppliant, const id::Soul addressee) const
 	{
-		for (auto it = pending_supplications_.begin(); it != pending_supplications_.end(); ++it) {
-			if (it->suppliant().Soul::id() == ask.suppliant().Soul::id()
-				&& it->addressee().Soul::id() == ask.addressee().Soul::id())
+		for (auto it = askings_.begin(); it != askings_.end(); ++it) {
+			if (it->suppliant() == suppliant && it->addressee() == addressee)
 				return it;
 		}
-		throw std::invalid_argument("unknown supplication");
-	}
-
-	void drop_pending(const std::vector<Supplication>::const_iterator drop)
-	{
-		std::vector<Supplication> kept;
-		kept.reserve(pending_supplications_.size() - 1);
-		for (auto it = pending_supplications_.begin(); it != pending_supplications_.end(); ++it) {
-			if (it == drop)
-				continue;
-			kept.push_back(*it);
-		}
-		pending_supplications_.swap(kept);
+		return askings_.end();
 	}
 
 	InMemoryShared& shared_;
 	Eternity& eternity_;
 	std::vector<Embodiment> embodiments_;
 	std::vector<Dating> datings_;
-	std::vector<Supplication> pending_supplications_;
+	std::vector<Asking> askings_;
 	std::vector<ObedienceRow> obediences_;
 	std::vector<Execution> executions_;
 };

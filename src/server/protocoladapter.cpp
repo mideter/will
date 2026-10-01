@@ -9,8 +9,6 @@
 #include "beings/immanents/testator.h"
 #include "beings/immanents/tie.h"
 #include "beings/immanents/witness.h"
-#include "acts/tying.h"
-#include "ports/temporality.h"
 #include "values/device_token.h"
 
 #include <exception>
@@ -237,21 +235,15 @@ void ProtocolAdapter::handle_accept_supplication(const SessionId session_id,
 	const auto& testator = static_cast<const domain::Testator&>(self);
 	const auto& novice = static_cast<const domain::Novice&>(*suppliant_man);
 
+	std::optional<domain::id::Tie> formed;
 	try {
-		testator.accept(testator.supplication(novice));
+		formed = domain::id::Tie{testator.accept(testator.supplication(novice)).id()};
 	} catch (const std::exception& e) {
 		send_notice(session_id, e.what());
 		return;
 	}
 
-	const auto tyings = self.temporality().tyings();
-	domain::id::Tie tie_id{1};
-	for (const domain::Tying& row : tyings) {
-		if (row.testator() == self.Soul::id() && row.novice() == suppliant_man->Soul::id()) {
-			tie_id = row.id();
-			break;
-		}
-	}
+	const domain::id::Tie tie_id = *formed;
 
 	v1::ServerEvent to_testator;
 	auto* formed_t = to_testator.mutable_tie_formed();
@@ -278,20 +270,18 @@ void ProtocolAdapter::handle_will_deed(const SessionId session_id, const v1::Wil
 	const domain::Man& self = session_man(session_id);
 	const auto& testator = static_cast<const domain::Testator&>(self);
 
-	std::optional<domain::id::Tie> found;
-	for (const domain::Tying& row : self.temporality().tyings()) {
-		if (row.testator() == self.Soul::id() && row.novice() == novice_man->Soul::id()) {
-			found = row.id();
-			break;
-		}
-	}
-	if (!found) {
+	const auto& novice = static_cast<const domain::Novice&>(*novice_man);
+
+	const domain::Shepherding* shepherding = nullptr;
+	try {
+		shepherding = &testator.shepherding(novice);
+	} catch (const std::invalid_argument&) {
 		send_notice(session_id, "no obedience with that soul");
 		return;
 	}
 
 	try {
-		const domain::Deed deed = testator.will(testator.shepherding(*found), msg.body());
+		const domain::Deed deed = testator.will(*shepherding, msg.body());
 
 		send_notice(session_id, "deed " + std::to_string(deed.id().value()) + " willed");
 

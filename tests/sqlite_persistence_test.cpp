@@ -4,6 +4,7 @@
 #include "acts/creation.h"
 #include "beings/deed.h"
 #include "beings/immanents/novice.h"
+#include "beings/immanents/shepherding.h"
 #include "beings/immanents/testator.h"
 #include "beings/immanents/witness.h"
 #include "sqlite_persistence_bundle.h"
@@ -144,10 +145,9 @@ TEST_CASE("sqlite keeps a deed and its execution across reopen")
 
 		novice.supplicate(testator);
 		testator.accept(testator.supplication(novice));
-		const id::Tie tie = bundle.temporality().tyings().front().id();
 
-		const Deed open = testator.will(testator.shepherding(tie), "fast");
-		const Deed willed = testator.will(testator.shepherding(tie), "pray");
+		const Deed open = testator.will(testator.shepherding(novice), "fast");
+		const Deed willed = testator.will(testator.shepherding(novice), "pray");
 		CHECK(open.open());
 		CHECK(&willed.tie().novice() == &novice);
 		open_id = open.id();
@@ -180,6 +180,72 @@ TEST_CASE("sqlite keeps a deed and its execution across reopen")
 		CHECK_THROWS_AS(novice.execute(done), std::logic_error);
 
 		CHECK(novice.execute(open).executed());
+	}
+
+	::unlink((prefix + ".eternity.db").c_str());
+	::unlink((prefix + ".space.db").c_str());
+	::unlink((prefix + ".time.db").c_str());
+}
+
+
+TEST_CASE("sqlite keeps askings, rejections and tyings across reopen")
+{
+	using namespace will;
+	using namespace will::domain;
+
+	const std::string prefix = "/tmp/will-sqlite-asking-test-" + std::to_string(getpid());
+	::unlink((prefix + ".eternity.db").c_str());
+	::unlink((prefix + ".space.db").c_str());
+	::unlink((prefix + ".time.db").c_str());
+
+	const DeviceToken token_a = *DeviceToken::parse("aaaa1234aaaa1234aaaa1234aaaa1234");
+	const DeviceToken token_b = *DeviceToken::parse("bbbb1234bbbb1234bbbb1234bbbb1234");
+	const DeviceToken token_c = *DeviceToken::parse("cccc1234cccc1234cccc1234cccc1234");
+
+	{
+		SqlitePersistenceBundle bundle(prefix);
+		World& world = bundle.world();
+
+		const auto& a = static_cast<const Testator&>(world.welcome(token_a));
+		const auto& b = static_cast<const Testator&>(world.welcome(token_b));
+		const auto& c = static_cast<const Testator&>(world.welcome(token_c));
+
+		// a asks b twice: rejected, then asked again and left awaiting.
+		a.supplicate(b);
+		CHECK_THROWS_AS(a.supplicate(b), std::logic_error);
+		b.reject(b.supplication(a));
+		CHECK(bundle.temporality().askings(b.Soul::id()).empty());
+		CHECK_THROWS_AS(bundle.temporality().reject(a.Soul::id(), b.Soul::id()), std::invalid_argument);
+		a.supplicate(b);
+
+		// c asks b and is accepted.
+		c.supplicate(b);
+		CHECK(bundle.temporality().askings(b.Soul::id()).size() == 2);
+		const Shepherding& shepherding = b.accept(b.supplication(c));
+		CHECK(&shepherding.novice() == &c);
+		CHECK(bundle.temporality().askings(b.Soul::id()).size() == 1);
+		CHECK_THROWS_AS(c.supplicate(b), std::logic_error);
+	}
+
+	{
+		SqlitePersistenceBundle bundle(prefix);
+		World& world = bundle.world();
+
+		const auto& a = static_cast<const Testator&>(world.welcome(token_a));
+		const auto& b = static_cast<const Testator&>(world.welcome(token_b));
+		const auto& c = static_cast<const Testator&>(world.welcome(token_c));
+
+		// The awaiting supplication is reborn on the addressee's heap; the tie is living.
+		REQUIRE(b.supplications().size() == 1);
+		CHECK(&b.supplication(a).suppliant() == &a);
+		CHECK(&b.shepherding(c).novice() == &c);
+		CHECK_THROWS_AS(b.shepherding(a), std::invalid_argument);
+
+		const Shepherding& shepherding = b.accept(b.supplication(a));
+		CHECK(&shepherding.novice() == &a);
+		CHECK(b.supplications().empty());
+		CHECK(bundle.temporality().askings(b.Soul::id()).empty());
+		CHECK(bundle.temporality().tyings().size() == 2);
 	}
 
 	::unlink((prefix + ".eternity.db").c_str());

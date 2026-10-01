@@ -20,9 +20,9 @@ Testator::Testator(Embodiment embodiment)
 {}
 
 
-void Testator::accept(const Supplication& ask) const
+const Shepherding& Testator::accept(const Supplication& ask) const
 {
-	ask.sign(*this);
+	return ask.sign(*this);
 }
 
 
@@ -45,10 +45,10 @@ Deed Testator::will(const Shepherding& shepherding, const Saying& saying) const
 }
 
 
-const Shepherding& Testator::shepherding(const id::Tie id) const
+const Shepherding& Testator::shepherding(const Novice& novice) const
 {
 	for (const Shepherding* place : shepherdings_) {
-		if (place && place->id().value() == id.value())
+		if (place && place->novice().Soul::id() == novice.Soul::id())
 			return *place;
 	}
 

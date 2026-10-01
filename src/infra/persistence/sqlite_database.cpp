@@ -101,12 +101,16 @@ CREATE TABLE IF NOT EXISTS datings (
   created_at_ns INTEGER NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS supplications (
+CREATE TABLE IF NOT EXISTS askings (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   suppliant_soul_id INTEGER NOT NULL,
-  testator_soul_id INTEGER NOT NULL,
-  status TEXT NOT NULL,
-  created_at_ns INTEGER NOT NULL
+  addressee_soul_id INTEGER NOT NULL,
+  asked_at_ns INTEGER NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS rejections (
+  asking_id INTEGER PRIMARY KEY,
+  rejected_at_ns INTEGER NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS obediences (
