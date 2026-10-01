@@ -3,9 +3,11 @@
 #include "beings/immanents/tie.h"
 #include "beings/immanents/soul.h"
 #include "beings/immanents/testator.h"
+#include "ports/spatiality.h"
 #include "ports/temporality.h"
 
 #include <memory>
+#include <optional>
 #include <stdexcept>
 #include <utility>
 
@@ -35,7 +37,30 @@ Deed Novice::execute(const Deed& deed) const
 	if (!deed.open())
 		throw std::logic_error("deed is not open");
 
-	return temporality().execute(deed);
+	temporality().execute(deed.id());
+
+	return this->deed(deed.id());
+}
+
+
+Deed Novice::deed(const id::Word id) const
+{
+	const std::optional<Placement> placed = spatiality().placement(id);
+	std::vector<Utterance> uttered = utterances({id});
+	std::vector<Dating> dated = temporality().datings({id});
+	if (!placed || uttered.empty() || dated.empty())
+		throw std::invalid_argument("unknown deed");
+
+	std::vector<Execution> executed = temporality().executions({id});
+	std::optional<Execution> execution;
+	if (!executed.empty())
+		execution = std::move(executed.front());
+
+	Deed found{std::move(uttered.front()), *placed, std::move(dated.front()), std::move(execution)};
+	if (found.tie().novice().Soul::id() != Soul::id() && found.tie().testator().Soul::id() != Soul::id())
+		throw std::invalid_argument("unknown deed");
+
+	return found;
 }
 
 

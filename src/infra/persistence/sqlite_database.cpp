@@ -117,15 +117,9 @@ CREATE TABLE IF NOT EXISTS obediences (
   seceded_at_ns INTEGER
 );
 
-CREATE TABLE IF NOT EXISTS deeds (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  obedience_id INTEGER NOT NULL,
-  testator_soul_id INTEGER NOT NULL,
-  novice_soul_id INTEGER NOT NULL,
-  body TEXT NOT NULL,
-  created_at_ns INTEGER NOT NULL,
-  executed_at_ns INTEGER,
-  cancelled_at_ns INTEGER
+CREATE TABLE IF NOT EXISTS executions (
+  word_id INTEGER PRIMARY KEY,
+  executed_at_ns INTEGER NOT NULL
 );
 )sql";
 		break;

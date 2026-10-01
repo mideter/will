@@ -5,6 +5,7 @@
 
 #include "acts/creation.h"
 #include "acts/dating.h"
+#include "acts/execution.h"
 #include "acts/placement.h"
 #include "beings/immanents/tie.h"
 #include "acts/tying.h"
@@ -16,7 +17,6 @@
 #include "identity/word.h"
 #include "identity/tie.h"
 #include "identity/place.h"
-#include "identity/deed.h"
 #include "values/saying.h"
 
 #include <stdexcept>
@@ -111,13 +111,6 @@ TEST_CASE("Letter rejects mismatched projection ids")
 }
 
 
-TEST_CASE("id::Deed requires positive value")
-{
-	CHECK(id::Deed{4}.value() == 4);
-	CHECK_THROWS_AS(id::Deed{0}, std::invalid_argument);
-}
-
-
 TEST_CASE("Deed is a word of will in a living Tie")
 {
 	InMemoryCosmos cosmos;
@@ -126,11 +119,15 @@ TEST_CASE("Deed is a word of will in a living Tie")
 
 	const auto& testator = static_cast<const Testator&>(world.welcome(DeviceToken::generate()));
 	const auto& novice = static_cast<const Novice&>(world.welcome(DeviceToken::generate()));
-	const id::Deed did{3};
+	const id::Word did{3};
 	const id::Tie oid{9};
 	const Tie tie{Tying{oid, testator.Soul::id(), novice.Soul::id()}};
 
-	const Deed deed{did, tie, "do this", Timestamp{50}};
+	const Utterance utterance{did, testator.Soul::id(), "do this"};
+	const Placement placement{did, tie.id()};
+	const Dating dating{did, Timestamp{50}};
+
+	const Deed deed{utterance, placement, dating};
 	CHECK(deed.id() == did);
 	CHECK(&deed.tie() == &tie);
 	CHECK(&deed.tie().testator() == &testator);
@@ -139,8 +136,34 @@ TEST_CASE("Deed is a word of will in a living Tie")
 	CHECK(deed.created_at() == Timestamp{50});
 	CHECK(deed.open());
 	CHECK_FALSE(deed.executed());
-	CHECK_FALSE(deed.cancelled());
 
-	CHECK_THROWS_AS((Deed{id::Deed{6}, tie, "x", Timestamp{1}, Timestamp{2}, Timestamp{3}}),
+	const Deed done{utterance, placement, dating, Execution{did, Timestamp{70}}};
+	CHECK(done.executed());
+	CHECK_FALSE(done.open());
+	CHECK(done.executed_at() == Timestamp{70});
+
+	CHECK_THROWS_AS((Deed{utterance, placement, dating, Execution{id::Word{4}, Timestamp{70}}}),
 					std::invalid_argument);
+	CHECK_THROWS_AS((Deed{utterance, Placement{id::Word{4}, tie.id()}, dating}), std::invalid_argument);
+}
+
+
+TEST_CASE("Deed rejects a place that is not a Tie and an author who is not its testator")
+{
+	InMemoryCosmos cosmos;
+	Creation creation(cosmos.eternity(), cosmos.spatiality(), cosmos.temporality());
+	World& world = creation.world();
+
+	const auto& testator = static_cast<const Testator&>(world.welcome(DeviceToken::generate()));
+	const auto& novice = static_cast<const Novice&>(world.welcome(DeviceToken::generate()));
+	const id::Word did{3};
+	const Tie tie{Tying{id::Tie{9}, testator.Soul::id(), novice.Soul::id()}};
+	const Dating dating{did, Timestamp{50}};
+
+	const Utterance by_testator{did, testator.Soul::id(), "do this"};
+	CHECK_THROWS_AS((Deed{by_testator, Placement{did, testator.abode().id()}, dating}),
+					std::invalid_argument);
+
+	const Utterance by_novice{did, novice.Soul::id(), "do this"};
+	CHECK_THROWS_AS((Deed{by_novice, Placement{did, tie.id()}, dating}), std::invalid_argument);
 }

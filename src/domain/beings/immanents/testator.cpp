@@ -1,7 +1,10 @@
 #include "testator.h"
 
-#include "beings/immanents/obedience.h"
+#include "acts/dating.h"
+#include "acts/placement.h"
+#include "acts/utterance.h"
 #include "beings/immanents/soul.h"
+#include "ports/spatiality.h"
 #include "ports/temporality.h"
 
 #include <algorithm>
@@ -34,8 +37,11 @@ Deed Testator::will(const Shepherding& shepherding, const Saying& saying) const
 	if (shepherding.testator().Soul::id() != Soul::id())
 		throw std::logic_error("not the testator of this shepherding");
 
-	return temporality().will(dynamic_cast<const Obedience&>(shepherding),
-							  static_cast<const Soul&>(*this), saying);
+	const Utterance uttered = utter(saying);
+	spatiality().place(uttered.id(), shepherding.id());
+	const Dating dated = temporality().date(uttered.id());
+
+	return Deed{uttered, Placement{uttered.id(), shepherding.id()}, dated};
 }
 
 

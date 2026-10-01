@@ -1,8 +1,12 @@
 #pragma once
 
+#include "acts/dating.h"
+#include "acts/execution.h"
+#include "acts/placement.h"
+#include "acts/utterance.h"
 #include "beings/immanents/tie.h"
 #include "beings/word.h"
-#include "identity/deed.h"
+#include "identity/word.h"
 #include "values/saying.h"
 #include "values/timestamp.h"
 
@@ -12,33 +16,30 @@
 namespace will::domain {
 
 
-/// Deed (Дело) — Word of will in living Tie (Узы);
-/// open unless restored with timestamps.
+/// Deed (Дело) — Word of will in living Tie (Узы) that may be executed.
+/// Born from three faces like Letter; executed once its Execution is kept.
+/// Sides are the Tie's: the testator utters, the novice executes.
 class Deed : public Word {
 public:
-	Deed(id::Deed id, const Tie& tie, Saying saying, Timestamp created_at,
-		 std::optional<Timestamp> executed_at = std::nullopt,
-		 std::optional<Timestamp> cancelled_at = std::nullopt);
+	/// Ids must match; place must be a living Tie whose testator is the author.
+	Deed(Utterance utterance, Placement placement, Dating dating,
+		 std::optional<Execution> execution = std::nullopt);
 
-	id::Deed id() const noexcept { return id_; }
+	id::Word id() const noexcept { return id_; }
 	const Tie& tie() const noexcept { return tie_; }
 	const Saying& saying() const noexcept { return saying_; }
 	Timestamp created_at() const noexcept { return created_at_; }
-
 	const std::optional<Timestamp>& executed_at() const noexcept { return executed_at_; }
-	const std::optional<Timestamp>& cancelled_at() const noexcept { return cancelled_at_; }
 
 	bool executed() const noexcept { return executed_at_.has_value(); }
-	bool cancelled() const noexcept { return cancelled_at_.has_value(); }
-	bool open() const noexcept { return !executed() && !cancelled(); }
+	bool open() const noexcept { return !executed(); }
 
 private:
-	id::Deed id_;
+	id::Word id_;
 	const Tie& tie_;
 	Saying saying_;
 	Timestamp created_at_;
 	std::optional<Timestamp> executed_at_;
-	std::optional<Timestamp> cancelled_at_;
 };
 
 

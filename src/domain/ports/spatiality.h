@@ -42,6 +42,9 @@ public:
 	/// Fix a word in a place.
 	virtual void place(id::Word id, id::Place place) = 0;
 
+	/// Placement of this word, if kept.
+	virtual std::optional<Placement> placement(id::Word id) const = 0;
+
 	/// Placements in this place, newest first up to limit (caller dates/sorts for history).
 	virtual std::vector<Placement> placements(id::Place place, std::uint32_t limit) const = 0;
 };

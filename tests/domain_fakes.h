@@ -18,7 +18,6 @@
 #include "beings/immanents/vessel.h"
 #include "beings/world.h"
 #include "identity/abode.h"
-#include "identity/deed.h"
 #include "identity/word.h"
 #include "identity/place.h"
 #include "identity/tie.h"
@@ -65,7 +64,6 @@ struct InMemoryShared {
 	std::uint64_t next_soul_id = 0;
 	std::uint64_t next_vessel_id = 0;
 	std::uint64_t next_letter_id = 0;
-	std::uint64_t next_deed_id = 0;
 	std::vector<std::pair<id::Soul, SoulName>> souls;
 };
 
@@ -198,6 +196,15 @@ public:
 		placements_.emplace_back(id, place);
 	}
 
+	std::optional<Placement> placement(const id::Word id) const override
+	{
+		for (const Placement& row : placements_) {
+			if (row.id() == id)
+				return row;
+		}
+		return std::nullopt;
+	}
+
 	std::vector<Placement> placements(const id::Place place, const std::uint32_t limit) const override
 	{
 		std::vector<Placement> matching;
@@ -248,16 +255,17 @@ public:
 			shared_.next_vessel_id = vessel_id.value();
 	}
 
-	void date(const id::Word id) override
+	Dating date(const id::Word id) override
 	{
-		const Timestamp at = eternity_.time().instant();
+		const Dating dated{id, eternity_.time().instant()};
 		for (auto& row : datings_) {
 			if (row.id() == id) {
-				row = Dating{id, at};
-				return;
+				row = dated;
+				return dated;
 			}
 		}
-		datings_.emplace_back(id, at);
+		datings_.push_back(dated);
+		return dated;
 	}
 
 	std::vector<Dating> datings(const std::vector<id::Word>& ids) const override
@@ -340,56 +348,25 @@ public:
 		return out;
 	}
 
-	Deed will(const Obedience& obedience, const Soul& testator, const Saying& saying) override
+	void execute(const id::Word deed) override
 	{
-		const id::Tie tid{obedience.id().value()};
-		if (!has_obedience(tid))
-			throw std::invalid_argument("unknown obedience");
-		if (obedience.testator().Soul::id() != testator.id())
-			throw std::logic_error("only the testator may will in this obedience");
-
-		DeedRow row{id::Deed{++shared_.next_deed_id},
-					tid,
-					obedience.testator().Soul::id(),
-					obedience.novice().Soul::id(),
-					saying.body(),
-					eternity_.time().instant(),
-					std::nullopt,
-					std::nullopt};
-		deed_rows_.push_back(row);
-		return make_deed(row);
-	}
-
-	Deed execute(const Deed& deed) override
-	{
-		for (auto& row : deed_rows_) {
-			if (row.id.value() != deed.id().value())
-				continue;
-			if (row.executed_at || row.cancelled_at)
-				throw std::logic_error("deed is not open");
-			if (!has_obedience(row.obedience))
-				throw std::invalid_argument("unknown obedience");
-			row.executed_at = eternity_.time().instant();
-			return make_deed(row);
+		for (const Execution& row : executions_) {
+			if (row.id() == deed)
+				throw std::logic_error("deed is already executed");
 		}
-		throw std::invalid_argument("unknown deed");
+		executions_.emplace_back(deed, eternity_.time().instant());
 	}
 
-	Deed deed(const id::Deed id) const override
+	std::vector<Execution> executions(const std::vector<id::Word>& ids) const override
 	{
-		for (const auto& row : deed_rows_) {
-			if (row.id == id)
-				return make_deed(row);
-		}
-		throw std::invalid_argument("unknown deed");
-	}
-
-	std::vector<Deed> deeds(const id::Tie tie) const override
-	{
-		std::vector<Deed> out;
-		for (const auto& row : deed_rows_) {
-			if (row.obedience == tie)
-				out.push_back(make_deed(row));
+		std::vector<Execution> out;
+		for (const id::Word id : ids) {
+			for (const Execution& row : executions_) {
+				if (row.id() == id) {
+					out.push_back(row);
+					break;
+				}
+			}
 		}
 		return out;
 	}
@@ -401,17 +378,6 @@ private:
 		id::Soul novice;
 	};
 
-	struct DeedRow {
-		id::Deed id;
-		id::Tie obedience;
-		id::Soul testator;
-		id::Soul novice;
-		std::string body;
-		Timestamp created_at;
-		std::optional<Timestamp> executed_at;
-		std::optional<Timestamp> cancelled_at;
-	};
-
 	bool pair_exists(const id::Soul testator, const id::Soul novice) const
 	{
 		for (const auto& row : obediences_) {
@@ -419,22 +385,6 @@ private:
 				return true;
 		}
 		return false;
-	}
-
-	bool has_obedience(const id::Tie id) const
-	{
-		for (const auto& row : obediences_) {
-			if (row.id == id)
-				return true;
-		}
-		return false;
-	}
-
-	Deed make_deed(const DeedRow& row) const
-	{
-		const auto& place = static_cast<const Novice&>(Soul::of(row.novice)).obedience(row.obedience);
-		return Deed{row.id, dynamic_cast<const Tie&>(place), row.body, row.created_at,
-					row.executed_at, row.cancelled_at};
 	}
 
 	std::vector<Supplication>::const_iterator find_pending(const Supplication& ask) const
@@ -465,7 +415,7 @@ private:
 	std::vector<Dating> datings_;
 	std::vector<Supplication> pending_supplications_;
 	std::vector<ObedienceRow> obediences_;
-	std::vector<DeedRow> deed_rows_;
+	std::vector<Execution> executions_;
 };
 
 

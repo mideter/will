@@ -2,6 +2,9 @@
 #include <doctest/doctest.h>
 
 #include "acts/creation.h"
+#include "beings/deed.h"
+#include "beings/immanents/novice.h"
+#include "beings/immanents/testator.h"
 #include "beings/immanents/witness.h"
 #include "sqlite_persistence_bundle.h"
 
@@ -9,9 +12,12 @@
 #include "identity/place.h"
 #include "values/device_token.h"
 #include "identity/soul.h"
+#include "identity/tie.h"
+#include "identity/word.h"
 #include "values/soul_name.h"
 
 #include <optional>
+#include <stdexcept>
 #include <string>
 #include <unistd.h>
 
@@ -106,6 +112,74 @@ TEST_CASE("sqlite persistence survives reopen")
 
 		CHECK_FALSE(world.knows(id::Soul{999999}));
 		CHECK_FALSE(world.knows(id::Vessel{999999}));
+	}
+
+	::unlink((prefix + ".eternity.db").c_str());
+	::unlink((prefix + ".space.db").c_str());
+	::unlink((prefix + ".time.db").c_str());
+}
+
+
+TEST_CASE("sqlite keeps a deed and its execution across reopen")
+{
+	using namespace will;
+	using namespace will::domain;
+
+	const std::string prefix = "/tmp/will-sqlite-deed-test-" + std::to_string(getpid());
+	::unlink((prefix + ".eternity.db").c_str());
+	::unlink((prefix + ".space.db").c_str());
+	::unlink((prefix + ".time.db").c_str());
+
+	const DeviceToken token_novice = *DeviceToken::parse("aaaa1234aaaa1234aaaa1234aaaa1234");
+	const DeviceToken token_testator = *DeviceToken::parse("bbbb1234bbbb1234bbbb1234bbbb1234");
+	std::optional<id::Word> open_id;
+	std::optional<id::Word> done_id;
+
+	{
+		SqlitePersistenceBundle bundle(prefix);
+		World& world = bundle.world();
+
+		const auto& novice = static_cast<const Novice&>(world.welcome(token_novice));
+		const auto& testator = static_cast<const Testator&>(world.welcome(token_testator));
+
+		novice.supplicate(testator);
+		testator.accept(testator.supplication(novice));
+		const id::Tie tie = bundle.temporality().tyings().front().id();
+
+		const Deed open = testator.will(testator.shepherding(tie), "fast");
+		const Deed willed = testator.will(testator.shepherding(tie), "pray");
+		CHECK(open.open());
+		CHECK(&willed.tie().novice() == &novice);
+		open_id = open.id();
+		done_id = willed.id();
+
+		const Deed done = novice.execute(willed);
+		CHECK(done.executed());
+		CHECK_THROWS_AS(novice.execute(willed), std::logic_error);
+		CHECK(bundle.temporality().executions({*open_id, *done_id}).size() == 1);
+
+		// Deeds are placed in the tie, not among the letters of an abode.
+		CHECK(novice.retell(10).empty());
+	}
+
+	{
+		SqlitePersistenceBundle bundle(prefix);
+		World& world = bundle.world();
+
+		const auto& novice = static_cast<const Novice&>(world.welcome(token_novice));
+		const auto& testator = static_cast<const Testator&>(world.welcome(token_testator));
+
+		const Deed open = novice.deed(*open_id);
+		CHECK(open.open());
+		CHECK(open.saying().body() == "fast");
+		CHECK(&open.tie().testator() == &testator);
+
+		const Deed done = testator.deed(*done_id);
+		CHECK(done.executed());
+		CHECK(done.saying().body() == "pray");
+		CHECK_THROWS_AS(novice.execute(done), std::logic_error);
+
+		CHECK(novice.execute(open).executed());
 	}
 
 	::unlink((prefix + ".eternity.db").c_str());

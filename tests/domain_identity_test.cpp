@@ -6,7 +6,6 @@
 #include "identity/tie.h"
 #include "identity/place.h"
 #include "identity/soul.h"
-#include "identity/deed.h"
 #include "identity/vessel.h"
 
 #include <stdexcept>
@@ -57,13 +56,6 @@ TEST_CASE("id::Tie and id::Abode from Place")
 	const id::Place place{9};
 	CHECK(id::Tie{place}.value() == 9);
 	CHECK(id::Abode{place}.value() == 9);
-}
-
-
-TEST_CASE("id::Deed requires positive value")
-{
-	CHECK(id::Deed{4}.value() == 4);
-	CHECK_THROWS_AS(id::Deed{0}, std::invalid_argument);
 }
 
 

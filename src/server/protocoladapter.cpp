@@ -314,7 +314,7 @@ void ProtocolAdapter::handle_execute_deed(const SessionId session_id, const v1::
 
 	try {
 		const domain::Deed done =
-			novice.execute(self.temporality().deed(domain::id::Deed{msg.deed_id()}));
+			novice.execute(novice.deed(domain::id::Word{msg.deed_id()}));
 
 		send_notice(session_id, "deed " + std::to_string(done.id().value()) + " done");
 

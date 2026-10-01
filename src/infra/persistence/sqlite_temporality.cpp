@@ -1,11 +1,9 @@
 #include "sqlite_temporality.h"
 
-#include "beings/immanents/tie.h"
 #include "beings/immanents/novice.h"
 #include "beings/immanents/soul.h"
 #include "beings/space.h"
 #include "beings/immanents/testator.h"
-#include "values/saying.h"
 
 #include "sqlite_util.h"
 
@@ -27,13 +25,6 @@ domain::Supplication read_pending_supplication(sqlite3_stmt* stmt)
 		static_cast<const domain::Novice&>(domain::Soul::of(suppliant_id)),
 		static_cast<const domain::Testator&>(domain::Soul::of(addressee_id)),
 	};
-}
-
-
-const domain::Tie& live_tie(const domain::id::Tie id, const domain::id::Soul novice)
-{
-	const auto& place = static_cast<const domain::Novice&>(domain::Soul::of(novice)).obedience(id);
-	return dynamic_cast<const domain::Tie&>(place);
 }
 
 
@@ -168,7 +159,7 @@ std::vector<domain::Embodiment> SqliteTemporality::embodiments() const
 }
 
 
-void SqliteTemporality::date(const domain::id::Word id)
+domain::Dating SqliteTemporality::date(const domain::id::Word id)
 {
 	const domain::Timestamp at = eternity_.time().instant();
 	std::lock_guard lock(time_db_.mutex());
@@ -178,6 +169,8 @@ void SqliteTemporality::date(const domain::id::Word id)
 	stmt.bind_i64(1, static_cast<std::int64_t>(id.value()), "bind letter_id");
 	stmt.bind_i64(2, at.value(), "bind created_at");
 	stmt.step_done("date step");
+
+	return domain::Dating{id, at};
 }
 
 
@@ -344,141 +337,45 @@ std::vector<domain::Tying> SqliteTemporality::tyings() const
 }
 
 
-domain::Deed SqliteTemporality::will(const domain::Obedience& obedience,
-									  const domain::Soul& testator, const domain::Saying& saying)
+void SqliteTemporality::execute(const domain::id::Word deed)
 {
-	if (obedience.testator().Soul::id() != testator.id())
-		throw std::logic_error("only the testator may will in this obedience");
-
-	const domain::Timestamp ts = eternity_.time().instant();
+	const domain::Timestamp at = eternity_.time().instant();
 	std::lock_guard lock(time_db_.mutex());
 	sqlite3* const db = time_db_.db();
 
 	{
-		SqliteStmt known(db, "SELECT 1 FROM obediences WHERE id = ?;", "prepare known obedience");
-		known.bind_i64(1, static_cast<std::int64_t>(obedience.id().value()), "bind oid");
-		if (!known.step_row("known obedience step"))
-			throw std::invalid_argument("unknown obedience");
+		SqliteStmt kept(db, "SELECT 1 FROM executions WHERE word_id = ?;", "prepare kept execution");
+		kept.bind_i64(1, static_cast<std::int64_t>(deed.value()), "bind word_id");
+		if (kept.step_row("kept execution step"))
+			throw std::logic_error("deed is already executed");
 	}
 
-	SqliteStmt stmt(db,
-					"INSERT INTO deeds "
-					"(obedience_id, testator_soul_id, novice_soul_id, body, "
-					"created_at_ns, executed_at_ns, cancelled_at_ns) "
-					"VALUES (?, ?, ?, ?, ?, NULL, NULL);",
-					"prepare insert deed");
-	stmt.bind_i64(1, static_cast<std::int64_t>(obedience.id().value()), "bind obedience_id");
-	stmt.bind_i64(2, static_cast<std::int64_t>(obedience.testator().Soul::id().value()), "bind testator");
-	stmt.bind_i64(3, static_cast<std::int64_t>(obedience.novice().Soul::id().value()), "bind novice");
-	stmt.bind_text(4, saying.body(), "bind body");
-	stmt.bind_i64(5, ts.value(), "bind created_at");
-	stmt.step_done("insert deed step");
-
-	const domain::id::Deed did{sqlite_last_insert_id(db)};
-
-	return domain::Deed{did, dynamic_cast<const domain::Tie&>(obedience), saying, ts};
+	SqliteStmt stmt(db, "INSERT INTO executions (word_id, executed_at_ns) VALUES (?, ?);",
+					"prepare execute");
+	stmt.bind_i64(1, static_cast<std::int64_t>(deed.value()), "bind word_id");
+	stmt.bind_i64(2, at.value(), "bind executed_at");
+	stmt.step_done("execute step");
 }
 
 
-domain::Deed SqliteTemporality::execute(const domain::Deed& deed)
+std::vector<domain::Execution>
+SqliteTemporality::executions(const std::vector<domain::id::Word>& ids) const
 {
-	const domain::Timestamp ts = eternity_.time().instant();
-	domain::id::Tie oid{1};
-	domain::Saying saying{deed.saying()};
-	domain::Timestamp created = deed.created_at();
-	domain::id::Deed did{deed.id().value()};
-
-	{
-		std::lock_guard lock(time_db_.mutex());
-		sqlite3* const db = time_db_.db();
-
-		{
-			SqliteStmt load(db,
-							"SELECT obedience_id, executed_at_ns, cancelled_at_ns "
-							"FROM deeds WHERE id = ?;",
-							"prepare load deed");
-			load.bind_i64(1, static_cast<std::int64_t>(deed.id().value()), "bind id");
-			if (!load.step_row("load deed step"))
-				throw std::invalid_argument("unknown deed");
-			oid = domain::id::Tie{static_cast<std::uint64_t>(load.column_i64(0))};
-			const bool open = load.column_is_null(1) && load.column_is_null(2);
-			if (!open)
-				throw std::logic_error("deed is not open");
-		}
-
-		{
-			SqliteStmt known(db, "SELECT 1 FROM obediences WHERE id = ?;", "prepare known obedience");
-			known.bind_i64(1, static_cast<std::int64_t>(oid.value()), "bind oid");
-			if (!known.step_row("known obedience step"))
-				throw std::invalid_argument("unknown obedience");
-		}
-
-		SqliteStmt upd(db, "UPDATE deeds SET executed_at_ns = ? WHERE id = ?;", "prepare execute");
-		upd.bind_i64(1, ts.value(), "bind executed_at");
-		upd.bind_i64(2, static_cast<std::int64_t>(deed.id().value()), "bind id");
-		upd.step_done("execute step");
-	}
-
-	const domain::Tying kept = tying(oid);
-	return domain::Deed{did, live_tie(kept.id(), kept.novice()), saying, created, ts, std::nullopt};
-}
-
-
-domain::Deed SqliteTemporality::deed(const domain::id::Deed id) const
-{
-	domain::id::Tie oid{1};
-	std::string body_str;
-	domain::Timestamp created{0};
-	std::optional<domain::Timestamp> executed;
-	std::optional<domain::Timestamp> cancelled;
-	domain::id::Deed did{1};
-
-	{
-		std::lock_guard lock(time_db_.mutex());
-		sqlite3* const db = time_db_.db();
-		SqliteStmt stmt(db,
-						"SELECT id, obedience_id, body, created_at_ns, executed_at_ns, "
-						"cancelled_at_ns FROM deeds WHERE id = ?;",
-						"prepare deed");
-		stmt.bind_i64(1, static_cast<std::int64_t>(id.value()), "bind id");
-		if (!stmt.step_row("deed step"))
-			throw std::invalid_argument("unknown deed");
-
-		did = domain::id::Deed{static_cast<std::uint64_t>(stmt.column_i64(0))};
-		oid = domain::id::Tie{static_cast<std::uint64_t>(stmt.column_i64(1))};
-		body_str = std::string(stmt.column_text(2));
-		created = domain::Timestamp{stmt.column_i64(3)};
-		if (!stmt.column_is_null(4))
-			executed = domain::Timestamp{stmt.column_i64(4)};
-		if (!stmt.column_is_null(5))
-			cancelled = domain::Timestamp{stmt.column_i64(5)};
-	}
-
-	const domain::Tying kept = tying(oid);
-	return domain::Deed{did, live_tie(kept.id(), kept.novice()), body_str, created,
-						executed, cancelled};
-}
-
-
-std::vector<domain::Deed> SqliteTemporality::deeds(const domain::id::Tie tie) const
-{
-	std::vector<domain::id::Deed> ids;
-	{
-		std::lock_guard lock(time_db_.mutex());
-		sqlite3* const db = time_db_.db();
-		SqliteStmt stmt(db, "SELECT id FROM deeds WHERE obedience_id = ? ORDER BY id;",
-						"prepare deeds");
-		stmt.bind_i64(1, static_cast<std::int64_t>(tie.value()), "bind oid");
-		while (stmt.step_row("deeds step"))
-			ids.push_back(domain::id::Deed{static_cast<std::uint64_t>(stmt.column_i64(0))});
-	}
-
-	std::vector<domain::Deed> out;
+	std::vector<domain::Execution> out;
 	out.reserve(ids.size());
-
-	for (const domain::id::Deed id : ids)
-		out.push_back(this->deed(id));
-
+	std::lock_guard lock(time_db_.mutex());
+	sqlite3* const db = time_db_.db();
+	for (const domain::id::Word id : ids) {
+		SqliteStmt stmt(db, "SELECT word_id, executed_at_ns FROM executions WHERE word_id = ?;",
+						"prepare execution");
+		stmt.bind_i64(1, static_cast<std::int64_t>(id.value()), "bind id");
+		if (stmt.step_row("execution step")) {
+			out.push_back(domain::Execution{
+				domain::id::Word{static_cast<std::uint64_t>(stmt.column_i64(0))},
+				domain::Timestamp{stmt.column_i64(1)},
+			});
+		}
+	}
 	return out;
 }
 

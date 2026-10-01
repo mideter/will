@@ -2,12 +2,9 @@
 
 #include "acts/dating.h"
 #include "acts/embodiment.h"
-#include "beings/immanents/obedience.h"
+#include "acts/execution.h"
 #include "acts/supplication.h"
 #include "acts/tying.h"
-#include "beings/deed.h"
-#include "beings/immanents/soul.h"
-#include "identity/deed.h"
 #include "identity/word.h"
 #include "identity/soul.h"
 #include "identity/tie.h"
@@ -15,7 +12,6 @@
 #include "values/device_token.h"
 #include "values/soul_name.h"
 #include "values/timestamp.h"
-#include "values/saying.h"
 
 #include <cstdint>
 #include <utility>
@@ -42,7 +38,7 @@ public:
 	virtual std::vector<Embodiment> embodiments() const = 0;
 
 	/// Fix a word at the present instant.
-	virtual void date(id::Word id) = 0;
+	virtual Dating date(id::Word id) = 0;
 
 	/// Datings for the given ids (skips undated).
 	virtual std::vector<Dating> datings(const std::vector<id::Word>& ids) const = 0;
@@ -66,17 +62,12 @@ public:
 	/// All tyings kept in time.
 	virtual std::vector<Tying> tyings() const = 0;
 
-	/// Will a Saying in a shared place (testator must be that place's testator).
-	virtual Deed will(const Obedience& obedience, const Soul& testator, const Saying& saying) = 0;
+	/// Keep the execution of a deed at the present instant.
+	/// Refuses (std::logic_error) if its Execution is already kept.
+	virtual void execute(id::Word deed) = 0;
 
-	/// Execute an open deed.
-	virtual Deed execute(const Deed& deed) = 0;
-
-	/// Deed by id. Throws if unknown.
-	virtual Deed deed(id::Deed id) const = 0;
-
-	/// Deeds kept in this shared place (any status).
-	virtual std::vector<Deed> deeds(id::Tie tie) const = 0;
+	/// Executions for the given ids (skips unexecuted).
+	virtual std::vector<Execution> executions(const std::vector<id::Word>& ids) const = 0;
 };
 
 

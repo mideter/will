@@ -6,6 +6,7 @@
 #include "acts/tying.h"
 #include "beings/deed.h"
 #include "beings/immanents/witness.h"
+#include "identity/word.h"
 
 #include <memory>
 #include <vector>
@@ -29,6 +30,9 @@ public:
 
 	/// Carry out an open deed in an obedience where this soul is novice.
 	Deed execute(const Deed& deed) const;
+
+	/// Deed by id in a tie where this soul is a side. Throws if unknown.
+	Deed deed(id::Word id) const;
 
 	/// Owned Obedience face by tie id. Throws if unknown.
 	const Obedience& obedience(id::Tie id) const;

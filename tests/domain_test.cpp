@@ -12,7 +12,6 @@
 #include "beings/immanents/novice.h"
 #include "beings/immanents/testator.h"
 #include "beings/immanents/witness.h"
-#include "identity/deed.h"
 #include "values/abode_name.h"
 #include "values/device_token.h"
 #include "values/timestamp.h"
@@ -283,8 +282,46 @@ TEST_CASE("will and execute within obedience")
 
 	CHECK_THROWS_AS(static_cast<const Testator&>(a).will(shepherding, "no"), std::logic_error);
 
+	CHECK(novice.deed(deed.id()).open());
+	CHECK(testator.deed(deed.id()).id() == deed.id());
+	CHECK_THROWS_AS(testator.execute(deed), std::logic_error);
+
 	const Deed done = novice.execute(deed);
 	CHECK(done.executed());
 	CHECK_FALSE(done.open());
+	CHECK(novice.deed(deed.id()).executed());
 	CHECK_THROWS_AS(novice.execute(done), std::logic_error);
+
+	// Stale open snapshot: what is kept decides, not the argument.
+	CHECK_THROWS_AS(novice.execute(deed), std::logic_error);
+	CHECK(cosmos.temporality().executions({deed.id()}).size() == 1);
+}
+
+
+TEST_CASE("deed is unknown to a soul outside its tie and is not a letter")
+{
+	InMemoryCosmos cosmos;
+	Creation creation(cosmos.eternity(), cosmos.spatiality(), cosmos.temporality());
+	World& world = creation.world();
+
+	const auto& novice = static_cast<const Novice&>(world.welcome(DeviceToken::generate()));
+	const auto& testator = static_cast<const Testator&>(world.welcome(DeviceToken::generate()));
+	const auto& stranger = static_cast<const Testator&>(world.welcome(DeviceToken::generate()));
+
+	novice.supplicate(testator);
+	testator.accept(testator.supplication(novice));
+	const id::Tie tie = cosmos.temporality().tyings().front().id();
+	const Deed deed = testator.will(testator.shepherding(tie), "fast");
+
+	CHECK_THROWS_AS(stranger.deed(deed.id()), std::invalid_argument);
+	CHECK_THROWS_AS(novice.deed(id::Word{999}), std::invalid_argument);
+
+	// A deed lives in its tie, not in the abodes its sides contemplate.
+	CHECK(testator.retell(10).empty());
+	CHECK(novice.retell(10).empty());
+
+	// A letter is not a deed.
+	static_cast<const Witness&>(novice).say("hello");
+	const id::Word letter = novice.retell(10).front().id();
+	CHECK_THROWS_AS(novice.deed(letter), std::invalid_argument);
 }
