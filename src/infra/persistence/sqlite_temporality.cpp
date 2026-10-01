@@ -17,7 +17,7 @@ namespace {
 bool pair_exists(sqlite3* db, const domain::id::Soul testator, const domain::id::Soul novice)
 {
 	SqliteStmt stmt(db,
-					"SELECT 1 FROM obediences "
+					"SELECT 1 FROM tyings "
 					"WHERE testator_soul_id = ? AND novice_soul_id = ? LIMIT 1;",
 					"prepare pair_exists");
 	stmt.bind_i64(1, static_cast<std::int64_t>(testator.value()), "bind testator");
@@ -48,15 +48,15 @@ unrejected_asking(sqlite3* db, const domain::id::Soul suppliant, const domain::i
 void insert_tying(sqlite3* db, const domain::Tying& tying, const domain::Timestamp ts)
 {
 	SqliteStmt ins(db,
-				   "INSERT INTO obediences "
-				   "(id, testator_soul_id, novice_soul_id, created_at_ns, seceded_at_ns) "
-				   "VALUES (?, ?, ?, ?, NULL);",
-				   "prepare insert obedience");
+				   "INSERT INTO tyings "
+				   "(id, testator_soul_id, novice_soul_id, created_at_ns) "
+				   "VALUES (?, ?, ?, ?);",
+				   "prepare insert tying");
 	ins.bind_i64(1, static_cast<std::int64_t>(tying.id().value()), "bind id");
 	ins.bind_i64(2, static_cast<std::int64_t>(tying.testator().value()), "bind testator");
 	ins.bind_i64(3, static_cast<std::int64_t>(tying.novice().value()), "bind novice");
 	ins.bind_i64(4, ts.value(), "bind created_at");
-	ins.step_done("insert obedience step");
+	ins.step_done("insert tying step");
 }
 
 
@@ -139,9 +139,9 @@ domain::Dating SqliteTemporality::date(const domain::id::Word id)
 	const domain::Timestamp at = eternity_.time().instant();
 	std::lock_guard lock(time_db_.mutex());
 	sqlite3* const db = time_db_.db();
-	SqliteStmt stmt(db, "INSERT OR REPLACE INTO datings (letter_id, created_at_ns) VALUES (?, ?);",
+	SqliteStmt stmt(db, "INSERT OR REPLACE INTO datings (word_id, created_at_ns) VALUES (?, ?);",
 					"prepare date");
-	stmt.bind_i64(1, static_cast<std::int64_t>(id.value()), "bind letter_id");
+	stmt.bind_i64(1, static_cast<std::int64_t>(id.value()), "bind word_id");
 	stmt.bind_i64(2, at.value(), "bind created_at");
 	stmt.step_done("date step");
 
@@ -156,7 +156,7 @@ std::vector<domain::Dating> SqliteTemporality::datings(const std::vector<domain:
 	std::lock_guard lock(time_db_.mutex());
 	sqlite3* const db = time_db_.db();
 	for (const domain::id::Word id : ids) {
-		SqliteStmt stmt(db, "SELECT letter_id, created_at_ns FROM datings WHERE letter_id = ?;",
+		SqliteStmt stmt(db, "SELECT word_id, created_at_ns FROM datings WHERE word_id = ?;",
 						"prepare dating");
 		stmt.bind_i64(1, static_cast<std::int64_t>(id.value()), "bind id");
 		if (stmt.step_row("dating step")) {
@@ -204,7 +204,7 @@ std::vector<domain::Asking> SqliteTemporality::askings(const domain::id::Soul ad
 					"SELECT a.suppliant_soul_id, a.addressee_soul_id FROM askings AS a "
 					"WHERE a.addressee_soul_id = ? "
 					"AND NOT EXISTS (SELECT 1 FROM rejections AS r WHERE r.asking_id = a.id) "
-					"AND NOT EXISTS (SELECT 1 FROM obediences AS o "
+					"AND NOT EXISTS (SELECT 1 FROM tyings AS o "
 					"WHERE o.testator_soul_id = a.addressee_soul_id "
 					"AND o.novice_soul_id = a.suppliant_soul_id) "
 					"ORDER BY a.id;",
@@ -263,7 +263,7 @@ std::vector<domain::Tying> SqliteTemporality::tyings() const
 	std::lock_guard lock(time_db_.mutex());
 	sqlite3* const db = time_db_.db();
 	SqliteStmt stmt(db,
-					"SELECT id, testator_soul_id, novice_soul_id FROM obediences ORDER BY id;",
+					"SELECT id, testator_soul_id, novice_soul_id FROM tyings ORDER BY id;",
 					"prepare tyings");
 	while (stmt.step_row("tyings step")) {
 		out.push_back(domain::Tying{

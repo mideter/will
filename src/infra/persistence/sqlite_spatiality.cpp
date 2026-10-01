@@ -107,9 +107,9 @@ void SqliteSpatiality::place(const domain::id::Word id, const domain::id::Place 
 	std::lock_guard lock(database_.mutex());
 
 	sqlite3* const db = database_.db();
-	SqliteStmt stmt(db, "INSERT OR REPLACE INTO placements (letter_id, place_id) VALUES (?, ?);",
+	SqliteStmt stmt(db, "INSERT OR REPLACE INTO placements (word_id, place_id) VALUES (?, ?);",
 					"prepare place");
-	stmt.bind_i64(1, static_cast<std::int64_t>(id.value()), "bind letter_id");
+	stmt.bind_i64(1, static_cast<std::int64_t>(id.value()), "bind word_id");
 	stmt.bind_i64(2, static_cast<std::int64_t>(place.value()), "bind place_id");
 	stmt.step_done("place step");
 }
@@ -120,9 +120,9 @@ std::optional<domain::Placement> SqliteSpatiality::placement(const domain::id::W
 	std::lock_guard lock(database_.mutex());
 
 	sqlite3* const db = database_.db();
-	SqliteStmt stmt(db, "SELECT letter_id, place_id FROM placements WHERE letter_id = ?;",
+	SqliteStmt stmt(db, "SELECT word_id, place_id FROM placements WHERE word_id = ?;",
 					"prepare placement");
-	stmt.bind_i64(1, static_cast<std::int64_t>(id.value()), "bind letter_id");
+	stmt.bind_i64(1, static_cast<std::int64_t>(id.value()), "bind word_id");
 	if (!stmt.step_row("placement step"))
 		return std::nullopt;
 
@@ -140,8 +140,8 @@ std::vector<domain::Placement> SqliteSpatiality::placements(const domain::id::Pl
 
 	sqlite3* const db = database_.db();
 	SqliteStmt stmt(db,
-					"SELECT letter_id, place_id FROM placements "
-					"WHERE place_id = ? ORDER BY letter_id DESC LIMIT ?;",
+					"SELECT word_id, place_id FROM placements "
+					"WHERE place_id = ? ORDER BY word_id DESC LIMIT ?;",
 					"prepare placements");
 	stmt.bind_i64(1, static_cast<std::int64_t>(place.value()), "bind place_id");
 	stmt.bind_i64(2, static_cast<std::int64_t>(limit), "bind limit");

@@ -65,7 +65,7 @@ struct InMemoryShared {
 	FakeTime time;
 	std::uint64_t next_soul_id = 0;
 	std::uint64_t next_vessel_id = 0;
-	std::uint64_t next_letter_id = 0;
+	std::uint64_t next_word_id = 0;
 	std::vector<std::pair<id::Soul, SoulName>> souls;
 };
 
@@ -89,7 +89,7 @@ public:
 
 	Utterance utter(const id::Soul author, const Saying& saying) override
 	{
-		Utterance row{id::Word{++shared_.next_letter_id}, author, saying};
+		Utterance row{id::Word{++shared_.next_word_id}, author, saying};
 		utterances_.push_back(row);
 		return row;
 	}
@@ -321,18 +321,11 @@ public:
 			throw std::logic_error("obedience already exists for this pair");
 
 		const Tying tying{id::Tie{eternity_.space().point()}, testator, novice};
-		obediences_.push_back(ObedienceRow{tying.id(), tying.testator(), tying.novice()});
+		tyings_.push_back(tying);
 		return tying;
 	}
 
-	std::vector<Tying> tyings() const override
-	{
-		std::vector<Tying> out;
-		out.reserve(obediences_.size());
-		for (const auto& row : obediences_)
-			out.push_back(Tying{row.id, row.testator, row.novice});
-		return out;
-	}
+	std::vector<Tying> tyings() const override { return tyings_; }
 
 	void execute(const id::Word deed) override
 	{
@@ -358,16 +351,10 @@ public:
 	}
 
 private:
-	struct ObedienceRow {
-		id::Tie id;
-		id::Soul testator;
-		id::Soul novice;
-	};
-
 	bool pair_exists(const id::Soul testator, const id::Soul novice) const
 	{
-		for (const auto& row : obediences_) {
-			if (row.testator == testator && row.novice == novice)
+		for (const Tying& row : tyings_) {
+			if (row.testator() == testator && row.novice() == novice)
 				return true;
 		}
 		return false;
@@ -388,7 +375,7 @@ private:
 	std::vector<Embodiment> embodiments_;
 	std::vector<Dating> datings_;
 	std::vector<Asking> askings_;
-	std::vector<ObedienceRow> obediences_;
+	std::vector<Tying> tyings_;
 	std::vector<Execution> executions_;
 };
 

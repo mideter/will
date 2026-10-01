@@ -75,7 +75,7 @@ CREATE TABLE IF NOT EXISTS abode_souls (
 );
 
 CREATE TABLE IF NOT EXISTS placements (
-  letter_id INTEGER PRIMARY KEY,
+  word_id INTEGER PRIMARY KEY,
   place_id INTEGER NOT NULL
 );
 
@@ -97,7 +97,7 @@ CREATE TABLE IF NOT EXISTS men (
 );
 
 CREATE TABLE IF NOT EXISTS datings (
-  letter_id INTEGER PRIMARY KEY,
+  word_id INTEGER PRIMARY KEY,
   created_at_ns INTEGER NOT NULL
 );
 
@@ -113,12 +113,11 @@ CREATE TABLE IF NOT EXISTS rejections (
   rejected_at_ns INTEGER NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS obediences (
+CREATE TABLE IF NOT EXISTS tyings (
   id INTEGER PRIMARY KEY,
   testator_soul_id INTEGER NOT NULL,
   novice_soul_id INTEGER NOT NULL,
-  created_at_ns INTEGER NOT NULL,
-  seceded_at_ns INTEGER
+  created_at_ns INTEGER NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS executions (
