@@ -168,7 +168,7 @@ std::vector<domain::Embodiment> SqliteTemporality::embodiments() const
 }
 
 
-void SqliteTemporality::date(const domain::id::Letter id)
+void SqliteTemporality::date(const domain::id::Word id)
 {
 	const domain::Timestamp at = eternity_.time().instant();
 	std::lock_guard lock(time_db_.mutex());
@@ -181,19 +181,19 @@ void SqliteTemporality::date(const domain::id::Letter id)
 }
 
 
-std::vector<domain::Dating> SqliteTemporality::datings(const std::vector<domain::id::Letter>& ids) const
+std::vector<domain::Dating> SqliteTemporality::datings(const std::vector<domain::id::Word>& ids) const
 {
 	std::vector<domain::Dating> out;
 	out.reserve(ids.size());
 	std::lock_guard lock(time_db_.mutex());
 	sqlite3* const db = time_db_.db();
-	for (const domain::id::Letter id : ids) {
+	for (const domain::id::Word id : ids) {
 		SqliteStmt stmt(db, "SELECT letter_id, created_at_ns FROM datings WHERE letter_id = ?;",
 						"prepare dating");
 		stmt.bind_i64(1, static_cast<std::int64_t>(id.value()), "bind id");
 		if (stmt.step_row("dating step")) {
 			out.push_back(domain::Dating{
-				domain::id::Letter{static_cast<std::uint64_t>(stmt.column_i64(0))},
+				domain::id::Word{static_cast<std::uint64_t>(stmt.column_i64(0))},
 				domain::Timestamp{stmt.column_i64(1)},
 			});
 		}

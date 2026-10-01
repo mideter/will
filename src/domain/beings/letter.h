@@ -6,7 +6,7 @@
 #include "beings/immanents/place.h"
 #include "beings/immanents/soul.h"
 #include "beings/word.h"
-#include "identity/letter.h"
+#include "identity/word.h"
 #include "values/saying.h"
 #include "values/timestamp.h"
 
@@ -21,14 +21,14 @@ public:
 	/// Ids must match; place and author must be known to Space and Heaven.
 	Letter(Utterance utterance, Placement placement, Dating dating);
 
-	id::Letter id() const noexcept { return id_; }
+	id::Word id() const noexcept { return id_; }
 	const Place& place() const noexcept { return place_; }
 	const Soul& author() const noexcept { return author_; }
 	const Saying& saying() const noexcept { return saying_; }
 	Timestamp created_at() const noexcept { return created_at_; }
 
 private:
-	id::Letter id_;
+	id::Word id_;
 	const Place& place_;
 	const Soul& author_;
 	Saying saying_;

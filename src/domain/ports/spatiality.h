@@ -3,7 +3,7 @@
 #include "acts/placement.h"
 #include "acts/abiding.h"
 #include "identity/abode.h"
-#include "identity/letter.h"
+#include "identity/word.h"
 #include "identity/place.h"
 #include "identity/soul.h"
 #include "values/abode_name.h"
@@ -40,7 +40,7 @@ public:
 	virtual void join_abode(id::Abode abode, id::Soul soul) = 0;
 
 	/// Fix a word in a place.
-	virtual void place(id::Letter id, id::Place place) = 0;
+	virtual void place(id::Word id, id::Place place) = 0;
 
 	/// Placements in this place, newest first up to limit (caller dates/sorts for history).
 	virtual std::vector<Placement> placements(id::Place place, std::uint32_t limit) const = 0;

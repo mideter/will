@@ -18,8 +18,8 @@ public:
 	embody(domain::id::Soul soul, domain::SoulName name, domain::DeviceToken token) override;
 	std::vector<domain::Embodiment> embodiments() const override;
 
-	void date(domain::id::Letter id) override;
-	std::vector<domain::Dating> datings(const std::vector<domain::id::Letter>& ids) const override;
+	void date(domain::id::Word id) override;
+	std::vector<domain::Dating> datings(const std::vector<domain::id::Word>& ids) const override;
 
 	domain::Supplication
 	supplicate(const domain::Novice& suppliant, const domain::Testator& addressee) override;

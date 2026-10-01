@@ -6,7 +6,7 @@
 namespace will::domain {
 
 
-Utterance::Utterance(const id::Letter id, const id::Soul author, Saying saying)
+Utterance::Utterance(const id::Word id, const id::Soul author, Saying saying)
 	: id_(id)
 	, author_(author)
 	, saying_(std::move(saying))

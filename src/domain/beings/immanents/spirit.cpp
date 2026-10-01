@@ -20,7 +20,7 @@ Utterance Spirit::utter(const Saying& saying) const
 }
 
 
-std::vector<Utterance> Spirit::utterances(const std::vector<id::Letter>& ids) const
+std::vector<Utterance> Spirit::utterances(const std::vector<id::Word>& ids) const
 {
 	return eternity().utterances(ids);
 }

@@ -19,7 +19,7 @@ public:
 	std::optional<domain::Abiding> abode_of(domain::id::Soul soul) const override;
 	void keep(domain::id::Abode id, domain::AbodeName name) override;
 	void join_abode(domain::id::Abode abode, domain::id::Soul soul) override;
-	void place(domain::id::Letter id, domain::id::Place place) override;
+	void place(domain::id::Word id, domain::id::Place place) override;
 	std::vector<domain::Placement> placements(domain::id::Place place,
 											  std::uint32_t limit) const override;
 

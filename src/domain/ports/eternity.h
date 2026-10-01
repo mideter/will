@@ -1,7 +1,7 @@
 #pragma once
 
 #include "acts/utterance.h"
-#include "identity/letter.h"
+#include "identity/word.h"
 #include "identity/soul.h"
 #include "ports/time.h"
 #include "values/soul_name.h"
@@ -34,10 +34,10 @@ public:
 	virtual Utterance utter(id::Soul author, const Saying& saying) = 0;
 
 	/// Throws if unknown.
-	virtual Utterance utterance(id::Letter id) const = 0;
+	virtual Utterance utterance(id::Word id) const = 0;
 
 	/// Order preserved; skips unknown.
-	virtual std::vector<Utterance> utterances(const std::vector<id::Letter>& ids) const = 0;
+	virtual std::vector<Utterance> utterances(const std::vector<id::Word>& ids) const = 0;
 };
 
 

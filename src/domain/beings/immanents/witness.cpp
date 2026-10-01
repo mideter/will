@@ -51,9 +51,9 @@ std::vector<Letter> Witness::retell(const std::uint32_t limit) const
 	const std::uint32_t capped = std::min(limit, Spatiality::MaxLetterLimit);
 	std::vector<Placement> placed = spatiality().placements(place.id(), Spatiality::MaxLetterLimit);
 
-	std::vector<id::Letter> ids;
+	std::vector<id::Word> ids;
 	ids.reserve(placed.size());
-	std::unordered_map<id::Letter, id::Place> place_by_id;
+	std::unordered_map<id::Word, id::Place> place_by_id;
 	for (const Placement& row : placed) {
 		ids.push_back(row.id());
 		place_by_id.emplace(row.id(), row.place());
@@ -66,23 +66,23 @@ std::vector<Letter> Witness::retell(const std::uint32_t limit) const
 	if (dated.size() > capped)
 		dated.erase(dated.begin(), dated.end() - static_cast<std::ptrdiff_t>(capped));
 
-	std::vector<id::Letter> selected;
+	std::vector<id::Word> selected;
 	selected.reserve(dated.size());
 	for (const Dating& row : dated)
 		selected.push_back(row.id());
 
 	std::vector<Utterance> uttered = utterances(selected);
-	std::unordered_map<id::Letter, Utterance> utterance_by_id;
+	std::unordered_map<id::Word, Utterance> utterance_by_id;
 	for (Utterance& row : uttered)
 		utterance_by_id.emplace(row.id(), std::move(row));
 
-	std::unordered_map<id::Letter, Dating> dating_by_id;
+	std::unordered_map<id::Word, Dating> dating_by_id;
 	for (Dating& row : dated)
 		dating_by_id.emplace(row.id(), std::move(row));
 
 	std::vector<Letter> living;
 	living.reserve(selected.size());
-	for (const id::Letter id : selected) {
+	for (const id::Word id : selected) {
 		const auto u = utterance_by_id.find(id);
 		const auto d = dating_by_id.find(id);
 		const auto p = place_by_id.find(id);

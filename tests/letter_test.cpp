@@ -13,7 +13,7 @@
 #include "beings/deed.h"
 #include "beings/immanents/novice.h"
 #include "beings/immanents/testator.h"
-#include "identity/letter.h"
+#include "identity/word.h"
 #include "identity/tie.h"
 #include "identity/place.h"
 #include "identity/deed.h"
@@ -27,17 +27,17 @@ using namespace will::domain;
 using namespace will::domain::test;
 
 
-TEST_CASE("id::Letter requires positive value")
+TEST_CASE("id::Word requires positive value")
 {
-	CHECK(id::Letter{1}.value() == 1);
-	CHECK_THROWS_AS(id::Letter{0}, std::invalid_argument);
+	CHECK(id::Word{1}.value() == 1);
+	CHECK_THROWS_AS(id::Word{0}, std::invalid_argument);
 }
 
 
 TEST_CASE("Utterance stores fields")
 {
-	const Utterance utterance{id::Letter{1}, id::Soul{7}, "hello"};
-	CHECK(utterance.id() == id::Letter{1});
+	const Utterance utterance{id::Word{1}, id::Soul{7}, "hello"};
+	CHECK(utterance.id() == id::Word{1});
 	CHECK(utterance.author() == id::Soul{7});
 	CHECK(utterance.saying().body() == "hello");
 }
@@ -45,7 +45,7 @@ TEST_CASE("Utterance stores fields")
 
 TEST_CASE("Utterance rejects invalid construction")
 {
-	CHECK_THROWS_AS((Utterance{id::Letter{1}, id::Soul{0}, "x"}), std::invalid_argument);
+	CHECK_THROWS_AS((Utterance{id::Word{1}, id::Soul{0}, "x"}), std::invalid_argument);
 	CHECK_THROWS_AS((Saying{""}), std::invalid_argument);
 	CHECK_THROWS_AS((Saying{std::string(Saying::MaxBodyLength + 1, 'a')}), std::invalid_argument);
 }
@@ -53,7 +53,7 @@ TEST_CASE("Utterance rejects invalid construction")
 
 TEST_CASE("Utterance accepts max body length")
 {
-	const Utterance max_body{id::Letter{1}, id::Soul{1}, std::string(Saying::MaxBodyLength, 'a')};
+	const Utterance max_body{id::Word{1}, id::Soul{1}, std::string(Saying::MaxBodyLength, 'a')};
 	CHECK(max_body.saying().body().size() == Saying::MaxBodyLength);
 }
 
@@ -67,12 +67,12 @@ TEST_CASE("Letter is born from three projections with living place and author")
 	const Man& man = world.welcome(DeviceToken::generate());
 	const auto& witness = static_cast<const Witness&>(man);
 
-	const Utterance utterance{id::Letter{1}, man.Soul::id(), "hello"};
-	const Placement placement{id::Letter{1}, witness.abode().id()};
-	const Dating dating{id::Letter{1}, Timestamp{100}};
+	const Utterance utterance{id::Word{1}, man.Soul::id(), "hello"};
+	const Placement placement{id::Word{1}, witness.abode().id()};
+	const Dating dating{id::Word{1}, Timestamp{100}};
 	const Letter letter{utterance, placement, dating};
 
-	CHECK(letter.id() == id::Letter{1});
+	CHECK(letter.id() == id::Word{1});
 	CHECK(&letter.place() == &witness.abode());
 	CHECK(&letter.author() == &static_cast<const Soul&>(man));
 	CHECK(letter.saying().body() == "hello");
@@ -88,9 +88,9 @@ TEST_CASE("Letter rejects unknown place")
 
 	const Man& man = world.welcome(DeviceToken::generate());
 
-	const Utterance utterance{id::Letter{1}, man.Soul::id(), "x"};
-	const Placement placement{id::Letter{1}, id::Place{999}};
-	const Dating dating{id::Letter{1}, Timestamp{0}};
+	const Utterance utterance{id::Word{1}, man.Soul::id(), "x"};
+	const Placement placement{id::Word{1}, id::Place{999}};
+	const Dating dating{id::Word{1}, Timestamp{0}};
 	CHECK_THROWS_AS((Letter{utterance, placement, dating}), std::logic_error);
 }
 
@@ -104,9 +104,9 @@ TEST_CASE("Letter rejects mismatched projection ids")
 	const Man& man = world.welcome(DeviceToken::generate());
 	const auto& witness = static_cast<const Witness&>(man);
 
-	const Utterance utterance{id::Letter{1}, man.Soul::id(), "x"};
-	const Placement placement{id::Letter{2}, witness.abode().id()};
-	const Dating dating{id::Letter{1}, Timestamp{0}};
+	const Utterance utterance{id::Word{1}, man.Soul::id(), "x"};
+	const Placement placement{id::Word{2}, witness.abode().id()};
+	const Dating dating{id::Word{1}, Timestamp{0}};
 	CHECK_THROWS_AS((Letter{utterance, placement, dating}), std::invalid_argument);
 }
 

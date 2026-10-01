@@ -2,7 +2,7 @@
 #include <doctest/doctest.h>
 
 #include "identity/abode.h"
-#include "identity/letter.h"
+#include "identity/word.h"
 #include "identity/tie.h"
 #include "identity/place.h"
 #include "identity/soul.h"
@@ -22,10 +22,10 @@ TEST_CASE("id::Soul requires positive value")
 }
 
 
-TEST_CASE("id::Letter requires positive value")
+TEST_CASE("id::Word requires positive value")
 {
-	CHECK(id::Letter{7}.value() == 7);
-	CHECK_THROWS_AS(id::Letter{0}, std::invalid_argument);
+	CHECK(id::Word{7}.value() == 7);
+	CHECK_THROWS_AS(id::Word{0}, std::invalid_argument);
 }
 
 

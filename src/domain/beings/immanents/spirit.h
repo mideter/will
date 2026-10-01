@@ -3,7 +3,7 @@
 #include "acts/contemplation.h"
 #include "acts/utterance.h"
 #include "beings/heaven.h"
-#include "identity/letter.h"
+#include "identity/word.h"
 #include "identity/soul.h"
 #include "ports/eternity.h"
 #include "properties/immanent.h"
@@ -38,7 +38,7 @@ protected:
 
 	Utterance utter(const Saying& saying) const;
 
-	std::vector<Utterance> utterances(const std::vector<id::Letter>& ids) const;
+	std::vector<Utterance> utterances(const std::vector<id::Word>& ids) const;
 
 	bool knows(id::Soul soul_id) const;
 

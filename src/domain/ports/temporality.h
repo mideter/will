@@ -8,7 +8,7 @@
 #include "beings/deed.h"
 #include "beings/immanents/soul.h"
 #include "identity/deed.h"
-#include "identity/letter.h"
+#include "identity/word.h"
 #include "identity/soul.h"
 #include "identity/tie.h"
 #include "identity/vessel.h"
@@ -42,10 +42,10 @@ public:
 	virtual std::vector<Embodiment> embodiments() const = 0;
 
 	/// Fix a word at the present instant.
-	virtual void date(id::Letter id) = 0;
+	virtual void date(id::Word id) = 0;
 
 	/// Datings for the given ids (skips undated).
-	virtual std::vector<Dating> datings(const std::vector<id::Letter>& ids) const = 0;
+	virtual std::vector<Dating> datings(const std::vector<id::Word>& ids) const = 0;
 
 	/// Offer obedience: suppliant asks addressee to become Завещатель.
 	virtual Supplication supplicate(const Novice& suppliant, const Testator& addressee) = 0;

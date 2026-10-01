@@ -102,7 +102,7 @@ void SqliteSpatiality::join_abode(const domain::id::Abode abode, const domain::i
 }
 
 
-void SqliteSpatiality::place(const domain::id::Letter id, const domain::id::Place place)
+void SqliteSpatiality::place(const domain::id::Word id, const domain::id::Place place)
 {
 	std::lock_guard lock(database_.mutex());
 
@@ -132,7 +132,7 @@ std::vector<domain::Placement> SqliteSpatiality::placements(const domain::id::Pl
 	rows.reserve(limit);
 	while (stmt.step_row("placements step")) {
 		rows.push_back(domain::Placement{
-			domain::id::Letter{static_cast<std::uint64_t>(stmt.column_i64(0))},
+			domain::id::Word{static_cast<std::uint64_t>(stmt.column_i64(0))},
 			domain::id::Place{static_cast<std::uint64_t>(stmt.column_i64(1))},
 		});
 	}

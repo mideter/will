@@ -19,7 +19,7 @@
 #include "beings/world.h"
 #include "identity/abode.h"
 #include "identity/deed.h"
-#include "identity/letter.h"
+#include "identity/word.h"
 #include "identity/place.h"
 #include "identity/tie.h"
 #include "identity/soul.h"
@@ -89,12 +89,12 @@ public:
 
 	Utterance utter(const id::Soul author, const Saying& saying) override
 	{
-		Utterance row{id::Letter{++shared_.next_letter_id}, author, saying};
+		Utterance row{id::Word{++shared_.next_letter_id}, author, saying};
 		utterances_.push_back(row);
 		return row;
 	}
 
-	Utterance utterance(const id::Letter id) const override
+	Utterance utterance(const id::Word id) const override
 	{
 		for (const Utterance& row : utterances_) {
 			if (row.id() == id)
@@ -103,11 +103,11 @@ public:
 		throw std::invalid_argument("unknown utterance");
 	}
 
-	std::vector<Utterance> utterances(const std::vector<id::Letter>& ids) const override
+	std::vector<Utterance> utterances(const std::vector<id::Word>& ids) const override
 	{
 		std::vector<Utterance> out;
 		out.reserve(ids.size());
-		for (const id::Letter id : ids) {
+		for (const id::Word id : ids) {
 			try {
 				out.push_back(utterance(id));
 			} catch (const std::invalid_argument&) {
@@ -187,7 +187,7 @@ public:
 		abode_souls_.emplace_back(abode, soul);
 	}
 
-	void place(const id::Letter id, const id::Place place) override
+	void place(const id::Word id, const id::Place place) override
 	{
 		for (auto& row : placements_) {
 			if (row.id() == id) {
@@ -248,7 +248,7 @@ public:
 			shared_.next_vessel_id = vessel_id.value();
 	}
 
-	void date(const id::Letter id) override
+	void date(const id::Word id) override
 	{
 		const Timestamp at = eternity_.time().instant();
 		for (auto& row : datings_) {
@@ -260,10 +260,10 @@ public:
 		datings_.emplace_back(id, at);
 	}
 
-	std::vector<Dating> datings(const std::vector<id::Letter>& ids) const override
+	std::vector<Dating> datings(const std::vector<id::Word>& ids) const override
 	{
 		std::vector<Dating> out;
-		for (const id::Letter id : ids) {
+		for (const id::Word id : ids) {
 			for (const Dating& row : datings_) {
 				if (row.id() == id) {
 					out.push_back(row);

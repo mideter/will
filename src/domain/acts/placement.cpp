@@ -4,7 +4,7 @@
 namespace will::domain {
 
 
-Placement::Placement(const id::Letter id, const id::Place place)
+Placement::Placement(const id::Word id, const id::Place place)
 	: id_(id)
 	, place_(place)
 {}

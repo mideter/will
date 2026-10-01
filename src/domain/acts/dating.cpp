@@ -4,7 +4,7 @@
 namespace will::domain {
 
 
-Dating::Dating(const id::Letter id, const Timestamp created_at)
+Dating::Dating(const id::Word id, const Timestamp created_at)
 	: id_(id)
 	, created_at_(created_at)
 {}
