@@ -2,7 +2,7 @@
 
 #include "beings/immanents/obedience.h"
 #include "beings/immanents/shepherding.h"
-#include "acts/tying.h"
+#include "acts/boundness.h"
 #include "beings/immanents/novice.h"
 #include "beings/immanents/soul.h"
 #include "beings/immanents/testator.h"
@@ -37,9 +37,9 @@ const Shepherding& Supplication::sign(const Testator& addressee) const
 	const Supplication& incoming = addressee.supplication(suppliant_);
 	const Novice& suppliant = suppliant_;
 
-	const Tying tying = addressee.temporality().tie(addressee.Soul::id(), suppliant.Soul::id());
+	const Boundness boundness = addressee.temporality().tie(addressee.Soul::id(), suppliant.Soul::id());
 
-	const Obedience& place = suppliant.follow(tying);
+	const Obedience& place = suppliant.follow(boundness);
 	const Shepherding& shepherded = addressee.shepherd(dynamic_cast<const Shepherding&>(place));
 	addressee.drop(incoming);
 

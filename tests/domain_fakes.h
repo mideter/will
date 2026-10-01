@@ -5,7 +5,7 @@
 #include "acts/asking.h"
 #include "acts/execution.h"
 #include "acts/placement.h"
-#include "acts/tying.h"
+#include "acts/boundness.h"
 #include "beings/immanents/obedience.h"
 #include "beings/immanents/tie.h"
 #include "acts/utterance.h"
@@ -313,17 +313,17 @@ public:
 		askings_.erase(it);
 	}
 
-	Tying tie(const id::Soul testator, const id::Soul novice) override
+	Boundness tie(const id::Soul testator, const id::Soul novice) override
 	{
 		if (pair_exists(testator, novice))
 			throw std::logic_error("obedience already exists for this pair");
 
-		const Tying tying{id::Tie{eternity_.space().point()}, testator, novice};
-		tyings_.push_back(tying);
-		return tying;
+		const Boundness boundness{id::Tie{eternity_.space().point()}, testator, novice};
+		tyings_.push_back(boundness);
+		return boundness;
 	}
 
-	std::vector<Tying> tyings() const override { return tyings_; }
+	std::vector<Boundness> tyings() const override { return tyings_; }
 
 	void execute(const id::Word deed) override
 	{
@@ -351,7 +351,7 @@ public:
 private:
 	bool pair_exists(const id::Soul testator, const id::Soul novice) const
 	{
-		for (const Tying& row : tyings_) {
+		for (const Boundness& row : tyings_) {
 			if (row.testator() == testator && row.novice() == novice)
 				return true;
 		}
@@ -373,7 +373,7 @@ private:
 	std::vector<Embodiment> embodiments_;
 	std::vector<Dating> datings_;
 	std::vector<Asking> askings_;
-	std::vector<Tying> tyings_;
+	std::vector<Boundness> tyings_;
 	std::vector<Execution> executions_;
 };
 

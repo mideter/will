@@ -14,8 +14,8 @@ class Testator;
 /// Supplication (Прошение) — request to enter the shared Obedience/Shepherding place.
 /// Pair (suppliant, addressee): future novice and the Testator asked to become Завещатель.
 /// Born from Asking (Испрашивание). Pending while on the addressee's heap; each
-/// side signs (sign / reject). Signed by the addressee, it performs the Tying
-/// (Связывание) on his behalf and the living Tie is born.
+/// side signs (sign / reject). Signed by the addressee, it binds the pair on
+/// his behalf: Boundness (Связанность) is kept and the living Tie is born.
 class Supplication {
 public:
 	/// Both souls must be known to Heaven.

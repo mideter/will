@@ -8,7 +8,7 @@ namespace will::domain {
 
 /// Asking (Испрашивание) — suppliant asks addressee to become Завещатель, fixed in time.
 /// Matter for living Supplication. Temporality keeps Askings; one awaits answer
-/// until a Tying of the pair or its rejection is kept.
+/// until a Boundness of the pair or its rejection is kept.
 class Asking {
 public:
 	Asking(id::Soul suppliant, id::Soul addressee);

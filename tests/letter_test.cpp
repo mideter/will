@@ -8,7 +8,7 @@
 #include "acts/execution.h"
 #include "acts/placement.h"
 #include "beings/immanents/tie.h"
-#include "acts/tying.h"
+#include "acts/boundness.h"
 #include "acts/utterance.h"
 #include "beings/letter.h"
 #include "beings/deed.h"
@@ -121,7 +121,7 @@ TEST_CASE("Deed is a word of will in a living Tie")
 	const auto& novice = static_cast<const Novice&>(world.welcome(DeviceToken::generate()));
 	const id::Word did{3};
 	const id::Tie oid{9};
-	const Tie tie{Tying{oid, testator.Soul::id(), novice.Soul::id()}};
+	const Tie tie{Boundness{oid, testator.Soul::id(), novice.Soul::id()}};
 
 	const Utterance utterance{did, testator.Soul::id(), "do this"};
 	const Placement placement{did, tie.id()};
@@ -157,7 +157,7 @@ TEST_CASE("Deed rejects a place that is not a Tie and an author who is not its t
 	const auto& testator = static_cast<const Testator&>(world.welcome(DeviceToken::generate()));
 	const auto& novice = static_cast<const Novice&>(world.welcome(DeviceToken::generate()));
 	const id::Word did{3};
-	const Tie tie{Tying{id::Tie{9}, testator.Soul::id(), novice.Soul::id()}};
+	const Tie tie{Boundness{id::Tie{9}, testator.Soul::id(), novice.Soul::id()}};
 	const Dating dating{did, Timestamp{50}};
 
 	const Utterance by_testator{did, testator.Soul::id(), "do this"};

@@ -7,11 +7,11 @@
 namespace will::domain {
 
 
-/// Tying (Связывание) — pair place kept in time (testator, novice).
+/// Boundness (Связанность) — pair place kept in time (testator, novice).
 /// Matter for living Tie on the heap; not the Tie itself.
-class Tying {
+class Boundness {
 public:
-	Tying(id::Tie id, id::Soul testator, id::Soul novice);
+	Boundness(id::Tie id, id::Soul testator, id::Soul novice);
 
 	id::Tie id() const noexcept { return id_; }
 	id::Soul testator() const noexcept { return testator_; }

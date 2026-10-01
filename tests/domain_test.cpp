@@ -7,7 +7,7 @@
 #include "beings/immanents/obedience.h"
 #include "beings/immanents/shepherding.h"
 #include "beings/immanents/tie.h"
-#include "acts/tying.h"
+#include "acts/boundness.h"
 #include "beings/deed.h"
 #include "beings/immanents/novice.h"
 #include "beings/immanents/testator.h"
@@ -187,12 +187,12 @@ TEST_CASE("tie is a place for distinct testator and novice")
 	const auto& novice = static_cast<const Novice&>(world.welcome(DeviceToken::generate()));
 	const id::Tie oid{7};
 
-	const Tie tie{Tying{oid, testator.Soul::id(), novice.Soul::id()}};
+	const Tie tie{Boundness{oid, testator.Soul::id(), novice.Soul::id()}};
 	CHECK(tie.id() == id::Place{oid.value()});
 	CHECK(&tie.testator() == &testator);
 	CHECK(&tie.novice() == &novice);
 
-	CHECK_THROWS_AS((Tying{id::Tie{8}, testator.Soul::id(), testator.Soul::id()}),
+	CHECK_THROWS_AS((Boundness{id::Tie{8}, testator.Soul::id(), testator.Soul::id()}),
 					std::invalid_argument);
 }
 
@@ -230,7 +230,7 @@ TEST_CASE("supplicate accept creates tie owned as obedience")
 	CHECK(cosmos.temporality().askings(b.Soul::id()).empty());
 	CHECK_THROWS_AS(testator.obedience(static_cast<const Testator&>(a)), std::invalid_argument);
 
-	// What is kept decides: the pair is tied, so neither a new asking nor a new tying is kept.
+	// What is kept decides: the pair is tied, so neither a new asking nor a new boundness is kept.
 	CHECK_THROWS_AS(novice.supplicate(testator), std::logic_error);
 	CHECK_THROWS_AS(cosmos.temporality().tie(b.Soul::id(), a.Soul::id()), std::logic_error);
 	CHECK(cosmos.temporality().tyings().size() == 1);

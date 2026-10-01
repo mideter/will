@@ -9,10 +9,10 @@
 namespace will::domain {
 
 
-Tie::Tie(Tying tying)
-	: Place(id::Place{tying.id().value()})
-	, Obedience(Soul::of(tying.testator()))
-	, Shepherding(Soul::of(tying.novice()))
+Tie::Tie(Boundness boundness)
+	: Place(id::Place{boundness.id().value()})
+	, Obedience(Soul::of(boundness.testator()))
+	, Shepherding(Soul::of(boundness.novice()))
 {
 	Immanent<Space>::present<Place>();
 }

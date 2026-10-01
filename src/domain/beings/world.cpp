@@ -4,7 +4,7 @@
 #include "beings/immanents/obedience.h"
 #include "beings/immanents/shepherding.h"
 #include "acts/supplication.h"
-#include "acts/tying.h"
+#include "acts/boundness.h"
 #include "beings/immanents/novice.h"
 #include "beings/immanents/soul.h"
 #include "beings/immanents/testator.h"
@@ -32,9 +32,9 @@ void World::awaken()
 	for (Embodiment e : temporality().embodiments())
 		(void)accept(std::move(e));
 
-	for (Tying tying : temporality().tyings()) {
-		const auto& novice = static_cast<const Novice&>(Soul::of(tying.novice()));
-		const Obedience& place = novice.follow(std::move(tying));
+	for (Boundness boundness : temporality().tyings()) {
+		const auto& novice = static_cast<const Novice&>(Soul::of(boundness.novice()));
+		const Obedience& place = novice.follow(std::move(boundness));
 		static_cast<const Testator&>(place.testator()).shepherd(
 			dynamic_cast<const Shepherding&>(place));
 	}

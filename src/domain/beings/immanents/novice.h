@@ -3,7 +3,7 @@
 #include "acts/embodiment.h"
 #include "beings/immanents/obedience.h"
 #include "acts/supplication.h"
-#include "acts/tying.h"
+#include "acts/boundness.h"
 #include "beings/deed.h"
 #include "beings/immanents/witness.h"
 #include "identity/word.h"
@@ -46,7 +46,7 @@ private:
 
 	using Witness::say;
 
-	const Obedience& follow(Tying tying) const;
+	const Obedience& follow(Boundness boundness) const;
 	const Obedience& follow(std::unique_ptr<Obedience> place) const;
 
 	mutable std::vector<std::unique_ptr<Obedience>> obediences_;

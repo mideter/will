@@ -75,12 +75,12 @@ const Obedience& Novice::obedience(const Testator& testator) const
 }
 
 
-const Obedience& Novice::follow(Tying tying) const
+const Obedience& Novice::follow(Boundness boundness) const
 {
-	if (tying.novice() != Soul::id())
-		throw std::logic_error("tying is not for this novice");
+	if (boundness.novice() != Soul::id())
+		throw std::logic_error("boundness is not for this novice");
 
-	return follow(std::make_unique<Tie>(std::move(tying)));
+	return follow(std::make_unique<Tie>(std::move(boundness)));
 }
 
 

@@ -45,18 +45,18 @@ unrejected_asking(sqlite3* db, const domain::id::Soul suppliant, const domain::i
 }
 
 
-void insert_tying(sqlite3* db, const domain::Tying& tying, const domain::Timestamp ts)
+void insert_boundness(sqlite3* db, const domain::Boundness& boundness, const domain::Timestamp ts)
 {
 	SqliteStmt ins(db,
 				   "INSERT INTO tyings "
 				   "(id, testator_soul_id, novice_soul_id, created_at_ns) "
 				   "VALUES (?, ?, ?, ?);",
-				   "prepare insert tying");
-	ins.bind_i64(1, static_cast<std::int64_t>(tying.id().value()), "bind id");
-	ins.bind_i64(2, static_cast<std::int64_t>(tying.testator().value()), "bind testator");
-	ins.bind_i64(3, static_cast<std::int64_t>(tying.novice().value()), "bind novice");
+				   "prepare insert boundness");
+	ins.bind_i64(1, static_cast<std::int64_t>(boundness.id().value()), "bind id");
+	ins.bind_i64(2, static_cast<std::int64_t>(boundness.testator().value()), "bind testator");
+	ins.bind_i64(3, static_cast<std::int64_t>(boundness.novice().value()), "bind novice");
 	ins.bind_i64(4, ts.value(), "bind created_at");
-	ins.step_done("insert tying step");
+	ins.step_done("insert boundness step");
 }
 
 
@@ -241,7 +241,7 @@ void SqliteTemporality::reject(const domain::id::Soul suppliant, const domain::i
 }
 
 
-domain::Tying SqliteTemporality::tie(const domain::id::Soul testator, const domain::id::Soul novice)
+domain::Boundness SqliteTemporality::tie(const domain::id::Soul testator, const domain::id::Soul novice)
 {
 	const domain::Timestamp at = eternity_.time().instant();
 	std::lock_guard lock(time_db_.mutex());
@@ -250,23 +250,23 @@ domain::Tying SqliteTemporality::tie(const domain::id::Soul testator, const doma
 	if (pair_exists(db, testator, novice))
 		throw std::logic_error("obedience already exists for this pair");
 
-	const domain::Tying tying{domain::id::Tie{eternity_.space().point()}, testator, novice};
-	insert_tying(db, tying, at);
+	const domain::Boundness boundness{domain::id::Tie{eternity_.space().point()}, testator, novice};
+	insert_boundness(db, boundness, at);
 
-	return tying;
+	return boundness;
 }
 
 
-std::vector<domain::Tying> SqliteTemporality::tyings() const
+std::vector<domain::Boundness> SqliteTemporality::tyings() const
 {
-	std::vector<domain::Tying> out;
+	std::vector<domain::Boundness> out;
 	std::lock_guard lock(time_db_.mutex());
 	sqlite3* const db = time_db_.db();
 	SqliteStmt stmt(db,
 					"SELECT id, testator_soul_id, novice_soul_id FROM tyings ORDER BY id;",
 					"prepare tyings");
 	while (stmt.step_row("tyings step")) {
-		out.push_back(domain::Tying{
+		out.push_back(domain::Boundness{
 			domain::id::Tie{static_cast<std::uint64_t>(stmt.column_i64(0))},
 			domain::id::Soul{static_cast<std::uint64_t>(stmt.column_i64(1))},
 			domain::id::Soul{static_cast<std::uint64_t>(stmt.column_i64(2))},
