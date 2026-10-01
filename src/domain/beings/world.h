@@ -45,13 +45,13 @@ private:
 
 	World(Eternity& eternity, Temporality& temporality, Spatiality& spatiality);
 
-	/// Accept remembered embodiments (Creation).
+	/// Accept kept embodiments (Creation).
 	void awaken();
 
 	/// Enroll a soul, embody it in a vessel, birth Testator.
 	const Man& beget(const DeviceToken& token);
 
-	/// Place a Testator on the heap from embodiment material.
+	/// Place a Testator on the heap from embodiment matter.
 	const Man& accept(Embodiment embodiment);
 
 	const Man& living_man(id::Soul id) const;

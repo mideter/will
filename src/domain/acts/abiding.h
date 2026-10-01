@@ -7,7 +7,7 @@
 namespace will::domain {
 
 
-/// Abiding — abode id and name recorded in Spatiality; material for living Abode.
+/// Abiding — abode id and name kept in Spatiality; matter for living Abode.
 /// Not the living Abode (heap presence in Space).
 class Abiding {
 public:

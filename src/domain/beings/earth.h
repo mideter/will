@@ -21,7 +21,7 @@ class Spatiality;
 /// Speaks with Temporality and Spatiality.
 /// Dust reaches Temporality and Spatiality via friendship.
 /// Earth is in space and time. Live registry of vessels; abodes live with men;
-/// places are known to Space; spatial material to Spatiality.
+/// places are known to Space; spatial matter to Spatiality.
 class Earth : private Immanent<Earth> {
 public:
 	bool knows(id::Vessel id) const;

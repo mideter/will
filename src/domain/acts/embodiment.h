@@ -9,8 +9,8 @@
 namespace will::domain {
 
 
-/// Embodiment (Воплощение) — soul dwelling recorded in time (vessel binding).
-/// Material for World birth; not a living Man. One soul, one living man in the World.
+/// Embodiment (Воплощение) — soul dwelling kept in time (vessel binding).
+/// Matter for World birth; not a living Man. One soul, one living man in the World.
 class Embodiment {
 public:
 	Embodiment(id::Soul soul, SoulName name, id::Vessel vessel, DeviceToken token);

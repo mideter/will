@@ -17,14 +17,14 @@ namespace will::domain {
 
 
 /// Spatiality (Пространственность) — places and where a Word is fixed.
-/// Living places are known to Space; Spatiality keeps spatial material.
+/// Living places are known to Space; Spatiality keeps spatial matter.
 class Spatiality {
 public:
 	static constexpr std::uint32_t MaxLetterLimit = 1000;
 
 	virtual ~Spatiality() = default;
 
-	/// Abodes kept in space (id + name material).
+	/// Abodes kept in space (id + name matter).
 	virtual std::vector<Abiding> abodes() = 0;
 
 	/// Abiding for this soul: restore if kept, otherwise open, keep, and join.
@@ -36,7 +36,7 @@ public:
 	/// Keep an abode in space (idempotent by id).
 	virtual void keep(id::Abode id, AbodeName name) = 0;
 
-	/// Record that a soul dwells in an abode (idempotent).
+	/// Keep that a soul dwells in an abode (idempotent).
 	virtual void join_abode(id::Abode abode, id::Soul soul) = 0;
 
 	/// Fix a word in a place.

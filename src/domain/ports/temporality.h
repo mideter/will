@@ -27,7 +27,7 @@ class Temporality {
 public:
 	virtual ~Temporality() = default;
 
-	/// Record that this soul dwells in a new vessel; returns material for World birth.
+	/// Keep that this soul dwells in a new vessel; returns matter for World birth.
 	virtual Embodiment embody(id::Soul soul, SoulName name, DeviceToken token) = 0;
 
 	/// All embodiments kept in time (for Creation awaken).

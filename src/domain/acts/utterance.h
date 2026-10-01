@@ -8,7 +8,7 @@
 namespace will::domain {
 
 
-/// Utterance — Saying and author kept in Eternity; material for living Letter.
+/// Utterance — Saying and author kept in Eternity; matter for a living Word (Letter, Deed).
 class Utterance {
 public:
 	Utterance(id::Word id, id::Soul author, Saying saying);

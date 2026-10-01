@@ -7,7 +7,8 @@
 namespace will::domain {
 
 
-/// Dating — Word fixed in time; material for living Letter. Temporality keeps Datings.
+/// Dating — Word fixed in time; matter for a living Word (Letter, Deed).
+/// Temporality keeps Datings.
 class Dating {
 public:
 	Dating(id::Word id, Timestamp created_at);

@@ -37,7 +37,7 @@ protected:
 	/// Load a durable mark without persisting (Eternity impl at bring-forth).
 	void seed(std::uint64_t value);
 
-	/// Durable implementation may remember the mark.
+	/// Durable implementation may keep the mark.
 	virtual void persist_mark(id::Place id) {}
 
 private:

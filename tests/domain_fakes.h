@@ -116,8 +116,6 @@ public:
 		return out;
 	}
 
-	void remember(Utterance row) { utterances_.push_back(std::move(row)); }
-
 	FakeTime& fake_time() { return shared_.time; }
 
 	InMemoryShared& shared() { return shared_; }
@@ -245,7 +243,7 @@ public:
 
 	std::vector<Embodiment> embodiments() const override { return embodiments_; }
 
-	/// Remember soul + embodiment before the living World wakes (Creation load).
+	/// Keep soul + embodiment before the living World wakes (Creation load).
 	void seed_man(const id::Soul soul_id, const DeviceToken& token, const SoulName name)
 	{
 		shared_.souls.emplace_back(soul_id, name);

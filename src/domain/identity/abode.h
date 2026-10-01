@@ -10,7 +10,7 @@ namespace will::domain::id {
 
 
 /// Persistent abode identity. Same numeric value as the abode's Place id
-/// (from Space::point). Host is recorded in Spatiality, not by equal soul id.
+/// (from Space::point). Host is kept in Spatiality, not by equal soul id.
 /// Id 1 may remain as an orphan letter tail from the former global abode.
 class Abode : public Id {
 public:

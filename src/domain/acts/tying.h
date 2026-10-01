@@ -7,8 +7,8 @@
 namespace will::domain {
 
 
-/// Tying (Связывание) — pair place recorded in time (testator, novice).
-/// Material for living Tie on the heap; not the Tie itself.
+/// Tying (Связывание) — pair place kept in time (testator, novice).
+/// Matter for living Tie on the heap; not the Tie itself.
 class Tying {
 public:
 	Tying(id::Tie id, id::Soul testator, id::Soul novice);
