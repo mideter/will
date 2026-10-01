@@ -1,13 +1,23 @@
 ---
 description: Kept matter births living heap objects; do not unpack by hand
-globs: src/domain/**
+globs: src/domain/**, src/infra/persistence/**
 alwaysApply: false
 ---
 
 # Kept matter → living heap
 
-Temporality, Spatiality and Eternity keep **matter** (ids / values), not living
-beings or faces.
+The dimensions — Temporality, Spatiality and Eternity — keep **matter**
+(ids / values), not living beings or faces.
+
+The living being acts; the dimension keeps.
+
+- A dimension takes and returns matter and decides nothing: who may act and
+  what follows from an act is decided by the living being (Novice, Testator,
+  Supplication, …).
+- A dimension itself stamps what it keeps with the when and the where (the
+  instant of Time, the point of Space); the caller does not pass them.
+- The only refusal left to a dimension is a write that contradicts what is
+  already kept (a second tying of a pair, a second execution of a deed).
 
 - Kept matter births the living heap object; construct that type
   **from the matter** (`Soul::of` and similar belong inside the living ctor).
