@@ -4,6 +4,7 @@
 #include "domain_fakes.h"
 
 #include "acts/creation.h"
+#include "beings/immanents/contemplation.h"
 #include "beings/immanents/obedience.h"
 #include "beings/immanents/shepherding.h"
 #include "beings/immanents/tie.h"
@@ -19,6 +20,7 @@
 #include "values/soul_name.h"
 
 #include <stdexcept>
+#include <type_traits>
 #include <string>
 #include <vector>
 
@@ -183,8 +185,19 @@ TEST_CASE("letters of an abode are seen through contemplation by one who dwells 
 	CHECK(&world.contemplation(stranger.Soul::id()).abode() == &stranger.abode());
 	CHECK(world.contemplation(stranger.Soul::id()).letters().empty());
 
-	// Turning the gaze to another's abode does not show its letters to one who does not dwell there.
+	// A contemplation is living: one gaze per soul, kept by Heaven, never copied.
+	static_assert(!std::is_copy_constructible_v<Contemplation>);
+	static_assert(!std::is_move_constructible_v<Contemplation>);
+	CHECK(&world.contemplation(stranger.Soul::id()) == &world.contemplation(stranger.Soul::id()));
+	CHECK(&world.contemplation(stranger.Soul::id()).who() == &stranger);
+	CHECK(world.contemplating(stranger.abode()).size() == 1);
+
+	// Turning the gaze to another's abode ends the former one; the letters there
+	// are not shown to one who does not dwell there.
 	stranger.contemplate(witness.abode());
+	CHECK(&world.contemplation(stranger.Soul::id()).abode() == &witness.abode());
+	CHECK(world.contemplating(stranger.abode()).empty());
+	CHECK(world.contemplating(witness.abode()).size() == 2);
 	CHECK_THROWS_AS(world.contemplation(stranger.Soul::id()).letters(), std::logic_error);
 
 	// An abode shows its letters only to a contemplation of itself.

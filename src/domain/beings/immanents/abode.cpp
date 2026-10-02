@@ -1,6 +1,6 @@
 #include "abode.h"
 
-#include "acts/contemplation.h"
+#include "beings/immanents/contemplation.h"
 #include "beings/immanents/man.h"
 #include "beings/immanents/witness.h"
 #include "beings/letter.h"

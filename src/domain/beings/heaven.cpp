@@ -5,6 +5,7 @@
 #include "beings/immanents/witness.h"
 #include "ports/eternity.h"
 
+#include <memory>
 #include <stdexcept>
 
 
@@ -77,7 +78,7 @@ std::vector<std::reference_wrapper<const Soul>> Heaven::contemplating(const Abod
 
 	std::vector<std::reference_wrapper<const Soul>> out;
 	for (const auto& [soul_id, contemplation] : contemplations_) {
-		if (contemplation.abode().id() != abode.id())
+		if (contemplation->abode().id() != abode.id())
 			continue;
 		const auto it = souls_.find(soul_id);
 		if (it == souls_.end() || !it->second)
@@ -101,7 +102,10 @@ void Heaven::contemplate(const Soul& soul, const Abode& abode)
 	if (!souls_.contains(soul.id()))
 		throw std::logic_error("Heaven does not know this soul");
 
-	contemplations_.insert_or_assign(soul.id(), Contemplation{static_cast<const Witness&>(soul), abode});
+	// The former gaze of this soul ends here.
+	contemplations_.insert_or_assign(
+		soul.id(),
+		std::unique_ptr<Contemplation>(new Contemplation(static_cast<const Witness&>(soul), abode)));
 }
 
 
@@ -113,7 +117,7 @@ const Contemplation& Heaven::contemplation(const id::Soul soul_id) const
 	if (it == contemplations_.end())
 		throw std::logic_error("Heaven has no contemplation for this soul");
 
-	return it->second;
+	return *it->second;
 }
 
 

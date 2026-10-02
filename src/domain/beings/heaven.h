@@ -1,10 +1,11 @@
 #pragma once
 
-#include "acts/contemplation.h"
+#include "beings/immanents/contemplation.h"
 #include "identity/soul.h"
 #include "properties/immanent.h"
 
 #include <functional>
+#include <memory>
 #include <mutex>
 #include <unordered_map>
 #include <vector>
@@ -60,7 +61,7 @@ private:
 	Eternity& eternity_;
 	mutable std::mutex mutex_;
 	std::unordered_map<id::Soul, const Soul*> souls_;
-	std::unordered_map<id::Soul, Contemplation> contemplations_;
+	std::unordered_map<id::Soul, std::unique_ptr<Contemplation>> contemplations_;
 };
 
 
