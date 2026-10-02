@@ -4,7 +4,11 @@
 #include "beings/immanents/obedience.h"
 #include "beings/immanents/shepherding.h"
 #include "acts/supplication.h"
+#include "matter/embodiment.h"
+#include "matter/man.h"
+#include "matter/soul.h"
 #include "matter/tie.h"
+#include "matter/vessel.h"
 #include "beings/immanents/novice.h"
 #include "beings/immanents/soul.h"
 #include "beings/immanents/testator.h"
@@ -15,6 +19,7 @@
 
 #include <functional>
 #include <stdexcept>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -30,8 +35,22 @@ World::World(Eternity& eternity, Temporality& temporality, Spatiality& spatialit
 
 void World::awaken()
 {
-	for (matter::Man e : temporality().men())
-		(void)accept(std::move(e));
+	std::unordered_map<id::Soul, matter::Soul> souls;
+	for (matter::Soul& kept : eternity().souls())
+		souls.emplace(kept.id(), std::move(kept));
+
+	std::unordered_map<id::Vessel, matter::Vessel> vessels;
+	for (matter::Vessel& kept : temporality().vessels())
+		vessels.emplace(kept.id(), std::move(kept));
+
+	for (const matter::Embodiment& embodied : temporality().embodiments()) {
+		const auto soul = souls.find(embodied.soul());
+		const auto vessel = vessels.find(embodied.vessel());
+		if (soul == souls.end() || vessel == vessels.end())
+			throw std::runtime_error("a kept embodiment joins a soul or a vessel that is not kept");
+
+		(void)accept(matter::Man{soul->second, vessel->second, embodied});
+	}
 
 	for (matter::Tie kept : spatiality().ties()) {
 		const auto& novice = static_cast<const Novice&>(Soul::of(kept.novice()));
@@ -95,16 +114,17 @@ const Man& World::man(const SoulName& name) const
 
 const Man& World::beget(const DeviceToken& token)
 {
-	const SoulName name = SoulName::generate();
-	const id::Soul soul = eternity().enroll(name);
-	return accept(temporality().embody(soul, name, token));
+	matter::Soul soul = eternity().enroll(SoulName::generate());
+	const matter::Embodiment embodied = temporality().embody(soul.id(), token);
+
+	return accept(matter::Man{std::move(soul), matter::Vessel{embodied.vessel(), token}, embodied});
 }
 
 
 const Man& World::accept(matter::Man kept)
 {
-	const id::Soul soul_id = kept.soul();
-	const id::Vessel vessel_id = kept.vessel();
+	const id::Soul soul_id = kept.soul().id();
+	const id::Vessel vessel_id = kept.vessel().id();
 	auto ptr = std::unique_ptr<Man>(new Testator(std::move(kept)));
 	Man& live = *ptr;
 

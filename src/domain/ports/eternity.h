@@ -1,5 +1,6 @@
 #pragma once
 
+#include "matter/soul.h"
 #include "matter/utterance.h"
 #include "identity/word.h"
 #include "identity/soul.h"
@@ -28,7 +29,10 @@ public:
 	virtual Space& space() = 0;
 
 	/// Enroll a soul in the book of life.
-	virtual id::Soul enroll(SoulName name) = 0;
+	virtual matter::Soul enroll(SoulName name) = 0;
+
+	/// All souls kept (for Creation awaken).
+	virtual std::vector<matter::Soul> souls() const = 0;
 
 	/// Keep a Saying and author; returns the eternal utterance.
 	virtual matter::Utterance utter(id::Soul author, const Saying& saying) = 0;

@@ -8,6 +8,9 @@
 #include "beings/immanents/obedience.h"
 #include "beings/immanents/shepherding.h"
 #include "beings/immanents/tie.h"
+#include "matter/man.h"
+#include "matter/soul.h"
+#include "matter/vessel.h"
 #include "matter/tie.h"
 #include "beings/deed.h"
 #include "beings/letter.h"
@@ -202,6 +205,24 @@ TEST_CASE("letters of an abode are seen through contemplation by one who dwells 
 
 	// An abode shows its letters only to a contemplation of itself.
 	CHECK_THROWS_AS(stranger.abode().letters(world.contemplation(stranger.Soul::id())), std::logic_error);
+}
+
+
+TEST_CASE("matter of a man is a soul, a vessel and the embodiment that joins them")
+{
+	const matter::Soul soul{id::Soul{3}, test_name("soulname")};
+	const matter::Vessel body{id::Vessel{5}, test_token("abcd1234abcd1234abcd1234abcd1234")};
+	const matter::Embodiment embodied{id::Soul{3}, id::Vessel{5}};
+
+	const matter::Man man{soul, body, embodied};
+	CHECK(man.soul().id() == id::Soul{3});
+	CHECK(man.vessel().id() == id::Vessel{5});
+
+	// The embodiment must join exactly this soul to exactly this vessel.
+	const matter::Vessel other_body{id::Vessel{6}, test_token("feedfacefeedfacefeedfacefeedface")};
+	CHECK_THROWS_AS((matter::Man{soul, other_body, embodied}), std::invalid_argument);
+	CHECK_THROWS_AS((matter::Man{soul, body, matter::Embodiment{id::Soul{4}, id::Vessel{5}}}),
+					std::invalid_argument);
 }
 
 

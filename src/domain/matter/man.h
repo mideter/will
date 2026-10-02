@@ -1,30 +1,27 @@
 #pragma once
 
-#include "identity/soul.h"
-#include "identity/vessel.h"
-#include "values/device_token.h"
-#include "values/soul_name.h"
+#include "matter/embodiment.h"
+#include "matter/soul.h"
+#include "matter/vessel.h"
 
 
 namespace will::domain::matter {
 
 
-/// Matter of living Man (Человек) — soul dwelling in a vessel, kept in time.
-/// Matter for World birth; not a living Man. One soul, one living man in the World.
+/// Matter of living Man (Человек) — soul and body gathered from two dimensions:
+/// the Soul from Eternity, the Vessel and the Embodiment from Temporality.
+/// Composite: no single dimension keeps it.
 class Man {
 public:
-	Man(id::Soul soul, SoulName name, id::Vessel vessel, DeviceToken token);
+	/// The embodiment must join exactly this soul to exactly this vessel.
+	Man(Soul soul, Vessel vessel, const Embodiment& embodiment);
 
-	id::Soul soul() const noexcept { return soul_; }
-	const SoulName& name() const noexcept { return name_; }
-	id::Vessel vessel() const noexcept { return vessel_; }
-	const DeviceToken& token() const noexcept { return token_; }
+	const Soul& soul() const noexcept { return soul_; }
+	const Vessel& vessel() const noexcept { return vessel_; }
 
 private:
-	id::Soul soul_;
-	SoulName name_;
-	id::Vessel vessel_;
-	DeviceToken token_;
+	Soul soul_;
+	Vessel vessel_;
 };
 
 

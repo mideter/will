@@ -124,6 +124,20 @@ TEST_CASE("sqlite persistence survives reopen")
 
 		CHECK_FALSE(world.knows(id::Soul{999999}));
 		CHECK_FALSE(world.knows(id::Vessel{999999}));
+
+		// A man is gathered from two dimensions: Eternity keeps the soul with its
+		// name, Temporality the vessel and the embodiment that joins them.
+		const auto souls = bundle.eternity().souls();
+		const auto vessels = bundle.temporality().vessels();
+		const auto embodiments = bundle.temporality().embodiments();
+		REQUIRE(souls.size() == 3);
+		REQUIRE(vessels.size() == 3);
+		REQUIRE(embodiments.size() == 3);
+		CHECK(souls.front().id() == *soul_a_id);
+		CHECK(souls.front().name() == *name_a);
+		CHECK(embodiments.front().soul() == *soul_a_id);
+		CHECK(embodiments.front().vessel() == man_a_reloaded.Vessel::id());
+		CHECK(vessels.front().id() == man_a_reloaded.Vessel::id());
 	}
 
 	::unlink((prefix + ".eternity.db").c_str());

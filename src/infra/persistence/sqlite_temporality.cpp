@@ -40,65 +40,66 @@ SqliteTemporality::SqliteTemporality(SqliteDatabase& time_db, domain::Eternity& 
 {}
 
 
-domain::matter::Man SqliteTemporality::embody(const domain::id::Soul soul, domain::SoulName name,
-											 domain::DeviceToken token)
+domain::matter::Embodiment SqliteTemporality::embody(const domain::id::Soul soul,
+													  domain::DeviceToken token)
 {
 	std::lock_guard lock(time_db_.mutex());
 	sqlite3* const db = time_db_.db();
 	SqliteTransaction tx(db);
 
-	SqliteStmt vessel_stmt(db, "INSERT INTO vessels (device_token) VALUES (?);", "prepare insert vessel");
+	SqliteStmt vessel_stmt(db, "INSERT INTO vessels (device_token) VALUES (?);", "prepare keep vessel");
 	vessel_stmt.bind_text(1, token.text(), "bind device_token");
-	vessel_stmt.step_done("insert vessel step");
+	vessel_stmt.step_done("keep vessel step");
 
-	const domain::id::Vessel vessel_id{sqlite_last_insert_id(db)};
+	const domain::id::Vessel vessel{sqlite_last_insert_id(db)};
 
-	SqliteStmt man_stmt(db, "INSERT INTO men (soul_id, vessel_id, soul_name) VALUES (?, ?, ?);",
-						"prepare insert man");
-	man_stmt.bind_i64(1, static_cast<std::int64_t>(soul.value()), "bind soul_id");
-	man_stmt.bind_i64(2, static_cast<std::int64_t>(vessel_id.value()), "bind vessel_id");
-	man_stmt.bind_text(3, name.text(), "bind soul_name");
-	man_stmt.step_done("insert man step");
+	SqliteStmt stmt(db, "INSERT INTO embodiments (soul_id, vessel_id) VALUES (?, ?);", "prepare embody");
+	stmt.bind_i64(1, static_cast<std::int64_t>(soul.value()), "bind soul_id");
+	stmt.bind_i64(2, static_cast<std::int64_t>(vessel.value()), "bind vessel_id");
+	stmt.step_done("embody step");
 
 	tx.commit();
 
-	return domain::matter::Man{soul, std::move(name), vessel_id, std::move(token)};
+	return domain::matter::Embodiment{soul, vessel};
 }
 
 
-std::vector<domain::matter::Man> SqliteTemporality::men() const
+std::vector<domain::matter::Vessel> SqliteTemporality::vessels() const
 {
 	std::lock_guard lock(time_db_.mutex());
 
 	sqlite3* const db = time_db_.db();
-	SqliteStmt stmt(db,
-					"SELECT m.soul_id, m.soul_name, m.vessel_id, v.device_token "
-					"FROM men AS m "
-					"INNER JOIN vessels AS v ON v.id = m.vessel_id "
-					"ORDER BY m.soul_id;",
-					"prepare men");
+	SqliteStmt stmt(db, "SELECT id, device_token FROM vessels ORDER BY id;", "prepare vessels");
 
-	std::vector<domain::matter::Man> rows;
-	while (stmt.step_row("men step")) {
-		const domain::id::Soul soul_id{static_cast<std::uint64_t>(stmt.column_i64(0))};
-		const std::string_view name_text = stmt.column_text(1);
-		if (name_text.empty())
-			throw std::runtime_error("men: missing soul name in database");
+	std::vector<domain::matter::Vessel> rows;
+	while (stmt.step_row("vessels step")) {
+		const domain::id::Vessel id{static_cast<std::uint64_t>(stmt.column_i64(0))};
 
-		const auto name = domain::SoulName::parse(name_text);
-		if (!name)
-			throw std::runtime_error("men: invalid soul name in database");
-
-		const domain::id::Vessel vessel_id{static_cast<std::uint64_t>(stmt.column_i64(2))};
-		const std::string_view device_token = stmt.column_text(3);
-		if (device_token.empty())
-			throw std::runtime_error("men: missing device_token in database");
-
-		const auto token = domain::DeviceToken::parse(device_token);
+		const auto token = domain::DeviceToken::parse(stmt.column_text(1));
 		if (!token)
-			throw std::runtime_error("men: invalid device_token in database");
+			throw std::runtime_error("vessels: invalid device_token in database");
 
-		rows.push_back(domain::matter::Man{soul_id, *name, vessel_id, *token});
+		rows.push_back(domain::matter::Vessel{id, *token});
+	}
+
+	return rows;
+}
+
+
+std::vector<domain::matter::Embodiment> SqliteTemporality::embodiments() const
+{
+	std::lock_guard lock(time_db_.mutex());
+
+	sqlite3* const db = time_db_.db();
+	SqliteStmt stmt(db, "SELECT soul_id, vessel_id FROM embodiments ORDER BY soul_id;",
+					"prepare embodiments");
+
+	std::vector<domain::matter::Embodiment> rows;
+	while (stmt.step_row("embodiments step")) {
+		rows.push_back(domain::matter::Embodiment{
+			domain::id::Soul{static_cast<std::uint64_t>(stmt.column_i64(0))},
+			domain::id::Vessel{static_cast<std::uint64_t>(stmt.column_i64(1))},
+		});
 	}
 
 	return rows;

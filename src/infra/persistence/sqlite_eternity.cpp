@@ -29,21 +29,38 @@ domain::Space& SqliteEternity::space()
 }
 
 
-domain::id::Soul SqliteEternity::enroll(const domain::SoulName name)
+domain::matter::Soul SqliteEternity::enroll(domain::SoulName name)
 {
-	std::uint64_t soul_value = 0;
-	{
-		std::lock_guard lock(database_.mutex());
+	std::lock_guard lock(database_.mutex());
 
-		sqlite3* const db = database_.db();
-		SqliteStmt stmt(db, "INSERT INTO souls (name) VALUES (?);", "prepare insert soul");
-		stmt.bind_text(1, name.text(), "bind name");
-		stmt.step_done("insert soul step");
+	sqlite3* const db = database_.db();
+	SqliteStmt stmt(db, "INSERT INTO souls (name) VALUES (?);", "prepare enroll");
+	stmt.bind_text(1, name.text(), "bind name");
+	stmt.step_done("enroll step");
 
-		soul_value = sqlite_last_insert_id(db);
+	return domain::matter::Soul{domain::id::Soul{sqlite_last_insert_id(db)}, std::move(name)};
+}
+
+
+std::vector<domain::matter::Soul> SqliteEternity::souls() const
+{
+	std::lock_guard lock(database_.mutex());
+
+	sqlite3* const db = database_.db();
+	SqliteStmt stmt(db, "SELECT id, name FROM souls ORDER BY id;", "prepare souls");
+
+	std::vector<domain::matter::Soul> rows;
+	while (stmt.step_row("souls step")) {
+		const domain::id::Soul id{static_cast<std::uint64_t>(stmt.column_i64(0))};
+
+		const auto name = domain::SoulName::parse(stmt.column_text(1));
+		if (!name)
+			throw std::runtime_error("souls: invalid soul name in database");
+
+		rows.push_back(domain::matter::Soul{id, *name});
 	}
 
-	return domain::id::Soul{soul_value};
+	return rows;
 }
 
 

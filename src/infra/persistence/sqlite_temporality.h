@@ -8,15 +8,15 @@
 namespace will {
 
 
-/// SQLite Temporality — men, datings, supplications, executions in time.
+/// SQLite Temporality — vessels, embodiments, datings, supplications, executions in time.
 /// Owns only the time database; the present is taken from Eternity.
 class SqliteTemporality final : public domain::Temporality {
 public:
 	SqliteTemporality(SqliteDatabase& time_db, domain::Eternity& eternity);
 
-	domain::matter::Man
-	embody(domain::id::Soul soul, domain::SoulName name, domain::DeviceToken token) override;
-	std::vector<domain::matter::Man> men() const override;
+	domain::matter::Embodiment embody(domain::id::Soul soul, domain::DeviceToken token) override;
+	std::vector<domain::matter::Vessel> vessels() const override;
+	std::vector<domain::matter::Embodiment> embodiments() const override;
 
 	domain::matter::Dating date(domain::id::Word id) override;
 	std::vector<domain::matter::Dating> datings(const std::vector<domain::id::Word>& ids) const override;

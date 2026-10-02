@@ -4,9 +4,9 @@
 namespace will::domain {
 
 
-Soul::Soul(const id::Soul id, SoulName name)
-	: id_(id)
-	, name_(std::move(name))
+Soul::Soul(matter::Soul kept)
+	: id_(kept.id())
+	, name_(kept.name())
 {}
 
 

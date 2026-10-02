@@ -2,6 +2,7 @@
 
 #include "beings/immanents/spirit.h"
 #include "identity/soul.h"
+#include "matter/soul.h"
 #include "values/soul_name.h"
 
 
@@ -21,7 +22,7 @@ public:
 	bool operator==(const Soul& other) const noexcept;
 
 protected:
-	Soul(id::Soul id, SoulName name);
+	explicit Soul(matter::Soul kept);
 
 private:
 	id::Soul id_;

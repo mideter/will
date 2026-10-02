@@ -80,11 +80,20 @@ public:
 
 	Space& space() override { return space_; }
 
-	id::Soul enroll(const SoulName name) override
+	matter::Soul enroll(const SoulName name) override
 	{
 		const id::Soul soul_id{++shared_.next_soul_id};
 		shared_.souls.emplace_back(soul_id, name);
-		return soul_id;
+		return matter::Soul{soul_id, name};
+	}
+
+	std::vector<matter::Soul> souls() const override
+	{
+		std::vector<matter::Soul> out;
+		out.reserve(shared_.souls.size());
+		for (const auto& [id, name] : shared_.souls)
+			out.emplace_back(id, name);
+		return out;
 	}
 
 	matter::Utterance utter(const id::Soul author, const Saying& saying) override
@@ -215,22 +224,25 @@ public:
 		, eternity_(eternity)
 	{}
 
-	matter::Man embody(const id::Soul soul, SoulName name, DeviceToken token) override
+	matter::Embodiment embody(const id::Soul soul, DeviceToken token) override
 	{
-		const id::Vessel vessel_id{++shared_.next_vessel_id};
-		matter::Man row{soul, std::move(name), vessel_id, std::move(token)};
-		men_.push_back(row);
-		return row;
+		const id::Vessel vessel{++shared_.next_vessel_id};
+		vessels_.emplace_back(vessel, std::move(token));
+		embodiments_.emplace_back(soul, vessel);
+		return embodiments_.back();
 	}
 
-	std::vector<matter::Man> men() const override { return men_; }
+	std::vector<matter::Vessel> vessels() const override { return vessels_; }
 
-	/// Keep soul + matter::Man before the living World wakes (Creation load).
+	std::vector<matter::Embodiment> embodiments() const override { return embodiments_; }
+
+	/// Keep a soul and its vessel before the living World wakes (Creation load).
 	void seed_man(const id::Soul soul_id, const DeviceToken& token, const SoulName name)
 	{
 		shared_.souls.emplace_back(soul_id, name);
 		const id::Vessel vessel_id{soul_id.value()};
-		men_.push_back(matter::Man{soul_id, name, vessel_id, token});
+		vessels_.push_back(matter::Vessel{vessel_id, token});
+		embodiments_.emplace_back(soul_id, vessel_id);
 		if (soul_id.value() > shared_.next_soul_id)
 			shared_.next_soul_id = soul_id.value();
 		if (vessel_id.value() > shared_.next_vessel_id)
@@ -329,7 +341,8 @@ private:
 
 	InMemoryShared& shared_;
 	Eternity& eternity_;
-	std::vector<matter::Man> men_;
+	std::vector<matter::Vessel> vessels_;
+	std::vector<matter::Embodiment> embodiments_;
 	std::vector<matter::Dating> datings_;
 	std::vector<matter::Supplication> supplications_;
 	std::vector<matter::Execution> executions_;

@@ -2,7 +2,8 @@
 
 #include "matter/supplication.h"
 #include "matter/dating.h"
-#include "matter/man.h"
+#include "matter/embodiment.h"
+#include "matter/vessel.h"
 #include "matter/execution.h"
 #include "identity/word.h"
 #include "identity/soul.h"
@@ -26,11 +27,15 @@ class Temporality {
 public:
 	virtual ~Temporality() = default;
 
-	/// Keep that this soul dwells in a new vessel; returns matter for World birth.
-	virtual matter::Man embody(id::Soul soul, SoulName name, DeviceToken token) = 0;
+	/// Keep a new vessel with this token and that this soul dwells in it
+	/// (one body per soul, one per token).
+	virtual matter::Embodiment embody(id::Soul soul, DeviceToken token) = 0;
 
-	/// All men kept in time (for Creation awaken).
-	virtual std::vector<matter::Man> men() const = 0;
+	/// All vessels kept in time (for Creation awaken).
+	virtual std::vector<matter::Vessel> vessels() const = 0;
+
+	/// All embodiments kept in time (for Creation awaken).
+	virtual std::vector<matter::Embodiment> embodiments() const = 0;
 
 	/// Fix a word at the present instant.
 	virtual matter::Dating date(id::Word id) = 0;

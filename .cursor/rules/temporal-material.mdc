@@ -26,8 +26,11 @@ The living being acts; the dimension keeps.
   is kept.
 
 Matter is named after the living thing it births, in namespace `matter`
-(as ids are in `id`): `matter::Man` → `Man` / `Testator`; `matter::Tie` → `Tie`
-(followed as Obedience); `matter::Supplication` → `Supplication`. A Word is kept
+(as ids are in `id`): `matter::Tie` → `Tie` (followed as Obedience);
+`matter::Supplication` → `Supplication`; `matter::Abode` → `Abode`. A Man is soul
+and body kept in two dimensions (`matter::Soul` in Eternity; `matter::Vessel` and
+the `matter::Embodiment` joining them in Temporality), gathered into composite
+`matter::Man` → `Man` / `Testator`. A Word is kept
 in parts, one per dimension (`matter::Utterance`, `matter::Placement`,
 `matter::Dating`, `matter::Execution`). Gathered, the parts are composite matter
 that no single dimension keeps: `matter::Letter` → `Letter`, `matter::Deed` → `Deed`.
