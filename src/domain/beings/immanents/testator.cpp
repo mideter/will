@@ -41,7 +41,7 @@ Deed Testator::will(const Shepherding& shepherding, const Saying& saying) const
 	spatiality().place(uttered.id(), shepherding.id());
 	const matter::Dating dated = temporality().date(uttered.id());
 
-	return Deed{uttered, matter::Placement{uttered.id(), shepherding.id()}, dated};
+	return Deed{matter::Deed{uttered, matter::Placement{uttered.id(), shepherding.id()}, dated}};
 }
 
 

@@ -5,6 +5,8 @@
 
 #include "acts/creation.h"
 #include "matter/dating.h"
+#include "matter/deed.h"
+#include "matter/letter.h"
 #include "matter/execution.h"
 #include "matter/placement.h"
 #include "beings/immanents/tie.h"
@@ -58,7 +60,7 @@ TEST_CASE("matter::Utterance accepts max body length")
 }
 
 
-TEST_CASE("Letter is born from three projections with living place and author")
+TEST_CASE("Letter is born from its matter with living place and author")
 {
 	InMemoryCosmos cosmos;
 	Creation creation(cosmos.eternity(), cosmos.spatiality(), cosmos.temporality());
@@ -70,7 +72,7 @@ TEST_CASE("Letter is born from three projections with living place and author")
 	const matter::Utterance utterance{id::Word{1}, man.Soul::id(), "hello"};
 	const matter::Placement placement{id::Word{1}, witness.abode().id()};
 	const matter::Dating dating{id::Word{1}, Timestamp{100}};
-	const Letter letter{utterance, placement, dating};
+	const Letter letter{matter::Letter{utterance, placement, dating}};
 
 	CHECK(letter.id() == id::Word{1});
 	CHECK(&letter.place() == &witness.abode());
@@ -91,11 +93,11 @@ TEST_CASE("Letter rejects unknown place")
 	const matter::Utterance utterance{id::Word{1}, man.Soul::id(), "x"};
 	const matter::Placement placement{id::Word{1}, id::Place{999}};
 	const matter::Dating dating{id::Word{1}, Timestamp{0}};
-	CHECK_THROWS_AS((Letter{utterance, placement, dating}), std::logic_error);
+	CHECK_THROWS_AS((Letter{matter::Letter{utterance, placement, dating}}), std::logic_error);
 }
 
 
-TEST_CASE("Letter rejects mismatched projection ids")
+TEST_CASE("matter::Letter rejects parts with different word ids")
 {
 	InMemoryCosmos cosmos;
 	Creation creation(cosmos.eternity(), cosmos.spatiality(), cosmos.temporality());
@@ -107,7 +109,7 @@ TEST_CASE("Letter rejects mismatched projection ids")
 	const matter::Utterance utterance{id::Word{1}, man.Soul::id(), "x"};
 	const matter::Placement placement{id::Word{2}, witness.abode().id()};
 	const matter::Dating dating{id::Word{1}, Timestamp{0}};
-	CHECK_THROWS_AS((Letter{utterance, placement, dating}), std::invalid_argument);
+	CHECK_THROWS_AS((matter::Letter{utterance, placement, dating}), std::invalid_argument);
 }
 
 
@@ -127,7 +129,7 @@ TEST_CASE("Deed is a word of will in a living Tie")
 	const matter::Placement placement{did, tie.id()};
 	const matter::Dating dating{did, Timestamp{50}};
 
-	const Deed deed{utterance, placement, dating};
+	const Deed deed{matter::Deed{utterance, placement, dating}};
 	CHECK(deed.id() == did);
 	CHECK(&deed.tie() == &tie);
 	CHECK(&deed.tie().testator() == &testator);
@@ -137,14 +139,16 @@ TEST_CASE("Deed is a word of will in a living Tie")
 	CHECK(deed.open());
 	CHECK_FALSE(deed.executed());
 
-	const Deed done{utterance, placement, dating, matter::Execution{did, Timestamp{70}}};
+	const Deed done{matter::Deed{utterance, placement, dating, matter::Execution{did, Timestamp{70}}}};
 	CHECK(done.executed());
 	CHECK_FALSE(done.open());
 	CHECK(done.executed_at() == Timestamp{70});
 
-	CHECK_THROWS_AS((Deed{utterance, placement, dating, matter::Execution{id::Word{4}, Timestamp{70}}}),
+	CHECK_THROWS_AS(
+		(matter::Deed{utterance, placement, dating, matter::Execution{id::Word{4}, Timestamp{70}}}),
+		std::invalid_argument);
+	CHECK_THROWS_AS((matter::Deed{utterance, matter::Placement{id::Word{4}, tie.id()}, dating}),
 					std::invalid_argument);
-	CHECK_THROWS_AS((Deed{utterance, matter::Placement{id::Word{4}, tie.id()}, dating}), std::invalid_argument);
 }
 
 
@@ -161,9 +165,11 @@ TEST_CASE("Deed rejects a place that is not a Tie and an author who is not its t
 	const matter::Dating dating{did, Timestamp{50}};
 
 	const matter::Utterance by_testator{did, testator.Soul::id(), "do this"};
-	CHECK_THROWS_AS((Deed{by_testator, matter::Placement{did, testator.abode().id()}, dating}),
-					std::invalid_argument);
+	CHECK_THROWS_AS(
+		(Deed{matter::Deed{by_testator, matter::Placement{did, testator.abode().id()}, dating}}),
+		std::invalid_argument);
 
 	const matter::Utterance by_novice{did, novice.Soul::id(), "do this"};
-	CHECK_THROWS_AS((Deed{by_novice, matter::Placement{did, tie.id()}, dating}), std::invalid_argument);
+	CHECK_THROWS_AS((Deed{matter::Deed{by_novice, matter::Placement{did, tie.id()}, dating}}),
+					std::invalid_argument);
 }

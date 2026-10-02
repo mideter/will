@@ -28,5 +28,6 @@ The living being acts; the dimension keeps.
 Matter is named after the living thing it births, in namespace `matter`
 (as ids are in `id`): `matter::Man` → `Man` / `Testator`; `matter::Tie` → `Tie`
 (followed as Obedience); `matter::Supplication` → `Supplication`. A Word is kept
-in parts, one per dimension: `matter::Utterance` + `matter::Placement` +
-`matter::Dating` → `Letter`, and with `matter::Execution` → `Deed`.
+in parts, one per dimension (`matter::Utterance`, `matter::Placement`,
+`matter::Dating`, `matter::Execution`). Gathered, the parts are composite matter
+that no single dimension keeps: `matter::Letter` → `Letter`, `matter::Deed` → `Deed`.

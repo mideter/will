@@ -7,16 +7,13 @@
 namespace will::domain {
 
 
-Letter::Letter(matter::Utterance utterance, matter::Placement placement, matter::Dating dating)
-	: id_(utterance.id())
-	, place_(Place::of(placement.place()))
-	, author_(Soul::of(utterance.author()))
-	, saying_(utterance.saying())
-	, created_at_(dating.created_at())
-{
-	if (utterance.id() != placement.id() || utterance.id() != dating.id())
-		throw std::invalid_argument("letter projections must share id");
-}
+Letter::Letter(matter::Letter kept)
+	: id_(kept.id())
+	, place_(Place::of(kept.placement().place()))
+	, author_(Soul::of(kept.utterance().author()))
+	, saying_(kept.utterance().saying())
+	, created_at_(kept.dating().created_at())
+{}
 
 
 } // namespace will::domain

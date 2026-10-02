@@ -58,7 +58,8 @@ Deed Novice::deed(const id::Word id) const
 	if (!executed.empty())
 		execution = std::move(executed.front());
 
-	Deed found{std::move(uttered.front()), *placed, std::move(dated.front()), std::move(execution)};
+	Deed found{matter::Deed{std::move(uttered.front()), *placed, std::move(dated.front()),
+							std::move(execution)}};
 	if (found.tie().novice().Soul::id() != Soul::id() && found.tie().testator().Soul::id() != Soul::id())
 		throw std::invalid_argument("unknown deed");
 

@@ -1,8 +1,6 @@
 #pragma once
 
-#include "matter/dating.h"
-#include "matter/placement.h"
-#include "matter/utterance.h"
+#include "matter/letter.h"
 #include "beings/immanents/place.h"
 #include "beings/immanents/soul.h"
 #include "beings/word.h"
@@ -14,12 +12,12 @@
 namespace will::domain {
 
 
-/// Letter (Письмо) — Word fixed in time in a Place; born from three faces.
+/// Letter (Письмо) — Word fixed in time in a Place; born from matter::Letter.
 /// Living place and author via Place::of / Soul::of.
 class Letter : public Word {
 public:
-	/// Ids must match; place and author must be known to Space and Heaven.
-	Letter(matter::Utterance utterance, matter::Placement placement, matter::Dating dating);
+	/// Place and author must be known to Space and Heaven.
+	explicit Letter(matter::Letter kept);
 
 	id::Word id() const noexcept { return id_; }
 	const Place& place() const noexcept { return place_; }

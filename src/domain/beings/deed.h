@@ -1,9 +1,6 @@
 #pragma once
 
-#include "matter/dating.h"
-#include "matter/execution.h"
-#include "matter/placement.h"
-#include "matter/utterance.h"
+#include "matter/deed.h"
 #include "beings/immanents/tie.h"
 #include "beings/word.h"
 #include "identity/word.h"
@@ -17,13 +14,12 @@ namespace will::domain {
 
 
 /// Deed (Дело) — Word of will in living Tie (Узы) that may be executed.
-/// Born from three faces like Letter; executed once its matter::Execution is kept.
+/// Born from matter::Deed; executed once its Execution is kept.
 /// Sides are the Tie's: the testator utters, the novice executes.
 class Deed : public Word {
 public:
-	/// Ids must match; place must be a living Tie whose testator is the author.
-	Deed(matter::Utterance utterance, matter::Placement placement, matter::Dating dating,
-		 std::optional<matter::Execution> execution = std::nullopt);
+	/// Place must be a living Tie whose testator is the author.
+	explicit Deed(matter::Deed kept);
 
 	id::Word id() const noexcept { return id_; }
 	const Tie& tie() const noexcept { return tie_; }

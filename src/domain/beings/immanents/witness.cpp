@@ -90,7 +90,8 @@ std::vector<Letter> Witness::retell(const std::uint32_t limit) const
 			continue;
 		if (!knows(u->second.author()))
 			continue;
-		living.push_back(Letter{std::move(u->second), matter::Placement{id, p->second}, std::move(d->second)});
+		living.emplace_back(
+			matter::Letter{std::move(u->second), matter::Placement{id, p->second}, std::move(d->second)});
 	}
 
 	return living;
