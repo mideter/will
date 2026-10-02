@@ -50,7 +50,9 @@ public:
 private:
 	static domain::DeviceToken load_or_create_device_token(const std::string& path);
 	void authenticate_device(std::string_view device_token);
-	v1::ServerEvent wait_for_auth_response();
+	/** Must be called before BindToken is sent: the reply may arrive at once. */
+	std::future<v1::ServerEvent> expect_auth_response();
+	std::shared_ptr<std::promise<v1::ServerEvent>> take_pending_auth();
 	void dispatch_inbound(const v1::ServerEvent& event);
 	void dispatch_closed();
 	void reader_loop();
@@ -71,6 +73,7 @@ private:
 	std::function<void(const v1::ServerEvent&)> inbound_handler_;
 	std::function<void()> closed_handler_;
 
+	std::mutex auth_mutex_;
 	std::shared_ptr<std::promise<v1::ServerEvent>> pending_auth_;
 	mutable bool authenticated_ = false;
 	mutable bool shutdown_done_ = false;

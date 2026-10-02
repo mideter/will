@@ -54,13 +54,9 @@ void WillClient::dispatch_inbound(const v1::ServerEvent& event)
 
 void WillClient::dispatch_closed()
 {
-	if (pending_auth_) {
-		try {
-			pending_auth_->set_exception(
-				std::make_exception_ptr(std::runtime_error("Will protocol: unexpected end of stream")));
-		} catch (const std::future_error&) {
-		}
-		pending_auth_.reset();
+	if (const auto pending = take_pending_auth()) {
+		pending->set_exception(
+			std::make_exception_ptr(std::runtime_error("Will protocol: unexpected end of stream")));
 	}
 
 	std::function<void()> handler;
@@ -74,10 +70,22 @@ void WillClient::dispatch_closed()
 }
 
 
-v1::ServerEvent WillClient::wait_for_auth_response()
+std::future<v1::ServerEvent> WillClient::expect_auth_response()
 {
-	pending_auth_ = std::make_shared<std::promise<v1::ServerEvent>>();
-	return pending_auth_->get_future().get();
+	auto pending = std::make_shared<std::promise<v1::ServerEvent>>();
+	std::future<v1::ServerEvent> response = pending->get_future();
+
+	std::lock_guard lock(auth_mutex_);
+	pending_auth_ = std::move(pending);
+
+	return response;
+}
+
+
+std::shared_ptr<std::promise<v1::ServerEvent>> WillClient::take_pending_auth()
+{
+	std::lock_guard lock(auth_mutex_);
+	return std::exchange(pending_auth_, nullptr);
 }
 
 
@@ -96,12 +104,8 @@ void WillClient::reader_loop()
 {
 	v1::ServerEvent event;
 	while (stream_ && stream_->Read(&event)) {
-		if (pending_auth_) {
-			try {
-				pending_auth_->set_value(event);
-			} catch (const std::future_error&) {
-			}
-			pending_auth_.reset();
+		if (const auto pending = take_pending_auth()) {
+			pending->set_value(event);
 			continue;
 		}
 
@@ -169,10 +173,13 @@ void WillClient::authenticate_device(const std::string_view device_token)
 
 	v1::ClientEvent event;
 	event.mutable_bind_token()->set_token(std::string(device_token));
-	if (!write_event(event))
+	std::future<v1::ServerEvent> pending_response = expect_auth_response();
+	if (!write_event(event)) {
+		take_pending_auth();
 		throw std::runtime_error("Will protocol: failed to send BindToken");
+	}
 
-	const v1::ServerEvent response = wait_for_auth_response();
+	const v1::ServerEvent response = pending_response.get();
 	if (response.has_auth_required())
 		throw std::runtime_error("Will protocol: device authentication failed");
 
