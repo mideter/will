@@ -6,14 +6,14 @@
 #include "values/soul_name.h"
 
 
-namespace will::domain {
+namespace will::domain::matter {
 
 
-/// Embodiment (Воплощение) — soul dwelling kept in time (vessel binding).
+/// Matter of living Man (Человек) — soul dwelling in a vessel, kept in time.
 /// Matter for World birth; not a living Man. One soul, one living man in the World.
-class Embodiment {
+class Man {
 public:
-	Embodiment(id::Soul soul, SoulName name, id::Vessel vessel, DeviceToken token);
+	Man(id::Soul soul, SoulName name, id::Vessel vessel, DeviceToken token);
 
 	id::Soul soul() const noexcept { return soul_; }
 	const SoulName& name() const noexcept { return name_; }
@@ -28,4 +28,4 @@ private:
 };
 
 
-} // namespace will::domain
+} // namespace will::domain::matter

@@ -4,7 +4,7 @@
 #include "values/timestamp.h"
 
 
-namespace will::domain {
+namespace will::domain::matter {
 
 
 /// Execution (Исполнение) — Deed carried out, fixed in time; matter for living Deed.
@@ -22,4 +22,4 @@ private:
 };
 
 
-} // namespace will::domain
+} // namespace will::domain::matter

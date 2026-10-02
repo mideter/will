@@ -1,6 +1,6 @@
 #pragma once
 
-#include "acts/embodiment.h"
+#include "matter/man.h"
 #include "beings/letter.h"
 #include "beings/immanents/abode.h"
 #include "beings/immanents/man.h"
@@ -27,7 +27,7 @@ public:
 	std::vector<Letter> retell(std::uint32_t limit) const;
 
 protected:
-	explicit Witness(Embodiment embodiment);
+	explicit Witness(matter::Man kept);
 };
 
 

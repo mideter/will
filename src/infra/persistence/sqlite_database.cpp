@@ -81,7 +81,7 @@ CREATE TABLE IF NOT EXISTS placements (
 
 CREATE INDEX IF NOT EXISTS idx_placements_place ON placements(place_id);
 
-CREATE TABLE IF NOT EXISTS boundnesses (
+CREATE TABLE IF NOT EXISTS ties (
   id INTEGER PRIMARY KEY,
   testator_soul_id INTEGER NOT NULL,
   novice_soul_id INTEGER NOT NULL
@@ -107,7 +107,7 @@ CREATE TABLE IF NOT EXISTS datings (
   created_at_ns INTEGER NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS askings (
+CREATE TABLE IF NOT EXISTS supplications (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   suppliant_soul_id INTEGER NOT NULL,
   addressee_soul_id INTEGER NOT NULL,
@@ -115,7 +115,7 @@ CREATE TABLE IF NOT EXISTS askings (
 );
 
 CREATE TABLE IF NOT EXISTS rejections (
-  asking_id INTEGER PRIMARY KEY,
+  supplication_id INTEGER PRIMARY KEY,
   rejected_at_ns INTEGER NOT NULL
 );
 

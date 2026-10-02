@@ -4,7 +4,7 @@
 #include "values/timestamp.h"
 
 
-namespace will::domain {
+namespace will::domain::matter {
 
 
 /// Dating — Word fixed in time; matter for a living Word (Letter, Deed).
@@ -22,4 +22,4 @@ private:
 };
 
 
-} // namespace will::domain
+} // namespace will::domain::matter

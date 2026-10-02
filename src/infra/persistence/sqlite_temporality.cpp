@@ -12,19 +12,19 @@ namespace will {
 namespace {
 
 
-/// Row id of the asking of this pair that has no rejection kept, if any.
+/// Row id of the supplication of this pair that has no rejection kept, if any.
 std::optional<std::int64_t>
-unrejected_asking(sqlite3* db, const domain::id::Soul suppliant, const domain::id::Soul addressee)
+unrejected_supplication(sqlite3* db, const domain::id::Soul suppliant, const domain::id::Soul addressee)
 {
 	SqliteStmt stmt(db,
-					"SELECT a.id FROM askings AS a "
+					"SELECT a.id FROM supplications AS a "
 					"WHERE a.suppliant_soul_id = ? AND a.addressee_soul_id = ? "
-					"AND NOT EXISTS (SELECT 1 FROM rejections AS r WHERE r.asking_id = a.id) "
+					"AND NOT EXISTS (SELECT 1 FROM rejections AS r WHERE r.supplication_id = a.id) "
 					"LIMIT 1;",
-					"prepare unrejected asking");
+					"prepare unrejected supplication");
 	stmt.bind_i64(1, static_cast<std::int64_t>(suppliant.value()), "bind suppliant");
 	stmt.bind_i64(2, static_cast<std::int64_t>(addressee.value()), "bind addressee");
-	if (!stmt.step_row("unrejected asking step"))
+	if (!stmt.step_row("unrejected supplication step"))
 		return std::nullopt;
 
 	return stmt.column_i64(0);
@@ -40,7 +40,7 @@ SqliteTemporality::SqliteTemporality(SqliteDatabase& time_db, domain::Eternity& 
 {}
 
 
-domain::Embodiment SqliteTemporality::embody(const domain::id::Soul soul, domain::SoulName name,
+domain::matter::Man SqliteTemporality::embody(const domain::id::Soul soul, domain::SoulName name,
 											 domain::DeviceToken token)
 {
 	std::lock_guard lock(time_db_.mutex());
@@ -62,11 +62,11 @@ domain::Embodiment SqliteTemporality::embody(const domain::id::Soul soul, domain
 
 	tx.commit();
 
-	return domain::Embodiment{soul, std::move(name), vessel_id, std::move(token)};
+	return domain::matter::Man{soul, std::move(name), vessel_id, std::move(token)};
 }
 
 
-std::vector<domain::Embodiment> SqliteTemporality::embodiments() const
+std::vector<domain::matter::Man> SqliteTemporality::men() const
 {
 	std::lock_guard lock(time_db_.mutex());
 
@@ -76,36 +76,36 @@ std::vector<domain::Embodiment> SqliteTemporality::embodiments() const
 					"FROM men AS m "
 					"INNER JOIN vessels AS v ON v.id = m.vessel_id "
 					"ORDER BY m.soul_id;",
-					"prepare embodiments");
+					"prepare men");
 
-	std::vector<domain::Embodiment> rows;
-	while (stmt.step_row("embodiments step")) {
+	std::vector<domain::matter::Man> rows;
+	while (stmt.step_row("men step")) {
 		const domain::id::Soul soul_id{static_cast<std::uint64_t>(stmt.column_i64(0))};
 		const std::string_view name_text = stmt.column_text(1);
 		if (name_text.empty())
-			throw std::runtime_error("embodiments: missing soul name in database");
+			throw std::runtime_error("men: missing soul name in database");
 
 		const auto name = domain::SoulName::parse(name_text);
 		if (!name)
-			throw std::runtime_error("embodiments: invalid soul name in database");
+			throw std::runtime_error("men: invalid soul name in database");
 
 		const domain::id::Vessel vessel_id{static_cast<std::uint64_t>(stmt.column_i64(2))};
 		const std::string_view device_token = stmt.column_text(3);
 		if (device_token.empty())
-			throw std::runtime_error("embodiments: missing device_token in database");
+			throw std::runtime_error("men: missing device_token in database");
 
 		const auto token = domain::DeviceToken::parse(device_token);
 		if (!token)
-			throw std::runtime_error("embodiments: invalid device_token in database");
+			throw std::runtime_error("men: invalid device_token in database");
 
-		rows.push_back(domain::Embodiment{soul_id, *name, vessel_id, *token});
+		rows.push_back(domain::matter::Man{soul_id, *name, vessel_id, *token});
 	}
 
 	return rows;
 }
 
 
-domain::Dating SqliteTemporality::date(const domain::id::Word id)
+domain::matter::Dating SqliteTemporality::date(const domain::id::Word id)
 {
 	const domain::Timestamp at = eternity_.time().instant();
 	std::lock_guard lock(time_db_.mutex());
@@ -116,13 +116,13 @@ domain::Dating SqliteTemporality::date(const domain::id::Word id)
 	stmt.bind_i64(2, at.value(), "bind created_at");
 	stmt.step_done("date step");
 
-	return domain::Dating{id, at};
+	return domain::matter::Dating{id, at};
 }
 
 
-std::vector<domain::Dating> SqliteTemporality::datings(const std::vector<domain::id::Word>& ids) const
+std::vector<domain::matter::Dating> SqliteTemporality::datings(const std::vector<domain::id::Word>& ids) const
 {
-	std::vector<domain::Dating> out;
+	std::vector<domain::matter::Dating> out;
 	out.reserve(ids.size());
 	std::lock_guard lock(time_db_.mutex());
 	sqlite3* const db = time_db_.db();
@@ -131,7 +131,7 @@ std::vector<domain::Dating> SqliteTemporality::datings(const std::vector<domain:
 						"prepare dating");
 		stmt.bind_i64(1, static_cast<std::int64_t>(id.value()), "bind id");
 		if (stmt.step_row("dating step")) {
-			out.push_back(domain::Dating{
+			out.push_back(domain::matter::Dating{
 				domain::id::Word{static_cast<std::uint64_t>(stmt.column_i64(0))},
 				domain::Timestamp{stmt.column_i64(1)},
 			});
@@ -141,19 +141,19 @@ std::vector<domain::Dating> SqliteTemporality::datings(const std::vector<domain:
 }
 
 
-domain::Asking SqliteTemporality::ask(const domain::id::Soul suppliant,
+domain::matter::Supplication SqliteTemporality::ask(const domain::id::Soul suppliant,
 									  const domain::id::Soul addressee)
 {
-	const domain::Asking asking{suppliant, addressee};
+	const domain::matter::Supplication kept{suppliant, addressee};
 	const domain::Timestamp at = eternity_.time().instant();
 	std::lock_guard lock(time_db_.mutex());
 	sqlite3* const db = time_db_.db();
 
-	if (unrejected_asking(db, suppliant, addressee))
+	if (unrejected_supplication(db, suppliant, addressee))
 		throw std::logic_error("pending supplication already exists for this pair");
 
 	SqliteStmt stmt(db,
-					"INSERT INTO askings (suppliant_soul_id, addressee_soul_id, asked_at_ns) "
+					"INSERT INTO supplications (suppliant_soul_id, addressee_soul_id, asked_at_ns) "
 					"VALUES (?, ?, ?);",
 					"prepare ask");
 	stmt.bind_i64(1, static_cast<std::int64_t>(suppliant.value()), "bind suppliant");
@@ -161,25 +161,25 @@ domain::Asking SqliteTemporality::ask(const domain::id::Soul suppliant,
 	stmt.bind_i64(3, at.value(), "bind asked_at");
 	stmt.step_done("ask step");
 
-	return asking;
+	return kept;
 }
 
 
-std::vector<domain::Asking> SqliteTemporality::askings(const domain::id::Soul addressee) const
+std::vector<domain::matter::Supplication> SqliteTemporality::supplications(const domain::id::Soul addressee) const
 {
 	std::lock_guard lock(time_db_.mutex());
 	sqlite3* const db = time_db_.db();
 	SqliteStmt stmt(db,
-					"SELECT a.suppliant_soul_id, a.addressee_soul_id FROM askings AS a "
+					"SELECT a.suppliant_soul_id, a.addressee_soul_id FROM supplications AS a "
 					"WHERE a.addressee_soul_id = ? "
-					"AND NOT EXISTS (SELECT 1 FROM rejections AS r WHERE r.asking_id = a.id) "
+					"AND NOT EXISTS (SELECT 1 FROM rejections AS r WHERE r.supplication_id = a.id) "
 					"ORDER BY a.id;",
-					"prepare askings");
+					"prepare supplications");
 	stmt.bind_i64(1, static_cast<std::int64_t>(addressee.value()), "bind addressee");
 
-	std::vector<domain::Asking> rows;
-	while (stmt.step_row("askings step")) {
-		rows.push_back(domain::Asking{
+	std::vector<domain::matter::Supplication> rows;
+	while (stmt.step_row("supplications step")) {
+		rows.push_back(domain::matter::Supplication{
 			domain::id::Soul{static_cast<std::uint64_t>(stmt.column_i64(0))},
 			domain::id::Soul{static_cast<std::uint64_t>(stmt.column_i64(1))},
 		});
@@ -195,13 +195,13 @@ void SqliteTemporality::reject(const domain::id::Soul suppliant, const domain::i
 	std::lock_guard lock(time_db_.mutex());
 	sqlite3* const db = time_db_.db();
 
-	const std::optional<std::int64_t> asking = unrejected_asking(db, suppliant, addressee);
-	if (!asking)
+	const std::optional<std::int64_t> unrejected = unrejected_supplication(db, suppliant, addressee);
+	if (!unrejected)
 		throw std::invalid_argument("unknown supplication");
 
-	SqliteStmt stmt(db, "INSERT INTO rejections (asking_id, rejected_at_ns) VALUES (?, ?);",
+	SqliteStmt stmt(db, "INSERT INTO rejections (supplication_id, rejected_at_ns) VALUES (?, ?);",
 					"prepare reject");
-	stmt.bind_i64(1, *asking, "bind asking_id");
+	stmt.bind_i64(1, *unrejected, "bind supplication_id");
 	stmt.bind_i64(2, at.value(), "bind rejected_at");
 	stmt.step_done("reject step");
 }
@@ -228,10 +228,10 @@ void SqliteTemporality::execute(const domain::id::Word deed)
 }
 
 
-std::vector<domain::Execution>
+std::vector<domain::matter::Execution>
 SqliteTemporality::executions(const std::vector<domain::id::Word>& ids) const
 {
-	std::vector<domain::Execution> out;
+	std::vector<domain::matter::Execution> out;
 	out.reserve(ids.size());
 	std::lock_guard lock(time_db_.mutex());
 	sqlite3* const db = time_db_.db();
@@ -240,7 +240,7 @@ SqliteTemporality::executions(const std::vector<domain::id::Word>& ids) const
 						"prepare execution");
 		stmt.bind_i64(1, static_cast<std::int64_t>(id.value()), "bind id");
 		if (stmt.step_row("execution step")) {
-			out.push_back(domain::Execution{
+			out.push_back(domain::matter::Execution{
 				domain::id::Word{static_cast<std::uint64_t>(stmt.column_i64(0))},
 				domain::Timestamp{stmt.column_i64(1)},
 			});

@@ -1,9 +1,9 @@
 #pragma once
 
-#include "acts/embodiment.h"
+#include "matter/man.h"
 #include "beings/immanents/obedience.h"
 #include "acts/supplication.h"
-#include "acts/boundness.h"
+#include "matter/tie.h"
 #include "beings/deed.h"
 #include "beings/immanents/witness.h"
 #include "identity/word.h"
@@ -20,7 +20,7 @@ class Testator;
 
 /// Novice (Послушник) — Исполнитель: исполняет Дело в Послушании.
 /// Owns living Ties as Obedience (Послушание) on the heap; Spatiality keeps
-/// their Boundness. Mode is disclosed in an Obedience; the living heap object
+/// their matter::Tie. Mode is disclosed in an Obedience; the living heap object
 /// is always Testator.
 class Novice : public Witness {
 public:
@@ -40,7 +40,7 @@ public:
 	const Obedience& obedience(const Testator& testator) const;
 
 protected:
-	explicit Novice(Embodiment embodiment);
+	explicit Novice(matter::Man kept);
 
 private:
 	friend class Supplication;
@@ -48,7 +48,7 @@ private:
 
 	using Witness::say;
 
-	const Obedience& follow(Boundness boundness) const;
+	const Obedience& follow(matter::Tie kept) const;
 	const Obedience& follow(std::unique_ptr<Obedience> place) const;
 
 	mutable std::vector<std::unique_ptr<Obedience>> obediences_;

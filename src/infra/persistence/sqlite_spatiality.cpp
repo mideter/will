@@ -20,14 +20,14 @@ SqliteSpatiality::SqliteSpatiality(SqliteDatabase& database, domain::Eternity& e
 {}
 
 
-std::vector<domain::Abiding> SqliteSpatiality::abodes()
+std::vector<domain::matter::Abode> SqliteSpatiality::abodes()
 {
 	std::lock_guard lock(database_.mutex());
 
 	sqlite3* const db = database_.db();
 	SqliteStmt stmt(db, "SELECT id, name FROM abodes ORDER BY id;", "prepare abodes");
 
-	std::vector<domain::Abiding> rows;
+	std::vector<domain::matter::Abode> rows;
 	while (stmt.step_row("abodes step")) {
 		const domain::id::Abode id{static_cast<std::uint64_t>(stmt.column_i64(0))};
 		const std::string_view name_text = stmt.column_text(1);
@@ -41,19 +41,19 @@ std::vector<domain::Abiding> SqliteSpatiality::abodes()
 }
 
 
-domain::Abiding SqliteSpatiality::abide(const domain::id::Soul soul, domain::AbodeName name)
+domain::matter::Abode SqliteSpatiality::abide(const domain::id::Soul soul, domain::AbodeName name)
 {
-	if (std::optional<domain::Abiding> existing = abode_of(soul))
+	if (std::optional<domain::matter::Abode> existing = abode_of(soul))
 		return std::move(*existing);
 
 	const domain::id::Abode id{eternity_.space().point()};
 	keep(id, name);
 	join_abode(id, soul);
-	return domain::Abiding{id, std::move(name)};
+	return domain::matter::Abode{id, std::move(name)};
 }
 
 
-std::optional<domain::Abiding> SqliteSpatiality::abode_of(const domain::id::Soul soul) const
+std::optional<domain::matter::Abode> SqliteSpatiality::abode_of(const domain::id::Soul soul) const
 {
 	std::lock_guard lock(database_.mutex());
 
@@ -73,7 +73,7 @@ std::optional<domain::Abiding> SqliteSpatiality::abode_of(const domain::id::Soul
 	if (name_text.empty())
 		throw std::runtime_error("abode_of: missing name in database");
 
-	return domain::Abiding{id, domain::AbodeName{name_text}};
+	return domain::matter::Abode{id, domain::AbodeName{name_text}};
 }
 
 
@@ -102,14 +102,14 @@ void SqliteSpatiality::join_abode(const domain::id::Abode abode, const domain::i
 }
 
 
-domain::Boundness SqliteSpatiality::bind(const domain::id::Soul testator, const domain::id::Soul novice)
+domain::matter::Tie SqliteSpatiality::bind(const domain::id::Soul testator, const domain::id::Soul novice)
 {
 	std::lock_guard lock(database_.mutex());
 	sqlite3* const db = database_.db();
 
 	{
 		SqliteStmt bound(db,
-						 "SELECT 1 FROM boundnesses "
+						 "SELECT 1 FROM ties "
 						 "WHERE testator_soul_id = ? AND novice_soul_id = ? LIMIT 1;",
 						 "prepare bound pair");
 		bound.bind_i64(1, static_cast<std::int64_t>(testator.value()), "bind testator");
@@ -118,31 +118,31 @@ domain::Boundness SqliteSpatiality::bind(const domain::id::Soul testator, const 
 			throw std::logic_error("obedience already exists for this pair");
 	}
 
-	const domain::Boundness boundness{domain::id::Tie{eternity_.space().point()}, testator, novice};
+	const domain::matter::Tie kept{domain::id::Tie{eternity_.space().point()}, testator, novice};
 
 	SqliteStmt stmt(db,
-					"INSERT INTO boundnesses (id, testator_soul_id, novice_soul_id) VALUES (?, ?, ?);",
+					"INSERT INTO ties (id, testator_soul_id, novice_soul_id) VALUES (?, ?, ?);",
 					"prepare bind");
-	stmt.bind_i64(1, static_cast<std::int64_t>(boundness.id().value()), "bind id");
+	stmt.bind_i64(1, static_cast<std::int64_t>(kept.id().value()), "bind id");
 	stmt.bind_i64(2, static_cast<std::int64_t>(testator.value()), "bind testator");
 	stmt.bind_i64(3, static_cast<std::int64_t>(novice.value()), "bind novice");
 	stmt.step_done("bind step");
 
-	return boundness;
+	return kept;
 }
 
 
-std::vector<domain::Boundness> SqliteSpatiality::boundnesses() const
+std::vector<domain::matter::Tie> SqliteSpatiality::ties() const
 {
 	std::lock_guard lock(database_.mutex());
 	sqlite3* const db = database_.db();
 	SqliteStmt stmt(db,
-					"SELECT id, testator_soul_id, novice_soul_id FROM boundnesses ORDER BY id;",
-					"prepare boundnesses");
+					"SELECT id, testator_soul_id, novice_soul_id FROM ties ORDER BY id;",
+					"prepare ties");
 
-	std::vector<domain::Boundness> rows;
-	while (stmt.step_row("boundnesses step")) {
-		rows.push_back(domain::Boundness{
+	std::vector<domain::matter::Tie> rows;
+	while (stmt.step_row("ties step")) {
+		rows.push_back(domain::matter::Tie{
 			domain::id::Tie{static_cast<std::uint64_t>(stmt.column_i64(0))},
 			domain::id::Soul{static_cast<std::uint64_t>(stmt.column_i64(1))},
 			domain::id::Soul{static_cast<std::uint64_t>(stmt.column_i64(2))},
@@ -166,7 +166,7 @@ void SqliteSpatiality::place(const domain::id::Word id, const domain::id::Place 
 }
 
 
-std::optional<domain::Placement> SqliteSpatiality::placement(const domain::id::Word id) const
+std::optional<domain::matter::Placement> SqliteSpatiality::placement(const domain::id::Word id) const
 {
 	std::lock_guard lock(database_.mutex());
 
@@ -177,14 +177,14 @@ std::optional<domain::Placement> SqliteSpatiality::placement(const domain::id::W
 	if (!stmt.step_row("placement step"))
 		return std::nullopt;
 
-	return domain::Placement{
+	return domain::matter::Placement{
 		domain::id::Word{static_cast<std::uint64_t>(stmt.column_i64(0))},
 		domain::id::Place{static_cast<std::uint64_t>(stmt.column_i64(1))},
 	};
 }
 
 
-std::vector<domain::Placement> SqliteSpatiality::placements(const domain::id::Place place,
+std::vector<domain::matter::Placement> SqliteSpatiality::placements(const domain::id::Place place,
 															const std::uint32_t limit) const
 {
 	std::lock_guard lock(database_.mutex());
@@ -197,10 +197,10 @@ std::vector<domain::Placement> SqliteSpatiality::placements(const domain::id::Pl
 	stmt.bind_i64(1, static_cast<std::int64_t>(place.value()), "bind place_id");
 	stmt.bind_i64(2, static_cast<std::int64_t>(limit), "bind limit");
 
-	std::vector<domain::Placement> rows;
+	std::vector<domain::matter::Placement> rows;
 	rows.reserve(limit);
 	while (stmt.step_row("placements step")) {
-		rows.push_back(domain::Placement{
+		rows.push_back(domain::matter::Placement{
 			domain::id::Word{static_cast<std::uint64_t>(stmt.column_i64(0))},
 			domain::id::Place{static_cast<std::uint64_t>(stmt.column_i64(1))},
 		});

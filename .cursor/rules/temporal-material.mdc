@@ -17,7 +17,7 @@ The living being acts; the dimension keeps.
 - A dimension itself stamps what it keeps with the when and the where (the
   instant of Time, the point of Space); the caller does not pass them.
 - The only refusal left to a dimension is a write that contradicts what is
-  already kept (a second boundness of a pair, a second execution of a deed).
+  already kept (a second bond of a pair, a second execution of a deed).
 
 - Kept matter births the living heap object; construct that type
   **from the matter** (`Soul::of` and similar belong inside the living ctor).
@@ -25,6 +25,8 @@ The living being acts; the dimension keeps.
 - Faces are views of the living place, not owners of sides and not what
   is kept.
 
-Examples: `Embodiment` → `Man` / `Testator`; `Boundness` → `Tie` (followed as Obedience);
-`Asking` → `Supplication`; `Utterance` + `Placement` + `Dating` → `Letter`, and with
-`Execution` → `Deed`.
+Matter is named after the living thing it births, in namespace `matter`
+(as ids are in `id`): `matter::Man` → `Man` / `Testator`; `matter::Tie` → `Tie`
+(followed as Obedience); `matter::Supplication` → `Supplication`. A Word is kept
+in parts, one per dimension: `matter::Utterance` + `matter::Placement` +
+`matter::Dating` → `Letter`, and with `matter::Execution` → `Deed`.

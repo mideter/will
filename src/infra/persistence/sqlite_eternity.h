@@ -17,9 +17,9 @@ public:
 	domain::Time& time() override;
 	domain::Space& space() override;
 	domain::id::Soul enroll(domain::SoulName name) override;
-	domain::Utterance utter(domain::id::Soul author, const domain::Saying& saying) override;
-	domain::Utterance utterance(domain::id::Word id) const override;
-	std::vector<domain::Utterance> utterances(const std::vector<domain::id::Word>& ids) const override;
+	domain::matter::Utterance utter(domain::id::Soul author, const domain::Saying& saying) override;
+	domain::matter::Utterance utterance(domain::id::Word id) const override;
+	std::vector<domain::matter::Utterance> utterances(const std::vector<domain::id::Word>& ids) const override;
 
 private:
 	SqliteDatabase& database_;

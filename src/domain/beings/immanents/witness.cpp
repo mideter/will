@@ -1,8 +1,8 @@
 #include "witness.h"
 
-#include "acts/dating.h"
-#include "acts/placement.h"
-#include "acts/utterance.h"
+#include "matter/dating.h"
+#include "matter/placement.h"
+#include "matter/utterance.h"
 #include "beings/immanents/abode.h"
 #include "ports/spatiality.h"
 #include "ports/temporality.h"
@@ -17,8 +17,8 @@
 namespace will::domain {
 
 
-Witness::Witness(Embodiment embodiment)
-	: Man(std::move(embodiment))
+Witness::Witness(matter::Man kept)
+	: Man(std::move(kept))
 {
 	contemplate(abode());
 }
@@ -36,7 +36,7 @@ void Witness::say(const Saying& saying) const
 	if (!place.dwells(*this))
 		throw std::logic_error("Witness does not dwell in the contemplated abode");
 
-	const Utterance uttered = utter(saying);
+	const matter::Utterance uttered = utter(saying);
 	spatiality().place(uttered.id(), place.id());
 	temporality().date(uttered.id());
 }
@@ -49,18 +49,18 @@ std::vector<Letter> Witness::retell(const std::uint32_t limit) const
 
 	const Abode& place = contemplation().abode();
 	const std::uint32_t capped = std::min(limit, Spatiality::MaxLetterLimit);
-	std::vector<Placement> placed = spatiality().placements(place.id(), Spatiality::MaxLetterLimit);
+	std::vector<matter::Placement> placed = spatiality().placements(place.id(), Spatiality::MaxLetterLimit);
 
 	std::vector<id::Word> ids;
 	ids.reserve(placed.size());
 	std::unordered_map<id::Word, id::Place> place_by_id;
-	for (const Placement& row : placed) {
+	for (const matter::Placement& row : placed) {
 		ids.push_back(row.id());
 		place_by_id.emplace(row.id(), row.place());
 	}
 
-	std::vector<Dating> dated = temporality().datings(ids);
-	std::sort(dated.begin(), dated.end(), [](const Dating& a, const Dating& b) {
+	std::vector<matter::Dating> dated = temporality().datings(ids);
+	std::sort(dated.begin(), dated.end(), [](const matter::Dating& a, const matter::Dating& b) {
 		return a.created_at().value() < b.created_at().value();
 	});
 	if (dated.size() > capped)
@@ -68,16 +68,16 @@ std::vector<Letter> Witness::retell(const std::uint32_t limit) const
 
 	std::vector<id::Word> selected;
 	selected.reserve(dated.size());
-	for (const Dating& row : dated)
+	for (const matter::Dating& row : dated)
 		selected.push_back(row.id());
 
-	std::vector<Utterance> uttered = utterances(selected);
-	std::unordered_map<id::Word, Utterance> utterance_by_id;
-	for (Utterance& row : uttered)
+	std::vector<matter::Utterance> uttered = utterances(selected);
+	std::unordered_map<id::Word, matter::Utterance> utterance_by_id;
+	for (matter::Utterance& row : uttered)
 		utterance_by_id.emplace(row.id(), std::move(row));
 
-	std::unordered_map<id::Word, Dating> dating_by_id;
-	for (Dating& row : dated)
+	std::unordered_map<id::Word, matter::Dating> dating_by_id;
+	for (matter::Dating& row : dated)
 		dating_by_id.emplace(row.id(), std::move(row));
 
 	std::vector<Letter> living;
@@ -90,7 +90,7 @@ std::vector<Letter> Witness::retell(const std::uint32_t limit) const
 			continue;
 		if (!knows(u->second.author()))
 			continue;
-		living.push_back(Letter{std::move(u->second), Placement{id, p->second}, std::move(d->second)});
+		living.push_back(Letter{std::move(u->second), matter::Placement{id, p->second}, std::move(d->second)});
 	}
 
 	return living;

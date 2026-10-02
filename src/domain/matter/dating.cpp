@@ -1,7 +1,7 @@
 #include "dating.h"
 
 
-namespace will::domain {
+namespace will::domain::matter {
 
 
 Dating::Dating(const id::Word id, const Timestamp created_at)
@@ -10,4 +10,4 @@ Dating::Dating(const id::Word id, const Timestamp created_at)
 {}
 
 
-} // namespace will::domain
+} // namespace will::domain::matter

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "acts/abiding.h"
+#include "matter/abode.h"
 #include "beings/immanents/place.h"
 #include "identity/abode.h"
 #include "values/abode_name.h"
@@ -21,7 +21,7 @@ class Man;
 class Abode : public Place {
 public:
 	Abode(id::Abode id, AbodeName name);
-	explicit Abode(Abiding abiding);
+	explicit Abode(matter::Abode kept);
 
 	/// Same value as Place::id().
 	id::Abode abode_id() const noexcept { return id::Abode{id()}; }

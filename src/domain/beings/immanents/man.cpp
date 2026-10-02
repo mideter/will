@@ -10,9 +10,9 @@
 namespace will::domain {
 
 
-Man::Man(Embodiment embodiment)
-	: Soul(embodiment.soul(), embodiment.name())
-	, Vessel(embodiment.vessel(), embodiment.token())
+Man::Man(matter::Man kept)
+	: Soul(kept.soul(), kept.name())
+	, Vessel(kept.vessel(), kept.token())
 {
 	Immanent<Heaven>::present<Soul>();
 	Immanent<Earth>::present<Vessel>();

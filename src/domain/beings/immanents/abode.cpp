@@ -19,8 +19,8 @@ Abode::Abode(const id::Abode id, AbodeName name)
 }
 
 
-Abode::Abode(Abiding abiding)
-	: Abode(abiding.id(), abiding.name())
+Abode::Abode(matter::Abode kept)
+	: Abode(kept.id(), kept.name())
 {}
 
 

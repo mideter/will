@@ -1,6 +1,6 @@
 #pragma once
 
-#include "acts/embodiment.h"
+#include "matter/man.h"
 #include "beings/immanents/shepherding.h"
 #include "acts/supplication.h"
 #include "beings/immanents/novice.h"
@@ -21,7 +21,7 @@ class World;
 /// Testator (Завещатель, Тренер) — Novice who may pass received will on as his own.
 /// Owns incoming pending Supplications on the heap; living Ties are owned by the
 /// Novice as Obedience — this soul shepherds those Ties through non-owning
-/// Shepherding views. Temporality keeps the Askings, Spatiality the Boundness. Only World may birth
+/// Shepherding views. Temporality keeps matter::Supplication, Spatiality matter::Tie. Only World may birth
 /// a Testator onto the heap.
 class Testator : public Novice {
 public:
@@ -41,7 +41,7 @@ private:
 	friend class Supplication;
 	friend class Tie;
 
-	explicit Testator(Embodiment embodiment);
+	explicit Testator(matter::Man kept);
 
 	const Shepherding& shepherd(const Shepherding& place) const;
 	void release(const Shepherding& place) const;

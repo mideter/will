@@ -4,7 +4,7 @@
 #include "beings/immanents/obedience.h"
 #include "beings/immanents/shepherding.h"
 #include "acts/supplication.h"
-#include "acts/boundness.h"
+#include "matter/tie.h"
 #include "beings/immanents/novice.h"
 #include "beings/immanents/soul.h"
 #include "beings/immanents/testator.h"
@@ -30,12 +30,12 @@ World::World(Eternity& eternity, Temporality& temporality, Spatiality& spatialit
 
 void World::awaken()
 {
-	for (Embodiment e : temporality().embodiments())
+	for (matter::Man e : temporality().men())
 		(void)accept(std::move(e));
 
-	for (Boundness boundness : spatiality().boundnesses()) {
-		const auto& novice = static_cast<const Novice&>(Soul::of(boundness.novice()));
-		const Obedience& place = novice.follow(std::move(boundness));
+	for (matter::Tie kept : spatiality().ties()) {
+		const auto& novice = static_cast<const Novice&>(Soul::of(kept.novice()));
+		const Obedience& place = novice.follow(std::move(kept));
 		static_cast<const Testator&>(place.testator()).shepherd(
 			dynamic_cast<const Shepherding&>(place));
 	}
@@ -43,9 +43,9 @@ void World::awaken()
 	for (const auto& [soul_id, man] : men_) {
 		const auto& addressee = static_cast<const Testator&>(*man);
 
-		for (Asking asking : temporality().askings(soul_id)) {
-			Supplication ask{std::move(asking)};
-			// A bound pair's asking was answered by the bond itself.
+		for (matter::Supplication kept : temporality().supplications(soul_id)) {
+			Supplication ask{std::move(kept)};
+			// A bound pair's supplication was answered by the bond itself.
 			if (ask.suppliant().follows(addressee))
 				continue;
 
@@ -101,11 +101,11 @@ const Man& World::beget(const DeviceToken& token)
 }
 
 
-const Man& World::accept(Embodiment embodiment)
+const Man& World::accept(matter::Man kept)
 {
-	const id::Soul soul_id = embodiment.soul();
-	const id::Vessel vessel_id = embodiment.vessel();
-	auto ptr = std::unique_ptr<Man>(new Testator(std::move(embodiment)));
+	const id::Soul soul_id = kept.soul();
+	const id::Vessel vessel_id = kept.vessel();
+	auto ptr = std::unique_ptr<Man>(new Testator(std::move(kept)));
 	Man& live = *ptr;
 
 	std::lock_guard lock(mutex_);

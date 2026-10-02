@@ -1,6 +1,6 @@
 #pragma once
 
-#include "acts/embodiment.h"
+#include "matter/man.h"
 #include "beings/earth.h"
 #include "beings/heaven.h"
 #include "beings/immanents/abode.h"
@@ -45,14 +45,14 @@ private:
 
 	World(Eternity& eternity, Temporality& temporality, Spatiality& spatiality);
 
-	/// Accept kept embodiments (Creation).
+	/// Accept kept men (Creation).
 	void awaken();
 
 	/// Enroll a soul, embody it in a vessel, birth Testator.
 	const Man& beget(const DeviceToken& token);
 
-	/// Place a Testator on the heap from embodiment matter.
-	const Man& accept(Embodiment embodiment);
+	/// Place a Testator on the heap from its matter.
+	const Man& accept(matter::Man kept);
 
 	const Man& living_man(id::Soul id) const;
 

@@ -1,7 +1,7 @@
 #include "execution.h"
 
 
-namespace will::domain {
+namespace will::domain::matter {
 
 
 Execution::Execution(const id::Word id, const Timestamp executed_at)
@@ -10,4 +10,4 @@ Execution::Execution(const id::Word id, const Timestamp executed_at)
 {}
 
 
-} // namespace will::domain
+} // namespace will::domain::matter

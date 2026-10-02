@@ -8,25 +8,25 @@
 namespace will {
 
 
-/// SQLite Temporality — embodiments, datings, askings, executions in time.
+/// SQLite Temporality — men, datings, supplications, executions in time.
 /// Owns only the time database; the present is taken from Eternity.
 class SqliteTemporality final : public domain::Temporality {
 public:
 	SqliteTemporality(SqliteDatabase& time_db, domain::Eternity& eternity);
 
-	domain::Embodiment
+	domain::matter::Man
 	embody(domain::id::Soul soul, domain::SoulName name, domain::DeviceToken token) override;
-	std::vector<domain::Embodiment> embodiments() const override;
+	std::vector<domain::matter::Man> men() const override;
 
-	domain::Dating date(domain::id::Word id) override;
-	std::vector<domain::Dating> datings(const std::vector<domain::id::Word>& ids) const override;
+	domain::matter::Dating date(domain::id::Word id) override;
+	std::vector<domain::matter::Dating> datings(const std::vector<domain::id::Word>& ids) const override;
 
-	domain::Asking ask(domain::id::Soul suppliant, domain::id::Soul addressee) override;
-	std::vector<domain::Asking> askings(domain::id::Soul addressee) const override;
+	domain::matter::Supplication ask(domain::id::Soul suppliant, domain::id::Soul addressee) override;
+	std::vector<domain::matter::Supplication> supplications(domain::id::Soul addressee) const override;
 	void reject(domain::id::Soul suppliant, domain::id::Soul addressee) override;
 
 	void execute(domain::id::Word deed) override;
-	std::vector<domain::Execution> executions(const std::vector<domain::id::Word>& ids) const override;
+	std::vector<domain::matter::Execution> executions(const std::vector<domain::id::Word>& ids) const override;
 
 private:
 	SqliteDatabase& time_db_;

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "acts/contemplation.h"
-#include "acts/utterance.h"
+#include "matter/utterance.h"
 #include "beings/heaven.h"
 #include "identity/word.h"
 #include "identity/soul.h"
@@ -36,9 +36,9 @@ protected:
 	/// Living soul known to Heaven. Throws if unknown.
 	static const Soul& soul(id::Soul id);
 
-	Utterance utter(const Saying& saying) const;
+	matter::Utterance utter(const Saying& saying) const;
 
-	std::vector<Utterance> utterances(const std::vector<id::Word>& ids) const;
+	std::vector<matter::Utterance> utterances(const std::vector<id::Word>& ids) const;
 
 	bool knows(id::Soul soul_id) const;
 

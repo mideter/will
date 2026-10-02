@@ -4,14 +4,14 @@
 #include "identity/tie.h"
 
 
-namespace will::domain {
+namespace will::domain::matter {
 
 
-/// Boundness (Связанность) — pair place kept in space (testator, novice).
-/// Matter for living Tie on the heap; not the Tie itself.
-class Boundness {
+/// Matter of living Tie (Узы) — pair place kept in space (testator, novice).
+/// Attests the bond; not the living Tie itself.
+class Tie {
 public:
-	Boundness(id::Tie id, id::Soul testator, id::Soul novice);
+	Tie(id::Tie id, id::Soul testator, id::Soul novice);
 
 	id::Tie id() const noexcept { return id_; }
 	id::Soul testator() const noexcept { return testator_; }
@@ -24,4 +24,4 @@ private:
 };
 
 
-} // namespace will::domain
+} // namespace will::domain::matter

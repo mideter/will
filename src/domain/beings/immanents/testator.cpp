@@ -1,8 +1,8 @@
 #include "testator.h"
 
-#include "acts/dating.h"
-#include "acts/placement.h"
-#include "acts/utterance.h"
+#include "matter/dating.h"
+#include "matter/placement.h"
+#include "matter/utterance.h"
 #include "beings/immanents/soul.h"
 #include "ports/spatiality.h"
 #include "ports/temporality.h"
@@ -15,8 +15,8 @@
 namespace will::domain {
 
 
-Testator::Testator(Embodiment embodiment)
-	: Novice(std::move(embodiment))
+Testator::Testator(matter::Man kept)
+	: Novice(std::move(kept))
 {}
 
 
@@ -37,11 +37,11 @@ Deed Testator::will(const Shepherding& shepherding, const Saying& saying) const
 	if (shepherding.testator().Soul::id() != Soul::id())
 		throw std::logic_error("not the testator of this shepherding");
 
-	const Utterance uttered = utter(saying);
+	const matter::Utterance uttered = utter(saying);
 	spatiality().place(uttered.id(), shepherding.id());
-	const Dating dated = temporality().date(uttered.id());
+	const matter::Dating dated = temporality().date(uttered.id());
 
-	return Deed{uttered, Placement{uttered.id(), shepherding.id()}, dated};
+	return Deed{uttered, matter::Placement{uttered.id(), shepherding.id()}, dated};
 }
 
 

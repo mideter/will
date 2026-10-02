@@ -24,7 +24,7 @@ const Tie& living_tie(const id::Place id)
 } // namespace
 
 
-Deed::Deed(Utterance utterance, Placement placement, Dating dating, std::optional<Execution> execution)
+Deed::Deed(matter::Utterance utterance, matter::Placement placement, matter::Dating dating, std::optional<matter::Execution> execution)
 	: id_(utterance.id())
 	, tie_(living_tie(placement.place()))
 	, saying_(utterance.saying())

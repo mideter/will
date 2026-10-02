@@ -188,12 +188,12 @@ TEST_CASE("sqlite keeps a deed and its execution across reopen")
 }
 
 
-TEST_CASE("sqlite keeps askings, rejections and boundnesses across reopen")
+TEST_CASE("sqlite keeps supplications, rejections and ties across reopen")
 {
 	using namespace will;
 	using namespace will::domain;
 
-	const std::string prefix = "/tmp/will-sqlite-asking-test-" + std::to_string(getpid());
+	const std::string prefix = "/tmp/will-sqlite-supplication-test-" + std::to_string(getpid());
 	::unlink((prefix + ".eternity.db").c_str());
 	::unlink((prefix + ".space.db").c_str());
 	::unlink((prefix + ".time.db").c_str());
@@ -214,13 +214,13 @@ TEST_CASE("sqlite keeps askings, rejections and boundnesses across reopen")
 		a.supplicate(b);
 		CHECK_THROWS_AS(a.supplicate(b), std::logic_error);
 		b.reject(b.supplication(a));
-		CHECK(bundle.temporality().askings(b.Soul::id()).empty());
+		CHECK(bundle.temporality().supplications(b.Soul::id()).empty());
 		CHECK_THROWS_AS(bundle.temporality().reject(a.Soul::id(), b.Soul::id()), std::invalid_argument);
 		a.supplicate(b);
 
 		// c asks b and is accepted.
 		c.supplicate(b);
-		CHECK(bundle.temporality().askings(b.Soul::id()).size() == 2);
+		CHECK(bundle.temporality().supplications(b.Soul::id()).size() == 2);
 		const Shepherding& shepherding = b.accept(b.supplication(c));
 		CHECK(&shepherding.novice() == &c);
 		CHECK(b.supplications().size() == 1);
@@ -244,7 +244,7 @@ TEST_CASE("sqlite keeps askings, rejections and boundnesses across reopen")
 		const Shepherding& shepherding = b.accept(b.supplication(a));
 		CHECK(&shepherding.novice() == &a);
 		CHECK(b.supplications().empty());
-		CHECK(bundle.spatiality().boundnesses().size() == 2);
+		CHECK(bundle.spatiality().ties().size() == 2);
 	}
 
 	::unlink((prefix + ".eternity.db").c_str());

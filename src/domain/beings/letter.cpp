@@ -7,7 +7,7 @@
 namespace will::domain {
 
 
-Letter::Letter(Utterance utterance, Placement placement, Dating dating)
+Letter::Letter(matter::Utterance utterance, matter::Placement placement, matter::Dating dating)
 	: id_(utterance.id())
 	, place_(Place::of(placement.place()))
 	, author_(Soul::of(utterance.author()))

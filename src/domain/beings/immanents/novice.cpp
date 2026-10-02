@@ -15,8 +15,8 @@
 namespace will::domain {
 
 
-Novice::Novice(Embodiment embodiment)
-	: Witness(std::move(embodiment))
+Novice::Novice(matter::Man kept)
+	: Witness(std::move(kept))
 {}
 
 
@@ -47,14 +47,14 @@ Deed Novice::execute(const Deed& deed) const
 
 Deed Novice::deed(const id::Word id) const
 {
-	const std::optional<Placement> placed = spatiality().placement(id);
-	std::vector<Utterance> uttered = utterances({id});
-	std::vector<Dating> dated = temporality().datings({id});
+	const std::optional<matter::Placement> placed = spatiality().placement(id);
+	std::vector<matter::Utterance> uttered = utterances({id});
+	std::vector<matter::Dating> dated = temporality().datings({id});
 	if (!placed || uttered.empty() || dated.empty())
 		throw std::invalid_argument("unknown deed");
 
-	std::vector<Execution> executed = temporality().executions({id});
-	std::optional<Execution> execution;
+	std::vector<matter::Execution> executed = temporality().executions({id});
+	std::optional<matter::Execution> execution;
 	if (!executed.empty())
 		execution = std::move(executed.front());
 
@@ -88,12 +88,12 @@ const Obedience& Novice::obedience(const Testator& testator) const
 }
 
 
-const Obedience& Novice::follow(Boundness boundness) const
+const Obedience& Novice::follow(matter::Tie kept) const
 {
-	if (boundness.novice() != Soul::id())
-		throw std::logic_error("boundness is not for this novice");
+	if (kept.novice() != Soul::id())
+		throw std::logic_error("tie is not for this novice");
 
-	return follow(std::make_unique<Tie>(std::move(boundness)));
+	return follow(std::make_unique<Tie>(std::move(kept)));
 }
 
 

@@ -4,7 +4,7 @@
 #include "identity/place.h"
 
 
-namespace will::domain {
+namespace will::domain::matter {
 
 
 /// Placement — Word fixed in a Place; matter for a living Word (Letter, Deed).
@@ -22,4 +22,4 @@ private:
 };
 
 
-} // namespace will::domain
+} // namespace will::domain::matter

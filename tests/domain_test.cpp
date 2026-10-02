@@ -7,7 +7,7 @@
 #include "beings/immanents/obedience.h"
 #include "beings/immanents/shepherding.h"
 #include "beings/immanents/tie.h"
-#include "acts/boundness.h"
+#include "matter/tie.h"
 #include "beings/deed.h"
 #include "beings/immanents/novice.h"
 #include "beings/immanents/testator.h"
@@ -187,12 +187,12 @@ TEST_CASE("tie is a place for distinct testator and novice")
 	const auto& novice = static_cast<const Novice&>(world.welcome(DeviceToken::generate()));
 	const id::Tie oid{7};
 
-	const Tie tie{Boundness{oid, testator.Soul::id(), novice.Soul::id()}};
+	const Tie tie{matter::Tie{oid, testator.Soul::id(), novice.Soul::id()}};
 	CHECK(tie.id() == id::Place{oid.value()});
 	CHECK(&tie.testator() == &testator);
 	CHECK(&tie.novice() == &novice);
 
-	CHECK_THROWS_AS((Boundness{id::Tie{8}, testator.Soul::id(), testator.Soul::id()}),
+	CHECK_THROWS_AS((matter::Tie{id::Tie{8}, testator.Soul::id(), testator.Soul::id()}),
 					std::invalid_argument);
 }
 
@@ -213,12 +213,12 @@ TEST_CASE("supplicate accept creates tie owned as obedience")
 	const Supplication& ask = testator.supplication(novice);
 	CHECK(ask.suppliant().Soul::id() == a.Soul::id());
 	CHECK(ask.addressee().Soul::id() == b.Soul::id());
-	CHECK(cosmos.temporality().askings(b.Soul::id()).size() == 1);
+	CHECK(cosmos.temporality().supplications(b.Soul::id()).size() == 1);
 
 	const Shepherding& shepherding = testator.accept(ask);
 	CHECK(testator.supplications().empty());
-	REQUIRE(cosmos.spatiality().boundnesses().size() == 1);
-	CHECK(id::Tie{shepherding.id()} == cosmos.spatiality().boundnesses().front().id());
+	REQUIRE(cosmos.spatiality().ties().size() == 1);
+	CHECK(id::Tie{shepherding.id()} == cosmos.spatiality().ties().front().id());
 	CHECK(&testator.shepherding(novice) == &shepherding);
 	CHECK_THROWS_AS(static_cast<const Testator&>(a).shepherding(novice), std::invalid_argument);
 	const Obedience& obedience = novice.obedience(testator);
@@ -231,10 +231,10 @@ TEST_CASE("supplicate accept creates tie owned as obedience")
 	CHECK_FALSE(testator.follows(static_cast<const Testator&>(a)));
 	CHECK_THROWS_AS(testator.obedience(static_cast<const Testator&>(a)), std::invalid_argument);
 
-	// What is kept decides: the pair is tied, so neither a new asking nor a new boundness is kept.
+	// What is kept decides: the pair is tied, so neither a new supplication nor a new bond is kept.
 	CHECK_THROWS_AS(novice.supplicate(testator), std::logic_error);
 	CHECK_THROWS_AS(cosmos.spatiality().bind(b.Soul::id(), a.Soul::id()), std::logic_error);
-	CHECK(cosmos.spatiality().boundnesses().size() == 1);
+	CHECK(cosmos.spatiality().ties().size() == 1);
 }
 
 
@@ -256,14 +256,14 @@ TEST_CASE("reject closes pending supplication; wrong party cannot accept")
 
 	testator.reject(ask);
 	CHECK(testator.supplications().empty());
-	CHECK(cosmos.temporality().askings(b.Soul::id()).empty());
+	CHECK(cosmos.temporality().supplications(b.Soul::id()).empty());
 	CHECK_THROWS_AS(testator.supplication(novice), std::invalid_argument);
 	CHECK_THROWS_AS(cosmos.temporality().reject(a.Soul::id(), b.Soul::id()), std::invalid_argument);
-	CHECK(cosmos.spatiality().boundnesses().empty());
+	CHECK(cosmos.spatiality().ties().empty());
 
-	// A rejected suppliant may ask again; a second asking while one awaits is refused.
+	// A rejected suppliant may ask again; a second supplication while one awaits is refused.
 	novice.supplicate(testator);
-	CHECK(cosmos.temporality().askings(b.Soul::id()).size() == 1);
+	CHECK(cosmos.temporality().supplications(b.Soul::id()).size() == 1);
 	CHECK_THROWS_AS(novice.supplicate(testator), std::logic_error);
 	CHECK_THROWS_AS(novice.supplicate(static_cast<const Testator&>(a)), std::invalid_argument);
 }
@@ -286,7 +286,7 @@ TEST_CASE("will and execute within obedience")
 
 	novice.supplicate(testator);
 	testator.accept(testator.supplication(novice));
-	REQUIRE(cosmos.spatiality().boundnesses().size() == 1);
+	REQUIRE(cosmos.spatiality().ties().size() == 1);
 	const Shepherding& shepherding = testator.shepherding(novice);
 	const Deed deed = testator.will(shepherding, "fast");
 	CHECK(deed.open());

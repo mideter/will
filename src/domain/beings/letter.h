@@ -1,8 +1,8 @@
 #pragma once
 
-#include "acts/dating.h"
-#include "acts/placement.h"
-#include "acts/utterance.h"
+#include "matter/dating.h"
+#include "matter/placement.h"
+#include "matter/utterance.h"
 #include "beings/immanents/place.h"
 #include "beings/immanents/soul.h"
 #include "beings/word.h"
@@ -19,7 +19,7 @@ namespace will::domain {
 class Letter : public Word {
 public:
 	/// Ids must match; place and author must be known to Space and Heaven.
-	Letter(Utterance utterance, Placement placement, Dating dating);
+	Letter(matter::Utterance utterance, matter::Placement placement, matter::Dating dating);
 
 	id::Word id() const noexcept { return id_; }
 	const Place& place() const noexcept { return place_; }

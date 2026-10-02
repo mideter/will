@@ -47,7 +47,7 @@ domain::id::Soul SqliteEternity::enroll(const domain::SoulName name)
 }
 
 
-domain::Utterance SqliteEternity::utter(const domain::id::Soul author, const domain::Saying& saying)
+domain::matter::Utterance SqliteEternity::utter(const domain::id::Soul author, const domain::Saying& saying)
 {
 	std::lock_guard lock(database_.mutex());
 
@@ -58,11 +58,11 @@ domain::Utterance SqliteEternity::utter(const domain::id::Soul author, const dom
 	stmt.bind_text(2, saying.body(), "bind body");
 	stmt.step_done("insert utterance step");
 
-	return domain::Utterance{domain::id::Word{sqlite_last_insert_id(db)}, author, saying};
+	return domain::matter::Utterance{domain::id::Word{sqlite_last_insert_id(db)}, author, saying};
 }
 
 
-domain::Utterance SqliteEternity::utterance(const domain::id::Word id) const
+domain::matter::Utterance SqliteEternity::utterance(const domain::id::Word id) const
 {
 	std::lock_guard lock(database_.mutex());
 
@@ -73,7 +73,7 @@ domain::Utterance SqliteEternity::utterance(const domain::id::Word id) const
 	if (!stmt.step_row("utterance step"))
 		throw std::invalid_argument("unknown utterance");
 
-	return domain::Utterance{
+	return domain::matter::Utterance{
 		domain::id::Word{static_cast<std::uint64_t>(stmt.column_i64(0))},
 		domain::id::Soul{static_cast<std::uint64_t>(stmt.column_i64(1))},
 		std::string(stmt.column_text(2)),
@@ -81,9 +81,9 @@ domain::Utterance SqliteEternity::utterance(const domain::id::Word id) const
 }
 
 
-std::vector<domain::Utterance> SqliteEternity::utterances(const std::vector<domain::id::Word>& ids) const
+std::vector<domain::matter::Utterance> SqliteEternity::utterances(const std::vector<domain::id::Word>& ids) const
 {
-	std::vector<domain::Utterance> out;
+	std::vector<domain::matter::Utterance> out;
 	out.reserve(ids.size());
 	for (const domain::id::Word id : ids) {
 		try {

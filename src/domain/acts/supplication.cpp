@@ -2,7 +2,7 @@
 
 #include "beings/immanents/obedience.h"
 #include "beings/immanents/shepherding.h"
-#include "acts/boundness.h"
+#include "matter/tie.h"
 #include "beings/immanents/novice.h"
 #include "beings/immanents/soul.h"
 #include "beings/immanents/testator.h"
@@ -15,9 +15,9 @@
 namespace will::domain {
 
 
-Supplication::Supplication(Asking asking)
-	: suppliant_(static_cast<const Novice&>(Soul::of(asking.suppliant())))
-	, addressee_(static_cast<const Testator&>(Soul::of(asking.addressee())))
+Supplication::Supplication(matter::Supplication kept)
+	: suppliant_(static_cast<const Novice&>(Soul::of(kept.suppliant())))
+	, addressee_(static_cast<const Testator&>(Soul::of(kept.addressee())))
 {}
 
 
@@ -38,9 +38,9 @@ const Shepherding& Supplication::sign(const Testator& addressee) const
 	const Supplication& incoming = addressee.supplication(suppliant_);
 	const Novice& suppliant = suppliant_;
 
-	const Boundness boundness = addressee.spatiality().bind(addressee.Soul::id(), suppliant.Soul::id());
+	const matter::Tie kept = addressee.spatiality().bind(addressee.Soul::id(), suppliant.Soul::id());
 
-	const Obedience& place = suppliant.follow(boundness);
+	const Obedience& place = suppliant.follow(kept);
 	const Shepherding& shepherded = addressee.shepherd(dynamic_cast<const Shepherding&>(place));
 	addressee.drop(incoming);
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "acts/utterance.h"
+#include "matter/utterance.h"
 #include "identity/word.h"
 #include "identity/soul.h"
 #include "ports/time.h"
@@ -18,7 +18,7 @@ class Space;
 
 /// Eternity (Вечность) — who endures; indelible Saying and author.
 /// Time and Space belong to Eternity; each is one, reached only from here.
-/// Speaks in souls; embodiment in a vessel belongs to Temporality / World.
+/// Speaks in souls; dwelling in a vessel belongs to Temporality / World.
 class Eternity {
 public:
 	virtual ~Eternity() = default;
@@ -31,13 +31,13 @@ public:
 	virtual id::Soul enroll(SoulName name) = 0;
 
 	/// Keep a Saying and author; returns the eternal utterance.
-	virtual Utterance utter(id::Soul author, const Saying& saying) = 0;
+	virtual matter::Utterance utter(id::Soul author, const Saying& saying) = 0;
 
 	/// Throws if unknown.
-	virtual Utterance utterance(id::Word id) const = 0;
+	virtual matter::Utterance utterance(id::Word id) const = 0;
 
 	/// Order preserved; skips unknown.
-	virtual std::vector<Utterance> utterances(const std::vector<id::Word>& ids) const = 0;
+	virtual std::vector<matter::Utterance> utterances(const std::vector<id::Word>& ids) const = 0;
 };
 
 

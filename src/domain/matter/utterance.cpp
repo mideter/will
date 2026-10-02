@@ -3,7 +3,7 @@
 #include <utility>
 
 
-namespace will::domain {
+namespace will::domain::matter {
 
 
 Utterance::Utterance(const id::Word id, const id::Soul author, Saying saying)
@@ -13,4 +13,4 @@ Utterance::Utterance(const id::Word id, const id::Soul author, Saying saying)
 {}
 
 
-} // namespace will::domain
+} // namespace will::domain::matter

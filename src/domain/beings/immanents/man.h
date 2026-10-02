@@ -1,6 +1,6 @@
 #pragma once
 
-#include "acts/embodiment.h"
+#include "matter/man.h"
 #include "beings/immanents/abode.h"
 #include "beings/immanents/soul.h"
 #include "beings/immanents/vessel.h"
@@ -24,7 +24,7 @@ public:
 	bool operator==(const Man& other) const = default;
 
 protected:
-	explicit Man(Embodiment embodiment);
+	explicit Man(matter::Man kept);
 
 private:
 	std::unique_ptr<Abode> abode_;

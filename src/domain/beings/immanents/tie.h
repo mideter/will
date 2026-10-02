@@ -2,7 +2,7 @@
 
 #include "beings/immanents/obedience.h"
 #include "beings/immanents/shepherding.h"
-#include "acts/boundness.h"
+#include "matter/tie.h"
 
 
 namespace will::domain {
@@ -13,13 +13,13 @@ class Testator;
 
 
 /// Tie (Узы) — one living shared place: both Obedience and Shepherding.
-/// Born from Boundness (Связанность); owned on the heap by the Novice as Послушание.
+/// Born from matter::Tie; owned on the heap by the Novice as Послушание.
 /// Testator shepherds a non-owning Shepherding view. Counterpart sides live in
 /// the faces (testator in Obedience, novice in Shepherding); accessors are
-/// completed here. Spatiality keeps Boundness.
+/// completed here. Spatiality keeps matter::Tie.
 class Tie : public Obedience, public Shepherding {
 public:
-	explicit Tie(Boundness boundness);
+	explicit Tie(matter::Tie kept);
 	~Tie() override;
 
 	Tie(const Tie&) = delete;

@@ -5,7 +5,7 @@
 #include "values/saying.h"
 
 
-namespace will::domain {
+namespace will::domain::matter {
 
 
 /// Utterance — Saying and author kept in Eternity; matter for a living Word (Letter, Deed).
@@ -24,4 +24,4 @@ private:
 };
 
 
-} // namespace will::domain
+} // namespace will::domain::matter

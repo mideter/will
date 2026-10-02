@@ -1,7 +1,7 @@
 #include "placement.h"
 
 
-namespace will::domain {
+namespace will::domain::matter {
 
 
 Placement::Placement(const id::Word id, const id::Place place)
@@ -10,4 +10,4 @@ Placement::Placement(const id::Word id, const id::Place place)
 {}
 
 
-} // namespace will::domain
+} // namespace will::domain::matter
