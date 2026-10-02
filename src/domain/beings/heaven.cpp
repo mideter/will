@@ -2,6 +2,7 @@
 
 #include "beings/immanents/abode.h"
 #include "beings/immanents/soul.h"
+#include "beings/immanents/witness.h"
 #include "ports/eternity.h"
 
 #include <stdexcept>
@@ -100,7 +101,7 @@ void Heaven::contemplate(const Soul& soul, const Abode& abode)
 	if (!souls_.contains(soul.id()))
 		throw std::logic_error("Heaven does not know this soul");
 
-	contemplations_.insert_or_assign(soul.id(), Contemplation{abode});
+	contemplations_.insert_or_assign(soul.id(), Contemplation{static_cast<const Witness&>(soul), abode});
 }
 
 

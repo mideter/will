@@ -9,6 +9,7 @@
 #include "beings/immanents/tie.h"
 #include "matter/tie.h"
 #include "beings/deed.h"
+#include "beings/letter.h"
 #include "beings/immanents/novice.h"
 #include "beings/immanents/testator.h"
 #include "beings/immanents/witness.h"
@@ -18,6 +19,7 @@
 #include "values/soul_name.h"
 
 #include <stdexcept>
+#include <string>
 #include <vector>
 
 
@@ -155,7 +157,7 @@ TEST_CASE("man say persists via temporality")
 }
 
 
-TEST_CASE("witness retell is history of observed abode")
+TEST_CASE("letters of an abode are seen through contemplation by one who dwells in it")
 {
 	InMemoryCosmos cosmos;
 	const id::Soul author{1};
@@ -168,12 +170,25 @@ TEST_CASE("witness retell is history of observed abode")
 	const auto& witness = static_cast<const Witness&>(man);
 
 	for (int i = 0; i < 5; ++i)
-		man.say("m");
+		man.say("m" + std::to_string(i));
 
-	CHECK_THROWS_AS(witness.retell(0), std::invalid_argument);
+	const auto items = world.contemplation(witness.Soul::id()).letters();
+	REQUIRE(items.size() == 5);
+	CHECK(items.front().saying().body() == "m0");
+	CHECK(items.back().saying().body() == "m4");
+	CHECK(&items.front().place() == &witness.abode());
 
-	const auto items = witness.retell(Spatiality::MaxLetterLimit + 50);
-	CHECK(items.size() == 5);
+	// By default a witness contemplates his own abode.
+	const auto& stranger = static_cast<const Witness&>(world.welcome(DeviceToken::generate()));
+	CHECK(&world.contemplation(stranger.Soul::id()).abode() == &stranger.abode());
+	CHECK(world.contemplation(stranger.Soul::id()).letters().empty());
+
+	// Turning the gaze to another's abode does not show its letters to one who does not dwell there.
+	stranger.contemplate(witness.abode());
+	CHECK_THROWS_AS(world.contemplation(stranger.Soul::id()).letters(), std::logic_error);
+
+	// An abode shows its letters only to a contemplation of itself.
+	CHECK_THROWS_AS(stranger.abode().letters(world.contemplation(stranger.Soul::id())), std::logic_error);
 }
 
 
@@ -296,14 +311,19 @@ TEST_CASE("will and execute within obedience")
 
 	CHECK_THROWS_AS(static_cast<const Testator&>(a).will(shepherding, "no"), std::logic_error);
 
-	CHECK(novice.deed(deed.id()).open());
-	CHECK(testator.deed(deed.id()).id() == deed.id());
+	// The tie shows its deeds to either side, through the one who asks.
+	const Obedience& obedience = novice.obedience(testator);
+	REQUIRE(obedience.deeds(novice).size() == 1);
+	CHECK(obedience.deeds(novice).front().open());
+	REQUIRE(shepherding.deeds(testator).size() == 1);
+	CHECK(shepherding.deeds(testator).front().id() == deed.id());
 	CHECK_THROWS_AS(testator.execute(deed), std::logic_error);
 
-	const Deed done = novice.execute(deed);
+	novice.execute(deed);
+	const Deed done = obedience.deeds(novice).front();
 	CHECK(done.executed());
 	CHECK_FALSE(done.open());
-	CHECK(novice.deed(deed.id()).executed());
+	CHECK(shepherding.deeds(testator).front().executed());
 	CHECK_THROWS_AS(novice.execute(done), std::logic_error);
 
 	// Stale open snapshot: what is kept decides, not the argument.
@@ -312,7 +332,7 @@ TEST_CASE("will and execute within obedience")
 }
 
 
-TEST_CASE("deed is unknown to a soul outside its tie and is not a letter")
+TEST_CASE("a tie shows its deeds only to its sides; deeds are not letters")
 {
 	InMemoryCosmos cosmos;
 	Creation creation(cosmos.eternity(), cosmos.spatiality(), cosmos.temporality());
@@ -326,15 +346,19 @@ TEST_CASE("deed is unknown to a soul outside its tie and is not a letter")
 	testator.accept(testator.supplication(novice));
 	const Deed deed = testator.will(testator.shepherding(novice), "fast");
 
-	CHECK_THROWS_AS(stranger.deed(deed.id()), std::invalid_argument);
-	CHECK_THROWS_AS(novice.deed(id::Word{999}), std::invalid_argument);
+	const Obedience& obedience = novice.obedience(testator);
+	CHECK_THROWS_AS(obedience.deeds(stranger), std::logic_error);
+	CHECK(novice.obediences().size() == 1);
+	CHECK(&novice.obediences().front().get() == &obedience);
+	CHECK(stranger.obediences().empty());
 
-	// A deed lives in its tie, not in the abodes its sides contemplate.
-	CHECK(testator.retell(10).empty());
-	CHECK(novice.retell(10).empty());
+	// A deed is placed in its tie, not in the abodes of its sides.
+	CHECK(world.contemplation(testator.Soul::id()).letters().empty());
+	CHECK(world.contemplation(novice.Soul::id()).letters().empty());
 
 	// A letter is not a deed.
 	static_cast<const Witness&>(novice).say("hello");
-	const id::Word letter = novice.retell(10).front().id();
-	CHECK_THROWS_AS(novice.deed(letter), std::invalid_argument);
+	REQUIRE(world.contemplation(novice.Soul::id()).letters().size() == 1);
+	REQUIRE(obedience.deeds(novice).size() == 1);
+	CHECK(obedience.deeds(novice).front().id() == deed.id());
 }

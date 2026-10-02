@@ -8,6 +8,7 @@
 namespace will::domain {
 
 
+class Deed;
 class Novice;
 class Testator;
 
@@ -29,6 +30,8 @@ public:
 
 	const Testator& testator() const override;
 	const Novice& novice() const override;
+
+	std::vector<Deed> deeds(const Novice& asker) const override;
 };
 
 

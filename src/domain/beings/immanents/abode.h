@@ -8,11 +8,14 @@
 #include <memory>
 #include <mutex>
 #include <unordered_set>
+#include <vector>
 
 
 namespace will::domain {
 
 
+class Contemplation;
+class Letter;
 class Man;
 
 
@@ -31,6 +34,10 @@ public:
 	void admit(const Man& man);
 
 	bool dwells(const Man& man) const;
+
+	/// Letters placed here, oldest first, shown to one who contemplates this
+	/// abode and dwells in it.
+	std::vector<Letter> letters(const Contemplation& gaze) const;
 
 private:
 	AbodeName name_;

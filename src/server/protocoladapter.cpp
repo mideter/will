@@ -9,8 +9,11 @@
 #include "beings/immanents/testator.h"
 #include "beings/immanents/tie.h"
 #include "beings/immanents/witness.h"
+#include "beings/letter.h"
 #include "values/device_token.h"
 
+#include <cstddef>
+#include <cstdint>
 #include <exception>
 #include <iostream>
 #include <optional>
@@ -19,6 +22,25 @@
 
 
 namespace will {
+namespace {
+
+
+/// The number a client names in /done is matched here, at the border: the
+/// domain shows the deeds of a place, it does not look words up by id.
+std::optional<domain::Deed> deed_numbered(const domain::Novice& novice, const std::uint64_t number)
+{
+	for (const domain::Obedience& obedience : novice.obediences()) {
+		for (domain::Deed& deed : obedience.deeds(novice)) {
+			if (deed.id().value() == number)
+				return std::move(deed);
+		}
+	}
+
+	return std::nullopt;
+}
+
+
+} // namespace
 
 
 ProtocolAdapter::ProtocolAdapter(domain::World& world, SessionRegistry& registry)
@@ -172,18 +194,27 @@ void ProtocolAdapter::handle_history_request(const SessionId session_id, const v
 		return;
 
 	const domain::Man& man = world_.man(world_.vessel(*vessel_id));
-	const auto& witness = static_cast<const domain::Witness&>(man);
+
+	if (request.limit() == 0) {
+		close_with_protocol_error(session_id, "Protocol error: invalid HistoryRequest");
+		return;
+	}
 
 	std::vector<domain::Letter> letters;
 	try {
-		letters = witness.retell(request.limit());
+		letters = world_.contemplation(man.Soul::id()).letters();
 	} catch (const std::exception&) {
 		close_with_protocol_error(session_id, "Protocol error: invalid HistoryRequest");
 		return;
 	}
 
+	// How many letters to send is the client's wish, not the abode's concern.
+	const std::size_t first = letters.size() > request.limit() ? letters.size() - request.limit() : 0;
+
 	const domain::id::Soul listener_soul = man.Soul::id();
-	for (const domain::Letter& letter : letters) {
+	for (std::size_t i = first; i < letters.size(); ++i) {
+		const domain::Letter& letter = letters[i];
+
 		v1::ServerEvent event;
 		auto* history_item = event.mutable_history_item();
 		history_item->set_message_id(letter.id().value());
@@ -303,16 +334,19 @@ void ProtocolAdapter::handle_execute_deed(const SessionId session_id, const v1::
 	const auto& novice = static_cast<const domain::Novice&>(self);
 
 	try {
-		const domain::Deed done =
-			novice.execute(novice.deed(domain::id::Word{msg.deed_id()}));
+		const std::optional<domain::Deed> deed = deed_numbered(novice, msg.deed_id());
+		if (!deed)
+			throw std::invalid_argument("unknown deed");
 
-		send_notice(session_id, "deed " + std::to_string(done.id().value()) + " done");
+		novice.execute(*deed);
+
+		send_notice(session_id, "deed " + std::to_string(deed->id().value()) + " done");
 
 		v1::ServerEvent event;
 		auto* row = event.mutable_deed_done();
-		row->set_deed_id(done.id().value());
+		row->set_deed_id(deed->id().value());
 		row->set_novice_name(std::string{self.name().text()});
-		send_to_vessel(done.tie().testator().Vessel::id(), event);
+		send_to_vessel(deed->tie().testator().Vessel::id(), event);
 	} catch (const std::exception& e) {
 		send_notice(session_id, e.what());
 	}

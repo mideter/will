@@ -30,6 +30,10 @@ public:
 	/// Living revelation; implemented by Witness.
 	virtual void say(const Saying& saying) const = 0;
 
+	/// Temporarily public: a place reads the words uttered in it through the one
+	/// who asks. Becomes protected again once Ties are contemplated like Abodes.
+	std::vector<matter::Utterance> utterances(const std::vector<id::Word>& ids) const;
+
 protected:
 	Spirit() = default;
 
@@ -37,8 +41,6 @@ protected:
 	static const Soul& soul(id::Soul id);
 
 	matter::Utterance utter(const Saying& saying) const;
-
-	std::vector<matter::Utterance> utterances(const std::vector<id::Word>& ids) const;
 
 	bool knows(id::Soul soul_id) const;
 

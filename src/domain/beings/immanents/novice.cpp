@@ -3,11 +3,9 @@
 #include "beings/immanents/tie.h"
 #include "beings/immanents/soul.h"
 #include "beings/immanents/testator.h"
-#include "ports/spatiality.h"
 #include "ports/temporality.h"
 
 #include <memory>
-#include <optional>
 #include <stdexcept>
 #include <utility>
 
@@ -32,7 +30,7 @@ void Novice::supplicate(const Testator& addressee) const
 }
 
 
-Deed Novice::execute(const Deed& deed) const
+void Novice::execute(const Deed& deed) const
 {
 	if (deed.tie().novice().Soul::id() != Soul::id())
 		throw std::logic_error("not the novice of this deed");
@@ -40,30 +38,18 @@ Deed Novice::execute(const Deed& deed) const
 		throw std::logic_error("deed is not open");
 
 	temporality().execute(deed.id());
-
-	return this->deed(deed.id());
 }
 
 
-Deed Novice::deed(const id::Word id) const
+std::vector<std::reference_wrapper<const Obedience>> Novice::obediences() const
 {
-	const std::optional<matter::Placement> placed = spatiality().placement(id);
-	std::vector<matter::Utterance> uttered = utterances({id});
-	std::vector<matter::Dating> dated = temporality().datings({id});
-	if (!placed || uttered.empty() || dated.empty())
-		throw std::invalid_argument("unknown deed");
+	std::vector<std::reference_wrapper<const Obedience>> out;
+	out.reserve(obediences_.size());
 
-	std::vector<matter::Execution> executed = temporality().executions({id});
-	std::optional<matter::Execution> execution;
-	if (!executed.empty())
-		execution = std::move(executed.front());
+	for (const auto& place : obediences_)
+		out.emplace_back(*place);
 
-	Deed found{matter::Deed{std::move(uttered.front()), *placed, std::move(dated.front()),
-							std::move(execution)}};
-	if (found.tie().novice().Soul::id() != Soul::id() && found.tie().testator().Soul::id() != Soul::id())
-		throw std::invalid_argument("unknown deed");
-
-	return found;
+	return out;
 }
 
 

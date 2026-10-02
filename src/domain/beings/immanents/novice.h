@@ -8,6 +8,7 @@
 #include "beings/immanents/witness.h"
 #include "identity/word.h"
 
+#include <functional>
 #include <memory>
 #include <vector>
 
@@ -29,12 +30,11 @@ public:
 	void supplicate(const Testator& addressee) const;
 
 	/// Carry out an open deed in an obedience where this soul is novice.
-	Deed execute(const Deed& deed) const;
-
-	/// Deed by id in a tie where this soul is a side. Throws if unknown.
-	Deed deed(id::Word id) const;
+	void execute(const Deed& deed) const;
 
 	bool follows(const Testator& testator) const noexcept;
+
+	std::vector<std::reference_wrapper<const Obedience>> obediences() const;
 
 	/// Owned Obedience face under this testator. Throws if unknown.
 	const Obedience& obedience(const Testator& testator) const;
