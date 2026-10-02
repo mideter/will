@@ -108,7 +108,11 @@ void ChatSession::run()
 
 	std::atomic<bool> disconnected{false};
 
-	client_.set_closed_handler([&disconnected] { disconnected.store(true); });
+	// The main thread is blocked reading input, so the reader thread says it at once.
+	client_.set_closed_handler([this, &disconnected] {
+		if (!disconnected.exchange(true))
+			ui_.print_status("Disconnected from chat. Press Enter to exit.");
+	});
 	client_.set_inbound_handler([this, &disconnected](const v1::ServerEvent& event) {
 		if (disconnected.load())
 			return;
@@ -131,6 +135,9 @@ void ChatSession::run()
 
 	std::string line;
 	while (!disconnected.load() && std::getline(std::cin, line)) {
+		if (disconnected.load())
+			break;
+
 		if (line.empty()) {
 			ui_.print_prompt();
 			continue;
@@ -147,9 +154,9 @@ void ChatSession::run()
 
 	ui_.set_live_prompt(false);
 
-	if (disconnected.load())
-		ui_.print_status("Disconnected from chat.");
-
+	// Leaving on our own is not a disconnect to report.
+	client_.set_closed_handler(nullptr);
+	client_.set_inbound_handler(nullptr);
 	client_.shutdown();
 }
 
