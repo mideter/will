@@ -1,6 +1,6 @@
 #pragma once
 
-#include "dimensions/time.h"
+#include "beings/time.h"
 
 
 namespace will {

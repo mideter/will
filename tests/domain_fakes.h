@@ -28,7 +28,7 @@
 #include "dimensions/eternity.h"
 #include "dimensions/spatiality.h"
 #include "dimensions/temporality.h"
-#include "dimensions/time.h"
+#include "beings/time.h"
 #include "values/abode_name.h"
 #include "values/device_token.h"
 #include "values/soul_name.h"
