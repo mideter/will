@@ -2,14 +2,14 @@
 
 #include "inbound_client_message_handler.h"
 
-#include "beings/deed.h"
-#include "beings/immanents/novice.h"
-#include "beings/immanents/obedience.h"
-#include "beings/immanents/shepherding.h"
-#include "beings/immanents/testator.h"
-#include "beings/immanents/tie.h"
-#include "beings/immanents/witness.h"
-#include "beings/letter.h"
+#include "words/deed.h"
+#include "immanents/novice.h"
+#include "immanents/obedience.h"
+#include "immanents/shepherding.h"
+#include "immanents/testator.h"
+#include "immanents/tie.h"
+#include "immanents/witness.h"
+#include "words/letter.h"
 #include "values/device_token.h"
 
 #include <cstddef>

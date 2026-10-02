@@ -2,13 +2,13 @@
 #include <doctest/doctest.h>
 
 #include "acts/creation.h"
-#include "beings/deed.h"
-#include "beings/immanents/obedience.h"
-#include "beings/letter.h"
-#include "beings/immanents/novice.h"
-#include "beings/immanents/shepherding.h"
-#include "beings/immanents/testator.h"
-#include "beings/immanents/witness.h"
+#include "words/deed.h"
+#include "immanents/obedience.h"
+#include "words/letter.h"
+#include "immanents/novice.h"
+#include "immanents/shepherding.h"
+#include "immanents/testator.h"
+#include "immanents/witness.h"
 #include "sqlite_persistence_bundle.h"
 
 #include "identity/abode.h"

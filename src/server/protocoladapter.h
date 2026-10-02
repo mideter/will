@@ -3,7 +3,7 @@
 #include "serverconfig.h"
 #include "sessionregistry.h"
 
-#include "beings/world.h"
+#include "horizons/world.h"
 
 #include "infra/transport/messenger.pb.h"
 

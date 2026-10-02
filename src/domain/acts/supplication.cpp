@@ -1,11 +1,11 @@
 #include "supplication.h"
 
-#include "beings/immanents/obedience.h"
-#include "beings/immanents/shepherding.h"
+#include "immanents/obedience.h"
+#include "immanents/shepherding.h"
 #include "matter/tie.h"
-#include "beings/immanents/novice.h"
-#include "beings/immanents/soul.h"
-#include "beings/immanents/testator.h"
+#include "immanents/novice.h"
+#include "immanents/soul.h"
+#include "immanents/testator.h"
 #include "dimensions/spatiality.h"
 #include "dimensions/temporality.h"
 

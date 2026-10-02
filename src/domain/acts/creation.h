@@ -1,6 +1,6 @@
 #pragma once
 
-#include "beings/world.h"
+#include "horizons/world.h"
 #include "dimensions/eternity.h"
 #include "dimensions/spatiality.h"
 #include "dimensions/temporality.h"

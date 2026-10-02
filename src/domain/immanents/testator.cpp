@@ -1,0 +1,137 @@
+#include "testator.h"
+
+#include "matter/dating.h"
+#include "matter/placement.h"
+#include "matter/utterance.h"
+#include "immanents/soul.h"
+#include "dimensions/spatiality.h"
+#include "dimensions/temporality.h"
+
+#include <algorithm>
+#include <stdexcept>
+#include <utility>
+
+
+namespace will::domain {
+
+
+Testator::Testator(matter::Man kept)
+	: Novice(std::move(kept))
+{}
+
+
+const Shepherding& Testator::accept(const Supplication& ask) const
+{
+	return ask.sign(*this);
+}
+
+
+void Testator::reject(const Supplication& ask) const
+{
+	ask.reject(*this);
+}
+
+
+Deed Testator::will(const Shepherding& shepherding, const Saying& saying) const
+{
+	if (shepherding.testator().Soul::id() != Soul::id())
+		throw std::logic_error("not the testator of this shepherding");
+
+	const matter::Utterance uttered = utter(saying);
+	spatiality().place(uttered.id(), shepherding.id());
+	const matter::Dating dated = temporality().date(uttered.id());
+
+	return Deed{matter::Deed{uttered, matter::Placement{uttered.id(), shepherding.id()}, dated}};
+}
+
+
+const Shepherding& Testator::shepherding(const Novice& novice) const
+{
+	for (const Shepherding* place : shepherdings_) {
+		if (place && place->novice().Soul::id() == novice.Soul::id())
+			return *place;
+	}
+
+	throw std::invalid_argument("unknown shepherding");
+}
+
+
+const Shepherding& Testator::shepherd(const Shepherding& place) const
+{
+	if (place.testator().Soul::id() != Soul::id())
+		throw std::logic_error("not the testator of this shepherding");
+
+	for (const Shepherding* existing : shepherdings_) {
+		if (existing && existing->id() == place.id())
+			return *existing;
+	}
+
+	shepherdings_.push_back(&place);
+	return place;
+}
+
+
+void Testator::release(const Shepherding& place) const
+{
+	const auto it = std::find(shepherdings_.begin(), shepherdings_.end(), &place);
+	if (it != shepherdings_.end())
+		shepherdings_.erase(it);
+}
+
+
+const Supplication& Testator::supplication(const Novice& suppliant) const
+{
+	for (const auto& row : incoming_) {
+		if (row->suppliant().Soul::id() == suppliant.Soul::id())
+			return *row;
+	}
+
+	throw std::invalid_argument("unknown supplication");
+}
+
+
+std::vector<std::reference_wrapper<const Supplication>> Testator::supplications() const
+{
+	std::vector<std::reference_wrapper<const Supplication>> out;
+	out.reserve(incoming_.size());
+
+	for (const auto& row : incoming_)
+		out.emplace_back(*row);
+
+	return out;
+}
+
+
+const Supplication& Testator::receive(Supplication supplication) const
+{
+	if (supplication.addressee().Soul::id() != Soul::id())
+		throw std::logic_error("supplication is not addressed to this soul");
+
+	const id::Soul suppliant_id = supplication.suppliant().Soul::id();
+
+	for (const auto& existing : incoming_) {
+		if (existing->suppliant().Soul::id() == suppliant_id)
+			return *existing;
+	}
+
+	incoming_.push_back(std::make_unique<Supplication>(std::move(supplication)));
+
+	return *incoming_.back();
+}
+
+
+void Testator::drop(const Supplication& ask) const
+{
+	const auto it = std::find_if(incoming_.begin(), incoming_.end(),
+								 [&](const std::unique_ptr<Supplication>& row) {
+									 return row->suppliant().Soul::id() == ask.suppliant().Soul::id();
+								 });
+
+	if (it == incoming_.end())
+		throw std::invalid_argument("unknown supplication");
+
+	incoming_.erase(it);
+}
+
+
+} // namespace will::domain

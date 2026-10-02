@@ -1,6 +1,6 @@
 #include "sqlite_spatiality.h"
 
-#include "beings/space.h"
+#include "horizons/space.h"
 #include "sqlite_util.h"
 #include "values/abode_name.h"
 
