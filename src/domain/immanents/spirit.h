@@ -9,6 +9,7 @@
 #include "properties/immanent.h"
 #include "values/saying.h"
 
+#include <memory>
 #include <vector>
 
 
@@ -46,7 +47,11 @@ protected:
 
 	void contemplate(const Abode& abode) const;
 
-	const Contemplation& contemplation() const;
+	/// Contemplate nothing.
+	void cease() const;
+
+	/// Null while this spirit contemplates nothing.
+	std::shared_ptr<const Contemplation> contemplation() const;
 
 private:
 	static Heaven& heaven() { return Heaven::the(); }

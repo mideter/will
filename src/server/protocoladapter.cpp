@@ -8,6 +8,7 @@
 #include "immanents/shepherding.h"
 #include "immanents/testator.h"
 #include "immanents/tie.h"
+#include "immanents/contemplation.h"
 #include "immanents/witness.h"
 #include "words/letter.h"
 #include "values/device_token.h"
@@ -16,6 +17,8 @@
 #include <cstdint>
 #include <exception>
 #include <iostream>
+#include <memory>
+#include <mutex>
 #include <optional>
 #include <string>
 #include <vector>
@@ -136,12 +139,41 @@ void ProtocolAdapter::handle_bind_token(const SessionId session_id, const v1::Bi
 	}
 
 	const domain::Man& man = world_.welcome(*device_token);
-	if (const auto displaced = registry_.bind_vessel(session_id, man.Vessel::id()))
+
+	std::optional<SessionId> displaced;
+	{
+		std::lock_guard lock(presence_mutex_);
+		displaced = registry_.bind_vessel(session_id, man.Vessel::id());
+		static_cast<const domain::Witness&>(man).wake();
+		woken_by_session_.insert_or_assign(session_id.value, man.Vessel::id());
+	}
+
+	if (displaced)
 		close_session(*displaced);
 
 	v1::ServerEvent event;
 	event.mutable_auth_ok()->set_name(std::string{man.name().text()});
 	send_event(session_id, event);
+}
+
+
+void ProtocolAdapter::on_session_ended(const SessionId session_id)
+{
+	std::lock_guard lock(presence_mutex_);
+
+	const auto it = woken_by_session_.find(session_id.value);
+	if (it == woken_by_session_.end())
+		return;
+
+	const domain::id::Vessel vessel_id = it->second;
+	woken_by_session_.erase(it);
+
+	// A newer session of the same body keeps the man awake.
+	const std::optional<SessionId> current = registry_.session_id_for_vessel(vessel_id);
+	if (current && *current != session_id)
+		return;
+
+	static_cast<const domain::Witness&>(world_.man(world_.vessel(vessel_id))).sleep();
 }
 
 
@@ -160,6 +192,13 @@ void ProtocolAdapter::handle_user_chat(const SessionId session_id, const v1::Cha
 		return;
 
 	const domain::Man& man = world_.man(world_.vessel(*vessel_id));
+
+	const std::shared_ptr<const domain::Contemplation> gaze = world_.contemplation(man.Soul::id());
+	if (!gaze) {
+		close_with_protocol_error(session_id, "Protocol error: invalid ChatMessage");
+		return;
+	}
+
 	try {
 		man.say(std::string{chat.body()});
 	} catch (const std::exception&) {
@@ -174,7 +213,7 @@ void ProtocolAdapter::handle_user_chat(const SessionId session_id, const v1::Cha
 	chat_message->set_body(chat.body());
 
 	const domain::id::Vessel speaker_vessel = man.Vessel::id();
-	for (const domain::Soul& observer : world_.contemplating(world_.contemplation(man.Soul::id()).abode())) {
+	for (const domain::Soul& observer : world_.contemplating(gaze->abode())) {
 		const auto& observer_man = static_cast<const domain::Man&>(observer);
 		if (observer_man.Vessel::id() == speaker_vessel)
 			continue;
@@ -200,9 +239,15 @@ void ProtocolAdapter::handle_history_request(const SessionId session_id, const v
 		return;
 	}
 
+	const std::shared_ptr<const domain::Contemplation> gaze = world_.contemplation(man.Soul::id());
+	if (!gaze) {
+		close_with_protocol_error(session_id, "Protocol error: invalid HistoryRequest");
+		return;
+	}
+
 	std::vector<domain::Letter> letters;
 	try {
-		letters = world_.contemplation(man.Soul::id()).letters();
+		letters = gaze->letters();
 	} catch (const std::exception&) {
 		close_with_protocol_error(session_id, "Protocol error: invalid HistoryRequest");
 		return;

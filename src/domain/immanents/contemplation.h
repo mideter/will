@@ -15,7 +15,8 @@ class Witness;
 
 
 /// Contemplation (Созерцание) — the gaze of a soul upon an Abode; immanent to Heaven.
-/// Heaven keeps it, one per soul; it ends when the soul turns to another abode.
+/// Heaven keeps it, one per soul, from the moment the soul's man wakes or turns
+/// to an abode until he turns elsewhere or falls asleep.
 /// The letters of an abode are seen through the contemplation of it.
 class Contemplation : public Immanent<Heaven> {
 public:

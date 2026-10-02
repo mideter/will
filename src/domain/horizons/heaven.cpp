@@ -105,19 +105,26 @@ void Heaven::contemplate(const Soul& soul, const Abode& abode)
 	// The former gaze of this soul ends here.
 	contemplations_.insert_or_assign(
 		soul.id(),
-		std::unique_ptr<Contemplation>(new Contemplation(static_cast<const Witness&>(soul), abode)));
+		std::shared_ptr<const Contemplation>(new Contemplation(static_cast<const Witness&>(soul), abode)));
 }
 
 
-const Contemplation& Heaven::contemplation(const id::Soul soul_id) const
+void Heaven::cease(const Soul& soul)
+{
+	std::lock_guard lock(mutex_);
+	contemplations_.erase(soul.id());
+}
+
+
+std::shared_ptr<const Contemplation> Heaven::contemplation(const id::Soul soul_id) const
 {
 	std::lock_guard lock(mutex_);
 
 	const auto it = contemplations_.find(soul_id);
 	if (it == contemplations_.end())
-		throw std::logic_error("Heaven has no contemplation for this soul");
+		return nullptr;
 
-	return *it->second;
+	return it->second;
 }
 
 

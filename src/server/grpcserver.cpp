@@ -53,6 +53,7 @@ grpc::Status MessengerService::Session(grpc::ServerContext* context,
 			break;
 	}
 
+	adapter_.on_session_ended(session_id);
 	registry_.unregister_session(session_id);
 	return grpc::Status::OK;
 }

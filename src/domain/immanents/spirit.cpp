@@ -39,7 +39,14 @@ void Spirit::contemplate(const Abode& abode) const
 }
 
 
-const Contemplation& Spirit::contemplation() const
+void Spirit::cease() const
+{
+	const auto& self = static_cast<const Soul&>(*this);
+	heaven().cease(self);
+}
+
+
+std::shared_ptr<const Contemplation> Spirit::contemplation() const
 {
 	const auto& self = static_cast<const Soul&>(*this);
 	return heaven().contemplation(self.id());

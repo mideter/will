@@ -7,7 +7,10 @@
 
 #include "infra/transport/messenger.pb.h"
 
+#include <cstdint>
+#include <mutex>
 #include <string_view>
+#include <unordered_map>
 
 
 namespace will {
@@ -24,6 +27,10 @@ public:
 	ProtocolAdapter(domain::World& world, SessionRegistry& registry);
 
 	void on_client_event(SessionId session_id, const v1::ClientEvent& event);
+
+	/// The stream of this session is over, for whatever reason. The man whose
+	/// body it served falls asleep, unless a newer session of that body took over.
+	void on_session_ended(SessionId session_id);
 
 	[[nodiscard]] bool is_authenticated(SessionId session_id) const;
 
@@ -48,6 +55,11 @@ private:
 
 	domain::World& world_;
 	SessionRegistry& registry_;
+
+	/// Guards waking and falling asleep against a session ending while another
+	/// of the same body begins.
+	std::mutex presence_mutex_;
+	std::unordered_map<std::uint64_t, domain::id::Vessel> woken_by_session_;
 };
 
 

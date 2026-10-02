@@ -62,11 +62,13 @@ TEST_CASE("sqlite persistence survives reopen")
 		name_b = man_b.name();
 		abode_a_place = static_cast<const Witness&>(man_a).abode().id();
 
+		static_cast<const Witness&>(man_a).wake();
+		static_cast<const Witness&>(man_b).wake();
 		man_a.say("from-peer");
 		man_b.say("from-me");
 
 		const auto& witness_a = static_cast<const Witness&>(man_a);
-		const auto letters = world.contemplation(witness_a.Soul::id()).letters();
+		const auto letters = world.contemplation(witness_a.Soul::id())->letters();
 		REQUIRE(letters.size() == 1);
 		CHECK(letters[0].saying().body() == "from-peer");
 		CHECK(letters[0].author().id() == man_a.Soul::id());
@@ -115,7 +117,11 @@ TEST_CASE("sqlite persistence survives reopen")
 		CHECK(static_cast<const Witness&>(man_a_reloaded).abode().dwells(man_a_reloaded));
 		CHECK(static_cast<const Witness&>(man_a_reloaded).abode().id() == *abode_a_place);
 
-		const auto letters = world.contemplation(man_a_reloaded.Soul::id()).letters();
+		// After the World awakens anew everyone is asleep until he comes.
+		CHECK_FALSE(world.contemplation(man_a_reloaded.Soul::id()));
+		static_cast<const Witness&>(man_a_reloaded).wake();
+
+		const auto letters = world.contemplation(man_a_reloaded.Soul::id())->letters();
 		REQUIRE(letters.size() == 1);
 		CHECK(letters[0].saying().body() == "from-peer");
 
@@ -183,7 +189,8 @@ TEST_CASE("sqlite keeps a deed and its execution across reopen")
 		CHECK(bundle.temporality().executions({*open_id, *done_id}).size() == 1);
 
 		// Deeds are placed in the tie, not among the letters of an abode.
-		CHECK(world.contemplation(novice.Soul::id()).letters().empty());
+		novice.wake();
+		CHECK(world.contemplation(novice.Soul::id())->letters().empty());
 	}
 
 	{

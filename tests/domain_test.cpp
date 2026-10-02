@@ -22,6 +22,7 @@
 #include "values/timestamp.h"
 #include "values/soul_name.h"
 
+#include <memory>
 #include <stdexcept>
 #include <type_traits>
 #include <string>
@@ -65,7 +66,15 @@ TEST_CASE("welcome creates man with personal abode")
 	CHECK(witness.abode().id().value() > 0);
 	CHECK(witness.abode().abode_id() == id::Abode{witness.abode().id()});
 	CHECK(witness.abode().dwells(man));
-	CHECK(&world.contemplation(man.Soul::id()).abode() == &man.abode());
+
+	// A man is born asleep: he contemplates nothing until he wakes.
+	CHECK_FALSE(world.contemplation(man.Soul::id()));
+	CHECK(world.contemplating(man.abode()).empty());
+	CHECK_THROWS_AS(man.say("in my sleep"), std::logic_error);
+
+	witness.wake();
+	REQUIRE(world.contemplation(man.Soul::id()));
+	CHECK(&world.contemplation(man.Soul::id())->abode() == &man.abode());
 	CHECK(world.contemplating(man.abode()).size() == 1);
 	CHECK(&world.contemplating(man.abode()).front().get() == static_cast<const Soul*>(&man));
 	CHECK(world.knows(man.Vessel::id()));
@@ -131,11 +140,14 @@ TEST_CASE("each man has a distinct personal abode")
 	CHECK_FALSE(wa.abode().dwells(b));
 	CHECK(wb.abode().dwells(b));
 	CHECK_FALSE(wb.abode().dwells(a));
-	CHECK(&world.contemplation(a.Soul::id()).abode() == &a.abode());
-	CHECK(&world.contemplation(b.Soul::id()).abode() == &b.abode());
+
+	wa.wake();
+	wb.wake();
+	CHECK(&world.contemplation(a.Soul::id())->abode() == &a.abode());
+	CHECK(&world.contemplation(b.Soul::id())->abode() == &b.abode());
 	CHECK(world.contemplating(a.abode()).size() == 1);
 	CHECK(world.contemplating(b.abode()).size() == 1);
-	CHECK(&world.contemplation(a.Soul::id()).abode() != &b.abode());
+	CHECK(&world.contemplation(a.Soul::id())->abode() != &b.abode());
 	CHECK(&world.contemplating(a.abode()).front().get() == static_cast<const Soul*>(&a));
 	CHECK(&world.contemplating(b.abode()).front().get() == static_cast<const Soul*>(&b));
 }
@@ -149,6 +161,7 @@ TEST_CASE("man say persists via temporality")
 
 	const Man& author = world.welcome(DeviceToken::generate());
 	const auto& witness = static_cast<const Witness&>(author);
+	witness.wake();
 	author.say("hello");
 
 	const auto placed = cosmos.spatiality().placements(witness.abode().id(), 10);
@@ -173,38 +186,55 @@ TEST_CASE("letters of an abode are seen through contemplation by one who dwells 
 
 	const Man& man = world.welcome(test_token("feedfacefeedfacefeedfacefeedface"));
 	const auto& witness = static_cast<const Witness&>(man);
+	witness.wake();
 
 	for (int i = 0; i < 5; ++i)
 		man.say("m" + std::to_string(i));
 
-	const auto items = world.contemplation(witness.Soul::id()).letters();
+	const auto items = world.contemplation(witness.Soul::id())->letters();
 	REQUIRE(items.size() == 5);
 	CHECK(items.front().saying().body() == "m0");
 	CHECK(items.back().saying().body() == "m4");
 	CHECK(&items.front().place() == &witness.abode());
 
-	// By default a witness contemplates his own abode.
+	// Waking, a witness contemplates his own abode.
 	const auto& stranger = static_cast<const Witness&>(world.welcome(DeviceToken::generate()));
-	CHECK(&world.contemplation(stranger.Soul::id()).abode() == &stranger.abode());
-	CHECK(world.contemplation(stranger.Soul::id()).letters().empty());
+	stranger.wake();
+	CHECK(&world.contemplation(stranger.Soul::id())->abode() == &stranger.abode());
+	CHECK(world.contemplation(stranger.Soul::id())->letters().empty());
 
 	// A contemplation is living: one gaze per soul, kept by Heaven, never copied.
 	static_assert(!std::is_copy_constructible_v<Contemplation>);
 	static_assert(!std::is_move_constructible_v<Contemplation>);
-	CHECK(&world.contemplation(stranger.Soul::id()) == &world.contemplation(stranger.Soul::id()));
-	CHECK(&world.contemplation(stranger.Soul::id()).who() == &stranger);
+	CHECK(world.contemplation(stranger.Soul::id()) == world.contemplation(stranger.Soul::id()));
+	CHECK(&world.contemplation(stranger.Soul::id())->who() == &stranger);
 	CHECK(world.contemplating(stranger.abode()).size() == 1);
 
 	// Turning the gaze to another's abode ends the former one; the letters there
 	// are not shown to one who does not dwell there.
 	stranger.contemplate(witness.abode());
-	CHECK(&world.contemplation(stranger.Soul::id()).abode() == &witness.abode());
+	CHECK(&world.contemplation(stranger.Soul::id())->abode() == &witness.abode());
 	CHECK(world.contemplating(stranger.abode()).empty());
 	CHECK(world.contemplating(witness.abode()).size() == 2);
-	CHECK_THROWS_AS(world.contemplation(stranger.Soul::id()).letters(), std::logic_error);
+	CHECK_THROWS_AS(world.contemplation(stranger.Soul::id())->letters(), std::logic_error);
 
 	// An abode shows its letters only to a contemplation of itself.
-	CHECK_THROWS_AS(stranger.abode().letters(world.contemplation(stranger.Soul::id())), std::logic_error);
+	CHECK_THROWS_AS(stranger.abode().letters(*world.contemplation(stranger.Soul::id())), std::logic_error);
+
+	// A gaze that someone still holds does not fade under him when its soul turns away or sleeps.
+	const std::shared_ptr<const Contemplation> held = world.contemplation(witness.Soul::id());
+	witness.sleep();
+	CHECK_FALSE(world.contemplation(witness.Soul::id()));
+	CHECK(world.contemplating(witness.abode()).size() == 1);
+	CHECK(held->letters().size() == 5);
+	CHECK_THROWS_AS(man.say("asleep"), std::logic_error);
+
+	// Sleeping twice is nothing; waking returns him to his own abode.
+	witness.sleep();
+	stranger.sleep();
+	CHECK(world.contemplating(witness.abode()).empty());
+	stranger.wake();
+	CHECK(&world.contemplation(stranger.Soul::id())->abode() == &stranger.abode());
 }
 
 
@@ -380,6 +410,9 @@ TEST_CASE("a tie shows its deeds only to its sides; deeds are not letters")
 	testator.accept(testator.supplication(novice));
 	const Deed deed = testator.will(testator.shepherding(novice), "fast");
 
+	novice.wake();
+	testator.wake();
+
 	const Obedience& obedience = novice.obedience(testator);
 	CHECK_THROWS_AS(obedience.deeds(stranger), std::logic_error);
 	CHECK(novice.obediences().size() == 1);
@@ -387,12 +420,12 @@ TEST_CASE("a tie shows its deeds only to its sides; deeds are not letters")
 	CHECK(stranger.obediences().empty());
 
 	// A deed is placed in its tie, not in the abodes of its sides.
-	CHECK(world.contemplation(testator.Soul::id()).letters().empty());
-	CHECK(world.contemplation(novice.Soul::id()).letters().empty());
+	CHECK(world.contemplation(testator.Soul::id())->letters().empty());
+	CHECK(world.contemplation(novice.Soul::id())->letters().empty());
 
 	// A letter is not a deed.
 	static_cast<const Witness&>(novice).say("hello");
-	REQUIRE(world.contemplation(novice.Soul::id()).letters().size() == 1);
+	REQUIRE(world.contemplation(novice.Soul::id())->letters().size() == 1);
 	REQUIRE(obedience.deeds(novice).size() == 1);
 	CHECK(obedience.deeds(novice).front().id() == deed.id());
 }

@@ -32,8 +32,9 @@ public:
 
 	std::vector<std::reference_wrapper<const Soul>> contemplating(const Abode& abode) const;
 
-	/// Throws if none.
-	const Contemplation& contemplation(id::Soul soul_id) const;
+	/// The gaze of this soul; null while the soul contemplates nothing (asleep).
+	/// Whoever holds it keeps it from fading while he uses it.
+	std::shared_ptr<const Contemplation> contemplation(id::Soul soul_id) const;
 
 protected:
 	friend class Spirit;
@@ -53,6 +54,9 @@ private:
 
 	void contemplate(const Soul& soul, const Abode& abode);
 
+	/// The gaze of this soul ends; nothing happens if it contemplates nothing.
+	void cease(const Soul& soul);
+
 	/// Throws if not yet brought forth / already destroyed.
 	static Heaven& the();
 
@@ -61,7 +65,7 @@ private:
 	Eternity& eternity_;
 	mutable std::mutex mutex_;
 	std::unordered_map<id::Soul, const Soul*> souls_;
-	std::unordered_map<id::Soul, std::unique_ptr<Contemplation>> contemplations_;
+	std::unordered_map<id::Soul, std::shared_ptr<const Contemplation>> contemplations_;
 };
 
 
