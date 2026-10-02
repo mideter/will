@@ -3,6 +3,7 @@
 #include "ports/spatiality.h"
 #include "values/abode_name.h"
 
+#include <optional>
 #include <string>
 #include <utility>
 
@@ -17,8 +18,11 @@ Man::Man(matter::Man kept)
 	Immanent<Heaven>::present<Soul>();
 	Immanent<Earth>::present<Vessel>();
 
-	abode_ = std::make_unique<Abode>(spatiality().abide(
-		Soul::id(), AbodeName{std::string{Soul::name().text()}}));
+	std::optional<matter::Abode> own = spatiality().abode(Soul::id());
+	if (!own)
+		own = spatiality().abide(Soul::id(), AbodeName{std::string{Soul::name().text()}});
+
+	abode_ = std::make_unique<Abode>(std::move(*own));
 	abode_->admit(*this);
 }
 

@@ -13,6 +13,7 @@
 
 #include "identity/abode.h"
 #include "identity/place.h"
+#include "values/abode_name.h"
 #include "values/device_token.h"
 #include "identity/soul.h"
 #include "identity/tie.h"
@@ -77,6 +78,13 @@ TEST_CASE("sqlite persistence survives reopen")
 
 		CHECK(static_cast<const Witness&>(man_a).abode().id() !=
 			  static_cast<const Witness&>(man_b).abode().id());
+
+		// One abode per soul: what is kept decides.
+		REQUIRE(bundle.spatiality().abode(man_a.Soul::id()));
+		CHECK(id::Place{bundle.spatiality().abode(man_a.Soul::id())->id().value()} == *abode_a_place);
+		CHECK_THROWS_AS(bundle.spatiality().abide(man_a.Soul::id(), AbodeName{"second"}),
+						std::logic_error);
+		CHECK_FALSE(bundle.spatiality().abode(id::Soul{999999}));
 
 		const Man& man_created = world.welcome(token_created);
 		created_id = man_created.Soul::id();

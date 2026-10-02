@@ -25,20 +25,12 @@ public:
 
 	virtual ~Spatiality() = default;
 
-	/// Abodes kept in space (id + name matter).
-	virtual std::vector<matter::Abode> abodes() = 0;
+	/// The abode of this host, if kept.
+	virtual std::optional<matter::Abode> abode(id::Soul host) const = 0;
 
-	/// matter::Abode for this soul: restore if kept, otherwise open, keep, and join.
-	virtual matter::Abode abide(id::Soul soul, AbodeName name) = 0;
-
-	/// matter::Abode for the abode this soul already dwells in, if kept.
-	virtual std::optional<matter::Abode> abode_of(id::Soul soul) const = 0;
-
-	/// Keep an abode in space (idempotent by id).
-	virtual void keep(id::Abode id, AbodeName name) = 0;
-
-	/// Keep that a soul dwells in an abode (idempotent).
-	virtual void join_abode(id::Abode abode, id::Soul soul) = 0;
+	/// Keep a new abode of this host in a new point of Space.
+	/// Refuses (std::logic_error) if the host already keeps one.
+	virtual matter::Abode abide(id::Soul host, AbodeName name) = 0;
 
 	/// Keep the bond of a pair in a new point of Space.
 	/// Refuses (std::logic_error) if the pair is already bound.

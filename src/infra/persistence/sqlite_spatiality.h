@@ -14,11 +14,8 @@ class SqliteSpatiality final : public domain::Spatiality {
 public:
 	SqliteSpatiality(SqliteDatabase& database, domain::Eternity& eternity);
 
-	std::vector<domain::matter::Abode> abodes() override;
-	domain::matter::Abode abide(domain::id::Soul soul, domain::AbodeName name) override;
-	std::optional<domain::matter::Abode> abode_of(domain::id::Soul soul) const override;
-	void keep(domain::id::Abode id, domain::AbodeName name) override;
-	void join_abode(domain::id::Abode abode, domain::id::Soul soul) override;
+	std::optional<domain::matter::Abode> abode(domain::id::Soul host) const override;
+	domain::matter::Abode abide(domain::id::Soul host, domain::AbodeName name) override;
 	domain::matter::Tie bind(domain::id::Soul testator, domain::id::Soul novice) override;
 	std::vector<domain::matter::Tie> ties() const override;
 	void place(domain::id::Word id, domain::id::Place place) override;

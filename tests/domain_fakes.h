@@ -134,55 +134,23 @@ public:
 		, eternity_(eternity)
 	{}
 
-	std::vector<matter::Abode> abodes() override
+	std::optional<matter::Abode> abode(const id::Soul host) const override
 	{
-		std::vector<matter::Abode> out;
-		out.reserve(abode_rows_.size());
-		for (const auto& [id, name] : abode_rows_)
-			out.emplace_back(id, name);
-		return out;
-	}
-
-	matter::Abode abide(const id::Soul soul, AbodeName name) override
-	{
-		if (std::optional<matter::Abode> existing = abode_of(soul))
-			return std::move(*existing);
-
-		const id::Abode id{eternity_.space().point()};
-		keep(id, name);
-		join_abode(id, soul);
-		return matter::Abode{id, std::move(name)};
-	}
-
-	std::optional<matter::Abode> abode_of(const id::Soul soul) const override
-	{
-		for (const auto& [abode_id, soul_id] : abode_souls_) {
-			if (soul_id != soul)
-				continue;
-			for (const auto& [id, name] : abode_rows_) {
-				if (id == abode_id)
-					return matter::Abode{id, name};
-			}
+		for (const auto& [keeper, kept] : abodes_) {
+			if (keeper == host)
+				return kept;
 		}
 		return std::nullopt;
 	}
 
-	void keep(const id::Abode id, AbodeName name) override
+	matter::Abode abide(const id::Soul host, AbodeName name) override
 	{
-		for (auto& row : abode_rows_) {
-			if (row.first == id)
-				return;
-		}
-		abode_rows_.emplace_back(id, std::move(name));
-	}
+		if (abode(host))
+			throw std::logic_error("soul already keeps an abode");
 
-	void join_abode(const id::Abode abode, const id::Soul soul) override
-	{
-		for (const auto& row : abode_souls_) {
-			if (row.first == abode && row.second == soul)
-				return;
-		}
-		abode_souls_.emplace_back(abode, soul);
+		const matter::Abode kept{id::Abode{eternity_.space().point()}, std::move(name)};
+		abodes_.emplace_back(host, kept);
+		return kept;
 	}
 
 	matter::Tie bind(const id::Soul testator, const id::Soul novice) override
@@ -234,8 +202,7 @@ public:
 private:
 	InMemoryShared& shared_;
 	Eternity& eternity_;
-	std::vector<std::pair<id::Abode, AbodeName>> abode_rows_;
-	std::vector<std::pair<id::Abode, id::Soul>> abode_souls_;
+	std::vector<std::pair<id::Soul, matter::Abode>> abodes_;
 	std::vector<matter::Placement> placements_;
 	std::vector<matter::Tie> ties_;
 };

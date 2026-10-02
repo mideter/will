@@ -12,6 +12,31 @@
 
 
 namespace will {
+namespace {
+
+
+std::optional<domain::matter::Abode> kept_abode(sqlite3* db, const domain::id::Soul host)
+{
+	SqliteStmt stmt(db,
+					"SELECT a.id, a.name FROM abodes a "
+					"INNER JOIN abode_souls s ON s.abode_id = a.id "
+					"WHERE s.soul_id = ? ORDER BY a.id LIMIT 1;",
+					"prepare abode");
+	stmt.bind_i64(1, static_cast<std::int64_t>(host.value()), "bind soul_id");
+
+	if (!stmt.step_row("abode step"))
+		return std::nullopt;
+
+	const domain::id::Abode id{static_cast<std::uint64_t>(stmt.column_i64(0))};
+	const std::string_view name_text = stmt.column_text(1);
+	if (name_text.empty())
+		throw std::runtime_error("abode: missing name in database");
+
+	return domain::matter::Abode{id, domain::AbodeName{name_text}};
+}
+
+
+} // namespace
 
 
 SqliteSpatiality::SqliteSpatiality(SqliteDatabase& database, domain::Eternity& eternity)
@@ -20,85 +45,38 @@ SqliteSpatiality::SqliteSpatiality(SqliteDatabase& database, domain::Eternity& e
 {}
 
 
-std::vector<domain::matter::Abode> SqliteSpatiality::abodes()
+std::optional<domain::matter::Abode> SqliteSpatiality::abode(const domain::id::Soul host) const
 {
 	std::lock_guard lock(database_.mutex());
-
-	sqlite3* const db = database_.db();
-	SqliteStmt stmt(db, "SELECT id, name FROM abodes ORDER BY id;", "prepare abodes");
-
-	std::vector<domain::matter::Abode> rows;
-	while (stmt.step_row("abodes step")) {
-		const domain::id::Abode id{static_cast<std::uint64_t>(stmt.column_i64(0))};
-		const std::string_view name_text = stmt.column_text(1);
-		if (name_text.empty())
-			throw std::runtime_error("abodes: missing name in database");
-
-		rows.emplace_back(id, domain::AbodeName{name_text});
-	}
-
-	return rows;
+	return kept_abode(database_.db(), host);
 }
 
 
-domain::matter::Abode SqliteSpatiality::abide(const domain::id::Soul soul, domain::AbodeName name)
+domain::matter::Abode SqliteSpatiality::abide(const domain::id::Soul host, domain::AbodeName name)
 {
-	if (std::optional<domain::matter::Abode> existing = abode_of(soul))
-		return std::move(*existing);
+	std::lock_guard lock(database_.mutex());
+	sqlite3* const db = database_.db();
+	SqliteTransaction tx(db);
+
+	if (kept_abode(db, host))
+		throw std::logic_error("soul already keeps an abode");
 
 	const domain::id::Abode id{eternity_.space().point()};
-	keep(id, name);
-	join_abode(id, soul);
+
+	SqliteStmt abode_stmt(db, "INSERT INTO abodes (id, name) VALUES (?, ?);", "prepare abide");
+	abode_stmt.bind_i64(1, static_cast<std::int64_t>(id.value()), "bind abode id");
+	abode_stmt.bind_text(2, name.text(), "bind abode name");
+	abode_stmt.step_done("abide step");
+
+	SqliteStmt soul_stmt(db, "INSERT INTO abode_souls (abode_id, soul_id) VALUES (?, ?);",
+						 "prepare abide soul");
+	soul_stmt.bind_i64(1, static_cast<std::int64_t>(id.value()), "bind abode_id");
+	soul_stmt.bind_i64(2, static_cast<std::int64_t>(host.value()), "bind soul_id");
+	soul_stmt.step_done("abide soul step");
+
+	tx.commit();
+
 	return domain::matter::Abode{id, std::move(name)};
-}
-
-
-std::optional<domain::matter::Abode> SqliteSpatiality::abode_of(const domain::id::Soul soul) const
-{
-	std::lock_guard lock(database_.mutex());
-
-	sqlite3* const db = database_.db();
-	SqliteStmt stmt(db,
-					"SELECT a.id, a.name FROM abodes a "
-					"INNER JOIN abode_souls s ON s.abode_id = a.id "
-					"WHERE s.soul_id = ? ORDER BY a.id LIMIT 1;",
-					"prepare abode_of");
-	stmt.bind_i64(1, static_cast<std::int64_t>(soul.value()), "bind soul_id");
-
-	if (!stmt.step_row("abode_of step"))
-		return std::nullopt;
-
-	const domain::id::Abode id{static_cast<std::uint64_t>(stmt.column_i64(0))};
-	const std::string_view name_text = stmt.column_text(1);
-	if (name_text.empty())
-		throw std::runtime_error("abode_of: missing name in database");
-
-	return domain::matter::Abode{id, domain::AbodeName{name_text}};
-}
-
-
-void SqliteSpatiality::keep(const domain::id::Abode id, domain::AbodeName name)
-{
-	std::lock_guard lock(database_.mutex());
-
-	sqlite3* const db = database_.db();
-	SqliteStmt stmt(db, "INSERT OR IGNORE INTO abodes (id, name) VALUES (?, ?);", "prepare keep abode");
-	stmt.bind_i64(1, static_cast<std::int64_t>(id.value()), "bind abode id");
-	stmt.bind_text(2, name.text(), "bind abode name");
-	stmt.step_done("keep abode step");
-}
-
-
-void SqliteSpatiality::join_abode(const domain::id::Abode abode, const domain::id::Soul soul)
-{
-	std::lock_guard lock(database_.mutex());
-
-	sqlite3* const db = database_.db();
-	SqliteStmt stmt(db, "INSERT OR IGNORE INTO abode_souls (abode_id, soul_id) VALUES (?, ?);",
-					"prepare join abode_souls");
-	stmt.bind_i64(1, static_cast<std::int64_t>(abode.value()), "bind abode_id");
-	stmt.bind_i64(2, static_cast<std::int64_t>(soul.value()), "bind soul_id");
-	stmt.step_done("insert abode_souls step");
 }
 
 
