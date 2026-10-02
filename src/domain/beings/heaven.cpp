@@ -3,7 +3,7 @@
 #include "beings/immanents/abode.h"
 #include "beings/immanents/soul.h"
 #include "beings/immanents/witness.h"
-#include "ports/eternity.h"
+#include "dimensions/eternity.h"
 
 #include <memory>
 #include <stdexcept>

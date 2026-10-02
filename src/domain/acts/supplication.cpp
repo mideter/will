@@ -6,8 +6,8 @@
 #include "beings/immanents/novice.h"
 #include "beings/immanents/soul.h"
 #include "beings/immanents/testator.h"
-#include "ports/spatiality.h"
-#include "ports/temporality.h"
+#include "dimensions/spatiality.h"
+#include "dimensions/temporality.h"
 
 #include <stdexcept>
 

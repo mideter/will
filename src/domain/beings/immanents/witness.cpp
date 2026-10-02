@@ -2,8 +2,8 @@
 
 #include "matter/utterance.h"
 #include "beings/immanents/abode.h"
-#include "ports/spatiality.h"
-#include "ports/temporality.h"
+#include "dimensions/spatiality.h"
+#include "dimensions/temporality.h"
 
 #include <stdexcept>
 #include <utility>

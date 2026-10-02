@@ -1,9 +1,9 @@
 #pragma once
 
 #include "beings/world.h"
-#include "ports/eternity.h"
-#include "ports/spatiality.h"
-#include "ports/temporality.h"
+#include "dimensions/eternity.h"
+#include "dimensions/spatiality.h"
+#include "dimensions/temporality.h"
 
 
 namespace will::domain {

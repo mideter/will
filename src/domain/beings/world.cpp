@@ -1,4 +1,4 @@
-#include "ports/eternity.h"
+#include "dimensions/eternity.h"
 #include "world.h"
 
 #include "beings/immanents/obedience.h"
@@ -13,8 +13,8 @@
 #include "beings/immanents/soul.h"
 #include "beings/immanents/testator.h"
 #include "beings/immanents/witness.h"
-#include "ports/spatiality.h"
-#include "ports/temporality.h"
+#include "dimensions/spatiality.h"
+#include "dimensions/temporality.h"
 #include "values/soul_name.h"
 
 #include <functional>

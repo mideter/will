@@ -2,8 +2,8 @@
 
 #include "beings/immanents/witness.h"
 #include "beings/space.h"
-#include "ports/spatiality.h"
-#include "ports/temporality.h"
+#include "dimensions/spatiality.h"
+#include "dimensions/temporality.h"
 
 #include <algorithm>
 #include <stdexcept>

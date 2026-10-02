@@ -4,8 +4,8 @@
 #include "matter/placement.h"
 #include "matter/utterance.h"
 #include "beings/immanents/soul.h"
-#include "ports/spatiality.h"
-#include "ports/temporality.h"
+#include "dimensions/spatiality.h"
+#include "dimensions/temporality.h"
 
 #include <algorithm>
 #include <stdexcept>

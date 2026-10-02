@@ -3,7 +3,7 @@
 #include "beings/immanents/tie.h"
 #include "beings/immanents/soul.h"
 #include "beings/immanents/testator.h"
-#include "ports/temporality.h"
+#include "dimensions/temporality.h"
 
 #include <memory>
 #include <stdexcept>

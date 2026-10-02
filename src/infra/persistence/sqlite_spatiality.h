@@ -1,7 +1,7 @@
 #pragma once
 
-#include "ports/eternity.h"
-#include "ports/spatiality.h"
+#include "dimensions/eternity.h"
+#include "dimensions/spatiality.h"
 #include "sqlite_database.h"
 
 

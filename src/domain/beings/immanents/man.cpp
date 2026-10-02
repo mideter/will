@@ -1,6 +1,6 @@
 #include "man.h"
 
-#include "ports/spatiality.h"
+#include "dimensions/spatiality.h"
 #include "values/abode_name.h"
 
 #include <optional>

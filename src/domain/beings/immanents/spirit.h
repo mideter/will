@@ -5,7 +5,7 @@
 #include "beings/heaven.h"
 #include "identity/word.h"
 #include "identity/soul.h"
-#include "ports/eternity.h"
+#include "dimensions/eternity.h"
 #include "properties/immanent.h"
 #include "values/saying.h"
 
