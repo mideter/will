@@ -91,8 +91,14 @@ void GrpcMessengerServer::run()
 			std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
 		std::cout << "Shutdown signal received\n";
+
+		// Session handlers block in Read until their stream ends; without this the
+		// server would wait for every client to leave on its own. With the sessions
+		// closed nothing is left to wait for, so the deadline is now: gRPC otherwise
+		// waits for clients to drop their idle connections.
+		registry_.close_all_sessions();
 		if (server_)
-			server_->Shutdown();
+			server_->Shutdown(std::chrono::system_clock::now());
 	});
 
 	server_->Wait();

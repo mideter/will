@@ -13,6 +13,7 @@
 
 #include <atomic>
 #include <chrono>
+#include <csignal>
 #include <cstdlib>
 #include <iostream>
 #include <memory>
@@ -200,6 +201,53 @@ TEST_CASE("second session with same device token displaces the first")
 	second.context->TryCancel();
 	stop_server(server_pid);
 	const std::string prefix = db_path.substr(0, db_path.size() - 3);
+	::unlink((prefix + ".eternity.db").c_str());
+	::unlink((prefix + ".space.db").c_str());
+	::unlink((prefix + ".time.db").c_str());
+}
+
+
+/** Wait for the process to exit; false if it is still running after the timeout. */
+bool wait_for_exit(pid_t pid, std::chrono::milliseconds timeout)
+{
+	const auto deadline = std::chrono::steady_clock::now() + timeout;
+	while (std::chrono::steady_clock::now() < deadline) {
+		int status = 0;
+		if (waitpid(pid, &status, WNOHANG) == pid)
+			return true;
+		std::this_thread::sleep_for(std::chrono::milliseconds(20));
+	}
+	return false;
+}
+
+
+TEST_CASE("server stops on SIGTERM while a session is still open")
+{
+	const std::uint16_t port = pick_port();
+	const std::string prefix = "/tmp/will-server-stop-test-" + std::to_string(getpid());
+	const std::string db_path = prefix + ".db";
+
+	::unlink((prefix + ".eternity.db").c_str());
+	::unlink((prefix + ".space.db").c_str());
+	::unlink((prefix + ".time.db").c_str());
+
+	const pid_t server_pid = start_server(g_server_exe, port, db_path);
+	REQUIRE(server_pid > 0);
+	REQUIRE(wait_for_server(port));
+
+	GrpcSession session = open_session(port);
+	REQUIRE(session.stream);
+	REQUIRE(bind_device_token(*session.stream, DeviceToken));
+
+	kill(server_pid, SIGTERM);
+	const bool stopped = wait_for_exit(server_pid, std::chrono::seconds(5));
+	if (!stopped) {
+		kill(server_pid, SIGKILL);
+		waitpid(server_pid, nullptr, 0);
+	}
+	CHECK(stopped);
+	CHECK(wait_for_stream_end(session, std::chrono::seconds(2)));
+
 	::unlink((prefix + ".eternity.db").c_str());
 	::unlink((prefix + ".space.db").c_str());
 	::unlink((prefix + ".time.db").c_str());
