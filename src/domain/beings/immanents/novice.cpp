@@ -24,6 +24,8 @@ void Novice::supplicate(const Testator& addressee) const
 {
 	if (addressee.Soul::id() == Soul::id())
 		throw std::invalid_argument("cannot supplicate oneself");
+	if (follows(addressee))
+		throw std::logic_error("obedience already exists for this pair");
 
 	const Supplication ask{temporality().ask(Soul::id(), addressee.Soul::id())};
 	ask.sign(*this);
@@ -61,6 +63,17 @@ Deed Novice::deed(const id::Word id) const
 		throw std::invalid_argument("unknown deed");
 
 	return found;
+}
+
+
+bool Novice::follows(const Testator& testator) const noexcept
+{
+	for (const auto& place : obediences_) {
+		if (place->testator().Soul::id() == testator.Soul::id())
+			return true;
+	}
+
+	return false;
 }
 
 

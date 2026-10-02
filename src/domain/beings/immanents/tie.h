@@ -16,7 +16,7 @@ class Testator;
 /// Born from Boundness (Связанность); owned on the heap by the Novice as Послушание.
 /// Testator shepherds a non-owning Shepherding view. Counterpart sides live in
 /// the faces (testator in Obedience, novice in Shepherding); accessors are
-/// completed here. Temporality keeps Boundness in time.
+/// completed here. Spatiality keeps Boundness.
 class Tie : public Obedience, public Shepherding {
 public:
 	explicit Tie(Boundness boundness);

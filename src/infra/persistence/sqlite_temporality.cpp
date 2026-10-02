@@ -1,7 +1,5 @@
 #include "sqlite_temporality.h"
 
-#include "beings/space.h"
-
 #include "sqlite_util.h"
 
 #include <optional>
@@ -12,18 +10,6 @@
 
 namespace will {
 namespace {
-
-
-bool pair_exists(sqlite3* db, const domain::id::Soul testator, const domain::id::Soul novice)
-{
-	SqliteStmt stmt(db,
-					"SELECT 1 FROM tyings "
-					"WHERE testator_soul_id = ? AND novice_soul_id = ? LIMIT 1;",
-					"prepare pair_exists");
-	stmt.bind_i64(1, static_cast<std::int64_t>(testator.value()), "bind testator");
-	stmt.bind_i64(2, static_cast<std::int64_t>(novice.value()), "bind novice");
-	return stmt.step_row("pair_exists step");
-}
 
 
 /// Row id of the asking of this pair that has no rejection kept, if any.
@@ -42,21 +28,6 @@ unrejected_asking(sqlite3* db, const domain::id::Soul suppliant, const domain::i
 		return std::nullopt;
 
 	return stmt.column_i64(0);
-}
-
-
-void insert_boundness(sqlite3* db, const domain::Boundness& boundness, const domain::Timestamp ts)
-{
-	SqliteStmt ins(db,
-				   "INSERT INTO tyings "
-				   "(id, testator_soul_id, novice_soul_id, created_at_ns) "
-				   "VALUES (?, ?, ?, ?);",
-				   "prepare insert boundness");
-	ins.bind_i64(1, static_cast<std::int64_t>(boundness.id().value()), "bind id");
-	ins.bind_i64(2, static_cast<std::int64_t>(boundness.testator().value()), "bind testator");
-	ins.bind_i64(3, static_cast<std::int64_t>(boundness.novice().value()), "bind novice");
-	ins.bind_i64(4, ts.value(), "bind created_at");
-	ins.step_done("insert boundness step");
 }
 
 
@@ -178,8 +149,6 @@ domain::Asking SqliteTemporality::ask(const domain::id::Soul suppliant,
 	std::lock_guard lock(time_db_.mutex());
 	sqlite3* const db = time_db_.db();
 
-	if (pair_exists(db, addressee, suppliant))
-		throw std::logic_error("obedience already exists for this pair");
 	if (unrejected_asking(db, suppliant, addressee))
 		throw std::logic_error("pending supplication already exists for this pair");
 
@@ -204,9 +173,6 @@ std::vector<domain::Asking> SqliteTemporality::askings(const domain::id::Soul ad
 					"SELECT a.suppliant_soul_id, a.addressee_soul_id FROM askings AS a "
 					"WHERE a.addressee_soul_id = ? "
 					"AND NOT EXISTS (SELECT 1 FROM rejections AS r WHERE r.asking_id = a.id) "
-					"AND NOT EXISTS (SELECT 1 FROM tyings AS o "
-					"WHERE o.testator_soul_id = a.addressee_soul_id "
-					"AND o.novice_soul_id = a.suppliant_soul_id) "
 					"ORDER BY a.id;",
 					"prepare askings");
 	stmt.bind_i64(1, static_cast<std::int64_t>(addressee.value()), "bind addressee");
@@ -230,7 +196,7 @@ void SqliteTemporality::reject(const domain::id::Soul suppliant, const domain::i
 	sqlite3* const db = time_db_.db();
 
 	const std::optional<std::int64_t> asking = unrejected_asking(db, suppliant, addressee);
-	if (!asking || pair_exists(db, addressee, suppliant))
+	if (!asking)
 		throw std::invalid_argument("unknown supplication");
 
 	SqliteStmt stmt(db, "INSERT INTO rejections (asking_id, rejected_at_ns) VALUES (?, ?);",
@@ -238,41 +204,6 @@ void SqliteTemporality::reject(const domain::id::Soul suppliant, const domain::i
 	stmt.bind_i64(1, *asking, "bind asking_id");
 	stmt.bind_i64(2, at.value(), "bind rejected_at");
 	stmt.step_done("reject step");
-}
-
-
-domain::Boundness SqliteTemporality::tie(const domain::id::Soul testator, const domain::id::Soul novice)
-{
-	const domain::Timestamp at = eternity_.time().instant();
-	std::lock_guard lock(time_db_.mutex());
-	sqlite3* const db = time_db_.db();
-
-	if (pair_exists(db, testator, novice))
-		throw std::logic_error("obedience already exists for this pair");
-
-	const domain::Boundness boundness{domain::id::Tie{eternity_.space().point()}, testator, novice};
-	insert_boundness(db, boundness, at);
-
-	return boundness;
-}
-
-
-std::vector<domain::Boundness> SqliteTemporality::tyings() const
-{
-	std::vector<domain::Boundness> out;
-	std::lock_guard lock(time_db_.mutex());
-	sqlite3* const db = time_db_.db();
-	SqliteStmt stmt(db,
-					"SELECT id, testator_soul_id, novice_soul_id FROM tyings ORDER BY id;",
-					"prepare tyings");
-	while (stmt.step_row("tyings step")) {
-		out.push_back(domain::Boundness{
-			domain::id::Tie{static_cast<std::uint64_t>(stmt.column_i64(0))},
-			domain::id::Soul{static_cast<std::uint64_t>(stmt.column_i64(1))},
-			domain::id::Soul{static_cast<std::uint64_t>(stmt.column_i64(2))},
-		});
-	}
-	return out;
 }
 
 

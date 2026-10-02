@@ -9,6 +9,7 @@
 #include "beings/immanents/soul.h"
 #include "beings/immanents/testator.h"
 #include "beings/immanents/witness.h"
+#include "ports/spatiality.h"
 #include "ports/temporality.h"
 #include "values/soul_name.h"
 
@@ -32,7 +33,7 @@ void World::awaken()
 	for (Embodiment e : temporality().embodiments())
 		(void)accept(std::move(e));
 
-	for (Boundness boundness : temporality().tyings()) {
+	for (Boundness boundness : spatiality().boundnesses()) {
 		const auto& novice = static_cast<const Novice&>(Soul::of(boundness.novice()));
 		const Obedience& place = novice.follow(std::move(boundness));
 		static_cast<const Testator&>(place.testator()).shepherd(
@@ -40,8 +41,16 @@ void World::awaken()
 	}
 
 	for (const auto& [soul_id, man] : men_) {
-		for (Asking asking : temporality().askings(soul_id))
-			static_cast<const Testator&>(*man).receive(Supplication{std::move(asking)});
+		const auto& addressee = static_cast<const Testator&>(*man);
+
+		for (Asking asking : temporality().askings(soul_id)) {
+			Supplication ask{std::move(asking)};
+			// A bound pair's asking was answered by the bond itself.
+			if (ask.suppliant().follows(addressee))
+				continue;
+
+			addressee.receive(std::move(ask));
+		}
 	}
 }
 

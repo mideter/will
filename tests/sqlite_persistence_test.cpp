@@ -188,7 +188,7 @@ TEST_CASE("sqlite keeps a deed and its execution across reopen")
 }
 
 
-TEST_CASE("sqlite keeps askings, rejections and tyings across reopen")
+TEST_CASE("sqlite keeps askings, rejections and boundnesses across reopen")
 {
 	using namespace will;
 	using namespace will::domain;
@@ -223,7 +223,7 @@ TEST_CASE("sqlite keeps askings, rejections and tyings across reopen")
 		CHECK(bundle.temporality().askings(b.Soul::id()).size() == 2);
 		const Shepherding& shepherding = b.accept(b.supplication(c));
 		CHECK(&shepherding.novice() == &c);
-		CHECK(bundle.temporality().askings(b.Soul::id()).size() == 1);
+		CHECK(b.supplications().size() == 1);
 		CHECK_THROWS_AS(c.supplicate(b), std::logic_error);
 	}
 
@@ -244,8 +244,7 @@ TEST_CASE("sqlite keeps askings, rejections and tyings across reopen")
 		const Shepherding& shepherding = b.accept(b.supplication(a));
 		CHECK(&shepherding.novice() == &a);
 		CHECK(b.supplications().empty());
-		CHECK(bundle.temporality().askings(b.Soul::id()).empty());
-		CHECK(bundle.temporality().tyings().size() == 2);
+		CHECK(bundle.spatiality().boundnesses().size() == 2);
 	}
 
 	::unlink((prefix + ".eternity.db").c_str());

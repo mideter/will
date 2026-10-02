@@ -4,7 +4,6 @@
 #include "acts/dating.h"
 #include "acts/embodiment.h"
 #include "acts/execution.h"
-#include "acts/boundness.h"
 #include "identity/word.h"
 #include "identity/soul.h"
 #include "identity/tie.h"
@@ -40,21 +39,14 @@ public:
 	virtual std::vector<Dating> datings(const std::vector<id::Word>& ids) const = 0;
 
 	/// Keep a suppliant's asking of an addressee at the present instant.
-	/// Refuses (std::logic_error) if the pair is already tied or an asking awaits answer.
+	/// Refuses (std::logic_error) while an earlier asking of the pair is not rejected.
 	virtual Asking ask(id::Soul suppliant, id::Soul addressee) = 0;
 
-	/// Askings awaiting this soul's answer.
+	/// Askings of this soul whose rejection is not kept.
 	virtual std::vector<Asking> askings(id::Soul addressee) const = 0;
 
-	/// Keep the rejection of the asking that awaits answer. Throws if none awaits.
+	/// Keep the rejection of the pair's unrejected asking. Throws if there is none.
 	virtual void reject(id::Soul suppliant, id::Soul addressee) = 0;
-
-	/// Keep a boundness of the pair at the present instant, in a new point of Space.
-	/// Refuses (std::logic_error) if the pair is already tied.
-	virtual Boundness tie(id::Soul testator, id::Soul novice) = 0;
-
-	/// All tyings kept in time.
-	virtual std::vector<Boundness> tyings() const = 0;
 
 	/// Keep the execution of a deed at the present instant.
 	/// Refuses (std::logic_error) if its Execution is already kept.

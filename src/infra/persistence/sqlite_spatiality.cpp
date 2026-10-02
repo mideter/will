@@ -102,6 +102,57 @@ void SqliteSpatiality::join_abode(const domain::id::Abode abode, const domain::i
 }
 
 
+domain::Boundness SqliteSpatiality::bind(const domain::id::Soul testator, const domain::id::Soul novice)
+{
+	std::lock_guard lock(database_.mutex());
+	sqlite3* const db = database_.db();
+
+	{
+		SqliteStmt bound(db,
+						 "SELECT 1 FROM boundnesses "
+						 "WHERE testator_soul_id = ? AND novice_soul_id = ? LIMIT 1;",
+						 "prepare bound pair");
+		bound.bind_i64(1, static_cast<std::int64_t>(testator.value()), "bind testator");
+		bound.bind_i64(2, static_cast<std::int64_t>(novice.value()), "bind novice");
+		if (bound.step_row("bound pair step"))
+			throw std::logic_error("obedience already exists for this pair");
+	}
+
+	const domain::Boundness boundness{domain::id::Tie{eternity_.space().point()}, testator, novice};
+
+	SqliteStmt stmt(db,
+					"INSERT INTO boundnesses (id, testator_soul_id, novice_soul_id) VALUES (?, ?, ?);",
+					"prepare bind");
+	stmt.bind_i64(1, static_cast<std::int64_t>(boundness.id().value()), "bind id");
+	stmt.bind_i64(2, static_cast<std::int64_t>(testator.value()), "bind testator");
+	stmt.bind_i64(3, static_cast<std::int64_t>(novice.value()), "bind novice");
+	stmt.step_done("bind step");
+
+	return boundness;
+}
+
+
+std::vector<domain::Boundness> SqliteSpatiality::boundnesses() const
+{
+	std::lock_guard lock(database_.mutex());
+	sqlite3* const db = database_.db();
+	SqliteStmt stmt(db,
+					"SELECT id, testator_soul_id, novice_soul_id FROM boundnesses ORDER BY id;",
+					"prepare boundnesses");
+
+	std::vector<domain::Boundness> rows;
+	while (stmt.step_row("boundnesses step")) {
+		rows.push_back(domain::Boundness{
+			domain::id::Tie{static_cast<std::uint64_t>(stmt.column_i64(0))},
+			domain::id::Soul{static_cast<std::uint64_t>(stmt.column_i64(1))},
+			domain::id::Soul{static_cast<std::uint64_t>(stmt.column_i64(2))},
+		});
+	}
+
+	return rows;
+}
+
+
 void SqliteSpatiality::place(const domain::id::Word id, const domain::id::Place place)
 {
 	std::lock_guard lock(database_.mutex());

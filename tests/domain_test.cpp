@@ -217,8 +217,8 @@ TEST_CASE("supplicate accept creates tie owned as obedience")
 
 	const Shepherding& shepherding = testator.accept(ask);
 	CHECK(testator.supplications().empty());
-	REQUIRE(cosmos.temporality().tyings().size() == 1);
-	CHECK(id::Tie{shepherding.id()} == cosmos.temporality().tyings().front().id());
+	REQUIRE(cosmos.spatiality().boundnesses().size() == 1);
+	CHECK(id::Tie{shepherding.id()} == cosmos.spatiality().boundnesses().front().id());
 	CHECK(&testator.shepherding(novice) == &shepherding);
 	CHECK_THROWS_AS(static_cast<const Testator&>(a).shepherding(novice), std::invalid_argument);
 	const Obedience& obedience = novice.obedience(testator);
@@ -227,13 +227,14 @@ TEST_CASE("supplicate accept creates tie owned as obedience")
 	CHECK(obedience.id() == shepherding.id());
 	CHECK(obedience.id().value() != a.Soul::id().value());
 	CHECK(obedience.id().value() != b.Soul::id().value());
-	CHECK(cosmos.temporality().askings(b.Soul::id()).empty());
+	CHECK(novice.follows(testator));
+	CHECK_FALSE(testator.follows(static_cast<const Testator&>(a)));
 	CHECK_THROWS_AS(testator.obedience(static_cast<const Testator&>(a)), std::invalid_argument);
 
 	// What is kept decides: the pair is tied, so neither a new asking nor a new boundness is kept.
 	CHECK_THROWS_AS(novice.supplicate(testator), std::logic_error);
-	CHECK_THROWS_AS(cosmos.temporality().tie(b.Soul::id(), a.Soul::id()), std::logic_error);
-	CHECK(cosmos.temporality().tyings().size() == 1);
+	CHECK_THROWS_AS(cosmos.spatiality().bind(b.Soul::id(), a.Soul::id()), std::logic_error);
+	CHECK(cosmos.spatiality().boundnesses().size() == 1);
 }
 
 
@@ -258,7 +259,7 @@ TEST_CASE("reject closes pending supplication; wrong party cannot accept")
 	CHECK(cosmos.temporality().askings(b.Soul::id()).empty());
 	CHECK_THROWS_AS(testator.supplication(novice), std::invalid_argument);
 	CHECK_THROWS_AS(cosmos.temporality().reject(a.Soul::id(), b.Soul::id()), std::invalid_argument);
-	CHECK(cosmos.temporality().tyings().empty());
+	CHECK(cosmos.spatiality().boundnesses().empty());
 
 	// A rejected suppliant may ask again; a second asking while one awaits is refused.
 	novice.supplicate(testator);
@@ -285,7 +286,7 @@ TEST_CASE("will and execute within obedience")
 
 	novice.supplicate(testator);
 	testator.accept(testator.supplication(novice));
-	REQUIRE(cosmos.temporality().tyings().size() == 1);
+	REQUIRE(cosmos.spatiality().boundnesses().size() == 1);
 	const Shepherding& shepherding = testator.shepherding(novice);
 	const Deed deed = testator.will(shepherding, "fast");
 	CHECK(deed.open());

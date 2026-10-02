@@ -2,6 +2,7 @@
 
 #include "acts/placement.h"
 #include "acts/abiding.h"
+#include "acts/boundness.h"
 #include "identity/abode.h"
 #include "identity/word.h"
 #include "identity/place.h"
@@ -38,6 +39,13 @@ public:
 
 	/// Keep that a soul dwells in an abode (idempotent).
 	virtual void join_abode(id::Abode abode, id::Soul soul) = 0;
+
+	/// Keep the boundness of a pair in a new point of Space.
+	/// Refuses (std::logic_error) if the pair is already bound.
+	virtual Boundness bind(id::Soul testator, id::Soul novice) = 0;
+
+	/// All boundnesses kept in space.
+	virtual std::vector<Boundness> boundnesses() const = 0;
 
 	/// Fix a word in a place.
 	virtual void place(id::Word id, id::Place place) = 0;

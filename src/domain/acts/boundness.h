@@ -7,7 +7,7 @@
 namespace will::domain {
 
 
-/// Boundness (Связанность) — pair place kept in time (testator, novice).
+/// Boundness (Связанность) — pair place kept in space (testator, novice).
 /// Matter for living Tie on the heap; not the Tie itself.
 class Boundness {
 public:

@@ -185,6 +185,20 @@ public:
 		abode_souls_.emplace_back(abode, soul);
 	}
 
+	Boundness bind(const id::Soul testator, const id::Soul novice) override
+	{
+		for (const Boundness& row : boundnesses_) {
+			if (row.testator() == testator && row.novice() == novice)
+				throw std::logic_error("obedience already exists for this pair");
+		}
+
+		const Boundness boundness{id::Tie{eternity_.space().point()}, testator, novice};
+		boundnesses_.push_back(boundness);
+		return boundness;
+	}
+
+	std::vector<Boundness> boundnesses() const override { return boundnesses_; }
+
 	void place(const id::Word id, const id::Place place) override
 	{
 		for (auto& row : placements_) {
@@ -223,6 +237,7 @@ private:
 	std::vector<std::pair<id::Abode, AbodeName>> abode_rows_;
 	std::vector<std::pair<id::Abode, id::Soul>> abode_souls_;
 	std::vector<Placement> placements_;
+	std::vector<Boundness> boundnesses_;
 };
 
 
@@ -285,8 +300,6 @@ public:
 	Asking ask(const id::Soul suppliant, const id::Soul addressee) override
 	{
 		const Asking asking{suppliant, addressee};
-		if (pair_exists(addressee, suppliant))
-			throw std::logic_error("obedience already exists for this pair");
 		if (awaiting(suppliant, addressee) != askings_.end())
 			throw std::logic_error("pending supplication already exists for this pair");
 
@@ -298,7 +311,7 @@ public:
 	{
 		std::vector<Asking> out;
 		for (const Asking& row : askings_) {
-			if (row.addressee() == addressee && !pair_exists(row.addressee(), row.suppliant()))
+			if (row.addressee() == addressee)
 				out.push_back(row);
 		}
 		return out;
@@ -307,23 +320,11 @@ public:
 	void reject(const id::Soul suppliant, const id::Soul addressee) override
 	{
 		const auto it = awaiting(suppliant, addressee);
-		if (it == askings_.end() || pair_exists(addressee, suppliant))
+		if (it == askings_.end())
 			throw std::invalid_argument("unknown supplication");
 
 		askings_.erase(it);
 	}
-
-	Boundness tie(const id::Soul testator, const id::Soul novice) override
-	{
-		if (pair_exists(testator, novice))
-			throw std::logic_error("obedience already exists for this pair");
-
-		const Boundness boundness{id::Tie{eternity_.space().point()}, testator, novice};
-		tyings_.push_back(boundness);
-		return boundness;
-	}
-
-	std::vector<Boundness> tyings() const override { return tyings_; }
 
 	void execute(const id::Word deed) override
 	{
@@ -349,16 +350,7 @@ public:
 	}
 
 private:
-	bool pair_exists(const id::Soul testator, const id::Soul novice) const
-	{
-		for (const Boundness& row : tyings_) {
-			if (row.testator() == testator && row.novice() == novice)
-				return true;
-		}
-		return false;
-	}
-
-	/// Askings whose rejection was kept are dropped; the rest await or are tied.
+	/// Askings whose rejection was kept are dropped.
 	std::vector<Asking>::const_iterator awaiting(const id::Soul suppliant, const id::Soul addressee) const
 	{
 		for (auto it = askings_.begin(); it != askings_.end(); ++it) {
@@ -373,7 +365,6 @@ private:
 	std::vector<Embodiment> embodiments_;
 	std::vector<Dating> datings_;
 	std::vector<Asking> askings_;
-	std::vector<Boundness> tyings_;
 	std::vector<Execution> executions_;
 };
 

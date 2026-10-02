@@ -19,8 +19,8 @@ class Testator;
 
 
 /// Novice (Послушник) — Исполнитель: исполняет Дело в Послушании.
-/// Owns living Ties as Obedience (Послушание) on the heap; Temporality keeps
-/// Tyings in time. Mode is disclosed in an Obedience; the living heap object
+/// Owns living Ties as Obedience (Послушание) on the heap; Spatiality keeps
+/// their Boundness. Mode is disclosed in an Obedience; the living heap object
 /// is always Testator.
 class Novice : public Witness {
 public:
@@ -33,6 +33,8 @@ public:
 
 	/// Deed by id in a tie where this soul is a side. Throws if unknown.
 	Deed deed(id::Word id) const;
+
+	bool follows(const Testator& testator) const noexcept;
 
 	/// Owned Obedience face under this testator. Throws if unknown.
 	const Obedience& obedience(const Testator& testator) const;

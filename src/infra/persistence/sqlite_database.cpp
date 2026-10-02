@@ -80,6 +80,12 @@ CREATE TABLE IF NOT EXISTS placements (
 );
 
 CREATE INDEX IF NOT EXISTS idx_placements_place ON placements(place_id);
+
+CREATE TABLE IF NOT EXISTS boundnesses (
+  id INTEGER PRIMARY KEY,
+  testator_soul_id INTEGER NOT NULL,
+  novice_soul_id INTEGER NOT NULL
+);
 )sql";
 		break;
 	case SqliteFace::Temporality:
@@ -111,13 +117,6 @@ CREATE TABLE IF NOT EXISTS askings (
 CREATE TABLE IF NOT EXISTS rejections (
   asking_id INTEGER PRIMARY KEY,
   rejected_at_ns INTEGER NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS tyings (
-  id INTEGER PRIMARY KEY,
-  testator_soul_id INTEGER NOT NULL,
-  novice_soul_id INTEGER NOT NULL,
-  created_at_ns INTEGER NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS executions (
