@@ -103,7 +103,8 @@ void Heaven::contemplate(const Soul& soul, const Abode& abode)
 
 	// Born and ended outside the lock: a gaze receives the letters it beholds,
 	// which may read the dimensions and ask Heaven for their authors.
-	std::shared_ptr<const Contemplation> gaze(new Contemplation(static_cast<const Witness&>(soul), abode));
+	std::shared_ptr<const Contemplation> gaze =
+		std::make_shared<const Contemplation>(Birth<Heaven>{}, static_cast<const Witness&>(soul), abode);
 
 	std::lock_guard lock(mutex_);
 	std::swap(contemplations_[soul.id()], gaze);

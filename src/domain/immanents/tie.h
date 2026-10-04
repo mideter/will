@@ -3,6 +3,7 @@
 #include "immanents/obedience.h"
 #include "immanents/shepherding.h"
 #include "matter/tie.h"
+#include "properties/birth.h"
 
 
 namespace will::domain {
@@ -20,7 +21,7 @@ class Testator;
 /// completed here. Spatiality keeps matter::Tie.
 class Tie : public Obedience, public Shepherding {
 public:
-	explicit Tie(matter::Tie kept);
+	Tie(Birth<Novice>, matter::Tie kept);
 	~Tie() override;
 
 	Tie(const Tie&) = delete;

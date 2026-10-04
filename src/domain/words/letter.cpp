@@ -7,7 +7,7 @@
 namespace will::domain {
 
 
-Letter::Letter(matter::Letter kept)
+Letter::Letter(Birth<Abode>, matter::Letter kept)
 	: Word(kept.id(), kept.word().saying())
 	, place_(Place::of(kept.placement().place()))
 	, author_(Soul::of(kept.word().author()))

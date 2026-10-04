@@ -15,6 +15,16 @@
 namespace will::domain {
 
 
+Supplication::Supplication(Birth<Novice>, matter::Supplication kept)
+	: Supplication(std::move(kept))
+{}
+
+
+Supplication::Supplication(Birth<World>, matter::Supplication kept)
+	: Supplication(std::move(kept))
+{}
+
+
 Supplication::Supplication(matter::Supplication kept)
 	: suppliant_(static_cast<const Novice&>(Soul::of(kept.suppliant())))
 	, addressee_(static_cast<const Testator&>(Soul::of(kept.addressee())))

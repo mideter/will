@@ -10,7 +10,7 @@
 namespace will::domain {
 
 
-Contemplation::Contemplation(const Witness& who, const Abode& abode)
+Contemplation::Contemplation(Birth<Heaven>, const Witness& who, const Abode& abode)
 	: who_(who)
 	, abode_(abode)
 	, letters_(abode.letters(*this))

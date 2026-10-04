@@ -15,6 +15,8 @@
 #include "words/letter.h"
 #include "words/deed.h"
 #include "immanents/novice.h"
+#include "immanents/obedience.h"
+#include "immanents/shepherding.h"
 #include "immanents/testator.h"
 #include "identity/word.h"
 #include "identity/tie.h"
@@ -22,6 +24,7 @@
 #include "values/saying.h"
 
 #include <stdexcept>
+#include <type_traits>
 #include <string>
 
 
@@ -60,7 +63,7 @@ TEST_CASE("matter::Word accepts max body length")
 }
 
 
-TEST_CASE("Letter is born from its matter with living place and author")
+TEST_CASE("Letter is born of its abode from matter, with living place and author")
 {
 	InMemoryCosmos cosmos;
 	Creation creation = cosmos.life().create();
@@ -69,31 +72,20 @@ TEST_CASE("Letter is born from its matter with living place and author")
 	const Man& man = world.welcome(DeviceToken::generate());
 	const auto& witness = static_cast<const Witness&>(man);
 
-	const matter::Word word{id::Word{1}, man.Soul::id(), "hello"};
-	const matter::Placement placement{id::Word{1}, witness.abode().id()};
-	const matter::Dating dating{id::Word{1}, Timestamp{100}};
-	const Letter letter{matter::Letter{word, placement, dating}};
+	// Only the abode brings a letter forth.
+	static_assert(!std::is_constructible_v<Letter, matter::Letter>);
 
-	CHECK(letter.id() == id::Word{1});
+	cosmos.fake_time().set_instant(Timestamp{100});
+	witness.wake();
+	man.say("hello");
+
+	const auto letters = world.contemplation(man.Soul::id())->letters();
+	REQUIRE(letters.size() == 1);
+	const Letter& letter = *letters.front();
 	CHECK(&letter.place() == &witness.abode());
 	CHECK(&letter.author() == &static_cast<const Soul&>(man));
 	CHECK(letter.saying().body() == "hello");
 	CHECK(letter.created_at() == Timestamp{100});
-}
-
-
-TEST_CASE("Letter rejects unknown place")
-{
-	InMemoryCosmos cosmos;
-	Creation creation = cosmos.life().create();
-	World& world = creation.world();
-
-	const Man& man = world.welcome(DeviceToken::generate());
-
-	const matter::Word word{id::Word{1}, man.Soul::id(), "x"};
-	const matter::Placement placement{id::Word{1}, id::Place{999}};
-	const matter::Dating dating{id::Word{1}, Timestamp{0}};
-	CHECK_THROWS_AS((Letter{matter::Letter{word, placement, dating}}), std::logic_error);
 }
 
 
@@ -113,7 +105,7 @@ TEST_CASE("matter::Letter rejects parts with different word ids")
 }
 
 
-TEST_CASE("Deed is a word of will in a living Tie")
+TEST_CASE("Deed is a word of will in a living Tie, born of the Tie or of its testator")
 {
 	InMemoryCosmos cosmos;
 	Creation creation = cosmos.life().create();
@@ -121,17 +113,14 @@ TEST_CASE("Deed is a word of will in a living Tie")
 
 	const auto& testator = static_cast<const Testator&>(world.welcome(DeviceToken::generate()));
 	const auto& novice = static_cast<const Novice&>(world.welcome(DeviceToken::generate()));
-	const id::Word did{3};
-	const id::Tie oid{9};
-	const Tie tie{matter::Tie{oid, testator.Soul::id(), novice.Soul::id()}};
 
-	const matter::Word word{did, testator.Soul::id(), "do this"};
-	const matter::Placement placement{did, tie.id()};
-	const matter::Dating dating{did, Timestamp{50}};
+	static_assert(!std::is_constructible_v<Deed, matter::Deed>);
 
-	const Deed deed{matter::Deed{word, placement, dating}};
-	CHECK(deed.id() == did);
-	CHECK(&deed.tie() == &tie);
+	novice.supplicate(testator);
+	const Shepherding& shepherding = testator.accept(testator.supplication(novice));
+
+	cosmos.fake_time().set_instant(Timestamp{50});
+	const Deed deed = testator.will(shepherding, "do this");
 	CHECK(&deed.tie().testator() == &testator);
 	CHECK(&deed.tie().novice() == &novice);
 	CHECK(deed.saying().body() == "do this");
@@ -139,37 +128,21 @@ TEST_CASE("Deed is a word of will in a living Tie")
 	CHECK(deed.open());
 	CHECK_FALSE(deed.executed());
 
-	const Deed done{matter::Deed{word, placement, dating, matter::Execution{did, Timestamp{70}}}};
-	CHECK(done.executed());
-	CHECK_FALSE(done.open());
-	CHECK(done.executed_at() == Timestamp{70});
+	cosmos.fake_time().set_instant(Timestamp{70});
+	novice.execute(deed);
+	const auto shown = novice.obedience(testator).deeds(novice);
+	REQUIRE(shown.size() == 1);
+	CHECK(shown.front()->id() == deed.id());
+	CHECK(shown.front()->executed());
+	CHECK_FALSE(shown.front()->open());
+	CHECK(shown.front()->executed_at() == Timestamp{70});
 
+	const matter::Word word{deed.id(), testator.Soul::id(), "do this"};
+	const matter::Placement placement{deed.id(), shown.front()->tie().id()};
+	const matter::Dating dating{deed.id(), Timestamp{50}};
 	CHECK_THROWS_AS(
 		(matter::Deed{word, placement, dating, matter::Execution{id::Word{4}, Timestamp{70}}}),
 		std::invalid_argument);
-	CHECK_THROWS_AS((matter::Deed{word, matter::Placement{id::Word{4}, tie.id()}, dating}),
-					std::invalid_argument);
-}
-
-
-TEST_CASE("Deed rejects a place that is not a Tie and an author who is not its testator")
-{
-	InMemoryCosmos cosmos;
-	Creation creation = cosmos.life().create();
-	World& world = creation.world();
-
-	const auto& testator = static_cast<const Testator&>(world.welcome(DeviceToken::generate()));
-	const auto& novice = static_cast<const Novice&>(world.welcome(DeviceToken::generate()));
-	const id::Word did{3};
-	const Tie tie{matter::Tie{id::Tie{9}, testator.Soul::id(), novice.Soul::id()}};
-	const matter::Dating dating{did, Timestamp{50}};
-
-	const matter::Word by_testator{did, testator.Soul::id(), "do this"};
-	CHECK_THROWS_AS(
-		(Deed{matter::Deed{by_testator, matter::Placement{did, testator.abode().id()}, dating}}),
-		std::invalid_argument);
-
-	const matter::Word by_novice{did, novice.Soul::id(), "do this"};
-	CHECK_THROWS_AS((Deed{matter::Deed{by_novice, matter::Placement{did, tie.id()}, dating}}),
+	CHECK_THROWS_AS((matter::Deed{word, matter::Placement{id::Word{4}, shown.front()->tie().id()}, dating}),
 					std::invalid_argument);
 }

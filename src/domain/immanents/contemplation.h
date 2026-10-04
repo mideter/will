@@ -2,6 +2,7 @@
 
 #include "immanents/abode.h"
 #include "properties/immanent.h"
+#include "properties/birth.h"
 
 #include <memory>
 #include <mutex>
@@ -32,10 +33,9 @@ public:
 	/// Behold a letter newly said in the contemplated abode.
 	void behold(std::shared_ptr<const Letter> letter) const;
 
-private:
-	friend class Heaven;
+	Contemplation(Birth<Heaven>, const Witness& who, const Abode& abode);
 
-	Contemplation(const Witness& who, const Abode& abode);
+private:
 
 	const Witness& who_;
 	const Abode& abode_;

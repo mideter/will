@@ -1,6 +1,7 @@
 #pragma once
 
 #include "matter/abode.h"
+#include "properties/birth.h"
 #include "matter/letter.h"
 #include "immanents/place.h"
 #include "identity/abode.h"
@@ -24,8 +25,7 @@ class Man;
 /// Place id from Space::point; host keeps it. Rooms come later.
 class Abode : public Place {
 public:
-	Abode(id::Abode id, AbodeName name);
-	explicit Abode(matter::Abode kept);
+	Abode(Birth<Man>, matter::Abode kept);
 
 	/// Same value as Place::id().
 	id::Abode abode_id() const noexcept { return id::Abode{id()}; }
@@ -46,6 +46,8 @@ public:
 	std::shared_ptr<const Letter> inscribe(const Contemplation& gaze, matter::Letter kept) const;
 
 private:
+	Abode(id::Abode id, AbodeName name);
+
 	AbodeName name_;
 	mutable std::unique_ptr<std::mutex> mutex_;
 	std::unordered_set<const Man*> dwellers_;

@@ -15,7 +15,7 @@
 namespace will::domain {
 
 
-Testator::Testator(matter::Man kept)
+Testator::Testator(Birth<World>, matter::Man kept)
 	: Novice(std::move(kept))
 {}
 
@@ -41,7 +41,7 @@ Deed Testator::will(const Shepherding& shepherding, const Saying& saying) const
 	matter::Placement placed = spatiality().place(uttered.id(), shepherding.id());
 	matter::Dating dated = temporality().date(uttered.id());
 
-	return Deed{matter::Deed{std::move(uttered), std::move(placed), std::move(dated)}};
+	return Deed{Birth<Testator>{}, matter::Deed{std::move(uttered), std::move(placed), std::move(dated)}};
 }
 
 

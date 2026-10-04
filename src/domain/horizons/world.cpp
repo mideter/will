@@ -63,7 +63,7 @@ void World::awaken()
 		const auto& addressee = static_cast<const Testator&>(*man);
 
 		for (matter::Supplication kept : temporality().supplications(soul_id)) {
-			Supplication ask{std::move(kept)};
+			Supplication ask{Birth<World>{}, std::move(kept)};
 			// A bound pair's supplication was answered by the bond itself.
 			if (ask.suppliant().follows(addressee))
 				continue;
@@ -125,7 +125,7 @@ const Man& World::accept(matter::Man kept)
 {
 	const id::Soul soul_id = kept.soul().id();
 	const id::Vessel vessel_id = kept.vessel().id();
-	auto ptr = std::unique_ptr<Man>(new Testator(std::move(kept)));
+	auto ptr = std::unique_ptr<Man>(std::make_unique<Testator>(Birth<World>{}, std::move(kept)));
 	Man& live = *ptr;
 
 	std::lock_guard lock(mutex_);

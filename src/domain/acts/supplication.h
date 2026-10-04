@@ -1,12 +1,14 @@
 #pragma once
 
 #include "matter/supplication.h"
+#include "properties/birth.h"
 
 
 namespace will::domain {
 
 
 class Novice;
+class World;
 class Shepherding;
 class Testator;
 
@@ -19,7 +21,8 @@ class Testator;
 class Supplication {
 public:
 	/// Both souls must be known to Heaven.
-	explicit Supplication(matter::Supplication kept);
+	Supplication(Birth<Novice>, matter::Supplication kept);
+	Supplication(Birth<World>, matter::Supplication kept);
 
 	const Novice& suppliant() const noexcept { return suppliant_; }
 	const Testator& addressee() const noexcept { return addressee_; }
@@ -29,6 +32,8 @@ public:
 	void reject(const Testator& addressee) const;
 
 private:
+	explicit Supplication(matter::Supplication kept);
+
 	const Novice& suppliant_;
 	const Testator& addressee_;
 };

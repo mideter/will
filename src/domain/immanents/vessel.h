@@ -12,12 +12,13 @@ namespace will::domain {
 /// Vessel (Сосуд) — device through which a soul reaches the world; inherits Dust.
 class Vessel : public Dust {
 public:
-	explicit Vessel(matter::Vessel kept);
-
 	id::Vessel id() const noexcept { return id_; }
 	const DeviceToken& token() const noexcept { return token_; }
 
 	bool operator==(const Vessel& other) const noexcept;
+
+protected:
+	explicit Vessel(matter::Vessel kept);
 
 private:
 	id::Vessel id_;

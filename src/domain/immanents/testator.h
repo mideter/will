@@ -1,6 +1,7 @@
 #pragma once
 
 #include "matter/man.h"
+#include "properties/birth.h"
 #include "immanents/shepherding.h"
 #include "acts/supplication.h"
 #include "immanents/novice.h"
@@ -25,6 +26,8 @@ class World;
 /// a Testator onto the heap.
 class Testator : public Novice {
 public:
+	Testator(Birth<World>, matter::Man kept);
+
 	/// The Shepherding of the Tie born from the accepted supplication.
 	const Shepherding& accept(const Supplication& ask) const;
 	void reject(const Supplication& ask) const;
@@ -40,8 +43,6 @@ private:
 	friend class World;
 	friend class Supplication;
 	friend class Tie;
-
-	explicit Testator(matter::Man kept);
 
 	const Shepherding& shepherd(const Shepherding& place) const;
 	void release(const Shepherding& place) const;

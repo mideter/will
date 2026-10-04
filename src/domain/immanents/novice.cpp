@@ -25,7 +25,7 @@ void Novice::supplicate(const Testator& addressee) const
 	if (follows(addressee))
 		throw std::logic_error("obedience already exists for this pair");
 
-	const Supplication ask{temporality().ask(Soul::id(), addressee.Soul::id())};
+	const Supplication ask{Birth<Novice>{}, temporality().ask(Soul::id(), addressee.Soul::id())};
 	ask.sign(*this);
 }
 
@@ -80,7 +80,7 @@ const Obedience& Novice::follow(matter::Tie kept) const
 	if (kept.novice() != Soul::id())
 		throw std::logic_error("tie is not for this novice");
 
-	return follow(std::make_unique<Tie>(std::move(kept)));
+	return follow(std::make_unique<Tie>(Birth<Novice>{}, std::move(kept)));
 }
 
 

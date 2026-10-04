@@ -24,6 +24,16 @@ const Tie& living_tie(const id::Place id)
 } // namespace
 
 
+Deed::Deed(Birth<Tie>, matter::Deed kept)
+	: Deed(std::move(kept))
+{}
+
+
+Deed::Deed(Birth<Testator>, matter::Deed kept)
+	: Deed(std::move(kept))
+{}
+
+
 Deed::Deed(matter::Deed kept)
 	: Word(kept.id(), kept.word().saying())
 	, tie_(living_tie(kept.placement().place()))

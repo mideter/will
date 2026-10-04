@@ -1,6 +1,7 @@
 #pragma once
 
 #include "matter/letter.h"
+#include "properties/birth.h"
 #include "immanents/place.h"
 #include "immanents/soul.h"
 #include "words/word.h"
@@ -10,12 +11,15 @@
 namespace will::domain {
 
 
+class Abode;
+
+
 /// Letter (Письмо) — Word fixed in time in a Place; born from matter::Letter.
 /// Living place and author via Place::of / Soul::of.
 class Letter : public Word {
 public:
 	/// Place and author must be known to Space and Heaven.
-	explicit Letter(matter::Letter kept);
+	Letter(Birth<Abode>, matter::Letter kept);
 
 	const Place& place() const noexcept { return place_; }
 	const Soul& author() const noexcept { return author_; }

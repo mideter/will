@@ -20,7 +20,7 @@
 namespace will::domain {
 
 
-Tie::Tie(matter::Tie kept)
+Tie::Tie(Birth<Novice>, matter::Tie kept)
 	: Place(id::Place{kept.id().value()})
 	, Obedience(Soul::of(kept.testator()))
 	, Shepherding(Soul::of(kept.novice()))
@@ -70,7 +70,7 @@ std::vector<std::shared_ptr<const Deed>> Tie::deeds(const Novice& asker) const
 		if (const auto e = executed.find(parts.word.id()); e != executed.end())
 			execution = e->second;
 
-		shown.push_back(std::make_shared<const Deed>(matter::Deed{
+		shown.push_back(std::make_shared<const Deed>(Birth<Tie>{}, matter::Deed{
 			std::move(parts.word), std::move(parts.placement), std::move(parts.dating),
 			std::move(execution)}));
 	}

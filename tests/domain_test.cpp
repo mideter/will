@@ -4,6 +4,11 @@
 #include "domain_fakes.h"
 
 #include "acts/creation.h"
+#include "matter/abode.h"
+#include "matter/supplication.h"
+#include "acts/supplication.h"
+#include "immanents/vessel.h"
+#include "properties/birth.h"
 #include "dimensions/temporality.h"
 #include "dimensions/spatiality.h"
 #include "horizons/life.h"
@@ -361,6 +366,24 @@ TEST_CASE("matter of a man is a soul, a vessel and the embodiment that joins the
 }
 
 
+TEST_CASE("the living is born only of the living")
+{
+	// No one but the parent can make the key of birth.
+	static_assert(!std::is_default_constructible_v<Birth<Abode>>);
+	static_assert(!std::is_default_constructible_v<Birth<World>>);
+
+	// And without the key nothing living is brought forth from its matter.
+	static_assert(!std::is_constructible_v<Testator, matter::Man>);
+	static_assert(!std::is_constructible_v<Vessel, matter::Vessel>);
+	static_assert(!std::is_constructible_v<Abode, matter::Abode>);
+	static_assert(!std::is_constructible_v<Tie, matter::Tie>);
+	static_assert(!std::is_constructible_v<Supplication, matter::Supplication>);
+	static_assert(!std::is_constructible_v<Letter, matter::Letter>);
+	static_assert(!std::is_constructible_v<Deed, matter::Deed>);
+	static_assert(!std::is_constructible_v<Contemplation, const Witness&, const Abode&>);
+}
+
+
 TEST_CASE("only Life creates the World; it proceeds from Eternity, and there is one Life")
 {
 	static_assert(!std::is_constructible_v<Creation, Eternity&, Spatiality&, Temporality&>);
@@ -395,10 +418,15 @@ TEST_CASE("tie is a place for distinct testator and novice")
 
 	const auto& testator = static_cast<const Testator&>(world.welcome(DeviceToken::generate()));
 	const auto& novice = static_cast<const Novice&>(world.welcome(DeviceToken::generate()));
-	const id::Tie oid{7};
 
-	const Tie tie{matter::Tie{oid, testator.Soul::id(), novice.Soul::id()}};
-	CHECK(tie.id() == id::Place{oid.value()});
+	// A tie is born of the novice once the testator accepts his supplication; it is a place.
+	static_assert(!std::is_constructible_v<Tie, matter::Tie>);
+	novice.supplicate(testator);
+	testator.accept(testator.supplication(novice));
+
+	const Obedience& tie = novice.obedience(testator);
+	CHECK(id::Tie{tie.id()} == cosmos.spatiality().ties().front().id());
+	CHECK(&Place::of(tie.id()) == static_cast<const Place*>(&tie));
 	CHECK(&tie.testator() == &testator);
 	CHECK(&tie.novice() == &novice);
 
