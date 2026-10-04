@@ -3,7 +3,6 @@
 #include "matter/deed.h"
 #include "immanents/tie.h"
 #include "words/word.h"
-#include "values/saying.h"
 #include "values/timestamp.h"
 
 #include <optional>
@@ -21,7 +20,6 @@ public:
 	explicit Deed(matter::Deed kept);
 
 	const Tie& tie() const noexcept { return tie_; }
-	const Saying& saying() const noexcept { return saying_; }
 	Timestamp created_at() const noexcept { return created_at_; }
 	const std::optional<Timestamp>& executed_at() const noexcept { return executed_at_; }
 
@@ -30,7 +28,6 @@ public:
 
 private:
 	const Tie& tie_;
-	Saying saying_;
 	Timestamp created_at_;
 	std::optional<Timestamp> executed_at_;
 };

@@ -25,9 +25,8 @@ const Tie& living_tie(const id::Place id)
 
 
 Deed::Deed(matter::Deed kept)
-	: Word(kept.id())
+	: Word(kept.id(), kept.word().saying())
 	, tie_(living_tie(kept.placement().place()))
-	, saying_(kept.word().saying())
 	, created_at_(kept.dating().created_at())
 {
 	if (kept.word().author() != tie_.testator().Soul::id())

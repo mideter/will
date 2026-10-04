@@ -4,7 +4,6 @@
 #include "immanents/place.h"
 #include "immanents/soul.h"
 #include "words/word.h"
-#include "values/saying.h"
 #include "values/timestamp.h"
 
 
@@ -20,13 +19,11 @@ public:
 
 	const Place& place() const noexcept { return place_; }
 	const Soul& author() const noexcept { return author_; }
-	const Saying& saying() const noexcept { return saying_; }
 	Timestamp created_at() const noexcept { return created_at_; }
 
 private:
 	const Place& place_;
 	const Soul& author_;
-	Saying saying_;
 	Timestamp created_at_;
 };
 
