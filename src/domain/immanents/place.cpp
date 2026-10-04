@@ -1,13 +1,9 @@
 #include "place.h"
 
-#include "immanents/witness.h"
+#include "horizons/life.h"
 #include "horizons/space.h"
-#include "dimensions/spatiality.h"
-#include "dimensions/temporality.h"
 
-#include <algorithm>
 #include <stdexcept>
-#include <unordered_map>
 #include <utility>
 
 
@@ -32,39 +28,35 @@ const Place& Place::of(const id::Place id)
 }
 
 
-std::vector<Place::Parts> Place::words(const Witness& asker) const
+std::vector<matter::Letter> Place::kept_letters() const
 {
-	const std::vector<matter::Placement> placed =
-		asker.spatiality().placements(id(), Spatiality::MaxLetterLimit);
+	return Life::the().letters(id());
+}
 
-	std::vector<id::Word> ids;
-	ids.reserve(placed.size());
-	for (const matter::Placement& row : placed)
-		ids.push_back(row.id());
 
-	std::vector<matter::Dating> dated = asker.temporality().datings(ids);
-	std::sort(dated.begin(), dated.end(), [](const matter::Dating& a, const matter::Dating& b) {
-		if (a.created_at().value() != b.created_at().value())
-			return a.created_at().value() < b.created_at().value();
-		return a.id() < b.id();
-	});
+std::vector<matter::Deed> Place::kept_deeds() const
+{
+	return Life::the().deeds(id());
+}
 
-	std::unordered_map<id::Word, matter::Word> uttered;
-	for (matter::Word& row : asker.words(ids))
-		uttered.emplace(row.id(), std::move(row));
 
-	std::vector<Parts> kept;
-	kept.reserve(dated.size());
-	for (matter::Dating& dating : dated) {
-		const auto u = uttered.find(dating.id());
-		if (u == uttered.end())
-			continue;
+std::vector<std::shared_ptr<const Word>> Place::living_words(bool& whole) const
+{
+	Life::Remembered remembered = Life::the().remembered(id());
+	whole = remembered.whole;
+	return std::move(remembered.words);
+}
 
-		const id::Word word = dating.id();
-		kept.push_back(Parts{std::move(u->second), matter::Placement{word, id()}, std::move(dating)});
-	}
 
-	return kept;
+void Place::remember(const std::vector<std::shared_ptr<const Word>>& words) const
+{
+	Life::the().remember(id(), words);
+}
+
+
+void Place::remember(const std::shared_ptr<const Word>& word) const
+{
+	Life::the().remember(id(), word);
 }
 
 

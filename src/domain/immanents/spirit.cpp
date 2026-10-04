@@ -22,12 +22,6 @@ matter::Word Spirit::utter(const Saying& saying) const
 }
 
 
-std::vector<matter::Word> Spirit::words(const std::vector<id::Word>& ids) const
-{
-	return eternity().words(ids);
-}
-
-
 bool Spirit::knows(const id::Soul soul_id) const
 {
 	return heaven().knows(soul_id);

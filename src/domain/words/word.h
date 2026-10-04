@@ -8,15 +8,16 @@
 namespace will::domain {
 
 
-class Eternity;
+class Life;
 
 
 /// Word (Слово) — that which the spirit utters; ontological role, immanent to
-/// Eternity: there it is uttered and given its identity, and that part of it
-/// never changes. Neither copied nor moved.
+/// Life: it lives while it is held, and Life remembers it meanwhile. Its matter
+/// is kept by the dimensions; its identity is given in Eternity. Neither copied
+/// nor moved.
 /// Holds what was said (Saying) but is not the text itself.
 /// Living Letter and Deed are Word in the world.
-class Word : public Immanent<Eternity> {
+class Word : public Immanent<Life> {
 public:
 	virtual ~Word() = default;
 

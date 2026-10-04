@@ -52,8 +52,6 @@ private:
 	mutable std::unique_ptr<std::mutex> mutex_;
 	std::unordered_set<const Man*> dwellers_;
 
-	/// The letters living now, remembered but not owned: the gazes own them.
-	mutable std::vector<std::weak_ptr<const Letter>> living_;
 };
 
 

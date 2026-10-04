@@ -51,33 +51,35 @@ std::vector<std::shared_ptr<const Letter>> Abode::letters(const Contemplation& g
 
 	std::lock_guard lock(*mutex_);
 
+	bool whole = false;
 	std::unordered_map<id::Word, std::shared_ptr<const Letter>> alive;
-	for (const std::weak_ptr<const Letter>& remembered : living_) {
-		if (std::shared_ptr<const Letter> letter = remembered.lock())
-			alive.emplace(letter->id(), std::move(letter));
-	}
-
-	if (!living_.empty() && alive.size() == living_.size()) {
-		std::vector<std::shared_ptr<const Letter>> shown;
-		shown.reserve(living_.size());
-		for (const std::weak_ptr<const Letter>& remembered : living_)
-			shown.push_back(remembered.lock());
-		return shown;
-	}
-
 	std::vector<std::shared_ptr<const Letter>> shown;
-	for (Parts& parts : words(gaze.who())) {
-		const auto still = alive.find(parts.word.id());
+	for (const std::shared_ptr<const Word>& word : living_words(whole)) {
+		auto letter = std::dynamic_pointer_cast<const Letter>(word);
+		if (!letter) {
+			whole = false;
+			continue;
+		}
+
+		alive.emplace(letter->id(), letter);
+		shown.push_back(std::move(letter));
+	}
+
+	if (whole)
+		return shown;
+
+	shown.clear();
+	for (matter::Letter& kept : kept_letters()) {
+		const auto still = alive.find(kept.id());
 		if (still != alive.end()) {
 			shown.push_back(still->second);
 			continue;
 		}
 
-		shown.push_back(std::make_shared<const Letter>(Birth<Abode>{}, matter::Letter{
-			std::move(parts.word), std::move(parts.placement), std::move(parts.dating)}));
+		shown.push_back(std::make_shared<const Letter>(Birth<Abode>{}, std::move(kept)));
 	}
 
-	living_.assign(shown.begin(), shown.end());
+	remember(std::vector<std::shared_ptr<const Word>>(shown.begin(), shown.end()));
 	return shown;
 }
 
@@ -94,7 +96,7 @@ std::shared_ptr<const Letter> Abode::inscribe(const Contemplation& gaze, matter:
 	auto letter = std::make_shared<const Letter>(Birth<Abode>{}, std::move(kept));
 
 	std::lock_guard lock(*mutex_);
-	living_.push_back(letter);
+	remember(letter);
 
 	return letter;
 }

@@ -314,6 +314,41 @@ TEST_CASE("letters of an abode live while it is contemplated, shared by every ga
 }
 
 
+TEST_CASE("Life remembers the living letters, so a new gaze shares those still held")
+{
+	InMemoryCosmos cosmos;
+	Creation creation = cosmos.life().create();
+	World& world = creation.world();
+
+	const auto& host = static_cast<const Witness&>(world.welcome(DeviceToken::generate()));
+
+	host.wake();
+	host.say("first");
+	host.say("second");
+
+	// An old gaze is still held while the man turns anew and says one more.
+	const std::shared_ptr<const Contemplation> old_gaze = world.contemplation(host.Soul::id());
+	host.contemplate(host.abode());
+	host.say("third");
+	const std::weak_ptr<const Letter> third = world.contemplation(host.Soul::id())->letters().back();
+
+	// He sleeps: the third letter is held by no one and is gone; the first two live in the old gaze.
+	host.sleep();
+	CHECK(third.expired());
+	REQUIRE(old_gaze->letters().size() == 2);
+
+	// Waking, he beholds all three: the two still living are the very same, the third is born anew.
+	const std::size_t reads = cosmos.spatiality().placement_reads();
+	host.wake();
+	const auto seen = world.contemplation(host.Soul::id())->letters();
+	REQUIRE(seen.size() == 3);
+	CHECK(seen[0] == old_gaze->letters()[0]);
+	CHECK(seen[1] == old_gaze->letters()[1]);
+	CHECK(seen[2]->saying().body() == "third");
+	CHECK(cosmos.spatiality().placement_reads() == reads + 1);
+}
+
+
 TEST_CASE("letters of an abode are gone with the last gaze and are born anew from matter")
 {
 	InMemoryCosmos cosmos;
@@ -405,9 +440,9 @@ TEST_CASE("only Life creates the World; it proceeds from Eternity, and there is 
 }
 
 
-TEST_CASE("a word is immanent to Eternity and is neither copied nor moved in any role")
+TEST_CASE("a word is immanent to Life and is neither copied nor moved in any role")
 {
-	static_assert(std::is_base_of_v<Immanent<Eternity>, Word>);
+	static_assert(std::is_base_of_v<Immanent<Life>, Word>);
 	static_assert(!std::is_copy_constructible_v<Letter>);
 	static_assert(!std::is_move_constructible_v<Letter>);
 	static_assert(!std::is_copy_constructible_v<Deed>);
