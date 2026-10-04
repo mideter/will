@@ -213,22 +213,25 @@ TEST_CASE("letters of an abode are seen through contemplation by one who dwells 
 	CHECK(&world.contemplation(stranger.Soul::id())->who() == &stranger);
 	CHECK(world.contemplating(stranger.abode()).size() == 1);
 
-	// Turning the gaze to another's abode ends the former one; the letters there
-	// are not shown to one who does not dwell there.
-	stranger.contemplate(witness.abode());
-	CHECK(&world.contemplation(stranger.Soul::id())->abode() == &witness.abode());
-	CHECK(world.contemplating(stranger.abode()).empty());
-	CHECK(world.contemplating(witness.abode()).size() == 2);
-	CHECK_THROWS_AS(world.contemplation(stranger.Soul::id())->letters(), std::logic_error);
+	// One cannot contemplate a place without dwelling in it: the gaze stays where it was.
+	CHECK_THROWS_AS(stranger.contemplate(witness.abode()), std::logic_error);
+	CHECK(&world.contemplation(stranger.Soul::id())->abode() == &stranger.abode());
+	CHECK(world.contemplating(witness.abode()).size() == 1);
+
+	// Turning the gaze to an abode one dwells in ends the former gaze and begins a new one.
+	const std::shared_ptr<const Contemplation> former = world.contemplation(stranger.Soul::id());
+	stranger.contemplate(stranger.abode());
+	CHECK(world.contemplation(stranger.Soul::id()) != former);
+	CHECK(world.contemplating(stranger.abode()).size() == 1);
 
 	// An abode shows its letters only to a contemplation of itself.
-	CHECK_THROWS_AS(stranger.abode().letters(*world.contemplation(stranger.Soul::id())), std::logic_error);
+	CHECK_THROWS_AS(stranger.abode().letters(*world.contemplation(witness.Soul::id())), std::logic_error);
 
-	// A gaze that someone still holds does not fade under him when its soul turns away or sleeps.
+	// A gaze that someone still holds does not fade under him when its soul sleeps.
 	const std::shared_ptr<const Contemplation> held = world.contemplation(witness.Soul::id());
 	witness.sleep();
 	CHECK_FALSE(world.contemplation(witness.Soul::id()));
-	CHECK(world.contemplating(witness.abode()).size() == 1);
+	CHECK(world.contemplating(witness.abode()).empty());
 	CHECK(held->letters().size() == 5);
 	CHECK_THROWS_AS(man.say("asleep"), std::logic_error);
 

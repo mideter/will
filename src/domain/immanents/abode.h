@@ -35,8 +35,8 @@ public:
 
 	bool dwells(const Man& man) const;
 
-	/// Letters placed here, oldest first, shown to one who contemplates this
-	/// abode and dwells in it.
+	/// Letters placed here, oldest first, shown to one who contemplates this abode
+	/// (only one who dwells here may contemplate it).
 	std::vector<std::shared_ptr<const Letter>> letters(const Contemplation& gaze) const;
 
 private:

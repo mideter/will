@@ -47,8 +47,6 @@ std::vector<std::shared_ptr<const Letter>> Abode::letters(const Contemplation& g
 {
 	if (&gaze.abode() != this)
 		throw std::logic_error("this abode is not what is contemplated");
-	if (!dwells(gaze.who()))
-		throw std::logic_error("Witness does not dwell in the contemplated abode");
 
 	std::vector<Parts> kept = words(gaze.who());
 
