@@ -9,6 +9,7 @@
 #include "immanents/shepherding.h"
 #include "immanents/testator.h"
 #include "immanents/witness.h"
+#include "immanents/contemplation.h"
 #include "sqlite_persistence_bundle.h"
 
 #include "identity/abode.h"
@@ -26,6 +27,25 @@
 #include <string>
 #include <unistd.h>
 #include <vector>
+
+
+namespace {
+
+
+/// The letters a gaze beholds (the words of an abode are letters).
+std::vector<std::shared_ptr<const will::domain::Letter>>
+letters_seen_by(const std::shared_ptr<const will::domain::Contemplation>& gaze)
+{
+	std::vector<std::shared_ptr<const will::domain::Letter>> letters;
+	for (const std::shared_ptr<const will::domain::Word>& word : gaze->words()) {
+		if (auto letter = std::dynamic_pointer_cast<const will::domain::Letter>(word))
+			letters.push_back(std::move(letter));
+	}
+	return letters;
+}
+
+
+} // namespace
 
 
 TEST_CASE("sqlite persistence survives reopen")
@@ -69,7 +89,7 @@ TEST_CASE("sqlite persistence survives reopen")
 		man_b.say("from-me");
 
 		const auto& witness_a = static_cast<const Witness&>(man_a);
-		const auto letters = world.contemplation(witness_a.Soul::id())->letters();
+		const auto letters = letters_seen_by(world.contemplation(witness_a.Soul::id()));
 		REQUIRE(letters.size() == 1);
 		CHECK(letters[0]->saying().body() == "from-peer");
 		CHECK(letters[0]->author().id() == man_a.Soul::id());
@@ -122,7 +142,7 @@ TEST_CASE("sqlite persistence survives reopen")
 		CHECK_FALSE(world.contemplation(man_a_reloaded.Soul::id()));
 		static_cast<const Witness&>(man_a_reloaded).wake();
 
-		const auto letters = world.contemplation(man_a_reloaded.Soul::id())->letters();
+		const auto letters = letters_seen_by(world.contemplation(man_a_reloaded.Soul::id()));
 		REQUIRE(letters.size() == 1);
 		CHECK(letters[0]->saying().body() == "from-peer");
 
@@ -191,7 +211,7 @@ TEST_CASE("sqlite keeps a deed and its execution across reopen")
 
 		// Deeds are placed in the tie, not among the letters of an abode.
 		novice.wake();
-		CHECK(world.contemplation(novice.Soul::id())->letters().empty());
+		CHECK(letters_seen_by(world.contemplation(novice.Soul::id())).empty());
 	}
 
 	{

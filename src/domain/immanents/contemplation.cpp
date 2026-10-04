@@ -10,27 +10,28 @@
 namespace will::domain {
 
 
-Contemplation::Contemplation(Birth<Heaven>, const Witness& who, const Abode& abode)
+Contemplation::Contemplation(Birth<Heaven>, const Witness& who, const Place& place)
 	: who_(who)
-	, abode_(abode)
-	, letters_(abode.letters(*this))
+	, place_(place)
+	, words_(place.words(*this))
 {}
 
 
-std::vector<std::shared_ptr<const Letter>> Contemplation::letters() const
+std::vector<std::shared_ptr<const Word>> Contemplation::words() const
 {
 	std::lock_guard lock(mutex_);
-	return letters_;
+	return words_;
 }
 
 
-void Contemplation::behold(std::shared_ptr<const Letter> letter) const
+void Contemplation::behold(std::shared_ptr<const Word> word) const
 {
-	if (&letter->place() != &abode_)
-		throw std::logic_error("the letter is not said in the contemplated abode");
+	const auto* letter = dynamic_cast<const Letter*>(word.get());
+	if (!letter || &letter->place() != &place_)
+		throw std::logic_error("the word is not placed in the contemplated place");
 
 	std::lock_guard lock(mutex_);
-	letters_.push_back(std::move(letter));
+	words_.push_back(std::move(word));
 }
 
 

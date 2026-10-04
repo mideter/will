@@ -79,7 +79,7 @@ TEST_CASE("Letter is born of its abode from matter, with living place and author
 	witness.wake();
 	man.say("hello");
 
-	const auto letters = world.contemplation(man.Soul::id())->letters();
+	const auto letters = letters_seen_by(world.contemplation(man.Soul::id()));
 	REQUIRE(letters.size() == 1);
 	const Letter& letter = *letters.front();
 	CHECK(&letter.place() == &witness.abode());

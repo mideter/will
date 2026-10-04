@@ -12,7 +12,9 @@
 namespace will::domain {
 
 
+class Contemplation;
 class Life;
+class Man;
 class Space;
 class Word;
 
@@ -30,6 +32,12 @@ public:
 	static const Place& of(id::Place id);
 
 	id::Place id() const noexcept { return id_; }
+
+	/// Whether this man dwells here: only one who dwells in a place may contemplate it.
+	virtual bool dwells(const Man& man) const = 0;
+
+	/// The living words of this place, oldest first, for a gaze upon it.
+	virtual std::vector<std::shared_ptr<const Word>> words(const Contemplation& gaze) const = 0;
 
 protected:
 	/// The matter of the words placed here, oldest first, as Life gives it.

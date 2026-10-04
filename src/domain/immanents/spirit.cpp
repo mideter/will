@@ -28,16 +28,16 @@ bool Spirit::knows(const id::Soul soul_id) const
 }
 
 
-void Spirit::contemplate(const Abode& abode) const
+void Spirit::contemplate(const Place& place) const
 {
 	const auto& self = static_cast<const Soul&>(*this);
-	heaven().contemplate(self, abode);
+	heaven().contemplate(self, place);
 }
 
 
-std::vector<std::shared_ptr<const Contemplation>> Spirit::gazes(const Abode& abode)
+std::vector<std::shared_ptr<const Contemplation>> Spirit::gazes(const Place& place)
 {
-	return heaven().gazes(abode);
+	return heaven().gazes(place);
 }
 
 

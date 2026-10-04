@@ -11,6 +11,8 @@
 #include "matter/word.h"
 #include "acts/supplication.h"
 #include "immanents/abode.h"
+#include "words/letter.h"
+#include "immanents/contemplation.h"
 #include "immanents/soul.h"
 #include "horizons/life.h"
 #include "horizons/space.h"
@@ -383,6 +385,18 @@ private:
 	InMemoryTemporality temporality_;
 	Life life_;
 };
+
+
+/// The letters a gaze beholds (the words of an abode are letters).
+inline std::vector<std::shared_ptr<const Letter>> letters_seen_by(const std::shared_ptr<const Contemplation>& gaze)
+{
+	std::vector<std::shared_ptr<const Letter>> letters;
+	for (const std::shared_ptr<const Word>& word : gaze->words()) {
+		if (auto letter = std::dynamic_pointer_cast<const Letter>(word))
+			letters.push_back(std::move(letter));
+	}
+	return letters;
+}
 
 
 inline const Soul& register_soul_with_vessel(World& world, const std::string_view device_token)

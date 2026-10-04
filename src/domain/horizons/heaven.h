@@ -15,6 +15,7 @@ namespace will::domain {
 
 
 class Abode;
+class Place;
 class Soul;
 class Eternity;
 class Spirit;
@@ -31,10 +32,10 @@ public:
 	/// Throws if unknown.
 	const Soul& soul(id::Soul soul_id) const;
 
-	std::vector<std::reference_wrapper<const Soul>> contemplating(const Abode& abode) const;
+	std::vector<std::reference_wrapper<const Soul>> contemplating(const Place& place) const;
 
-	/// The gazes resting now upon this abode.
-	std::vector<std::shared_ptr<const Contemplation>> gazes(const Abode& abode) const;
+	/// The gazes resting now upon this place.
+	std::vector<std::shared_ptr<const Contemplation>> gazes(const Place& place) const;
 
 	/// Supplications awaiting this soul's answer, oldest first.
 	/// Whoever holds one keeps it from fading while he uses it.
@@ -60,7 +61,7 @@ private:
 	/// Soul owned by a heap-stable Man.
 	void present(const Soul& soul);
 
-	void contemplate(const Soul& soul, const Abode& abode);
+	void contemplate(const Soul& soul, const Place& place);
 
 	/// The gaze of this soul ends; nothing happens if it contemplates nothing.
 	void cease(const Soul& soul);

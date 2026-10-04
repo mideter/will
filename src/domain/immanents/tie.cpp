@@ -1,6 +1,7 @@
 #include "tie.h"
 
 #include "words/deed.h"
+#include "immanents/contemplation.h"
 #include "immanents/soul.h"
 #include "horizons/space.h"
 #include "immanents/testator.h"
@@ -49,6 +50,25 @@ std::vector<std::shared_ptr<const Deed>> Tie::deeds(const Novice& asker) const
 		throw std::logic_error("not a side of this tie");
 
 	std::vector<std::shared_ptr<const Deed>> shown;
+	for (matter::Deed& kept : kept_deeds())
+		shown.push_back(std::make_shared<const Deed>(Birth<Tie>{}, std::move(kept)));
+
+	return shown;
+}
+
+
+bool Tie::dwells(const Man& man) const
+{
+	return man.Soul::id() == testator_.Soul::id() || man.Soul::id() == novice_.Soul::id();
+}
+
+
+std::vector<std::shared_ptr<const Word>> Tie::words(const Contemplation& gaze) const
+{
+	if (&gaze.place() != static_cast<const Place*>(this))
+		throw std::logic_error("this tie is not what is contemplated");
+
+	std::vector<std::shared_ptr<const Word>> shown;
 	for (matter::Deed& kept : kept_deeds())
 		shown.push_back(std::make_shared<const Deed>(Birth<Tie>{}, std::move(kept)));
 

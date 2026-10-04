@@ -22,8 +22,9 @@ public:
 	/// Leave the waking world: contemplate nothing.
 	void sleep() const;
 
-	/// Turn the gaze to an abode he dwells in. Throws if he does not dwell there.
-	void contemplate(const Abode& abode) const;
+	/// Turn the gaze to a place he dwells in — his abode, or a tie he is a side
+	/// of. Throws if he does not dwell there.
+	void contemplate(const Place& place) const;
 
 	void say(const Saying& saying) const final;
 

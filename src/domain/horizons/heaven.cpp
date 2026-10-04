@@ -75,13 +75,13 @@ const Soul& Heaven::soul(const id::Soul soul_id) const
 }
 
 
-std::vector<std::reference_wrapper<const Soul>> Heaven::contemplating(const Abode& abode) const
+std::vector<std::reference_wrapper<const Soul>> Heaven::contemplating(const Place& place) const
 {
 	std::lock_guard lock(mutex_);
 
 	std::vector<std::reference_wrapper<const Soul>> out;
 	for (const auto& [soul_id, contemplation] : contemplations_) {
-		if (contemplation->abode().id() != abode.id())
+		if (&contemplation->place() != &place)
 			continue;
 		const auto it = souls_.find(soul_id);
 		if (it == souls_.end() || !it->second)
@@ -99,7 +99,7 @@ void Heaven::present(const Soul& soul)
 }
 
 
-void Heaven::contemplate(const Soul& soul, const Abode& abode)
+void Heaven::contemplate(const Soul& soul, const Place& place)
 {
 	if (!knows(soul.id()))
 		throw std::logic_error("Heaven does not know this soul");
@@ -107,7 +107,7 @@ void Heaven::contemplate(const Soul& soul, const Abode& abode)
 	// Born and ended outside the lock: a gaze receives the letters it beholds,
 	// which may read the dimensions and ask Heaven for their authors.
 	std::shared_ptr<const Contemplation> gaze =
-		std::make_shared<const Contemplation>(Birth<Heaven>{}, static_cast<const Witness&>(soul), abode);
+		std::make_shared<const Contemplation>(Birth<Heaven>{}, static_cast<const Witness&>(soul), place);
 
 	std::lock_guard lock(mutex_);
 	std::swap(contemplations_[soul.id()], gaze);
@@ -163,13 +163,13 @@ std::vector<std::shared_ptr<const Supplication>> Heaven::supplications(const id:
 }
 
 
-std::vector<std::shared_ptr<const Contemplation>> Heaven::gazes(const Abode& abode) const
+std::vector<std::shared_ptr<const Contemplation>> Heaven::gazes(const Place& place) const
 {
 	std::lock_guard lock(mutex_);
 
 	std::vector<std::shared_ptr<const Contemplation>> out;
 	for (const auto& [soul_id, gaze] : contemplations_) {
-		if (&gaze->abode() == &abode)
+		if (&gaze->place() == &place)
 			out.push_back(gaze);
 	}
 	return out;

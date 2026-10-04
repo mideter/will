@@ -34,12 +34,11 @@ public:
 
 	void admit(const Man& man);
 
-	bool dwells(const Man& man) const;
+	bool dwells(const Man& man) const override;
 
-	/// Letters placed here, oldest first, for a gaze upon this abode (only one
-	/// who dwells here may contemplate it). The ones still living are shared;
-	/// the rest are born from what the dimensions keep, read through the gazer.
-	std::vector<std::shared_ptr<const Letter>> letters(const Contemplation& gaze) const;
+	/// The letters placed here, oldest first, for a gaze upon this abode. The
+	/// ones still living are shared; the rest are born from the matter Life gives.
+	std::vector<std::shared_ptr<const Word>> words(const Contemplation& gaze) const override;
 
 	/// A letter said here by the one whose gaze rests on it, born living from
 	/// the matter the dimensions returned when they kept it.

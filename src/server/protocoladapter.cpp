@@ -213,7 +213,7 @@ void ProtocolAdapter::handle_user_chat(const SessionId session_id, const v1::Cha
 	chat_message->set_body(chat.body());
 
 	const domain::id::Vessel speaker_vessel = man.Vessel::id();
-	for (const domain::Soul& observer : world_.contemplating(gaze->abode())) {
+	for (const domain::Soul& observer : world_.contemplating(gaze->place())) {
 		const auto& observer_man = static_cast<const domain::Man&>(observer);
 		if (observer_man.Vessel::id() == speaker_vessel)
 			continue;
@@ -245,12 +245,11 @@ void ProtocolAdapter::handle_history_request(const SessionId session_id, const v
 		return;
 	}
 
+	// History is the letters of the abode he contemplates.
 	std::vector<std::shared_ptr<const domain::Letter>> letters;
-	try {
-		letters = gaze->letters();
-	} catch (const std::exception&) {
-		close_with_protocol_error(session_id, "Protocol error: invalid HistoryRequest");
-		return;
+	for (const std::shared_ptr<const domain::Word>& word : gaze->words()) {
+		if (auto letter = std::dynamic_pointer_cast<const domain::Letter>(word))
+			letters.push_back(std::move(letter));
 	}
 
 	// How many letters to send is the client's wish, not the abode's concern.

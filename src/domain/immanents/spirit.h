@@ -17,6 +17,7 @@ namespace will::domain {
 
 
 class Abode;
+class Place;
 class Soul;
 class Supplication;
 
@@ -43,13 +44,13 @@ protected:
 
 	bool knows(id::Soul soul_id) const;
 
-	void contemplate(const Abode& abode) const;
+	void contemplate(const Place& place) const;
 
 	/// Contemplate nothing.
 	void cease() const;
 
-	/// The gazes resting now upon this abode.
-	static std::vector<std::shared_ptr<const Contemplation>> gazes(const Abode& abode);
+	/// The gazes resting now upon this place.
+	static std::vector<std::shared_ptr<const Contemplation>> gazes(const Place& place);
 
 	/// Supplications awaiting this spirit's answer, oldest first.
 	std::vector<std::shared_ptr<const Supplication>> supplications() const;

@@ -33,6 +33,12 @@ public:
 	const Novice& novice() const override;
 
 	std::vector<std::shared_ptr<const Deed>> deeds(const Novice& asker) const override;
+
+	/// Its two sides dwell in a tie.
+	bool dwells(const Man& man) const override;
+
+	/// The deeds placed here, oldest first, for a gaze upon this tie.
+	std::vector<std::shared_ptr<const Word>> words(const Contemplation& gaze) const override;
 };
 
 

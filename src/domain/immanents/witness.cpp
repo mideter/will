@@ -34,12 +34,12 @@ void Witness::sleep() const
 }
 
 
-void Witness::contemplate(const Abode& abode) const
+void Witness::contemplate(const Place& place) const
 {
-	if (!abode.dwells(*this))
-		throw std::logic_error("Witness does not dwell in this abode");
+	if (!place.dwells(*this))
+		throw std::logic_error("Witness does not dwell in this place");
 
-	Spirit::contemplate(abode);
+	Spirit::contemplate(place);
 }
 
 
@@ -49,7 +49,11 @@ void Witness::say(const Saying& saying) const
 	if (!gaze)
 		throw std::logic_error("Witness is asleep");
 
-	const Abode& place = gaze->abode();
+	const auto* abode = dynamic_cast<const Abode*>(&gaze->place());
+	if (!abode)
+		throw std::logic_error("one says only in an abode");
+
+	const Abode& place = *abode;
 
 	matter::Word uttered = utter(saying);
 	matter::Placement placed = spatiality().place(uttered.id(), place.id());

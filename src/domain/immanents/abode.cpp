@@ -44,9 +44,9 @@ bool Abode::dwells(const Man& man) const
 }
 
 
-std::vector<std::shared_ptr<const Letter>> Abode::letters(const Contemplation& gaze) const
+std::vector<std::shared_ptr<const Word>> Abode::words(const Contemplation& gaze) const
 {
-	if (&gaze.abode() != this)
+	if (&gaze.place() != this)
 		throw std::logic_error("this abode is not what is contemplated");
 
 	std::lock_guard lock(*mutex_);
@@ -66,7 +66,7 @@ std::vector<std::shared_ptr<const Letter>> Abode::letters(const Contemplation& g
 	}
 
 	if (whole)
-		return shown;
+		return {shown.begin(), shown.end()};
 
 	shown.clear();
 	for (matter::Letter& kept : kept_letters()) {
@@ -79,14 +79,15 @@ std::vector<std::shared_ptr<const Letter>> Abode::letters(const Contemplation& g
 		shown.push_back(std::make_shared<const Letter>(Birth<Abode>{}, std::move(kept)));
 	}
 
-	remember(std::vector<std::shared_ptr<const Word>>(shown.begin(), shown.end()));
-	return shown;
+	std::vector<std::shared_ptr<const Word>> words(shown.begin(), shown.end());
+	remember(words);
+	return words;
 }
 
 
 std::shared_ptr<const Letter> Abode::inscribe(const Contemplation& gaze, matter::Letter kept) const
 {
-	if (&gaze.abode() != this)
+	if (&gaze.place() != this)
 		throw std::logic_error("this abode is not what is contemplated");
 	if (kept.placement().place() != id())
 		throw std::logic_error("the letter is not placed in this abode");
