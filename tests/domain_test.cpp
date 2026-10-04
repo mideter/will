@@ -24,7 +24,7 @@
 #include "matter/soul.h"
 #include "matter/vessel.h"
 #include "matter/tie.h"
-#include "words/deed.h"
+#include "words/behest.h"
 #include "words/word.h"
 #include "properties/immanent.h"
 #include "dimensions/eternity.h"
@@ -419,7 +419,7 @@ TEST_CASE("the living is born only of the living")
 	static_assert(!std::is_copy_constructible_v<Supplication>);
 	static_assert(!std::is_move_constructible_v<Supplication>);
 	static_assert(!std::is_constructible_v<Letter, matter::Letter>);
-	static_assert(!std::is_constructible_v<Deed, matter::Deed>);
+	static_assert(!std::is_constructible_v<Behest, matter::Behest>);
 	static_assert(!std::is_constructible_v<Contemplation, const Witness&, const Abode&>);
 }
 
@@ -445,12 +445,12 @@ TEST_CASE("a word is immanent to Life and is neither copied nor moved in any rol
 	static_assert(std::is_base_of_v<Immanent<Life>, Word>);
 	static_assert(!std::is_copy_constructible_v<Letter>);
 	static_assert(!std::is_move_constructible_v<Letter>);
-	static_assert(!std::is_copy_constructible_v<Deed>);
-	static_assert(!std::is_move_constructible_v<Deed>);
+	static_assert(!std::is_copy_constructible_v<Behest>);
+	static_assert(!std::is_move_constructible_v<Behest>);
 }
 
 
-TEST_CASE("the sides of a tie may contemplate it and behold its deeds")
+TEST_CASE("the sides of a tie may contemplate it and behold its behests")
 {
 	InMemoryCosmos cosmos;
 	Creation creation = cosmos.life().create();
@@ -462,7 +462,7 @@ TEST_CASE("the sides of a tie may contemplate it and behold its deeds")
 
 	novice.supplicate(testator);
 	const Shepherding& shepherding = testator.accept(*testator.supplication(novice));
-	const Deed willed = testator.will(shepherding, "fast");
+	const Behest willed = testator.will(shepherding, "fast");
 
 	novice.wake();
 	testator.wake();
@@ -474,14 +474,14 @@ TEST_CASE("the sides of a tie may contemplate it and behold its deeds")
 	CHECK_FALSE(shepherding.dwells(stranger));
 	CHECK_THROWS_AS(stranger.contemplate(shepherding), std::logic_error);
 
-	// Turning to the tie, a side beholds its deeds as words.
+	// Turning to the tie, a side beholds its behests as words.
 	testator.contemplate(shepherding);
 	const std::shared_ptr<const Contemplation> gaze = world.contemplation(testator.Soul::id());
 	CHECK(&gaze->place() == static_cast<const Place*>(&shepherding));
 	REQUIRE(gaze->words().size() == 1);
-	const auto deed = std::dynamic_pointer_cast<const Deed>(gaze->words().front());
-	REQUIRE(deed);
-	CHECK(deed->id() == willed.id());
+	const auto behest = std::dynamic_pointer_cast<const Behest>(gaze->words().front());
+	REQUIRE(behest);
+	CHECK(behest->id() == willed.id());
 	CHECK(world.contemplating(shepherding).size() == 1);
 
 	// In a tie one wills, one does not say.
@@ -625,36 +625,36 @@ TEST_CASE("will and execute within obedience")
 	testator.accept(*testator.supplication(novice));
 	REQUIRE(cosmos.spatiality().ties().size() == 1);
 	const Shepherding& shepherding = testator.shepherding(novice);
-	const Deed deed = testator.will(shepherding, "fast");
-	CHECK(deed.open());
-	CHECK(deed.saying().body() == "fast");
-	CHECK(&deed.tie().testator() == &testator);
-	CHECK(&deed.tie().novice() == &novice);
+	const Behest behest = testator.will(shepherding, "fast");
+	CHECK(behest.open());
+	CHECK(behest.saying().body() == "fast");
+	CHECK(&behest.tie().testator() == &testator);
+	CHECK(&behest.tie().novice() == &novice);
 
 	CHECK_THROWS_AS(static_cast<const Testator&>(a).will(shepherding, "no"), std::logic_error);
 
-	// The tie shows its deeds to either side, through the one who asks.
+	// The tie shows its behests to either side, through the one who asks.
 	const Obedience& obedience = novice.obedience(testator);
-	REQUIRE(obedience.deeds(novice).size() == 1);
-	CHECK(obedience.deeds(novice).front()->open());
-	REQUIRE(shepherding.deeds(testator).size() == 1);
-	CHECK(shepherding.deeds(testator).front()->id() == deed.id());
-	CHECK_THROWS_AS(testator.execute(deed), std::logic_error);
+	REQUIRE(obedience.behests(novice).size() == 1);
+	CHECK(obedience.behests(novice).front()->open());
+	REQUIRE(shepherding.behests(testator).size() == 1);
+	CHECK(shepherding.behests(testator).front()->id() == behest.id());
+	CHECK_THROWS_AS(testator.execute(behest), std::logic_error);
 
-	novice.execute(deed);
-	const std::shared_ptr<const Deed> done = obedience.deeds(novice).front();
+	novice.execute(behest);
+	const std::shared_ptr<const Behest> done = obedience.behests(novice).front();
 	CHECK(done->executed());
 	CHECK_FALSE(done->open());
-	CHECK(shepherding.deeds(testator).front()->executed());
+	CHECK(shepherding.behests(testator).front()->executed());
 	CHECK_THROWS_AS(novice.execute(*done), std::logic_error);
 
 	// Stale open snapshot: what is kept decides, not the argument.
-	CHECK_THROWS_AS(novice.execute(deed), std::logic_error);
-	CHECK(cosmos.temporality().executions({deed.id()}).size() == 1);
+	CHECK_THROWS_AS(novice.execute(behest), std::logic_error);
+	CHECK(cosmos.temporality().executions({behest.id()}).size() == 1);
 }
 
 
-TEST_CASE("a tie shows its deeds only to its sides; deeds are not letters")
+TEST_CASE("a tie shows its behests only to its sides; behests are not letters")
 {
 	InMemoryCosmos cosmos;
 	Creation creation = cosmos.life().create();
@@ -666,24 +666,24 @@ TEST_CASE("a tie shows its deeds only to its sides; deeds are not letters")
 
 	novice.supplicate(testator);
 	testator.accept(*testator.supplication(novice));
-	const Deed deed = testator.will(testator.shepherding(novice), "fast");
+	const Behest behest = testator.will(testator.shepherding(novice), "fast");
 
 	novice.wake();
 	testator.wake();
 
 	const Obedience& obedience = novice.obedience(testator);
-	CHECK_THROWS_AS(obedience.deeds(stranger), std::logic_error);
+	CHECK_THROWS_AS(obedience.behests(stranger), std::logic_error);
 	CHECK(novice.obediences().size() == 1);
 	CHECK(&novice.obediences().front().get() == &obedience);
 	CHECK(stranger.obediences().empty());
 
-	// A deed is placed in its tie, not in the abodes of its sides.
+	// A behest is placed in its tie, not in the abodes of its sides.
 	CHECK(letters_seen_by(world.contemplation(testator.Soul::id())).empty());
 	CHECK(letters_seen_by(world.contemplation(novice.Soul::id())).empty());
 
-	// A letter is not a deed.
+	// A letter is not a behest.
 	static_cast<const Witness&>(novice).say("hello");
 	REQUIRE(letters_seen_by(world.contemplation(novice.Soul::id())).size() == 1);
-	REQUIRE(obedience.deeds(novice).size() == 1);
-	CHECK(obedience.deeds(novice).front()->id() == deed.id());
+	REQUIRE(obedience.behests(novice).size() == 1);
+	CHECK(obedience.behests(novice).front()->id() == behest.id());
 }

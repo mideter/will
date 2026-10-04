@@ -5,7 +5,7 @@
 
 #include "acts/creation.h"
 #include "matter/dating.h"
-#include "matter/deed.h"
+#include "matter/behest.h"
 #include "matter/letter.h"
 #include "matter/execution.h"
 #include "matter/placement.h"
@@ -13,7 +13,7 @@
 #include "matter/tie.h"
 #include "matter/word.h"
 #include "words/letter.h"
-#include "words/deed.h"
+#include "words/behest.h"
 #include "immanents/novice.h"
 #include "immanents/obedience.h"
 #include "immanents/shepherding.h"
@@ -105,7 +105,7 @@ TEST_CASE("matter::Letter rejects parts with different word ids")
 }
 
 
-TEST_CASE("Deed is a word of will in a living Tie, born of the Tie or of its testator")
+TEST_CASE("Behest is a word of will in a living Tie, born of the Tie or of its testator")
 {
 	InMemoryCosmos cosmos;
 	Creation creation = cosmos.life().create();
@@ -114,35 +114,35 @@ TEST_CASE("Deed is a word of will in a living Tie, born of the Tie or of its tes
 	const auto& testator = static_cast<const Testator&>(world.welcome(DeviceToken::generate()));
 	const auto& novice = static_cast<const Novice&>(world.welcome(DeviceToken::generate()));
 
-	static_assert(!std::is_constructible_v<Deed, matter::Deed>);
+	static_assert(!std::is_constructible_v<Behest, matter::Behest>);
 
 	novice.supplicate(testator);
 	const Shepherding& shepherding = testator.accept(*testator.supplication(novice));
 
 	cosmos.fake_time().set_instant(Timestamp{50});
-	const Deed deed = testator.will(shepherding, "do this");
-	CHECK(&deed.tie().testator() == &testator);
-	CHECK(&deed.tie().novice() == &novice);
-	CHECK(deed.saying().body() == "do this");
-	CHECK(deed.created_at() == Timestamp{50});
-	CHECK(deed.open());
-	CHECK_FALSE(deed.executed());
+	const Behest behest = testator.will(shepherding, "do this");
+	CHECK(&behest.tie().testator() == &testator);
+	CHECK(&behest.tie().novice() == &novice);
+	CHECK(behest.saying().body() == "do this");
+	CHECK(behest.created_at() == Timestamp{50});
+	CHECK(behest.open());
+	CHECK_FALSE(behest.executed());
 
 	cosmos.fake_time().set_instant(Timestamp{70});
-	novice.execute(deed);
-	const auto shown = novice.obedience(testator).deeds(novice);
+	novice.execute(behest);
+	const auto shown = novice.obedience(testator).behests(novice);
 	REQUIRE(shown.size() == 1);
-	CHECK(shown.front()->id() == deed.id());
+	CHECK(shown.front()->id() == behest.id());
 	CHECK(shown.front()->executed());
 	CHECK_FALSE(shown.front()->open());
 	CHECK(shown.front()->executed_at() == Timestamp{70});
 
-	const matter::Word word{deed.id(), testator.Soul::id(), "do this"};
-	const matter::Placement placement{deed.id(), shown.front()->tie().id()};
-	const matter::Dating dating{deed.id(), Timestamp{50}};
+	const matter::Word word{behest.id(), testator.Soul::id(), "do this"};
+	const matter::Placement placement{behest.id(), shown.front()->tie().id()};
+	const matter::Dating dating{behest.id(), Timestamp{50}};
 	CHECK_THROWS_AS(
-		(matter::Deed{word, placement, dating, matter::Execution{id::Word{4}, Timestamp{70}}}),
+		(matter::Behest{word, placement, dating, matter::Execution{id::Word{4}, Timestamp{70}}}),
 		std::invalid_argument);
-	CHECK_THROWS_AS((matter::Deed{word, matter::Placement{id::Word{4}, shown.front()->tie().id()}, dating}),
+	CHECK_THROWS_AS((matter::Behest{word, matter::Placement{id::Word{4}, shown.front()->tie().id()}, dating}),
 					std::invalid_argument);
 }

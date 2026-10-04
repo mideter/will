@@ -34,9 +34,9 @@ std::vector<matter::Letter> Place::kept_letters() const
 }
 
 
-std::vector<matter::Deed> Place::kept_deeds() const
+std::vector<matter::Behest> Place::kept_behests() const
 {
-	return Life::the().deeds(id());
+	return Life::the().behests(id());
 }
 
 

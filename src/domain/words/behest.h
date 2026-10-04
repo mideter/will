@@ -1,6 +1,6 @@
 #pragma once
 
-#include "matter/deed.h"
+#include "matter/behest.h"
 #include "properties/birth.h"
 #include "immanents/tie.h"
 #include "words/word.h"
@@ -15,14 +15,14 @@ namespace will::domain {
 class Testator;
 
 
-/// Deed (Дело) — Word of will in living Tie (Узы) that may be executed.
-/// Born from matter::Deed; executed once its Execution is kept.
+/// Behest (Веление) — Word of will in living Tie (Узы) that may be executed.
+/// Born from matter::Behest; executed once its Execution is kept.
 /// Sides are the Tie's: the testator utters, the novice executes.
-class Deed : public Word {
+class Behest : public Word {
 public:
 	/// Place must be a living Tie whose testator is the author.
-	Deed(Birth<Tie>, matter::Deed kept);
-	Deed(Birth<Testator>, matter::Deed kept);
+	Behest(Birth<Tie>, matter::Behest kept);
+	Behest(Birth<Testator>, matter::Behest kept);
 
 	const Tie& tie() const noexcept { return tie_; }
 	Timestamp created_at() const noexcept { return created_at_; }
@@ -32,7 +32,7 @@ public:
 	bool open() const noexcept { return !executed(); }
 
 private:
-	explicit Deed(matter::Deed kept);
+	explicit Behest(matter::Behest kept);
 
 	const Tie& tie_;
 	Timestamp created_at_;

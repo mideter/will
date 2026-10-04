@@ -208,7 +208,7 @@ void SqliteTemporality::reject(const domain::id::Soul suppliant, const domain::i
 }
 
 
-void SqliteTemporality::execute(const domain::id::Word deed)
+void SqliteTemporality::execute(const domain::id::Word behest)
 {
 	const domain::Timestamp at = eternity_.time().instant();
 	std::lock_guard lock(time_db_.mutex());
@@ -216,14 +216,14 @@ void SqliteTemporality::execute(const domain::id::Word deed)
 
 	{
 		SqliteStmt kept(db, "SELECT 1 FROM executions WHERE word_id = ?;", "prepare kept execution");
-		kept.bind_i64(1, static_cast<std::int64_t>(deed.value()), "bind word_id");
+		kept.bind_i64(1, static_cast<std::int64_t>(behest.value()), "bind word_id");
 		if (kept.step_row("kept execution step"))
-			throw std::logic_error("deed is already executed");
+			throw std::logic_error("behest is already executed");
 	}
 
 	SqliteStmt stmt(db, "INSERT INTO executions (word_id, executed_at_ns) VALUES (?, ?);",
 					"prepare execute");
-	stmt.bind_i64(1, static_cast<std::int64_t>(deed.value()), "bind word_id");
+	stmt.bind_i64(1, static_cast<std::int64_t>(behest.value()), "bind word_id");
 	stmt.bind_i64(2, at.value(), "bind executed_at");
 	stmt.step_done("execute step");
 }

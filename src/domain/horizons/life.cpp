@@ -90,9 +90,9 @@ std::vector<matter::Letter> Life::letters(const id::Place place) const
 }
 
 
-std::vector<matter::Deed> Life::deeds(const id::Place place) const
+std::vector<matter::Behest> Life::behests(const id::Place place) const
 {
-	// A deed is kept in the same parts as a letter, and its execution besides.
+	// A behest is kept in the same parts as a letter, and its execution besides.
 	std::vector<matter::Letter> parts = letters(place);
 
 	std::vector<id::Word> ids;
@@ -104,7 +104,7 @@ std::vector<matter::Deed> Life::deeds(const id::Place place) const
 	for (matter::Execution& row : temporality_.executions(ids))
 		executed.emplace(row.id(), std::move(row));
 
-	std::vector<matter::Deed> kept;
+	std::vector<matter::Behest> kept;
 	kept.reserve(parts.size());
 	for (const matter::Letter& part : parts) {
 		std::optional<matter::Execution> execution;

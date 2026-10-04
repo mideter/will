@@ -19,7 +19,7 @@
 #include "immanents/man.h"
 #include "immanents/novice.h"
 #include "immanents/testator.h"
-#include "words/deed.h"
+#include "words/behest.h"
 #include "immanents/vessel.h"
 #include "horizons/world.h"
 #include "identity/abode.h"
@@ -317,13 +317,13 @@ public:
 		supplications_.erase(it);
 	}
 
-	void execute(const id::Word deed) override
+	void execute(const id::Word behest) override
 	{
 		for (const matter::Execution& row : executions_) {
-			if (row.id() == deed)
-				throw std::logic_error("deed is already executed");
+			if (row.id() == behest)
+				throw std::logic_error("behest is already executed");
 		}
-		executions_.emplace_back(deed, eternity_.time().instant());
+		executions_.emplace_back(behest, eternity_.time().instant());
 	}
 
 	std::vector<matter::Execution> executions(const std::vector<id::Word>& ids) const override

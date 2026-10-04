@@ -16,7 +16,7 @@ class Life;
 /// is kept by the dimensions; its identity is given in Eternity. Neither copied
 /// nor moved.
 /// Holds what was said (Saying) but is not the text itself.
-/// Living Letter and Deed are Word in the world.
+/// Living Letter and Behest are Word in the world.
 class Word : public Immanent<Life> {
 public:
 	virtual ~Word() = default;

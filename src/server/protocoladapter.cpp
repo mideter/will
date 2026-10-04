@@ -2,7 +2,7 @@
 
 #include "inbound_client_message_handler.h"
 
-#include "words/deed.h"
+#include "words/behest.h"
 #include "immanents/novice.h"
 #include "immanents/obedience.h"
 #include "immanents/shepherding.h"
@@ -29,13 +29,13 @@ namespace {
 
 
 /// The number a client names in /done is matched here, at the border: the
-/// domain shows the deeds of a place, it does not look words up by id.
-std::shared_ptr<const domain::Deed> deed_numbered(const domain::Novice& novice, const std::uint64_t number)
+/// domain shows the behests of a place, it does not look words up by id.
+std::shared_ptr<const domain::Behest> behest_numbered(const domain::Novice& novice, const std::uint64_t number)
 {
 	for (const domain::Obedience& obedience : novice.obediences()) {
-		for (const std::shared_ptr<const domain::Deed>& deed : obedience.deeds(novice)) {
-			if (deed->id().value() == number)
-				return deed;
+		for (const std::shared_ptr<const domain::Behest>& behest : obedience.behests(novice)) {
+			if (behest->id().value() == number)
+				return behest;
 		}
 	}
 
@@ -356,15 +356,15 @@ void ProtocolAdapter::handle_will_deed(const SessionId session_id, const v1::Wil
 	}
 
 	try {
-		const domain::Deed deed = testator.will(*shepherding, msg.body());
+		const domain::Behest behest = testator.will(*shepherding, msg.body());
 
-		send_notice(session_id, "deed " + std::to_string(deed.id().value()) + " willed");
+		send_notice(session_id, "behest " + std::to_string(behest.id().value()) + " willed");
 
 		v1::ServerEvent offered;
 		auto* row = offered.mutable_deed_offered();
-		row->set_deed_id(deed.id().value());
+		row->set_deed_id(behest.id().value());
 		row->set_testator_name(std::string{self.name().text()});
-		row->set_body(deed.saying().body());
+		row->set_body(behest.saying().body());
 		send_to_vessel(novice_man->Vessel::id(), offered);
 	} catch (const std::exception& e) {
 		send_notice(session_id, e.what());
@@ -378,19 +378,19 @@ void ProtocolAdapter::handle_execute_deed(const SessionId session_id, const v1::
 	const auto& novice = static_cast<const domain::Novice&>(self);
 
 	try {
-		const std::shared_ptr<const domain::Deed> deed = deed_numbered(novice, msg.deed_id());
-		if (!deed)
-			throw std::invalid_argument("unknown deed");
+		const std::shared_ptr<const domain::Behest> behest = behest_numbered(novice, msg.deed_id());
+		if (!behest)
+			throw std::invalid_argument("unknown behest");
 
-		novice.execute(*deed);
+		novice.execute(*behest);
 
-		send_notice(session_id, "deed " + std::to_string(deed->id().value()) + " done");
+		send_notice(session_id, "behest " + std::to_string(behest->id().value()) + " done");
 
 		v1::ServerEvent event;
 		auto* row = event.mutable_deed_done();
-		row->set_deed_id(deed->id().value());
+		row->set_deed_id(behest->id().value());
 		row->set_novice_name(std::string{self.name().text()});
-		send_to_vessel(deed->tie().testator().Vessel::id(), event);
+		send_to_vessel(behest->tie().testator().Vessel::id(), event);
 	} catch (const std::exception& e) {
 		send_notice(session_id, e.what());
 	}

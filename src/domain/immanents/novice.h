@@ -4,7 +4,7 @@
 #include "immanents/obedience.h"
 #include "acts/supplication.h"
 #include "matter/tie.h"
-#include "words/deed.h"
+#include "words/behest.h"
 #include "immanents/witness.h"
 #include "identity/word.h"
 
@@ -19,7 +19,7 @@ namespace will::domain {
 class Testator;
 
 
-/// Novice (Послушник) — Исполнитель: исполняет Дело в Послушании.
+/// Novice (Послушник) — Исполнитель: исполняет Веление в Послушании.
 /// Owns living Ties as Obedience (Послушание) on the heap; Spatiality keeps
 /// their matter::Tie. Mode is disclosed in an Obedience; the living heap object
 /// is always Testator.
@@ -29,8 +29,8 @@ public:
 	/// The pending Supplication is signed by this novice (lodge + Temporality).
 	void supplicate(const Testator& addressee) const;
 
-	/// Carry out an open deed in an obedience where this soul is novice.
-	void execute(const Deed& deed) const;
+	/// Carry out an open behest in an obedience where this soul is novice.
+	void execute(const Behest& behest) const;
 
 	bool follows(const Testator& testator) const noexcept;
 

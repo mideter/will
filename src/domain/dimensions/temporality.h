@@ -53,9 +53,9 @@ public:
 	/// Keep the rejection of the pair's unrejected supplication. Throws if there is none.
 	virtual void reject(id::Soul suppliant, id::Soul addressee) = 0;
 
-	/// Keep the execution of a deed at the present instant.
+	/// Keep the execution of a behest at the present instant.
 	/// Refuses (std::logic_error) if its matter::Execution is already kept.
-	virtual void execute(id::Word deed) = 0;
+	virtual void execute(id::Word behest) = 0;
 
 	/// Executions for the given ids (skips unexecuted).
 	virtual std::vector<matter::Execution> executions(const std::vector<id::Word>& ids) const = 0;

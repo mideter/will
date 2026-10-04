@@ -80,16 +80,16 @@ void ReceivingMessageHandler::on(const v1::ServerEvent& event)
 		return;
 	}
 	case v1::ServerEvent::kDeedOffered: {
-		const auto& deed = event.deed_offered();
-		ui_.print_status("Deed #" + std::to_string(deed.deed_id()) + " from "
-						 + deed.testator_name() + ": " + deed.body()
-						 + " — /done " + std::to_string(deed.deed_id()));
+		const auto& behest = event.deed_offered();
+		ui_.print_status("Behest #" + std::to_string(behest.deed_id()) + " from "
+						 + behest.testator_name() + ": " + behest.body()
+						 + " — /done " + std::to_string(behest.deed_id()));
 		return;
 	}
 	case v1::ServerEvent::kDeedDone: {
-		const auto& deed = event.deed_done();
-		ui_.print_status("Deed #" + std::to_string(deed.deed_id()) + " done by "
-						 + deed.novice_name());
+		const auto& behest = event.deed_done();
+		ui_.print_status("Behest #" + std::to_string(behest.deed_id()) + " done by "
+						 + behest.novice_name());
 		return;
 	}
 	case v1::ServerEvent::kProtocolNotice:

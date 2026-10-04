@@ -1,7 +1,7 @@
 #pragma once
 
 #include "identity/place.h"
-#include "matter/deed.h"
+#include "matter/behest.h"
 #include "matter/letter.h"
 #include "properties/immanent.h"
 
@@ -49,9 +49,9 @@ private:
 	static Life& the();
 
 	/// The matter of the words placed in this place, oldest first (capped by
-	/// Spatiality::MaxLetterLimit): as letters, or as deeds with their executions.
+	/// Spatiality::MaxLetterLimit): as letters, or as behests with their executions.
 	std::vector<matter::Letter> letters(id::Place place) const;
-	std::vector<matter::Deed> deeds(id::Place place) const;
+	std::vector<matter::Behest> behests(id::Place place) const;
 
 	Remembered remembered(id::Place place) const;
 	void remember(id::Place place, const std::vector<std::shared_ptr<const Word>>& words);

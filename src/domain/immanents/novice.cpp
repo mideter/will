@@ -29,14 +29,14 @@ void Novice::supplicate(const Testator& addressee) const
 }
 
 
-void Novice::execute(const Deed& deed) const
+void Novice::execute(const Behest& behest) const
 {
-	if (deed.tie().novice().Soul::id() != Soul::id())
-		throw std::logic_error("not the novice of this deed");
-	if (!deed.open())
-		throw std::logic_error("deed is not open");
+	if (behest.tie().novice().Soul::id() != Soul::id())
+		throw std::logic_error("not the novice of this behest");
+	if (!behest.open())
+		throw std::logic_error("behest is not open");
 
-	temporality().execute(deed.id());
+	temporality().execute(behest.id());
 }
 
 

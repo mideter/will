@@ -7,7 +7,7 @@
 namespace will::domain::matter {
 
 
-/// Placement — Word fixed in a Place; matter for a living Word (Letter, Deed).
+/// Placement — Word fixed in a Place; matter for a living Word (Letter, Behest).
 /// Spatiality keeps Placements.
 class Placement {
 public:

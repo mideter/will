@@ -9,7 +9,7 @@ namespace will::domain::matter {
 
 
 /// Matter of living Word (Слово) — its id, author and Saying, kept in Eternity.
-/// The eternal part of the matter of every Letter and Deed.
+/// The eternal part of the matter of every Letter and Behest.
 class Word {
 public:
 	Word(id::Word id, id::Soul author, Saying saying);

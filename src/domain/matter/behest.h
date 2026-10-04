@@ -12,12 +12,12 @@
 namespace will::domain::matter {
 
 
-/// Matter of living Deed (Дело) — the parts of a Word of will gathered from the
+/// Matter of living Behest (Веление) — the parts of a Word of will gathered from the
 /// three dimensions, and its Execution once that is kept in Temporality.
 /// Composite: no single dimension keeps it. The parts share the word id.
-class Deed {
+class Behest {
 public:
-	Deed(Word word, Placement placement, Dating dating,
+	Behest(Word word, Placement placement, Dating dating,
 		 std::optional<Execution> execution = std::nullopt);
 
 	id::Word id() const noexcept { return word_.id(); }

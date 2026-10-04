@@ -2,7 +2,7 @@
 #include <doctest/doctest.h>
 
 #include "acts/creation.h"
-#include "words/deed.h"
+#include "words/behest.h"
 #include "immanents/obedience.h"
 #include "words/letter.h"
 #include "immanents/novice.h"
@@ -173,12 +173,12 @@ TEST_CASE("sqlite persistence survives reopen")
 }
 
 
-TEST_CASE("sqlite keeps a deed and its execution across reopen")
+TEST_CASE("sqlite keeps a behest and its execution across reopen")
 {
 	using namespace will;
 	using namespace will::domain;
 
-	const std::string prefix = "/tmp/will-sqlite-deed-test-" + std::to_string(getpid());
+	const std::string prefix = "/tmp/will-sqlite-behest-test-" + std::to_string(getpid());
 	::unlink((prefix + ".eternity.db").c_str());
 	::unlink((prefix + ".space.db").c_str());
 	::unlink((prefix + ".time.db").c_str());
@@ -198,8 +198,8 @@ TEST_CASE("sqlite keeps a deed and its execution across reopen")
 		novice.supplicate(testator);
 		testator.accept(*testator.supplication(novice));
 
-		const Deed open = testator.will(testator.shepherding(novice), "fast");
-		const Deed willed = testator.will(testator.shepherding(novice), "pray");
+		const Behest open = testator.will(testator.shepherding(novice), "fast");
+		const Behest willed = testator.will(testator.shepherding(novice), "pray");
 		CHECK(open.open());
 		CHECK(&willed.tie().novice() == &novice);
 		open_id = open.id();
@@ -209,7 +209,7 @@ TEST_CASE("sqlite keeps a deed and its execution across reopen")
 		CHECK_THROWS_AS(novice.execute(willed), std::logic_error);
 		CHECK(bundle.temporality().executions({*open_id, *done_id}).size() == 1);
 
-		// Deeds are placed in the tie, not among the letters of an abode.
+		// Behests are placed in the tie, not among the letters of an abode.
 		novice.wake();
 		CHECK(letters_seen_by(world.contemplation(novice.Soul::id())).empty());
 	}
@@ -221,11 +221,11 @@ TEST_CASE("sqlite keeps a deed and its execution across reopen")
 		const auto& novice = static_cast<const Novice&>(world.welcome(token_novice));
 		const auto& testator = static_cast<const Testator&>(world.welcome(token_testator));
 
-		// The reborn tie shows the same deeds to both sides, oldest first.
-		const std::vector<std::shared_ptr<const Deed>> shown = novice.obedience(testator).deeds(novice);
+		// The reborn tie shows the same behests to both sides, oldest first.
+		const std::vector<std::shared_ptr<const Behest>> shown = novice.obedience(testator).behests(novice);
 		REQUIRE(shown.size() == 2);
-		const Deed& open = *shown[0];
-		const Deed& done = *shown[1];
+		const Behest& open = *shown[0];
+		const Behest& done = *shown[1];
 
 		CHECK(open.id() == *open_id);
 		CHECK(open.open());
@@ -235,11 +235,11 @@ TEST_CASE("sqlite keeps a deed and its execution across reopen")
 		CHECK(done.id() == *done_id);
 		CHECK(done.executed());
 		CHECK(done.saying().body() == "pray");
-		CHECK(testator.shepherding(novice).deeds(testator).size() == 2);
+		CHECK(testator.shepherding(novice).behests(testator).size() == 2);
 		CHECK_THROWS_AS(novice.execute(done), std::logic_error);
 
 		novice.execute(open);
-		CHECK(novice.obedience(testator).deeds(novice).front()->executed());
+		CHECK(novice.obedience(testator).behests(novice).front()->executed());
 	}
 
 	::unlink((prefix + ".eternity.db").c_str());

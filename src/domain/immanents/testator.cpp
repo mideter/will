@@ -32,7 +32,7 @@ void Testator::reject(const Supplication& ask) const
 }
 
 
-Deed Testator::will(const Shepherding& shepherding, const Saying& saying) const
+Behest Testator::will(const Shepherding& shepherding, const Saying& saying) const
 {
 	if (shepherding.testator().Soul::id() != Soul::id())
 		throw std::logic_error("not the testator of this shepherding");
@@ -41,7 +41,7 @@ Deed Testator::will(const Shepherding& shepherding, const Saying& saying) const
 	matter::Placement placed = spatiality().place(uttered.id(), shepherding.id());
 	matter::Dating dated = temporality().date(uttered.id());
 
-	return Deed{Birth<Testator>{}, matter::Deed{std::move(uttered), std::move(placed), std::move(dated)}};
+	return Behest{Birth<Testator>{}, matter::Behest{std::move(uttered), std::move(placed), std::move(dated)}};
 }
 
 

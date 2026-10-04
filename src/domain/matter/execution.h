@@ -7,8 +7,8 @@
 namespace will::domain::matter {
 
 
-/// Execution (Исполнение) — Deed carried out, fixed in time; matter for living Deed.
-/// Temporality keeps Executions; a Deed is open until its Execution is kept.
+/// Execution (Исполнение) — Behest carried out, fixed in time; matter for living Behest.
+/// Temporality keeps Executions; a Behest is open until its Execution is kept.
 class Execution {
 public:
 	Execution(id::Word id, Timestamp executed_at);

@@ -6,7 +6,7 @@
 #include "immanents/shepherding.h"
 #include "acts/supplication.h"
 #include "immanents/novice.h"
-#include "words/deed.h"
+#include "words/behest.h"
 #include "values/saying.h"
 
 #include <functional>
@@ -33,7 +33,7 @@ public:
 	const Shepherding& accept(const Supplication& ask) const;
 	void reject(const Supplication& ask) const;
 
-	Deed will(const Shepherding& shepherding, const Saying& saying) const;
+	Behest will(const Shepherding& shepherding, const Saying& saying) const;
 
 	/// Shepherding of the Tie with this novice. Throws if unknown.
 	const Shepherding& shepherding(const Novice& novice) const;

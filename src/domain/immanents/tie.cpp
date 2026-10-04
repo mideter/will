@@ -1,11 +1,11 @@
 #include "tie.h"
 
-#include "words/deed.h"
+#include "words/behest.h"
 #include "immanents/contemplation.h"
 #include "immanents/soul.h"
 #include "horizons/space.h"
 #include "immanents/testator.h"
-#include "matter/deed.h"
+#include "matter/behest.h"
 #include "properties/immanent.h"
 
 #include <memory>
@@ -44,14 +44,14 @@ const Novice& Tie::novice() const
 }
 
 
-std::vector<std::shared_ptr<const Deed>> Tie::deeds(const Novice& asker) const
+std::vector<std::shared_ptr<const Behest>> Tie::behests(const Novice& asker) const
 {
 	if (asker.Soul::id() != novice_.Soul::id() && asker.Soul::id() != testator_.Soul::id())
 		throw std::logic_error("not a side of this tie");
 
-	std::vector<std::shared_ptr<const Deed>> shown;
-	for (matter::Deed& kept : kept_deeds())
-		shown.push_back(std::make_shared<const Deed>(Birth<Tie>{}, std::move(kept)));
+	std::vector<std::shared_ptr<const Behest>> shown;
+	for (matter::Behest& kept : kept_behests())
+		shown.push_back(std::make_shared<const Behest>(Birth<Tie>{}, std::move(kept)));
 
 	return shown;
 }
@@ -69,8 +69,8 @@ std::vector<std::shared_ptr<const Word>> Tie::words(const Contemplation& gaze) c
 		throw std::logic_error("this tie is not what is contemplated");
 
 	std::vector<std::shared_ptr<const Word>> shown;
-	for (matter::Deed& kept : kept_deeds())
-		shown.push_back(std::make_shared<const Deed>(Birth<Tie>{}, std::move(kept)));
+	for (matter::Behest& kept : kept_behests())
+		shown.push_back(std::make_shared<const Behest>(Birth<Tie>{}, std::move(kept)));
 
 	return shown;
 }
