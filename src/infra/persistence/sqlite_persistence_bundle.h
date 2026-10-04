@@ -26,13 +26,13 @@ public:
 	domain::Temporality& temporality() { return temporality_; }
 
 private:
-	domain::Life life_;
 	SqliteDatabase eternity_db_;
 	SqliteDatabase space_db_;
 	SqliteDatabase time_db_;
 	SqliteEternity eternity_;
 	SqliteSpatiality spatiality_;
 	SqliteTemporality temporality_;
+	domain::Life life_;
 	domain::Creation creation_;
 };
 

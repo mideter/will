@@ -376,11 +376,11 @@ public:
 	FakeTime& fake_time() { return shared_.time; }
 
 private:
-	Life life_;
 	InMemoryShared shared_;
 	InMemoryEternity eternity_;
 	InMemorySpatiality spatiality_;
 	InMemoryTemporality temporality_;
+	Life life_;
 };
 
 

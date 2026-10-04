@@ -14,15 +14,17 @@
 namespace will::domain {
 
 
+class Life;
 class Space;
 
 
 /// Eternity (Вечность) — who endures; indelible Saying and author.
 /// Time and Space belong to Eternity; each is one, reached only from here.
 /// Speaks in souls; dwelling in a vessel belongs to Temporality / World.
+/// One Eternity; Life proceeds from it.
 class Eternity {
 public:
-	virtual ~Eternity() = default;
+	virtual ~Eternity();
 
 	virtual Time& time() = 0;
 
@@ -42,6 +44,21 @@ public:
 
 	/// Order preserved; skips unknown.
 	virtual std::vector<matter::Word> words(const std::vector<id::Word>& ids) const = 0;
+
+protected:
+	/// The one realised Eternity declares itself.
+	Eternity();
+
+	Eternity(const Eternity&) = delete;
+	Eternity& operator=(const Eternity&) = delete;
+
+private:
+	friend class Life;
+
+	/// Throws if no Eternity is realised.
+	static Eternity& the();
+
+	static Eternity* current_;
 };
 
 
