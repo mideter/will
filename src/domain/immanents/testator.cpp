@@ -79,58 +79,60 @@ void Testator::release(const Shepherding& place) const
 }
 
 
-const Supplication& Testator::supplication(const Novice& suppliant) const
+std::shared_ptr<const Supplication> Testator::supplication(const Novice& suppliant) const
 {
-	for (const auto& row : incoming_) {
-		if (row->suppliant().Soul::id() == suppliant.Soul::id())
-			return *row;
+	for (std::shared_ptr<const Supplication>& pending : supplications()) {
+		if (pending->suppliant().Soul::id() == suppliant.Soul::id())
+			return std::move(pending);
 	}
 
 	throw std::invalid_argument("unknown supplication");
 }
 
 
-std::vector<std::reference_wrapper<const Supplication>> Testator::supplications() const
+std::vector<std::shared_ptr<const Supplication>> Testator::supplications() const
 {
-	std::vector<std::reference_wrapper<const Supplication>> out;
-	out.reserve(incoming_.size());
-
-	for (const auto& row : incoming_)
-		out.emplace_back(*row);
-
-	return out;
+	return Spirit::supplications();
 }
 
 
-const Supplication& Testator::receive(Supplication supplication) const
+void Testator::hear(Birth<Novice> birth, matter::Supplication kept) const
 {
-	if (supplication.addressee().Soul::id() != Soul::id())
+	hold(std::make_shared<const Supplication>(birth, std::move(kept)));
+}
+
+
+void Testator::hear(Birth<World> birth, matter::Supplication kept) const
+{
+	hold(std::make_shared<const Supplication>(birth, std::move(kept)));
+}
+
+
+void Testator::drop(const Supplication& answered) const
+{
+	Spirit::release(answered);
+}
+
+
+void Testator::hold(std::shared_ptr<const Supplication> supplication) const
+{
+	if (supplication->addressee().Soul::id() != Soul::id())
 		throw std::logic_error("supplication is not addressed to this soul");
 
-	const id::Soul suppliant_id = supplication.suppliant().Soul::id();
+	const id::Soul suppliant_id = supplication->suppliant().Soul::id();
 
-	for (const auto& existing : incoming_) {
-		if (existing->suppliant().Soul::id() == suppliant_id)
-			return *existing;
+	for (const std::shared_ptr<const Supplication>& pending : supplications()) {
+		if (pending->suppliant().Soul::id() == suppliant_id)
+			return;
 	}
 
-	incoming_.push_back(std::make_unique<Supplication>(std::move(supplication)));
+	// A bound pair's supplication was answered by the bond itself.
+	for (const Shepherding* place : shepherdings_) {
+		if (place && place->novice().Soul::id() == suppliant_id)
+			return;
+	}
 
-	return *incoming_.back();
-}
-
-
-void Testator::drop(const Supplication& ask) const
-{
-	const auto it = std::find_if(incoming_.begin(), incoming_.end(),
-								 [&](const std::unique_ptr<Supplication>& row) {
-									 return row->suppliant().Soul::id() == ask.suppliant().Soul::id();
-								 });
-
-	if (it == incoming_.end())
-		throw std::invalid_argument("unknown supplication");
-
-	incoming_.erase(it);
+	keep(std::move(supplication));
 }
 
 

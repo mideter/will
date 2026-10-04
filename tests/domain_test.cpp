@@ -378,6 +378,11 @@ TEST_CASE("the living is born only of the living")
 	static_assert(!std::is_constructible_v<Abode, matter::Abode>);
 	static_assert(!std::is_constructible_v<Tie, matter::Tie>);
 	static_assert(!std::is_constructible_v<Supplication, matter::Supplication>);
+
+	// A supplication is living too: a relation of souls, immanent to Heaven.
+	static_assert(std::is_base_of_v<Immanent<Heaven>, Supplication>);
+	static_assert(!std::is_copy_constructible_v<Supplication>);
+	static_assert(!std::is_move_constructible_v<Supplication>);
 	static_assert(!std::is_constructible_v<Letter, matter::Letter>);
 	static_assert(!std::is_constructible_v<Deed, matter::Deed>);
 	static_assert(!std::is_constructible_v<Contemplation, const Witness&, const Abode&>);
@@ -422,7 +427,7 @@ TEST_CASE("tie is a place for distinct testator and novice")
 	// A tie is born of the novice once the testator accepts his supplication; it is a place.
 	static_assert(!std::is_constructible_v<Tie, matter::Tie>);
 	novice.supplicate(testator);
-	testator.accept(testator.supplication(novice));
+	testator.accept(*testator.supplication(novice));
 
 	const Obedience& tie = novice.obedience(testator);
 	CHECK(id::Tie{tie.id()} == cosmos.spatiality().ties().front().id());
@@ -448,13 +453,28 @@ TEST_CASE("supplicate accept creates tie owned as obedience")
 
 	novice.supplicate(testator);
 	CHECK(testator.supplications().size() == 1);
-	const Supplication& ask = testator.supplication(novice);
+	const Supplication& ask = *testator.supplication(novice);
 	CHECK(ask.suppliant().Soul::id() == a.Soul::id());
 	CHECK(ask.addressee().Soul::id() == b.Soul::id());
 	CHECK(cosmos.temporality().supplications(b.Soul::id()).size() == 1);
 
+	// The supplication lives in Heaven, as a relation of the two souls.
+	REQUIRE(world.supplications(b.Soul::id()).size() == 1);
+	CHECK(world.supplications(b.Soul::id()).front().get() == &ask);
+	CHECK(world.supplications(a.Soul::id()).empty());
+
+	// Asked again while it awaits answer, the same one stays.
+	CHECK_THROWS_AS(novice.supplicate(testator), std::logic_error);
+	CHECK(testator.supplication(novice).get() == &ask);
+
+	// Answered, Heaven lets it go; whoever still holds it keeps it a while.
+	const std::shared_ptr<const Supplication> held = testator.supplication(novice);
+	const std::weak_ptr<const Supplication> watched = held;
 	const Shepherding& shepherding = testator.accept(ask);
 	CHECK(testator.supplications().empty());
+	CHECK(world.supplications(b.Soul::id()).empty());
+	CHECK_FALSE(watched.expired());
+	CHECK(&held->suppliant() == &novice);
 	REQUIRE(cosmos.spatiality().ties().size() == 1);
 	CHECK(id::Tie{shepherding.id()} == cosmos.spatiality().ties().front().id());
 	CHECK(&testator.shepherding(novice) == &shepherding);
@@ -489,7 +509,7 @@ TEST_CASE("reject closes pending supplication; wrong party cannot accept")
 	const auto& stranger = static_cast<const Testator&>(a);
 
 	novice.supplicate(testator);
-	const Supplication& ask = testator.supplication(novice);
+	const Supplication& ask = *testator.supplication(novice);
 	CHECK_THROWS_AS(stranger.accept(ask), std::logic_error);
 
 	testator.reject(ask);
@@ -523,7 +543,7 @@ TEST_CASE("will and execute within obedience")
 	const auto& testator = static_cast<const Testator&>(b);
 
 	novice.supplicate(testator);
-	testator.accept(testator.supplication(novice));
+	testator.accept(*testator.supplication(novice));
 	REQUIRE(cosmos.spatiality().ties().size() == 1);
 	const Shepherding& shepherding = testator.shepherding(novice);
 	const Deed deed = testator.will(shepherding, "fast");
@@ -566,7 +586,7 @@ TEST_CASE("a tie shows its deeds only to its sides; deeds are not letters")
 	const auto& stranger = static_cast<const Testator&>(world.welcome(DeviceToken::generate()));
 
 	novice.supplicate(testator);
-	testator.accept(testator.supplication(novice));
+	testator.accept(*testator.supplication(novice));
 	const Deed deed = testator.will(testator.shepherding(novice), "fast");
 
 	novice.wake();

@@ -62,14 +62,8 @@ void World::awaken()
 	for (const auto& [soul_id, man] : men_) {
 		const auto& addressee = static_cast<const Testator&>(*man);
 
-		for (matter::Supplication kept : temporality().supplications(soul_id)) {
-			Supplication ask{Birth<World>{}, std::move(kept)};
-			// A bound pair's supplication was answered by the bond itself.
-			if (ask.suppliant().follows(addressee))
-				continue;
-
-			addressee.receive(std::move(ask));
-		}
+		for (matter::Supplication kept : temporality().supplications(soul_id))
+			addressee.hear(Birth<World>{}, std::move(kept));
 	}
 }
 

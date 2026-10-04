@@ -18,10 +18,11 @@ class Abode;
 class Soul;
 class Eternity;
 class Spirit;
+class Supplication;
 
 
 /// Heaven (Небо) — symbol of the invisible world.
-/// Keeps Contemplations. Heaven is in space and time; Eternity is reached from here.
+/// Keeps Contemplations and pending Supplications — the living relations of souls. Heaven is in space and time; Eternity is reached from here.
 /// Pointers address Soul bases of heap-stable Man.
 class Heaven : private Immanent<Heaven> {
 public:
@@ -34,6 +35,10 @@ public:
 
 	/// The gazes resting now upon this abode.
 	std::vector<std::shared_ptr<const Contemplation>> gazes(const Abode& abode) const;
+
+	/// Supplications awaiting this soul's answer, oldest first.
+	/// Whoever holds one keeps it from fading while he uses it.
+	std::vector<std::shared_ptr<const Supplication>> supplications(id::Soul addressee) const;
 
 	/// The gaze of this soul; null while the soul contemplates nothing (asleep).
 	/// Whoever holds it keeps it from fading while he uses it.
@@ -60,6 +65,12 @@ private:
 	/// The gaze of this soul ends; nothing happens if it contemplates nothing.
 	void cease(const Soul& soul);
 
+	/// Keep a supplication heard by its addressee until he answers it.
+	void keep(std::shared_ptr<const Supplication> supplication);
+
+	/// Let an answered supplication go.
+	void release(const Supplication& supplication);
+
 	/// Throws if not yet brought forth / already destroyed.
 	static Heaven& the();
 
@@ -69,6 +80,7 @@ private:
 	mutable std::mutex mutex_;
 	std::unordered_map<id::Soul, const Soul*> souls_;
 	std::unordered_map<id::Soul, std::shared_ptr<const Contemplation>> contemplations_;
+	std::vector<std::shared_ptr<const Supplication>> supplications_;
 };
 
 

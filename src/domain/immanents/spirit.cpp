@@ -3,6 +3,8 @@
 #include "immanents/abode.h"
 #include "immanents/soul.h"
 
+#include <utility>
+
 
 namespace will::domain {
 
@@ -42,6 +44,25 @@ void Spirit::contemplate(const Abode& abode) const
 std::vector<std::shared_ptr<const Contemplation>> Spirit::gazes(const Abode& abode)
 {
 	return heaven().gazes(abode);
+}
+
+
+std::vector<std::shared_ptr<const Supplication>> Spirit::supplications() const
+{
+	const auto& self = static_cast<const Soul&>(*this);
+	return heaven().supplications(self.id());
+}
+
+
+void Spirit::keep(std::shared_ptr<const Supplication> supplication)
+{
+	heaven().keep(std::move(supplication));
+}
+
+
+void Spirit::release(const Supplication& supplication)
+{
+	heaven().release(supplication);
 }
 
 

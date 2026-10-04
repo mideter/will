@@ -2,9 +2,12 @@
 
 #include "immanents/abode.h"
 #include "immanents/soul.h"
+#include "immanents/testator.h"
+#include "acts/supplication.h"
 #include "immanents/witness.h"
 #include "dimensions/eternity.h"
 
+#include <algorithm>
 #include <memory>
 #include <stdexcept>
 
@@ -122,6 +125,41 @@ void Heaven::cease(const Soul& soul)
 
 	ended = std::move(it->second);
 	contemplations_.erase(it);
+}
+
+
+void Heaven::keep(std::shared_ptr<const Supplication> supplication)
+{
+	std::lock_guard lock(mutex_);
+	supplications_.push_back(std::move(supplication));
+}
+
+
+void Heaven::release(const Supplication& supplication)
+{
+	std::shared_ptr<const Supplication> released;
+
+	std::lock_guard lock(mutex_);
+	const auto it = std::find_if(supplications_.begin(), supplications_.end(),
+								 [&](const auto& kept) { return kept.get() == &supplication; });
+	if (it == supplications_.end())
+		return;
+
+	released = std::move(*it);
+	supplications_.erase(it);
+}
+
+
+std::vector<std::shared_ptr<const Supplication>> Heaven::supplications(const id::Soul addressee) const
+{
+	std::lock_guard lock(mutex_);
+
+	std::vector<std::shared_ptr<const Supplication>> out;
+	for (const std::shared_ptr<const Supplication>& kept : supplications_) {
+		if (kept->addressee().Soul::id() == addressee)
+			out.push_back(kept);
+	}
+	return out;
 }
 
 

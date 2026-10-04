@@ -313,7 +313,7 @@ void ProtocolAdapter::handle_accept_supplication(const SessionId session_id,
 
 	std::optional<domain::id::Tie> formed;
 	try {
-		formed = domain::id::Tie{testator.accept(testator.supplication(novice)).id()};
+		formed = domain::id::Tie{testator.accept(*testator.supplication(novice)).id()};
 	} catch (const std::exception& e) {
 		send_notice(session_id, e.what());
 		return;

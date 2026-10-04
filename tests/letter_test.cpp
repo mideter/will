@@ -117,7 +117,7 @@ TEST_CASE("Deed is a word of will in a living Tie, born of the Tie or of its tes
 	static_assert(!std::is_constructible_v<Deed, matter::Deed>);
 
 	novice.supplicate(testator);
-	const Shepherding& shepherding = testator.accept(testator.supplication(novice));
+	const Shepherding& shepherding = testator.accept(*testator.supplication(novice));
 
 	cosmos.fake_time().set_instant(Timestamp{50});
 	const Deed deed = testator.will(shepherding, "do this");

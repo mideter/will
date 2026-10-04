@@ -25,8 +25,7 @@ void Novice::supplicate(const Testator& addressee) const
 	if (follows(addressee))
 		throw std::logic_error("obedience already exists for this pair");
 
-	const Supplication ask{Birth<Novice>{}, temporality().ask(Soul::id(), addressee.Soul::id())};
-	ask.sign(*this);
+	addressee.hear(Birth<Novice>{}, temporality().ask(Soul::id(), addressee.Soul::id()));
 }
 
 

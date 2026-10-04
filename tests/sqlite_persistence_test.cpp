@@ -176,7 +176,7 @@ TEST_CASE("sqlite keeps a deed and its execution across reopen")
 		const auto& testator = static_cast<const Testator&>(world.welcome(token_testator));
 
 		novice.supplicate(testator);
-		testator.accept(testator.supplication(novice));
+		testator.accept(*testator.supplication(novice));
 
 		const Deed open = testator.will(testator.shepherding(novice), "fast");
 		const Deed willed = testator.will(testator.shepherding(novice), "pray");
@@ -253,7 +253,7 @@ TEST_CASE("sqlite keeps supplications, rejections and ties across reopen")
 		// a asks b twice: rejected, then asked again and left awaiting.
 		a.supplicate(b);
 		CHECK_THROWS_AS(a.supplicate(b), std::logic_error);
-		b.reject(b.supplication(a));
+		b.reject(*b.supplication(a));
 		CHECK(bundle.temporality().supplications(b.Soul::id()).empty());
 		CHECK_THROWS_AS(bundle.temporality().reject(a.Soul::id(), b.Soul::id()), std::invalid_argument);
 		a.supplicate(b);
@@ -261,7 +261,7 @@ TEST_CASE("sqlite keeps supplications, rejections and ties across reopen")
 		// c asks b and is accepted.
 		c.supplicate(b);
 		CHECK(bundle.temporality().supplications(b.Soul::id()).size() == 2);
-		const Shepherding& shepherding = b.accept(b.supplication(c));
+		const Shepherding& shepherding = b.accept(*b.supplication(c));
 		CHECK(&shepherding.novice() == &c);
 		CHECK(b.supplications().size() == 1);
 		CHECK_THROWS_AS(c.supplicate(b), std::logic_error);
@@ -277,11 +277,11 @@ TEST_CASE("sqlite keeps supplications, rejections and ties across reopen")
 
 		// The awaiting supplication is reborn on the addressee's heap; the tie is living.
 		REQUIRE(b.supplications().size() == 1);
-		CHECK(&b.supplication(a).suppliant() == &a);
+		CHECK(&b.supplication(a)->suppliant() == &a);
 		CHECK(&b.shepherding(c).novice() == &c);
 		CHECK_THROWS_AS(b.shepherding(a), std::invalid_argument);
 
-		const Shepherding& shepherding = b.accept(b.supplication(a));
+		const Shepherding& shepherding = b.accept(*b.supplication(a));
 		CHECK(&shepherding.novice() == &a);
 		CHECK(b.supplications().empty());
 		CHECK(bundle.spatiality().ties().size() == 2);

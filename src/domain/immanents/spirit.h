@@ -18,6 +18,7 @@ namespace will::domain {
 
 class Abode;
 class Soul;
+class Supplication;
 
 
 /// Spirit (Дух) — highest foundation of the soul; immanent to Heaven.
@@ -52,6 +53,15 @@ protected:
 
 	/// The gazes resting now upon this abode.
 	static std::vector<std::shared_ptr<const Contemplation>> gazes(const Abode& abode);
+
+	/// Supplications awaiting this spirit's answer, oldest first.
+	std::vector<std::shared_ptr<const Supplication>> supplications() const;
+
+	/// Heaven keeps a supplication heard by this spirit until it is answered.
+	static void keep(std::shared_ptr<const Supplication> supplication);
+
+	/// Heaven lets an answered supplication go.
+	static void release(const Supplication& supplication);
 
 	/// Null while this spirit contemplates nothing.
 	std::shared_ptr<const Contemplation> contemplation() const;
