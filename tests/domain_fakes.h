@@ -12,6 +12,7 @@
 #include "acts/supplication.h"
 #include "immanents/abode.h"
 #include "immanents/soul.h"
+#include "horizons/life.h"
 #include "horizons/space.h"
 #include "immanents/man.h"
 #include "immanents/novice.h"
@@ -367,6 +368,7 @@ public:
 		, temporality_(shared_, eternity_)
 	{}
 
+	Life& life() { return life_; }
 	InMemoryEternity& eternity() { return eternity_; }
 	InMemorySpatiality& spatiality() { return spatiality_; }
 	InMemoryTemporality& temporality() { return temporality_; }
@@ -374,6 +376,7 @@ public:
 	FakeTime& fake_time() { return shared_.time; }
 
 private:
+	Life life_;
 	InMemoryShared shared_;
 	InMemoryEternity eternity_;
 	InMemorySpatiality spatiality_;

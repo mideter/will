@@ -9,11 +9,14 @@
 namespace will::domain {
 
 
-/// Creation (Творение) — genesis: brings forth Heaven, Earth, the World,
-/// and awakens the living cosmos. Time and Space are of Eternity; World is Heaven and Earth.
+class Life;
+
+
+/// Creation (Творение) — genesis, the act of Life: brings forth Heaven, Earth,
+/// the World, and awakens the living cosmos. Time and Space are of Eternity;
+/// World is Heaven and Earth. Only Life creates.
 class Creation {
 public:
-	Creation(Eternity& eternity, Spatiality& spatiality, Temporality& temporality);
 	~Creation() = default;
 
 	Creation(const Creation&) = delete;
@@ -25,6 +28,10 @@ public:
 	const World& world() const noexcept { return world_; }
 
 private:
+	friend class Life;
+
+	Creation(Eternity& eternity, Spatiality& spatiality, Temporality& temporality);
+
 	World world_;
 };
 

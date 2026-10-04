@@ -1,6 +1,7 @@
 #pragma once
 
 #include "acts/creation.h"
+#include "horizons/life.h"
 #include "sqlite_database.h"
 #include "sqlite_eternity.h"
 #include "sqlite_spatiality.h"
@@ -12,7 +13,7 @@
 namespace will {
 
 
-/** Owns three SQLite faces and Creation of the domain World. */
+/** Owns Life, three SQLite faces and the Creation of the domain World. */
 class SqlitePersistenceBundle {
 public:
 	/// Opens prefix.eternity.db, prefix.space.db, prefix.time.db.
@@ -25,6 +26,7 @@ public:
 	domain::Temporality& temporality() { return temporality_; }
 
 private:
+	domain::Life life_;
 	SqliteDatabase eternity_db_;
 	SqliteDatabase space_db_;
 	SqliteDatabase time_db_;

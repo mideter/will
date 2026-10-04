@@ -4,6 +4,9 @@
 #include "domain_fakes.h"
 
 #include "acts/creation.h"
+#include "dimensions/temporality.h"
+#include "dimensions/spatiality.h"
+#include "horizons/life.h"
 #include "immanents/contemplation.h"
 #include "immanents/obedience.h"
 #include "immanents/shepherding.h"
@@ -61,7 +64,7 @@ SoulName test_name(const char* text)
 TEST_CASE("welcome creates man with personal abode")
 {
 	InMemoryCosmos cosmos;
-	Creation creation(cosmos.eternity(), cosmos.spatiality(), cosmos.temporality());
+	Creation creation = cosmos.life().create(cosmos.eternity(), cosmos.spatiality(), cosmos.temporality());
 	World& world = creation.world();
 
 	const DeviceToken token = DeviceToken::generate();
@@ -106,7 +109,7 @@ TEST_CASE("welcome existing man")
 {
 	InMemoryCosmos cosmos;
 	seed_man(cosmos.temporality(), id::Soul{42}, test_token("abcd1234abcd1234abcd1234abcd1234"), test_name("oldname1"));
-	Creation creation(cosmos.eternity(), cosmos.spatiality(), cosmos.temporality());
+	Creation creation = cosmos.life().create(cosmos.eternity(), cosmos.spatiality(), cosmos.temporality());
 	World& world = creation.world();
 
 	const Man& man = world.welcome(test_token("abcd1234abcd1234abcd1234abcd1234"));
@@ -121,7 +124,7 @@ TEST_CASE("welcome keeps existing name")
 {
 	InMemoryCosmos cosmos;
 	seed_man(cosmos.temporality(), id::Soul{7}, test_token("abcd1234abcd1234abcd1234abcd1234"), test_name("keptname"));
-	Creation creation(cosmos.eternity(), cosmos.spatiality(), cosmos.temporality());
+	Creation creation = cosmos.life().create(cosmos.eternity(), cosmos.spatiality(), cosmos.temporality());
 	World& world = creation.world();
 
 	(void)world.welcome(test_token("abcd1234abcd1234abcd1234abcd1234"));
@@ -133,7 +136,7 @@ TEST_CASE("welcome keeps existing name")
 TEST_CASE("each man has a distinct personal abode")
 {
 	InMemoryCosmos cosmos;
-	Creation creation(cosmos.eternity(), cosmos.spatiality(), cosmos.temporality());
+	Creation creation = cosmos.life().create(cosmos.eternity(), cosmos.spatiality(), cosmos.temporality());
 	World& world = creation.world();
 
 	const Man& a = world.welcome(DeviceToken::generate());
@@ -163,7 +166,7 @@ TEST_CASE("each man has a distinct personal abode")
 TEST_CASE("man say persists via temporality")
 {
 	InMemoryCosmos cosmos;
-	Creation creation(cosmos.eternity(), cosmos.spatiality(), cosmos.temporality());
+	Creation creation = cosmos.life().create(cosmos.eternity(), cosmos.spatiality(), cosmos.temporality());
 	World& world = creation.world();
 
 	const Man& author = world.welcome(DeviceToken::generate());
@@ -188,7 +191,7 @@ TEST_CASE("letters of an abode are seen through contemplation by one who dwells 
 	const id::Soul author{1};
 
 	seed_man(cosmos.temporality(), author, test_token("feedfacefeedfacefeedfacefeedface"), test_name("authoraa"));
-	Creation creation(cosmos.eternity(), cosmos.spatiality(), cosmos.temporality());
+	Creation creation = cosmos.life().create(cosmos.eternity(), cosmos.spatiality(), cosmos.temporality());
 	World& world = creation.world();
 
 	const Man& man = world.welcome(test_token("feedfacefeedfacefeedfacefeedface"));
@@ -251,7 +254,7 @@ TEST_CASE("letters of an abode are seen through contemplation by one who dwells 
 TEST_CASE("letters of an abode live while it is contemplated, shared by every gaze")
 {
 	InMemoryCosmos cosmos;
-	Creation creation(cosmos.eternity(), cosmos.spatiality(), cosmos.temporality());
+	Creation creation = cosmos.life().create(cosmos.eternity(), cosmos.spatiality(), cosmos.temporality());
 	World& world = creation.world();
 
 	const auto& host = static_cast<const Witness&>(world.welcome(DeviceToken::generate()));
@@ -309,7 +312,7 @@ TEST_CASE("letters of an abode live while it is contemplated, shared by every ga
 TEST_CASE("letters of an abode are gone with the last gaze and are born anew from matter")
 {
 	InMemoryCosmos cosmos;
-	Creation creation(cosmos.eternity(), cosmos.spatiality(), cosmos.temporality());
+	Creation creation = cosmos.life().create(cosmos.eternity(), cosmos.spatiality(), cosmos.temporality());
 	World& world = creation.world();
 
 	const auto& host = static_cast<const Witness&>(world.welcome(DeviceToken::generate()));
@@ -358,6 +361,21 @@ TEST_CASE("matter of a man is a soul, a vessel and the embodiment that joins the
 }
 
 
+TEST_CASE("only Life creates the World, and there is one Life")
+{
+	static_assert(!std::is_constructible_v<Creation, Eternity&, Spatiality&, Temporality&>);
+	static_assert(!std::is_copy_constructible_v<Life>);
+	static_assert(!std::is_move_constructible_v<Life>);
+
+	InMemoryCosmos cosmos;
+	CHECK_THROWS_AS(Life{}, std::logic_error);
+
+	Creation creation = cosmos.life().create(cosmos.eternity(), cosmos.spatiality(), cosmos.temporality());
+	const Man& man = creation.world().welcome(DeviceToken::generate());
+	CHECK(creation.world().knows(man.Soul::id()));
+}
+
+
 TEST_CASE("a word is immanent to Eternity and is neither copied nor moved in any role")
 {
 	static_assert(std::is_base_of_v<Immanent<Eternity>, Word>);
@@ -371,7 +389,7 @@ TEST_CASE("a word is immanent to Eternity and is neither copied nor moved in any
 TEST_CASE("tie is a place for distinct testator and novice")
 {
 	InMemoryCosmos cosmos;
-	Creation creation(cosmos.eternity(), cosmos.spatiality(), cosmos.temporality());
+	Creation creation = cosmos.life().create(cosmos.eternity(), cosmos.spatiality(), cosmos.temporality());
 	World& world = creation.world();
 
 	const auto& testator = static_cast<const Testator&>(world.welcome(DeviceToken::generate()));
@@ -391,7 +409,7 @@ TEST_CASE("tie is a place for distinct testator and novice")
 TEST_CASE("supplicate accept creates tie owned as obedience")
 {
 	InMemoryCosmos cosmos;
-	Creation creation(cosmos.eternity(), cosmos.spatiality(), cosmos.temporality());
+	Creation creation = cosmos.life().create(cosmos.eternity(), cosmos.spatiality(), cosmos.temporality());
 	World& world = creation.world();
 
 	const Man& a = world.welcome(DeviceToken::generate());
@@ -432,7 +450,7 @@ TEST_CASE("supplicate accept creates tie owned as obedience")
 TEST_CASE("reject closes pending supplication; wrong party cannot accept")
 {
 	InMemoryCosmos cosmos;
-	Creation creation(cosmos.eternity(), cosmos.spatiality(), cosmos.temporality());
+	Creation creation = cosmos.life().create(cosmos.eternity(), cosmos.spatiality(), cosmos.temporality());
 	World& world = creation.world();
 
 	const Man& a = world.welcome(DeviceToken::generate());
@@ -463,7 +481,7 @@ TEST_CASE("reject closes pending supplication; wrong party cannot accept")
 TEST_CASE("will and execute within obedience")
 {
 	InMemoryCosmos cosmos;
-	Creation creation(cosmos.eternity(), cosmos.spatiality(), cosmos.temporality());
+	Creation creation = cosmos.life().create(cosmos.eternity(), cosmos.spatiality(), cosmos.temporality());
 	World& world = creation.world();
 
 	const Man& a = world.welcome(DeviceToken::generate());
@@ -511,7 +529,7 @@ TEST_CASE("will and execute within obedience")
 TEST_CASE("a tie shows its deeds only to its sides; deeds are not letters")
 {
 	InMemoryCosmos cosmos;
-	Creation creation(cosmos.eternity(), cosmos.spatiality(), cosmos.temporality());
+	Creation creation = cosmos.life().create(cosmos.eternity(), cosmos.spatiality(), cosmos.temporality());
 	World& world = creation.world();
 
 	const auto& novice = static_cast<const Novice&>(world.welcome(DeviceToken::generate()));
