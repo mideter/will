@@ -25,7 +25,7 @@ const Tie& living_tie(const id::Place id)
 
 
 Deed::Deed(matter::Deed kept)
-	: id_(kept.id())
+	: Word(kept.id())
 	, tie_(living_tie(kept.placement().place()))
 	, saying_(kept.word().saying())
 	, created_at_(kept.dating().created_at())

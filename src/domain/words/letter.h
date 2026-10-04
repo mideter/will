@@ -4,7 +4,6 @@
 #include "immanents/place.h"
 #include "immanents/soul.h"
 #include "words/word.h"
-#include "identity/word.h"
 #include "values/saying.h"
 #include "values/timestamp.h"
 
@@ -19,14 +18,12 @@ public:
 	/// Place and author must be known to Space and Heaven.
 	explicit Letter(matter::Letter kept);
 
-	id::Word id() const noexcept { return id_; }
 	const Place& place() const noexcept { return place_; }
 	const Soul& author() const noexcept { return author_; }
 	const Saying& saying() const noexcept { return saying_; }
 	Timestamp created_at() const noexcept { return created_at_; }
 
 private:
-	id::Word id_;
 	const Place& place_;
 	const Soul& author_;
 	Saying saying_;
