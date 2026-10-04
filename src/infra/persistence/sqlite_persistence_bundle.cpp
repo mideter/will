@@ -25,7 +25,8 @@ SqlitePersistenceBundle::SqlitePersistenceBundle(std::string prefix)
 	, eternity_(eternity_db_)
 	, spatiality_(space_db_, eternity_)
 	, temporality_(time_db_, eternity_)
-	, creation_(life_.create(spatiality_, temporality_))
+	, life_(spatiality_, temporality_)
+	, creation_(life_.create())
 {}
 
 

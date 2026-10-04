@@ -63,7 +63,7 @@ TEST_CASE("matter::Word accepts max body length")
 TEST_CASE("Letter is born from its matter with living place and author")
 {
 	InMemoryCosmos cosmos;
-	Creation creation = cosmos.life().create(cosmos.spatiality(), cosmos.temporality());
+	Creation creation = cosmos.life().create();
 	World& world = creation.world();
 
 	const Man& man = world.welcome(DeviceToken::generate());
@@ -85,7 +85,7 @@ TEST_CASE("Letter is born from its matter with living place and author")
 TEST_CASE("Letter rejects unknown place")
 {
 	InMemoryCosmos cosmos;
-	Creation creation = cosmos.life().create(cosmos.spatiality(), cosmos.temporality());
+	Creation creation = cosmos.life().create();
 	World& world = creation.world();
 
 	const Man& man = world.welcome(DeviceToken::generate());
@@ -100,7 +100,7 @@ TEST_CASE("Letter rejects unknown place")
 TEST_CASE("matter::Letter rejects parts with different word ids")
 {
 	InMemoryCosmos cosmos;
-	Creation creation = cosmos.life().create(cosmos.spatiality(), cosmos.temporality());
+	Creation creation = cosmos.life().create();
 	World& world = creation.world();
 
 	const Man& man = world.welcome(DeviceToken::generate());
@@ -116,7 +116,7 @@ TEST_CASE("matter::Letter rejects parts with different word ids")
 TEST_CASE("Deed is a word of will in a living Tie")
 {
 	InMemoryCosmos cosmos;
-	Creation creation = cosmos.life().create(cosmos.spatiality(), cosmos.temporality());
+	Creation creation = cosmos.life().create();
 	World& world = creation.world();
 
 	const auto& testator = static_cast<const Testator&>(world.welcome(DeviceToken::generate()));
@@ -155,7 +155,7 @@ TEST_CASE("Deed is a word of will in a living Tie")
 TEST_CASE("Deed rejects a place that is not a Tie and an author who is not its testator")
 {
 	InMemoryCosmos cosmos;
-	Creation creation = cosmos.life().create(cosmos.spatiality(), cosmos.temporality());
+	Creation creation = cosmos.life().create();
 	World& world = creation.world();
 
 	const auto& testator = static_cast<const Testator&>(world.welcome(DeviceToken::generate()));

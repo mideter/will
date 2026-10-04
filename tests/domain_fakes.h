@@ -366,6 +366,7 @@ public:
 		: eternity_(shared_)
 		, spatiality_(shared_, eternity_)
 		, temporality_(shared_, eternity_)
+		, life_(spatiality_, temporality_)
 	{}
 
 	Life& life() { return life_; }

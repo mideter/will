@@ -12,7 +12,9 @@ namespace will::domain {
 Life* Life::current_ = nullptr;
 
 
-Life::Life()
+Life::Life(Spatiality& spatiality, Temporality& temporality)
+	: spatiality_(spatiality)
+	, temporality_(temporality)
 {
 	(void)Eternity::the();
 
@@ -30,9 +32,9 @@ Life::~Life()
 }
 
 
-Creation Life::create(Spatiality& spatiality, Temporality& temporality)
+Creation Life::create()
 {
-	return Creation{Eternity::the(), spatiality, temporality};
+	return Creation{Eternity::the(), spatiality_, temporality_};
 }
 
 
