@@ -3,7 +3,7 @@
 #include "identity/place.h"
 #include "matter/dating.h"
 #include "matter/placement.h"
-#include "matter/utterance.h"
+#include "matter/word.h"
 #include "properties/immanent.h"
 
 #include <vector>
@@ -33,7 +33,7 @@ public:
 protected:
 	/// Parts of one word placed here, as the three dimensions keep them.
 	struct Parts {
-		matter::Utterance utterance;
+		matter::Word word;
 		matter::Placement placement;
 		matter::Dating dating;
 	};

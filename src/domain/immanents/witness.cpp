@@ -1,6 +1,6 @@
 #include "witness.h"
 
-#include "matter/utterance.h"
+#include "matter/word.h"
 #include "immanents/abode.h"
 #include "dimensions/spatiality.h"
 #include "dimensions/temporality.h"
@@ -46,7 +46,7 @@ void Witness::say(const Saying& saying) const
 	if (!place.dwells(*this))
 		throw std::logic_error("Witness does not dwell in the contemplated abode");
 
-	const matter::Utterance uttered = utter(saying);
+	const matter::Word uttered = utter(saying);
 	spatiality().place(uttered.id(), place.id());
 	temporality().date(uttered.id());
 }

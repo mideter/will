@@ -13,16 +13,16 @@ const Soul& Spirit::soul(const id::Soul id)
 }
 
 
-matter::Utterance Spirit::utter(const Saying& saying) const
+matter::Word Spirit::utter(const Saying& saying) const
 {
 	const auto& self = static_cast<const Soul&>(*this);
 	return eternity().utter(self.id(), saying);
 }
 
 
-std::vector<matter::Utterance> Spirit::utterances(const std::vector<id::Word>& ids) const
+std::vector<matter::Word> Spirit::words(const std::vector<id::Word>& ids) const
 {
-	return eternity().utterances(ids);
+	return eternity().words(ids);
 }
 
 

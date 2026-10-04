@@ -1,7 +1,7 @@
 #pragma once
 
 #include "matter/soul.h"
-#include "matter/utterance.h"
+#include "matter/word.h"
 #include "identity/word.h"
 #include "identity/soul.h"
 #include "horizons/time.h"
@@ -34,14 +34,14 @@ public:
 	/// All souls kept (for Creation awaken).
 	virtual std::vector<matter::Soul> souls() const = 0;
 
-	/// Keep a Saying and author; returns the eternal utterance.
-	virtual matter::Utterance utter(id::Soul author, const Saying& saying) = 0;
+	/// Keep a Saying and author; returns the eternal word.
+	virtual matter::Word utter(id::Soul author, const Saying& saying) = 0;
 
 	/// Throws if unknown.
-	virtual matter::Utterance utterance(id::Word id) const = 0;
+	virtual matter::Word word(id::Word id) const = 0;
 
 	/// Order preserved; skips unknown.
-	virtual std::vector<matter::Utterance> utterances(const std::vector<id::Word>& ids) const = 0;
+	virtual std::vector<matter::Word> words(const std::vector<id::Word>& ids) const = 0;
 };
 
 

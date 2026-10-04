@@ -8,10 +8,11 @@
 namespace will::domain::matter {
 
 
-/// Utterance — Saying and author kept in Eternity; matter for a living Word (Letter, Deed).
-class Utterance {
+/// Matter of living Word (Слово) — its id, author and Saying, kept in Eternity.
+/// The eternal part of the matter of every Letter and Deed.
+class Word {
 public:
-	Utterance(id::Word id, id::Soul author, Saying saying);
+	Word(id::Word id, id::Soul author, Saying saying);
 
 	id::Word id() const noexcept { return id_; }
 	id::Soul author() const noexcept { return author_; }

@@ -56,7 +56,7 @@ std::vector<std::shared_ptr<const Letter>> Abode::letters(const Contemplation& g
 	shown.reserve(kept.size());
 	for (Parts& parts : kept) {
 		shown.push_back(std::make_shared<const Letter>(matter::Letter{
-			std::move(parts.utterance), std::move(parts.placement), std::move(parts.dating)}));
+			std::move(parts.word), std::move(parts.placement), std::move(parts.dating)}));
 	}
 
 	return shown;

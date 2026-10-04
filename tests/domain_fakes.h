@@ -8,7 +8,7 @@
 #include "matter/tie.h"
 #include "immanents/obedience.h"
 #include "immanents/tie.h"
-#include "matter/utterance.h"
+#include "matter/word.h"
 #include "acts/supplication.h"
 #include "immanents/abode.h"
 #include "immanents/soul.h"
@@ -96,29 +96,29 @@ public:
 		return out;
 	}
 
-	matter::Utterance utter(const id::Soul author, const Saying& saying) override
+	matter::Word utter(const id::Soul author, const Saying& saying) override
 	{
-		matter::Utterance row{id::Word{++shared_.next_word_id}, author, saying};
-		utterances_.push_back(row);
+		matter::Word row{id::Word{++shared_.next_word_id}, author, saying};
+		words_.push_back(row);
 		return row;
 	}
 
-	matter::Utterance utterance(const id::Word id) const override
+	matter::Word word(const id::Word id) const override
 	{
-		for (const matter::Utterance& row : utterances_) {
+		for (const matter::Word& row : words_) {
 			if (row.id() == id)
 				return row;
 		}
-		throw std::invalid_argument("unknown utterance");
+		throw std::invalid_argument("unknown word");
 	}
 
-	std::vector<matter::Utterance> utterances(const std::vector<id::Word>& ids) const override
+	std::vector<matter::Word> words(const std::vector<id::Word>& ids) const override
 	{
-		std::vector<matter::Utterance> out;
+		std::vector<matter::Word> out;
 		out.reserve(ids.size());
 		for (const id::Word id : ids) {
 			try {
-				out.push_back(utterance(id));
+				out.push_back(word(id));
 			} catch (const std::invalid_argument&) {
 			}
 		}
@@ -132,7 +132,7 @@ public:
 private:
 	InMemoryShared& shared_;
 	Space space_;
-	std::vector<matter::Utterance> utterances_;
+	std::vector<matter::Word> words_;
 };
 
 

@@ -171,7 +171,7 @@ TEST_CASE("man say persists via temporality")
 	REQUIRE(placed.size() == 1);
 	const auto dated = cosmos.temporality().datings({placed[0].id()});
 	REQUIRE(dated.size() == 1);
-	const auto uttered = cosmos.eternity().utterance(placed[0].id());
+	const auto uttered = cosmos.eternity().word(placed[0].id());
 	CHECK(uttered.author() == author.Soul::id());
 	CHECK(uttered.saying().body() == "hello");
 	CHECK(dated[0].created_at() == Timestamp{1});

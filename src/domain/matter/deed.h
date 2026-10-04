@@ -4,7 +4,7 @@
 #include "matter/dating.h"
 #include "matter/execution.h"
 #include "matter/placement.h"
-#include "matter/utterance.h"
+#include "matter/word.h"
 
 #include <optional>
 
@@ -17,17 +17,17 @@ namespace will::domain::matter {
 /// Composite: no single dimension keeps it. The parts share the word id.
 class Deed {
 public:
-	Deed(Utterance utterance, Placement placement, Dating dating,
+	Deed(Word word, Placement placement, Dating dating,
 		 std::optional<Execution> execution = std::nullopt);
 
-	id::Word id() const noexcept { return utterance_.id(); }
-	const Utterance& utterance() const noexcept { return utterance_; }
+	id::Word id() const noexcept { return word_.id(); }
+	const Word& word() const noexcept { return word_; }
 	const Placement& placement() const noexcept { return placement_; }
 	const Dating& dating() const noexcept { return dating_; }
 	const std::optional<Execution>& execution() const noexcept { return execution_; }
 
 private:
-	Utterance utterance_;
+	Word word_;
 	Placement placement_;
 	Dating dating_;
 	std::optional<Execution> execution_;

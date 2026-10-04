@@ -49,8 +49,8 @@ std::vector<Place::Parts> Place::words(const Witness& asker) const
 		return a.id() < b.id();
 	});
 
-	std::unordered_map<id::Word, matter::Utterance> uttered;
-	for (matter::Utterance& row : asker.utterances(ids))
+	std::unordered_map<id::Word, matter::Word> uttered;
+	for (matter::Word& row : asker.words(ids))
 		uttered.emplace(row.id(), std::move(row));
 
 	std::vector<Parts> kept;

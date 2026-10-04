@@ -2,7 +2,7 @@
 
 #include "matter/dating.h"
 #include "matter/placement.h"
-#include "matter/utterance.h"
+#include "matter/word.h"
 #include "immanents/soul.h"
 #include "dimensions/spatiality.h"
 #include "dimensions/temporality.h"
@@ -37,7 +37,7 @@ Deed Testator::will(const Shepherding& shepherding, const Saying& saying) const
 	if (shepherding.testator().Soul::id() != Soul::id())
 		throw std::logic_error("not the testator of this shepherding");
 
-	const matter::Utterance uttered = utter(saying);
+	const matter::Word uttered = utter(saying);
 	spatiality().place(uttered.id(), shepherding.id());
 	const matter::Dating dated = temporality().date(uttered.id());
 

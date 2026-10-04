@@ -57,7 +57,7 @@ std::vector<std::shared_ptr<const Deed>> Tie::deeds(const Novice& asker) const
 	std::vector<id::Word> ids;
 	ids.reserve(kept.size());
 	for (const Parts& parts : kept)
-		ids.push_back(parts.utterance.id());
+		ids.push_back(parts.word.id());
 
 	std::unordered_map<id::Word, matter::Execution> executed;
 	for (matter::Execution& row : asker.temporality().executions(ids))
@@ -67,11 +67,11 @@ std::vector<std::shared_ptr<const Deed>> Tie::deeds(const Novice& asker) const
 	shown.reserve(kept.size());
 	for (Parts& parts : kept) {
 		std::optional<matter::Execution> execution;
-		if (const auto e = executed.find(parts.utterance.id()); e != executed.end())
+		if (const auto e = executed.find(parts.word.id()); e != executed.end())
 			execution = e->second;
 
 		shown.push_back(std::make_shared<const Deed>(matter::Deed{
-			std::move(parts.utterance), std::move(parts.placement), std::move(parts.dating),
+			std::move(parts.word), std::move(parts.placement), std::move(parts.dating),
 			std::move(execution)}));
 	}
 

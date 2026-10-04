@@ -7,15 +7,15 @@
 namespace will::domain::matter {
 
 
-Deed::Deed(Utterance utterance, Placement placement, Dating dating, std::optional<Execution> execution)
-	: utterance_(std::move(utterance))
+Deed::Deed(Word word, Placement placement, Dating dating, std::optional<Execution> execution)
+	: word_(std::move(word))
 	, placement_(std::move(placement))
 	, dating_(std::move(dating))
 	, execution_(std::move(execution))
 {
-	if (utterance_.id() != placement_.id() || utterance_.id() != dating_.id())
+	if (word_.id() != placement_.id() || word_.id() != dating_.id())
 		throw std::invalid_argument("deed parts must share the word id");
-	if (execution_ && execution_->id() != utterance_.id())
+	if (execution_ && execution_->id() != word_.id())
 		throw std::invalid_argument("deed parts must share the word id");
 }
 
