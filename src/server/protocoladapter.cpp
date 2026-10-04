@@ -356,15 +356,15 @@ void ProtocolAdapter::handle_will_deed(const SessionId session_id, const v1::Wil
 	}
 
 	try {
-		const domain::Behest behest = testator.will(*shepherding, msg.body());
+		const std::shared_ptr<const domain::Behest> behest = testator.will(*shepherding, msg.body());
 
-		send_notice(session_id, "behest " + std::to_string(behest.id().value()) + " willed");
+		send_notice(session_id, "behest " + std::to_string(behest->id().value()) + " willed");
 
 		v1::ServerEvent offered;
 		auto* row = offered.mutable_deed_offered();
-		row->set_deed_id(behest.id().value());
+		row->set_deed_id(behest->id().value());
 		row->set_testator_name(std::string{self.name().text()});
-		row->set_body(behest.saying().body());
+		row->set_body(behest->saying().body());
 		send_to_vessel(novice_man->Vessel::id(), offered);
 	} catch (const std::exception& e) {
 		send_notice(session_id, e.what());

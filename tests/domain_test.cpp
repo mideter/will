@@ -463,7 +463,8 @@ TEST_CASE("the sides of a tie may contemplate it and behold its behests")
 
 	novice.supplicate(testator);
 	const Shepherding& shepherding = testator.accept(*testator.supplication(novice));
-	const Behest willed = testator.will(shepherding, "fast");
+	const std::shared_ptr<const Behest> willed_held = testator.will(shepherding, "fast");
+	const Behest& willed = *willed_held;
 
 	novice.wake();
 	testator.wake();
@@ -492,6 +493,93 @@ TEST_CASE("the sides of a tie may contemplate it and behold its behests")
 	testator.contemplate(testator.abode());
 	CHECK(world.contemplating(shepherding).empty());
 	static_cast<const Man&>(testator).say("hello");
+}
+
+
+TEST_CASE("the words of a tie live while it is contemplated, one for both sides")
+{
+	InMemoryCosmos cosmos;
+	Creation creation = cosmos.life().create();
+	World& world = creation.world();
+
+	const auto& novice = static_cast<const Novice&>(world.welcome(DeviceToken::generate()));
+	const auto& testator = static_cast<const Testator&>(world.welcome(DeviceToken::generate()));
+
+	novice.supplicate(testator);
+	const Shepherding& shepherding = testator.accept(*testator.supplication(novice));
+	const Obedience& obedience = novice.obedience(testator);
+
+	// Both sides turn to the tie: the testator's gaze births its words, the novice's shares them.
+	novice.wake();
+	testator.wake();
+	testator.contemplate(shepherding);
+	novice.contemplate(obedience);
+	const std::shared_ptr<const Contemplation> testator_gaze = world.contemplation(testator.Soul::id());
+	const std::shared_ptr<const Contemplation> novice_gaze = world.contemplation(novice.Soul::id());
+	CHECK(testator_gaze->words().empty());
+	CHECK(novice_gaze->words().empty());
+
+	// A behest willed is beheld at once by both, as one and the same word.
+	const std::shared_ptr<const Behest> behest = testator.will(shepherding, "fast");
+	REQUIRE(testator_gaze->words().size() == 1);
+	REQUIRE(novice_gaze->words().size() == 1);
+	CHECK(testator_gaze->words()[0] == behest);
+	CHECK(novice_gaze->words()[0] == behest);
+
+	// The deed fulfilling it follows in the same stream, for both.
+	const std::shared_ptr<const Deed> deed = novice.execute(*behest);
+	REQUIRE(testator_gaze->words().size() == 2);
+	CHECK(testator_gaze->words()[1] == deed);
+	CHECK(novice_gaze->words()[1] == deed);
+
+	// Asked by a side, the tie gives the very same living words.
+	CHECK(shepherding.behests(testator).front() == behest);
+	CHECK(obedience.deeds(novice).front() == deed);
+
+}
+
+
+TEST_CASE("the words of a tie are gone with the last gaze and are born anew from matter")
+{
+	InMemoryCosmos cosmos;
+	Creation creation = cosmos.life().create();
+	World& world = creation.world();
+
+	const auto& novice = static_cast<const Novice&>(world.welcome(DeviceToken::generate()));
+	const auto& testator = static_cast<const Testator&>(world.welcome(DeviceToken::generate()));
+
+	novice.supplicate(testator);
+	const Shepherding& shepherding = testator.accept(*testator.supplication(novice));
+
+	testator.wake();
+	testator.contemplate(shepherding);
+
+	std::weak_ptr<const Behest> watched;
+	id::Word behest_id{1};
+	{
+		const std::shared_ptr<const Behest> behest = testator.will(shepherding, "fast");
+		watched = behest;
+		behest_id = behest->id();
+		novice.execute(*behest, Saying{"fasted"});
+	}
+	CHECK_FALSE(watched.expired());  // the testator's gaze holds it
+
+	// The last gaze leaves: the living words are gone, their matter stays kept.
+	testator.sleep();
+	CHECK(watched.expired());
+
+	// Turning anew, the tie births them again from matter, in their order.
+	testator.wake();
+	testator.contemplate(shepherding);
+	const auto words = world.contemplation(testator.Soul::id())->words();
+	REQUIRE(words.size() == 2);
+	const auto behest = std::dynamic_pointer_cast<const Behest>(words[0]);
+	const auto deed = std::dynamic_pointer_cast<const Deed>(words[1]);
+	REQUIRE(behest);
+	REQUIRE(deed);
+	CHECK(behest->id() == behest_id);
+	CHECK(deed->behest() == behest_id);
+	CHECK(deed->saying().body() == "fasted");
 }
 
 
@@ -626,7 +714,8 @@ TEST_CASE("will and execute within obedience")
 	testator.accept(*testator.supplication(novice));
 	REQUIRE(cosmos.spatiality().ties().size() == 1);
 	const Shepherding& shepherding = testator.shepherding(novice);
-	const Behest behest = testator.will(shepherding, "fast");
+	const std::shared_ptr<const Behest> behest_held = testator.will(shepherding, "fast");
+	const Behest& behest = *behest_held;
 	CHECK(behest.saying().body() == "fast");
 	CHECK(&behest.tie().testator() == &testator);
 	CHECK(&behest.tie().novice() == &novice);
@@ -665,7 +754,8 @@ TEST_CASE("a tie shows its behests only to its sides; behests are not letters")
 
 	novice.supplicate(testator);
 	testator.accept(*testator.supplication(novice));
-	const Behest behest = testator.will(testator.shepherding(novice), "fast");
+	const std::shared_ptr<const Behest> behest_held = testator.will(testator.shepherding(novice), "fast");
+	const Behest& behest = *behest_held;
 
 	novice.wake();
 	testator.wake();

@@ -1,6 +1,7 @@
 #include "novice.h"
 
 #include "immanents/tie.h"
+#include "immanents/contemplation.h"
 #include "immanents/soul.h"
 #include "immanents/testator.h"
 #include "dimensions/spatiality.h"
@@ -44,8 +45,13 @@ std::shared_ptr<const Deed> Novice::execute(const Behest& behest, std::optional<
 	matter::Dating dated = temporality().date(uttered.id());
 	matter::Execution executed = temporality().execute(uttered.id(), behest.id());
 
-	return tie.inscribe(Birth<Novice>{}, matter::Deed{std::move(uttered), std::move(placed), std::move(dated),
-													   std::move(executed)});
+	const std::shared_ptr<const Deed> deed = tie.inscribe(
+		Birth<Novice>{},
+		matter::Deed{std::move(uttered), std::move(placed), std::move(dated), std::move(executed)});
+	for (const std::shared_ptr<const Contemplation>& beholder : gazes(tie))
+		beholder->behold(deed);
+
+	return deed;
 }
 
 

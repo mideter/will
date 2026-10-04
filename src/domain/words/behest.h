@@ -10,9 +10,6 @@
 namespace will::domain {
 
 
-class Testator;
-
-
 /// Behest (Веление) — the testator's Word of will in a living Tie (Узы).
 /// Born from matter::Behest; it does not change. It is fulfilled by a Deed the
 /// novice brings forth in the same Tie.
@@ -20,14 +17,11 @@ class Behest : public Word {
 public:
 	/// Place must be a living Tie whose testator is the author.
 	Behest(Birth<Tie>, matter::Behest kept);
-	Behest(Birth<Testator>, matter::Behest kept);
 
 	const Tie& tie() const noexcept { return tie_; }
 	Timestamp created_at() const noexcept { return created_at_; }
 
 private:
-	explicit Behest(matter::Behest kept);
-
 	const Tie& tie_;
 	Timestamp created_at_;
 };

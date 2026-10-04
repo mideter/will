@@ -1,6 +1,8 @@
 #pragma once
 
 #include "immanents/place.h"
+#include "matter/behest.h"
+#include "properties/birth.h"
 
 #include <memory>
 #include <vector>
@@ -32,6 +34,10 @@ public:
 
 	/// Behests placed here, oldest first, shown to a side of this place.
 	virtual std::vector<std::shared_ptr<const Behest>> behests(const Novice& asker) const = 0;
+
+	/// A behest the testator wills here, born living from the matter the
+	/// dimensions returned when they kept it.
+	virtual std::shared_ptr<const Behest> inscribe(Birth<Testator>, matter::Behest kept) const = 0;
 
 	/// Deeds placed here, oldest first, shown to a side of this place.
 	virtual std::vector<std::shared_ptr<const Deed>> deeds(const Novice& asker) const = 0;

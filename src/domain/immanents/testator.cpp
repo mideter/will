@@ -3,6 +3,7 @@
 #include "matter/dating.h"
 #include "matter/placement.h"
 #include "matter/word.h"
+#include "immanents/contemplation.h"
 #include "immanents/soul.h"
 #include "dimensions/spatiality.h"
 #include "dimensions/temporality.h"
@@ -32,7 +33,7 @@ void Testator::reject(const Supplication& ask) const
 }
 
 
-Behest Testator::will(const Shepherding& shepherding, const Saying& saying) const
+std::shared_ptr<const Behest> Testator::will(const Shepherding& shepherding, const Saying& saying) const
 {
 	if (shepherding.testator().Soul::id() != Soul::id())
 		throw std::logic_error("not the testator of this shepherding");
@@ -41,7 +42,12 @@ Behest Testator::will(const Shepherding& shepherding, const Saying& saying) cons
 	matter::Placement placed = spatiality().place(uttered.id(), shepherding.id());
 	matter::Dating dated = temporality().date(uttered.id());
 
-	return Behest{Birth<Testator>{}, matter::Behest{std::move(uttered), std::move(placed), std::move(dated)}};
+	const std::shared_ptr<const Behest> behest = shepherding.inscribe(
+		Birth<Testator>{}, matter::Behest{std::move(uttered), std::move(placed), std::move(dated)});
+	for (const std::shared_ptr<const Contemplation>& beholder : gazes(shepherding))
+		beholder->behold(behest);
+
+	return behest;
 }
 
 

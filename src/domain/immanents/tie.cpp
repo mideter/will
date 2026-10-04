@@ -9,8 +9,10 @@
 #include "matter/behest.h"
 #include "properties/immanent.h"
 
+#include <algorithm>
 #include <memory>
 #include <stdexcept>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -51,8 +53,10 @@ std::vector<std::shared_ptr<const Behest>> Tie::behests(const Novice& asker) con
 		throw std::logic_error("not a side of this tie");
 
 	std::vector<std::shared_ptr<const Behest>> shown;
-	for (matter::Behest& kept : kept_behests())
-		shown.push_back(std::make_shared<const Behest>(Birth<Tie>{}, std::move(kept)));
+	for (const std::shared_ptr<const Word>& word : living()) {
+		if (auto behest = std::dynamic_pointer_cast<const Behest>(word))
+			shown.push_back(std::move(behest));
+	}
 
 	return shown;
 }
@@ -64,8 +68,10 @@ std::vector<std::shared_ptr<const Deed>> Tie::deeds(const Novice& asker) const
 		throw std::logic_error("not a side of this tie");
 
 	std::vector<std::shared_ptr<const Deed>> shown;
-	for (matter::Deed& kept : kept_deeds())
-		shown.push_back(std::make_shared<const Deed>(Birth<Tie>{}, std::move(kept)));
+	for (const std::shared_ptr<const Word>& word : living()) {
+		if (auto deed = std::dynamic_pointer_cast<const Deed>(word))
+			shown.push_back(std::move(deed));
+	}
 
 	return shown;
 }
@@ -78,7 +84,28 @@ std::shared_ptr<const Deed> Tie::inscribe(Birth<Novice>, matter::Deed kept) cons
 	if (kept.word().author() != novice_.Soul::id())
 		throw std::logic_error("only the novice of a tie does a deed in it");
 
-	return std::make_shared<const Deed>(Birth<Tie>{}, std::move(kept));
+	auto deed = std::make_shared<const Deed>(Birth<Tie>{}, std::move(kept));
+
+	std::lock_guard lock(mutex_);
+	remember(deed);
+
+	return deed;
+}
+
+
+std::shared_ptr<const Behest> Tie::inscribe(Birth<Testator>, matter::Behest kept) const
+{
+	if (kept.placement().place() != id())
+		throw std::logic_error("the behest is not placed in this tie");
+	if (kept.word().author() != testator_.Soul::id())
+		throw std::logic_error("only the testator of a tie wills in it");
+
+	auto behest = std::make_shared<const Behest>(Birth<Tie>{}, std::move(kept));
+
+	std::lock_guard lock(mutex_);
+	remember(behest);
+
+	return behest;
 }
 
 
@@ -93,10 +120,55 @@ std::vector<std::shared_ptr<const Word>> Tie::words(const Contemplation& gaze) c
 	if (&gaze.place() != static_cast<const Place*>(this))
 		throw std::logic_error("this tie is not what is contemplated");
 
-	std::vector<std::shared_ptr<const Word>> shown;
-	for (matter::Behest& kept : kept_behests())
-		shown.push_back(std::make_shared<const Behest>(Birth<Tie>{}, std::move(kept)));
+	return living();
+}
 
+
+std::vector<std::shared_ptr<const Word>> Tie::living() const
+{
+	std::lock_guard lock(mutex_);
+
+	bool whole = false;
+	std::vector<std::shared_ptr<const Word>> shown = living_words(whole);
+	if (whole)
+		return shown;
+
+	std::unordered_map<id::Word, std::shared_ptr<const Word>> alive;
+	for (std::shared_ptr<const Word>& word : shown)
+		alive.emplace(word->id(), std::move(word));
+
+	// Behests and deeds as Life gives them, merged into one stream by time.
+	struct Born {
+		Timestamp at;
+		std::shared_ptr<const Word> word;
+	};
+	std::vector<Born> born;
+	for (matter::Behest& kept : kept_behests()) {
+		const Timestamp at = kept.dating().created_at();
+		const auto still = alive.find(kept.id());
+		born.push_back({at, still != alive.end()
+								? still->second
+								: std::make_shared<const Behest>(Birth<Tie>{}, std::move(kept))});
+	}
+	for (matter::Deed& kept : kept_deeds()) {
+		const Timestamp at = kept.dating().created_at();
+		const auto still = alive.find(kept.id());
+		born.push_back({at, still != alive.end()
+								? still->second
+								: std::make_shared<const Deed>(Birth<Tie>{}, std::move(kept))});
+	}
+	std::stable_sort(born.begin(), born.end(), [](const Born& a, const Born& b) {
+		if (a.at.value() != b.at.value())
+			return a.at.value() < b.at.value();
+		return a.word->id() < b.word->id();
+	});
+
+	shown.clear();
+	shown.reserve(born.size());
+	for (Born& each : born)
+		shown.push_back(std::move(each.word));
+
+	remember(shown);
 	return shown;
 }
 

@@ -199,8 +199,10 @@ TEST_CASE("sqlite keeps a behest and its execution across reopen")
 		novice.supplicate(testator);
 		testator.accept(*testator.supplication(novice));
 
-		const Behest open = testator.will(testator.shepherding(novice), "fast");
-		const Behest willed = testator.will(testator.shepherding(novice), "pray");
+		const std::shared_ptr<const Behest> open_held = testator.will(testator.shepherding(novice), "fast");
+		const Behest& open = *open_held;
+		const std::shared_ptr<const Behest> willed_held = testator.will(testator.shepherding(novice), "pray");
+		const Behest& willed = *willed_held;
 		CHECK(&willed.tie().novice() == &novice);
 		open_id = open.id();
 		done_id = willed.id();
