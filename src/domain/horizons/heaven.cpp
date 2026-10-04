@@ -98,21 +98,42 @@ void Heaven::present(const Soul& soul)
 
 void Heaven::contemplate(const Soul& soul, const Abode& abode)
 {
-	std::lock_guard lock(mutex_);
-	if (!souls_.contains(soul.id()))
+	if (!knows(soul.id()))
 		throw std::logic_error("Heaven does not know this soul");
 
-	// The former gaze of this soul ends here.
-	contemplations_.insert_or_assign(
-		soul.id(),
-		std::shared_ptr<const Contemplation>(new Contemplation(static_cast<const Witness&>(soul), abode)));
+	// Born and ended outside the lock: a gaze receives the letters it beholds,
+	// which may read the dimensions and ask Heaven for their authors.
+	std::shared_ptr<const Contemplation> gaze(new Contemplation(static_cast<const Witness&>(soul), abode));
+
+	std::lock_guard lock(mutex_);
+	std::swap(contemplations_[soul.id()], gaze);
 }
 
 
 void Heaven::cease(const Soul& soul)
 {
+	std::shared_ptr<const Contemplation> ended;
+
 	std::lock_guard lock(mutex_);
-	contemplations_.erase(soul.id());
+	const auto it = contemplations_.find(soul.id());
+	if (it == contemplations_.end())
+		return;
+
+	ended = std::move(it->second);
+	contemplations_.erase(it);
+}
+
+
+std::vector<std::shared_ptr<const Contemplation>> Heaven::gazes(const Abode& abode) const
+{
+	std::lock_guard lock(mutex_);
+
+	std::vector<std::shared_ptr<const Contemplation>> out;
+	for (const auto& [soul_id, gaze] : contemplations_) {
+		if (&gaze->abode() == &abode)
+			out.push_back(gaze);
+	}
+	return out;
 }
 
 

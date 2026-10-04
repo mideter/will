@@ -50,6 +50,9 @@ protected:
 	/// Contemplate nothing.
 	void cease() const;
 
+	/// The gazes resting now upon this abode.
+	static std::vector<std::shared_ptr<const Contemplation>> gazes(const Abode& abode);
+
 	/// Null while this spirit contemplates nothing.
 	std::shared_ptr<const Contemplation> contemplation() const;
 

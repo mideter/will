@@ -32,6 +32,9 @@ public:
 
 	std::vector<std::reference_wrapper<const Soul>> contemplating(const Abode& abode) const;
 
+	/// The gazes resting now upon this abode.
+	std::vector<std::shared_ptr<const Contemplation>> gazes(const Abode& abode) const;
+
 	/// The gaze of this soul; null while the soul contemplates nothing (asleep).
 	/// Whoever holds it keeps it from fading while he uses it.
 	std::shared_ptr<const Contemplation> contemplation(id::Soul soul_id) const;

@@ -40,7 +40,7 @@ public:
 	virtual std::vector<matter::Tie> ties() const = 0;
 
 	/// Fix a word in a place.
-	virtual void place(id::Word id, id::Place place) = 0;
+	virtual matter::Placement place(id::Word id, id::Place place) = 0;
 
 	/// matter::Placement of this word, if kept.
 	virtual std::optional<matter::Placement> placement(id::Word id) const = 0;

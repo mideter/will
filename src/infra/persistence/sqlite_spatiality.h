@@ -18,7 +18,7 @@ public:
 	domain::matter::Abode abide(domain::id::Soul host, domain::AbodeName name) override;
 	domain::matter::Tie bind(domain::id::Soul testator, domain::id::Soul novice) override;
 	std::vector<domain::matter::Tie> ties() const override;
-	void place(domain::id::Word id, domain::id::Place place) override;
+	domain::matter::Placement place(domain::id::Word id, domain::id::Place place) override;
 	std::optional<domain::matter::Placement> placement(domain::id::Word id) const override;
 	std::vector<domain::matter::Placement> placements(domain::id::Place place,
 											  std::uint32_t limit) const override;

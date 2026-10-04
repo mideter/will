@@ -8,6 +8,10 @@
 #include "immanents/obedience.h"
 #include "immanents/shepherding.h"
 #include "immanents/tie.h"
+#include "matter/letter.h"
+#include "matter/word.h"
+#include "matter/placement.h"
+#include "matter/dating.h"
 #include "matter/man.h"
 #include "matter/soul.h"
 #include "matter/vessel.h"
@@ -241,6 +245,98 @@ TEST_CASE("letters of an abode are seen through contemplation by one who dwells 
 	CHECK(world.contemplating(witness.abode()).empty());
 	stranger.wake();
 	CHECK(&world.contemplation(stranger.Soul::id())->abode() == &stranger.abode());
+}
+
+
+TEST_CASE("letters of an abode live while it is contemplated, shared by every gaze")
+{
+	InMemoryCosmos cosmos;
+	Creation creation(cosmos.eternity(), cosmos.spatiality(), cosmos.temporality());
+	World& world = creation.world();
+
+	const auto& host = static_cast<const Witness&>(world.welcome(DeviceToken::generate()));
+
+	// Asleep, nobody beholds the abode: nothing is read from the dimensions.
+	CHECK(cosmos.spatiality().placement_reads() == 0);
+
+	// The first gaze births the letters from what the dimensions keep.
+	host.wake();
+	CHECK(cosmos.spatiality().placement_reads() == 1);
+	CHECK(world.contemplation(host.Soul::id())->letters().empty());
+
+	// A letter said is born living at once and beheld, without reading the dimensions again.
+	host.say("first");
+	host.say("second");
+	const auto seen = world.contemplation(host.Soul::id())->letters();
+	REQUIRE(seen.size() == 2);
+	CHECK(seen[0]->saying().body() == "first");
+	CHECK(seen[1]->saying().body() == "second");
+	CHECK(&seen[0]->author() == static_cast<const Soul*>(&host));
+	CHECK(cosmos.spatiality().placement_reads() == 1);
+
+	// A new gaze upon the same abode shares the very same letters: nothing is read anew.
+	const std::shared_ptr<const Contemplation> former = world.contemplation(host.Soul::id());
+	host.contemplate(host.abode());
+	const std::shared_ptr<const Contemplation> current = world.contemplation(host.Soul::id());
+	REQUIRE(current != former);
+	CHECK(current->letters()[0] == seen[0]);
+	CHECK(current->letters()[1] == seen[1]);
+	CHECK(former->letters()[0] == seen[0]);
+	CHECK(cosmos.spatiality().placement_reads() == 1);
+
+	// Only the gazes resting on the abode now behold what is said next.
+	host.say("third");
+	CHECK(current->letters().size() == 3);
+	CHECK(former->letters().size() == 2);
+
+	// A gaze beholds only letters said in what it contemplates.
+	const auto& other = static_cast<const Witness&>(world.welcome(DeviceToken::generate()));
+	other.wake();
+	other.say("elsewhere");
+	CHECK_THROWS_AS(current->behold(world.contemplation(other.Soul::id())->letters().front()),
+					std::logic_error);
+	CHECK(current->letters().size() == 3);
+
+	// Only its author inscribes a letter, and only into the abode he contemplates.
+	const auto stray = matter::Letter{matter::Word{id::Word{900}, other.Soul::id(), "not his"},
+									  matter::Placement{id::Word{900}, host.abode().id()},
+									  matter::Dating{id::Word{900}, Timestamp{1}}};
+	CHECK_THROWS_AS(host.abode().inscribe(*current, stray), std::logic_error);
+	CHECK_THROWS_AS(other.abode().inscribe(*current, stray), std::logic_error);
+}
+
+
+TEST_CASE("letters of an abode are gone with the last gaze and are born anew from matter")
+{
+	InMemoryCosmos cosmos;
+	Creation creation(cosmos.eternity(), cosmos.spatiality(), cosmos.temporality());
+	World& world = creation.world();
+
+	const auto& host = static_cast<const Witness&>(world.welcome(DeviceToken::generate()));
+
+	host.wake();
+	host.say("kept");
+	std::weak_ptr<const Letter> watched = world.contemplation(host.Soul::id())->letters().front();
+	REQUIRE(watched.lock());
+	CHECK(cosmos.spatiality().placement_reads() == 1);
+
+	// While anyone still holds a gaze, its letters live on though the man sleeps.
+	std::shared_ptr<const Contemplation> held = world.contemplation(host.Soul::id());
+	host.sleep();
+	CHECK_FALSE(watched.expired());
+
+	// The last gaze is let go: the living letter is gone, its matter stays kept.
+	held.reset();
+	CHECK(watched.expired());
+	CHECK(cosmos.spatiality().placements(host.abode().id(), 10).size() == 1);
+	const std::size_t reads = cosmos.spatiality().placement_reads();
+
+	// A new gaze births the letters anew from the dimensions.
+	host.wake();
+	CHECK(cosmos.spatiality().placement_reads() == reads + 1);
+	const auto reborn = world.contemplation(host.Soul::id())->letters();
+	REQUIRE(reborn.size() == 1);
+	CHECK(reborn.front()->saying().body() == "kept");
 }
 
 

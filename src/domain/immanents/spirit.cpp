@@ -39,6 +39,12 @@ void Spirit::contemplate(const Abode& abode) const
 }
 
 
+std::vector<std::shared_ptr<const Contemplation>> Spirit::gazes(const Abode& abode)
+{
+	return heaven().gazes(abode);
+}
+
+
 void Spirit::cease() const
 {
 	const auto& self = static_cast<const Soul&>(*this);

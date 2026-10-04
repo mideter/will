@@ -35,6 +35,7 @@
 #include "values/timestamp.h"
 #include "values/saying.h"
 
+#include <cstddef>
 #include <cstdint>
 #include <optional>
 #include <stdexcept>
@@ -176,15 +177,17 @@ public:
 
 	std::vector<matter::Tie> ties() const override { return ties_; }
 
-	void place(const id::Word id, const id::Place place) override
+	matter::Placement place(const id::Word id, const id::Place place) override
 	{
+		const matter::Placement placed{id, place};
 		for (auto& row : placements_) {
 			if (row.id() == id) {
-				row = matter::Placement{id, place};
-				return;
+				row = placed;
+				return placed;
 			}
 		}
-		placements_.emplace_back(id, place);
+		placements_.push_back(placed);
+		return placed;
 	}
 
 	std::optional<matter::Placement> placement(const id::Word id) const override
@@ -196,8 +199,13 @@ public:
 		return std::nullopt;
 	}
 
+	/// How many times the words of a place were read from this dimension.
+	std::size_t placement_reads() const noexcept { return placement_reads_; }
+
 	std::vector<matter::Placement> placements(const id::Place place, const std::uint32_t limit) const override
 	{
+		++placement_reads_;
+
 		std::vector<matter::Placement> matching;
 		for (const matter::Placement& row : placements_) {
 			if (row.place() == place)
@@ -213,6 +221,7 @@ private:
 	Eternity& eternity_;
 	std::vector<std::pair<id::Soul, matter::Abode>> abodes_;
 	std::vector<matter::Placement> placements_;
+	mutable std::size_t placement_reads_ = 0;
 	std::vector<matter::Tie> ties_;
 };
 

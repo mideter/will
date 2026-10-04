@@ -131,7 +131,7 @@ std::vector<domain::matter::Tie> SqliteSpatiality::ties() const
 }
 
 
-void SqliteSpatiality::place(const domain::id::Word id, const domain::id::Place place)
+domain::matter::Placement SqliteSpatiality::place(const domain::id::Word id, const domain::id::Place place)
 {
 	std::lock_guard lock(database_.mutex());
 
@@ -141,6 +141,8 @@ void SqliteSpatiality::place(const domain::id::Word id, const domain::id::Place 
 	stmt.bind_i64(1, static_cast<std::int64_t>(id.value()), "bind word_id");
 	stmt.bind_i64(2, static_cast<std::int64_t>(place.value()), "bind place_id");
 	stmt.step_done("place step");
+
+	return domain::matter::Placement{id, place};
 }
 
 

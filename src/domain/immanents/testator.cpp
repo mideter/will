@@ -37,11 +37,11 @@ Deed Testator::will(const Shepherding& shepherding, const Saying& saying) const
 	if (shepherding.testator().Soul::id() != Soul::id())
 		throw std::logic_error("not the testator of this shepherding");
 
-	const matter::Word uttered = utter(saying);
-	spatiality().place(uttered.id(), shepherding.id());
-	const matter::Dating dated = temporality().date(uttered.id());
+	matter::Word uttered = utter(saying);
+	matter::Placement placed = spatiality().place(uttered.id(), shepherding.id());
+	matter::Dating dated = temporality().date(uttered.id());
 
-	return Deed{matter::Deed{uttered, matter::Placement{uttered.id(), shepherding.id()}, dated}};
+	return Deed{matter::Deed{std::move(uttered), std::move(placed), std::move(dated)}};
 }
 
 

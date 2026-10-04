@@ -1,5 +1,9 @@
 #include "witness.h"
 
+#include "matter/dating.h"
+#include "matter/letter.h"
+#include "matter/placement.h"
+#include "words/letter.h"
 #include "matter/word.h"
 #include "immanents/abode.h"
 #include "dimensions/spatiality.h"
@@ -47,9 +51,14 @@ void Witness::say(const Saying& saying) const
 
 	const Abode& place = gaze->abode();
 
-	const matter::Word uttered = utter(saying);
-	spatiality().place(uttered.id(), place.id());
-	temporality().date(uttered.id());
+	matter::Word uttered = utter(saying);
+	matter::Placement placed = spatiality().place(uttered.id(), place.id());
+	matter::Dating dated = temporality().date(uttered.id());
+
+	const std::shared_ptr<const Letter> letter =
+		place.inscribe(*gaze, matter::Letter{std::move(uttered), std::move(placed), std::move(dated)});
+	for (const std::shared_ptr<const Contemplation>& beholder : gazes(place))
+		beholder->behold(letter);
 }
 
 
