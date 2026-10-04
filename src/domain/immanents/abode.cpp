@@ -43,7 +43,7 @@ bool Abode::dwells(const Man& man) const
 }
 
 
-std::vector<Letter> Abode::letters(const Contemplation& gaze) const
+std::vector<std::shared_ptr<const Letter>> Abode::letters(const Contemplation& gaze) const
 {
 	if (&gaze.abode() != this)
 		throw std::logic_error("this abode is not what is contemplated");
@@ -52,11 +52,11 @@ std::vector<Letter> Abode::letters(const Contemplation& gaze) const
 
 	std::vector<Parts> kept = words(gaze.who());
 
-	std::vector<Letter> shown;
+	std::vector<std::shared_ptr<const Letter>> shown;
 	shown.reserve(kept.size());
 	for (Parts& parts : kept) {
-		shown.emplace_back(matter::Letter{std::move(parts.utterance), std::move(parts.placement),
-										  std::move(parts.dating)});
+		shown.push_back(std::make_shared<const Letter>(matter::Letter{
+			std::move(parts.utterance), std::move(parts.placement), std::move(parts.dating)}));
 	}
 
 	return shown;

@@ -13,6 +13,9 @@
 #include "matter/vessel.h"
 #include "matter/tie.h"
 #include "words/deed.h"
+#include "words/word.h"
+#include "properties/immanent.h"
+#include "dimensions/eternity.h"
 #include "words/letter.h"
 #include "immanents/novice.h"
 #include "immanents/testator.h"
@@ -193,9 +196,9 @@ TEST_CASE("letters of an abode are seen through contemplation by one who dwells 
 
 	const auto items = world.contemplation(witness.Soul::id())->letters();
 	REQUIRE(items.size() == 5);
-	CHECK(items.front().saying().body() == "m0");
-	CHECK(items.back().saying().body() == "m4");
-	CHECK(&items.front().place() == &witness.abode());
+	CHECK(items.front()->saying().body() == "m0");
+	CHECK(items.back()->saying().body() == "m4");
+	CHECK(&items.front()->place() == &witness.abode());
 
 	// Waking, a witness contemplates his own abode.
 	const auto& stranger = static_cast<const Witness&>(world.welcome(DeviceToken::generate()));
@@ -253,6 +256,16 @@ TEST_CASE("matter of a man is a soul, a vessel and the embodiment that joins the
 	CHECK_THROWS_AS((matter::Man{soul, other_body, embodied}), std::invalid_argument);
 	CHECK_THROWS_AS((matter::Man{soul, body, matter::Embodiment{id::Soul{4}, id::Vessel{5}}}),
 					std::invalid_argument);
+}
+
+
+TEST_CASE("a word is immanent to Eternity and is neither copied nor moved in any role")
+{
+	static_assert(std::is_base_of_v<Immanent<Eternity>, Word>);
+	static_assert(!std::is_copy_constructible_v<Letter>);
+	static_assert(!std::is_move_constructible_v<Letter>);
+	static_assert(!std::is_copy_constructible_v<Deed>);
+	static_assert(!std::is_move_constructible_v<Deed>);
 }
 
 
@@ -378,17 +391,17 @@ TEST_CASE("will and execute within obedience")
 	// The tie shows its deeds to either side, through the one who asks.
 	const Obedience& obedience = novice.obedience(testator);
 	REQUIRE(obedience.deeds(novice).size() == 1);
-	CHECK(obedience.deeds(novice).front().open());
+	CHECK(obedience.deeds(novice).front()->open());
 	REQUIRE(shepherding.deeds(testator).size() == 1);
-	CHECK(shepherding.deeds(testator).front().id() == deed.id());
+	CHECK(shepherding.deeds(testator).front()->id() == deed.id());
 	CHECK_THROWS_AS(testator.execute(deed), std::logic_error);
 
 	novice.execute(deed);
-	const Deed done = obedience.deeds(novice).front();
-	CHECK(done.executed());
-	CHECK_FALSE(done.open());
-	CHECK(shepherding.deeds(testator).front().executed());
-	CHECK_THROWS_AS(novice.execute(done), std::logic_error);
+	const std::shared_ptr<const Deed> done = obedience.deeds(novice).front();
+	CHECK(done->executed());
+	CHECK_FALSE(done->open());
+	CHECK(shepherding.deeds(testator).front()->executed());
+	CHECK_THROWS_AS(novice.execute(*done), std::logic_error);
 
 	// Stale open snapshot: what is kept decides, not the argument.
 	CHECK_THROWS_AS(novice.execute(deed), std::logic_error);
@@ -427,5 +440,5 @@ TEST_CASE("a tie shows its deeds only to its sides; deeds are not letters")
 	static_cast<const Witness&>(novice).say("hello");
 	REQUIRE(world.contemplation(novice.Soul::id())->letters().size() == 1);
 	REQUIRE(obedience.deeds(novice).size() == 1);
-	CHECK(obedience.deeds(novice).front().id() == deed.id());
+	CHECK(obedience.deeds(novice).front()->id() == deed.id());
 }

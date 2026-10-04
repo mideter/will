@@ -3,6 +3,7 @@
 #include "immanents/abode.h"
 #include "properties/immanent.h"
 
+#include <memory>
 #include <vector>
 
 
@@ -24,7 +25,7 @@ public:
 	const Abode& abode() const noexcept { return abode_; }
 
 	/// Letters of the contemplated abode, oldest first.
-	std::vector<Letter> letters() const;
+	std::vector<std::shared_ptr<const Letter>> letters() const;
 
 private:
 	friend class Heaven;

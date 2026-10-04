@@ -1,19 +1,24 @@
 #pragma once
 
+#include "properties/immanent.h"
+
 
 namespace will::domain {
 
 
-/// Word (Слово) — that which the spirit utters; ontological role.
+class Eternity;
+
+
+/// Word (Слово) — that which the spirit utters; ontological role, immanent to
+/// Eternity: there it is uttered and given its identity, and that part of it
+/// never changes. Neither copied nor moved.
 /// No identity and no Saying here. Living Letter and Deed are Word in the world.
-class Word {
+class Word : public Immanent<Eternity> {
 public:
 	virtual ~Word() = default;
 
 protected:
 	Word() = default;
-	Word(const Word&) = default;
-	Word& operator=(const Word&) = default;
 };
 
 

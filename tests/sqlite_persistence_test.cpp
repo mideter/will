@@ -20,6 +20,7 @@
 #include "identity/word.h"
 #include "values/soul_name.h"
 
+#include <memory>
 #include <optional>
 #include <stdexcept>
 #include <string>
@@ -70,9 +71,9 @@ TEST_CASE("sqlite persistence survives reopen")
 		const auto& witness_a = static_cast<const Witness&>(man_a);
 		const auto letters = world.contemplation(witness_a.Soul::id())->letters();
 		REQUIRE(letters.size() == 1);
-		CHECK(letters[0].saying().body() == "from-peer");
-		CHECK(letters[0].author().id() == man_a.Soul::id());
-		CHECK(world.soul(letters[0].author().id()).name() == *name_a);
+		CHECK(letters[0]->saying().body() == "from-peer");
+		CHECK(letters[0]->author().id() == man_a.Soul::id());
+		CHECK(world.soul(letters[0]->author().id()).name() == *name_a);
 
 		// man_b spoke in his own abode; check via spatiality/eternity on place_a only has man_a
 		const auto placed = bundle.spatiality().placements(witness_a.abode().id(), 10);
@@ -123,7 +124,7 @@ TEST_CASE("sqlite persistence survives reopen")
 
 		const auto letters = world.contemplation(man_a_reloaded.Soul::id())->letters();
 		REQUIRE(letters.size() == 1);
-		CHECK(letters[0].saying().body() == "from-peer");
+		CHECK(letters[0]->saying().body() == "from-peer");
 
 		CHECK(world.knows(*soul_b_id));
 		CHECK(world.soul(*soul_b_id).name() == *name_b);
@@ -201,10 +202,10 @@ TEST_CASE("sqlite keeps a deed and its execution across reopen")
 		const auto& testator = static_cast<const Testator&>(world.welcome(token_testator));
 
 		// The reborn tie shows the same deeds to both sides, oldest first.
-		const std::vector<Deed> shown = novice.obedience(testator).deeds(novice);
+		const std::vector<std::shared_ptr<const Deed>> shown = novice.obedience(testator).deeds(novice);
 		REQUIRE(shown.size() == 2);
-		const Deed& open = shown[0];
-		const Deed& done = shown[1];
+		const Deed& open = *shown[0];
+		const Deed& done = *shown[1];
 
 		CHECK(open.id() == *open_id);
 		CHECK(open.open());
@@ -218,7 +219,7 @@ TEST_CASE("sqlite keeps a deed and its execution across reopen")
 		CHECK_THROWS_AS(novice.execute(done), std::logic_error);
 
 		novice.execute(open);
-		CHECK(novice.obedience(testator).deeds(novice).front().executed());
+		CHECK(novice.obedience(testator).deeds(novice).front()->executed());
 	}
 
 	::unlink((prefix + ".eternity.db").c_str());

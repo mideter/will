@@ -30,16 +30,16 @@ namespace {
 
 /// The number a client names in /done is matched here, at the border: the
 /// domain shows the deeds of a place, it does not look words up by id.
-std::optional<domain::Deed> deed_numbered(const domain::Novice& novice, const std::uint64_t number)
+std::shared_ptr<const domain::Deed> deed_numbered(const domain::Novice& novice, const std::uint64_t number)
 {
 	for (const domain::Obedience& obedience : novice.obediences()) {
-		for (domain::Deed& deed : obedience.deeds(novice)) {
-			if (deed.id().value() == number)
-				return std::move(deed);
+		for (const std::shared_ptr<const domain::Deed>& deed : obedience.deeds(novice)) {
+			if (deed->id().value() == number)
+				return deed;
 		}
 	}
 
-	return std::nullopt;
+	return nullptr;
 }
 
 
@@ -245,7 +245,7 @@ void ProtocolAdapter::handle_history_request(const SessionId session_id, const v
 		return;
 	}
 
-	std::vector<domain::Letter> letters;
+	std::vector<std::shared_ptr<const domain::Letter>> letters;
 	try {
 		letters = gaze->letters();
 	} catch (const std::exception&) {
@@ -258,7 +258,7 @@ void ProtocolAdapter::handle_history_request(const SessionId session_id, const v
 
 	const domain::id::Soul listener_soul = man.Soul::id();
 	for (std::size_t i = first; i < letters.size(); ++i) {
-		const domain::Letter& letter = letters[i];
+		const domain::Letter& letter = *letters[i];
 
 		v1::ServerEvent event;
 		auto* history_item = event.mutable_history_item();
@@ -379,7 +379,7 @@ void ProtocolAdapter::handle_execute_deed(const SessionId session_id, const v1::
 	const auto& novice = static_cast<const domain::Novice&>(self);
 
 	try {
-		const std::optional<domain::Deed> deed = deed_numbered(novice, msg.deed_id());
+		const std::shared_ptr<const domain::Deed> deed = deed_numbered(novice, msg.deed_id());
 		if (!deed)
 			throw std::invalid_argument("unknown deed");
 

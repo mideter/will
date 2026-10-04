@@ -13,7 +13,7 @@ Contemplation::Contemplation(const Witness& who, const Abode& abode)
 {}
 
 
-std::vector<Letter> Contemplation::letters() const
+std::vector<std::shared_ptr<const Letter>> Contemplation::letters() const
 {
 	return abode_.letters(*this);
 }

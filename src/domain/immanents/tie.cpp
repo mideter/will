@@ -9,6 +9,7 @@
 #include "dimensions/temporality.h"
 #include "properties/immanent.h"
 
+#include <memory>
 #include <optional>
 #include <stdexcept>
 #include <unordered_map>
@@ -46,7 +47,7 @@ const Novice& Tie::novice() const
 }
 
 
-std::vector<Deed> Tie::deeds(const Novice& asker) const
+std::vector<std::shared_ptr<const Deed>> Tie::deeds(const Novice& asker) const
 {
 	if (asker.Soul::id() != novice_.Soul::id() && asker.Soul::id() != testator_.Soul::id())
 		throw std::logic_error("not a side of this tie");
@@ -62,15 +63,16 @@ std::vector<Deed> Tie::deeds(const Novice& asker) const
 	for (matter::Execution& row : asker.temporality().executions(ids))
 		executed.emplace(row.id(), std::move(row));
 
-	std::vector<Deed> shown;
+	std::vector<std::shared_ptr<const Deed>> shown;
 	shown.reserve(kept.size());
 	for (Parts& parts : kept) {
 		std::optional<matter::Execution> execution;
 		if (const auto e = executed.find(parts.utterance.id()); e != executed.end())
 			execution = e->second;
 
-		shown.emplace_back(matter::Deed{std::move(parts.utterance), std::move(parts.placement),
-										std::move(parts.dating), std::move(execution)});
+		shown.push_back(std::make_shared<const Deed>(matter::Deed{
+			std::move(parts.utterance), std::move(parts.placement), std::move(parts.dating),
+			std::move(execution)}));
 	}
 
 	return shown;

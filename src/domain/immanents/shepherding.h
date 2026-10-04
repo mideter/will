@@ -2,6 +2,7 @@
 
 #include "immanents/place.h"
 
+#include <memory>
 #include <vector>
 
 
@@ -29,7 +30,7 @@ public:
 	virtual const Novice& novice() const = 0;
 
 	/// Deeds placed here, oldest first, shown to a side of this place.
-	virtual std::vector<Deed> deeds(const Novice& asker) const = 0;
+	virtual std::vector<std::shared_ptr<const Deed>> deeds(const Novice& asker) const = 0;
 
 protected:
 	explicit Shepherding(const Soul& novice);

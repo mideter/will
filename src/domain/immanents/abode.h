@@ -37,7 +37,7 @@ public:
 
 	/// Letters placed here, oldest first, shown to one who contemplates this
 	/// abode and dwells in it.
-	std::vector<Letter> letters(const Contemplation& gaze) const;
+	std::vector<std::shared_ptr<const Letter>> letters(const Contemplation& gaze) const;
 
 private:
 	AbodeName name_;

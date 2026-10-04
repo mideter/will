@@ -31,7 +31,7 @@ public:
 	const Testator& testator() const override;
 	const Novice& novice() const override;
 
-	std::vector<Deed> deeds(const Novice& asker) const override;
+	std::vector<std::shared_ptr<const Deed>> deeds(const Novice& asker) const override;
 };
 
 
