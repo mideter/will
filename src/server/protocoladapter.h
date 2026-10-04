@@ -40,8 +40,19 @@ private:
 	void handle_history_request(SessionId session_id, const v1::HistoryRequest& request);
 	void handle_supplicate(SessionId session_id, const v1::Supplicate& msg);
 	void handle_accept_supplication(SessionId session_id, const v1::AcceptSupplication& msg);
-	void handle_will_deed(SessionId session_id, const v1::WillDeed& msg);
-	void handle_execute_deed(SessionId session_id, const v1::ExecuteDeed& msg);
+	void handle_turn(SessionId session_id, const v1::Turn& msg);
+	void handle_fulfil(SessionId session_id, const v1::Fulfil& msg);
+
+	/// Tell a word newly placed to those who contemplate the place, and a short
+	/// word of it to the other side of a tie who looks elsewhere.
+	void tell_placed(const domain::Place& place, const domain::Word& word, const domain::Man& author);
+
+	/// Tell the last words of what one contemplates, then the end of them.
+	void tell_words(SessionId session_id, const domain::Contemplation& gaze, const domain::Man& listener,
+					std::uint32_t limit);
+
+	/// How many words are told on turning to a place.
+	static constexpr std::uint32_t TurnWords = 50;
 
 	void send_auth_required(SessionId session_id);
 	void send_event(SessionId session_id, const v1::ServerEvent& event);

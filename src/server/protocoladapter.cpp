@@ -3,6 +3,8 @@
 #include "inbound_client_message_handler.h"
 
 #include "words/behest.h"
+#include "words/deed.h"
+#include "immanents/abode.h"
 #include "immanents/novice.h"
 #include "immanents/obedience.h"
 #include "immanents/shepherding.h"
@@ -28,18 +30,48 @@ namespace will {
 namespace {
 
 
-/// The number a client names in /done is matched here, at the border: the
-/// domain shows the behests of a place, it does not look words up by id.
-std::shared_ptr<const domain::Behest> behest_numbered(const domain::Novice& novice, const std::uint64_t number)
+/// The soul whose word this is.
+const domain::Soul& author_of(const domain::Word& word)
 {
-	for (const domain::Obedience& obedience : novice.obediences()) {
-		for (const std::shared_ptr<const domain::Behest>& behest : obedience.behests(novice)) {
-			if (behest->id().value() == number)
-				return behest;
-		}
+	if (const auto* letter = dynamic_cast<const domain::Letter*>(&word))
+		return letter->author();
+	if (const auto* behest = dynamic_cast<const domain::Behest*>(&word))
+		return behest->tie().testator();
+	return dynamic_cast<const domain::Deed&>(word).tie().novice();
+}
+
+
+/// A word as the wire tells it to one who listens.
+v1::ServerEvent word_event(const domain::Word& word, const domain::id::Soul listener)
+{
+	const domain::Soul& author = author_of(word);
+
+	v1::ServerEvent event;
+	auto* told = event.mutable_word();
+	told->set_id(word.id().value());
+	told->set_is_mine(author.id() == listener);
+	told->set_name(std::string{author.name().text()});
+	told->set_body(word.saying().body());
+
+	if (dynamic_cast<const domain::Behest*>(&word)) {
+		told->set_kind(v1::Word::BEHEST);
+	} else if (const auto* deed = dynamic_cast<const domain::Deed*>(&word)) {
+		told->set_kind(v1::Word::DEED);
+		told->set_behest_id(deed->behest().value());
+	} else {
+		told->set_kind(v1::Word::LETTER);
 	}
 
-	return nullptr;
+	return event;
+}
+
+
+/// The other side of a tie, seen from one of its sides.
+const domain::Man& counterpart_in(const domain::Tie& tie, const domain::Man& side)
+{
+	if (tie.testator().Soul::id() == side.Soul::id())
+		return tie.novice();
+	return tie.testator();
 }
 
 
@@ -199,30 +231,79 @@ void ProtocolAdapter::handle_user_chat(const SessionId session_id, const v1::Cha
 		return;
 	}
 
-	try {
-		man.say(std::string{chat.body()});
-	} catch (const std::exception&) {
-		close_with_protocol_error(session_id, "Protocol error: invalid ChatMessage");
-		return;
-	}
+	std::shared_ptr<const domain::Word> placed;
+	if (dynamic_cast<const domain::Abode*>(&gaze->place())) {
+		try {
+			man.say(std::string{chat.body()});
+		} catch (const std::exception&) {
+			close_with_protocol_error(session_id, "Protocol error: invalid ChatMessage");
+			return;
+		}
+		placed = gaze->words().back();
+	} else {
+		// In a tie the testator wills; the novice fulfils with /done.
+		const auto& tie = dynamic_cast<const domain::Tie&>(gaze->place());
+		if (tie.testator().Soul::id() != man.Soul::id()) {
+			send_notice(session_id, "in a tie the novice fulfils behests: /done <number> [report]");
+			return;
+		}
 
-	std::string author_name{man.name().text()};
-	v1::ServerEvent chat_event;
-	auto* chat_message = chat_event.mutable_chat();
-	chat_message->set_name(author_name);
-	chat_message->set_body(chat.body());
-
-	const domain::id::Vessel speaker_vessel = man.Vessel::id();
-	for (const domain::Soul& observer : world_.contemplating(gaze->place())) {
-		const auto& observer_man = static_cast<const domain::Man&>(observer);
-		if (observer_man.Vessel::id() == speaker_vessel)
-			continue;
-		send_to_vessel(observer_man.Vessel::id(), chat_event);
+		try {
+			placed = static_cast<const domain::Testator&>(man).will(tie, std::string{chat.body()});
+		} catch (const std::exception& e) {
+			send_notice(session_id, e.what());
+			return;
+		}
 	}
 
 	v1::ServerEvent ack;
 	ack.mutable_receipt_ack();
 	send_event(session_id, ack);
+
+	tell_placed(gaze->place(), *placed, man);
+}
+
+
+void ProtocolAdapter::tell_placed(const domain::Place& place, const domain::Word& word, const domain::Man& author)
+{
+	for (const domain::Soul& beholder : world_.contemplating(place)) {
+		const auto& man = static_cast<const domain::Man&>(beholder);
+		if (man.Soul::id() != author.Soul::id())
+			send_to_vessel(man.Vessel::id(), word_event(word, man.Soul::id()));
+	}
+
+	// The other side of a tie, looking elsewhere, hears a short word of it.
+	const auto* tie = dynamic_cast<const domain::Tie*>(&place);
+	if (!tie)
+		return;
+
+	const domain::Man& other = counterpart_in(*tie, author);
+	for (const domain::Soul& beholder : world_.contemplating(place)) {
+		if (beholder.id() == other.Soul::id())
+			return;
+	}
+
+	v1::ServerEvent event;
+	auto* stirred = event.mutable_stirred();
+	stirred->set_tie_with(std::string{author.name().text()});
+	stirred->set_author_name(std::string{author.name().text()});
+	send_to_vessel(other.Vessel::id(), event);
+}
+
+
+void ProtocolAdapter::tell_words(const SessionId session_id, const domain::Contemplation& gaze,
+								 const domain::Man& listener, const std::uint32_t limit)
+{
+	const std::vector<std::shared_ptr<const domain::Word>> words = gaze.words();
+
+	// How many words to send is the client's wish, not the place's concern.
+	const std::size_t first = words.size() > limit ? words.size() - limit : 0;
+	for (std::size_t i = first; i < words.size(); ++i)
+		send_event(session_id, word_event(*words[i], listener.Soul::id()));
+
+	v1::ServerEvent end_event;
+	end_event.mutable_history_end();
+	send_event(session_id, end_event);
 }
 
 
@@ -245,32 +326,7 @@ void ProtocolAdapter::handle_history_request(const SessionId session_id, const v
 		return;
 	}
 
-	// History is the letters of the abode he contemplates.
-	std::vector<std::shared_ptr<const domain::Letter>> letters;
-	for (const std::shared_ptr<const domain::Word>& word : gaze->words()) {
-		if (auto letter = std::dynamic_pointer_cast<const domain::Letter>(word))
-			letters.push_back(std::move(letter));
-	}
-
-	// How many letters to send is the client's wish, not the abode's concern.
-	const std::size_t first = letters.size() > request.limit() ? letters.size() - request.limit() : 0;
-
-	const domain::id::Soul listener_soul = man.Soul::id();
-	for (std::size_t i = first; i < letters.size(); ++i) {
-		const domain::Letter& letter = *letters[i];
-
-		v1::ServerEvent event;
-		auto* history_item = event.mutable_history_item();
-		history_item->set_message_id(letter.id().value());
-		history_item->set_is_mine(letter.author().id() == listener_soul);
-		history_item->set_name(std::string{letter.author().name().text()});
-		history_item->set_body(letter.saying().body());
-		send_event(session_id, event);
-	}
-
-	v1::ServerEvent end_event;
-	end_event.mutable_history_end();
-	send_event(session_id, end_event);
+	tell_words(session_id, *gaze, man, request.limit());
 }
 
 
@@ -336,61 +392,74 @@ void ProtocolAdapter::handle_accept_supplication(const SessionId session_id,
 }
 
 
-void ProtocolAdapter::handle_will_deed(const SessionId session_id, const v1::WillDeed& msg)
+void ProtocolAdapter::handle_turn(const SessionId session_id, const v1::Turn& msg)
 {
-	const domain::Man* novice_man = man_named(session_id, msg.novice_name());
-	if (!novice_man)
-		return;
-
 	const domain::Man& self = session_man(session_id);
-	const auto& testator = static_cast<const domain::Testator&>(self);
+	const auto& witness = static_cast<const domain::Witness&>(self);
 
-	const auto& novice = static_cast<const domain::Novice&>(*novice_man);
+	if (msg.tie_with().empty()) {
+		witness.contemplate(witness.abode());
+	} else {
+		const domain::Man* counterpart = man_named(session_id, msg.tie_with());
+		if (!counterpart)
+			return;
 
-	const domain::Shepherding* shepherding = nullptr;
-	try {
-		shepherding = &testator.shepherding(novice);
-	} catch (const std::invalid_argument&) {
-		send_notice(session_id, "no obedience with that soul");
-		return;
+		const domain::Place* tie = nullptr;
+		try {
+			tie = &static_cast<const domain::Testator&>(self).shepherding(
+				static_cast<const domain::Novice&>(*counterpart));
+		} catch (const std::invalid_argument&) {
+			try {
+				tie = &static_cast<const domain::Novice&>(self).obedience(
+					static_cast<const domain::Testator&>(*counterpart));
+			} catch (const std::invalid_argument&) {
+				send_notice(session_id, "no tie with that soul");
+				return;
+			}
+		}
+
+		witness.contemplate(*tie);
 	}
 
-	try {
-		const std::shared_ptr<const domain::Behest> behest = testator.will(*shepherding, msg.body());
+	v1::ServerEvent turned;
+	turned.mutable_turned()->set_tie_with(msg.tie_with());
+	send_event(session_id, turned);
 
-		send_notice(session_id, "behest " + std::to_string(behest->id().value()) + " willed");
-
-		v1::ServerEvent offered;
-		auto* row = offered.mutable_deed_offered();
-		row->set_deed_id(behest->id().value());
-		row->set_testator_name(std::string{self.name().text()});
-		row->set_body(behest->saying().body());
-		send_to_vessel(novice_man->Vessel::id(), offered);
-	} catch (const std::exception& e) {
-		send_notice(session_id, e.what());
-	}
+	if (const auto gaze = world_.contemplation(self.Soul::id()))
+		tell_words(session_id, *gaze, self, TurnWords);
 }
 
 
-void ProtocolAdapter::handle_execute_deed(const SessionId session_id, const v1::ExecuteDeed& msg)
+void ProtocolAdapter::handle_fulfil(const SessionId session_id, const v1::Fulfil& msg)
 {
 	const domain::Man& self = session_man(session_id);
 	const auto& novice = static_cast<const domain::Novice&>(self);
 
+	const std::shared_ptr<const domain::Contemplation> gaze = world_.contemplation(self.Soul::id());
+	if (!gaze || !dynamic_cast<const domain::Tie*>(&gaze->place())) {
+		send_notice(session_id, "turn to the tie first: /tie <name>");
+		return;
+	}
+
+	// The number a client names is matched here, at the border, among the words he beholds.
+	std::shared_ptr<const domain::Behest> behest;
+	for (const std::shared_ptr<const domain::Word>& word : gaze->words()) {
+		if (word->id().value() == msg.behest_id())
+			behest = std::dynamic_pointer_cast<const domain::Behest>(word);
+	}
+	if (!behest) {
+		send_notice(session_id, "unknown behest");
+		return;
+	}
+
 	try {
-		const std::shared_ptr<const domain::Behest> behest = behest_numbered(novice, msg.deed_id());
-		if (!behest)
-			throw std::invalid_argument("unknown behest");
+		std::optional<domain::Saying> report;
+		if (!msg.report().empty())
+			report.emplace(msg.report());
 
-		novice.execute(*behest);
-
-		send_notice(session_id, "behest " + std::to_string(behest->id().value()) + " done");
-
-		v1::ServerEvent event;
-		auto* row = event.mutable_deed_done();
-		row->set_deed_id(behest->id().value());
-		row->set_novice_name(std::string{self.name().text()});
-		send_to_vessel(behest->tie().testator().Vessel::id(), event);
+		const std::shared_ptr<const domain::Deed> deed = novice.execute(*behest, std::move(report));
+		send_notice(session_id, "behest " + std::to_string(behest->id().value()) + " fulfilled");
+		tell_placed(gaze->place(), *deed, self);
 	} catch (const std::exception& e) {
 		send_notice(session_id, e.what());
 	}

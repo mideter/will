@@ -21,12 +21,12 @@ const will::ClientConfig& will::WillClient::config() const noexcept
 namespace {
 
 
-will::v1::ServerEvent make_chat(const char* name, const char* body)
+will::v1::ServerEvent make_tie_formed()
 {
 	will::v1::ServerEvent event;
-	auto* chat = event.mutable_chat();
-	chat->set_name(name);
-	chat->set_body(body);
+	auto* tie = event.mutable_tie_formed();
+	tie->set_tie_id(3);
+	tie->set_counterpart_name("peername");
 	return event;
 }
 
@@ -34,8 +34,8 @@ will::v1::ServerEvent make_chat(const char* name, const char* body)
 will::v1::ServerEvent make_history_item(const char* body, const bool is_mine)
 {
 	will::v1::ServerEvent event;
-	auto* item = event.mutable_history_item();
-	item->set_message_id(1);
+	auto* item = event.mutable_word();
+	item->set_id(1);
 	item->set_is_mine(is_mine);
 	item->set_name("peername");
 	item->set_body(body);
@@ -67,12 +67,15 @@ TEST_CASE("history load accepts items then HistoryEnd")
 }
 
 
-TEST_CASE("chat during history load is rejected")
+TEST_CASE("a word placed while history loads is told with it; other events are rejected")
 {
 	will::ConsoleUi ui(will::ColorMode::Never);
 	will::LoadingHistoryMessageHandler handler(ui);
 
 	handler.on(make_history_item("older", false));
-	CHECK_THROWS_AS(handler.on(make_chat("peername", "live-while-loading")), std::runtime_error);
+	handler.on(make_history_item("live-while-loading", false));
+	CHECK_FALSE(handler.history_finished());
+
+	CHECK_THROWS_AS(handler.on(make_tie_formed()), std::runtime_error);
 	CHECK_FALSE(handler.history_finished());
 }

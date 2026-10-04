@@ -13,12 +13,15 @@ message BindToken {
 }
 
 
+// Text the client says into the place he contemplates: a letter in an abode,
+// a behest in a tie where he is the testator.
 message ChatMessage {
     string name = 1;
     string body = 2;
 }
 
 
+// The last words of the place he contemplates.
 message HistoryRequest {
     uint32 limit = 1;
 }
@@ -35,11 +38,20 @@ message AuthOk {
 message ReceiptAck {}
 
 
-message HistoryItem {
-    uint64 message_id = 1;
+// A word in the place the client contemplates — told in history or as it is placed.
+message Word {
+    enum Kind {
+        LETTER = 0;
+        BEHEST = 1;
+        DEED = 2;
+    }
+
+    uint64 id = 1;
     bool is_mine = 2;
-    string name = 3;
+    string name = 3;      // its author
     string body = 4;
+    Kind kind = 5;
+    uint64 behest_id = 6; // the behest a deed fulfils
 }
 
 
@@ -56,14 +68,16 @@ message AcceptSupplication {
 }
 
 
-message WillDeed {
-    string novice_name = 1;
-    string body = 2;
+// Turn the gaze to the tie with this soul, or home to one's own abode when empty.
+message Turn {
+    string tie_with = 1;
 }
 
 
-message ExecuteDeed {
-    uint64 deed_id = 1;
+// Fulfil a behest of the contemplated tie, with an optional report.
+message Fulfil {
+    uint64 behest_id = 1;
+    string report = 2;
 }
 
 
@@ -79,16 +93,16 @@ message TieFormed {
 }
 
 
-message DeedOffered {
-    uint64 deed_id = 1;
-    string testator_name = 2;
-    string body = 3;
+// The gaze now rests on the tie with this soul, or at home when empty.
+message Turned {
+    string tie_with = 1;
 }
 
 
-message DeedDone {
-    uint64 deed_id = 1;
-    string novice_name = 2;
+// A new word was placed in a tie one dwells in but does not contemplate.
+message Stirred {
+    string tie_with = 1;
+    string author_name = 2;
 }
 
 
@@ -104,8 +118,8 @@ message ClientEvent {
         HistoryRequest history_request = 3;
         Supplicate supplicate = 4;
         AcceptSupplication accept_supplication = 5;
-        WillDeed will_deed = 6;
-        ExecuteDeed execute_deed = 7;
+        Turn turn = 6;
+        Fulfil fulfil = 7;
     }
 }
 
@@ -114,14 +128,13 @@ message ServerEvent {
     oneof event {
         AuthRequired auth_required = 1;
         AuthOk auth_ok = 2;
-        ChatMessage chat = 3;
         ReceiptAck receipt_ack = 4;
-        HistoryItem history_item = 5;
+        Word word = 5;
         HistoryEnd history_end = 6;
         SupplicationOffer supplication_offer = 7;
         TieFormed tie_formed = 8;
-        DeedOffered deed_offered = 9;
-        DeedDone deed_done = 10;
+        Turned turned = 9;
+        Stirred stirred = 10;
         ProtocolNotice protocol_notice = 11;
     }
 }

@@ -22,13 +22,12 @@ bool is_post_auth_server_event(const v1::ServerEvent& event) noexcept
 	switch (event.event_case()) {
 	case v1::ServerEvent::kReceiptAck:
 	case v1::ServerEvent::kAuthRequired:
-	case v1::ServerEvent::kChat:
-	case v1::ServerEvent::kHistoryItem:
+	case v1::ServerEvent::kWord:
 	case v1::ServerEvent::kHistoryEnd:
 	case v1::ServerEvent::kSupplicationOffer:
 	case v1::ServerEvent::kTieFormed:
-	case v1::ServerEvent::kDeedOffered:
-	case v1::ServerEvent::kDeedDone:
+	case v1::ServerEvent::kTurned:
+	case v1::ServerEvent::kStirred:
 	case v1::ServerEvent::kProtocolNotice:
 		return true;
 	default:
@@ -66,29 +65,33 @@ bool handle_slash_command(WillClient& client, ConsoleUi& ui, const std::string& 
 		client.accept(args);
 		return true;
 	}
-	if (cmd == "will") {
-		const auto sp = args.find(' ');
-		if (sp == std::string_view::npos || sp + 1 >= args.size()) {
-			ui.print_status("usage: /will <name> <text>");
+	if (cmd == "tie") {
+		if (args.empty()) {
+			ui.print_status("usage: /tie <name>");
 			return true;
 		}
-		client.will(args.substr(0, sp), args.substr(sp + 1));
+		client.turn(args);
+		return true;
+	}
+	if (cmd == "home") {
+		client.turn({});
 		return true;
 	}
 	if (cmd == "done") {
-		if (args.empty()) {
-			ui.print_status("usage: /done <deed_id>");
-			return true;
-		}
+		const auto sp = args.find(' ');
+		const std::string_view number = args.substr(0, sp);
+		const std::string_view report = sp == std::string_view::npos ? std::string_view{} : args.substr(sp + 1);
 		try {
-			client.done(std::stoull(std::string{args}));
-		} catch (const std::exception&) {
-			ui.print_status("usage: /done <deed_id>");
+			client.fulfil(std::stoull(std::string{number}), report);
+		} catch (const std::invalid_argument&) {
+			ui.print_status("usage: /done <number> [report]");
+		} catch (const std::out_of_range&) {
+			ui.print_status("usage: /done <number> [report]");
 		}
 		return true;
 	}
 
-	ui.print_status("unknown command; try /ask /accept /will /done");
+	ui.print_status("unknown command; try /ask /accept /tie /home /done");
 	return true;
 }
 
@@ -129,7 +132,7 @@ void ChatSession::run()
 	});
 
 	ui_.print_status("Connected as " + client_.own_name() + ".");
-	ui_.print_status("Chat: type text. Obedience: /ask /accept /will /done. Ctrl+D to exit.");
+	ui_.print_status("Chat: type text. Obedience: /ask /accept /tie /home /done. Ctrl+D to exit.");
 	ui_.set_live_prompt(true);
 	ui_.print_prompt();
 

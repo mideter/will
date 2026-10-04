@@ -191,18 +191,18 @@ TEST_CASE("history request returns letters of the witness abode with is_mine")
 
 	will::v1::ServerEvent own_item;
 	REQUIRE(sender.stream->Read(&own_item));
-	REQUIRE(own_item.has_history_item());
-	CHECK(own_item.history_item().body() == "hello-from-sender");
-	CHECK(own_item.history_item().is_mine());
-	CHECK_FALSE(own_item.history_item().name().empty());
-	CHECK(own_item.history_item().name().size() == 8);
+	REQUIRE(own_item.has_word());
+	CHECK(own_item.word().body() == "hello-from-sender");
+	CHECK(own_item.word().is_mine());
+	CHECK_FALSE(own_item.word().name().empty());
+	CHECK(own_item.word().name().size() == 8);
 
 	will::v1::ServerEvent own_second;
 	REQUIRE(sender.stream->Read(&own_second));
-	REQUIRE(own_second.has_history_item());
-	CHECK(own_second.history_item().body() == "hello-again");
-	CHECK(own_second.history_item().is_mine());
-	CHECK(own_second.history_item().name() == own_item.history_item().name());
+	REQUIRE(own_second.has_word());
+	CHECK(own_second.word().body() == "hello-again");
+	CHECK(own_second.word().is_mine());
+	CHECK(own_second.word().name() == own_item.word().name());
 
 	will::v1::ServerEvent sender_end;
 	REQUIRE(sender.stream->Read(&sender_end));

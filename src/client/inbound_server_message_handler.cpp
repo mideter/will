@@ -13,12 +13,25 @@ namespace will {
 namespace {
 
 
-void print_history_item(ConsoleUi& ui, const v1::HistoryItem& item)
+void print_word(ConsoleUi& ui, const v1::Word& word, const bool dim)
 {
-	if (item.is_mine())
-		ui.print_mine(item.body(), true);
-	else
-		ui.print_peer(item.name(), item.body(), true);
+	const std::string number = "#" + std::to_string(word.id());
+	switch (word.kind()) {
+	case v1::Word::BEHEST:
+		ui.print_status("Behest " + number + " from " + word.name() + ": " + word.body()
+						+ (word.is_mine() ? std::string{} : " — /done " + std::to_string(word.id())));
+		return;
+	case v1::Word::DEED:
+		ui.print_status("Deed " + number + " by " + word.name() + " fulfils #"
+						+ std::to_string(word.behest_id()) + ": " + word.body());
+		return;
+	default:
+		if (word.is_mine())
+			ui.print_mine(word.body(), dim, false);
+		else
+			ui.print_peer(word.name(), word.body(), dim);
+		return;
+	}
 }
 
 
@@ -33,8 +46,8 @@ LoadingHistoryMessageHandler::LoadingHistoryMessageHandler(ConsoleUi& ui)
 void LoadingHistoryMessageHandler::on(const v1::ServerEvent& event)
 {
 	switch (event.event_case()) {
-	case v1::ServerEvent::kHistoryItem:
-		print_history_item(ui_, event.history_item());
+	case v1::ServerEvent::kWord:
+		print_word(ui_, event.word(), true);
 		return;
 	case v1::ServerEvent::kHistoryEnd:
 		history_finished_ = true;
@@ -62,11 +75,8 @@ void ReceivingMessageHandler::on(const v1::ServerEvent& event)
 		if (!client_.config().quiet_receipts)
 			ui_.print_receipt();
 		return;
-	case v1::ServerEvent::kHistoryItem:
-		print_history_item(ui_, event.history_item());
-		return;
-	case v1::ServerEvent::kChat:
-		ui_.print_peer(event.chat().name(), event.chat().body());
+	case v1::ServerEvent::kWord:
+		print_word(ui_, event.word(), false);
 		return;
 	case v1::ServerEvent::kSupplicationOffer:
 		ui_.print_status("Supplication from " + event.supplication_offer().suppliant_name()
@@ -79,19 +89,14 @@ void ReceivingMessageHandler::on(const v1::ServerEvent& event)
 						 + tie.counterpart_name() + " (you are " + role + ")");
 		return;
 	}
-	case v1::ServerEvent::kDeedOffered: {
-		const auto& behest = event.deed_offered();
-		ui_.print_status("Behest #" + std::to_string(behest.deed_id()) + " from "
-						 + behest.testator_name() + ": " + behest.body()
-						 + " — /done " + std::to_string(behest.deed_id()));
+	case v1::ServerEvent::kTurned:
+		ui_.print_status(event.turned().tie_with().empty() ? "── home ──"
+														   : "── tie with " + event.turned().tie_with() + " ──");
 		return;
-	}
-	case v1::ServerEvent::kDeedDone: {
-		const auto& behest = event.deed_done();
-		ui_.print_status("Behest #" + std::to_string(behest.deed_id()) + " done by "
-						 + behest.novice_name());
+	case v1::ServerEvent::kStirred:
+		ui_.print_status("New word in the tie with " + event.stirred().tie_with() + " — /tie "
+						 + event.stirred().tie_with());
 		return;
-	}
 	case v1::ServerEvent::kProtocolNotice:
 		ui_.print_status(event.protocol_notice().message());
 		return;

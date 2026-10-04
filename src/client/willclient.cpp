@@ -228,29 +228,29 @@ void WillClient::accept(const std::string_view suppliant_name) const
 }
 
 
-void WillClient::will(const std::string_view novice_name, const std::string_view body) const
+void WillClient::turn(const std::string_view tie_with) const
 {
 	if (!authenticated_)
 		throw std::logic_error("WillClient: not authenticated");
 
 	v1::ClientEvent event;
-	auto* msg = event.mutable_will_deed();
-	msg->set_novice_name(std::string{novice_name});
-	msg->set_body(std::string{body});
+	event.mutable_turn()->set_tie_with(std::string{tie_with});
 	if (!write_event(event))
-		throw std::runtime_error("Will protocol: failed to send WillDeed");
+		throw std::runtime_error("Will protocol: failed to send Turn");
 }
 
 
-void WillClient::done(const std::uint64_t deed_id) const
+void WillClient::fulfil(const std::uint64_t behest_id, const std::string_view report) const
 {
 	if (!authenticated_)
 		throw std::logic_error("WillClient: not authenticated");
 
 	v1::ClientEvent event;
-	event.mutable_execute_deed()->set_deed_id(deed_id);
+	auto* msg = event.mutable_fulfil();
+	msg->set_behest_id(behest_id);
+	msg->set_report(std::string{report});
 	if (!write_event(event))
-		throw std::runtime_error("Will protocol: failed to send ExecuteDeed");
+		throw std::runtime_error("Will protocol: failed to send Fulfil");
 }
 
 
