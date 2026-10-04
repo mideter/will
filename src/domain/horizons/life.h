@@ -2,6 +2,7 @@
 
 #include "identity/place.h"
 #include "matter/behest.h"
+#include "matter/deed.h"
 #include "matter/letter.h"
 #include "properties/immanent.h"
 
@@ -49,9 +50,14 @@ private:
 	static Life& the();
 
 	/// The matter of the words placed in this place, oldest first (capped by
-	/// Spatiality::MaxLetterLimit): as letters, or as behests with their executions.
+	/// Spatiality::MaxLetterLimit): as letters; or, in a tie, as the behests and
+	/// the deeds that fulfil them.
 	std::vector<matter::Letter> letters(id::Place place) const;
 	std::vector<matter::Behest> behests(id::Place place) const;
+	std::vector<matter::Deed> deeds(id::Place place) const;
+
+	/// Executions naming any of these words as their deed, by deed.
+	std::unordered_map<id::Word, matter::Execution> executions_of(const std::vector<matter::Letter>& parts) const;
 
 	Remembered remembered(id::Place place) const;
 	void remember(id::Place place, const std::vector<std::shared_ptr<const Word>>& words);

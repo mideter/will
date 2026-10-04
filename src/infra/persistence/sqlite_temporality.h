@@ -25,8 +25,8 @@ public:
 	std::vector<domain::matter::Supplication> supplications(domain::id::Soul addressee) const override;
 	void reject(domain::id::Soul suppliant, domain::id::Soul addressee) override;
 
-	void execute(domain::id::Word behest) override;
-	std::vector<domain::matter::Execution> executions(const std::vector<domain::id::Word>& ids) const override;
+	domain::matter::Execution execute(domain::id::Word deed, domain::id::Word behest) override;
+	std::vector<domain::matter::Execution> executions(const std::vector<domain::id::Word>& words) const override;
 
 private:
 	SqliteDatabase& time_db_;

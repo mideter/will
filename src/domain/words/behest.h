@@ -6,8 +6,6 @@
 #include "words/word.h"
 #include "values/timestamp.h"
 
-#include <optional>
-
 
 namespace will::domain {
 
@@ -15,9 +13,9 @@ namespace will::domain {
 class Testator;
 
 
-/// Behest (Веление) — Word of will in living Tie (Узы) that may be executed.
-/// Born from matter::Behest; executed once its Execution is kept.
-/// Sides are the Tie's: the testator utters, the novice executes.
+/// Behest (Веление) — the testator's Word of will in a living Tie (Узы).
+/// Born from matter::Behest; it does not change. It is fulfilled by a Deed the
+/// novice brings forth in the same Tie.
 class Behest : public Word {
 public:
 	/// Place must be a living Tie whose testator is the author.
@@ -26,17 +24,12 @@ public:
 
 	const Tie& tie() const noexcept { return tie_; }
 	Timestamp created_at() const noexcept { return created_at_; }
-	const std::optional<Timestamp>& executed_at() const noexcept { return executed_at_; }
-
-	bool executed() const noexcept { return executed_at_.has_value(); }
-	bool open() const noexcept { return !executed(); }
 
 private:
 	explicit Behest(matter::Behest kept);
 
 	const Tie& tie_;
 	Timestamp created_at_;
-	std::optional<Timestamp> executed_at_;
 };
 
 

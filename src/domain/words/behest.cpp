@@ -41,9 +41,6 @@ Behest::Behest(matter::Behest kept)
 {
 	if (kept.word().author() != tie_.testator().Soul::id())
 		throw std::invalid_argument("behest must be uttered by the testator of its tie");
-
-	if (kept.execution())
-		executed_at_ = kept.execution()->executed_at();
 }
 
 

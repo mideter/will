@@ -118,8 +118,8 @@ CREATE TABLE IF NOT EXISTS rejections (
 );
 
 CREATE TABLE IF NOT EXISTS executions (
-  word_id INTEGER PRIMARY KEY,
-  executed_at_ns INTEGER NOT NULL
+  deed_word_id INTEGER PRIMARY KEY,
+  behest_word_id INTEGER NOT NULL UNIQUE
 );
 )sql";
 		break;

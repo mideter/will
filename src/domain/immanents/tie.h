@@ -10,6 +10,7 @@ namespace will::domain {
 
 
 class Behest;
+class Deed;
 class Novice;
 class Testator;
 
@@ -33,6 +34,9 @@ public:
 	const Novice& novice() const override;
 
 	std::vector<std::shared_ptr<const Behest>> behests(const Novice& asker) const override;
+	std::vector<std::shared_ptr<const Deed>> deeds(const Novice& asker) const override;
+
+	std::shared_ptr<const Deed> inscribe(Birth<Novice>, matter::Deed kept) const override;
 
 	/// Its two sides dwell in a tie.
 	bool dwells(const Man& man) const override;

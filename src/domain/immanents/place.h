@@ -2,6 +2,7 @@
 
 #include "identity/place.h"
 #include "matter/behest.h"
+#include "matter/deed.h"
 #include "matter/letter.h"
 #include "properties/immanent.h"
 
@@ -43,6 +44,7 @@ protected:
 	/// The matter of the words placed here, oldest first, as Life gives it.
 	std::vector<matter::Letter> kept_letters() const;
 	std::vector<matter::Behest> kept_behests() const;
+	std::vector<matter::Deed> kept_deeds() const;
 
 	/// The words placed here that live now, as Life remembers them.
 	std::vector<std::shared_ptr<const Word>> living_words(bool& whole) const;

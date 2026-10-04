@@ -317,21 +317,22 @@ public:
 		supplications_.erase(it);
 	}
 
-	void execute(const id::Word behest) override
+	matter::Execution execute(const id::Word deed, const id::Word behest) override
 	{
 		for (const matter::Execution& row : executions_) {
-			if (row.id() == behest)
+			if (row.behest() == behest)
 				throw std::logic_error("behest is already executed");
 		}
-		executions_.emplace_back(behest, eternity_.time().instant());
+		executions_.emplace_back(deed, behest);
+		return executions_.back();
 	}
 
-	std::vector<matter::Execution> executions(const std::vector<id::Word>& ids) const override
+	std::vector<matter::Execution> executions(const std::vector<id::Word>& words) const override
 	{
 		std::vector<matter::Execution> out;
-		for (const id::Word id : ids) {
-			for (const matter::Execution& row : executions_) {
-				if (row.id() == id) {
+		for (const matter::Execution& row : executions_) {
+			for (const id::Word word : words) {
+				if (row.id() == word || row.behest() == word) {
 					out.push_back(row);
 					break;
 				}

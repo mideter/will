@@ -1,6 +1,7 @@
 #include "tie.h"
 
 #include "words/behest.h"
+#include "words/deed.h"
 #include "immanents/contemplation.h"
 #include "immanents/soul.h"
 #include "horizons/space.h"
@@ -54,6 +55,30 @@ std::vector<std::shared_ptr<const Behest>> Tie::behests(const Novice& asker) con
 		shown.push_back(std::make_shared<const Behest>(Birth<Tie>{}, std::move(kept)));
 
 	return shown;
+}
+
+
+std::vector<std::shared_ptr<const Deed>> Tie::deeds(const Novice& asker) const
+{
+	if (asker.Soul::id() != novice_.Soul::id() && asker.Soul::id() != testator_.Soul::id())
+		throw std::logic_error("not a side of this tie");
+
+	std::vector<std::shared_ptr<const Deed>> shown;
+	for (matter::Deed& kept : kept_deeds())
+		shown.push_back(std::make_shared<const Deed>(Birth<Tie>{}, std::move(kept)));
+
+	return shown;
+}
+
+
+std::shared_ptr<const Deed> Tie::inscribe(Birth<Novice>, matter::Deed kept) const
+{
+	if (kept.placement().place() != id())
+		throw std::logic_error("the deed is not placed in this tie");
+	if (kept.word().author() != novice_.Soul::id())
+		throw std::logic_error("only the novice of a tie does a deed in it");
+
+	return std::make_shared<const Deed>(Birth<Tie>{}, std::move(kept));
 }
 
 

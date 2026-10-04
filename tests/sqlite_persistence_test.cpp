@@ -3,6 +3,7 @@
 
 #include "acts/creation.h"
 #include "words/behest.h"
+#include "words/deed.h"
 #include "immanents/obedience.h"
 #include "words/letter.h"
 #include "immanents/novice.h"
@@ -200,7 +201,6 @@ TEST_CASE("sqlite keeps a behest and its execution across reopen")
 
 		const Behest open = testator.will(testator.shepherding(novice), "fast");
 		const Behest willed = testator.will(testator.shepherding(novice), "pray");
-		CHECK(open.open());
 		CHECK(&willed.tie().novice() == &novice);
 		open_id = open.id();
 		done_id = willed.id();
@@ -228,18 +228,22 @@ TEST_CASE("sqlite keeps a behest and its execution across reopen")
 		const Behest& done = *shown[1];
 
 		CHECK(open.id() == *open_id);
-		CHECK(open.open());
 		CHECK(open.saying().body() == "fast");
 		CHECK(&open.tie().testator() == &testator);
 
 		CHECK(done.id() == *done_id);
-		CHECK(done.executed());
 		CHECK(done.saying().body() == "pray");
 		CHECK(testator.shepherding(novice).behests(testator).size() == 2);
+
+		// The deed fulfilling «pray» was kept, and is born again with it.
+		const auto deeds = novice.obedience(testator).deeds(novice);
+		REQUIRE(deeds.size() == 1);
+		CHECK(deeds.front()->behest() == *done_id);
+		CHECK(deeds.front()->saying().body() == "совершено");
 		CHECK_THROWS_AS(novice.execute(done), std::logic_error);
 
 		novice.execute(open);
-		CHECK(novice.obedience(testator).behests(novice).front()->executed());
+		CHECK(novice.obedience(testator).deeds(novice).size() == 2);
 	}
 
 	::unlink((prefix + ".eternity.db").c_str());

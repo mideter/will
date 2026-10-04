@@ -5,11 +5,14 @@
 #include "acts/supplication.h"
 #include "matter/tie.h"
 #include "words/behest.h"
+#include "words/deed.h"
+#include "values/saying.h"
 #include "immanents/witness.h"
 #include "identity/word.h"
 
 #include <functional>
 #include <memory>
+#include <optional>
 #include <vector>
 
 
@@ -29,8 +32,10 @@ public:
 	/// The pending Supplication is signed by this novice (lodge + Temporality).
 	void supplicate(const Testator& addressee) const;
 
-	/// Carry out an open behest in an obedience where this soul is novice.
-	void execute(const Behest& behest) const;
+	/// Fulfil a behest of a tie where this soul is novice, with a report or,
+	/// without one, «совершено». Throws if the behest is already fulfilled.
+	std::shared_ptr<const Deed> execute(const Behest& behest,
+										std::optional<Saying> report = std::nullopt) const;
 
 	bool follows(const Testator& testator) const noexcept;
 

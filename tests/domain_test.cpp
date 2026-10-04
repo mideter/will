@@ -25,6 +25,7 @@
 #include "matter/vessel.h"
 #include "matter/tie.h"
 #include "words/behest.h"
+#include "words/deed.h"
 #include "words/word.h"
 #include "properties/immanent.h"
 #include "dimensions/eternity.h"
@@ -626,7 +627,6 @@ TEST_CASE("will and execute within obedience")
 	REQUIRE(cosmos.spatiality().ties().size() == 1);
 	const Shepherding& shepherding = testator.shepherding(novice);
 	const Behest behest = testator.will(shepherding, "fast");
-	CHECK(behest.open());
 	CHECK(behest.saying().body() == "fast");
 	CHECK(&behest.tie().testator() == &testator);
 	CHECK(&behest.tie().novice() == &novice);
@@ -636,19 +636,18 @@ TEST_CASE("will and execute within obedience")
 	// The tie shows its behests to either side, through the one who asks.
 	const Obedience& obedience = novice.obedience(testator);
 	REQUIRE(obedience.behests(novice).size() == 1);
-	CHECK(obedience.behests(novice).front()->open());
 	REQUIRE(shepherding.behests(testator).size() == 1);
 	CHECK(shepherding.behests(testator).front()->id() == behest.id());
+	CHECK(obedience.deeds(novice).empty());
 	CHECK_THROWS_AS(testator.execute(behest), std::logic_error);
 
-	novice.execute(behest);
-	const std::shared_ptr<const Behest> done = obedience.behests(novice).front();
-	CHECK(done->executed());
-	CHECK_FALSE(done->open());
-	CHECK(shepherding.behests(testator).front()->executed());
-	CHECK_THROWS_AS(novice.execute(*done), std::logic_error);
+	const std::shared_ptr<const Deed> deed = novice.execute(behest);
+	CHECK(deed->behest() == behest.id());
+	REQUIRE(shepherding.deeds(testator).size() == 1);
+	CHECK(shepherding.deeds(testator).front()->id() == deed->id());
 
-	// Stale open snapshot: what is kept decides, not the argument.
+	// What is kept decides: a behest is fulfilled once, whatever snapshot one holds.
+	CHECK_THROWS_AS(novice.execute(*obedience.behests(novice).front()), std::logic_error);
 	CHECK_THROWS_AS(novice.execute(behest), std::logic_error);
 	CHECK(cosmos.temporality().executions({behest.id()}).size() == 1);
 }

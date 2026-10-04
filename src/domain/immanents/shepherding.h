@@ -10,6 +10,7 @@ namespace will::domain {
 
 
 class Behest;
+class Deed;
 class Novice;
 class Soul;
 class Testator;
@@ -31,6 +32,9 @@ public:
 
 	/// Behests placed here, oldest first, shown to a side of this place.
 	virtual std::vector<std::shared_ptr<const Behest>> behests(const Novice& asker) const = 0;
+
+	/// Deeds placed here, oldest first, shown to a side of this place.
+	virtual std::vector<std::shared_ptr<const Deed>> deeds(const Novice& asker) const = 0;
 
 protected:
 	explicit Shepherding(const Soul& novice);

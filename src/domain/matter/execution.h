@@ -1,24 +1,25 @@
 #pragma once
 
 #include "identity/word.h"
-#include "values/timestamp.h"
 
 
 namespace will::domain::matter {
 
 
-/// Execution (Исполнение) — Behest carried out, fixed in time; matter for living Behest.
-/// Temporality keeps Executions; a Behest is open until its Execution is kept.
+/// Execution (Исполнение) — this deed fulfils that behest; part of the matter of
+/// a Deed, with no living pair of its own. Temporality keeps Executions; a
+/// behest is fulfilled at most once.
 class Execution {
 public:
-	Execution(id::Word id, Timestamp executed_at);
+	Execution(id::Word deed, id::Word behest);
 
-	id::Word id() const noexcept { return id_; }
-	Timestamp executed_at() const noexcept { return executed_at_; }
+	/// The word of the deed — the same id as the other parts of its matter.
+	id::Word id() const noexcept { return deed_; }
+	id::Word behest() const noexcept { return behest_; }
 
 private:
-	id::Word id_;
-	Timestamp executed_at_;
+	id::Word deed_;
+	id::Word behest_;
 };
 
 

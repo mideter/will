@@ -3,6 +3,8 @@
 #include "immanents/tie.h"
 #include "immanents/soul.h"
 #include "immanents/testator.h"
+#include "dimensions/spatiality.h"
+#include "matter/word.h"
 #include "dimensions/temporality.h"
 
 #include <memory>
@@ -29,14 +31,21 @@ void Novice::supplicate(const Testator& addressee) const
 }
 
 
-void Novice::execute(const Behest& behest) const
+std::shared_ptr<const Deed> Novice::execute(const Behest& behest, std::optional<Saying> report) const
 {
-	if (behest.tie().novice().Soul::id() != Soul::id())
+	const Tie& tie = behest.tie();
+	if (tie.novice().Soul::id() != Soul::id())
 		throw std::logic_error("not the novice of this behest");
-	if (!behest.open())
-		throw std::logic_error("behest is not open");
+	if (!temporality().executions({behest.id()}).empty())
+		throw std::logic_error("behest is already executed");
 
-	temporality().execute(behest.id());
+	matter::Word uttered = utter(report ? *report : Saying{"совершено"});
+	matter::Placement placed = spatiality().place(uttered.id(), tie.id());
+	matter::Dating dated = temporality().date(uttered.id());
+	matter::Execution executed = temporality().execute(uttered.id(), behest.id());
+
+	return tie.inscribe(Birth<Novice>{}, matter::Deed{std::move(uttered), std::move(placed), std::move(dated),
+													   std::move(executed)});
 }
 
 

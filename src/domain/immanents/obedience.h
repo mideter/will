@@ -1,6 +1,8 @@
 #pragma once
 
 #include "immanents/place.h"
+#include "matter/deed.h"
+#include "properties/birth.h"
 
 #include <memory>
 #include <vector>
@@ -10,6 +12,7 @@ namespace will::domain {
 
 
 class Behest;
+class Deed;
 class Novice;
 class Soul;
 class Testator;
@@ -31,6 +34,13 @@ public:
 
 	/// Behests placed here, oldest first, shown to a side of this place.
 	virtual std::vector<std::shared_ptr<const Behest>> behests(const Novice& asker) const = 0;
+
+	/// Deeds placed here, oldest first, shown to a side of this place.
+	virtual std::vector<std::shared_ptr<const Deed>> deeds(const Novice& asker) const = 0;
+
+	/// A deed the novice brings forth here, born living from the matter the
+	/// dimensions returned when they kept it.
+	virtual std::shared_ptr<const Deed> inscribe(Birth<Novice>, matter::Deed kept) const = 0;
 
 protected:
 	explicit Obedience(const Soul& testator);

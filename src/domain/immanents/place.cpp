@@ -40,6 +40,12 @@ std::vector<matter::Behest> Place::kept_behests() const
 }
 
 
+std::vector<matter::Deed> Place::kept_deeds() const
+{
+	return Life::the().deeds(id());
+}
+
+
 std::vector<std::shared_ptr<const Word>> Place::living_words(bool& whole) const
 {
 	Life::Remembered remembered = Life::the().remembered(id());

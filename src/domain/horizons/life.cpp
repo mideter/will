@@ -9,7 +9,6 @@
 #include <unordered_map>
 
 #include <algorithm>
-#include <optional>
 #include <stdexcept>
 #include <utility>
 
@@ -92,29 +91,48 @@ std::vector<matter::Letter> Life::letters(const id::Place place) const
 
 std::vector<matter::Behest> Life::behests(const id::Place place) const
 {
-	// A behest is kept in the same parts as a letter, and its execution besides.
+	// The words of a tie are kept in the same parts as letters; those that are
+	// deeds are named so by their execution.
 	std::vector<matter::Letter> parts = letters(place);
-
-	std::vector<id::Word> ids;
-	ids.reserve(parts.size());
-	for (const matter::Letter& kept : parts)
-		ids.push_back(kept.id());
-
-	std::unordered_map<id::Word, matter::Execution> executed;
-	for (matter::Execution& row : temporality_.executions(ids))
-		executed.emplace(row.id(), std::move(row));
+	const std::unordered_map<id::Word, matter::Execution> deeds = executions_of(parts);
 
 	std::vector<matter::Behest> kept;
-	kept.reserve(parts.size());
 	for (const matter::Letter& part : parts) {
-		std::optional<matter::Execution> execution;
-		if (const auto e = executed.find(part.id()); e != executed.end())
-			execution = e->second;
-
-		kept.emplace_back(part.word(), part.placement(), part.dating(), std::move(execution));
+		if (!deeds.contains(part.id()))
+			kept.emplace_back(part.word(), part.placement(), part.dating());
 	}
 
 	return kept;
+}
+
+
+std::vector<matter::Deed> Life::deeds(const id::Place place) const
+{
+	std::vector<matter::Letter> parts = letters(place);
+	const std::unordered_map<id::Word, matter::Execution> deeds = executions_of(parts);
+
+	std::vector<matter::Deed> kept;
+	for (const matter::Letter& part : parts) {
+		if (const auto e = deeds.find(part.id()); e != deeds.end())
+			kept.emplace_back(part.word(), part.placement(), part.dating(), e->second);
+	}
+
+	return kept;
+}
+
+
+std::unordered_map<id::Word, matter::Execution> Life::executions_of(const std::vector<matter::Letter>& parts) const
+{
+	std::vector<id::Word> ids;
+	ids.reserve(parts.size());
+	for (const matter::Letter& part : parts)
+		ids.push_back(part.id());
+
+	std::unordered_map<id::Word, matter::Execution> deeds;
+	for (matter::Execution& row : temporality_.executions(ids))
+		deeds.emplace(row.id(), std::move(row));
+
+	return deeds;
 }
 
 

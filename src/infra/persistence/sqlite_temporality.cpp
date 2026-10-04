@@ -208,43 +208,53 @@ void SqliteTemporality::reject(const domain::id::Soul suppliant, const domain::i
 }
 
 
-void SqliteTemporality::execute(const domain::id::Word behest)
+domain::matter::Execution SqliteTemporality::execute(const domain::id::Word deed, const domain::id::Word behest)
 {
-	const domain::Timestamp at = eternity_.time().instant();
+	const domain::matter::Execution execution{deed, behest};
+
 	std::lock_guard lock(time_db_.mutex());
 	sqlite3* const db = time_db_.db();
 
 	{
-		SqliteStmt kept(db, "SELECT 1 FROM executions WHERE word_id = ?;", "prepare kept execution");
-		kept.bind_i64(1, static_cast<std::int64_t>(behest.value()), "bind word_id");
+		SqliteStmt kept(db, "SELECT 1 FROM executions WHERE behest_word_id = ?;", "prepare kept execution");
+		kept.bind_i64(1, static_cast<std::int64_t>(behest.value()), "bind behest_word_id");
 		if (kept.step_row("kept execution step"))
 			throw std::logic_error("behest is already executed");
 	}
 
-	SqliteStmt stmt(db, "INSERT INTO executions (word_id, executed_at_ns) VALUES (?, ?);",
+	SqliteStmt stmt(db, "INSERT INTO executions (deed_word_id, behest_word_id) VALUES (?, ?);",
 					"prepare execute");
-	stmt.bind_i64(1, static_cast<std::int64_t>(behest.value()), "bind word_id");
-	stmt.bind_i64(2, at.value(), "bind executed_at");
+	stmt.bind_i64(1, static_cast<std::int64_t>(deed.value()), "bind deed_word_id");
+	stmt.bind_i64(2, static_cast<std::int64_t>(behest.value()), "bind behest_word_id");
 	stmt.step_done("execute step");
+
+	return execution;
 }
 
 
 std::vector<domain::matter::Execution>
-SqliteTemporality::executions(const std::vector<domain::id::Word>& ids) const
+SqliteTemporality::executions(const std::vector<domain::id::Word>& words) const
 {
 	std::vector<domain::matter::Execution> out;
-	out.reserve(ids.size());
 	std::lock_guard lock(time_db_.mutex());
 	sqlite3* const db = time_db_.db();
-	for (const domain::id::Word id : ids) {
-		SqliteStmt stmt(db, "SELECT word_id, executed_at_ns FROM executions WHERE word_id = ?;",
+	for (const domain::id::Word word : words) {
+		SqliteStmt stmt(db,
+						"SELECT deed_word_id, behest_word_id FROM executions "
+						"WHERE deed_word_id = ? OR behest_word_id = ?;",
 						"prepare execution");
-		stmt.bind_i64(1, static_cast<std::int64_t>(id.value()), "bind id");
-		if (stmt.step_row("execution step")) {
-			out.push_back(domain::matter::Execution{
+		stmt.bind_i64(1, static_cast<std::int64_t>(word.value()), "bind word");
+		stmt.bind_i64(2, static_cast<std::int64_t>(word.value()), "bind word");
+		while (stmt.step_row("execution step")) {
+			domain::matter::Execution row{
 				domain::id::Word{static_cast<std::uint64_t>(stmt.column_i64(0))},
-				domain::Timestamp{stmt.column_i64(1)},
-			});
+				domain::id::Word{static_cast<std::uint64_t>(stmt.column_i64(1))},
+			};
+			bool seen = false;
+			for (const domain::matter::Execution& kept : out)
+				seen = seen || kept.id() == row.id();
+			if (!seen)
+				out.push_back(std::move(row));
 		}
 	}
 	return out;
