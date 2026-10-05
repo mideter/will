@@ -502,6 +502,8 @@ TEST_CASE("the sides of a tie may contemplate it and behold its behests")
 	const auto& testator = static_cast<const Testator&>(world.welcome(DeviceToken::generate()));
 	const auto& stranger = static_cast<const Witness&>(world.welcome(DeviceToken::generate()));
 
+	novice.admit(testator);
+	testator.admit(novice);
 	novice.supplicate(testator);
 	const Shepherding& shepherding = testator.accept(*testator.supplication(novice));
 	testator.wake();
@@ -548,6 +550,8 @@ TEST_CASE("the words of a tie live while it is contemplated, one for both sides"
 	const auto& novice = static_cast<const Novice&>(world.welcome(DeviceToken::generate()));
 	const auto& testator = static_cast<const Testator&>(world.welcome(DeviceToken::generate()));
 
+	novice.admit(testator);
+	testator.admit(novice);
 	novice.supplicate(testator);
 	const Shepherding& shepherding = testator.accept(*testator.supplication(novice));
 	const Obedience& obedience = novice.obedience(testator);
@@ -591,6 +595,8 @@ TEST_CASE("the words of a tie are gone with the last gaze and are born anew from
 	const auto& novice = static_cast<const Novice&>(world.welcome(DeviceToken::generate()));
 	const auto& testator = static_cast<const Testator&>(world.welcome(DeviceToken::generate()));
 
+	novice.admit(testator);
+	testator.admit(novice);
 	novice.supplicate(testator);
 	const Shepherding& shepherding = testator.accept(*testator.supplication(novice));
 
@@ -640,6 +646,8 @@ TEST_CASE("tie is a place for distinct testator and novice")
 
 	// A tie is born of the novice once the testator accepts his supplication; it is a place.
 	static_assert(!std::is_constructible_v<Tie, matter::Tie>);
+	novice.admit(testator);
+	testator.admit(novice);
 	novice.supplicate(testator);
 	testator.accept(*testator.supplication(novice));
 
@@ -665,6 +673,8 @@ TEST_CASE("supplicate accept creates tie owned as obedience")
 	const auto& novice = static_cast<const Novice&>(a);
 	const auto& testator = static_cast<const Testator&>(b);
 
+	novice.admit(testator);
+	testator.admit(novice);
 	novice.supplicate(testator);
 	CHECK(testator.supplications().size() == 1);
 	const Supplication& ask = *testator.supplication(novice);
@@ -726,6 +736,8 @@ TEST_CASE("reject closes pending supplication; wrong party cannot accept")
 	const auto& testator = static_cast<const Testator&>(b);
 	const auto& stranger = static_cast<const Testator&>(a);
 
+	novice.admit(testator);
+	testator.admit(novice);
 	novice.supplicate(testator);
 	const Supplication& ask = *testator.supplication(novice);
 	CHECK_THROWS_AS(stranger.accept(ask), std::logic_error);
@@ -763,6 +775,8 @@ TEST_CASE("will and execute within obedience")
 	const auto& novice = static_cast<const Novice&>(a);
 	const auto& testator = static_cast<const Testator&>(b);
 
+	novice.admit(testator);
+	testator.admit(novice);
 	novice.supplicate(testator);
 	testator.accept(*testator.supplication(novice));
 	REQUIRE(cosmos.spatiality().ties().size() == 1);
@@ -811,6 +825,8 @@ TEST_CASE("a tie shows its behests only to its sides; behests are not letters")
 	const auto& testator = static_cast<const Testator&>(world.welcome(DeviceToken::generate()));
 	const auto& stranger = static_cast<const Testator&>(world.welcome(DeviceToken::generate()));
 
+	novice.admit(testator);
+	testator.admit(novice);
 	novice.supplicate(testator);
 	testator.accept(*testator.supplication(novice));
 	testator.wake();
@@ -941,4 +957,29 @@ TEST_CASE("a dweller sees as his kind does: an acquaintance nothing, a neighbour
 	// Back to an acquaintance, he sees nothing again.
 	host.regard(man, matter::Dweller::Kind::Acquaintance);
 	CHECK(gaze->words().empty());
+}
+
+
+TEST_CASE("a tie binds only those who admitted each other into their abodes")
+{
+	InMemoryCosmos cosmos;
+	World& world = cosmos.life().create().world();
+
+	const auto& novice = static_cast<const Novice&>(world.welcome(DeviceToken::generate()));
+	const auto& testator = static_cast<const Testator&>(world.welcome(DeviceToken::generate()));
+
+	// Strangers: no supplication is kept.
+	CHECK_THROWS_AS(novice.supplicate(testator), std::logic_error);
+
+	// The addressee dwells with the suppliant, but not the suppliant with him:
+	// the testator does not hear him, and nothing is kept.
+	novice.admit(testator);
+	CHECK_THROWS_AS(novice.supplicate(testator), std::logic_error);
+	CHECK(cosmos.temporality().supplications(testator.Soul::id()).empty());
+
+	// Admitted each to the other, they may be tied.
+	testator.admit(novice);
+	novice.supplicate(testator);
+	const Shepherding& shepherding = testator.accept(*testator.supplication(novice));
+	CHECK(&shepherding.novice() == &novice);
 }

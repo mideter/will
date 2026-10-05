@@ -38,6 +38,8 @@ const Shepherding& Supplication::sign(const Testator& addressee) const
 
 	const std::shared_ptr<const Supplication> incoming = addressee.supplication(suppliant_);
 	const Novice& suppliant = suppliant_;
+	if (!addressee.abode().dweller(suppliant) || !suppliant.abode().dweller(addressee))
+		throw std::logic_error("a tie binds only those who dwell in each other's abodes");
 
 	const matter::Tie kept = addressee.spatiality().bind(addressee.Soul::id(), suppliant.Soul::id());
 	addressee.temporality().answer(suppliant.Soul::id(), addressee.Soul::id(), matter::Answer::Form::Accepted);

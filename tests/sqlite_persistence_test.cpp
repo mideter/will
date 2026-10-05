@@ -197,6 +197,8 @@ TEST_CASE("sqlite keeps a behest and its execution across reopen")
 		const auto& novice = static_cast<const Novice&>(world.welcome(token_novice));
 		const auto& testator = static_cast<const Testator&>(world.welcome(token_testator));
 
+		novice.admit(testator);
+		testator.admit(novice);
 		novice.supplicate(testator);
 		testator.accept(*testator.supplication(novice));
 		testator.wake();
@@ -284,6 +286,8 @@ TEST_CASE("sqlite keeps supplications, rejections and ties across reopen")
 		const auto& c = static_cast<const Testator&>(world.welcome(token_c));
 
 		// a asks b twice: rejected, then asked again and left awaiting.
+		a.admit(b);
+		b.admit(a);
 		a.supplicate(b);
 		CHECK_THROWS_AS(a.supplicate(b), std::logic_error);
 		b.reject(*b.supplication(a));
@@ -293,6 +297,8 @@ TEST_CASE("sqlite keeps supplications, rejections and ties across reopen")
 		a.supplicate(b);
 
 		// c asks b and is accepted.
+		c.admit(b);
+		b.admit(c);
 		c.supplicate(b);
 		CHECK(bundle.temporality().supplications(b.Soul::id()).size() == 2);
 		const Shepherding& shepherding = b.accept(*b.supplication(c));

@@ -25,6 +25,8 @@ void Novice::supplicate(const Testator& addressee) const
 {
 	if (addressee.Soul::id() == Soul::id())
 		throw std::invalid_argument("cannot supplicate oneself");
+	if (!abode().dweller(addressee))
+		throw std::logic_error("one supplicates only a dweller of one's abode");
 
 	addressee.hear(Birth<Novice>{*this});
 }

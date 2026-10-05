@@ -28,7 +28,9 @@ class Testator;
 /// is always Testator.
 class Novice : public Witness {
 public:
-	/// Ask addressee to become Завещатель; this soul will be the novice.
+	/// Ask addressee to become Завещатель; this soul will be the novice. Only
+	/// those who dwell in each other's abodes are tied: the addressee must dwell
+	/// in this soul's abode, and this soul in his.
 	/// The pending Supplication is signed by this novice (lodge + Temporality).
 	void supplicate(const Testator& addressee) const;
 

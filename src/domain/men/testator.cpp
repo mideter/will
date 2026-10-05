@@ -103,6 +103,8 @@ std::vector<std::shared_ptr<const Supplication>> Testator::supplications() const
 void Testator::hear(const Birth<Novice> birth) const
 {
 	const Novice& suppliant = birth.parent();
+	if (!abode().dweller(suppliant))
+		throw std::logic_error("one hears only a dweller of one's abode");
 	for (const Shepherding* place : shepherdings_) {
 		if (place && place->novice().Soul::id() == suppliant.Soul::id())
 			throw std::logic_error("obedience already exists for this pair");
