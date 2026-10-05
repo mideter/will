@@ -37,6 +37,8 @@ std::shared_ptr<const Behest> Testator::will(const Shepherding& shepherding, con
 {
 	if (shepherding.testator().Soul::id() != Soul::id())
 		throw std::logic_error("not the testator of this shepherding");
+	if (!contemplates(shepherding))
+		throw std::logic_error("one wills only in the tie one contemplates");
 
 	matter::Word uttered = utter(saying);
 	matter::Placement placed = spatiality().place(uttered.id(), shepherding.id());

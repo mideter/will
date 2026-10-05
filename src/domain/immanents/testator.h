@@ -33,6 +33,7 @@ public:
 	const Shepherding& accept(const Supplication& ask) const;
 	void reject(const Supplication& ask) const;
 
+	/// Will in a tie one contemplates. Throws if one looks elsewhere.
 	std::shared_ptr<const Behest> will(const Shepherding& shepherding, const Saying& saying) const;
 
 	/// Shepherding of the Tie with this novice. Throws if unknown.

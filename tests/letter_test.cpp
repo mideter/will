@@ -122,6 +122,8 @@ TEST_CASE("Behest is a word of will in a living Tie, born of the Tie or of its t
 	const Shepherding& shepherding = testator.accept(*testator.supplication(novice));
 
 	cosmos.fake_time().set_instant(Timestamp{50});
+	testator.wake();
+	testator.contemplate(shepherding);
 	const std::shared_ptr<const Behest> behest_held = testator.will(shepherding, "do this");
 	const Behest& behest = *behest_held;
 	CHECK(&behest.tie().testator() == &testator);
@@ -153,6 +155,10 @@ TEST_CASE("Deed is the novice's word fulfilling a behest, his report or «сов
 
 	novice.supplicate(testator);
 	const Shepherding& shepherding = testator.accept(*testator.supplication(novice));
+	testator.wake();
+	testator.contemplate(shepherding);
+	novice.wake();
+	novice.contemplate(novice.obedience(testator));
 	const std::shared_ptr<const Behest> fast_held = testator.will(shepherding, "fast");
 	const Behest& fast = *fast_held;
 	const std::shared_ptr<const Behest> pray_held = testator.will(shepherding, "pray");

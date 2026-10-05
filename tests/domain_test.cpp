@@ -490,6 +490,8 @@ TEST_CASE("the sides of a tie may contemplate it and behold its behests")
 
 	novice.supplicate(testator);
 	const Shepherding& shepherding = testator.accept(*testator.supplication(novice));
+	testator.wake();
+	testator.contemplate(shepherding);
 	const std::shared_ptr<const Behest> willed_held = testator.will(shepherding, "fast");
 	const Behest& willed = *willed_held;
 
@@ -587,7 +589,10 @@ TEST_CASE("the words of a tie are gone with the last gaze and are born anew from
 		const std::shared_ptr<const Behest> behest = testator.will(shepherding, "fast");
 		watched = behest;
 		behest_id = behest->id();
+		novice.wake();
+		novice.contemplate(novice.obedience(testator));
 		novice.execute(*behest, Saying{"fasted"});
+		novice.sleep();
 	}
 	CHECK_FALSE(watched.expired());  // the testator's gaze holds it
 
@@ -741,6 +746,8 @@ TEST_CASE("will and execute within obedience")
 	testator.accept(*testator.supplication(novice));
 	REQUIRE(cosmos.spatiality().ties().size() == 1);
 	const Shepherding& shepherding = testator.shepherding(novice);
+	testator.wake();
+	testator.contemplate(shepherding);
 	const std::shared_ptr<const Behest> behest_held = testator.will(shepherding, "fast");
 	const Behest& behest = *behest_held;
 	CHECK(behest.saying().body() == "fast");
@@ -757,6 +764,10 @@ TEST_CASE("will and execute within obedience")
 	CHECK(obedience.deeds(novice).empty());
 	CHECK_THROWS_AS(testator.execute(behest), std::logic_error);
 
+	// One fulfils a behest only while contemplating its tie.
+	CHECK_THROWS_AS(novice.execute(behest), std::logic_error);
+	novice.wake();
+	novice.contemplate(obedience);
 	const std::shared_ptr<const Deed> deed = novice.execute(behest);
 	CHECK(deed->behest() == behest.id());
 	REQUIRE(shepherding.deeds(testator).size() == 1);
@@ -781,6 +792,9 @@ TEST_CASE("a tie shows its behests only to its sides; behests are not letters")
 
 	novice.supplicate(testator);
 	testator.accept(*testator.supplication(novice));
+	testator.wake();
+	CHECK_THROWS_AS(testator.will(testator.shepherding(novice), "fast"), std::logic_error);
+	testator.contemplate(testator.shepherding(novice));
 	const std::shared_ptr<const Behest> behest_held = testator.will(testator.shepherding(novice), "fast");
 	const Behest& behest = *behest_held;
 

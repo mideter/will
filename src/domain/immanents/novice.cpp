@@ -37,6 +37,8 @@ std::shared_ptr<const Deed> Novice::execute(const Behest& behest, std::optional<
 	const Tie& tie = behest.tie();
 	if (tie.novice().Soul::id() != Soul::id())
 		throw std::logic_error("not the novice of this behest");
+	if (!contemplates(tie))
+		throw std::logic_error("one fulfils a behest only in the tie one contemplates");
 	if (!temporality().executions({behest.id()}).empty())
 		throw std::logic_error("behest is already executed");
 

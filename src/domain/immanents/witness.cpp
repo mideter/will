@@ -43,6 +43,13 @@ void Witness::contemplate(const Place& place) const
 }
 
 
+bool Witness::contemplates(const Place& place) const
+{
+	const std::shared_ptr<const Contemplation> gaze = contemplation();
+	return gaze && &gaze->place() == &place;
+}
+
+
 void Witness::say(const Saying& saying) const
 {
 	const std::shared_ptr<const Contemplation> gaze = contemplation();

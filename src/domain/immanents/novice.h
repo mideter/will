@@ -33,7 +33,8 @@ public:
 	void supplicate(const Testator& addressee) const;
 
 	/// Fulfil a behest of a tie where this soul is novice, with a report or,
-	/// without one, «совершено». Throws if the behest is already fulfilled.
+	/// without one, «совершено», while contemplating that tie. Throws if the
+	/// behest is already fulfilled or one looks elsewhere.
 	std::shared_ptr<const Deed> execute(const Behest& behest,
 										std::optional<Saying> report = std::nullopt) const;
 
