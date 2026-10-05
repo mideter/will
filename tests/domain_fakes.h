@@ -15,7 +15,7 @@
 #include "words/recollection.h"
 #include "relations/contemplation.h"
 #include "men/soul.h"
-#include "acts/creation.h"
+#include "horizons/creation.h"
 #include "horizons/life.h"
 #include "horizons/space.h"
 #include "men/man.h"

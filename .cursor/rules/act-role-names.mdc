@@ -1,6 +1,6 @@
 ---
 description: Name act sides by act role, not place role or heap-type name
-globs: src/domain/acts/**
+globs: src/domain/relations/**, src/domain/places/**
 alwaysApply: false
 ---
 
