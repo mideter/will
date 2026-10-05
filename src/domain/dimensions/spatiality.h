@@ -2,6 +2,7 @@
 
 #include "matter/placement.h"
 #include "matter/abode.h"
+#include "matter/dweller.h"
 #include "matter/tie.h"
 #include "identity/word.h"
 #include "identity/place.h"
@@ -30,6 +31,13 @@ public:
 	/// Keep a new abode of this host in a new point of Space.
 	/// Refuses (std::logic_error) if the host already keeps one.
 	virtual matter::Abode abide(id::Soul host, AbodeName name) = 0;
+
+	/// Keep that this soul dwells in this abode, regarded as of this kind (a
+	/// kind kept anew replaces the former one).
+	virtual matter::Dweller dwell(id::Place abode, id::Soul soul, matter::Dweller::Kind kind) = 0;
+
+	/// All dwellers kept in space (for Creation awaken).
+	virtual std::vector<matter::Dweller> dwellers() const = 0;
 
 	/// Keep the bond of a pair in a new point of Space.
 	/// Refuses (std::logic_error) if the pair is already bound.

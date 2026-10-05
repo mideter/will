@@ -81,6 +81,7 @@ struct InMemoryShared {
 	// Spatiality
 	std::vector<std::pair<id::Soul, matter::Abode>> abodes;
 	std::vector<matter::Tie> ties;
+	std::vector<matter::Dweller> dwellers;
 	std::vector<matter::Placement> placements;
 
 	// Temporality
@@ -197,6 +198,21 @@ public:
 		shared_.abodes.emplace_back(host, kept);
 		return kept;
 	}
+
+	matter::Dweller dwell(const id::Place abode, const id::Soul soul, const matter::Dweller::Kind kind) override
+	{
+		const matter::Dweller kept{abode, soul, kind};
+		for (matter::Dweller& row : shared_.dwellers) {
+			if (row.abode() == abode && row.soul() == soul) {
+				row = kept;
+				return kept;
+			}
+		}
+		shared_.dwellers.push_back(kept);
+		return kept;
+	}
+
+	std::vector<matter::Dweller> dwellers() const override { return shared_.dwellers; }
 
 	matter::Tie bind(const id::Soul testator, const id::Soul novice) override
 	{

@@ -23,7 +23,25 @@ Man::Man(matter::Man kept)
 		own = spatiality().abide(Soul::id(), AbodeName{std::string{Soul::name().text()}});
 
 	abode_ = std::make_unique<Abode>(Birth<Man>{*this}, std::move(*own));
-	abode_->admit(*this);
+}
+
+
+void Man::admit(const Man& man) const
+{
+	if (abode_->dwells(man))
+		throw std::logic_error("he already dwells in this abode");
+
+	abode_->admit(Birth<Man>{*this}, man,
+				  spatiality().dwell(abode_->id(), man.Soul::id(), matter::Dweller::Kind::Acquaintance));
+}
+
+
+void Man::regard(const Man& dweller, const matter::Dweller::Kind kind) const
+{
+	if (!abode_->kind(dweller))
+		throw std::logic_error("he does not dwell in this abode");
+
+	abode_->admit(Birth<Man>{*this}, dweller, spatiality().dwell(abode_->id(), dweller.Soul::id(), kind));
 }
 
 

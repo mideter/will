@@ -59,6 +59,17 @@ void World::awaken()
 			dynamic_cast<const Shepherding&>(place));
 	}
 
+	std::unordered_map<id::Place, Man*> hosts;
+	for (const auto& [soul_id, man] : men_)
+		hosts.emplace(man->abode().id(), man.get());
+	for (const matter::Dweller& kept : spatiality().dwellers()) {
+		const auto host = hosts.find(kept.abode());
+		if (host == hosts.end())
+			throw std::runtime_error("a kept dweller dwells in an abode no living man keeps");
+
+		host->second->abode().admit(Birth<World>{*this}, living_man(kept.soul()), kept);
+	}
+
 	for (const auto& [soul_id, man] : men_) {
 		const auto& addressee = static_cast<const Testator&>(*man);
 

@@ -74,6 +74,13 @@ CREATE TABLE IF NOT EXISTS abode_souls (
   PRIMARY KEY (abode_id, soul_id)
 );
 
+CREATE TABLE IF NOT EXISTS dwellers (
+  abode_id INTEGER NOT NULL,
+  soul_id INTEGER NOT NULL,
+  kind INTEGER NOT NULL,
+  PRIMARY KEY (abode_id, soul_id)
+);
+
 CREATE TABLE IF NOT EXISTS placements (
   word_id INTEGER PRIMARY KEY,
   place_id INTEGER NOT NULL

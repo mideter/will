@@ -367,3 +367,41 @@ TEST_CASE("sqlite answers the rejections kept before answers were")
 	::unlink((prefix + ".space.db").c_str());
 	::unlink((prefix + ".time.db").c_str());
 }
+
+
+TEST_CASE("sqlite keeps the dwellers of an abode and their kind across reopen")
+{
+	using namespace will;
+	using namespace will::domain;
+
+	const std::string prefix = "/tmp/will-sqlite-dwellers-test-" + std::to_string(getpid());
+	::unlink((prefix + ".eternity.db").c_str());
+	::unlink((prefix + ".space.db").c_str());
+	::unlink((prefix + ".time.db").c_str());
+
+	const DeviceToken token_host = *DeviceToken::parse("aaaa1234aaaa1234aaaa1234aaaa1234");
+	const DeviceToken token_man = *DeviceToken::parse("bbbb1234bbbb1234bbbb1234bbbb1234");
+
+	{
+		SqlitePersistenceBundle bundle(prefix);
+		World& world = bundle.world();
+		const Man& host = world.welcome(token_host);
+		const Man& man = world.welcome(token_man);
+		host.admit(man);
+		host.regard(man, matter::Dweller::Kind::Friend);
+	}
+
+	{
+		SqlitePersistenceBundle bundle(prefix);
+		World& world = bundle.world();
+		const Man& host = world.welcome(token_host);
+		const Man& man = world.welcome(token_man);
+		CHECK(host.abode().kind(man) == matter::Dweller::Kind::Friend);
+		CHECK_FALSE(man.abode().dwells(host));
+		REQUIRE(bundle.spatiality().dwellers().size() == 1);
+	}
+
+	::unlink((prefix + ".eternity.db").c_str());
+	::unlink((prefix + ".space.db").c_str());
+	::unlink((prefix + ".time.db").c_str());
+}

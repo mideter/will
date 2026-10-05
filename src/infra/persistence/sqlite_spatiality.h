@@ -19,6 +19,9 @@ public:
 
 	std::optional<domain::matter::Abode> abode(domain::id::Soul host) const override;
 	domain::matter::Abode abide(domain::id::Soul host, domain::AbodeName name) override;
+	domain::matter::Dweller dwell(domain::id::Place abode, domain::id::Soul soul,
+								  domain::matter::Dweller::Kind kind) override;
+	std::vector<domain::matter::Dweller> dwellers() const override;
 	domain::matter::Tie bind(domain::id::Soul testator, domain::id::Soul novice) override;
 	std::vector<domain::matter::Tie> ties() const override;
 	domain::matter::Placement place(domain::id::Word id, domain::id::Place place) override;

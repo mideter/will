@@ -837,3 +837,63 @@ TEST_CASE("a tie shows its behests only to its sides; behests are not letters")
 	REQUIRE(obedience.behests(novice).size() == 1);
 	CHECK(obedience.behests(novice).front()->id() == behest.id());
 }
+
+
+TEST_CASE("the host admits a man as an acquaintance and regards him anew")
+{
+	InMemoryCosmos cosmos;
+	Creation& creation = cosmos.life().create();
+	World& world = creation.world();
+
+	const auto& host = static_cast<const Witness&>(world.welcome(DeviceToken::generate()));
+	const auto& man = static_cast<const Witness&>(world.welcome(DeviceToken::generate()));
+
+	// The host dwells in his abode, but is not a dweller of it; a stranger does not dwell.
+	CHECK(&host.abode().host() == static_cast<const Man*>(&host));
+	CHECK(host.abode().dwells(host));
+	CHECK_FALSE(host.abode().kind(host));
+	CHECK_FALSE(host.abode().dwells(man));
+	CHECK_THROWS_AS(host.regard(man, matter::Dweller::Kind::Friend), std::logic_error);
+	CHECK_THROWS_AS(host.admit(host), std::logic_error);
+
+	// Admitted, he is an acquaintance; regarded anew, a friend. Matter keeps it.
+	host.admit(man);
+	CHECK(host.abode().dwells(man));
+	CHECK(host.abode().kind(man) == matter::Dweller::Kind::Acquaintance);
+	CHECK_THROWS_AS(host.admit(man), std::logic_error);
+	host.regard(man, matter::Dweller::Kind::Friend);
+	CHECK(host.abode().kind(man) == matter::Dweller::Kind::Friend);
+	REQUIRE(cosmos.spatiality().dwellers().size() == 1);
+	CHECK(cosmos.spatiality().dwellers().front().kind() == matter::Dweller::Kind::Friend);
+
+	// Admission is not mutual: the host does not dwell in the man's abode.
+	CHECK_FALSE(man.abode().dwells(host));
+
+	// A dweller may turn his gaze to the abode, but only the host writes in it.
+	man.wake();
+	man.contemplate(host.abode());
+	CHECK_THROWS_AS(static_cast<const Man&>(man).say("not mine"), std::logic_error);
+}
+
+
+TEST_CASE("dwellers outlive Life in matter and are recalled on awakening")
+{
+	InMemoryShared store;
+	const DeviceToken host_token = DeviceToken::generate();
+	const DeviceToken man_token = DeviceToken::generate();
+	{
+		InMemoryCosmos cosmos(store);
+		World& world = cosmos.life().create().world();
+		const Man& host = world.welcome(host_token);
+		const Man& man = world.welcome(man_token);
+		host.admit(man);
+		host.regard(man, matter::Dweller::Kind::Neighbour);
+	}
+
+	InMemoryCosmos cosmos(store);
+	World& world = cosmos.life().create().world();
+	const Man& host = world.welcome(host_token);
+	const Man& man = world.welcome(man_token);
+	CHECK(host.abode().kind(man) == matter::Dweller::Kind::Neighbour);
+	CHECK_FALSE(man.abode().dwells(host));
+}

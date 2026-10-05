@@ -80,6 +80,45 @@ domain::matter::Abode SqliteSpatiality::abide(const domain::id::Soul host, domai
 }
 
 
+domain::matter::Dweller SqliteSpatiality::dwell(const domain::id::Place abode, const domain::id::Soul soul,
+												const domain::matter::Dweller::Kind kind)
+{
+	const domain::matter::Dweller kept{abode, soul, kind};
+	std::lock_guard lock(database_.mutex());
+
+	SqliteStmt stmt(database_.db(), "INSERT OR REPLACE INTO dwellers (abode_id, soul_id, kind) VALUES (?, ?, ?);",
+					"prepare dwell");
+	stmt.bind_i64(1, static_cast<std::int64_t>(abode.value()), "bind abode_id");
+	stmt.bind_i64(2, static_cast<std::int64_t>(soul.value()), "bind soul_id");
+	stmt.bind_i64(3, static_cast<std::int64_t>(kind), "bind kind");
+	stmt.step_done("dwell step");
+
+	return kept;
+}
+
+
+std::vector<domain::matter::Dweller> SqliteSpatiality::dwellers() const
+{
+	std::lock_guard lock(database_.mutex());
+
+	SqliteStmt stmt(database_.db(), "SELECT abode_id, soul_id, kind FROM dwellers ORDER BY abode_id, soul_id;",
+					"prepare dwellers");
+
+	std::vector<domain::matter::Dweller> rows;
+	while (stmt.step_row("dwellers step")) {
+		const std::int64_t kind = stmt.column_i64(2);
+		if (kind < 0 || kind > static_cast<std::int64_t>(domain::matter::Dweller::Kind::Friend))
+			throw std::runtime_error("dweller: unknown kind in database");
+
+		rows.emplace_back(domain::id::Place{static_cast<std::uint64_t>(stmt.column_i64(0))},
+						  domain::id::Soul{static_cast<std::uint64_t>(stmt.column_i64(1))},
+						  static_cast<domain::matter::Dweller::Kind>(kind));
+	}
+
+	return rows;
+}
+
+
 domain::matter::Tie SqliteSpatiality::bind(const domain::id::Soul testator, const domain::id::Soul novice)
 {
 	std::lock_guard lock(database_.mutex());
