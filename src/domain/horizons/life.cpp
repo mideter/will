@@ -92,6 +92,12 @@ Temporality& Life::temporality() const
 }
 
 
+std::shared_ptr<const Recollection> Life::recollection(const Birth<Place> birth)
+{
+	return the().recollection(birth.parent());
+}
+
+
 std::shared_ptr<const Recollection> Life::recollection(const Place& place) const
 {
 	std::lock_guard lock(mutex_);

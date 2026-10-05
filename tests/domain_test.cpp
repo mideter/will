@@ -414,6 +414,7 @@ TEST_CASE("the living is born only of the living")
 	static_assert(!std::is_default_constructible_v<Birth<Abode>>);
 	static_assert(!std::is_default_constructible_v<Birth<World>>);
 	static_assert(!std::is_constructible_v<Birth<Abode>, const Abode&>);
+	static_assert(!std::is_constructible_v<Birth<Place>, const Place&>);
 
 	// And without the key nothing living is brought forth from its matter.
 	static_assert(!std::is_constructible_v<Testator, matter::Man>);

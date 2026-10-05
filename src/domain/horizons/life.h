@@ -1,6 +1,7 @@
 #pragma once
 
 #include "identity/place.h"
+#include "properties/birth.h"
 #include "properties/immanent.h"
 
 #include <memory>
@@ -43,17 +44,17 @@ public:
 	/// Throws if Life has not created yet.
 	Creation& creation() const;
 
-private:
-	friend class Place;
+	/// The recollection of the place that asks: the one held now, or, if none
+	/// is, a new one that Life recollects.
+	static std::shared_ptr<const Recollection> recollection(Birth<Place> birth);
 
+private:
 	static Life& the();
 
 	/// Of Life's Creation; throw if Life has not created yet.
 	Spatiality& spatiality() const;
 	Temporality& temporality() const;
 
-	/// The recollection of this place held now, or, if none is, a new one that
-	/// Life recollects.
 	std::shared_ptr<const Recollection> recollection(const Place& place) const;
 
 	/// The words placed in this place, oldest first (capped by

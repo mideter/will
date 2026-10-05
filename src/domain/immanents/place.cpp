@@ -41,7 +41,7 @@ std::shared_ptr<const Recollection> Place::recollection(const Contemplation& gaz
 
 std::shared_ptr<const Recollection> Place::recollection() const
 {
-	return Life::the().recollection(*this);
+	return Life::recollection(Birth<Place>{*this});
 }
 
 
