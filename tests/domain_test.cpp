@@ -428,6 +428,9 @@ TEST_CASE("the living is born only of the living")
 TEST_CASE("only Life creates the World; it proceeds from Eternity, and there is one Life")
 {
 	static_assert(!std::is_constructible_v<Creation, Eternity&, Spatiality&, Temporality&>);
+	static_assert(std::is_base_of_v<Immanent<Life>, Creation>);
+	static_assert(!std::is_copy_constructible_v<Creation>);
+	static_assert(!std::is_move_constructible_v<Creation>);
 	static_assert(std::is_base_of_v<Immanent<Eternity>, Life>);
 	static_assert(!std::is_copy_constructible_v<Life>);
 	static_assert(!std::is_move_constructible_v<Life>);

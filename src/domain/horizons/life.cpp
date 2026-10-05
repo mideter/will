@@ -50,7 +50,7 @@ Life::~Life()
 
 Creation Life::create()
 {
-	return Creation{Eternity::the(), spatiality_, temporality_};
+	return Creation{Birth<Life>{}, Eternity::the(), spatiality_, temporality_};
 }
 
 
