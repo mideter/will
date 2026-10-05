@@ -12,6 +12,7 @@
 #include "acts/supplication.h"
 #include "immanents/abode.h"
 #include "words/letter.h"
+#include "words/recollection.h"
 #include "immanents/contemplation.h"
 #include "immanents/soul.h"
 #include "acts/creation.h"

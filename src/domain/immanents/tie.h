@@ -4,7 +4,6 @@
 #include "immanents/shepherding.h"
 #include "matter/tie.h"
 
-#include <mutex>
 #include "properties/birth.h"
 
 
@@ -44,14 +43,9 @@ public:
 	/// Its two sides dwell in a tie.
 	bool dwells(const Man& man) const override;
 
-	/// The behests and deeds placed here, oldest first, for a gaze upon this tie.
-	/// The ones still living are shared; the rest are born from the matter Life gives.
-	std::vector<std::shared_ptr<const Word>> words(const Contemplation& gaze) const override;
-
-private:
-	std::vector<std::shared_ptr<const Word>> living() const;
-
-	mutable std::mutex mutex_;
+	/// The behests and deeds placed here, born from the matter Life gives in
+	/// one stream, oldest first.
+	std::vector<std::shared_ptr<const Word>> recall(Birth<Life>) const override;
 };
 
 

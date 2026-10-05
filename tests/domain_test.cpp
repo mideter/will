@@ -238,8 +238,8 @@ TEST_CASE("letters of an abode are seen through contemplation by one who dwells 
 	CHECK(world.contemplation(stranger.Soul::id()) != former);
 	CHECK(world.contemplating(stranger.abode()).size() == 1);
 
-	// An abode shows its letters only to a contemplation of itself.
-	CHECK_THROWS_AS(stranger.abode().words(*world.contemplation(witness.Soul::id())), std::logic_error);
+	// An abode gives its recollection only to a contemplation of itself.
+	CHECK_THROWS_AS(stranger.abode().recollection(*world.contemplation(witness.Soul::id())), std::logic_error);
 
 	// A gaze that someone still holds does not fade under him when its soul sleeps.
 	const std::shared_ptr<const Contemplation> held = world.contemplation(witness.Soul::id());
@@ -294,18 +294,19 @@ TEST_CASE("letters of an abode live while it is contemplated, shared by every ga
 	CHECK(letters_seen_by(former)[0] == seen[0]);
 	CHECK(cosmos.spatiality().placement_reads() == 1);
 
-	// Only the gazes resting on the abode now behold what is said next.
+	// Every gaze still held upon the abode shares its one recollection, and
+	// beholds what is said next.
 	host.say("third");
 	CHECK(letters_seen_by(current).size() == 3);
-	CHECK(letters_seen_by(former).size() == 2);
+	CHECK(letters_seen_by(former).size() == 3);
+	CHECK(letters_seen_by(former)[2] == letters_seen_by(current)[2]);
 
-	// A gaze beholds only letters said in what it contemplates.
+	// What is said in another abode enters only that abode's recollection.
 	const auto& other = static_cast<const Witness&>(world.welcome(DeviceToken::generate()));
 	other.wake();
 	other.say("elsewhere");
-	CHECK_THROWS_AS(current->behold(letters_seen_by(world.contemplation(other.Soul::id())).front()),
-					std::logic_error);
 	CHECK(letters_seen_by(current).size() == 3);
+	CHECK(letters_seen_by(world.contemplation(other.Soul::id())).size() == 1);
 
 	// Only its author inscribes a letter, and only into the abode he contemplates.
 	const auto stray = matter::Letter{matter::Word{id::Word{900}, other.Soul::id(), "not his"},
@@ -316,7 +317,7 @@ TEST_CASE("letters of an abode live while it is contemplated, shared by every ga
 }
 
 
-TEST_CASE("Life remembers the living letters, so a new gaze shares those still held")
+TEST_CASE("the words of a place live together in its recollection, all or none")
 {
 	InMemoryCosmos cosmos;
 	Creation& creation = cosmos.life().create();
@@ -328,24 +329,28 @@ TEST_CASE("Life remembers the living letters, so a new gaze shares those still h
 	host.say("first");
 	host.say("second");
 
-	// An old gaze is still held while the man turns anew and says one more.
-	const std::shared_ptr<const Contemplation> old_gaze = world.contemplation(host.Soul::id());
+	// While any gaze holds the recollection, every word in it lives, even one
+	// said after that gaze was let go by Heaven.
+	std::shared_ptr<const Contemplation> old_gaze = world.contemplation(host.Soul::id());
 	host.contemplate(host.abode());
 	host.say("third");
+	const std::weak_ptr<const Letter> first = letters_seen_by(old_gaze).front();
 	const std::weak_ptr<const Letter> third = letters_seen_by(world.contemplation(host.Soul::id())).back();
-
-	// He sleeps: the third letter is held by no one and is gone; the first two live in the old gaze.
 	host.sleep();
-	CHECK(third.expired());
-	REQUIRE(letters_seen_by(old_gaze).size() == 2);
+	CHECK_FALSE(third.expired());
+	REQUIRE(letters_seen_by(old_gaze).size() == 3);
 
-	// Waking, he beholds all three: the two still living are the very same, the third is born anew.
+	// The last gaze is let go: all the words end together, their memory stays kept.
+	old_gaze.reset();
+	CHECK(first.expired());
+	CHECK(third.expired());
+
+	// Waking, he recollects all three anew from the dimensions.
 	const std::size_t reads = cosmos.spatiality().placement_reads();
 	host.wake();
 	const auto seen = letters_seen_by(world.contemplation(host.Soul::id()));
 	REQUIRE(seen.size() == 3);
-	CHECK(seen[0] == letters_seen_by(old_gaze)[0]);
-	CHECK(seen[1] == letters_seen_by(old_gaze)[1]);
+	CHECK(seen[0]->saying().body() == "first");
 	CHECK(seen[2]->saying().body() == "third");
 	CHECK(cosmos.spatiality().placement_reads() == reads + 1);
 }
@@ -471,6 +476,10 @@ TEST_CASE("there is one Creation in Life, and the matter of its dimensions outli
 TEST_CASE("a word is immanent to Life and is neither copied nor moved in any role")
 {
 	static_assert(std::is_base_of_v<Immanent<Life>, Word>);
+	static_assert(std::is_base_of_v<Immanent<Life>, Recollection>);
+	static_assert(!std::is_copy_constructible_v<Recollection>);
+	static_assert(!std::is_move_constructible_v<Recollection>);
+	static_assert(!std::is_constructible_v<Recollection, const Place&, std::vector<std::shared_ptr<const Word>>>);
 	static_assert(!std::is_copy_constructible_v<Letter>);
 	static_assert(!std::is_move_constructible_v<Letter>);
 	static_assert(!std::is_copy_constructible_v<Behest>);

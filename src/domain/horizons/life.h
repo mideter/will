@@ -17,6 +17,7 @@ namespace will::domain {
 
 class Creation;
 class Place;
+class Recollection;
 class Eternity;
 class Spatiality;
 class Temporality;
@@ -28,7 +29,7 @@ class Word;
 /// the World it made. Life holds its one Creation and reaches Spatiality and
 /// Temporality through it. One Life; immanent to Eternity.
 /// Words are immanent to Life: it gives places the matter of their words and
-/// remembers which words live now, without owning them — the gazes hold them.
+/// brings forth their Recollection, knowing it while the gazes hold it.
 class Life : private Immanent<Eternity> {
 public:
 	/// Throws if no Eternity is realised.
@@ -44,12 +45,6 @@ public:
 
 	/// Throws if Life has not created yet.
 	Creation& creation() const;
-
-	/// The words of a place living now. Whole when Life remembers them all alive.
-	struct Remembered {
-		std::vector<std::shared_ptr<const Word>> words;
-		bool whole = false;
-	};
 
 private:
 	friend class Place;
@@ -70,16 +65,16 @@ private:
 	/// Executions naming any of these words as their deed, by deed.
 	std::unordered_map<id::Word, matter::Execution> executions_of(const std::vector<matter::Letter>& parts) const;
 
-	Remembered remembered(id::Place place) const;
-	void remember(id::Place place, const std::vector<std::shared_ptr<const Word>>& words);
-	void remember(id::Place place, const std::shared_ptr<const Word>& word);
+	/// The recollection of this place held now, or, if none is, a new one of
+	/// the words the place recalls.
+	std::shared_ptr<const Recollection> recollection(const Place& place) const;
 
 	static Life* current_;
 
 	std::unique_ptr<Creation> creation_;
 
 	mutable std::mutex mutex_;
-	std::unordered_map<id::Place, std::vector<std::weak_ptr<const Word>>> living_;
+	mutable std::unordered_map<id::Place, std::weak_ptr<const Recollection>> recollections_;
 };
 
 

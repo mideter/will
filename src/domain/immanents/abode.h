@@ -36,12 +36,12 @@ public:
 
 	bool dwells(const Man& man) const override;
 
-	/// The letters placed here, oldest first, for a gaze upon this abode. The
-	/// ones still living are shared; the rest are born from the matter Life gives.
-	std::vector<std::shared_ptr<const Word>> words(const Contemplation& gaze) const override;
+	/// The letters placed here, oldest first, born from the matter Life gives.
+	std::vector<std::shared_ptr<const Word>> recall(Birth<Life>) const override;
 
 	/// A letter said here by the one whose gaze rests on it, born living from
-	/// the matter the dimensions returned when they kept it.
+	/// the matter the dimensions returned when they kept it; it enters the
+	/// recollection of this abode.
 	std::shared_ptr<const Letter> inscribe(const Contemplation& gaze, matter::Letter kept) const;
 
 private:

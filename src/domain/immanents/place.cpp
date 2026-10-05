@@ -1,6 +1,8 @@
 #include "place.h"
 
 #include "horizons/life.h"
+#include "immanents/contemplation.h"
+#include "words/recollection.h"
 #include "horizons/space.h"
 
 #include <stdexcept>
@@ -46,23 +48,24 @@ std::vector<matter::Deed> Place::kept_deeds() const
 }
 
 
-std::vector<std::shared_ptr<const Word>> Place::living_words(bool& whole) const
+std::shared_ptr<const Recollection> Place::recollection(const Contemplation& gaze) const
 {
-	Life::Remembered remembered = Life::the().remembered(id());
-	whole = remembered.whole;
-	return std::move(remembered.words);
+	if (&gaze.place() != this)
+		throw std::logic_error("this place is not what is contemplated");
+
+	return recollection();
 }
 
 
-void Place::remember(const std::vector<std::shared_ptr<const Word>>& words) const
+std::shared_ptr<const Recollection> Place::recollection() const
 {
-	Life::the().remember(id(), words);
+	return Life::the().recollection(*this);
 }
 
 
-void Place::remember(const std::shared_ptr<const Word>& word) const
+void Place::enter(const Recollection& recollection, std::shared_ptr<const Word> word) const
 {
-	Life::the().remember(id(), word);
+	recollection.enter(Birth<Place>{*this}, std::move(word));
 }
 
 

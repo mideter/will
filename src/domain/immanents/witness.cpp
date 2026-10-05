@@ -66,10 +66,7 @@ void Witness::say(const Saying& saying) const
 	matter::Placement placed = spatiality().place(uttered.id(), place.id());
 	matter::Dating dated = temporality().date(uttered.id());
 
-	const std::shared_ptr<const Letter> letter =
-		place.inscribe(*gaze, matter::Letter{std::move(uttered), std::move(placed), std::move(dated)});
-	for (const std::shared_ptr<const Contemplation>& beholder : gazes(place))
-		beholder->behold(letter);
+	place.inscribe(*gaze, matter::Letter{std::move(uttered), std::move(placed), std::move(dated)});
 }
 
 

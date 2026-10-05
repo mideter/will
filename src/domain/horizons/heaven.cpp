@@ -104,8 +104,8 @@ void Heaven::contemplate(const Soul& soul, const Place& place)
 	if (!knows(soul.id()))
 		throw std::logic_error("Heaven does not know this soul");
 
-	// Born and ended outside the lock: a gaze receives the letters it beholds,
-	// which may read the dimensions and ask Heaven for their authors.
+	// Born and ended outside the lock: a gaze holds the recollection of its
+	// place, which may read the dimensions and ask Heaven for their authors.
 	std::shared_ptr<const Contemplation> gaze =
 		std::make_shared<const Contemplation>(Birth<Heaven>{*this}, static_cast<const Witness&>(soul), place);
 
@@ -158,19 +158,6 @@ std::vector<std::shared_ptr<const Supplication>> Heaven::supplications(const id:
 	for (const std::shared_ptr<const Supplication>& kept : supplications_) {
 		if (kept->addressee().Soul::id() == addressee)
 			out.push_back(kept);
-	}
-	return out;
-}
-
-
-std::vector<std::shared_ptr<const Contemplation>> Heaven::gazes(const Place& place) const
-{
-	std::lock_guard lock(mutex_);
-
-	std::vector<std::shared_ptr<const Contemplation>> out;
-	for (const auto& [soul_id, gaze] : contemplations_) {
-		if (&gaze->place() == &place)
-			out.push_back(gaze);
 	}
 	return out;
 }

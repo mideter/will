@@ -49,9 +49,6 @@ protected:
 	/// Contemplate nothing.
 	void cease() const;
 
-	/// The gazes resting now upon this place.
-	static std::vector<std::shared_ptr<const Contemplation>> gazes(const Place& place);
-
 	/// Supplications awaiting this spirit's answer, oldest first.
 	std::vector<std::shared_ptr<const Supplication>> supplications() const;
 

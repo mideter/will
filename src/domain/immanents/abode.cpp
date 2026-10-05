@@ -4,12 +4,12 @@
 #include "immanents/man.h"
 #include "immanents/witness.h"
 #include "words/letter.h"
+#include "words/recollection.h"
 #include "matter/letter.h"
 #include "horizons/space.h"
 #include "properties/immanent.h"
 
 #include <stdexcept>
-#include <unordered_map>
 #include <utility>
 
 
@@ -44,44 +44,13 @@ bool Abode::dwells(const Man& man) const
 }
 
 
-std::vector<std::shared_ptr<const Word>> Abode::words(const Contemplation& gaze) const
+std::vector<std::shared_ptr<const Word>> Abode::recall(Birth<Life>) const
 {
-	if (&gaze.place() != this)
-		throw std::logic_error("this abode is not what is contemplated");
+	std::vector<std::shared_ptr<const Word>> letters;
+	for (matter::Letter& kept : kept_letters())
+		letters.push_back(std::make_shared<const Letter>(Birth<Abode>{*this}, std::move(kept)));
 
-	std::lock_guard lock(*mutex_);
-
-	bool whole = false;
-	std::unordered_map<id::Word, std::shared_ptr<const Letter>> alive;
-	std::vector<std::shared_ptr<const Letter>> shown;
-	for (const std::shared_ptr<const Word>& word : living_words(whole)) {
-		auto letter = std::dynamic_pointer_cast<const Letter>(word);
-		if (!letter) {
-			whole = false;
-			continue;
-		}
-
-		alive.emplace(letter->id(), letter);
-		shown.push_back(std::move(letter));
-	}
-
-	if (whole)
-		return {shown.begin(), shown.end()};
-
-	shown.clear();
-	for (matter::Letter& kept : kept_letters()) {
-		const auto still = alive.find(kept.id());
-		if (still != alive.end()) {
-			shown.push_back(still->second);
-			continue;
-		}
-
-		shown.push_back(std::make_shared<const Letter>(Birth<Abode>{*this}, std::move(kept)));
-	}
-
-	std::vector<std::shared_ptr<const Word>> words(shown.begin(), shown.end());
-	remember(words);
-	return words;
+	return letters;
 }
 
 
@@ -95,9 +64,7 @@ std::shared_ptr<const Letter> Abode::inscribe(const Contemplation& gaze, matter:
 		throw std::logic_error("only its author inscribes a letter");
 
 	auto letter = std::make_shared<const Letter>(Birth<Abode>{*this}, std::move(kept));
-
-	std::lock_guard lock(*mutex_);
-	remember(letter);
+	enter(*recollection(gaze), letter);
 
 	return letter;
 }

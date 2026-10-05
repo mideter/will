@@ -34,9 +34,6 @@ public:
 
 	std::vector<std::reference_wrapper<const Soul>> contemplating(const Place& place) const;
 
-	/// The gazes resting now upon this place.
-	std::vector<std::shared_ptr<const Contemplation>> gazes(const Place& place) const;
-
 	/// Supplications awaiting this soul's answer, oldest first.
 	/// Whoever holds one keeps it from fading while he uses it.
 	std::vector<std::shared_ptr<const Supplication>> supplications(id::Soul addressee) const;

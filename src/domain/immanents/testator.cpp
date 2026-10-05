@@ -44,12 +44,8 @@ std::shared_ptr<const Behest> Testator::will(const Shepherding& shepherding, con
 	matter::Placement placed = spatiality().place(uttered.id(), shepherding.id());
 	matter::Dating dated = temporality().date(uttered.id());
 
-	const std::shared_ptr<const Behest> behest = shepherding.inscribe(
+	return shepherding.inscribe(
 		Birth<Testator>{*this}, matter::Behest{std::move(uttered), std::move(placed), std::move(dated)});
-	for (const std::shared_ptr<const Contemplation>& beholder : gazes(shepherding))
-		beholder->behold(behest);
-
-	return behest;
 }
 
 

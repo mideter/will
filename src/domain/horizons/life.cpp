@@ -4,6 +4,8 @@
 #include "dimensions/eternity.h"
 #include "dimensions/spatiality.h"
 #include "dimensions/temporality.h"
+#include "immanents/place.h"
+#include "words/recollection.h"
 #include "words/word.h"
 
 #include <unordered_map>
@@ -168,39 +170,17 @@ std::unordered_map<id::Word, matter::Execution> Life::executions_of(const std::v
 }
 
 
-Life::Remembered Life::remembered(const id::Place place) const
+std::shared_ptr<const Recollection> Life::recollection(const Place& place) const
 {
 	std::lock_guard lock(mutex_);
 
-	const auto it = living_.find(place);
-	if (it == living_.end())
-		return {};
+	std::weak_ptr<const Recollection>& known = recollections_[place.id()];
+	if (std::shared_ptr<const Recollection> held = known.lock())
+		return held;
 
-	Remembered out;
-	out.whole = !it->second.empty();
-	out.words.reserve(it->second.size());
-	for (const std::weak_ptr<const Word>& word : it->second) {
-		if (std::shared_ptr<const Word> alive = word.lock())
-			out.words.push_back(std::move(alive));
-		else
-			out.whole = false;
-	}
-
-	return out;
-}
-
-
-void Life::remember(const id::Place place, const std::vector<std::shared_ptr<const Word>>& words)
-{
-	std::lock_guard lock(mutex_);
-	living_[place].assign(words.begin(), words.end());
-}
-
-
-void Life::remember(const id::Place place, const std::shared_ptr<const Word>& word)
-{
-	std::lock_guard lock(mutex_);
-	living_[place].push_back(word);
+	auto recalled = std::make_shared<const Recollection>(Birth<Life>{*this}, place, place.recall(Birth<Life>{*this}));
+	known = recalled;
+	return recalled;
 }
 
 
