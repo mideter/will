@@ -65,12 +65,29 @@ private:
 };
 
 
+/// The matter of the test dimensions, as a database file is for SQLite ones:
+/// it outlives the dimensions that keep matter in it.
 struct InMemoryShared {
 	FakeTime time;
 	std::uint64_t next_soul_id = 0;
 	std::uint64_t next_vessel_id = 0;
 	std::uint64_t next_word_id = 0;
+
+	// Eternity
 	std::vector<std::pair<id::Soul, SoulName>> souls;
+	std::vector<matter::Word> words;
+
+	// Spatiality
+	std::vector<std::pair<id::Soul, matter::Abode>> abodes;
+	std::vector<matter::Tie> ties;
+	std::vector<matter::Placement> placements;
+
+	// Temporality
+	std::vector<matter::Vessel> vessels;
+	std::vector<matter::Embodiment> embodiments;
+	std::vector<matter::Dating> datings;
+	std::vector<matter::Supplication> supplications;
+	std::vector<matter::Execution> executions;
 };
 
 
@@ -103,13 +120,13 @@ public:
 	matter::Word utter(const id::Soul author, const Saying& saying) override
 	{
 		matter::Word row{id::Word{++shared_.next_word_id}, author, saying};
-		words_.push_back(row);
+		shared_.words.push_back(row);
 		return row;
 	}
 
 	matter::Word word(const id::Word id) const override
 	{
-		for (const matter::Word& row : words_) {
+		for (const matter::Word& row : shared_.words) {
 			if (row.id() == id)
 				return row;
 		}
@@ -136,7 +153,6 @@ public:
 private:
 	InMemoryShared& shared_;
 	Space space_;
-	std::vector<matter::Word> words_;
 };
 
 
@@ -149,7 +165,7 @@ public:
 
 	std::optional<matter::Abode> abode(const id::Soul host) const override
 	{
-		for (const auto& [keeper, kept] : abodes_) {
+		for (const auto& [keeper, kept] : shared_.abodes) {
 			if (keeper == host)
 				return kept;
 		}
@@ -162,40 +178,40 @@ public:
 			throw std::logic_error("soul already keeps an abode");
 
 		const matter::Abode kept{id::Abode{eternity_.space().point()}, std::move(name)};
-		abodes_.emplace_back(host, kept);
+		shared_.abodes.emplace_back(host, kept);
 		return kept;
 	}
 
 	matter::Tie bind(const id::Soul testator, const id::Soul novice) override
 	{
-		for (const matter::Tie& row : ties_) {
+		for (const matter::Tie& row : shared_.ties) {
 			if (row.testator() == testator && row.novice() == novice)
 				throw std::logic_error("obedience already exists for this pair");
 		}
 
 		const matter::Tie kept{id::Tie{eternity_.space().point()}, testator, novice};
-		ties_.push_back(kept);
+		shared_.ties.push_back(kept);
 		return kept;
 	}
 
-	std::vector<matter::Tie> ties() const override { return ties_; }
+	std::vector<matter::Tie> ties() const override { return shared_.ties; }
 
 	matter::Placement place(const id::Word id, const id::Place place) override
 	{
 		const matter::Placement placed{id, place};
-		for (auto& row : placements_) {
+		for (auto& row : shared_.placements) {
 			if (row.id() == id) {
 				row = placed;
 				return placed;
 			}
 		}
-		placements_.push_back(placed);
+		shared_.placements.push_back(placed);
 		return placed;
 	}
 
 	std::optional<matter::Placement> placement(const id::Word id) const override
 	{
-		for (const matter::Placement& row : placements_) {
+		for (const matter::Placement& row : shared_.placements) {
 			if (row.id() == id)
 				return row;
 		}
@@ -210,7 +226,7 @@ public:
 		++placement_reads_;
 
 		std::vector<matter::Placement> matching;
-		for (const matter::Placement& row : placements_) {
+		for (const matter::Placement& row : shared_.placements) {
 			if (row.place() == place)
 				matching.push_back(row);
 		}
@@ -222,10 +238,7 @@ public:
 private:
 	InMemoryShared& shared_;
 	Eternity& eternity_;
-	std::vector<std::pair<id::Soul, matter::Abode>> abodes_;
-	std::vector<matter::Placement> placements_;
 	mutable std::size_t placement_reads_ = 0;
-	std::vector<matter::Tie> ties_;
 };
 
 
@@ -239,22 +252,22 @@ public:
 	matter::Embodiment embody(const id::Soul soul, DeviceToken token) override
 	{
 		const id::Vessel vessel{++shared_.next_vessel_id};
-		vessels_.emplace_back(vessel, std::move(token));
-		embodiments_.emplace_back(soul, vessel);
-		return embodiments_.back();
+		shared_.vessels.emplace_back(vessel, std::move(token));
+		shared_.embodiments.emplace_back(soul, vessel);
+		return shared_.embodiments.back();
 	}
 
-	std::vector<matter::Vessel> vessels() const override { return vessels_; }
+	std::vector<matter::Vessel> vessels() const override { return shared_.vessels; }
 
-	std::vector<matter::Embodiment> embodiments() const override { return embodiments_; }
+	std::vector<matter::Embodiment> embodiments() const override { return shared_.embodiments; }
 
 	/// Keep a soul and its vessel before the living World wakes (Creation load).
 	void seed_man(const id::Soul soul_id, const DeviceToken& token, const SoulName name)
 	{
 		shared_.souls.emplace_back(soul_id, name);
 		const id::Vessel vessel_id{soul_id.value()};
-		vessels_.push_back(matter::Vessel{vessel_id, token});
-		embodiments_.emplace_back(soul_id, vessel_id);
+		shared_.vessels.push_back(matter::Vessel{vessel_id, token});
+		shared_.embodiments.emplace_back(soul_id, vessel_id);
 		if (soul_id.value() > shared_.next_soul_id)
 			shared_.next_soul_id = soul_id.value();
 		if (vessel_id.value() > shared_.next_vessel_id)
@@ -264,13 +277,13 @@ public:
 	matter::Dating date(const id::Word id) override
 	{
 		const matter::Dating dated{id, eternity_.time().instant()};
-		for (auto& row : datings_) {
+		for (auto& row : shared_.datings) {
 			if (row.id() == id) {
 				row = dated;
 				return dated;
 			}
 		}
-		datings_.push_back(dated);
+		shared_.datings.push_back(dated);
 		return dated;
 	}
 
@@ -278,7 +291,7 @@ public:
 	{
 		std::vector<matter::Dating> out;
 		for (const id::Word id : ids) {
-			for (const matter::Dating& row : datings_) {
+			for (const matter::Dating& row : shared_.datings) {
 				if (row.id() == id) {
 					out.push_back(row);
 					break;
@@ -291,17 +304,17 @@ public:
 	matter::Supplication ask(const id::Soul suppliant, const id::Soul addressee) override
 	{
 		const matter::Supplication kept{suppliant, addressee};
-		if (awaiting(suppliant, addressee) != supplications_.end())
+		if (awaiting(suppliant, addressee) != shared_.supplications.end())
 			throw std::logic_error("pending supplication already exists for this pair");
 
-		supplications_.push_back(kept);
+		shared_.supplications.push_back(kept);
 		return kept;
 	}
 
 	std::vector<matter::Supplication> supplications(const id::Soul addressee) const override
 	{
 		std::vector<matter::Supplication> out;
-		for (const matter::Supplication& row : supplications_) {
+		for (const matter::Supplication& row : shared_.supplications) {
 			if (row.addressee() == addressee)
 				out.push_back(row);
 		}
@@ -311,26 +324,26 @@ public:
 	void reject(const id::Soul suppliant, const id::Soul addressee) override
 	{
 		const auto it = awaiting(suppliant, addressee);
-		if (it == supplications_.end())
+		if (it == shared_.supplications.end())
 			throw std::invalid_argument("unknown supplication");
 
-		supplications_.erase(it);
+		shared_.supplications.erase(it);
 	}
 
 	matter::Execution execute(const id::Word deed, const id::Word behest) override
 	{
-		for (const matter::Execution& row : executions_) {
+		for (const matter::Execution& row : shared_.executions) {
 			if (row.behest() == behest)
 				throw std::logic_error("behest is already executed");
 		}
-		executions_.emplace_back(deed, behest);
-		return executions_.back();
+		shared_.executions.emplace_back(deed, behest);
+		return shared_.executions.back();
 	}
 
 	std::vector<matter::Execution> executions(const std::vector<id::Word>& words) const override
 	{
 		std::vector<matter::Execution> out;
-		for (const matter::Execution& row : executions_) {
+		for (const matter::Execution& row : shared_.executions) {
 			for (const id::Word word : words) {
 				if (row.id() == word || row.behest() == word) {
 					out.push_back(row);
@@ -345,20 +358,15 @@ private:
 	/// Supplications whose rejection was kept are dropped.
 	std::vector<matter::Supplication>::const_iterator awaiting(const id::Soul suppliant, const id::Soul addressee) const
 	{
-		for (auto it = supplications_.begin(); it != supplications_.end(); ++it) {
+		for (auto it = shared_.supplications.begin(); it != shared_.supplications.end(); ++it) {
 			if (it->suppliant() == suppliant && it->addressee() == addressee)
 				return it;
 		}
-		return supplications_.end();
+		return shared_.supplications.end();
 	}
 
 	InMemoryShared& shared_;
 	Eternity& eternity_;
-	std::vector<matter::Vessel> vessels_;
-	std::vector<matter::Embodiment> embodiments_;
-	std::vector<matter::Dating> datings_;
-	std::vector<matter::Supplication> supplications_;
-	std::vector<matter::Execution> executions_;
 };
 
 
