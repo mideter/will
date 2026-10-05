@@ -10,9 +10,7 @@
 #include "matter/behest.h"
 #include "properties/immanent.h"
 
-#include <algorithm>
 #include <memory>
-#include <optional>
 #include <stdexcept>
 #include <utility>
 #include <vector>
@@ -109,39 +107,6 @@ std::shared_ptr<const Behest> Tie::inscribe(Birth<Testator>, matter::Behest kept
 bool Tie::dwells(const Man& man) const
 {
 	return man.Soul::id() == testator_.Soul::id() || man.Soul::id() == novice_.Soul::id();
-}
-
-
-std::vector<std::shared_ptr<const Word>> Tie::recall(Birth<Life>) const
-{
-	// Behests and deeds as Life gives them, born in one stream by time.
-	struct Kept {
-		Timestamp at;
-		id::Word id;
-		std::optional<matter::Behest> behest;
-		std::optional<matter::Deed> deed;
-	};
-	std::vector<Kept> kept;
-	for (matter::Behest& each : kept_behests())
-		kept.push_back({each.dating().created_at(), each.id(), std::move(each), std::nullopt});
-	for (matter::Deed& each : kept_deeds())
-		kept.push_back({each.dating().created_at(), each.id(), std::nullopt, std::move(each)});
-	std::stable_sort(kept.begin(), kept.end(), [](const Kept& a, const Kept& b) {
-		if (a.at.value() != b.at.value())
-			return a.at.value() < b.at.value();
-		return a.id < b.id;
-	});
-
-	std::vector<std::shared_ptr<const Word>> words;
-	words.reserve(kept.size());
-	for (Kept& each : kept) {
-		if (each.behest)
-			words.push_back(std::make_shared<const Behest>(Birth<Tie>{*this}, std::move(*each.behest)));
-		else
-			words.push_back(std::make_shared<const Deed>(Birth<Tie>{*this}, std::move(*each.deed)));
-	}
-
-	return words;
 }
 
 

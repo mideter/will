@@ -25,6 +25,16 @@ const Tie& living_tie(const id::Place id)
 
 
 Behest::Behest(Birth<Tie>, matter::Behest kept)
+	: Behest(std::move(kept))
+{}
+
+
+Behest::Behest(Birth<Life>, matter::Behest kept)
+	: Behest(std::move(kept))
+{}
+
+
+Behest::Behest(matter::Behest kept)
 	: Word(kept.id(), kept.word().saying())
 	, tie_(living_tie(kept.placement().place()))
 	, created_at_(kept.dating().created_at())

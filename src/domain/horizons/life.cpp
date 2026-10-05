@@ -5,6 +5,10 @@
 #include "dimensions/spatiality.h"
 #include "dimensions/temporality.h"
 #include "immanents/place.h"
+#include "immanents/tie.h"
+#include "words/behest.h"
+#include "words/deed.h"
+#include "words/letter.h"
 #include "words/recollection.h"
 #include "words/word.h"
 
@@ -88,9 +92,23 @@ Temporality& Life::temporality() const
 }
 
 
-std::vector<matter::Letter> Life::letters(const id::Place place) const
+std::shared_ptr<const Recollection> Life::recollection(const Place& place) const
 {
-	const std::vector<matter::Placement> placed = spatiality().placements(place, Spatiality::MaxLetterLimit);
+	std::lock_guard lock(mutex_);
+
+	std::weak_ptr<const Recollection>& known = recollections_[place.id()];
+	if (std::shared_ptr<const Recollection> held = known.lock())
+		return held;
+
+	auto recalled = std::make_shared<const Recollection>(Birth<Life>{*this}, place, recall(place));
+	known = recalled;
+	return recalled;
+}
+
+
+std::vector<std::shared_ptr<const Word>> Life::recall(const Place& place) const
+{
+	const std::vector<matter::Placement> placed = spatiality().placements(place.id(), Spatiality::MaxLetterLimit);
 
 	std::vector<id::Word> ids;
 	ids.reserve(placed.size());
@@ -108,79 +126,35 @@ std::vector<matter::Letter> Life::letters(const id::Place place) const
 	for (matter::Word& row : eternity().words(ids))
 		uttered.emplace(row.id(), std::move(row));
 
-	std::vector<matter::Letter> kept;
-	kept.reserve(dated.size());
+	// A word of a tie that fulfils a behest is a deed; the others there are behests.
+	std::unordered_map<id::Word, matter::Execution> executions;
+	for (matter::Execution& row : temporality().executions(ids))
+		executions.emplace(row.id(), std::move(row));
+
+	const bool in_tie = dynamic_cast<const Tie*>(&place) != nullptr;
+
+	std::vector<std::shared_ptr<const Word>> words;
+	words.reserve(dated.size());
 	for (matter::Dating& dating : dated) {
 		const auto u = uttered.find(dating.id());
 		if (u == uttered.end())
 			continue;
 
-		const id::Word word = dating.id();
-		kept.emplace_back(std::move(u->second), matter::Placement{word, place}, std::move(dating));
+		matter::Placement placement{dating.id(), place.id()};
+		if (!in_tie) {
+			words.push_back(std::make_shared<const Letter>(
+				Birth<Life>{*this}, matter::Letter{std::move(u->second), std::move(placement), std::move(dating)}));
+		} else if (const auto e = executions.find(dating.id()); e != executions.end()) {
+			words.push_back(std::make_shared<const Deed>(
+				Birth<Life>{*this},
+				matter::Deed{std::move(u->second), std::move(placement), std::move(dating), std::move(e->second)}));
+		} else {
+			words.push_back(std::make_shared<const Behest>(
+				Birth<Life>{*this}, matter::Behest{std::move(u->second), std::move(placement), std::move(dating)}));
+		}
 	}
 
-	return kept;
-}
-
-
-std::vector<matter::Behest> Life::behests(const id::Place place) const
-{
-	// The words of a tie are kept in the same parts as letters; those that are
-	// deeds are named so by their execution.
-	std::vector<matter::Letter> parts = letters(place);
-	const std::unordered_map<id::Word, matter::Execution> deeds = executions_of(parts);
-
-	std::vector<matter::Behest> kept;
-	for (const matter::Letter& part : parts) {
-		if (!deeds.contains(part.id()))
-			kept.emplace_back(part.word(), part.placement(), part.dating());
-	}
-
-	return kept;
-}
-
-
-std::vector<matter::Deed> Life::deeds(const id::Place place) const
-{
-	std::vector<matter::Letter> parts = letters(place);
-	const std::unordered_map<id::Word, matter::Execution> deeds = executions_of(parts);
-
-	std::vector<matter::Deed> kept;
-	for (const matter::Letter& part : parts) {
-		if (const auto e = deeds.find(part.id()); e != deeds.end())
-			kept.emplace_back(part.word(), part.placement(), part.dating(), e->second);
-	}
-
-	return kept;
-}
-
-
-std::unordered_map<id::Word, matter::Execution> Life::executions_of(const std::vector<matter::Letter>& parts) const
-{
-	std::vector<id::Word> ids;
-	ids.reserve(parts.size());
-	for (const matter::Letter& part : parts)
-		ids.push_back(part.id());
-
-	std::unordered_map<id::Word, matter::Execution> deeds;
-	for (matter::Execution& row : temporality().executions(ids))
-		deeds.emplace(row.id(), std::move(row));
-
-	return deeds;
-}
-
-
-std::shared_ptr<const Recollection> Life::recollection(const Place& place) const
-{
-	std::lock_guard lock(mutex_);
-
-	std::weak_ptr<const Recollection>& known = recollections_[place.id()];
-	if (std::shared_ptr<const Recollection> held = known.lock())
-		return held;
-
-	auto recalled = std::make_shared<const Recollection>(Birth<Life>{*this}, place, place.recall(Birth<Life>{*this}));
-	known = recalled;
-	return recalled;
+	return words;
 }
 
 

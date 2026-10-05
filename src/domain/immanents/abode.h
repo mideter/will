@@ -36,9 +36,6 @@ public:
 
 	bool dwells(const Man& man) const override;
 
-	/// The letters placed here, oldest first, born from the matter Life gives.
-	std::vector<std::shared_ptr<const Word>> recall(Birth<Life>) const override;
-
 	/// A letter said here by the one whose gaze rests on it, born living from
 	/// the matter the dimensions returned when they kept it; it enters the
 	/// recollection of this abode.

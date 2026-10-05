@@ -1,9 +1,6 @@
 #pragma once
 
 #include "identity/place.h"
-#include "matter/behest.h"
-#include "matter/deed.h"
-#include "matter/letter.h"
 #include "properties/birth.h"
 #include "properties/immanent.h"
 
@@ -26,8 +23,8 @@ class Word;
 /// Place (Место) — where a Word may be fixed in time; immanent to Space.
 /// Abode is a place; a living Obedience/Shepherding pair is Tie (Узы).
 /// Living places are known to Space; Place::of looks them up.
-/// A place reaches no dimension by itself: Life gives it the matter of its
-/// words and brings forth their Recollection, which the gazes upon it hold.
+/// A place reaches no dimension by itself: Life recollects its words from
+/// memory as their Recollection, which the gazes upon it hold.
 class Place : public Immanent<Space> {
 public:
 	virtual ~Place() = default;
@@ -44,16 +41,7 @@ public:
 	/// rests elsewhere.
 	std::shared_ptr<const Recollection> recollection(const Contemplation& gaze) const;
 
-	/// Recall the words placed here, oldest first, born from the memory the
-	/// dimensions keep: Life asks it when it brings forth a recollection.
-	virtual std::vector<std::shared_ptr<const Word>> recall(Birth<Life>) const = 0;
-
 protected:
-	/// The matter of the words placed here, oldest first, as Life gives it.
-	std::vector<matter::Letter> kept_letters() const;
-	std::vector<matter::Behest> kept_behests() const;
-	std::vector<matter::Deed> kept_deeds() const;
-
 	/// The recollection of this place: the one held now, or a new one.
 	std::shared_ptr<const Recollection> recollection() const;
 

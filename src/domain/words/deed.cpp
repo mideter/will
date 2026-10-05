@@ -4,6 +4,7 @@
 #include "immanents/place.h"
 
 #include <stdexcept>
+#include <utility>
 
 
 namespace will::domain {
@@ -24,6 +25,16 @@ const Tie& living_tie(const id::Place id)
 
 
 Deed::Deed(Birth<Tie>, matter::Deed kept)
+	: Deed(std::move(kept))
+{}
+
+
+Deed::Deed(Birth<Life>, matter::Deed kept)
+	: Deed(std::move(kept))
+{}
+
+
+Deed::Deed(matter::Deed kept)
 	: Word(kept.id(), kept.word().saying())
 	, tie_(living_tie(kept.placement().place()))
 	, behest_(kept.execution().behest())

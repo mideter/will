@@ -44,16 +44,6 @@ bool Abode::dwells(const Man& man) const
 }
 
 
-std::vector<std::shared_ptr<const Word>> Abode::recall(Birth<Life>) const
-{
-	std::vector<std::shared_ptr<const Word>> letters;
-	for (matter::Letter& kept : kept_letters())
-		letters.push_back(std::make_shared<const Letter>(Birth<Abode>{*this}, std::move(kept)));
-
-	return letters;
-}
-
-
 std::shared_ptr<const Letter> Abode::inscribe(const Contemplation& gaze, matter::Letter kept) const
 {
 	if (&gaze.place() != this)

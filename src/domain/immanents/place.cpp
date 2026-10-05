@@ -30,24 +30,6 @@ const Place& Place::of(const id::Place id)
 }
 
 
-std::vector<matter::Letter> Place::kept_letters() const
-{
-	return Life::the().letters(id());
-}
-
-
-std::vector<matter::Behest> Place::kept_behests() const
-{
-	return Life::the().behests(id());
-}
-
-
-std::vector<matter::Deed> Place::kept_deeds() const
-{
-	return Life::the().deeds(id());
-}
-
-
 std::shared_ptr<const Recollection> Place::recollection(const Contemplation& gaze) const
 {
 	if (&gaze.place() != this)

@@ -11,19 +11,24 @@
 namespace will::domain {
 
 
+class Life;
 /// Deed (Дело) — the novice's Word in a living Tie (Узы) fulfilling a Behest: his
 /// report, or «совершено» when he gives none. Born from matter::Deed; it does not
 /// change. It knows the behest it fulfils.
 class Deed : public Word {
 public:
+	/// Willed or done now, born of its tie; or recalled from memory, born of Life.
 	/// Place must be a living Tie whose novice is the author.
 	Deed(Birth<Tie>, matter::Deed kept);
+	Deed(Birth<Life>, matter::Deed kept);
 
 	const Tie& tie() const noexcept { return tie_; }
 	id::Word behest() const noexcept { return behest_; }
 	Timestamp created_at() const noexcept { return created_at_; }
 
 private:
+	explicit Deed(matter::Deed kept);
+
 	const Tie& tie_;
 	id::Word behest_;
 	Timestamp created_at_;

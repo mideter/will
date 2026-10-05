@@ -8,6 +8,16 @@ namespace will::domain {
 
 
 Letter::Letter(Birth<Abode>, matter::Letter kept)
+	: Letter(std::move(kept))
+{}
+
+
+Letter::Letter(Birth<Life>, matter::Letter kept)
+	: Letter(std::move(kept))
+{}
+
+
+Letter::Letter(matter::Letter kept)
 	: Word(kept.id(), kept.word().saying())
 	, place_(Place::of(kept.placement().place()))
 	, author_(Soul::of(kept.word().author()))
