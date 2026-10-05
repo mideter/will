@@ -268,7 +268,7 @@ void ProtocolAdapter::tell_placed(const domain::Place& place, const domain::Word
 {
 	for (const domain::Soul& beholder : world_.contemplating(place)) {
 		const auto& man = static_cast<const domain::Man&>(beholder);
-		if (man.Soul::id() != author.Soul::id())
+		if (man.Soul::id() != author.Soul::id() && place.shows(man, word))
 			send_to_vessel(man.Vessel::id(), word_event(word, man.Soul::id()));
 	}
 

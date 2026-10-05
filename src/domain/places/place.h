@@ -37,6 +37,10 @@ public:
 	/// Whether this man dwells here: only one who dwells in a place may contemplate it.
 	virtual bool dwells(const Man& man) const = 0;
 
+	/// Whether this place shows this word of its own to the one who looks; a
+	/// place shows all its words to all who dwell in it, unless it says otherwise.
+	virtual bool shows(const Man& who, const Word& word) const;
+
 	/// The recollection of this place, for a gaze upon it. Throws if the gaze
 	/// rests elsewhere.
 	std::shared_ptr<const Recollection> recollection(const Contemplation& gaze) const;

@@ -16,7 +16,13 @@ Contemplation::Contemplation(Birth<Heaven>, const Witness& who, const Place& pla
 
 std::vector<std::shared_ptr<const Word>> Contemplation::words() const
 {
-	return recollection_->words();
+	std::vector<std::shared_ptr<const Word>> shown;
+	for (std::shared_ptr<const Word>& word : recollection_->words()) {
+		if (place_.shows(who_, *word))
+			shown.push_back(std::move(word));
+	}
+
+	return shown;
 }
 
 

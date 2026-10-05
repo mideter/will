@@ -3,6 +3,7 @@
 #include <doctest/doctest.h>
 
 #include "domain_fakes.h"
+#include "relations/friend.h"
 
 #include "horizons/creation.h"
 #include "matter/abode.h"
@@ -851,7 +852,7 @@ TEST_CASE("the host admits a man as an acquaintance and regards him anew")
 	// The host dwells in his abode, but is not a dweller of it; a stranger does not dwell.
 	CHECK(&host.abode().host() == static_cast<const Man*>(&host));
 	CHECK(host.abode().dwells(host));
-	CHECK_FALSE(host.abode().kind(host));
+	CHECK_FALSE(host.abode().dweller(host));
 	CHECK_FALSE(host.abode().dwells(man));
 	CHECK_THROWS_AS(host.regard(man, matter::Dweller::Kind::Friend), std::logic_error);
 	CHECK_THROWS_AS(host.admit(host), std::logic_error);
@@ -859,10 +860,11 @@ TEST_CASE("the host admits a man as an acquaintance and regards him anew")
 	// Admitted, he is an acquaintance; regarded anew, a friend. Matter keeps it.
 	host.admit(man);
 	CHECK(host.abode().dwells(man));
-	CHECK(host.abode().kind(man) == matter::Dweller::Kind::Acquaintance);
+	REQUIRE(host.abode().dweller(man));
+	CHECK_FALSE(std::dynamic_pointer_cast<const Neighbour>(host.abode().dweller(man)));
 	CHECK_THROWS_AS(host.admit(man), std::logic_error);
 	host.regard(man, matter::Dweller::Kind::Friend);
-	CHECK(host.abode().kind(man) == matter::Dweller::Kind::Friend);
+	CHECK(std::dynamic_pointer_cast<const Friend>(host.abode().dweller(man)));
 	REQUIRE(cosmos.spatiality().dwellers().size() == 1);
 	CHECK(cosmos.spatiality().dwellers().front().kind() == matter::Dweller::Kind::Friend);
 
@@ -894,6 +896,49 @@ TEST_CASE("dwellers outlive Life in matter and are recalled on awakening")
 	World& world = cosmos.life().create().world();
 	const Man& host = world.welcome(host_token);
 	const Man& man = world.welcome(man_token);
-	CHECK(host.abode().kind(man) == matter::Dweller::Kind::Neighbour);
+	CHECK(std::dynamic_pointer_cast<const Neighbour>(host.abode().dweller(man)));
+	CHECK_FALSE(std::dynamic_pointer_cast<const Friend>(host.abode().dweller(man)));
 	CHECK_FALSE(man.abode().dwells(host));
+}
+
+
+TEST_CASE("a dweller sees as his kind does: an acquaintance nothing, a neighbour and a friend the words")
+{
+	static_assert(std::is_base_of_v<Acquaintance, Neighbour>);
+	static_assert(std::is_base_of_v<Neighbour, Friend>);
+	static_assert(!std::is_constructible_v<Acquaintance, const Man&>);
+	static_assert(!std::is_copy_constructible_v<Acquaintance>);
+
+	InMemoryCosmos cosmos;
+	World& world = cosmos.life().create().world();
+
+	const auto& host = static_cast<const Witness&>(world.welcome(DeviceToken::generate()));
+	const auto& man = static_cast<const Witness&>(world.welcome(DeviceToken::generate()));
+
+	host.wake();
+	host.say("first");
+	host.admit(man);
+
+	// An acquaintance sees only that he dwells here: none of the words.
+	man.wake();
+	man.contemplate(host.abode());
+	const std::shared_ptr<const Contemplation> gaze = world.contemplation(man.Soul::id());
+	CHECK(gaze->words().empty());
+	host.say("second");
+	CHECK(gaze->words().empty());
+	CHECK(letters_seen_by(world.contemplation(host.Soul::id())).size() == 2);
+
+	// Regarded as a neighbour, he sees the words, even those said before.
+	host.regard(man, matter::Dweller::Kind::Neighbour);
+	REQUIRE(letters_seen_by(gaze).size() == 2);
+	host.say("third");
+	CHECK(letters_seen_by(gaze).size() == 3);
+
+	// A friend sees all a neighbour does.
+	host.regard(man, matter::Dweller::Kind::Friend);
+	CHECK(letters_seen_by(gaze).size() == 3);
+
+	// Back to an acquaintance, he sees nothing again.
+	host.regard(man, matter::Dweller::Kind::Acquaintance);
+	CHECK(gaze->words().empty());
 }

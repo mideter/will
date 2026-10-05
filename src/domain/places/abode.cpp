@@ -1,6 +1,7 @@
 #include "abode.h"
 
 #include "relations/contemplation.h"
+#include "relations/friend.h"
 #include "men/man.h"
 #include "men/witness.h"
 #include "words/letter.h"
@@ -50,19 +51,43 @@ void Abode::admit(const Man& man, const matter::Dweller& kept)
 	if (&man == &host_)
 		throw std::logic_error("the host is not a dweller of his own abode");
 
+	// Regarded anew, the dweller is born anew of his new kind.
+	std::shared_ptr<const Acquaintance> born;
+	switch (kept.kind()) {
+	case matter::Dweller::Kind::Acquaintance:
+		born = std::make_shared<const Acquaintance>(Birth<Abode>{*this}, man);
+		break;
+	case matter::Dweller::Kind::Neighbour:
+		born = std::make_shared<const Neighbour>(Birth<Abode>{*this}, man);
+		break;
+	case matter::Dweller::Kind::Friend:
+		born = std::make_shared<const Friend>(Birth<Abode>{*this}, man);
+		break;
+	}
+
 	std::lock_guard lock(*mutex_);
-	dwellers_.insert_or_assign(&man, kept.kind());
+	dwellers_.insert_or_assign(&man, std::move(born));
 }
 
 
-std::optional<matter::Dweller::Kind> Abode::kind(const Man& man) const
+std::shared_ptr<const Acquaintance> Abode::dweller(const Man& man) const
 {
 	std::lock_guard lock(*mutex_);
 	const auto it = dwellers_.find(&man);
 	if (it == dwellers_.end())
-		return std::nullopt;
+		return nullptr;
 
 	return it->second;
+}
+
+
+bool Abode::shows(const Man& who, const Word& word) const
+{
+	if (&who == &host_)
+		return true;
+
+	const std::shared_ptr<const Acquaintance> seer = dweller(who);
+	return seer && seer->beholds(word);
 }
 
 

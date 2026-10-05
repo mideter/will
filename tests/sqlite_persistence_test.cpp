@@ -11,6 +11,7 @@
 #include "men/testator.h"
 #include "men/witness.h"
 #include "relations/contemplation.h"
+#include "relations/friend.h"
 #include "sqlite_persistence_bundle.h"
 
 #include "identity/place.h"
@@ -396,7 +397,7 @@ TEST_CASE("sqlite keeps the dwellers of an abode and their kind across reopen")
 		World& world = bundle.world();
 		const Man& host = world.welcome(token_host);
 		const Man& man = world.welcome(token_man);
-		CHECK(host.abode().kind(man) == matter::Dweller::Kind::Friend);
+		CHECK(std::dynamic_pointer_cast<const Friend>(host.abode().dweller(man)));
 		CHECK_FALSE(man.abode().dwells(host));
 		REQUIRE(bundle.spatiality().dwellers().size() == 1);
 	}

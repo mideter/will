@@ -30,6 +30,12 @@ const Place& Place::of(const id::Place id)
 }
 
 
+bool Place::shows(const Man&, const Word&) const
+{
+	return true;
+}
+
+
 std::shared_ptr<const Recollection> Place::recollection(const Contemplation& gaze) const
 {
 	if (&gaze.place() != this)

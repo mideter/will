@@ -38,7 +38,7 @@ void Man::admit(const Man& man) const
 
 void Man::regard(const Man& dweller, const matter::Dweller::Kind kind) const
 {
-	if (!abode_->kind(dweller))
+	if (!abode_->dweller(dweller))
 		throw std::logic_error("he does not dwell in this abode");
 
 	abode_->admit(Birth<Man>{*this}, dweller, spatiality().dwell(abode_->id(), dweller.Soul::id(), kind));

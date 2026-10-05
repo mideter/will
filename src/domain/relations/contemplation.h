@@ -28,7 +28,7 @@ public:
 	const Witness& who() const noexcept { return who_; }
 	const Place& place() const noexcept { return place_; }
 
-	/// Living words of the contemplated place, oldest first.
+	/// Living words of the contemplated place that it shows to who looks, oldest first.
 	std::vector<std::shared_ptr<const Word>> words() const;
 
 	Contemplation(Birth<Heaven>, const Witness& who, const Place& place);
