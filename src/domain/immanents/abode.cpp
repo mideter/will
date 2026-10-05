@@ -76,7 +76,7 @@ std::vector<std::shared_ptr<const Word>> Abode::words(const Contemplation& gaze)
 			continue;
 		}
 
-		shown.push_back(std::make_shared<const Letter>(Birth<Abode>{}, std::move(kept)));
+		shown.push_back(std::make_shared<const Letter>(Birth<Abode>{*this}, std::move(kept)));
 	}
 
 	std::vector<std::shared_ptr<const Word>> words(shown.begin(), shown.end());
@@ -94,7 +94,7 @@ std::shared_ptr<const Letter> Abode::inscribe(const Contemplation& gaze, matter:
 	if (kept.word().author() != gaze.who().Soul::id())
 		throw std::logic_error("only its author inscribes a letter");
 
-	auto letter = std::make_shared<const Letter>(Birth<Abode>{}, std::move(kept));
+	auto letter = std::make_shared<const Letter>(Birth<Abode>{*this}, std::move(kept));
 
 	std::lock_guard lock(*mutex_);
 	remember(letter);

@@ -30,7 +30,7 @@ Life& Life::the()
 
 Life::Life()
 {
-	(void)Eternity::the();
+	(void)horizon();
 
 	if (current_ != nullptr)
 		throw std::logic_error("Only one Life");
@@ -41,48 +41,48 @@ Life::Life()
 
 Life::~Life()
 {
+	// The World ends while Life is still there for its words to leave.
+	creation_.reset();
+
 	if (current_ == this)
 		current_ = nullptr;
 }
 
 
-Creation Life::create()
+Eternity& Life::eternity() const
 {
-	return Creation{Birth<Life>{}, Eternity::the()};
+	return horizon();
 }
 
 
-void Life::present(const Creation& creation)
+Creation& Life::create()
 {
 	if (creation_ != nullptr)
 		throw std::logic_error("Only one Creation");
 
-	creation_ = &creation;
+	creation_ = std::make_unique<Creation>(Birth<Life>{*this});
+	return *creation_;
 }
 
 
-void Life::depart(const Creation& creation)
+Creation& Life::creation() const
 {
-	if (creation_ == &creation)
-		creation_ = nullptr;
+	if (creation_ == nullptr)
+		throw std::logic_error("there is no Creation");
+
+	return *creation_;
 }
 
 
 Spatiality& Life::spatiality() const
 {
-	if (creation_ == nullptr)
-		throw std::logic_error("there is no Creation");
-
-	return creation_->spatiality();
+	return creation().spatiality();
 }
 
 
 Temporality& Life::temporality() const
 {
-	if (creation_ == nullptr)
-		throw std::logic_error("there is no Creation");
-
-	return creation_->temporality();
+	return creation().temporality();
 }
 
 
@@ -103,7 +103,7 @@ std::vector<matter::Letter> Life::letters(const id::Place place) const
 	});
 
 	std::unordered_map<id::Word, matter::Word> uttered;
-	for (matter::Word& row : Eternity::the().words(ids))
+	for (matter::Word& row : eternity().words(ids))
 		uttered.emplace(row.id(), std::move(row));
 
 	std::vector<matter::Letter> kept;

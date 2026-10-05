@@ -6,19 +6,12 @@
 namespace will::domain {
 
 
-Creation::Creation(Birth<Life>, Eternity& eternity)
-	: spatiality_(eternity.spatiality(Birth<Creation>{}))
-	, temporality_(eternity.temporality(Birth<Creation>{}))
-	, world_(eternity, *temporality_, *spatiality_)
+Creation::Creation(const Birth<Life> birth)
+	: spatiality_(birth.parent().eternity().spatiality(Birth<Creation>{*this}))
+	, temporality_(birth.parent().eternity().temporality(Birth<Creation>{*this}))
+	, world_(birth.parent().eternity(), *temporality_, *spatiality_)
 {
-	present<Creation>();
 	world_.awaken();
-}
-
-
-Creation::~Creation()
-{
-	depart<Creation>();
 }
 
 

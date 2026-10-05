@@ -10,7 +10,7 @@
 namespace will {
 
 
-/** Owns SQLite Eternity, Life, and the Creation of the domain World. */
+/** Owns SQLite Eternity and Life, which holds the Creation of the domain World. */
 class SqlitePersistenceBundle {
 public:
 	/// Opens prefix.eternity.db; Creation opens prefix.space.db, prefix.time.db.
@@ -19,13 +19,12 @@ public:
 	domain::World& world();
 
 	domain::Eternity& eternity() { return eternity_; }
-	domain::Spatiality& spatiality() { return creation_.spatiality(); }
-	domain::Temporality& temporality() { return creation_.temporality(); }
+	domain::Spatiality& spatiality() { return life_.creation().spatiality(); }
+	domain::Temporality& temporality() { return life_.creation().temporality(); }
 
 private:
 	SqliteEternity eternity_;
 	domain::Life life_;
-	domain::Creation creation_;
 };
 
 

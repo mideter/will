@@ -21,18 +21,14 @@ protected:
 	Immanent() = default;
 	~Immanent() = default;
 
+	/// The horizon this is immanent to.
+	static Horizon& horizon() { return Horizon::the(); }
+
 	/// Present this object as Presence (inheritance level at the call site).
 	template<typename Presence>
 	void present() const
 	{
 		Horizon::the().present(static_cast<const Presence&>(*this));
-	}
-
-	/// This object, present as Presence, departs from the horizon.
-	template<typename Presence>
-	void depart() const
-	{
-		Horizon::the().depart(static_cast<const Presence&>(*this));
 	}
 };
 

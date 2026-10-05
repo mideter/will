@@ -68,7 +68,7 @@ TEST_CASE("matter::Word accepts max body length")
 TEST_CASE("Letter is born of its abode from matter, with living place and author")
 {
 	InMemoryCosmos cosmos;
-	Creation creation = cosmos.life().create();
+	Creation& creation = cosmos.life().create();
 	World& world = creation.world();
 
 	const Man& man = world.welcome(DeviceToken::generate());
@@ -94,7 +94,7 @@ TEST_CASE("Letter is born of its abode from matter, with living place and author
 TEST_CASE("matter::Letter rejects parts with different word ids")
 {
 	InMemoryCosmos cosmos;
-	Creation creation = cosmos.life().create();
+	Creation& creation = cosmos.life().create();
 	World& world = creation.world();
 
 	const Man& man = world.welcome(DeviceToken::generate());
@@ -110,7 +110,7 @@ TEST_CASE("matter::Letter rejects parts with different word ids")
 TEST_CASE("Behest is a word of will in a living Tie, born of the Tie or of its testator")
 {
 	InMemoryCosmos cosmos;
-	Creation creation = cosmos.life().create();
+	Creation& creation = cosmos.life().create();
 	World& world = creation.world();
 
 	const auto& testator = static_cast<const Testator&>(world.welcome(DeviceToken::generate()));
@@ -143,7 +143,7 @@ TEST_CASE("Behest is a word of will in a living Tie, born of the Tie or of its t
 TEST_CASE("Deed is the novice's word fulfilling a behest, his report or «совершено»")
 {
 	InMemoryCosmos cosmos;
-	Creation creation = cosmos.life().create();
+	Creation& creation = cosmos.life().create();
 	World& world = creation.world();
 
 	const auto& testator = static_cast<const Testator&>(world.welcome(DeviceToken::generate()));

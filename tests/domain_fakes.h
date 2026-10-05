@@ -406,11 +406,18 @@ inline InMemoryTemporality& InMemoryEternity::realised_temporality() const
 
 
 /// In-memory Eternity and Life for tests; Creation realises the dimensions over
-/// the shared matter. spatiality() / temporality() are those of the last Creation.
+/// the shared matter. spatiality() / temporality() are those of Life's Creation.
+/// A cosmos may keep its matter in a store that outlives it, as a server run
+/// keeps it in files.
 class InMemoryCosmos {
 public:
 	InMemoryCosmos()
-		: eternity_(shared_)
+		: InMemoryCosmos(own_)
+	{}
+
+	explicit InMemoryCosmos(InMemoryShared& shared)
+		: shared_(shared)
+		, eternity_(shared_)
 	{}
 
 	Life& life() { return life_; }
@@ -422,7 +429,8 @@ public:
 	FakeTime& fake_time() { return shared_.time; }
 
 private:
-	InMemoryShared shared_;
+	InMemoryShared own_;
+	InMemoryShared& shared_;
 	InMemoryEternity eternity_;
 	Life life_;
 };

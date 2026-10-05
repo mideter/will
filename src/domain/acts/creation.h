@@ -19,12 +19,12 @@ class Life;
 /// Creation (Творение) — genesis, the act of Life: brings forth Heaven, Earth,
 /// the World, and awakens the living cosmos. Time and Space are of Eternity;
 /// World is Heaven and Earth. Only Life creates; Creation is immanent to Life.
-/// Spatiality and Temporality arise in Creation: it asks Eternity to realise
-/// them, owns them, and gives them to the World. Their matter outlives it.
+/// Spatiality and Temporality arise in Creation: it asks Eternity, reached
+/// through the Life that gives it birth, to realise them, owns them, and gives
+/// them to the World. One Creation in Life; their matter outlives it.
 class Creation : public Immanent<Life> {
 public:
-	Creation(Birth<Life>, Eternity& eternity);
-	~Creation();
+	explicit Creation(Birth<Life> birth);
 
 	/// The dimensions this Creation brought forth; they keep for whoever reads.
 	Spatiality& spatiality() const noexcept { return *spatiality_; }

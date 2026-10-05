@@ -9,13 +9,14 @@ namespace will {
 
 SqlitePersistenceBundle::SqlitePersistenceBundle(std::string prefix)
 	: eternity_(std::move(prefix))
-	, creation_(life_.create())
-{}
+{
+	life_.create();
+}
 
 
 domain::World& SqlitePersistenceBundle::world()
 {
-	return creation_.world();
+	return life_.creation().world();
 }
 
 

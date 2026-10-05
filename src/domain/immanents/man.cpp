@@ -22,7 +22,7 @@ Man::Man(matter::Man kept)
 	if (!own)
 		own = spatiality().abide(Soul::id(), AbodeName{std::string{Soul::name().text()}});
 
-	abode_ = std::make_unique<Abode>(Birth<Man>{}, std::move(*own));
+	abode_ = std::make_unique<Abode>(Birth<Man>{*this}, std::move(*own));
 	abode_->admit(*this);
 }
 

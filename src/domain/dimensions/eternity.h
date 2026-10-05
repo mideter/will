@@ -6,6 +6,7 @@
 #include "identity/soul.h"
 #include "horizons/time.h"
 #include "properties/birth.h"
+#include "properties/immanent.h"
 #include "values/soul_name.h"
 #include "values/saying.h"
 
@@ -17,7 +18,6 @@ namespace will::domain {
 
 
 class Creation;
-class Life;
 class Space;
 class Spatiality;
 class Temporality;
@@ -66,7 +66,7 @@ protected:
 	Eternity& operator=(const Eternity&) = delete;
 
 private:
-	friend class Life;
+	friend class Immanent<Eternity>;
 
 	/// Throws if no Eternity is realised.
 	static Eternity& the();

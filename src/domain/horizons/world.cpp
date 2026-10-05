@@ -63,7 +63,7 @@ void World::awaken()
 		const auto& addressee = static_cast<const Testator&>(*man);
 
 		for (matter::Supplication kept : temporality().supplications(soul_id))
-			addressee.hear(Birth<World>{}, std::move(kept));
+			addressee.hear(Birth<World>{*this}, std::move(kept));
 	}
 }
 
@@ -119,7 +119,7 @@ const Man& World::accept(matter::Man kept)
 {
 	const id::Soul soul_id = kept.soul().id();
 	const id::Vessel vessel_id = kept.vessel().id();
-	auto ptr = std::unique_ptr<Man>(std::make_unique<Testator>(Birth<World>{}, std::move(kept)));
+	auto ptr = std::unique_ptr<Man>(std::make_unique<Testator>(Birth<World>{*this}, std::move(kept)));
 	Man& live = *ptr;
 
 	std::lock_guard lock(mutex_);

@@ -28,7 +28,7 @@ void Novice::supplicate(const Testator& addressee) const
 	if (follows(addressee))
 		throw std::logic_error("obedience already exists for this pair");
 
-	addressee.hear(Birth<Novice>{}, temporality().ask(Soul::id(), addressee.Soul::id()));
+	addressee.hear(Birth<Novice>{*this}, temporality().ask(Soul::id(), addressee.Soul::id()));
 }
 
 
@@ -46,7 +46,7 @@ std::shared_ptr<const Deed> Novice::execute(const Behest& behest, std::optional<
 	matter::Execution executed = temporality().execute(uttered.id(), behest.id());
 
 	const std::shared_ptr<const Deed> deed = tie.inscribe(
-		Birth<Novice>{},
+		Birth<Novice>{*this},
 		matter::Deed{std::move(uttered), std::move(placed), std::move(dated), std::move(executed)});
 	for (const std::shared_ptr<const Contemplation>& beholder : gazes(tie))
 		beholder->behold(deed);
@@ -94,7 +94,7 @@ const Obedience& Novice::follow(matter::Tie kept) const
 	if (kept.novice() != Soul::id())
 		throw std::logic_error("tie is not for this novice");
 
-	return follow(std::make_unique<Tie>(Birth<Novice>{}, std::move(kept)));
+	return follow(std::make_unique<Tie>(Birth<Novice>{*this}, std::move(kept)));
 }
 
 

@@ -84,7 +84,7 @@ std::shared_ptr<const Deed> Tie::inscribe(Birth<Novice>, matter::Deed kept) cons
 	if (kept.word().author() != novice_.Soul::id())
 		throw std::logic_error("only the novice of a tie does a deed in it");
 
-	auto deed = std::make_shared<const Deed>(Birth<Tie>{}, std::move(kept));
+	auto deed = std::make_shared<const Deed>(Birth<Tie>{*this}, std::move(kept));
 
 	std::lock_guard lock(mutex_);
 	remember(deed);
@@ -100,7 +100,7 @@ std::shared_ptr<const Behest> Tie::inscribe(Birth<Testator>, matter::Behest kept
 	if (kept.word().author() != testator_.Soul::id())
 		throw std::logic_error("only the testator of a tie wills in it");
 
-	auto behest = std::make_shared<const Behest>(Birth<Tie>{}, std::move(kept));
+	auto behest = std::make_shared<const Behest>(Birth<Tie>{*this}, std::move(kept));
 
 	std::lock_guard lock(mutex_);
 	remember(behest);
@@ -148,14 +148,14 @@ std::vector<std::shared_ptr<const Word>> Tie::living() const
 		const auto still = alive.find(kept.id());
 		born.push_back({at, still != alive.end()
 								? still->second
-								: std::make_shared<const Behest>(Birth<Tie>{}, std::move(kept))});
+								: std::make_shared<const Behest>(Birth<Tie>{*this}, std::move(kept))});
 	}
 	for (matter::Deed& kept : kept_deeds()) {
 		const Timestamp at = kept.dating().created_at();
 		const auto still = alive.find(kept.id());
 		born.push_back({at, still != alive.end()
 								? still->second
-								: std::make_shared<const Deed>(Birth<Tie>{}, std::move(kept))});
+								: std::make_shared<const Deed>(Birth<Tie>{*this}, std::move(kept))});
 	}
 	std::stable_sort(born.begin(), born.end(), [](const Born& a, const Born& b) {
 		if (a.at.value() != b.at.value())
