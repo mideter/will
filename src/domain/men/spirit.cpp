@@ -1,7 +1,7 @@
 #include "spirit.h"
 
-#include "immanents/abode.h"
-#include "immanents/soul.h"
+#include "places/abode.h"
+#include "men/soul.h"
 
 #include <utility>
 

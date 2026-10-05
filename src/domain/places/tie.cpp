@@ -3,10 +3,10 @@
 #include "words/behest.h"
 #include "words/deed.h"
 #include "words/recollection.h"
-#include "immanents/contemplation.h"
-#include "immanents/soul.h"
+#include "relations/contemplation.h"
+#include "men/soul.h"
 #include "horizons/space.h"
-#include "immanents/testator.h"
+#include "men/testator.h"
 #include "matter/behest.h"
 #include "properties/immanent.h"
 

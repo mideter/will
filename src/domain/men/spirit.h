@@ -1,6 +1,6 @@
 #pragma once
 
-#include "immanents/contemplation.h"
+#include "relations/contemplation.h"
 #include "matter/word.h"
 #include "horizons/heaven.h"
 #include "identity/word.h"

@@ -1,6 +1,6 @@
 #include "recollection.h"
 
-#include "immanents/place.h"
+#include "places/place.h"
 
 #include <stdexcept>
 #include <utility>

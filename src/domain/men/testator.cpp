@@ -3,8 +3,8 @@
 #include "matter/dating.h"
 #include "matter/placement.h"
 #include "matter/word.h"
-#include "immanents/contemplation.h"
-#include "immanents/soul.h"
+#include "relations/contemplation.h"
+#include "men/soul.h"
 #include "dimensions/spatiality.h"
 #include "dimensions/temporality.h"
 

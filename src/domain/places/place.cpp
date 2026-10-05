@@ -1,7 +1,7 @@
 #include "place.h"
 
 #include "horizons/life.h"
-#include "immanents/contemplation.h"
+#include "relations/contemplation.h"
 #include "words/recollection.h"
 #include "horizons/space.h"
 

@@ -1,8 +1,8 @@
 #include "abode.h"
 
-#include "immanents/contemplation.h"
-#include "immanents/man.h"
-#include "immanents/witness.h"
+#include "relations/contemplation.h"
+#include "men/man.h"
+#include "men/witness.h"
 #include "words/letter.h"
 #include "words/recollection.h"
 #include "matter/letter.h"

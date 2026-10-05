@@ -3,9 +3,9 @@
 #include "matter/man.h"
 #include "matter/supplication.h"
 #include "properties/birth.h"
-#include "immanents/shepherding.h"
-#include "acts/supplication.h"
-#include "immanents/novice.h"
+#include "places/shepherding.h"
+#include "relations/supplication.h"
+#include "men/novice.h"
 #include "words/behest.h"
 #include "values/saying.h"
 

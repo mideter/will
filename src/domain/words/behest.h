@@ -2,7 +2,7 @@
 
 #include "matter/behest.h"
 #include "properties/birth.h"
-#include "immanents/tie.h"
+#include "places/tie.h"
 #include "words/word.h"
 #include "values/timestamp.h"
 

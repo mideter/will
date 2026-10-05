@@ -1,7 +1,7 @@
 #include "behest.h"
 
-#include "immanents/place.h"
-#include "immanents/testator.h"
+#include "places/place.h"
+#include "men/testator.h"
 
 #include <stdexcept>
 #include <utility>

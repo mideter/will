@@ -2,8 +2,8 @@
 
 #include "matter/letter.h"
 #include "properties/birth.h"
-#include "immanents/place.h"
-#include "immanents/soul.h"
+#include "places/place.h"
+#include "men/soul.h"
 #include "words/word.h"
 #include "values/timestamp.h"
 

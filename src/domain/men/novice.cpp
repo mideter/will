@@ -1,9 +1,9 @@
 #include "novice.h"
 
-#include "immanents/tie.h"
-#include "immanents/contemplation.h"
-#include "immanents/soul.h"
-#include "immanents/testator.h"
+#include "places/tie.h"
+#include "relations/contemplation.h"
+#include "men/soul.h"
+#include "men/testator.h"
 #include "dimensions/spatiality.h"
 #include "matter/word.h"
 #include "dimensions/temporality.h"

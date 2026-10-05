@@ -1,8 +1,8 @@
 #pragma once
 
 #include "matter/man.h"
-#include "immanents/abode.h"
-#include "immanents/man.h"
+#include "places/abode.h"
+#include "men/man.h"
 #include "values/saying.h"
 
 

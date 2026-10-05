@@ -1,7 +1,7 @@
 #include "deed.h"
 
-#include "immanents/novice.h"
-#include "immanents/place.h"
+#include "men/novice.h"
+#include "places/place.h"
 
 #include <stdexcept>
 #include <utility>

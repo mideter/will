@@ -5,7 +5,7 @@
 #include "matter/placement.h"
 #include "words/letter.h"
 #include "matter/word.h"
-#include "immanents/abode.h"
+#include "places/abode.h"
 #include "dimensions/spatiality.h"
 #include "dimensions/temporality.h"
 

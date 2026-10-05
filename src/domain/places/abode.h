@@ -3,7 +3,7 @@
 #include "matter/abode.h"
 #include "properties/birth.h"
 #include "matter/letter.h"
-#include "immanents/place.h"
+#include "places/place.h"
 #include "identity/abode.h"
 #include "values/abode_name.h"
 

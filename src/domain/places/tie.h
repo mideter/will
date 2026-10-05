@@ -1,7 +1,7 @@
 #pragma once
 
-#include "immanents/obedience.h"
-#include "immanents/shepherding.h"
+#include "places/obedience.h"
+#include "places/shepherding.h"
 #include "matter/tie.h"
 
 #include "properties/birth.h"

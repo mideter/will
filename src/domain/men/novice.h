@@ -1,13 +1,13 @@
 #pragma once
 
 #include "matter/man.h"
-#include "immanents/obedience.h"
-#include "acts/supplication.h"
+#include "places/obedience.h"
+#include "relations/supplication.h"
 #include "matter/tie.h"
 #include "words/behest.h"
 #include "words/deed.h"
 #include "values/saying.h"
-#include "immanents/witness.h"
+#include "men/witness.h"
 #include "identity/word.h"
 
 #include <functional>

@@ -1,6 +1,6 @@
 #include "obedience.h"
 
-#include "immanents/testator.h"
+#include "men/testator.h"
 
 
 namespace will::domain {

@@ -1,6 +1,6 @@
 #include "contemplation.h"
 
-#include "immanents/witness.h"
+#include "men/witness.h"
 #include "words/recollection.h"
 
 

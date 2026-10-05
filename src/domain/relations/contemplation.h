@@ -1,6 +1,6 @@
 #pragma once
 
-#include "immanents/place.h"
+#include "places/place.h"
 #include "properties/immanent.h"
 #include "properties/birth.h"
 

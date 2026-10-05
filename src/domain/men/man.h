@@ -1,9 +1,9 @@
 #pragma once
 
 #include "matter/man.h"
-#include "immanents/abode.h"
-#include "immanents/soul.h"
-#include "immanents/vessel.h"
+#include "places/abode.h"
+#include "men/soul.h"
+#include "men/vessel.h"
 
 #include <memory>
 

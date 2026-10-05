@@ -1,6 +1,6 @@
 #pragma once
 
-#include "immanents/contemplation.h"
+#include "relations/contemplation.h"
 #include "identity/soul.h"
 #include "properties/immanent.h"
 

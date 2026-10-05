@@ -1,10 +1,10 @@
 #include "heaven.h"
 
-#include "immanents/abode.h"
-#include "immanents/soul.h"
-#include "immanents/testator.h"
-#include "acts/supplication.h"
-#include "immanents/witness.h"
+#include "places/abode.h"
+#include "men/soul.h"
+#include "men/testator.h"
+#include "relations/supplication.h"
+#include "men/witness.h"
 #include "dimensions/eternity.h"
 
 #include <algorithm>
