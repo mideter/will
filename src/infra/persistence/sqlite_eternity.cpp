@@ -1,5 +1,7 @@
 #include "sqlite_eternity.h"
 
+#include "sqlite_spatiality.h"
+#include "sqlite_temporality.h"
 #include "sqlite_util.h"
 #include "values/saying.h"
 
@@ -11,10 +13,37 @@
 namespace will {
 
 
-SqliteEternity::SqliteEternity(SqliteDatabase& database)
-	: database_(database)
-	, space_(database)
+namespace {
+
+
+std::string face_path(std::string prefix, const char* face)
+{
+	if (prefix.size() > 3 && prefix.ends_with(".db"))
+		prefix.resize(prefix.size() - 3);
+	return prefix + "." + face + ".db";
+}
+
+
+} // namespace
+
+
+SqliteEternity::SqliteEternity(std::string prefix)
+	: prefix_(std::move(prefix))
+	, database_(face_path(prefix_, "eternity"), SqliteFace::Eternity)
+	, space_(database_)
 {}
+
+
+std::unique_ptr<domain::Spatiality> SqliteEternity::spatiality(domain::Birth<domain::Creation>)
+{
+	return std::make_unique<SqliteSpatiality>(face_path(prefix_, "space"), *this);
+}
+
+
+std::unique_ptr<domain::Temporality> SqliteEternity::temporality(domain::Birth<domain::Creation>)
+{
+	return std::make_unique<SqliteTemporality>(face_path(prefix_, "time"), *this);
+}
 
 
 domain::Time& SqliteEternity::time()

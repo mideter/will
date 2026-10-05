@@ -5,6 +5,7 @@
 #include <optional>
 #include <stdexcept>
 #include <string>
+#include <utility>
 #include <sqlite3.h>
 
 
@@ -34,8 +35,8 @@ unrejected_supplication(sqlite3* db, const domain::id::Soul suppliant, const dom
 } // namespace
 
 
-SqliteTemporality::SqliteTemporality(SqliteDatabase& time_db, domain::Eternity& eternity)
-	: time_db_(time_db)
+SqliteTemporality::SqliteTemporality(std::string path, domain::Eternity& eternity)
+	: time_db_(std::move(path), SqliteFace::Temporality)
 	, eternity_(eternity)
 {}
 

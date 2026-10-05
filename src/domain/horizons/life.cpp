@@ -28,9 +28,7 @@ Life& Life::the()
 }
 
 
-Life::Life(Spatiality& spatiality, Temporality& temporality)
-	: spatiality_(spatiality)
-	, temporality_(temporality)
+Life::Life()
 {
 	(void)Eternity::the();
 
@@ -50,20 +48,54 @@ Life::~Life()
 
 Creation Life::create()
 {
-	return Creation{Birth<Life>{}, Eternity::the(), spatiality_, temporality_};
+	return Creation{Birth<Life>{}, Eternity::the()};
+}
+
+
+void Life::present(const Creation& creation)
+{
+	if (creation_ != nullptr)
+		throw std::logic_error("Only one Creation");
+
+	creation_ = &creation;
+}
+
+
+void Life::depart(const Creation& creation)
+{
+	if (creation_ == &creation)
+		creation_ = nullptr;
+}
+
+
+Spatiality& Life::spatiality() const
+{
+	if (creation_ == nullptr)
+		throw std::logic_error("there is no Creation");
+
+	return creation_->spatiality();
+}
+
+
+Temporality& Life::temporality() const
+{
+	if (creation_ == nullptr)
+		throw std::logic_error("there is no Creation");
+
+	return creation_->temporality();
 }
 
 
 std::vector<matter::Letter> Life::letters(const id::Place place) const
 {
-	const std::vector<matter::Placement> placed = spatiality_.placements(place, Spatiality::MaxLetterLimit);
+	const std::vector<matter::Placement> placed = spatiality().placements(place, Spatiality::MaxLetterLimit);
 
 	std::vector<id::Word> ids;
 	ids.reserve(placed.size());
 	for (const matter::Placement& row : placed)
 		ids.push_back(row.id());
 
-	std::vector<matter::Dating> dated = temporality_.datings(ids);
+	std::vector<matter::Dating> dated = temporality().datings(ids);
 	std::sort(dated.begin(), dated.end(), [](const matter::Dating& a, const matter::Dating& b) {
 		if (a.created_at().value() != b.created_at().value())
 			return a.created_at().value() < b.created_at().value();
@@ -129,7 +161,7 @@ std::unordered_map<id::Word, matter::Execution> Life::executions_of(const std::v
 		ids.push_back(part.id());
 
 	std::unordered_map<id::Word, matter::Execution> deeds;
-	for (matter::Execution& row : temporality_.executions(ids))
+	for (matter::Execution& row : temporality().executions(ids))
 		deeds.emplace(row.id(), std::move(row));
 
 	return deeds;

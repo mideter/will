@@ -1,4 +1,5 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include <optional>
 #include <doctest/doctest.h>
 
 #include "domain_fakes.h"
@@ -114,7 +115,7 @@ TEST_CASE("welcome creates man with personal abode")
 TEST_CASE("welcome existing man")
 {
 	InMemoryCosmos cosmos;
-	seed_man(cosmos.temporality(), id::Soul{42}, test_token("abcd1234abcd1234abcd1234abcd1234"), test_name("oldname1"));
+	seed_man(cosmos, id::Soul{42}, test_token("abcd1234abcd1234abcd1234abcd1234"), test_name("oldname1"));
 	Creation creation = cosmos.life().create();
 	World& world = creation.world();
 
@@ -129,7 +130,7 @@ TEST_CASE("welcome existing man")
 TEST_CASE("welcome keeps existing name")
 {
 	InMemoryCosmos cosmos;
-	seed_man(cosmos.temporality(), id::Soul{7}, test_token("abcd1234abcd1234abcd1234abcd1234"), test_name("keptname"));
+	seed_man(cosmos, id::Soul{7}, test_token("abcd1234abcd1234abcd1234abcd1234"), test_name("keptname"));
 	Creation creation = cosmos.life().create();
 	World& world = creation.world();
 
@@ -196,7 +197,7 @@ TEST_CASE("letters of an abode are seen through contemplation by one who dwells 
 	InMemoryCosmos cosmos;
 	const id::Soul author{1};
 
-	seed_man(cosmos.temporality(), author, test_token("feedfacefeedfacefeedfacefeedface"), test_name("authoraa"));
+	seed_man(cosmos, author, test_token("feedfacefeedfacefeedfacefeedface"), test_name("authoraa"));
 	Creation creation = cosmos.life().create();
 	World& world = creation.world();
 
@@ -427,7 +428,7 @@ TEST_CASE("the living is born only of the living")
 
 TEST_CASE("only Life creates the World; it proceeds from Eternity, and there is one Life")
 {
-	static_assert(!std::is_constructible_v<Creation, Eternity&, Spatiality&, Temporality&>);
+	static_assert(!std::is_constructible_v<Creation, Eternity&>);
 	static_assert(std::is_base_of_v<Immanent<Life>, Creation>);
 	static_assert(!std::is_copy_constructible_v<Creation>);
 	static_assert(!std::is_move_constructible_v<Creation>);
@@ -436,11 +437,28 @@ TEST_CASE("only Life creates the World; it proceeds from Eternity, and there is 
 	static_assert(!std::is_move_constructible_v<Life>);
 
 	InMemoryCosmos cosmos;
-	CHECK_THROWS_AS((Life{cosmos.spatiality(), cosmos.temporality()}), std::logic_error);
+	CHECK_THROWS_AS(Life{}, std::logic_error);
 
 	Creation creation = cosmos.life().create();
 	const Man& man = creation.world().welcome(DeviceToken::generate());
 	CHECK(creation.world().knows(man.Soul::id()));
+}
+
+
+TEST_CASE("the dimensions arise in Creation, one at a time, and their matter outlives it")
+{
+	InMemoryCosmos cosmos;
+	const DeviceToken token = DeviceToken::generate();
+	std::optional<id::Soul> soul_id;
+	{
+		Creation creation = cosmos.life().create();
+		soul_id = creation.world().welcome(token).Soul::id();
+		CHECK_THROWS_AS(cosmos.life().create(), std::logic_error);
+	}
+
+	Creation creation = cosmos.life().create();
+	CHECK(creation.world().knows(*soul_id));
+	CHECK(creation.world().welcome(token).Soul::id() == *soul_id);
 }
 
 

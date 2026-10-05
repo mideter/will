@@ -25,17 +25,17 @@ class Word;
 
 /// Life (Жизнь) — proceeds from Eternity, is before the World and brings it
 /// forth: Creation is the act of Life, and nothing else creates. Life outlives
-/// the World it made. It holds Spatiality and Temporality and gives them to the
-/// World at Creation. One Life; immanent to Eternity.
+/// the World it made. It knows the Creation present in it and reaches
+/// Spatiality and Temporality through it. One Life; immanent to Eternity.
 /// Words are immanent to Life: it gives places the matter of their words and
 /// remembers which words live now, without owning them — the gazes hold them.
 class Life : private Immanent<Eternity> {
 public:
 	/// Throws if no Eternity is realised.
-	Life(Spatiality& spatiality, Temporality& temporality);
+	Life();
 	~Life();
 
-	/// Bring forth the World from Eternity and the dimensions Life holds, and awaken it.
+	/// Bring forth the World from Eternity and awaken it.
 	Creation create();
 
 	/// The words of a place living now. Whole when Life remembers them all alive.
@@ -46,8 +46,17 @@ public:
 
 private:
 	friend class Place;
+	friend class Immanent<Life>;
 
 	static Life& the();
+
+	/// Throws if a Creation is already present.
+	void present(const Creation& creation);
+	void depart(const Creation& creation);
+
+	/// Of the present Creation; throws if there is none.
+	Spatiality& spatiality() const;
+	Temporality& temporality() const;
 
 	/// The matter of the words placed in this place, oldest first (capped by
 	/// Spatiality::MaxLetterLimit): as letters; or, in a tie, as the behests and
@@ -65,8 +74,7 @@ private:
 
 	static Life* current_;
 
-	Spatiality& spatiality_;
-	Temporality& temporality_;
+	const Creation* creation_ = nullptr;
 
 	mutable std::mutex mutex_;
 	std::unordered_map<id::Place, std::vector<std::weak_ptr<const Word>>> living_;

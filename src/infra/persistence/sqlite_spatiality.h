@@ -4,6 +4,8 @@
 #include "dimensions/spatiality.h"
 #include "sqlite_database.h"
 
+#include <string>
+
 
 namespace will {
 
@@ -12,7 +14,8 @@ namespace will {
 /// Place ids are pointed from Eternity's Space.
 class SqliteSpatiality final : public domain::Spatiality {
 public:
-	SqliteSpatiality(SqliteDatabase& database, domain::Eternity& eternity);
+	/// Opens the space database at this path.
+	SqliteSpatiality(std::string path, domain::Eternity& eternity);
 
 	std::optional<domain::matter::Abode> abode(domain::id::Soul host) const override;
 	domain::matter::Abode abide(domain::id::Soul host, domain::AbodeName name) override;
@@ -24,7 +27,7 @@ public:
 											  std::uint32_t limit) const override;
 
 private:
-	SqliteDatabase& database_;
+	mutable SqliteDatabase database_;
 	domain::Eternity& eternity_;
 };
 

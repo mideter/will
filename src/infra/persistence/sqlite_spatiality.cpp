@@ -39,8 +39,8 @@ std::optional<domain::matter::Abode> kept_abode(sqlite3* db, const domain::id::S
 } // namespace
 
 
-SqliteSpatiality::SqliteSpatiality(SqliteDatabase& database, domain::Eternity& eternity)
-	: database_(database)
+SqliteSpatiality::SqliteSpatiality(std::string path, domain::Eternity& eternity)
+	: database_(std::move(path), SqliteFace::Spatiality)
 	, eternity_(eternity)
 {}
 

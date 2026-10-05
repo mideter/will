@@ -27,6 +27,13 @@ protected:
 	{
 		Horizon::the().present(static_cast<const Presence&>(*this));
 	}
+
+	/// This object, present as Presence, departs from the horizon.
+	template<typename Presence>
+	void depart() const
+	{
+		Horizon::the().depart(static_cast<const Presence&>(*this));
+	}
 };
 
 

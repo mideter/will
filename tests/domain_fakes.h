@@ -14,6 +14,7 @@
 #include "words/letter.h"
 #include "immanents/contemplation.h"
 #include "immanents/soul.h"
+#include "acts/creation.h"
 #include "horizons/life.h"
 #include "horizons/space.h"
 #include "immanents/man.h"
@@ -40,6 +41,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <memory>
 #include <optional>
 #include <stdexcept>
 #include <string>
@@ -91,6 +93,10 @@ struct InMemoryShared {
 };
 
 
+class InMemorySpatiality;
+class InMemoryTemporality;
+
+
 class InMemoryEternity final : public Eternity {
 public:
 	explicit InMemoryEternity(InMemoryShared& shared)
@@ -100,6 +106,14 @@ public:
 	Time& time() override { return shared_.time; }
 
 	Space& space() override { return space_; }
+
+	std::unique_ptr<Spatiality> spatiality(Birth<Creation>) override;
+
+	std::unique_ptr<Temporality> temporality(Birth<Creation>) override;
+
+	/// The dimensions realised for the present Creation; throw if none.
+	InMemorySpatiality& realised_spatiality() const;
+	InMemoryTemporality& realised_temporality() const;
 
 	matter::Soul enroll(const SoulName name) override
 	{
@@ -153,6 +167,8 @@ public:
 private:
 	InMemoryShared& shared_;
 	Space space_;
+	InMemorySpatiality* spatiality_ = nullptr;
+	InMemoryTemporality* temporality_ = nullptr;
 };
 
 
@@ -261,19 +277,6 @@ public:
 
 	std::vector<matter::Embodiment> embodiments() const override { return shared_.embodiments; }
 
-	/// Keep a soul and its vessel before the living World wakes (Creation load).
-	void seed_man(const id::Soul soul_id, const DeviceToken& token, const SoulName name)
-	{
-		shared_.souls.emplace_back(soul_id, name);
-		const id::Vessel vessel_id{soul_id.value()};
-		shared_.vessels.push_back(matter::Vessel{vessel_id, token});
-		shared_.embodiments.emplace_back(soul_id, vessel_id);
-		if (soul_id.value() > shared_.next_soul_id)
-			shared_.next_soul_id = soul_id.value();
-		if (vessel_id.value() > shared_.next_vessel_id)
-			shared_.next_vessel_id = vessel_id.value();
-	}
-
 	matter::Dating date(const id::Word id) override
 	{
 		const matter::Dating dated{id, eternity_.time().instant()};
@@ -370,28 +373,57 @@ private:
 };
 
 
-/// In-memory three faces for tests; wire Creation with eternity/spatiality/temporality.
+inline std::unique_ptr<Spatiality> InMemoryEternity::spatiality(Birth<Creation>)
+{
+	auto realised = std::make_unique<InMemorySpatiality>(shared_, *this);
+	spatiality_ = realised.get();
+	return realised;
+}
+
+
+inline std::unique_ptr<Temporality> InMemoryEternity::temporality(Birth<Creation>)
+{
+	auto realised = std::make_unique<InMemoryTemporality>(shared_, *this);
+	temporality_ = realised.get();
+	return realised;
+}
+
+
+inline InMemorySpatiality& InMemoryEternity::realised_spatiality() const
+{
+	if (spatiality_ == nullptr)
+		throw std::logic_error("no Spatiality realised");
+	return *spatiality_;
+}
+
+
+inline InMemoryTemporality& InMemoryEternity::realised_temporality() const
+{
+	if (temporality_ == nullptr)
+		throw std::logic_error("no Temporality realised");
+	return *temporality_;
+}
+
+
+/// In-memory Eternity and Life for tests; Creation realises the dimensions over
+/// the shared matter. spatiality() / temporality() are those of the last Creation.
 class InMemoryCosmos {
 public:
 	InMemoryCosmos()
 		: eternity_(shared_)
-		, spatiality_(shared_, eternity_)
-		, temporality_(shared_, eternity_)
-		, life_(spatiality_, temporality_)
 	{}
 
 	Life& life() { return life_; }
 	InMemoryEternity& eternity() { return eternity_; }
-	InMemorySpatiality& spatiality() { return spatiality_; }
-	InMemoryTemporality& temporality() { return temporality_; }
+	InMemorySpatiality& spatiality() { return eternity_.realised_spatiality(); }
+	InMemoryTemporality& temporality() { return eternity_.realised_temporality(); }
+	InMemoryShared& shared() { return shared_; }
 
 	FakeTime& fake_time() { return shared_.time; }
 
 private:
 	InMemoryShared shared_;
 	InMemoryEternity eternity_;
-	InMemorySpatiality spatiality_;
-	InMemoryTemporality temporality_;
 	Life life_;
 };
 
@@ -415,10 +447,18 @@ inline const Soul& register_soul_with_vessel(World& world, const std::string_vie
 }
 
 
-inline void seed_man(InMemoryTemporality& temporality, const id::Soul soul_id, const DeviceToken& token,
-					 const SoulName name)
+/// Keep a soul and its vessel before Creation, as if kept by an earlier one.
+inline void seed_man(InMemoryCosmos& cosmos, const id::Soul soul_id, const DeviceToken& token, const SoulName name)
 {
-	temporality.seed_man(soul_id, token, name);
+	InMemoryShared& shared = cosmos.shared();
+	shared.souls.emplace_back(soul_id, name);
+	const id::Vessel vessel_id{soul_id.value()};
+	shared.vessels.push_back(matter::Vessel{vessel_id, token});
+	shared.embodiments.emplace_back(soul_id, vessel_id);
+	if (soul_id.value() > shared.next_soul_id)
+		shared.next_soul_id = soul_id.value();
+	if (vessel_id.value() > shared.next_vessel_id)
+		shared.next_vessel_id = vessel_id.value();
 }
 
 

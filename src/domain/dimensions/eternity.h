@@ -5,21 +5,28 @@
 #include "identity/word.h"
 #include "identity/soul.h"
 #include "horizons/time.h"
+#include "properties/birth.h"
 #include "values/soul_name.h"
 #include "values/saying.h"
 
+#include <memory>
 #include <vector>
 
 
 namespace will::domain {
 
 
+class Creation;
 class Life;
 class Space;
+class Spatiality;
+class Temporality;
 
 
 /// Eternity (Вечность) — who endures; indelible Saying and author.
 /// Time and Space belong to Eternity; each is one, reached only from here.
+/// Spatiality and Temporality arise in Creation: Eternity realises them at its
+/// asking; their matter outlives every Creation.
 /// Speaks in souls; dwelling in a vessel belongs to Temporality / World.
 /// One Eternity; Life proceeds from it.
 class Eternity {
@@ -29,6 +36,12 @@ public:
 	virtual Time& time() = 0;
 
 	virtual Space& space() = 0;
+
+	/// Realise Spatiality for the Creation that asks.
+	virtual std::unique_ptr<Spatiality> spatiality(Birth<Creation>) = 0;
+
+	/// Realise Temporality for the Creation that asks.
+	virtual std::unique_ptr<Temporality> temporality(Birth<Creation>) = 0;
 
 	/// Enroll a soul in the book of life.
 	virtual matter::Soul enroll(SoulName name) = 0;
