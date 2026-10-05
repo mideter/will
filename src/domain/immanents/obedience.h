@@ -26,9 +26,6 @@ class Obedience : public virtual Place {
 public:
 	~Obedience() override = default;
 
-	Obedience(const Obedience&) = delete;
-	Obedience& operator=(const Obedience&) = delete;
-
 	virtual const Testator& testator() const = 0;
 	virtual const Novice& novice() const = 0;
 
@@ -44,7 +41,6 @@ public:
 
 protected:
 	explicit Obedience(const Soul& testator);
-	Obedience& operator=(Obedience&&) = delete;
 
 	const Testator& testator_;
 };

@@ -420,6 +420,10 @@ TEST_CASE("the living is born only of the living")
 	static_assert(!std::is_constructible_v<Vessel, matter::Vessel>);
 	static_assert(!std::is_constructible_v<Abode, matter::Abode>);
 	static_assert(!std::is_constructible_v<Tie, matter::Tie>);
+	static_assert(!std::is_copy_constructible_v<Tie>);
+	static_assert(!std::is_move_constructible_v<Tie>);
+	static_assert(!std::is_copy_assignable_v<Tie>);
+	static_assert(!std::is_move_assignable_v<Tie>);
 	static_assert(!std::is_constructible_v<Supplication, matter::Supplication>);
 
 	// A supplication is living too: a relation of souls, immanent to Heaven.

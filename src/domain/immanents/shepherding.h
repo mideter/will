@@ -26,9 +26,6 @@ class Shepherding : public virtual Place {
 public:
 	~Shepherding() override = default;
 
-	Shepherding(const Shepherding&) = delete;
-	Shepherding& operator=(const Shepherding&) = delete;
-
 	virtual const Testator& testator() const = 0;
 	virtual const Novice& novice() const = 0;
 
@@ -44,7 +41,6 @@ public:
 
 protected:
 	explicit Shepherding(const Soul& novice);
-	Shepherding& operator=(Shepherding&&) = delete;
 
 	const Novice& novice_;
 };

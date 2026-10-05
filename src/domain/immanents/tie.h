@@ -26,11 +26,6 @@ public:
 	Tie(Birth<Novice>, matter::Tie kept);
 	~Tie() override;
 
-	Tie(const Tie&) = delete;
-	Tie& operator=(const Tie&) = delete;
-	Tie(Tie&&) = delete;
-	Tie& operator=(Tie&&) = delete;
-
 	const Testator& testator() const override;
 	const Novice& novice() const override;
 
