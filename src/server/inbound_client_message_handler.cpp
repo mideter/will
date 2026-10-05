@@ -47,6 +47,15 @@ void InboundClientMessageHandler::on_bound_event(const v1::ClientEvent& event)
 	case v1::ClientEvent::kFulfil:
 		adapter_.handle_fulfil(session_id_, event.fulfil());
 		return;
+	case v1::ClientEvent::kAdmit:
+		adapter_.handle_admit(session_id_, event.admit());
+		return;
+	case v1::ClientEvent::kRegard:
+		adapter_.handle_regard(session_id_, event.regard());
+		return;
+	case v1::ClientEvent::kListDwellers:
+		adapter_.handle_list_dwellers(session_id_);
+		return;
 	case v1::ClientEvent::EVENT_NOT_SET:
 		break;
 	}
@@ -67,6 +76,9 @@ void InboundClientMessageHandler::on_unbound_event(const v1::ClientEvent& event)
 	case v1::ClientEvent::kAcceptSupplication:
 	case v1::ClientEvent::kTurn:
 	case v1::ClientEvent::kFulfil:
+	case v1::ClientEvent::kAdmit:
+	case v1::ClientEvent::kRegard:
+	case v1::ClientEvent::kListDwellers:
 		adapter_.send_auth_required(session_id_);
 		return;
 	case v1::ClientEvent::EVENT_NOT_SET:

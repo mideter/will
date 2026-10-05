@@ -42,6 +42,13 @@ public:
 	/** Fulfil a behest of the contemplated tie, with an optional report. */
 	void fulfil(std::uint64_t behest_id, std::string_view report) const;
 
+	/// Turn the gaze to the abode of this host one dwells in.
+	void visit(std::string_view host_name) const;
+
+	void admit(std::string_view name) const;
+	void regard(std::string_view name, v1::DwellerKind kind) const;
+	void list_dwellers() const;
+
 	/** Sends HistoryRequest; returns false when limit is 0. */
 	bool requestHistory(std::uint32_t limit) const;
 

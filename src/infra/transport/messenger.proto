@@ -68,10 +68,37 @@ message AcceptSupplication {
 }
 
 
-// Turn the gaze to the tie with this soul, or home to one's own abode when empty.
+// Turn the gaze to the tie with this soul, or to the abode of this host one
+// dwells in, or home to one's own abode when both are empty.
 message Turn {
     string tie_with = 1;
+    string abode_of = 2;
 }
+
+
+// How a host regards a dweller of his abode.
+enum DwellerKind {
+    ACQUAINTANCE = 0; // sees only that he dwells there
+    NEIGHBOUR = 1;    // sees the outer part
+    FRIEND = 2;       // sees all
+}
+
+
+// Admit this soul into one's abode as an acquaintance.
+message Admit {
+    string name = 1;
+}
+
+
+// Regard this dweller of one's abode as of this kind.
+message Regard {
+    string name = 1;
+    DwellerKind kind = 2;
+}
+
+
+// Ask for the dwellers of one's abode.
+message ListDwellers {}
 
 
 // Fulfil a behest of the contemplated tie, with an optional report.
@@ -93,9 +120,31 @@ message TieFormed {
 }
 
 
-// The gaze now rests on the tie with this soul, or at home when empty.
+// The gaze now rests on the tie with this soul, or on the abode of this host,
+// or at home when both are empty.
 message Turned {
     string tie_with = 1;
+    string abode_of = 2;
+}
+
+
+// One dwells in this host's abode, regarded as of this kind: told when admitted
+// and when regarded anew.
+message Dwelling {
+    string host_name = 1;
+    DwellerKind kind = 2;
+}
+
+
+message Dweller {
+    string name = 1;
+    DwellerKind kind = 2;
+}
+
+
+// The dwellers of one's abode.
+message Dwellers {
+    repeated Dweller dwellers = 1;
 }
 
 
@@ -120,6 +169,9 @@ message ClientEvent {
         AcceptSupplication accept_supplication = 5;
         Turn turn = 6;
         Fulfil fulfil = 7;
+        Admit admit = 8;
+        Regard regard = 9;
+        ListDwellers list_dwellers = 10;
     }
 }
 
@@ -136,5 +188,7 @@ message ServerEvent {
         Turned turned = 9;
         Stirred stirred = 10;
         ProtocolNotice protocol_notice = 11;
+        Dwelling dwelling = 12;
+        Dwellers dwellers = 13;
     }
 }

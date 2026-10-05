@@ -254,6 +254,56 @@ void WillClient::fulfil(const std::uint64_t behest_id, const std::string_view re
 }
 
 
+void WillClient::visit(const std::string_view host_name) const
+{
+	if (!authenticated_)
+		throw std::logic_error("WillClient: not authenticated");
+
+	v1::ClientEvent event;
+	event.mutable_turn()->set_abode_of(std::string{host_name});
+	if (!write_event(event))
+		throw std::runtime_error("Will protocol: failed to send Turn");
+}
+
+
+void WillClient::admit(const std::string_view name) const
+{
+	if (!authenticated_)
+		throw std::logic_error("WillClient: not authenticated");
+
+	v1::ClientEvent event;
+	event.mutable_admit()->set_name(std::string{name});
+	if (!write_event(event))
+		throw std::runtime_error("Will protocol: failed to send Admit");
+}
+
+
+void WillClient::regard(const std::string_view name, const v1::DwellerKind kind) const
+{
+	if (!authenticated_)
+		throw std::logic_error("WillClient: not authenticated");
+
+	v1::ClientEvent event;
+	auto* msg = event.mutable_regard();
+	msg->set_name(std::string{name});
+	msg->set_kind(kind);
+	if (!write_event(event))
+		throw std::runtime_error("Will protocol: failed to send Regard");
+}
+
+
+void WillClient::list_dwellers() const
+{
+	if (!authenticated_)
+		throw std::logic_error("WillClient: not authenticated");
+
+	v1::ClientEvent event;
+	event.mutable_list_dwellers();
+	if (!write_event(event))
+		throw std::runtime_error("Will protocol: failed to send ListDwellers");
+}
+
+
 bool WillClient::requestHistory(const std::uint32_t limit) const
 {
 	if (limit == 0)

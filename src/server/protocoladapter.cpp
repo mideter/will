@@ -10,6 +10,7 @@
 #include "places/shepherding.h"
 #include "men/testator.h"
 #include "places/tie.h"
+#include "relations/friend.h"
 #include "relations/contemplation.h"
 #include "men/witness.h"
 #include "words/letter.h"
@@ -232,7 +233,12 @@ void ProtocolAdapter::handle_user_chat(const SessionId session_id, const v1::Cha
 	}
 
 	std::shared_ptr<const domain::Word> placed;
-	if (dynamic_cast<const domain::Abode*>(&gaze->place())) {
+	if (const auto* abode = dynamic_cast<const domain::Abode*>(&gaze->place())) {
+		if (&abode->host() != &man) {
+			send_notice(session_id, "only the host writes in his abode");
+			return;
+		}
+
 		try {
 			man.say(std::string{chat.body()});
 		} catch (const std::exception&) {
@@ -397,7 +403,18 @@ void ProtocolAdapter::handle_turn(const SessionId session_id, const v1::Turn& ms
 	const domain::Man& self = session_man(session_id);
 	const auto& witness = static_cast<const domain::Witness&>(self);
 
-	if (msg.tie_with().empty()) {
+	if (!msg.abode_of().empty()) {
+		const domain::Man* host = man_named(session_id, msg.abode_of());
+		if (!host)
+			return;
+
+		try {
+			witness.contemplate(host->abode());
+		} catch (const std::logic_error&) {
+			send_notice(session_id, "you do not dwell in that abode");
+			return;
+		}
+	} else if (msg.tie_with().empty()) {
 		witness.contemplate(witness.abode());
 	} else {
 		const domain::Man* counterpart = man_named(session_id, msg.tie_with());
@@ -423,6 +440,7 @@ void ProtocolAdapter::handle_turn(const SessionId session_id, const v1::Turn& ms
 
 	v1::ServerEvent turned;
 	turned.mutable_turned()->set_tie_with(msg.tie_with());
+	turned.mutable_turned()->set_abode_of(msg.abode_of());
 	send_event(session_id, turned);
 
 	if (const auto gaze = world_.contemplation(self.Soul::id()))
@@ -463,6 +481,104 @@ void ProtocolAdapter::handle_fulfil(const SessionId session_id, const v1::Fulfil
 	} catch (const std::exception& e) {
 		send_notice(session_id, e.what());
 	}
+}
+
+
+namespace {
+
+
+v1::DwellerKind kind_of(const domain::Acquaintance& dweller)
+{
+	if (dynamic_cast<const domain::Friend*>(&dweller))
+		return v1::FRIEND;
+	if (dynamic_cast<const domain::Neighbour*>(&dweller))
+		return v1::NEIGHBOUR;
+	return v1::ACQUAINTANCE;
+}
+
+
+} // namespace
+
+
+void ProtocolAdapter::tell_dwelling(const domain::Man& host, const domain::Man& dweller)
+{
+	const std::shared_ptr<const domain::Acquaintance> regarded = host.abode().dweller(dweller);
+	if (!regarded)
+		return;
+
+	v1::ServerEvent event;
+	auto* dwelling = event.mutable_dwelling();
+	dwelling->set_host_name(std::string{host.name().text()});
+	dwelling->set_kind(kind_of(*regarded));
+	send_to_vessel(dweller.Vessel::id(), event);
+}
+
+
+void ProtocolAdapter::handle_admit(const SessionId session_id, const v1::Admit& msg)
+{
+	const domain::Man* man = man_named(session_id, msg.name());
+	if (!man)
+		return;
+
+	const domain::Man& self = session_man(session_id);
+	try {
+		self.admit(*man);
+	} catch (const std::exception& e) {
+		send_notice(session_id, e.what());
+		return;
+	}
+
+	send_notice(session_id, std::string{man->name().text()} + " admitted as an acquaintance");
+	tell_dwelling(self, *man);
+}
+
+
+void ProtocolAdapter::handle_regard(const SessionId session_id, const v1::Regard& msg)
+{
+	const domain::Man* man = man_named(session_id, msg.name());
+	if (!man)
+		return;
+
+	domain::matter::Dweller::Kind kind = domain::matter::Dweller::Kind::Acquaintance;
+	switch (msg.kind()) {
+	case v1::ACQUAINTANCE:
+		break;
+	case v1::NEIGHBOUR:
+		kind = domain::matter::Dweller::Kind::Neighbour;
+		break;
+	case v1::FRIEND:
+		kind = domain::matter::Dweller::Kind::Friend;
+		break;
+	default:
+		send_notice(session_id, "unknown dweller kind");
+		return;
+	}
+
+	const domain::Man& self = session_man(session_id);
+	try {
+		self.regard(*man, kind);
+	} catch (const std::exception& e) {
+		send_notice(session_id, e.what());
+		return;
+	}
+
+	send_notice(session_id, std::string{man->name().text()} + " regarded anew");
+	tell_dwelling(self, *man);
+}
+
+
+void ProtocolAdapter::handle_list_dwellers(const SessionId session_id)
+{
+	const domain::Man& self = session_man(session_id);
+
+	v1::ServerEvent event;
+	auto* list = event.mutable_dwellers();
+	for (const std::shared_ptr<const domain::Acquaintance>& dweller : self.abode().dwellers()) {
+		auto* told = list->add_dwellers();
+		told->set_name(std::string{dweller->man().name().text()});
+		told->set_kind(kind_of(*dweller));
+	}
+	send_event(session_id, event);
 }
 
 

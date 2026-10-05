@@ -70,6 +70,18 @@ void Abode::admit(const Man& man, const matter::Dweller& kept)
 }
 
 
+std::vector<std::shared_ptr<const Acquaintance>> Abode::dwellers() const
+{
+	std::lock_guard lock(*mutex_);
+
+	std::vector<std::shared_ptr<const Acquaintance>> out;
+	out.reserve(dwellers_.size());
+	for (const auto& [man, dweller] : dwellers_)
+		out.push_back(dweller);
+	return out;
+}
+
+
 std::shared_ptr<const Acquaintance> Abode::dweller(const Man& man) const
 {
 	std::lock_guard lock(*mutex_);

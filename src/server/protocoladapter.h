@@ -42,6 +42,9 @@ private:
 	void handle_accept_supplication(SessionId session_id, const v1::AcceptSupplication& msg);
 	void handle_turn(SessionId session_id, const v1::Turn& msg);
 	void handle_fulfil(SessionId session_id, const v1::Fulfil& msg);
+	void handle_admit(SessionId session_id, const v1::Admit& msg);
+	void handle_regard(SessionId session_id, const v1::Regard& msg);
+	void handle_list_dwellers(SessionId session_id);
 
 	/// Tell a word newly placed to those who contemplate the place, and a short
 	/// word of it to the other side of a tie who looks elsewhere.
@@ -62,6 +65,9 @@ private:
 	void close_session(SessionId session_id);
 
 	const domain::Man* man_named(SessionId session_id, std::string_view name_text);
+
+	/// Tell a dweller how the host regards him now.
+	void tell_dwelling(const domain::Man& host, const domain::Man& dweller);
 	const domain::Man& session_man(SessionId session_id);
 
 	domain::World& world_;

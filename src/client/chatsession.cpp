@@ -91,7 +91,46 @@ bool handle_slash_command(WillClient& client, ConsoleUi& ui, const std::string& 
 		return true;
 	}
 
-	ui.print_status("unknown command; try /ask /accept /tie /home /done");
+	if (cmd == "visit") {
+		if (args.empty()) {
+			ui.print_status("usage: /visit <name>");
+			return true;
+		}
+		client.visit(args);
+		return true;
+	}
+	if (cmd == "admit") {
+		if (args.empty()) {
+			ui.print_status("usage: /admit <name>");
+			return true;
+		}
+		client.admit(args);
+		return true;
+	}
+	if (cmd == "regard") {
+		const auto sp = args.find(' ');
+		const std::string_view name = args.substr(0, sp);
+		const std::string_view kind = sp == std::string_view::npos ? std::string_view{} : args.substr(sp + 1);
+		if (name.empty() || kind.empty()) {
+			ui.print_status("usage: /regard <name> acquaintance|neighbour|friend");
+			return true;
+		}
+		if (kind == "acquaintance")
+			client.regard(name, v1::ACQUAINTANCE);
+		else if (kind == "neighbour")
+			client.regard(name, v1::NEIGHBOUR);
+		else if (kind == "friend")
+			client.regard(name, v1::FRIEND);
+		else
+			ui.print_status("usage: /regard <name> acquaintance|neighbour|friend");
+		return true;
+	}
+	if (cmd == "dwellers") {
+		client.list_dwellers();
+		return true;
+	}
+
+	ui.print_status("unknown command; try /ask /accept /tie /home /done /admit /regard /dwellers /visit");
 	return true;
 }
 
@@ -132,7 +171,8 @@ void ChatSession::run()
 	});
 
 	ui_.print_status("Connected as " + client_.own_name() + ".");
-	ui_.print_status("Chat: type text. Obedience: /ask /accept /tie /home /done. Ctrl+D to exit.");
+	ui_.print_status("Chat: type text. Obedience: /ask /accept /tie /home /done. "
+					 "Dwellers: /admit /regard /dwellers /visit. Ctrl+D to exit.");
 	ui_.set_live_prompt(true);
 	ui_.print_prompt();
 

@@ -41,6 +41,9 @@ public:
 	void admit(Birth<Man> birth, const Man& man, const matter::Dweller& kept);
 	void admit(Birth<World> birth, const Man& man, const matter::Dweller& kept);
 
+	/// The dwellers of this abode, in no particular order.
+	std::vector<std::shared_ptr<const Acquaintance>> dwellers() const;
+
 	/// This man as a dweller here; none for the host and for a stranger.
 	std::shared_ptr<const Acquaintance> dweller(const Man& man) const;
 

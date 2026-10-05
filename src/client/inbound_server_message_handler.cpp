@@ -13,6 +13,19 @@ namespace will {
 namespace {
 
 
+std::string kind_name(const v1::DwellerKind kind)
+{
+	switch (kind) {
+	case v1::NEIGHBOUR:
+		return "a neighbour";
+	case v1::FRIEND:
+		return "a friend";
+	default:
+		return "an acquaintance";
+	}
+}
+
+
 void print_word(ConsoleUi& ui, const v1::Word& word, const bool dim)
 {
 	const std::string number = "#" + std::to_string(word.id());
@@ -90,9 +103,27 @@ void ReceivingMessageHandler::on(const v1::ServerEvent& event)
 		return;
 	}
 	case v1::ServerEvent::kTurned:
-		ui_.print_status(event.turned().tie_with().empty() ? "── home ──"
-														   : "── tie with " + event.turned().tie_with() + " ──");
+		if (!event.turned().abode_of().empty())
+			ui_.print_status("── abode of " + event.turned().abode_of() + " ──");
+		else
+			ui_.print_status(event.turned().tie_with().empty() ? "── home ──"
+															   : "── tie with " + event.turned().tie_with() + " ──");
 		return;
+	case v1::ServerEvent::kDwelling:
+		ui_.print_status("You dwell in the abode of " + event.dwelling().host_name() + " as "
+						 + kind_name(event.dwelling().kind()) + " — /visit " + event.dwelling().host_name());
+		return;
+	case v1::ServerEvent::kDwellers: {
+		if (event.dwellers().dwellers().empty()) {
+			ui_.print_status("No one dwells in your abode.");
+			return;
+		}
+		std::string told = "Dwellers:";
+		for (const v1::Dweller& dweller : event.dwellers().dwellers())
+			told += " " + dweller.name() + " (" + kind_name(dweller.kind()) + ")";
+		ui_.print_status(told);
+		return;
+	}
 	case v1::ServerEvent::kStirred:
 		ui_.print_status("New word in the tie with " + event.stirred().tie_with() + " — /tie "
 						 + event.stirred().tie_with());

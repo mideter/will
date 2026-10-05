@@ -153,6 +153,35 @@ void wait_for_server(std::uint16_t port)
 }
 
 
+std::string bind_named(SessionStream& stream, const char* device_token)
+{
+	will::v1::ClientEvent event;
+	event.mutable_bind_token()->set_token(device_token);
+	REQUIRE(stream.Write(event));
+
+	will::v1::ServerEvent response;
+	REQUIRE(stream.Read(&response));
+	REQUIRE(response.has_auth_ok());
+	return response.auth_ok().name();
+}
+
+
+will::v1::ServerEvent read_event(SessionStream& stream)
+{
+	will::v1::ServerEvent event;
+	REQUIRE(stream.Read(&event));
+	return event;
+}
+
+
+void send_turn_to_abode(SessionStream& stream, const std::string& host)
+{
+	will::v1::ClientEvent event;
+	event.mutable_turn()->set_abode_of(host);
+	REQUIRE(stream.Write(event));
+}
+
+
 } // namespace
 
 
@@ -212,6 +241,100 @@ TEST_CASE("history request returns letters of the witness abode with is_mine")
 	viewer.context->TryCancel();
 	stop_server(server_pid);
 	const std::string prefix = db_path.substr(0, db_path.size() - 3);
+	::unlink((prefix + ".eternity.db").c_str());
+	::unlink((prefix + ".space.db").c_str());
+	::unlink((prefix + ".time.db").c_str());
+}
+
+
+TEST_CASE("a host admits a dweller, regards him anew, and he sees his abode as his kind does")
+{
+	const std::uint16_t port = static_cast<std::uint16_t>(pick_port() + 1);
+	const std::string prefix = "/tmp/will-dwellers-test-" + std::to_string(getpid());
+	::unlink((prefix + ".eternity.db").c_str());
+	::unlink((prefix + ".space.db").c_str());
+	::unlink((prefix + ".time.db").c_str());
+
+	const pid_t server_pid = start_server(g_server_exe, port, prefix + ".db");
+	REQUIRE(server_pid > 0);
+	wait_for_server(port);
+
+	GrpcSession host = open_session(port);
+	REQUIRE(host.stream);
+	const std::string host_name = bind_named(*host.stream, SenderToken);
+	send_chat(*host.stream, "secret");
+	drain_receipt_ack(*host.stream);
+
+	GrpcSession man = open_session(port);
+	REQUIRE(man.stream);
+	const std::string man_name = bind_named(*man.stream, ViewerToken);
+
+	// A stranger cannot turn to the abode.
+	send_turn_to_abode(*man.stream, host_name);
+	CHECK(read_event(*man.stream).has_protocol_notice());
+
+	// Admitted, he is told he dwells there as an acquaintance, and sees no words.
+	{
+		will::v1::ClientEvent admit;
+		admit.mutable_admit()->set_name(man_name);
+		REQUIRE(host.stream->Write(admit));
+	}
+	CHECK(read_event(*host.stream).has_protocol_notice());
+	const will::v1::ServerEvent dwelling = read_event(*man.stream);
+	REQUIRE(dwelling.has_dwelling());
+	CHECK(dwelling.dwelling().host_name() == host_name);
+	CHECK(dwelling.dwelling().kind() == will::v1::ACQUAINTANCE);
+
+	send_turn_to_abode(*man.stream, host_name);
+	const will::v1::ServerEvent turned = read_event(*man.stream);
+	REQUIRE(turned.has_turned());
+	CHECK(turned.turned().abode_of() == host_name);
+	CHECK(read_event(*man.stream).has_history_end());
+
+	// He may look, but not write there.
+	send_chat(*man.stream, "not mine");
+	CHECK(read_event(*man.stream).has_protocol_notice());
+
+	// Regarded as a neighbour, turning anew he sees the words.
+	{
+		will::v1::ClientEvent regard;
+		regard.mutable_regard()->set_name(man_name);
+		regard.mutable_regard()->set_kind(will::v1::NEIGHBOUR);
+		REQUIRE(host.stream->Write(regard));
+	}
+	CHECK(read_event(*host.stream).has_protocol_notice());
+	CHECK(read_event(*man.stream).dwelling().kind() == will::v1::NEIGHBOUR);
+
+	send_turn_to_abode(*man.stream, host_name);
+	REQUIRE(read_event(*man.stream).has_turned());
+	const will::v1::ServerEvent seen = read_event(*man.stream);
+	REQUIRE(seen.has_word());
+	CHECK(seen.word().body() == "secret");
+	CHECK_FALSE(seen.word().is_mine());
+	CHECK(read_event(*man.stream).has_history_end());
+
+	// What the host says next reaches him at once.
+	send_chat(*host.stream, "news");
+	drain_receipt_ack(*host.stream);
+	const will::v1::ServerEvent live = read_event(*man.stream);
+	REQUIRE(live.has_word());
+	CHECK(live.word().body() == "news");
+
+	// The host lists his dwellers.
+	{
+		will::v1::ClientEvent list;
+		list.mutable_list_dwellers();
+		REQUIRE(host.stream->Write(list));
+	}
+	const will::v1::ServerEvent dwellers = read_event(*host.stream);
+	REQUIRE(dwellers.has_dwellers());
+	REQUIRE(dwellers.dwellers().dwellers_size() == 1);
+	CHECK(dwellers.dwellers().dwellers(0).name() == man_name);
+	CHECK(dwellers.dwellers().dwellers(0).kind() == will::v1::NEIGHBOUR);
+
+	host.context->TryCancel();
+	man.context->TryCancel();
+	stop_server(server_pid);
 	::unlink((prefix + ".eternity.db").c_str());
 	::unlink((prefix + ".space.db").c_str());
 	::unlink((prefix + ".time.db").c_str());
