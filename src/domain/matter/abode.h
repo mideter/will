@@ -1,6 +1,6 @@
 #pragma once
 
-#include "identity/abode.h"
+#include "identity/place.h"
 #include "values/abode_name.h"
 
 
@@ -11,13 +11,13 @@ namespace will::domain::matter {
 /// Not the living Abode (heap presence in Space).
 class Abode {
 public:
-	Abode(id::Abode id, AbodeName name);
+	Abode(id::Place id, AbodeName name);
 
-	id::Abode id() const noexcept { return id_; }
+	id::Place id() const noexcept { return id_; }
 	const AbodeName& name() const noexcept { return name_; }
 
 private:
-	id::Abode id_;
+	id::Place id_;
 	AbodeName name_;
 };
 

@@ -366,15 +366,15 @@ void ProtocolAdapter::handle_accept_supplication(const SessionId session_id,
 	const auto& testator = static_cast<const domain::Testator&>(self);
 	const auto& novice = static_cast<const domain::Novice&>(*suppliant_man);
 
-	std::optional<domain::id::Tie> formed;
+	std::optional<domain::id::Place> formed;
 	try {
-		formed = domain::id::Tie{testator.accept(*testator.supplication(novice)).id()};
+		formed = testator.accept(*testator.supplication(novice)).id();
 	} catch (const std::exception& e) {
 		send_notice(session_id, e.what());
 		return;
 	}
 
-	const domain::id::Tie tie_id = *formed;
+	const domain::id::Place tie_id = *formed;
 
 	v1::ServerEvent to_testator;
 	auto* formed_t = to_testator.mutable_tie_formed();

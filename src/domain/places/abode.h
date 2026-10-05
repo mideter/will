@@ -4,7 +4,6 @@
 #include "properties/birth.h"
 #include "matter/letter.h"
 #include "places/place.h"
-#include "identity/abode.h"
 #include "values/abode_name.h"
 
 #include <memory>
@@ -27,9 +26,6 @@ class Abode : public Place {
 public:
 	Abode(Birth<Man>, matter::Abode kept);
 
-	/// Same value as Place::id().
-	id::Abode abode_id() const noexcept { return id::Abode{id()}; }
-
 	const AbodeName& name() const noexcept { return name_; }
 
 	void admit(const Man& man);
@@ -42,7 +38,7 @@ public:
 	std::shared_ptr<const Letter> inscribe(const Contemplation& gaze, matter::Letter kept) const;
 
 private:
-	Abode(id::Abode id, AbodeName name);
+	Abode(id::Place id, AbodeName name);
 
 	AbodeName name_;
 	mutable std::unique_ptr<std::mutex> mutex_;

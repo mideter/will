@@ -7,7 +7,6 @@
 #include "matter/execution.h"
 #include "identity/word.h"
 #include "identity/soul.h"
-#include "identity/tie.h"
 #include "identity/vessel.h"
 #include "values/device_token.h"
 #include "values/soul_name.h"

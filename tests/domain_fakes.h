@@ -24,10 +24,8 @@
 #include "words/behest.h"
 #include "men/vessel.h"
 #include "horizons/world.h"
-#include "identity/abode.h"
 #include "identity/word.h"
 #include "identity/place.h"
-#include "identity/tie.h"
 #include "identity/soul.h"
 #include "identity/vessel.h"
 #include "dimensions/eternity.h"
@@ -194,7 +192,7 @@ public:
 		if (abode(host))
 			throw std::logic_error("soul already keeps an abode");
 
-		const matter::Abode kept{id::Abode{eternity_.space().point()}, std::move(name)};
+		const matter::Abode kept{eternity_.space().point(), std::move(name)};
 		shared_.abodes.emplace_back(host, kept);
 		return kept;
 	}
@@ -206,7 +204,7 @@ public:
 				throw std::logic_error("obedience already exists for this pair");
 		}
 
-		const matter::Tie kept{id::Tie{eternity_.space().point()}, testator, novice};
+		const matter::Tie kept{eternity_.space().point(), testator, novice};
 		shared_.ties.push_back(kept);
 		return kept;
 	}

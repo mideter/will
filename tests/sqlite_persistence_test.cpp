@@ -13,12 +13,10 @@
 #include "relations/contemplation.h"
 #include "sqlite_persistence_bundle.h"
 
-#include "identity/abode.h"
 #include "identity/place.h"
 #include "values/abode_name.h"
 #include "values/device_token.h"
 #include "identity/soul.h"
-#include "identity/tie.h"
 #include "identity/word.h"
 #include "values/soul_name.h"
 

@@ -6,7 +6,7 @@
 namespace will::domain::matter {
 
 
-Abode::Abode(const id::Abode id, AbodeName name)
+Abode::Abode(const id::Place id, AbodeName name)
 	: id_(id)
 	, name_(std::move(name))
 {}

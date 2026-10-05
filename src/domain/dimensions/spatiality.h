@@ -3,7 +3,6 @@
 #include "matter/placement.h"
 #include "matter/abode.h"
 #include "matter/tie.h"
-#include "identity/abode.h"
 #include "identity/word.h"
 #include "identity/place.h"
 #include "identity/soul.h"

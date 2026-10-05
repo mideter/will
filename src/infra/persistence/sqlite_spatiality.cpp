@@ -27,7 +27,7 @@ std::optional<domain::matter::Abode> kept_abode(sqlite3* db, const domain::id::S
 	if (!stmt.step_row("abode step"))
 		return std::nullopt;
 
-	const domain::id::Abode id{static_cast<std::uint64_t>(stmt.column_i64(0))};
+	const domain::id::Place id{static_cast<std::uint64_t>(stmt.column_i64(0))};
 	const std::string_view name_text = stmt.column_text(1);
 	if (name_text.empty())
 		throw std::runtime_error("abode: missing name in database");
@@ -61,7 +61,7 @@ domain::matter::Abode SqliteSpatiality::abide(const domain::id::Soul host, domai
 	if (kept_abode(db, host))
 		throw std::logic_error("soul already keeps an abode");
 
-	const domain::id::Abode id{eternity_.space().point()};
+	const domain::id::Place id = eternity_.space().point();
 
 	SqliteStmt abode_stmt(db, "INSERT INTO abodes (id, name) VALUES (?, ?);", "prepare abide");
 	abode_stmt.bind_i64(1, static_cast<std::int64_t>(id.value()), "bind abode id");
@@ -96,7 +96,7 @@ domain::matter::Tie SqliteSpatiality::bind(const domain::id::Soul testator, cons
 			throw std::logic_error("obedience already exists for this pair");
 	}
 
-	const domain::matter::Tie kept{domain::id::Tie{eternity_.space().point()}, testator, novice};
+	const domain::matter::Tie kept{eternity_.space().point(), testator, novice};
 
 	SqliteStmt stmt(db,
 					"INSERT INTO ties (id, testator_soul_id, novice_soul_id) VALUES (?, ?, ?);",
@@ -121,7 +121,7 @@ std::vector<domain::matter::Tie> SqliteSpatiality::ties() const
 	std::vector<domain::matter::Tie> rows;
 	while (stmt.step_row("ties step")) {
 		rows.push_back(domain::matter::Tie{
-			domain::id::Tie{static_cast<std::uint64_t>(stmt.column_i64(0))},
+			domain::id::Place{static_cast<std::uint64_t>(stmt.column_i64(0))},
 			domain::id::Soul{static_cast<std::uint64_t>(stmt.column_i64(1))},
 			domain::id::Soul{static_cast<std::uint64_t>(stmt.column_i64(2))},
 		});

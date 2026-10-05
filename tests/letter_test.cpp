@@ -21,7 +21,6 @@
 #include "places/shepherding.h"
 #include "men/testator.h"
 #include "identity/word.h"
-#include "identity/tie.h"
 #include "identity/place.h"
 #include "values/saying.h"
 

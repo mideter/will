@@ -16,8 +16,8 @@
 namespace will::domain {
 
 
-Abode::Abode(const id::Abode id, AbodeName name)
-	: Place(id::Place{id.value()})
+Abode::Abode(const id::Place id, AbodeName name)
+	: Place(id)
 	, name_(std::move(name))
 	, mutex_(std::make_unique<std::mutex>())
 {

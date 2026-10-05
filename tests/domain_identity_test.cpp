@@ -1,9 +1,7 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest/doctest.h>
 
-#include "identity/abode.h"
 #include "identity/word.h"
-#include "identity/tie.h"
 #include "identity/place.h"
 #include "identity/soul.h"
 #include "identity/vessel.h"
@@ -28,34 +26,10 @@ TEST_CASE("id::Word requires positive value")
 }
 
 
-TEST_CASE("id::Abode global and positive values")
-{
-	CHECK(id::Abode::global() == id::Abode{1});
-	CHECK(id::Abode{5}.value() == 5);
-	CHECK(id::Abode{5} != id::Abode::global());
-	CHECK_THROWS_AS(id::Abode{0}, std::invalid_argument);
-}
-
-
 TEST_CASE("id::Place requires positive value")
 {
 	CHECK(id::Place{5}.value() == 5);
 	CHECK_THROWS_AS(id::Place{0}, std::invalid_argument);
-}
-
-
-TEST_CASE("id::Tie requires positive value")
-{
-	CHECK(id::Tie{9}.value() == 9);
-	CHECK_THROWS_AS(id::Tie{0}, std::invalid_argument);
-}
-
-
-TEST_CASE("id::Tie and id::Abode from Place")
-{
-	const id::Place place{9};
-	CHECK(id::Tie{place}.value() == 9);
-	CHECK(id::Abode{place}.value() == 9);
 }
 
 

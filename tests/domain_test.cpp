@@ -81,7 +81,6 @@ TEST_CASE("welcome creates man with personal abode")
 	CHECK(man.Soul::id().value() > 0);
 	CHECK(man.Vessel::id().value() > 0);
 	CHECK(witness.abode().id().value() > 0);
-	CHECK(witness.abode().abode_id() == id::Abode{witness.abode().id()});
 	CHECK(witness.abode().dwells(man));
 
 	// A man is born asleep: he contemplates nothing until he wakes.
@@ -644,12 +643,12 @@ TEST_CASE("tie is a place for distinct testator and novice")
 	testator.accept(*testator.supplication(novice));
 
 	const Obedience& tie = novice.obedience(testator);
-	CHECK(id::Tie{tie.id()} == cosmos.spatiality().ties().front().id());
+	CHECK(tie.id() == cosmos.spatiality().ties().front().id());
 	CHECK(&Place::of(tie.id()) == static_cast<const Place*>(&tie));
 	CHECK(&tie.testator() == &testator);
 	CHECK(&tie.novice() == &novice);
 
-	CHECK_THROWS_AS((matter::Tie{id::Tie{8}, testator.Soul::id(), testator.Soul::id()}),
+	CHECK_THROWS_AS((matter::Tie{id::Place{8}, testator.Soul::id(), testator.Soul::id()}),
 					std::invalid_argument);
 }
 
@@ -690,7 +689,7 @@ TEST_CASE("supplicate accept creates tie owned as obedience")
 	CHECK_FALSE(watched.expired());
 	CHECK(&held->suppliant() == &novice);
 	REQUIRE(cosmos.spatiality().ties().size() == 1);
-	CHECK(id::Tie{shepherding.id()} == cosmos.spatiality().ties().front().id());
+	CHECK(shepherding.id() == cosmos.spatiality().ties().front().id());
 	CHECK(&testator.shepherding(novice) == &shepherding);
 	CHECK_THROWS_AS(static_cast<const Testator&>(a).shepherding(novice), std::invalid_argument);
 	const Obedience& obedience = novice.obedience(testator);

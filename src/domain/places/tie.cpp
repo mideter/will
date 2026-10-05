@@ -20,7 +20,7 @@ namespace will::domain {
 
 
 Tie::Tie(Birth<Novice>, matter::Tie kept)
-	: Place(id::Place{kept.id().value()})
+	: Place(kept.id())
 	, Obedience(Soul::of(kept.testator()))
 	, Shepherding(Soul::of(kept.novice()))
 {
