@@ -26,7 +26,8 @@ public:
 
 	domain::matter::Supplication ask(domain::id::Soul suppliant, domain::id::Soul addressee) override;
 	std::vector<domain::matter::Supplication> supplications(domain::id::Soul addressee) const override;
-	void reject(domain::id::Soul suppliant, domain::id::Soul addressee) override;
+	domain::matter::Answer answer(domain::id::Soul suppliant, domain::id::Soul addressee,
+								  domain::matter::Answer::Form form) override;
 
 	domain::matter::Execution execute(domain::id::Word deed, domain::id::Word behest) override;
 	std::vector<domain::matter::Execution> executions(const std::vector<domain::id::Word>& words) const override;

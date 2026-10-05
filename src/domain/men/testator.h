@@ -42,10 +42,12 @@ public:
 	std::shared_ptr<const Supplication> supplication(const Novice& suppliant) const;
 	std::vector<std::shared_ptr<const Supplication>> supplications() const;
 
-	/// Hear a supplication a novice submits, or one the World recalls on
-	/// awakening; Heaven keeps it until it is answered. One already heard from
-	/// the same suppliant, or from one already shepherded, is not kept twice.
-	void hear(Birth<Novice> birth, matter::Supplication kept) const;
+	/// Hear the novice who supplicates: one already shepherded is refused
+	/// (std::logic_error) before anything is kept; else his supplication is kept
+	/// in time and Heaven keeps it until it is answered.
+	void hear(Birth<Novice> birth) const;
+
+	/// Hear a supplication awaiting its answer that the World recalls on awakening.
 	void hear(Birth<World> birth, matter::Supplication kept) const;
 
 private:

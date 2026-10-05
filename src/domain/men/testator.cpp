@@ -100,9 +100,15 @@ std::vector<std::shared_ptr<const Supplication>> Testator::supplications() const
 }
 
 
-void Testator::hear(Birth<Novice> birth, matter::Supplication kept) const
+void Testator::hear(const Birth<Novice> birth) const
 {
-	hold(std::make_shared<const Supplication>(birth, std::move(kept)));
+	const Novice& suppliant = birth.parent();
+	for (const Shepherding* place : shepherdings_) {
+		if (place && place->novice().Soul::id() == suppliant.Soul::id())
+			throw std::logic_error("obedience already exists for this pair");
+	}
+
+	hold(std::make_shared<const Supplication>(birth, temporality().ask(suppliant.Soul::id(), Soul::id())));
 }
 
 
@@ -122,19 +128,6 @@ void Testator::hold(std::shared_ptr<const Supplication> supplication) const
 {
 	if (supplication->addressee().Soul::id() != Soul::id())
 		throw std::logic_error("supplication is not addressed to this soul");
-
-	const id::Soul suppliant_id = supplication->suppliant().Soul::id();
-
-	for (const std::shared_ptr<const Supplication>& pending : supplications()) {
-		if (pending->suppliant().Soul::id() == suppliant_id)
-			return;
-	}
-
-	// A bound pair's supplication was answered by the bond itself.
-	for (const Shepherding* place : shepherdings_) {
-		if (place && place->novice().Soul::id() == suppliant_id)
-			return;
-	}
 
 	keep(std::move(supplication));
 }

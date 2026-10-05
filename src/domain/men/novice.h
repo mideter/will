@@ -38,8 +38,6 @@ public:
 	std::shared_ptr<const Deed> execute(const Behest& behest,
 										std::optional<Saying> report = std::nullopt) const;
 
-	bool follows(const Testator& testator) const noexcept;
-
 	std::vector<std::reference_wrapper<const Obedience>> obediences() const;
 
 	/// Owned Obedience face under this testator. Throws if unknown.

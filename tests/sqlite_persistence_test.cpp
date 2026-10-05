@@ -20,6 +20,8 @@
 #include "identity/word.h"
 #include "values/soul_name.h"
 
+#include <sqlite3.h>
+
 #include <memory>
 #include <optional>
 #include <stdexcept>
@@ -285,7 +287,8 @@ TEST_CASE("sqlite keeps supplications, rejections and ties across reopen")
 		CHECK_THROWS_AS(a.supplicate(b), std::logic_error);
 		b.reject(*b.supplication(a));
 		CHECK(bundle.temporality().supplications(b.Soul::id()).empty());
-		CHECK_THROWS_AS(bundle.temporality().reject(a.Soul::id(), b.Soul::id()), std::invalid_argument);
+		CHECK_THROWS_AS(bundle.temporality().answer(a.Soul::id(), b.Soul::id(), matter::Answer::Form::Rejected),
+						std::invalid_argument);
 		a.supplicate(b);
 
 		// c asks b and is accepted.
@@ -305,7 +308,9 @@ TEST_CASE("sqlite keeps supplications, rejections and ties across reopen")
 		const auto& b = static_cast<const Testator&>(world.welcome(token_b));
 		const auto& c = static_cast<const Testator&>(world.welcome(token_c));
 
-		// The awaiting supplication is reborn on the addressee's heap; the tie is living.
+		// The awaiting supplication is reborn on the addressee's heap; the accepted
+		// one is answered and stays behind; the tie is living.
+		CHECK(bundle.temporality().supplications(b.Soul::id()).size() == 1);
 		REQUIRE(b.supplications().size() == 1);
 		CHECK(&b.supplication(a)->suppliant() == &a);
 		CHECK(&b.shepherding(c).novice() == &c);
@@ -315,6 +320,47 @@ TEST_CASE("sqlite keeps supplications, rejections and ties across reopen")
 		CHECK(&shepherding.novice() == &a);
 		CHECK(b.supplications().empty());
 		CHECK(bundle.spatiality().ties().size() == 2);
+	}
+
+	::unlink((prefix + ".eternity.db").c_str());
+	::unlink((prefix + ".space.db").c_str());
+	::unlink((prefix + ".time.db").c_str());
+}
+
+
+TEST_CASE("sqlite answers the rejections kept before answers were")
+{
+	using namespace will;
+	using namespace will::domain;
+
+	const std::string prefix = "/tmp/will-sqlite-rejections-test-" + std::to_string(getpid());
+	::unlink((prefix + ".eternity.db").c_str());
+	::unlink((prefix + ".space.db").c_str());
+	::unlink((prefix + ".time.db").c_str());
+
+	// A time database as it was kept before: a rejected supplication of the pair 1 → 2.
+	{
+		sqlite3* db = nullptr;
+		REQUIRE(sqlite3_open((prefix + ".time.db").c_str(), &db) == SQLITE_OK);
+		REQUIRE(sqlite3_exec(db,
+							 "CREATE TABLE supplications (id INTEGER PRIMARY KEY AUTOINCREMENT, "
+							 "suppliant_soul_id INTEGER NOT NULL, addressee_soul_id INTEGER NOT NULL, "
+							 "asked_at_ns INTEGER NOT NULL);"
+							 "CREATE TABLE rejections (supplication_id INTEGER PRIMARY KEY, rejected_at_ns INTEGER NOT NULL);"
+							 "INSERT INTO supplications (suppliant_soul_id, addressee_soul_id, asked_at_ns) VALUES (1, 2, 5);"
+							 "INSERT INTO rejections (supplication_id, rejected_at_ns) VALUES (1, 6);",
+							 nullptr, nullptr, nullptr)
+				== SQLITE_OK);
+		sqlite3_close(db);
+	}
+
+	{
+		SqlitePersistenceBundle bundle(prefix);
+
+		// The rejection became an answer: nothing awaits, and the pair may ask again.
+		CHECK(bundle.temporality().supplications(id::Soul{2}).empty());
+		bundle.temporality().ask(id::Soul{1}, id::Soul{2});
+		CHECK(bundle.temporality().supplications(id::Soul{2}).size() == 1);
 	}
 
 	::unlink((prefix + ".eternity.db").c_str());

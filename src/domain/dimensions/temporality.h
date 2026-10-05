@@ -1,5 +1,6 @@
 #pragma once
 
+#include "matter/answer.h"
 #include "matter/supplication.h"
 #include "matter/dating.h"
 #include "matter/embodiment.h"
@@ -43,14 +44,15 @@ public:
 	virtual std::vector<matter::Dating> datings(const std::vector<id::Word>& ids) const = 0;
 
 	/// Keep a suppliant's supplication to an addressee at the present instant.
-	/// Refuses (std::logic_error) while an earlier one of the pair is not rejected.
+	/// Refuses (std::logic_error) while an earlier one of the pair awaits its answer.
 	virtual matter::Supplication ask(id::Soul suppliant, id::Soul addressee) = 0;
 
-	/// Supplications to this soul whose rejection is not kept.
+	/// Supplications to this soul awaiting their answer.
 	virtual std::vector<matter::Supplication> supplications(id::Soul addressee) const = 0;
 
-	/// Keep the rejection of the pair's unrejected supplication. Throws if there is none.
-	virtual void reject(id::Soul suppliant, id::Soul addressee) = 0;
+	/// Keep, at the present instant, the answer to the pair's supplication
+	/// awaiting it. Throws (std::invalid_argument) if none awaits.
+	virtual matter::Answer answer(id::Soul suppliant, id::Soul addressee, matter::Answer::Form form) = 0;
 
 	/// Keep that this deed fulfils that behest.
 	/// Refuses (std::logic_error) if the behest is already fulfilled.

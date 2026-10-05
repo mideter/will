@@ -40,6 +40,7 @@ const Shepherding& Supplication::sign(const Testator& addressee) const
 	const Novice& suppliant = suppliant_;
 
 	const matter::Tie kept = addressee.spatiality().bind(addressee.Soul::id(), suppliant.Soul::id());
+	addressee.temporality().answer(suppliant.Soul::id(), addressee.Soul::id(), matter::Answer::Form::Accepted);
 
 	const Obedience& place = suppliant.follow(kept);
 	const Shepherding& shepherded = addressee.shepherd(dynamic_cast<const Shepherding&>(place));
@@ -56,7 +57,7 @@ void Supplication::reject(const Testator& addressee) const
 
 	const std::shared_ptr<const Supplication> incoming = addressee.supplication(suppliant_);
 
-	addressee.temporality().reject(suppliant_.Soul::id(), addressee_.Soul::id());
+	addressee.temporality().answer(suppliant_.Soul::id(), addressee_.Soul::id(), matter::Answer::Form::Rejected);
 	addressee.drop(*incoming);
 }
 

@@ -34,6 +34,9 @@ private:
 	void open_database();
 	void init_schema();
 
+	/// Rejections kept before answers were (table `rejections`) become answers.
+	void answer_kept_rejections();
+
 	std::string db_path_;
 	SqliteFace face_;
 	sqlite3* db_ = nullptr;

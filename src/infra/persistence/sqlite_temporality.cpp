@@ -13,19 +13,19 @@ namespace will {
 namespace {
 
 
-/// Row id of the supplication of this pair that has no rejection kept, if any.
+/// Row id of the supplication of this pair awaiting its answer, if any.
 std::optional<std::int64_t>
-unrejected_supplication(sqlite3* db, const domain::id::Soul suppliant, const domain::id::Soul addressee)
+awaiting_supplication(sqlite3* db, const domain::id::Soul suppliant, const domain::id::Soul addressee)
 {
 	SqliteStmt stmt(db,
 					"SELECT a.id FROM supplications AS a "
 					"WHERE a.suppliant_soul_id = ? AND a.addressee_soul_id = ? "
-					"AND NOT EXISTS (SELECT 1 FROM rejections AS r WHERE r.supplication_id = a.id) "
+					"AND NOT EXISTS (SELECT 1 FROM answers AS r WHERE r.supplication_id = a.id) "
 					"LIMIT 1;",
-					"prepare unrejected supplication");
+					"prepare awaiting supplication");
 	stmt.bind_i64(1, static_cast<std::int64_t>(suppliant.value()), "bind suppliant");
 	stmt.bind_i64(2, static_cast<std::int64_t>(addressee.value()), "bind addressee");
-	if (!stmt.step_row("unrejected supplication step"))
+	if (!stmt.step_row("awaiting supplication step"))
 		return std::nullopt;
 
 	return stmt.column_i64(0);
@@ -151,7 +151,7 @@ domain::matter::Supplication SqliteTemporality::ask(const domain::id::Soul suppl
 	std::lock_guard lock(time_db_.mutex());
 	sqlite3* const db = time_db_.db();
 
-	if (unrejected_supplication(db, suppliant, addressee))
+	if (awaiting_supplication(db, suppliant, addressee))
 		throw std::logic_error("pending supplication already exists for this pair");
 
 	SqliteStmt stmt(db,
@@ -174,7 +174,7 @@ std::vector<domain::matter::Supplication> SqliteTemporality::supplications(const
 	SqliteStmt stmt(db,
 					"SELECT a.suppliant_soul_id, a.addressee_soul_id FROM supplications AS a "
 					"WHERE a.addressee_soul_id = ? "
-					"AND NOT EXISTS (SELECT 1 FROM rejections AS r WHERE r.supplication_id = a.id) "
+					"AND NOT EXISTS (SELECT 1 FROM answers AS r WHERE r.supplication_id = a.id) "
 					"ORDER BY a.id;",
 					"prepare supplications");
 	stmt.bind_i64(1, static_cast<std::int64_t>(addressee.value()), "bind addressee");
@@ -191,21 +191,26 @@ std::vector<domain::matter::Supplication> SqliteTemporality::supplications(const
 }
 
 
-void SqliteTemporality::reject(const domain::id::Soul suppliant, const domain::id::Soul addressee)
+domain::matter::Answer SqliteTemporality::answer(const domain::id::Soul suppliant, const domain::id::Soul addressee,
+												const domain::matter::Answer::Form form)
 {
+	const domain::matter::Answer kept{suppliant, addressee, form};
 	const domain::Timestamp at = eternity_.time().instant();
 	std::lock_guard lock(time_db_.mutex());
 	sqlite3* const db = time_db_.db();
 
-	const std::optional<std::int64_t> unrejected = unrejected_supplication(db, suppliant, addressee);
-	if (!unrejected)
+	const std::optional<std::int64_t> awaiting = awaiting_supplication(db, suppliant, addressee);
+	if (!awaiting)
 		throw std::invalid_argument("unknown supplication");
 
-	SqliteStmt stmt(db, "INSERT INTO rejections (supplication_id, rejected_at_ns) VALUES (?, ?);",
-					"prepare reject");
-	stmt.bind_i64(1, *unrejected, "bind supplication_id");
-	stmt.bind_i64(2, at.value(), "bind rejected_at");
-	stmt.step_done("reject step");
+	SqliteStmt stmt(db, "INSERT INTO answers (supplication_id, accepted, answered_at_ns) VALUES (?, ?, ?);",
+					"prepare answer");
+	stmt.bind_i64(1, *awaiting, "bind supplication_id");
+	stmt.bind_i64(2, form == domain::matter::Answer::Form::Accepted ? 1 : 0, "bind accepted");
+	stmt.bind_i64(3, at.value(), "bind answered_at");
+	stmt.step_done("answer step");
+
+	return kept;
 }
 
 

@@ -112,9 +112,10 @@ CREATE TABLE IF NOT EXISTS supplications (
   asked_at_ns INTEGER NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS rejections (
+CREATE TABLE IF NOT EXISTS answers (
   supplication_id INTEGER PRIMARY KEY,
-  rejected_at_ns INTEGER NOT NULL
+  accepted INTEGER NOT NULL,
+  answered_at_ns INTEGER NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS executions (
@@ -129,6 +130,31 @@ CREATE TABLE IF NOT EXISTS executions (
 		throw std::logic_error("unknown sqlite face");
 
 	check_sqlite(sqlite3_exec(db_, sql, nullptr, nullptr, nullptr), db_, "init_schema");
+
+	if (face_ == SqliteFace::Temporality)
+		answer_kept_rejections();
+}
+
+
+void SqliteDatabase::answer_kept_rejections()
+{
+	sqlite3_stmt* raw = nullptr;
+	check_sqlite(sqlite3_prepare_v2(db_, "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'rejections';",
+									-1, &raw, nullptr),
+				 db_, "prepare rejections lookup");
+	const bool kept = sqlite3_step(raw) == SQLITE_ROW;
+	sqlite3_finalize(raw);
+	if (!kept)
+		return;
+
+	check_sqlite(sqlite3_exec(db_,
+							  "BEGIN;"
+							  "INSERT OR IGNORE INTO answers (supplication_id, accepted, answered_at_ns) "
+							  "SELECT supplication_id, 0, rejected_at_ns FROM rejections;"
+							  "DROP TABLE rejections;"
+							  "COMMIT;",
+							  nullptr, nullptr, nullptr),
+				 db_, "answer kept rejections");
 }
 
 

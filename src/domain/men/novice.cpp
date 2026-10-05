@@ -25,10 +25,8 @@ void Novice::supplicate(const Testator& addressee) const
 {
 	if (addressee.Soul::id() == Soul::id())
 		throw std::invalid_argument("cannot supplicate oneself");
-	if (follows(addressee))
-		throw std::logic_error("obedience already exists for this pair");
 
-	addressee.hear(Birth<Novice>{*this}, temporality().ask(Soul::id(), addressee.Soul::id()));
+	addressee.hear(Birth<Novice>{*this});
 }
 
 
@@ -62,17 +60,6 @@ std::vector<std::reference_wrapper<const Obedience>> Novice::obediences() const
 		out.emplace_back(*place);
 
 	return out;
-}
-
-
-bool Novice::follows(const Testator& testator) const noexcept
-{
-	for (const auto& place : obediences_) {
-		if (place->testator().Soul::id() == testator.Soul::id())
-			return true;
-	}
-
-	return false;
 }
 
 

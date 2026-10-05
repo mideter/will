@@ -698,12 +698,16 @@ TEST_CASE("supplicate accept creates tie owned as obedience")
 	CHECK(obedience.id() == shepherding.id());
 	CHECK(obedience.id().value() != a.Soul::id().value());
 	CHECK(obedience.id().value() != b.Soul::id().value());
-	CHECK(novice.follows(testator));
-	CHECK_FALSE(testator.follows(static_cast<const Testator&>(a)));
 	CHECK_THROWS_AS(testator.obedience(static_cast<const Testator&>(a)), std::invalid_argument);
 
-	// What is kept decides: the pair is tied, so neither a new supplication nor a new bond is kept.
+	// The supplication is answered in time: accepted.
+	REQUIRE(cosmos.shared().answers.size() == 1);
+	CHECK(cosmos.shared().answers.front().form() == matter::Answer::Form::Accepted);
+	CHECK(cosmos.temporality().supplications(b.Soul::id()).empty());
+
+	// The pair is tied: the testator does not hear the novice again, and no new bond is kept.
 	CHECK_THROWS_AS(novice.supplicate(testator), std::logic_error);
+	CHECK(cosmos.temporality().supplications(b.Soul::id()).empty());
 	CHECK_THROWS_AS(cosmos.spatiality().bind(b.Soul::id(), a.Soul::id()), std::logic_error);
 	CHECK(cosmos.spatiality().ties().size() == 1);
 }
@@ -729,7 +733,10 @@ TEST_CASE("reject closes pending supplication; wrong party cannot accept")
 	CHECK(testator.supplications().empty());
 	CHECK(cosmos.temporality().supplications(b.Soul::id()).empty());
 	CHECK_THROWS_AS(testator.supplication(novice), std::invalid_argument);
-	CHECK_THROWS_AS(cosmos.temporality().reject(a.Soul::id(), b.Soul::id()), std::invalid_argument);
+	REQUIRE(cosmos.shared().answers.size() == 1);
+	CHECK(cosmos.shared().answers.front().form() == matter::Answer::Form::Rejected);
+	CHECK_THROWS_AS(cosmos.temporality().answer(a.Soul::id(), b.Soul::id(), matter::Answer::Form::Rejected),
+					std::invalid_argument);
 	CHECK(cosmos.spatiality().ties().empty());
 
 	// A rejected suppliant may ask again; a second supplication while one awaits is refused.

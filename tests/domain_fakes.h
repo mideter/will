@@ -87,7 +87,8 @@ struct InMemoryShared {
 	std::vector<matter::Vessel> vessels;
 	std::vector<matter::Embodiment> embodiments;
 	std::vector<matter::Dating> datings;
-	std::vector<matter::Supplication> supplications;
+	std::vector<matter::Supplication> supplications;  // awaiting their answer
+	std::vector<matter::Answer> answers;
 	std::vector<matter::Execution> executions;
 };
 
@@ -323,13 +324,15 @@ public:
 		return out;
 	}
 
-	void reject(const id::Soul suppliant, const id::Soul addressee) override
+	matter::Answer answer(const id::Soul suppliant, const id::Soul addressee, const matter::Answer::Form form) override
 	{
 		const auto it = awaiting(suppliant, addressee);
 		if (it == shared_.supplications.end())
 			throw std::invalid_argument("unknown supplication");
 
 		shared_.supplications.erase(it);
+		shared_.answers.emplace_back(suppliant, addressee, form);
+		return shared_.answers.back();
 	}
 
 	matter::Execution execute(const id::Word deed, const id::Word behest) override
@@ -357,7 +360,7 @@ public:
 	}
 
 private:
-	/// Supplications whose rejection was kept are dropped.
+	/// Answered supplications are dropped from those awaiting.
 	std::vector<matter::Supplication>::const_iterator awaiting(const id::Soul suppliant, const id::Soul addressee) const
 	{
 		for (auto it = shared_.supplications.begin(); it != shared_.supplications.end(); ++it) {
