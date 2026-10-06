@@ -54,6 +54,21 @@ public:
 	/// acquaintance in the father's. Throws if the midwife stands elsewhere.
 	const Man& bear(const Man& midwife, const Unborn& unborn);
 
+	/// A man chooses his father by spirit; the father cannot refuse. The former
+	/// one, if any, is replaced. Throws (std::logic_error) if he chooses himself
+	/// or one descending from him by spirit.
+	void choose_father(const Man& child, const Man& father);
+
+	/// One descendant by spirit and the father he is the child of.
+	struct Descent {
+		std::reference_wrapper<const Man> child;
+		std::reference_wrapper<const Man> father;
+	};
+
+	/// The whole spiritual line of this man: his children by spirit, theirs, and
+	/// so on, generation by generation.
+	std::vector<Descent> lineage(const Man& father) const;
+
 	/// Living man by public soul name. Throws if unknown.
 	const Man& man(const SoulName& name) const;
 

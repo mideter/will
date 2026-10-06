@@ -1308,3 +1308,70 @@ TEST_CASE("one bears in a birth room; the child is born of its host, who is ever
 	CHECK(std::dynamic_pointer_cast<const Neighbour>(
 		child.abode().dweller(*child.father(matter::Fatherhood::Line::Flesh))));
 }
+
+
+TEST_CASE("a man chooses his father by spirit, an unseen friend of all his spiritual line")
+{
+	using Line = matter::Fatherhood::Line;
+
+	InMemoryShared store;
+	const DeviceToken elder_token = DeviceToken::generate();
+	const DeviceToken son_token = DeviceToken::generate();
+	const DeviceToken grandson_token = DeviceToken::generate();
+	{
+		InMemoryCosmos cosmos(store);
+		World& world = cosmos.life().create().world();
+		const auto& elder = static_cast<const Witness&>(born(world, elder_token));
+		const auto& son = static_cast<const Witness&>(born(world, son_token));
+		const auto& grandson = static_cast<const Witness&>(born(world, grandson_token));
+		const auto& other = static_cast<const Witness&>(born(world, DeviceToken::generate()));
+
+		CHECK_THROWS_AS(world.choose_father(son, son), std::logic_error);
+		world.choose_father(son, elder);
+		world.choose_father(grandson, son);
+		CHECK(son.father(Line::Spirit) == static_cast<const Man*>(&elder));
+
+		// A ring is not closed: one does not choose one's descendant by spirit.
+		CHECK_THROWS_AS(world.choose_father(elder, grandson), std::logic_error);
+
+		// The father by spirit is a friend in the abodes of all his line, entering every
+		// room, yet unseen among their dwellers and not regarded anew.
+		CHECK(std::dynamic_pointer_cast<const Friend>(son.abode().dweller(elder)));
+		CHECK(std::dynamic_pointer_cast<const Friend>(grandson.abode().dweller(elder)));
+		CHECK(grandson.abode().birth_room().dwells(elder));
+		elder.wake();
+		elder.contemplate(cell_of(grandson));
+		for (const auto& dweller : son.abode().dwellers())
+			CHECK(&dweller->man() != static_cast<const Man*>(&elder));
+		CHECK_THROWS_AS(regard_in_upper_room(world, son, elder, matter::Dweller::Kind::Acquaintance),
+						std::logic_error);
+
+		// The grandson does not see into his father's or grandfather's abode.
+		CHECK_FALSE(elder.abode().dwells(grandson));
+
+		// His whole line, generation by generation.
+		const std::vector<World::Descent> line = world.lineage(elder);
+		REQUIRE(line.size() == 2);
+		CHECK(&line[0].child.get() == static_cast<const Man*>(&son));
+		CHECK(&line[0].father.get() == static_cast<const Man*>(&elder));
+		CHECK(&line[1].child.get() == static_cast<const Man*>(&grandson));
+		CHECK(&line[1].father.get() == static_cast<const Man*>(&son));
+
+		// Choosing another father, the grandson leaves the elder's line.
+		world.choose_father(grandson, other);
+		CHECK_FALSE(grandson.abode().dwells(elder));
+		CHECK_FALSE(grandson.abode().dwells(son));
+		CHECK(world.lineage(elder).size() == 1);
+		elder.sleep();
+	}
+
+	// Awakening anew, the line is as it was left.
+	InMemoryCosmos cosmos(store);
+	World& world = cosmos.life().create().world();
+	const Man& elder = born(world, elder_token);
+	const Man& son = born(world, son_token);
+	const Man& grandson = born(world, grandson_token);
+	CHECK(son.father(Line::Spirit) == &elder);
+	CHECK(grandson.father(Line::Spirit) != &son);
+	CHECK(world.lineage(elder).size() == 1);
+}

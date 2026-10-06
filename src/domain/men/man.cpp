@@ -71,6 +71,8 @@ void Man::arrange(const Room& room, const matter::Room::Part part) const
 
 void Man::regard(const Man& dweller, const matter::Dweller::Kind kind) const
 {
+	if (abode_->ancestor(dweller))
+		throw std::logic_error("the father by spirit is ever a friend");
 	if (!abode_->dweller(dweller))
 		throw std::logic_error("he does not dwell in this abode");
 	if (!static_cast<const Witness&>(*this).contemplates(abode_->upper_room()))

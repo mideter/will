@@ -53,7 +53,8 @@ public:
 	void admit(Birth<Man> birth, const Man& man, const matter::Dweller& kept);
 	void admit(Birth<World> birth, const Man& man, const matter::Dweller& kept);
 
-	/// The dwellers of this abode, in no particular order.
+	/// The dwellers of this abode, in no particular order. The fathers by spirit
+	/// of the host are not among them: they are unseen.
 	std::vector<std::shared_ptr<const Acquaintance>> dwellers() const;
 
 	/// A room is born here from its matter: the host furnishes it, or the World
@@ -81,10 +82,11 @@ public:
 	/// The room of this abode by its name; none if there is none.
 	const Room* room(std::string_view name) const;
 
-	/// This man as a dweller here; none for the host and for a stranger.
+	/// This man as a dweller here; none for the host and for a stranger. A
+	/// father by spirit of the host, near or far, is ever a friend here.
 	std::shared_ptr<const Acquaintance> dweller(const Man& man) const;
 
-	/// The host and his dwellers dwell here.
+	/// The host, his dwellers and his fathers by spirit dwell here.
 	bool dwells(const Man& man) const override;
 
 	/// The abode itself shows no words; they are seen through its rooms.
@@ -98,6 +100,9 @@ public:
 	/// from the matter the dimensions returned when they kept it; it enters the
 	/// recollection of this abode.
 	std::shared_ptr<const Letter> inscribe(const Contemplation& gaze, matter::Letter kept) const;
+
+	/// Whether this man is a father by spirit of the host, near or far.
+	bool ancestor(const Man& man) const;
 
 private:
 	void admit(const Man& man, const matter::Dweller& kept);

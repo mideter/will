@@ -220,6 +220,51 @@ const Man& World::bear(const Man& midwife, const Unborn& unborn)
 }
 
 
+void World::choose_father(const Man& child, const Man& father)
+{
+	using Line = matter::Fatherhood::Line;
+
+	if (&child == &father)
+		throw std::logic_error("one is not one's own father");
+	for (const Man* elder = father.father(Line::Spirit); elder; elder = elder->father(Line::Spirit)) {
+		if (elder == &child)
+			throw std::logic_error("one does not choose a descendant by spirit as one's father");
+	}
+
+	const matter::Fatherhood kept = eternity().father(father.Soul::id(), child.Soul::id(), Line::Spirit);
+	child.descend(Birth<World>{*this}, father, kept);
+}
+
+
+std::vector<World::Descent> World::lineage(const Man& father) const
+{
+	std::vector<const Man*> men;
+	{
+		std::lock_guard lock(mutex_);
+		men.reserve(men_.size());
+		for (const auto& [soul_id, man] : men_)
+			men.push_back(man.get());
+	}
+	std::sort(men.begin(), men.end(), [](const Man* a, const Man* b) { return a->Soul::id() < b->Soul::id(); });
+
+	std::vector<Descent> line;
+	std::vector<const Man*> generation{&father};
+	while (!generation.empty()) {
+		std::vector<const Man*> next;
+		for (const Man* elder : generation) {
+			for (const Man* man : men) {
+				if (man->father(matter::Fatherhood::Line::Spirit) == elder) {
+					line.push_back(Descent{*man, *elder});
+					next.push_back(man);
+				}
+			}
+		}
+		generation = std::move(next);
+	}
+	return line;
+}
+
+
 const Man& World::man(const SoulName& name) const
 {
 	std::lock_guard lock(mutex_);

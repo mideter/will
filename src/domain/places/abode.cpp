@@ -228,6 +228,9 @@ std::vector<std::shared_ptr<const Acquaintance>> Abode::dwellers() const
 
 std::shared_ptr<const Acquaintance> Abode::dweller(const Man& man) const
 {
+	if (ancestor(man))
+		return std::make_shared<const Friend>(Birth<Abode>{*this}, man);
+
 	std::lock_guard lock(*mutex_);
 	const auto it = dwellers_.find(&man);
 	if (it == dwellers_.end())
@@ -265,9 +268,23 @@ std::vector<std::shared_ptr<const Behest>> Abode::outstanding() const
 }
 
 
+bool Abode::ancestor(const Man& man) const
+{
+	// The line is walked no further than there are steps in it: a choice that
+	// would close it into a ring is refused, yet a broken one would not hang here.
+	std::size_t steps = 0;
+	for (const Man* father = host_.father(matter::Fatherhood::Line::Spirit); father && steps < 4096;
+		 father = father->father(matter::Fatherhood::Line::Spirit), ++steps) {
+		if (father == &man)
+			return true;
+	}
+	return false;
+}
+
+
 bool Abode::dwells(const Man& man) const
 {
-	if (&man == &host_)
+	if (&man == &host_ || ancestor(man))
 		return true;
 
 	std::lock_guard lock(*mutex_);
