@@ -17,6 +17,7 @@ namespace will {
 
 
 namespace domain {
+class BirthRoom;
 class Gates;
 class UpperRoom;
 } // namespace domain
@@ -57,6 +58,12 @@ private:
 	void handle_list_rooms(SessionId session_id, const v1::ListRooms& msg);
 	void handle_list_supplications(SessionId session_id);
 	void handle_reject_supplication(SessionId session_id, const v1::RejectSupplication& msg);
+	void handle_bear(SessionId session_id, const v1::Bear& msg);
+	void handle_choose_father(SessionId session_id, const v1::ChooseFather& msg);
+	void handle_list_lineage(SessionId session_id);
+
+	/// Whether the body of this session awaits its birth.
+	bool awaits_birth(SessionId session_id) const;
 
 	/// Tell a word newly placed to those who contemplate the place, and a short
 	/// word of it to the other side of a tie who looks elsewhere.
@@ -93,6 +100,12 @@ private:
 
 	/// Tell everyone in this upper room its dwellers.
 	void retell_upper_room(const domain::UpperRoom& upper_room);
+
+	/// Tell everyone standing in a birth room the unborn.
+	void retell_birth_rooms();
+
+	/// The unborn, by their marks.
+	v1::ServerEvent unborn_event() const;
 
 	/// How these gates stand, told to this man.
 	v1::ServerEvent threshold_event(const domain::Gates& gates, const domain::Man& listener) const;

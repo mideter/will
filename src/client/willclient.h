@@ -56,6 +56,11 @@ public:
 	void list_supplications() const;
 	void reject(std::string_view suppliant_name) const;
 
+	/// Bear the unborn with this mark, standing in a birth room.
+	void bear(std::uint64_t mark) const;
+	void choose_father(std::string_view name) const;
+	void list_lineage() const;
+
 	/** Sends HistoryRequest; returns false when limit is 0. */
 	bool requestHistory(std::uint32_t limit) const;
 
@@ -63,6 +68,12 @@ public:
 
 	const ClientConfig& config() const noexcept;
 	const std::string& own_name() const noexcept { return own_name_; }
+
+	/// The body awaits its birth: the mark it is seen by, while it waits.
+	const std::optional<std::uint64_t>& mark() const noexcept { return mark_; }
+
+	/// The body is born: the man dwelling in it is named.
+	void born(std::string name);
 
 private:
 	static domain::DeviceToken load_or_create_device_token(const std::string& path);
@@ -96,6 +107,7 @@ private:
 	mutable bool shutdown_done_ = false;
 	mutable std::atomic<bool> closed_{false};
 	std::string own_name_;
+	std::optional<std::uint64_t> mark_;
 };
 
 

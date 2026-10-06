@@ -7,6 +7,7 @@
 #include <iostream>
 #include <mutex>
 #include <stdexcept>
+#include <optional>
 #include <string>
 #include <string_view>
 
@@ -36,6 +37,8 @@ bool is_post_auth_server_event(const v1::ServerEvent& event) noexcept
 	case v1::ServerEvent::kDwellings:
 	case v1::ServerEvent::kSupplications:
 	case v1::ServerEvent::kThreshold:
+	case v1::ServerEvent::kUnborn:
+	case v1::ServerEvent::kLineage:
 		return true;
 	default:
 		return false;
@@ -179,6 +182,32 @@ bool handle_slash_command(WillClient& client, ConsoleUi& ui, ShownRooms& rooms, 
 		client.list_supplications();
 		return true;
 	}
+	if (cmd == "bear") {
+		try {
+			client.bear(std::stoull(std::string{args.starts_with('#') ? args.substr(1) : args}));
+		} catch (const std::invalid_argument&) {
+			ui.print_status("usage: /bear <mark>");
+		} catch (const std::out_of_range&) {
+			ui.print_status("usage: /bear <mark>");
+		}
+		return true;
+	}
+	if (cmd == "birth") {
+		client.visit({}, "Родильная");
+		return true;
+	}
+	if (cmd == "father") {
+		if (args.empty()) {
+			ui.print_status("usage: /father <name>");
+			return true;
+		}
+		client.choose_father(args);
+		return true;
+	}
+	if (cmd == "lineage") {
+		client.list_lineage();
+		return true;
+	}
 	if (cmd == "reject") {
 		if (args.empty()) {
 			ui.print_status("usage: /reject <name>");
@@ -189,7 +218,7 @@ bool handle_slash_command(WillClient& client, ConsoleUi& ui, ShownRooms& rooms, 
 	}
 
 	ui.print_status("unknown command; try /ask /accept /reject /supplications /home /done /rooms /room /arrange /admit "
-					"/regard /dwellers /dwellings /visit");
+					"/regard /dwellers /dwellings /visit /birth /bear /father /lineage");
 	return true;
 }
 
@@ -205,6 +234,7 @@ ChatSession::ChatSession(WillClient& client, ConsoleUi& ui)
 
 void ChatSession::run()
 {
+	awaitBirth();
 	loadHistory();
 
 	std::atomic<bool> disconnected{false};
@@ -231,7 +261,8 @@ void ChatSession::run()
 
 	ui_.print_status("Connected as " + client_.own_name() + ".");
 	ui_.print_status("Chat: type text in a room. Obedience: /ask /accept /reject /supplications /done. "
-					 "Rooms: /rooms /room /arrange. Gates: /gates /admit. Dwellers: /admit /regard /dwellers /dwellings /visit. Ctrl+D to exit.");
+					 "Rooms: /rooms /room /arrange. Gates: /gates /admit. Dwellers: /admit /regard /dwellers /dwellings /visit. "
+					 "Birth: /birth /bear /father /lineage. Ctrl+D to exit.");
 	ui_.set_live_prompt(true);
 	ui_.print_prompt();
 
@@ -260,6 +291,47 @@ void ChatSession::run()
 	client_.set_closed_handler(nullptr);
 	client_.set_inbound_handler(nullptr);
 	client_.shutdown();
+}
+
+
+void ChatSession::awaitBirth() const
+{
+	if (!client_.mark())
+		return;
+
+	ui_.print_status("You are not yet born. Your body is seen as #" + std::to_string(*client_.mark())
+					 + " in birth rooms: wait until someone bears you.");
+
+	std::mutex mutex;
+	std::condition_variable cv;
+	std::optional<std::string> name;
+	bool disconnected = false;
+
+	client_.set_closed_handler([&] {
+		std::lock_guard lock(mutex);
+		disconnected = true;
+		cv.notify_one();
+	});
+	client_.set_inbound_handler([&](const v1::ServerEvent& event) {
+		if (!event.has_auth_ok() || event.auth_ok().unborn())
+			return;
+		std::lock_guard lock(mutex);
+		name = event.auth_ok().name();
+		cv.notify_one();
+	});
+
+	std::unique_lock lock(mutex);
+	cv.wait(lock, [&] { return name || disconnected; });
+	lock.unlock();
+
+	client_.set_closed_handler(nullptr);
+	client_.set_inbound_handler(nullptr);
+
+	if (!name)
+		throw std::runtime_error("Disconnected while awaiting birth");
+
+	client_.born(*name);
+	ui_.print_status("You are born.");
 }
 
 

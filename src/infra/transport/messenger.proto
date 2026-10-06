@@ -149,6 +149,23 @@ message Fulfil {
 }
 
 
+// Bear the unborn with this mark, standing in a birth room: the child is born
+// of the host of that room.
+message Bear {
+    uint64 mark = 1;
+}
+
+
+// Choose this soul as one's father by spirit; he cannot refuse.
+message ChooseFather {
+    string name = 1;
+}
+
+
+// Ask for one's whole spiritual line.
+message ListLineage {}
+
+
 message SupplicationOffer {
     string suppliant_name = 1;
 }
@@ -162,11 +179,12 @@ message TieFormed {
 
 
 // What a room reflects: the words of a place, the threshold of the abode (the
-// gates), or its dwellers (the upper room).
+// gates), its dwellers (the upper room), or the unborn (the birth room).
 enum RoomAspect {
     WORDS = 0;
     THRESHOLD = 1;
     DWELLERS = 2;
+    BIRTH = 3;
 }
 
 
@@ -246,6 +264,25 @@ message Dwellers {
 }
 
 
+// The bodies awaiting their birth, by their marks, told to one standing in a
+// birth room: on entering it and whenever one comes or is born.
+message Unborn {
+    repeated uint64 marks = 1;
+}
+
+
+message Descent {
+    string name = 1;
+    string father_name = 2;
+}
+
+
+// One's spiritual line, generation by generation: each child with his father.
+message Lineage {
+    repeated Descent descents = 1;
+}
+
+
 // A new word was placed in a tie one is a side of, while one looks elsewhere;
 // room is the room of one's abode reflecting that tie.
 message Stirred {
@@ -277,6 +314,9 @@ message ClientEvent {
         ListSupplications list_supplications = 13;
         RejectSupplication reject_supplication = 14;
         ListRooms list_rooms = 15;
+        Bear bear = 16;
+        ChooseFather choose_father = 17;
+        ListLineage list_lineage = 18;
     }
 }
 
@@ -300,5 +340,7 @@ message ServerEvent {
         Dwellings dwellings = 16;
         Supplications supplications = 17;
         Threshold threshold = 18;
+        Unborn unborn = 19;
+        Lineage lineage = 20;
     }
 }

@@ -187,7 +187,52 @@ void WillClient::authenticate_device(const std::string_view device_token)
 		throw std::runtime_error("Will protocol: expected AuthOk");
 
 	own_name_ = response.auth_ok().name();
+	if (response.auth_ok().unborn())
+		mark_ = response.auth_ok().mark();
 	authenticated_ = true;
+}
+
+
+void WillClient::born(std::string name)
+{
+	own_name_ = std::move(name);
+	mark_.reset();
+}
+
+
+void WillClient::bear(const std::uint64_t mark) const
+{
+	if (!authenticated_)
+		throw std::logic_error("WillClient: not authenticated");
+
+	v1::ClientEvent event;
+	event.mutable_bear()->set_mark(mark);
+	if (!write_event(event))
+		throw std::runtime_error("Will protocol: failed to send Bear");
+}
+
+
+void WillClient::choose_father(const std::string_view name) const
+{
+	if (!authenticated_)
+		throw std::logic_error("WillClient: not authenticated");
+
+	v1::ClientEvent event;
+	event.mutable_choose_father()->set_name(std::string{name});
+	if (!write_event(event))
+		throw std::runtime_error("Will protocol: failed to send ChooseFather");
+}
+
+
+void WillClient::list_lineage() const
+{
+	if (!authenticated_)
+		throw std::logic_error("WillClient: not authenticated");
+
+	v1::ClientEvent event;
+	event.mutable_list_lineage();
+	if (!write_event(event))
+		throw std::runtime_error("Will protocol: failed to send ListLineage");
 }
 
 

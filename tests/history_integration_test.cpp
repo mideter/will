@@ -74,18 +74,6 @@ GrpcSession open_session(const std::uint16_t port)
 }
 
 
-void bind_device_token(SessionStream& stream, const char* device_token)
-{
-	will::v1::ClientEvent event;
-	event.mutable_bind_token()->set_token(device_token);
-	REQUIRE(stream.Write(event));
-
-	will::v1::ServerEvent response;
-	REQUIRE(stream.Read(&response));
-	REQUIRE(response.has_auth_ok());
-}
-
-
 void drain_receipt_ack(SessionStream& stream)
 {
 	will::v1::ServerEvent event;
@@ -262,6 +250,61 @@ void send_regard(SessionStream& stream, const std::string& name, const will::v1:
 }
 
 
+constexpr const char* ElderToken = "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee";
+
+
+/// The first man of the server: begotten at once, he bears the others in his
+/// birth room, that no man of a test is the father of another.
+struct Elder {
+	GrpcSession session;
+	std::string name;
+};
+
+
+Elder first_man(const std::uint16_t port)
+{
+	Elder elder{open_session(port), {}};
+	REQUIRE(elder.session.stream);
+	elder.name = bind_named(*elder.session.stream, ElderToken);
+	REQUIRE_FALSE(elder.name.empty());
+	return elder;
+}
+
+
+void send_bear(SessionStream& stream, const std::uint64_t mark)
+{
+	will::v1::ClientEvent bear;
+	bear.mutable_bear()->set_mark(mark);
+	REQUIRE(stream.Write(bear));
+}
+
+
+/// Bind a new body and have the elder bear it; the name of the man born.
+std::string born_named(Elder& elder, SessionStream& stream, const char* device_token)
+{
+	will::v1::ClientEvent event;
+	event.mutable_bind_token()->set_token(device_token);
+	REQUIRE(stream.Write(event));
+	const will::v1::ServerEvent welcomed = read_event(stream);
+	REQUIRE(welcomed.has_auth_ok());
+	REQUIRE(welcomed.auth_ok().unborn());
+
+	SessionStream& midwife = *elder.session.stream;
+	stand_in(midwife, {}, "Родильная");
+	send_bear(midwife, welcomed.auth_ok().mark());
+	CHECK(read_event(midwife).has_protocol_notice());
+	CHECK(read_event(midwife).has_dwelling());  // he dwells in the child's abode as a neighbour
+	CHECK(read_event(midwife).has_unborn());
+	stand_in(midwife, {}, {});
+
+	const will::v1::ServerEvent born = read_event(stream);
+	REQUIRE(born.has_auth_ok());
+	CHECK_FALSE(born.auth_ok().unborn());
+	CHECK(read_event(stream).dwelling().host_name() == elder.name);
+	return born.auth_ok().name();
+}
+
+
 } // namespace
 
 
@@ -279,27 +322,29 @@ TEST_CASE("history request returns letters of the witness abode with is_mine")
 	REQUIRE(server_pid > 0);
 	wait_for_server(port);
 
+	Elder elder = first_man(port);
 	GrpcSession sender = open_session(port);
 	REQUIRE(sender.stream);
-	bind_device_token(*sender.stream, SenderToken);
+	born_named(elder, *sender.stream, SenderToken);
 	enter_cell(*sender.stream);
 	send_chat(*sender.stream, "hello-from-sender");
 	drain_receipt_ack(*sender.stream);
 
 	GrpcSession viewer = open_session(port);
 	REQUIRE(viewer.stream);
-	bind_device_token(*viewer.stream, ViewerToken);
+	born_named(elder, *viewer.stream, ViewerToken);
 	send_history_request(*viewer.stream, 10);
 
 	// Viewer looks at his own abode itself: its rooms and what awaits him, no words.
 	will::v1::ServerEvent viewer_rooms;
 	REQUIRE(viewer.stream->Read(&viewer_rooms));
 	REQUIRE(viewer_rooms.has_rooms());
-	REQUIRE(viewer_rooms.rooms().rooms_size() == 3);
+	REQUIRE(viewer_rooms.rooms().rooms_size() == 4);
 	CHECK(viewer_rooms.rooms().rooms(0).name() == "Келья");
 	CHECK(viewer_rooms.rooms().rooms(0).part() == will::v1::INNER);
 	CHECK(viewer_rooms.rooms().rooms(1).name() == "Врата");
 	CHECK(viewer_rooms.rooms().rooms(2).name() == "Горница");
+	CHECK(viewer_rooms.rooms().rooms(3).name() == "Родильная");
 	will::v1::ServerEvent viewer_outstanding;
 	REQUIRE(viewer.stream->Read(&viewer_outstanding));
 	CHECK(viewer_outstanding.has_outstanding());
@@ -332,6 +377,7 @@ TEST_CASE("history request returns letters of the witness abode with is_mine")
 
 	sender.context->TryCancel();
 	viewer.context->TryCancel();
+	elder.session.context->TryCancel();
 	server.stop();
 	const std::string prefix = db_path.substr(0, db_path.size() - 3);
 	::unlink((prefix + ".eternity.db").c_str());
@@ -353,16 +399,17 @@ TEST_CASE("a host admits a dweller, regards him anew, and he sees his abode as h
 	REQUIRE(server_pid > 0);
 	wait_for_server(port);
 
+	Elder elder = first_man(port);
 	GrpcSession host = open_session(port);
 	REQUIRE(host.stream);
-	const std::string host_name = bind_named(*host.stream, SenderToken);
+	const std::string host_name = born_named(elder, *host.stream, SenderToken);
 	enter_cell(*host.stream);
 	send_chat(*host.stream, "secret");
 	drain_receipt_ack(*host.stream);
 
 	GrpcSession man = open_session(port);
 	REQUIRE(man.stream);
-	const std::string man_name = bind_named(*man.stream, ViewerToken);
+	const std::string man_name = born_named(elder, *man.stream, ViewerToken);
 
 	// A stranger cannot turn to the abode.
 	send_turn_to_abode(*man.stream, host_name);
@@ -422,12 +469,13 @@ TEST_CASE("a host admits a dweller, regards him anew, and he sees his abode as h
 	send_regard(*host.stream, man_name, will::v1::FRIEND);
 	CHECK(read_event(*host.stream).has_protocol_notice());
 	const will::v1::ServerEvent upper_room = read_event(*host.stream);
-	REQUIRE(upper_room.dwellers().dwellers_size() == 1);
-	CHECK(upper_room.dwellers().dwellers(0).kind() == will::v1::FRIEND);
+	REQUIRE(upper_room.dwellers().dwellers_size() == 2);  // and the elder, his father by flesh
+	for (const will::v1::Dweller& dweller : upper_room.dwellers().dwellers())
+		CHECK(dweller.kind() == (dweller.name() == man_name ? will::v1::FRIEND : will::v1::NEIGHBOUR));
 	CHECK(read_event(*man.stream).dwelling().kind() == will::v1::FRIEND);
 	REQUIRE(read_event(*man.stream).turned().abode_of() == host_name);
 	const will::v1::ServerEvent open = read_event(*man.stream);
-	REQUIRE(open.rooms().rooms_size() == 3);
+	REQUIRE(open.rooms().rooms_size() == 4);
 	CHECK(open.rooms().rooms(0).name() == "Келья");
 	CHECK(read_event(*man.stream).has_history_end());
 
@@ -484,12 +532,13 @@ TEST_CASE("a host admits a dweller, regards him anew, and he sees his abode as h
 	}
 	const will::v1::ServerEvent dwellers = read_event(*host.stream);
 	REQUIRE(dwellers.has_dwellers());
-	REQUIRE(dwellers.dwellers().dwellers_size() == 1);
-	CHECK(dwellers.dwellers().dwellers(0).name() == man_name);
-	CHECK(dwellers.dwellers().dwellers(0).kind() == will::v1::NEIGHBOUR);
+	REQUIRE(dwellers.dwellers().dwellers_size() == 2);
+	for (const will::v1::Dweller& dweller : dwellers.dwellers().dwellers())
+		CHECK(dweller.kind() == will::v1::NEIGHBOUR);
 
 	host.context->TryCancel();
 	man.context->TryCancel();
+	elder.session.context->TryCancel();
 	server.stop();
 	::unlink((prefix + ".eternity.db").c_str());
 	::unlink((prefix + ".space.db").c_str());
@@ -509,12 +558,13 @@ TEST_CASE("one lists the abodes one dwells in and the supplications awaiting one
 	REQUIRE(server.pid() > 0);
 	wait_for_server(port);
 
+	Elder elder = first_man(port);
 	GrpcSession a = open_session(port);
 	REQUIRE(a.stream);
-	const std::string a_name = bind_named(*a.stream, SenderToken);
+	const std::string a_name = born_named(elder, *a.stream, SenderToken);
 	GrpcSession b = open_session(port);
 	REQUIRE(b.stream);
-	const std::string b_name = bind_named(*b.stream, ViewerToken);
+	const std::string b_name = born_named(elder, *b.stream, ViewerToken);
 
 	// They let each other in, each standing in his gates with the other at them.
 	stand_in(*a.stream, {}, "Врата");
@@ -536,9 +586,13 @@ TEST_CASE("one lists the abodes one dwells in and the supplications awaiting one
 	}
 	const will::v1::ServerEvent dwellings = next_past_gates(*b.stream);
 	REQUIRE(dwellings.has_dwellings());
-	REQUIRE(dwellings.dwellings().dwellings_size() == 1);
-	CHECK(dwellings.dwellings().dwellings(0).host_name() == a_name);
-	CHECK(dwellings.dwellings().dwellings(0).kind() == will::v1::ACQUAINTANCE);
+	REQUIRE(dwellings.dwellings().dwellings_size() == 2);  // and with the elder, his father
+	bool with_a = false;
+	for (const will::v1::Dwelling& dwelling : dwellings.dwellings().dwellings()) {
+		CHECK(dwelling.kind() == will::v1::ACQUAINTANCE);
+		with_a = with_a || dwelling.host_name() == a_name;
+	}
+	CHECK(with_a);
 
 	// b supplicates a; a sees it awaiting and rejects it.
 	{
@@ -578,7 +632,7 @@ TEST_CASE("one lists the abodes one dwells in and the supplications awaiting one
 	}
 	const will::v1::ServerEvent own_rooms = next_past_gates(*b.stream);
 	REQUIRE(own_rooms.has_rooms());
-	REQUIRE(own_rooms.rooms().rooms_size() == 3);
+	REQUIRE(own_rooms.rooms().rooms_size() == 4);
 	CHECK(own_rooms.rooms().rooms(0).name() == "Келья");
 	{
 		will::v1::ClientEvent list;
@@ -591,6 +645,94 @@ TEST_CASE("one lists the abodes one dwells in and the supplications awaiting one
 
 	a.context->TryCancel();
 	b.context->TryCancel();
+	elder.session.context->TryCancel();
+	server.stop();
+	::unlink((prefix + ".eternity.db").c_str());
+	::unlink((prefix + ".space.db").c_str());
+	::unlink((prefix + ".time.db").c_str());
+}
+
+
+TEST_CASE("an unborn body waits, seen in birth rooms; it is born of the host of the room; a man chooses his father by spirit")
+{
+	const std::uint16_t port = static_cast<std::uint16_t>(pick_port() + 3);
+	const std::string prefix = "/tmp/will-birth-test-" + std::to_string(getpid());
+	::unlink((prefix + ".eternity.db").c_str());
+	::unlink((prefix + ".space.db").c_str());
+	::unlink((prefix + ".time.db").c_str());
+
+	RunningServer server{start_server(g_server_exe, port, prefix + ".db")};
+	REQUIRE(server.pid() > 0);
+	wait_for_server(port);
+
+	// The first comes into the world at once.
+	Elder elder = first_man(port);
+	SessionStream& adam = *elder.session.stream;
+
+	// Standing in his birth room, he sees no one awaiting.
+	send_turn_to_abode(adam, {}, "Родильная");
+	CHECK(read_event(adam).turned().aspect() == will::v1::BIRTH);
+	CHECK(read_event(adam).unborn().marks_size() == 0);
+	CHECK(read_event(adam).has_history_end());
+
+	// A body comes after him: it awaits its birth and only waits.
+	GrpcSession seth = open_session(port);
+	REQUIRE(seth.stream);
+	{
+		will::v1::ClientEvent bind;
+		bind.mutable_bind_token()->set_token(SenderToken);
+		REQUIRE(seth.stream->Write(bind));
+	}
+	const will::v1::ServerEvent welcomed = read_event(*seth.stream);
+	REQUIRE(welcomed.auth_ok().unborn());
+	CHECK(welcomed.auth_ok().name().empty());
+	const std::uint64_t mark = welcomed.auth_ok().mark();
+	send_turn_to_abode(*seth.stream, {}, "Келья");
+	CHECK(read_event(*seth.stream).protocol_notice().message() == "one awaits one's birth");
+
+	// Adam sees him awaiting at once, and bears him.
+	const will::v1::ServerEvent awaiting = read_event(adam);
+	REQUIRE(awaiting.unborn().marks_size() == 1);
+	CHECK(awaiting.unborn().marks(0) == mark);
+	send_bear(adam, mark);
+	const std::string born_notice = read_event(adam).protocol_notice().message();
+	CHECK(read_event(adam).has_dwelling());
+	CHECK(read_event(adam).unborn().marks_size() == 0);
+
+	const will::v1::ServerEvent born = read_event(*seth.stream);
+	REQUIRE(born.has_auth_ok());
+	const std::string seth_name = born.auth_ok().name();
+	CHECK(born_notice == seth_name + " born");
+	const will::v1::ServerEvent dwelling = read_event(*seth.stream);
+	CHECK(dwelling.dwelling().host_name() == elder.name);
+	CHECK(dwelling.dwelling().kind() == will::v1::ACQUAINTANCE);
+
+	// One man at a time stands in a birth room: Adam is in his, so Seth's own is open
+	// to Seth, but Seth, a stranger to Adam's inner part, may not enter Adam's.
+	stand_in(*seth.stream, {}, "Родильная");
+	send_turn_to_abode(*seth.stream, elder.name, "Родильная");
+	CHECK(read_event(*seth.stream).has_protocol_notice());
+
+	// Seth chooses Adam as his father by spirit; Adam sees his line and is told.
+	{
+		will::v1::ClientEvent choose;
+		choose.mutable_choose_father()->set_name(elder.name);
+		REQUIRE(seth.stream->Write(choose));
+	}
+	CHECK(read_event(*seth.stream).has_protocol_notice());
+	CHECK(read_event(adam).has_protocol_notice());
+	{
+		will::v1::ClientEvent list;
+		list.mutable_list_lineage();
+		REQUIRE(adam.Write(list));
+	}
+	const will::v1::ServerEvent line = read_event(adam);
+	REQUIRE(line.lineage().descents_size() == 1);
+	CHECK(line.lineage().descents(0).name() == seth_name);
+	CHECK(line.lineage().descents(0).father_name() == elder.name);
+
+	seth.context->TryCancel();
+	elder.session.context->TryCancel();
 	server.stop();
 	::unlink((prefix + ".eternity.db").c_str());
 	::unlink((prefix + ".space.db").c_str());

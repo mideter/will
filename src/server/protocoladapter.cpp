@@ -200,6 +200,17 @@ void ProtocolAdapter::handle_bind_token(const SessionId session_id, const v1::Bi
 		event.mutable_auth_ok()->set_mark(body.id().value());
 	}
 	send_event(session_id, event);
+
+	// Those in birth rooms see the new body awaiting.
+	if (!man)
+		retell_birth_rooms();
+}
+
+
+bool ProtocolAdapter::awaits_birth(const SessionId session_id) const
+{
+	const auto vessel_id = registry_.vessel_id(session_id);
+	return vessel_id && dynamic_cast<const domain::Unborn*>(&world_.vessel(*vessel_id));
 }
 
 
@@ -455,7 +466,12 @@ void ProtocolAdapter::handle_turn(const SessionId session_id, const v1::Turn& ms
 			witness.contemplate(*room);
 		}
 	} catch (const std::logic_error&) {
-		send_notice(session_id, msg.room().empty() ? "you do not dwell in that abode" : "you do not enter that room");
+		const auto* birth_room = msg.room().empty() ? nullptr
+													: dynamic_cast<const domain::BirthRoom*>(host->abode().room(msg.room()));
+		if (birth_room && birth_room->domain::Room::dwells(self))
+			send_notice(session_id, "the birth room holds one at a time");
+		else
+			send_notice(session_id, msg.room().empty() ? "you do not dwell in that abode" : "you do not enter that room");
 		return;
 	}
 
@@ -527,6 +543,8 @@ v1::RoomAspect aspect_of(const domain::Place& place)
 		return v1::THRESHOLD;
 	case domain::matter::Room::Aspect::Dwellers:
 		return v1::DWELLERS;
+	case domain::matter::Room::Aspect::Birth:
+		return v1::BIRTH;
 	default:
 		return v1::WORDS;
 	}
@@ -670,6 +688,13 @@ void ProtocolAdapter::tell_view(const SessionId session_id, const domain::Contem
 		send_event(session_id, end_event);
 		return;
 	}
+	if (dynamic_cast<const domain::BirthRoom*>(&gaze.place())) {
+		send_event(session_id, unborn_event());
+		v1::ServerEvent end_event;
+		end_event.mutable_history_end();
+		send_event(session_id, end_event);
+		return;
+	}
 
 	const auto* abode = dynamic_cast<const domain::Abode*>(&gaze.place());
 	if (!abode) {
@@ -748,6 +773,115 @@ void ProtocolAdapter::handle_list_supplications(const SessionId session_id)
 	for (const std::shared_ptr<const domain::Supplication>& pending : self.supplications())
 		list->add_suppliant_names(std::string{pending->suppliant().name().text()});
 	send_event(session_id, event);
+}
+
+
+void ProtocolAdapter::handle_bear(const SessionId session_id, const v1::Bear& msg)
+{
+	const domain::Man& midwife = session_man(session_id);
+
+	const domain::Unborn* unborn = nullptr;
+	try {
+		unborn = &world_.unborn(domain::id::Vessel{msg.mark()});
+	} catch (const std::exception&) {
+		send_notice(session_id, "no such unborn");
+		return;
+	}
+
+	const domain::Man* born = nullptr;
+	try {
+		born = &world_.bear(midwife, *unborn);
+	} catch (const std::logic_error& e) {
+		send_notice(session_id, e.what());
+		return;
+	}
+	const domain::Man& child = *born;
+	const domain::Man& father = *child.father(domain::matter::Fatherhood::Line::Flesh);
+
+	// The body that waited comes into the world: it wakes in its own abode.
+	if (const auto child_session = registry_.session_id_for_vessel(child.Vessel::id())) {
+		{
+			std::lock_guard lock(presence_mutex_);
+			static_cast<const domain::Witness&>(child).wake();
+			woken_by_session_.insert_or_assign(child_session->value, child.Vessel::id());
+		}
+		v1::ServerEvent event;
+		event.mutable_auth_ok()->set_name(std::string{child.name().text()});
+		send_event(*child_session, event);
+	}
+
+	send_notice(session_id, std::string{child.name().text()} + " born");
+	tell_dwelling(father, child);
+	tell_dwelling(child, father);
+	retell_upper_room(father.abode().upper_room());
+	retell_birth_rooms();
+}
+
+
+void ProtocolAdapter::handle_choose_father(const SessionId session_id, const v1::ChooseFather& msg)
+{
+	const domain::Man& child = session_man(session_id);
+	const domain::Man* father = man_named(session_id, msg.name());
+	if (!father)
+		return;
+
+	try {
+		world_.choose_father(child, *father);
+	} catch (const std::logic_error& e) {
+		send_notice(session_id, e.what());
+		return;
+	}
+
+	send_notice(session_id, std::string{father->name().text()} + " is now your father by spirit");
+	v1::ServerEvent event;
+	event.mutable_protocol_notice()->set_message(std::string{child.name().text()} + " chose you as his father by spirit");
+	send_to_vessel(father->Vessel::id(), event);
+}
+
+
+void ProtocolAdapter::handle_list_lineage(const SessionId session_id)
+{
+	const domain::Man& self = session_man(session_id);
+
+	v1::ServerEvent event;
+	auto* lineage = event.mutable_lineage();
+	for (const domain::World::Descent& descent : world_.lineage(self)) {
+		auto* told = lineage->add_descents();
+		told->set_name(std::string{descent.child.get().name().text()});
+		told->set_father_name(std::string{descent.father.get().name().text()});
+	}
+	send_event(session_id, event);
+}
+
+
+v1::ServerEvent ProtocolAdapter::unborn_event() const
+{
+	v1::ServerEvent event;
+	auto* unborn = event.mutable_unborn();
+	for (const domain::Unborn& body : world_.unborn())
+		unborn->add_marks(body.id().value());
+	return event;
+}
+
+
+void ProtocolAdapter::retell_birth_rooms()
+{
+	std::vector<domain::id::Vessel> woken;
+	{
+		std::lock_guard lock(presence_mutex_);
+		for (const auto& [session, vessel] : woken_by_session_)
+			woken.push_back(vessel);
+	}
+
+	const v1::ServerEvent event = unborn_event();
+	for (const domain::id::Vessel vessel : woken) {
+		const auto* man = dynamic_cast<const domain::Man*>(&world_.vessel(vessel));
+		if (!man)
+			continue;
+		const std::shared_ptr<const domain::Contemplation> gaze = world_.contemplation(man->Soul::id());
+		if (gaze && dynamic_cast<const domain::BirthRoom*>(&gaze->place()))
+			send_to_vessel(vessel, event);
+	}
 }
 
 

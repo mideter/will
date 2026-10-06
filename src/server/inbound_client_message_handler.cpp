@@ -25,6 +25,13 @@ void InboundClientMessageHandler::on(const v1::ClientEvent& event)
 
 void InboundClientMessageHandler::on_bound_event(const v1::ClientEvent& event)
 {
+	// An unborn body only waits.
+	if (event.event_case() != v1::ClientEvent::kBindToken && event.event_case() != v1::ClientEvent::EVENT_NOT_SET
+		&& adapter_.awaits_birth(session_id_)) {
+		adapter_.send_notice(session_id_, "one awaits one's birth");
+		return;
+	}
+
 	switch (event.event_case()) {
 	case v1::ClientEvent::kChat:
 		adapter_.handle_user_chat(session_id_, event.chat());
@@ -71,6 +78,15 @@ void InboundClientMessageHandler::on_bound_event(const v1::ClientEvent& event)
 	case v1::ClientEvent::kListRooms:
 		adapter_.handle_list_rooms(session_id_, event.list_rooms());
 		return;
+	case v1::ClientEvent::kBear:
+		adapter_.handle_bear(session_id_, event.bear());
+		return;
+	case v1::ClientEvent::kChooseFather:
+		adapter_.handle_choose_father(session_id_, event.choose_father());
+		return;
+	case v1::ClientEvent::kListLineage:
+		adapter_.handle_list_lineage(session_id_);
+		return;
 	case v1::ClientEvent::EVENT_NOT_SET:
 		break;
 	}
@@ -99,6 +115,9 @@ void InboundClientMessageHandler::on_unbound_event(const v1::ClientEvent& event)
 	case v1::ClientEvent::kListSupplications:
 	case v1::ClientEvent::kRejectSupplication:
 	case v1::ClientEvent::kListRooms:
+	case v1::ClientEvent::kBear:
+	case v1::ClientEvent::kChooseFather:
+	case v1::ClientEvent::kListLineage:
 		adapter_.send_auth_required(session_id_);
 		return;
 	case v1::ClientEvent::EVENT_NOT_SET:

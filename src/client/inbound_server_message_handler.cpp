@@ -53,6 +53,19 @@ void print_threshold(ConsoleUi& ui, const v1::Threshold& threshold)
 }
 
 
+void print_unborn(ConsoleUi& ui, const v1::Unborn& unborn)
+{
+	if (unborn.marks().empty()) {
+		ui.print_status("No one awaits birth.");
+		return;
+	}
+	std::string told = "Awaiting birth:";
+	for (const std::uint64_t mark : unborn.marks())
+		told += " #" + std::to_string(mark);
+	ui.print_status(told + " — /bear <mark>");
+}
+
+
 void print_outstanding(ConsoleUi& ui, const v1::Outstanding& outstanding)
 {
 	if (outstanding.behests().empty()) {
@@ -148,6 +161,9 @@ void LoadingHistoryMessageHandler::on(const v1::ServerEvent& event)
 	case v1::ServerEvent::kThreshold:
 		print_threshold(ui_, event.threshold());
 		return;
+	case v1::ServerEvent::kUnborn:
+		print_unborn(ui_, event.unborn());
+		return;
 	default:
 		throw std::runtime_error("Unexpected message while loading history");
 	}
@@ -235,6 +251,20 @@ void ReceivingMessageHandler::on(const v1::ServerEvent& event)
 		std::string told = "Dwellers:";
 		for (const v1::Dweller& dweller : event.dwellers().dwellers())
 			told += " " + dweller.name() + " (" + kind_name(dweller.kind()) + ")";
+		ui_.print_status(told);
+		return;
+	}
+	case v1::ServerEvent::kUnborn:
+		print_unborn(ui_, event.unborn());
+		return;
+	case v1::ServerEvent::kLineage: {
+		if (event.lineage().descents().empty()) {
+			ui_.print_status("No one is your child by spirit.");
+			return;
+		}
+		std::string told = "Your line:";
+		for (const v1::Descent& descent : event.lineage().descents())
+			told += " " + descent.name() + " (of " + descent.father_name() + ");";
 		ui_.print_status(told);
 		return;
 	}

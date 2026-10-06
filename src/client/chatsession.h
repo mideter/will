@@ -23,6 +23,9 @@ private:
 
 	void loadHistory() const;
 
+	/// An unborn body waits until it is born.
+	void awaitBirth() const;
+
 	WillClient& client_;
 	ConsoleUi& ui_;
 	mutable ShownRooms rooms_;
