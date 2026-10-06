@@ -73,6 +73,10 @@ private:
 	/// Tell a dweller how the host regards him now.
 	void tell_dwelling(const domain::Man& host, const domain::Man& dweller);
 
+	/// Whether this man may write where he looks: his own cell, or a tie room of
+	/// which he is the testator.
+	bool writes_here(const domain::Man& man) const;
+
 	/// A dweller looking at the host's abode sees it anew, as his new kind does.
 	void retell_abode(const domain::Man& host, const domain::Man& dweller);
 

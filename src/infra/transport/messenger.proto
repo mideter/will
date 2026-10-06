@@ -151,11 +151,13 @@ message TieFormed {
 
 
 // The gaze now rests on an abode (of this host, or one's own when empty) — in
-// this room of it, when room is given.
+// this room of it, when room is given. writable: one may write here (one's own
+// cell; a tie room of which one is the testator).
 message Turned {
     reserved 1;
     string abode_of = 2;
     string room = 3;
+    bool writable = 4;
 }
 
 

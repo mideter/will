@@ -444,6 +444,7 @@ void ProtocolAdapter::handle_turn(const SessionId session_id, const v1::Turn& ms
 	v1::ServerEvent turned;
 	turned.mutable_turned()->set_abode_of(msg.abode_of());
 	turned.mutable_turned()->set_room(msg.room());
+	turned.mutable_turned()->set_writable(writes_here(self));
 	send_event(session_id, turned);
 
 	if (const auto gaze = world_.contemplation(self.Soul::id()))
@@ -592,6 +593,7 @@ void ProtocolAdapter::retell_abode(const domain::Man& host, const domain::Man& d
 	turned.mutable_turned()->set_abode_of(std::string{host.name().text()});
 	if (room)
 		turned.mutable_turned()->set_room(room->name());
+	turned.mutable_turned()->set_writable(writes_here(dweller));
 	send_event(*sid, turned);
 	tell_view(*sid, *gaze, dweller, TurnWords);
 }
@@ -719,6 +721,21 @@ void ProtocolAdapter::handle_reject_supplication(const SessionId session_id, con
 	}
 
 	send_notice(session_id, "supplication of " + msg.suppliant_name() + " rejected");
+}
+
+
+bool ProtocolAdapter::writes_here(const domain::Man& man) const
+{
+	const std::shared_ptr<const domain::Contemplation> gaze = world_.contemplation(man.Soul::id());
+	const auto* room = gaze ? dynamic_cast<const domain::Room*>(&gaze->place()) : nullptr;
+	if (!room || &room->abode() != &man.abode())
+		return false;
+
+	// One's own cell, or the room of a tie one wills in.
+	if (&room->reflects() == static_cast<const domain::Place*>(&man.abode()))
+		return true;
+	const auto* tie = dynamic_cast<const domain::Tie*>(&room->reflects());
+	return tie && tie->testator().Soul::id() == man.Soul::id();
 }
 
 
