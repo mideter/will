@@ -623,16 +623,7 @@ void ProtocolAdapter::tell_view(const SessionId session_id, const domain::Contem
 		return;
 	}
 
-	v1::ServerEvent rooms_event;
-	auto* rooms = rooms_event.mutable_rooms();
-	for (const domain::Room& room : abode->rooms()) {
-		if (!room.dwells(listener))
-			continue;
-		auto* told = rooms->add_rooms();
-		told->set_name(room.name());
-		told->set_part(room.part() == domain::matter::Room::Part::Outer ? v1::OUTER : v1::INNER);
-	}
-	send_event(session_id, rooms_event);
+	tell_rooms(session_id, *abode, listener);
 
 	if (&abode->host() == &listener) {
 		v1::ServerEvent outstanding_event;
@@ -736,6 +727,40 @@ bool ProtocolAdapter::writes_here(const domain::Man& man) const
 		return true;
 	const auto* tie = dynamic_cast<const domain::Tie*>(&room->reflects());
 	return tie && tie->testator().Soul::id() == man.Soul::id();
+}
+
+
+void ProtocolAdapter::tell_rooms(const SessionId session_id, const domain::Abode& abode,
+								 const domain::Man& listener)
+{
+	v1::ServerEvent event;
+	auto* rooms = event.mutable_rooms();
+	for (const domain::Room& room : abode.rooms()) {
+		if (!room.dwells(listener))
+			continue;
+		auto* told = rooms->add_rooms();
+		told->set_name(room.name());
+		told->set_part(room.part() == domain::matter::Room::Part::Outer ? v1::OUTER : v1::INNER);
+	}
+	send_event(session_id, event);
+}
+
+
+void ProtocolAdapter::handle_list_rooms(const SessionId session_id, const v1::ListRooms& msg)
+{
+	const domain::Man& self = session_man(session_id);
+	const domain::Man* host = &self;
+	if (!msg.abode_of().empty()) {
+		host = man_named(session_id, msg.abode_of());
+		if (!host)
+			return;
+	}
+	if (!host->abode().dwells(self)) {
+		send_notice(session_id, "you do not dwell in that abode");
+		return;
+	}
+
+	tell_rooms(session_id, host->abode(), self);
 }
 
 

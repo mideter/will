@@ -85,6 +85,13 @@ enum RoomPart {
 }
 
 
+// Ask for the rooms one may enter in an abode: one's own when abode_of is
+// empty. The gaze stays where it is.
+message ListRooms {
+    string abode_of = 1;
+}
+
+
 // Ask for the abodes one dwells in.
 message ListDwellings {}
 
@@ -247,6 +254,7 @@ message ClientEvent {
         ListDwellings list_dwellings = 12;
         ListSupplications list_supplications = 13;
         RejectSupplication reject_supplication = 14;
+        ListRooms list_rooms = 15;
     }
 }
 

@@ -515,6 +515,23 @@ TEST_CASE("one lists the abodes one dwells in and the supplications awaiting one
 	}
 	CHECK(read_event(*a.stream).supplications().suppliant_names_size() == 0);
 
+	// b asks for rooms without moving his gaze: his own cell; none in a's abode, as an acquaintance.
+	{
+		will::v1::ClientEvent list;
+		list.mutable_list_rooms();
+		REQUIRE(b.stream->Write(list));
+	}
+	const will::v1::ServerEvent own_rooms = read_event(*b.stream);
+	REQUIRE(own_rooms.has_rooms());
+	REQUIRE(own_rooms.rooms().rooms_size() == 1);
+	CHECK(own_rooms.rooms().rooms(0).name() == "Келья");
+	{
+		will::v1::ClientEvent list;
+		list.mutable_list_rooms()->set_abode_of(a_name);
+		REQUIRE(b.stream->Write(list));
+	}
+	CHECK(read_event(*b.stream).rooms().rooms_size() == 0);
+
 	a.context->TryCancel();
 	b.context->TryCancel();
 	server.stop();

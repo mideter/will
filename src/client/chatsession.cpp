@@ -42,7 +42,7 @@ bool is_post_auth_server_event(const v1::ServerEvent& event) noexcept
 }
 
 
-bool handle_slash_command(WillClient& client, ConsoleUi& ui, const ShownRooms& rooms, const std::string& line)
+bool handle_slash_command(WillClient& client, ConsoleUi& ui, ShownRooms& rooms, const std::string& line)
 {
 	if (line.empty() || line[0] != '/')
 		return false;
@@ -156,6 +156,12 @@ bool handle_slash_command(WillClient& client, ConsoleUi& ui, const ShownRooms& r
 		client.list_dwellers();
 		return true;
 	}
+	if (cmd == "rooms") {
+		// The rooms shown next are of this abode: number them for it.
+		rooms.turned(std::string{args});
+		client.list_rooms(args);
+		return true;
+	}
 	if (cmd == "dwellings") {
 		client.list_dwellings();
 		return true;
@@ -173,7 +179,7 @@ bool handle_slash_command(WillClient& client, ConsoleUi& ui, const ShownRooms& r
 		return true;
 	}
 
-	ui.print_status("unknown command; try /ask /accept /reject /supplications /home /done /room /arrange /admit "
+	ui.print_status("unknown command; try /ask /accept /reject /supplications /home /done /rooms /room /arrange /admit "
 					"/regard /dwellers /dwellings /visit");
 	return true;
 }
@@ -216,7 +222,7 @@ void ChatSession::run()
 
 	ui_.print_status("Connected as " + client_.own_name() + ".");
 	ui_.print_status("Chat: type text in a room. Obedience: /ask /accept /reject /supplications /done. "
-					 "Rooms: /room /arrange. Dwellers: /admit /regard /dwellers /dwellings /visit. Ctrl+D to exit.");
+					 "Rooms: /rooms /room /arrange. Dwellers: /admit /regard /dwellers /dwellings /visit. Ctrl+D to exit.");
 	ui_.set_live_prompt(true);
 	ui_.print_prompt();
 

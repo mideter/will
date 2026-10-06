@@ -21,7 +21,8 @@ class WillClient;
 /// are of (empty — one's own): `/room <number>` enters them.
 class ShownRooms final {
 public:
-	/// The gaze turned to the abode of this host (empty — one's own).
+	/// The gaze turned to the abode of this host (empty — one's own), or its
+	/// rooms were asked for: the rooms shown next are of it.
 	void turned(std::string abode_of);
 	void shown(const v1::Rooms& rooms);
 

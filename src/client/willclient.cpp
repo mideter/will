@@ -318,6 +318,18 @@ void WillClient::list_dwellings() const
 }
 
 
+void WillClient::list_rooms(const std::string_view host_name) const
+{
+	if (!authenticated_)
+		throw std::logic_error("WillClient: not authenticated");
+
+	v1::ClientEvent event;
+	event.mutable_list_rooms()->set_abode_of(std::string{host_name});
+	if (!write_event(event))
+		throw std::runtime_error("Will protocol: failed to send ListRooms");
+}
+
+
 void WillClient::list_supplications() const
 {
 	if (!authenticated_)

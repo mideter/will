@@ -47,6 +47,7 @@ private:
 	void handle_list_dwellers(SessionId session_id);
 	void handle_arrange(SessionId session_id, const v1::Arrange& msg);
 	void handle_list_dwellings(SessionId session_id);
+	void handle_list_rooms(SessionId session_id, const v1::ListRooms& msg);
 	void handle_list_supplications(SessionId session_id);
 	void handle_reject_supplication(SessionId session_id, const v1::RejectSupplication& msg);
 
@@ -79,6 +80,9 @@ private:
 
 	/// A dweller looking at the host's abode sees it anew, as his new kind does.
 	void retell_abode(const domain::Man& host, const domain::Man& dweller);
+
+	/// Tell the rooms of this abode that this man may enter.
+	void tell_rooms(SessionId session_id, const domain::Abode& abode, const domain::Man& listener);
 
 	/// Tell what the gaze sees: at an abode itself, the rooms one may enter and,
 	/// to its host, what awaits him; elsewhere, the words.
