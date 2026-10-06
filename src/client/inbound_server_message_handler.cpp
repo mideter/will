@@ -188,6 +188,26 @@ void ReceivingMessageHandler::on(const v1::ServerEvent& event)
 		ui_.print_status("You dwell in the abode of " + event.dwelling().host_name() + " as "
 						 + kind_name(event.dwelling().kind()) + " — /visit " + event.dwelling().host_name());
 		return;
+	case v1::ServerEvent::kDwellings: {
+		if (event.dwellings().dwellings().empty()) {
+			ui_.print_status("You dwell in no other abode.");
+			return;
+		}
+		std::string told = "You dwell with:";
+		for (const v1::Dwelling& dwelling : event.dwellings().dwellings())
+			told += " " + dwelling.host_name() + " (" + kind_name(dwelling.kind()) + ")";
+		ui_.print_status(told + " — /visit <name>");
+		return;
+	}
+	case v1::ServerEvent::kSupplications: {
+		if (event.supplications().suppliant_names().empty()) {
+			ui_.print_status("No supplication awaits you.");
+			return;
+		}
+		for (const std::string& name : event.supplications().suppliant_names())
+			ui_.print_status("Supplication from " + name + " — /accept " + name + " or /reject " + name);
+		return;
+	}
 	case v1::ServerEvent::kDwellers: {
 		if (event.dwellers().dwellers().empty()) {
 			ui_.print_status("No one dwells in your abode.");

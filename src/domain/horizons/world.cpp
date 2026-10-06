@@ -137,6 +137,19 @@ const Man& World::man(const SoulName& name) const
 }
 
 
+std::vector<std::reference_wrapper<const Man>> World::hosts_of(const Man& dweller) const
+{
+	std::lock_guard lock(mutex_);
+
+	std::vector<std::reference_wrapper<const Man>> hosts;
+	for (const auto& [soul_id, man] : men_) {
+		if (man && man->abode().dweller(dweller))
+			hosts.emplace_back(*man);
+	}
+	return hosts;
+}
+
+
 const Man& World::beget(const DeviceToken& token)
 {
 	matter::Soul soul = eternity().enroll(SoulName::generate());

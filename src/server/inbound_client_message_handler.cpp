@@ -59,6 +59,15 @@ void InboundClientMessageHandler::on_bound_event(const v1::ClientEvent& event)
 	case v1::ClientEvent::kArrange:
 		adapter_.handle_arrange(session_id_, event.arrange());
 		return;
+	case v1::ClientEvent::kListDwellings:
+		adapter_.handle_list_dwellings(session_id_);
+		return;
+	case v1::ClientEvent::kListSupplications:
+		adapter_.handle_list_supplications(session_id_);
+		return;
+	case v1::ClientEvent::kRejectSupplication:
+		adapter_.handle_reject_supplication(session_id_, event.reject_supplication());
+		return;
 	case v1::ClientEvent::EVENT_NOT_SET:
 		break;
 	}
@@ -83,6 +92,9 @@ void InboundClientMessageHandler::on_unbound_event(const v1::ClientEvent& event)
 	case v1::ClientEvent::kRegard:
 	case v1::ClientEvent::kListDwellers:
 	case v1::ClientEvent::kArrange:
+	case v1::ClientEvent::kListDwellings:
+	case v1::ClientEvent::kListSupplications:
+	case v1::ClientEvent::kRejectSupplication:
 		adapter_.send_auth_required(session_id_);
 		return;
 	case v1::ClientEvent::EVENT_NOT_SET:

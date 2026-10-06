@@ -150,6 +150,32 @@ void stop_server(pid_t pid)
 }
 
 
+/// A server started for one test case; stopped when the case ends, even when it fails.
+class RunningServer {
+public:
+	explicit RunningServer(const pid_t pid) : pid_(pid) {}
+	~RunningServer() { stop(); }
+
+	RunningServer(const RunningServer&) = delete;
+	RunningServer& operator=(const RunningServer&) = delete;
+
+	pid_t pid() const noexcept { return pid_; }
+
+	void stop()
+	{
+		if (pid_ > 0)
+			stop_server(pid_);
+		pid_ = 0;
+	}
+
+	/// The case has stopped it itself.
+	void forget() noexcept { pid_ = 0; }
+
+private:
+	pid_t pid_;
+};
+
+
 bool wait_for_server(std::uint16_t port)
 {
 	for (int attempt = 0; attempt < 50; ++attempt) {
@@ -179,7 +205,8 @@ TEST_CASE("second session with same device token displaces the first")
 	::unlink((db_path.substr(0, db_path.size() - 3) + ".space.db").c_str());
 	::unlink((db_path.substr(0, db_path.size() - 3) + ".time.db").c_str());
 
-	const pid_t server_pid = start_server(g_server_exe, port, db_path);
+	RunningServer server{start_server(g_server_exe, port, db_path)};
+	const pid_t server_pid = server.pid();
 	REQUIRE(server_pid > 0);
 	REQUIRE(wait_for_server(port));
 
@@ -212,7 +239,7 @@ TEST_CASE("second session with same device token displaces the first")
 	REQUIRE(drain_receipt_ack(*second.stream));
 
 	second.context->TryCancel();
-	stop_server(server_pid);
+	server.stop();
 	const std::string prefix = db_path.substr(0, db_path.size() - 3);
 	::unlink((prefix + ".eternity.db").c_str());
 	::unlink((prefix + ".space.db").c_str());
@@ -244,7 +271,8 @@ TEST_CASE("server stops on SIGTERM while a session is still open")
 	::unlink((prefix + ".space.db").c_str());
 	::unlink((prefix + ".time.db").c_str());
 
-	const pid_t server_pid = start_server(g_server_exe, port, db_path);
+	RunningServer server{start_server(g_server_exe, port, db_path)};
+	const pid_t server_pid = server.pid();
 	REQUIRE(server_pid > 0);
 	REQUIRE(wait_for_server(port));
 
@@ -258,6 +286,7 @@ TEST_CASE("server stops on SIGTERM while a session is still open")
 		kill(server_pid, SIGKILL);
 		waitpid(server_pid, nullptr, 0);
 	}
+	server.forget();
 	CHECK(stopped);
 	CHECK(wait_for_stream_end(session, std::chrono::seconds(2)));
 

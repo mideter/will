@@ -51,6 +51,9 @@ public:
 	void admit(std::string_view name) const;
 	void regard(std::string_view name, v1::DwellerKind kind) const;
 	void list_dwellers() const;
+	void list_dwellings() const;
+	void list_supplications() const;
+	void reject(std::string_view suppliant_name) const;
 
 	/** Sends HistoryRequest; returns false when limit is 0. */
 	bool requestHistory(std::uint32_t limit) const;

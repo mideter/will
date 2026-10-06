@@ -139,6 +139,32 @@ void stop_server(pid_t pid)
 }
 
 
+/// A server started for one test case; stopped when the case ends, even when it fails.
+class RunningServer {
+public:
+	explicit RunningServer(const pid_t pid) : pid_(pid) {}
+	~RunningServer() { stop(); }
+
+	RunningServer(const RunningServer&) = delete;
+	RunningServer& operator=(const RunningServer&) = delete;
+
+	pid_t pid() const noexcept { return pid_; }
+
+	void stop()
+	{
+		if (pid_ > 0)
+			stop_server(pid_);
+		pid_ = 0;
+	}
+
+	/// The case has stopped it itself.
+	void forget() noexcept { pid_ = 0; }
+
+private:
+	pid_t pid_;
+};
+
+
 void wait_for_server(std::uint16_t port)
 {
 	for (int attempt = 0; attempt < 50; ++attempt) {
@@ -208,7 +234,8 @@ TEST_CASE("history request returns letters of the witness abode with is_mine")
 	::unlink((db_path.substr(0, db_path.size() - 3) + ".space.db").c_str());
 	::unlink((db_path.substr(0, db_path.size() - 3) + ".time.db").c_str());
 
-	const pid_t server_pid = start_server(g_server_exe, port, db_path);
+	RunningServer server{start_server(g_server_exe, port, db_path)};
+	const pid_t server_pid = server.pid();
 	REQUIRE(server_pid > 0);
 	wait_for_server(port);
 
@@ -263,7 +290,7 @@ TEST_CASE("history request returns letters of the witness abode with is_mine")
 
 	sender.context->TryCancel();
 	viewer.context->TryCancel();
-	stop_server(server_pid);
+	server.stop();
 	const std::string prefix = db_path.substr(0, db_path.size() - 3);
 	::unlink((prefix + ".eternity.db").c_str());
 	::unlink((prefix + ".space.db").c_str());
@@ -279,7 +306,8 @@ TEST_CASE("a host admits a dweller, regards him anew, and he sees his abode as h
 	::unlink((prefix + ".space.db").c_str());
 	::unlink((prefix + ".time.db").c_str());
 
-	const pid_t server_pid = start_server(g_server_exe, port, prefix + ".db");
+	RunningServer server{start_server(g_server_exe, port, prefix + ".db")};
+	const pid_t server_pid = server.pid();
 	REQUIRE(server_pid > 0);
 	wait_for_server(port);
 
@@ -403,7 +431,93 @@ TEST_CASE("a host admits a dweller, regards him anew, and he sees his abode as h
 
 	host.context->TryCancel();
 	man.context->TryCancel();
-	stop_server(server_pid);
+	server.stop();
+	::unlink((prefix + ".eternity.db").c_str());
+	::unlink((prefix + ".space.db").c_str());
+	::unlink((prefix + ".time.db").c_str());
+}
+
+
+TEST_CASE("one lists the abodes one dwells in and the supplications awaiting one, and rejects one")
+{
+	const std::uint16_t port = static_cast<std::uint16_t>(pick_port() + 2);
+	const std::string prefix = "/tmp/will-lists-test-" + std::to_string(getpid());
+	::unlink((prefix + ".eternity.db").c_str());
+	::unlink((prefix + ".space.db").c_str());
+	::unlink((prefix + ".time.db").c_str());
+
+	RunningServer server{start_server(g_server_exe, port, prefix + ".db")};
+	REQUIRE(server.pid() > 0);
+	wait_for_server(port);
+
+	GrpcSession a = open_session(port);
+	REQUIRE(a.stream);
+	const std::string a_name = bind_named(*a.stream, SenderToken);
+	GrpcSession b = open_session(port);
+	REQUIRE(b.stream);
+	const std::string b_name = bind_named(*b.stream, ViewerToken);
+
+	// They admit each other.
+	{
+		will::v1::ClientEvent admit;
+		admit.mutable_admit()->set_name(b_name);
+		REQUIRE(a.stream->Write(admit));
+	}
+	CHECK(read_event(*a.stream).has_protocol_notice());
+	CHECK(read_event(*b.stream).has_dwelling());
+	{
+		will::v1::ClientEvent admit;
+		admit.mutable_admit()->set_name(a_name);
+		REQUIRE(b.stream->Write(admit));
+	}
+	CHECK(read_event(*b.stream).has_protocol_notice());
+	CHECK(read_event(*a.stream).has_dwelling());
+
+	// b dwells with a, as an acquaintance.
+	{
+		will::v1::ClientEvent list;
+		list.mutable_list_dwellings();
+		REQUIRE(b.stream->Write(list));
+	}
+	const will::v1::ServerEvent dwellings = read_event(*b.stream);
+	REQUIRE(dwellings.has_dwellings());
+	REQUIRE(dwellings.dwellings().dwellings_size() == 1);
+	CHECK(dwellings.dwellings().dwellings(0).host_name() == a_name);
+	CHECK(dwellings.dwellings().dwellings(0).kind() == will::v1::ACQUAINTANCE);
+
+	// b supplicates a; a sees it awaiting and rejects it.
+	{
+		will::v1::ClientEvent ask;
+		ask.mutable_supplicate()->set_addressee_name(a_name);
+		REQUIRE(b.stream->Write(ask));
+	}
+	CHECK(read_event(*b.stream).has_protocol_notice());
+	CHECK(read_event(*a.stream).has_supplication_offer());
+	{
+		will::v1::ClientEvent list;
+		list.mutable_list_supplications();
+		REQUIRE(a.stream->Write(list));
+	}
+	const will::v1::ServerEvent awaiting = read_event(*a.stream);
+	REQUIRE(awaiting.has_supplications());
+	REQUIRE(awaiting.supplications().suppliant_names_size() == 1);
+	CHECK(awaiting.supplications().suppliant_names(0) == b_name);
+	{
+		will::v1::ClientEvent reject;
+		reject.mutable_reject_supplication()->set_suppliant_name(b_name);
+		REQUIRE(a.stream->Write(reject));
+	}
+	CHECK(read_event(*a.stream).has_protocol_notice());
+	{
+		will::v1::ClientEvent list;
+		list.mutable_list_supplications();
+		REQUIRE(a.stream->Write(list));
+	}
+	CHECK(read_event(*a.stream).supplications().suppliant_names_size() == 0);
+
+	a.context->TryCancel();
+	b.context->TryCancel();
+	server.stop();
 	::unlink((prefix + ".eternity.db").c_str());
 	::unlink((prefix + ".space.db").c_str());
 	::unlink((prefix + ".time.db").c_str());

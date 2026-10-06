@@ -11,6 +11,8 @@
 #include "values/soul_name.h"
 
 #include <memory>
+#include <vector>
+#include <functional>
 #include <mutex>
 #include <unordered_map>
 
@@ -39,6 +41,9 @@ public:
 
 	/// Living man by public soul name. Throws if unknown.
 	const Man& man(const SoulName& name) const;
+
+	/// The hosts in whose abodes this man dwells.
+	std::vector<std::reference_wrapper<const Man>> hosts_of(const Man& dweller) const;
 
 private:
 	friend class Creation;

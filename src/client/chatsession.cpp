@@ -33,6 +33,8 @@ bool is_post_auth_server_event(const v1::ServerEvent& event) noexcept
 	case v1::ServerEvent::kDwellers:
 	case v1::ServerEvent::kRooms:
 	case v1::ServerEvent::kOutstanding:
+	case v1::ServerEvent::kDwellings:
+	case v1::ServerEvent::kSupplications:
 		return true;
 	default:
 		return false;
@@ -154,8 +156,25 @@ bool handle_slash_command(WillClient& client, ConsoleUi& ui, const ShownRooms& r
 		client.list_dwellers();
 		return true;
 	}
+	if (cmd == "dwellings") {
+		client.list_dwellings();
+		return true;
+	}
+	if (cmd == "supplications") {
+		client.list_supplications();
+		return true;
+	}
+	if (cmd == "reject") {
+		if (args.empty()) {
+			ui.print_status("usage: /reject <name>");
+			return true;
+		}
+		client.reject(args);
+		return true;
+	}
 
-	ui.print_status("unknown command; try /ask /accept /home /done /room /arrange /admit /regard /dwellers /visit");
+	ui.print_status("unknown command; try /ask /accept /reject /supplications /home /done /room /arrange /admit "
+					"/regard /dwellers /dwellings /visit");
 	return true;
 }
 
@@ -196,8 +215,8 @@ void ChatSession::run()
 	});
 
 	ui_.print_status("Connected as " + client_.own_name() + ".");
-	ui_.print_status("Chat: type text in a room. Obedience: /ask /accept /done. "
-					 "Rooms: /room /arrange. Dwellers: /admit /regard /dwellers /visit. Ctrl+D to exit.");
+	ui_.print_status("Chat: type text in a room. Obedience: /ask /accept /reject /supplications /done. "
+					 "Rooms: /room /arrange. Dwellers: /admit /regard /dwellers /dwellings /visit. Ctrl+D to exit.");
 	ui_.set_live_prompt(true);
 	ui_.print_prompt();
 

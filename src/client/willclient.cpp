@@ -306,6 +306,42 @@ void WillClient::list_dwellers() const
 }
 
 
+void WillClient::list_dwellings() const
+{
+	if (!authenticated_)
+		throw std::logic_error("WillClient: not authenticated");
+
+	v1::ClientEvent event;
+	event.mutable_list_dwellings();
+	if (!write_event(event))
+		throw std::runtime_error("Will protocol: failed to send ListDwellings");
+}
+
+
+void WillClient::list_supplications() const
+{
+	if (!authenticated_)
+		throw std::logic_error("WillClient: not authenticated");
+
+	v1::ClientEvent event;
+	event.mutable_list_supplications();
+	if (!write_event(event))
+		throw std::runtime_error("Will protocol: failed to send ListSupplications");
+}
+
+
+void WillClient::reject(const std::string_view suppliant_name) const
+{
+	if (!authenticated_)
+		throw std::logic_error("WillClient: not authenticated");
+
+	v1::ClientEvent event;
+	event.mutable_reject_supplication()->set_suppliant_name(std::string{suppliant_name});
+	if (!write_event(event))
+		throw std::runtime_error("Will protocol: failed to send RejectSupplication");
+}
+
+
 bool WillClient::requestHistory(const std::uint32_t limit) const
 {
 	if (limit == 0)

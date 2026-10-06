@@ -85,6 +85,20 @@ enum RoomPart {
 }
 
 
+// Ask for the abodes one dwells in.
+message ListDwellings {}
+
+
+// Ask for the supplications awaiting one's answer.
+message ListSupplications {}
+
+
+// Reject the supplication of this soul.
+message RejectSupplication {
+    string suppliant_name = 1;
+}
+
+
 // Set a room of one's abode in this part of it.
 message Arrange {
     string room = 1;
@@ -183,6 +197,18 @@ message Dweller {
 }
 
 
+// The abodes one dwells in, and how their hosts regard one.
+message Dwellings {
+    repeated Dwelling dwellings = 1;
+}
+
+
+// The souls whose supplications await one's answer, oldest first.
+message Supplications {
+    repeated string suppliant_names = 1;
+}
+
+
 // The dwellers of one's abode.
 message Dwellers {
     repeated Dweller dwellers = 1;
@@ -216,6 +242,9 @@ message ClientEvent {
         Regard regard = 9;
         ListDwellers list_dwellers = 10;
         Arrange arrange = 11;
+        ListDwellings list_dwellings = 12;
+        ListSupplications list_supplications = 13;
+        RejectSupplication reject_supplication = 14;
     }
 }
 
@@ -236,5 +265,7 @@ message ServerEvent {
         Dwellers dwellers = 13;
         Rooms rooms = 14;
         Outstanding outstanding = 15;
+        Dwellings dwellings = 16;
+        Supplications supplications = 17;
     }
 }

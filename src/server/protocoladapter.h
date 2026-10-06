@@ -46,6 +46,9 @@ private:
 	void handle_regard(SessionId session_id, const v1::Regard& msg);
 	void handle_list_dwellers(SessionId session_id);
 	void handle_arrange(SessionId session_id, const v1::Arrange& msg);
+	void handle_list_dwellings(SessionId session_id);
+	void handle_list_supplications(SessionId session_id);
+	void handle_reject_supplication(SessionId session_id, const v1::RejectSupplication& msg);
 
 	/// Tell a word newly placed to those who contemplate the place, and a short
 	/// word of it to the other side of a tie who looks elsewhere.

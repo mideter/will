@@ -13,6 +13,7 @@
 #include "places/room.h"
 #include "relations/friend.h"
 #include "relations/contemplation.h"
+#include "relations/supplication.h"
 #include "men/witness.h"
 #include "words/letter.h"
 #include "values/device_token.h"
@@ -670,6 +671,54 @@ void ProtocolAdapter::handle_arrange(const SessionId session_id, const v1::Arran
 																				  : " is now in the inner part"));
 	for (const std::shared_ptr<const domain::Acquaintance>& dweller : self.abode().dwellers())
 		retell_abode(self, dweller->man());
+}
+
+
+void ProtocolAdapter::handle_list_dwellings(const SessionId session_id)
+{
+	const domain::Man& self = session_man(session_id);
+
+	v1::ServerEvent event;
+	auto* list = event.mutable_dwellings();
+	for (const domain::Man& host : world_.hosts_of(self)) {
+		const std::shared_ptr<const domain::Acquaintance> regarded = host.abode().dweller(self);
+		if (!regarded)
+			continue;
+		auto* told = list->add_dwellings();
+		told->set_host_name(std::string{host.name().text()});
+		told->set_kind(kind_of(*regarded));
+	}
+	send_event(session_id, event);
+}
+
+
+void ProtocolAdapter::handle_list_supplications(const SessionId session_id)
+{
+	const auto& self = static_cast<const domain::Testator&>(session_man(session_id));
+
+	v1::ServerEvent event;
+	auto* list = event.mutable_supplications();
+	for (const std::shared_ptr<const domain::Supplication>& pending : self.supplications())
+		list->add_suppliant_names(std::string{pending->suppliant().name().text()});
+	send_event(session_id, event);
+}
+
+
+void ProtocolAdapter::handle_reject_supplication(const SessionId session_id, const v1::RejectSupplication& msg)
+{
+	const domain::Man* suppliant = man_named(session_id, msg.suppliant_name());
+	if (!suppliant)
+		return;
+
+	const auto& self = static_cast<const domain::Testator&>(session_man(session_id));
+	try {
+		self.reject(*self.supplication(static_cast<const domain::Novice&>(*suppliant)));
+	} catch (const std::exception& e) {
+		send_notice(session_id, e.what());
+		return;
+	}
+
+	send_notice(session_id, "supplication of " + msg.suppliant_name() + " rejected");
 }
 
 
