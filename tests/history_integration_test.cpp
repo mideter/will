@@ -295,15 +295,15 @@ TEST_CASE("a host admits a dweller, regards him anew, and he sees his abode as h
 	send_chat(*man.stream, "not mine");
 	CHECK(read_event(*man.stream).has_protocol_notice());
 
-	// Regarded as a neighbour while he looks, he sees the abode anew at once: the words.
+	// Regarded as a friend while he looks, he sees the abode anew at once: the words.
 	{
 		will::v1::ClientEvent regard;
 		regard.mutable_regard()->set_name(man_name);
-		regard.mutable_regard()->set_kind(will::v1::NEIGHBOUR);
+		regard.mutable_regard()->set_kind(will::v1::FRIEND);
 		REQUIRE(host.stream->Write(regard));
 	}
 	CHECK(read_event(*host.stream).has_protocol_notice());
-	CHECK(read_event(*man.stream).dwelling().kind() == will::v1::NEIGHBOUR);
+	CHECK(read_event(*man.stream).dwelling().kind() == will::v1::FRIEND);
 	REQUIRE(read_event(*man.stream).turned().abode_of() == host_name);
 	const will::v1::ServerEvent seen = read_event(*man.stream);
 	REQUIRE(seen.has_word());

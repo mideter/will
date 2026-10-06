@@ -89,6 +89,28 @@ const Room& Abode::furnish(Birth<World>, const matter::Room& kept)
 }
 
 
+const Room& Abode::furnish(Birth<Supplication>, const matter::Room& kept)
+{
+	return furnish(kept);
+}
+
+
+void Abode::arrange(const Birth<Man> birth, const matter::Room& kept) const
+{
+	if (&birth.parent() != &host_)
+		throw std::logic_error("only the host arranges his abode");
+
+	std::lock_guard lock(*mutex_);
+	for (const std::unique_ptr<Room>& room : rooms_) {
+		if (room->id() == kept.id()) {
+			room->arrange(Birth<Abode>{*this}, kept);
+			return;
+		}
+	}
+	throw std::logic_error("the room is not of this abode");
+}
+
+
 const Room& Abode::furnish(const matter::Room& kept)
 {
 	if (kept.abode() != id())
@@ -164,13 +186,13 @@ std::shared_ptr<const Acquaintance> Abode::dweller(const Man& man) const
 }
 
 
-bool Abode::shows(const Man& who, const Word& word) const
+bool Abode::shows(const Man& who, const Word&) const
 {
 	if (&who == &host_)
 		return true;
 
-	const std::shared_ptr<const Acquaintance> seer = dweller(who);
-	return seer && seer->beholds(word);
+	const Room* cell = room(*this);
+	return cell && cell->dwells(who);
 }
 
 

@@ -1,6 +1,7 @@
 #include "man.h"
 
 #include "dimensions/spatiality.h"
+#include "places/room.h"
 #include "values/abode_name.h"
 
 #include <optional>
@@ -44,6 +45,15 @@ void Man::admit(const Man& man) const
 
 	abode_->admit(Birth<Man>{*this}, man,
 				  spatiality().dwell(abode_->id(), man.Soul::id(), matter::Dweller::Kind::Acquaintance));
+}
+
+
+void Man::arrange(const Room& room, const matter::Room::Part part) const
+{
+	if (&room.abode() != abode_.get())
+		throw std::logic_error("the room is not of this abode");
+
+	abode_->arrange(Birth<Man>{*this}, spatiality().arrange(room.id(), part));
 }
 
 

@@ -9,4 +9,10 @@ Friend::Friend(const Birth<Abode> birth, const Man& man)
 {}
 
 
+bool Friend::enters(matter::Room::Part) const
+{
+	return true;
+}
+
+
 } // namespace will::domain

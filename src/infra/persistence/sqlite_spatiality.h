@@ -23,6 +23,7 @@ public:
 								  domain::matter::Dweller::Kind kind) override;
 	std::vector<domain::matter::Dweller> dwellers() const override;
 	domain::matter::Room furnish(domain::id::Place abode, domain::id::Place reflects) override;
+	domain::matter::Room arrange(domain::id::Place room, domain::matter::Room::Part part) override;
 	std::vector<domain::matter::Room> rooms(domain::id::Place abode) const override;
 	domain::matter::Tie bind(domain::id::Soul testator, domain::id::Soul novice) override;
 	std::vector<domain::matter::Tie> ties() const override;

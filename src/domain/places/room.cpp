@@ -5,6 +5,7 @@
 #include "men/testator.h"
 #include "places/abode.h"
 #include "places/tie.h"
+#include "relations/acquaintance.h"
 
 #include <stdexcept>
 
@@ -42,9 +43,22 @@ std::string Room::name() const
 }
 
 
+void Room::arrange(const Birth<Abode> birth, const matter::Room& kept) const
+{
+	if (&birth.parent() != &abode_ || kept.id() != id())
+		throw std::logic_error("only its abode arranges a room");
+
+	part_.store(kept.part());
+}
+
+
 bool Room::dwells(const Man& man) const
 {
-	return &man == &abode_.host();
+	if (&man == &abode_.host())
+		return true;
+
+	const std::shared_ptr<const Acquaintance> dweller = abode_.dweller(man);
+	return dweller && dweller->enters(part());
 }
 
 

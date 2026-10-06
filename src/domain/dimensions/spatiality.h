@@ -45,6 +45,10 @@ public:
 	/// already has a room reflecting it.
 	virtual matter::Room furnish(id::Place abode, id::Place reflects) = 0;
 
+	/// Keep that this room stands in this part of its abode. Throws
+	/// (std::invalid_argument) if the room is unknown.
+	virtual matter::Room arrange(id::Place room, matter::Room::Part part) = 0;
+
 	/// The rooms kept in this abode.
 	virtual std::vector<matter::Room> rooms(id::Place abode) const = 0;
 

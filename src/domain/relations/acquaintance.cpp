@@ -9,7 +9,7 @@ Acquaintance::Acquaintance(Birth<Abode>, const Man& man)
 {}
 
 
-bool Acquaintance::beholds(const Word&) const
+bool Acquaintance::enters(matter::Room::Part) const
 {
 	return false;
 }

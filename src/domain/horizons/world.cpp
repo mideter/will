@@ -1,6 +1,8 @@
 #include "dimensions/eternity.h"
 #include "world.h"
 
+#include "places/room.h"
+
 #include "places/obedience.h"
 #include "places/shepherding.h"
 #include "relations/supplication.h"
@@ -57,6 +59,24 @@ void World::awaken()
 		const Obedience& place = novice.follow(std::move(kept));
 		static_cast<const Testator&>(place.testator()).shepherd(
 			dynamic_cast<const Shepherding&>(place));
+	}
+
+	// Tie rooms are recalled once the ties live; a tie bound before rooms were
+	// is given its rooms now.
+	for (const auto& [soul_id, man] : men_) {
+		Abode& abode = man->abode();
+		for (const matter::Room& kept : spatiality().rooms(abode.id())) {
+			if (kept.reflects() != abode.id())
+				abode.furnish(Birth<World>{*this}, kept);
+		}
+	}
+	for (const matter::Tie& kept : spatiality().ties()) {
+		const Place& tie = Place::of(kept.id());
+		for (const id::Soul side : {kept.testator(), kept.novice()}) {
+			Abode& abode = living_man(side).abode();
+			if (!abode.room(tie))
+				abode.furnish(Birth<World>{*this}, spatiality().furnish(abode.id(), kept.id()));
+		}
 	}
 
 	std::unordered_map<id::Place, Man*> hosts;

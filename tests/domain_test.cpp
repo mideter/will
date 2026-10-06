@@ -919,7 +919,7 @@ TEST_CASE("dwellers outlive Life in matter and are recalled on awakening")
 }
 
 
-TEST_CASE("a dweller sees as his kind does: an acquaintance nothing, a neighbour and a friend the words")
+TEST_CASE("a dweller enters the rooms his kind opens: a friend all, a neighbour the outer part")
 {
 	static_assert(std::is_base_of_v<Acquaintance, Neighbour>);
 	static_assert(std::is_base_of_v<Neighbour, Friend>);
@@ -931,58 +931,106 @@ TEST_CASE("a dweller sees as his kind does: an acquaintance nothing, a neighbour
 
 	const auto& host = static_cast<const Witness&>(world.welcome(DeviceToken::generate()));
 	const auto& man = static_cast<const Witness&>(world.welcome(DeviceToken::generate()));
+	const Room& cell = *host.abode().room(host.abode());
 
 	host.wake();
 	host.say("first");
 	host.admit(man);
-
-	// An acquaintance sees only that he dwells here: none of the words.
 	man.wake();
 	man.contemplate(host.abode());
 	const std::shared_ptr<const Contemplation> gaze = world.contemplation(man.Soul::id());
-	CHECK(gaze->words().empty());
-	host.say("second");
-	CHECK(gaze->words().empty());
-	CHECK(letters_seen_by(world.contemplation(host.Soul::id())).size() == 2);
 
-	// Regarded as a neighbour, he sees the words, even those said before.
+	// The cell stands in the inner part: an acquaintance and a neighbour do not enter it.
+	CHECK_FALSE(cell.dwells(man));
+	CHECK(gaze->words().empty());
 	host.regard(man, matter::Dweller::Kind::Neighbour);
-	REQUIRE(letters_seen_by(gaze).size() == 2);
-	host.say("third");
-	CHECK(letters_seen_by(gaze).size() == 3);
-
-	// A friend sees all a neighbour does.
-	host.regard(man, matter::Dweller::Kind::Friend);
-	CHECK(letters_seen_by(gaze).size() == 3);
-
-	// Back to an acquaintance, he sees nothing again.
-	host.regard(man, matter::Dweller::Kind::Acquaintance);
+	CHECK_FALSE(cell.dwells(man));
 	CHECK(gaze->words().empty());
+
+	// A friend enters all rooms, and sees the words.
+	host.regard(man, matter::Dweller::Kind::Friend);
+	CHECK(cell.dwells(man));
+	CHECK(letters_seen_by(gaze).size() == 1);
+
+	// Set in the outer part, the cell is entered by a neighbour too, but never by an acquaintance.
+	host.arrange(cell, matter::Room::Part::Outer);
+	CHECK(cell.part() == matter::Room::Part::Outer);
+	host.regard(man, matter::Dweller::Kind::Neighbour);
+	CHECK(cell.dwells(man));
+	CHECK(letters_seen_by(gaze).size() == 1);
+	host.regard(man, matter::Dweller::Kind::Acquaintance);
+	CHECK_FALSE(cell.dwells(man));
+	CHECK(gaze->words().empty());
+
+	// Only the host arranges, and only rooms of his own abode.
+	CHECK_THROWS_AS(man.arrange(cell, matter::Room::Part::Inner), std::logic_error);
 }
 
 
-TEST_CASE("a tie binds only those who admitted each other into their abodes")
+TEST_CASE("a tie is reflected in the abode of each side: Ведение and Послушание")
 {
-	InMemoryCosmos cosmos;
+	InMemoryShared store;
+	const DeviceToken novice_token = DeviceToken::generate();
+	const DeviceToken testator_token = DeviceToken::generate();
+	std::string novice_name;
+	std::string testator_name;
+	{
+		InMemoryCosmos cosmos(store);
+		World& world = cosmos.life().create().world();
+		const auto& novice = static_cast<const Novice&>(world.welcome(novice_token));
+		const auto& testator = static_cast<const Testator&>(world.welcome(testator_token));
+		novice_name = std::string{novice.name().text()};
+		testator_name = std::string{testator.name().text()};
+		novice.admit(testator);
+		testator.admit(novice);
+		novice.supplicate(testator);
+		const Shepherding& shepherding = testator.accept(*testator.supplication(novice));
+
+		const Room* leading = testator.abode().room(shepherding);
+		const Room* obeying = novice.abode().room(shepherding);
+		REQUIRE(leading);
+		REQUIRE(obeying);
+		CHECK(leading->name() == "Ведение — " + novice_name);
+		CHECK(obeying->name() == "Послушание — " + testator_name);
+		CHECK(leading->part() == matter::Room::Part::Inner);
+		CHECK(testator.abode().rooms().size() == 2);
+	}
+
+	// Awakening anew, the tie rooms are recalled with the tie.
+	InMemoryCosmos cosmos(store);
 	World& world = cosmos.life().create().world();
+	const auto& novice = static_cast<const Novice&>(world.welcome(novice_token));
+	const auto& testator = static_cast<const Testator&>(world.welcome(testator_token));
+	CHECK(testator.abode().room("Ведение — " + novice_name));
+	CHECK(novice.abode().room("Послушание — " + testator_name));
+	CHECK(store.rooms.size() == 4);
+}
 
-	const auto& novice = static_cast<const Novice&>(world.welcome(DeviceToken::generate()));
-	const auto& testator = static_cast<const Testator&>(world.welcome(DeviceToken::generate()));
 
-	// Strangers: no supplication is kept.
-	CHECK_THROWS_AS(novice.supplicate(testator), std::logic_error);
+TEST_CASE("a tie bound before rooms were is given its rooms on awakening")
+{
+	InMemoryShared store;
+	const DeviceToken novice_token = DeviceToken::generate();
+	const DeviceToken testator_token = DeviceToken::generate();
+	{
+		InMemoryCosmos cosmos(store);
+		World& world = cosmos.life().create().world();
+		const auto& novice = static_cast<const Novice&>(world.welcome(novice_token));
+		const auto& testator = static_cast<const Testator&>(world.welcome(testator_token));
+		novice.admit(testator);
+		testator.admit(novice);
+		novice.supplicate(testator);
+		testator.accept(*testator.supplication(novice));
+	}
+	// As kept before rooms were: only the cells remain.
+	std::erase_if(store.rooms, [](const matter::Room& room) { return room.reflects() != room.abode(); });
+	REQUIRE(store.rooms.size() == 2);
 
-	// The addressee dwells with the suppliant, but not the suppliant with him:
-	// the testator does not hear him, and nothing is kept.
-	novice.admit(testator);
-	CHECK_THROWS_AS(novice.supplicate(testator), std::logic_error);
-	CHECK(cosmos.temporality().supplications(testator.Soul::id()).empty());
-
-	// Admitted each to the other, they may be tied.
-	testator.admit(novice);
-	novice.supplicate(testator);
-	const Shepherding& shepherding = testator.accept(*testator.supplication(novice));
-	CHECK(&shepherding.novice() == &novice);
+	InMemoryCosmos cosmos(store);
+	World& world = cosmos.life().create().world();
+	const auto& novice = static_cast<const Novice&>(world.welcome(novice_token));
+	CHECK(novice.abode().rooms().size() == 2);
+	CHECK(store.rooms.size() == 4);
 }
 
 

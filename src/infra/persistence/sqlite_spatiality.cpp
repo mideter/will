@@ -145,6 +145,27 @@ domain::matter::Room SqliteSpatiality::furnish(const domain::id::Place abode, co
 }
 
 
+domain::matter::Room SqliteSpatiality::arrange(const domain::id::Place room, const domain::matter::Room::Part part)
+{
+	std::lock_guard lock(database_.mutex());
+	sqlite3* const db = database_.db();
+
+	SqliteStmt kept(db, "SELECT abode_id, place_id FROM rooms WHERE id = ?;", "prepare arranged room");
+	kept.bind_i64(1, static_cast<std::int64_t>(room.value()), "bind id");
+	if (!kept.step_row("arranged room step"))
+		throw std::invalid_argument("unknown room");
+	const domain::matter::Room arranged{room, domain::id::Place{static_cast<std::uint64_t>(kept.column_i64(0))},
+										domain::id::Place{static_cast<std::uint64_t>(kept.column_i64(1))}, part};
+
+	SqliteStmt stmt(db, "UPDATE rooms SET part = ? WHERE id = ?;", "prepare arrange");
+	stmt.bind_i64(1, static_cast<std::int64_t>(part), "bind part");
+	stmt.bind_i64(2, static_cast<std::int64_t>(room.value()), "bind id");
+	stmt.step_done("arrange step");
+
+	return arranged;
+}
+
+
 std::vector<domain::matter::Room> SqliteSpatiality::rooms(const domain::id::Place abode) const
 {
 	std::lock_guard lock(database_.mutex());

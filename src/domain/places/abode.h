@@ -24,6 +24,7 @@ class Contemplation;
 class Letter;
 class Man;
 class Room;
+class Supplication;
 class World;
 
 
@@ -54,6 +55,10 @@ public:
 	/// abode already has a room reflecting that place.
 	const Room& furnish(Birth<Man> birth, const matter::Room& kept);
 	const Room& furnish(Birth<World> birth, const matter::Room& kept);
+	const Room& furnish(Birth<Supplication> birth, const matter::Room& kept);
+
+	/// A room of this abode stands now where the host arranged it.
+	void arrange(Birth<Man> birth, const matter::Room& kept) const;
 
 	/// The rooms of this abode, in the order they were furnished.
 	std::vector<std::reference_wrapper<const Room>> rooms() const;
@@ -70,7 +75,7 @@ public:
 	/// The host and his dwellers dwell here.
 	bool dwells(const Man& man) const override;
 
-	/// To its host the abode shows all; to a dweller, what his kind sees.
+	/// To its host the abode shows all; to a dweller, what he sees through its cell.
 	bool shows(const Man& who, const Word& word) const override;
 
 	/// A letter said here by the one whose gaze rests on it, born living from

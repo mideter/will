@@ -4,6 +4,7 @@
 #include "places/place.h"
 #include "properties/birth.h"
 
+#include <atomic>
 #include <string>
 
 
@@ -23,17 +24,20 @@ public:
 
 	const Abode& abode() const noexcept { return abode_; }
 	const Place& reflects() const noexcept { return reflects_; }
-	matter::Room::Part part() const noexcept { return part_; }
+	matter::Room::Part part() const noexcept { return part_.load(); }
 
 	std::string name() const;
 
-	/// The host of its abode dwells here.
+	/// The room stands now where its matter says: its host arranged it.
+	void arrange(Birth<Abode> birth, const matter::Room& kept) const;
+
+	/// The host of its abode dwells here, and the dwellers whose kind enters its part.
 	bool dwells(const Man& man) const override;
 
 private:
 	const Abode& abode_;
 	const Place& reflects_;
-	matter::Room::Part part_;
+	mutable std::atomic<matter::Room::Part> part_;
 };
 
 

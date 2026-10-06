@@ -225,6 +225,17 @@ public:
 		return shared_.rooms.back();
 	}
 
+	matter::Room arrange(const id::Place room, const matter::Room::Part part) override
+	{
+		for (matter::Room& row : shared_.rooms) {
+			if (row.id() == room) {
+				row = matter::Room{row.id(), row.abode(), row.reflects(), part};
+				return row;
+			}
+		}
+		throw std::invalid_argument("unknown room");
+	}
+
 	std::vector<matter::Room> rooms(const id::Place abode) const override
 	{
 		std::vector<matter::Room> out;

@@ -29,6 +29,10 @@ public:
 	/// dwell there.
 	void regard(const Man& dweller, matter::Dweller::Kind kind) const;
 
+	/// Set a room of one's abode in this part of it. Throws if the room is of
+	/// another abode.
+	void arrange(const Room& room, matter::Room::Part part) const;
+
 	bool operator==(const Man& other) const = default;
 
 protected:
