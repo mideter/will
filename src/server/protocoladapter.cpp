@@ -564,6 +564,24 @@ void ProtocolAdapter::handle_regard(const SessionId session_id, const v1::Regard
 
 	send_notice(session_id, std::string{man->name().text()} + " regarded anew");
 	tell_dwelling(self, *man);
+	retell_abode(self, *man);
+}
+
+
+void ProtocolAdapter::retell_abode(const domain::Man& host, const domain::Man& dweller)
+{
+	const std::shared_ptr<const domain::Contemplation> gaze = world_.contemplation(dweller.Soul::id());
+	if (!gaze || &gaze->place() != static_cast<const domain::Place*>(&host.abode()))
+		return;
+
+	const auto sid = registry_.session_id_for_vessel(dweller.Vessel::id());
+	if (!sid)
+		return;
+
+	v1::ServerEvent turned;
+	turned.mutable_turned()->set_abode_of(std::string{host.name().text()});
+	send_event(*sid, turned);
+	tell_words(*sid, *gaze, dweller, TurnWords);
 }
 
 

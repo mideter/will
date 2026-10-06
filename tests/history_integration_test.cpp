@@ -295,7 +295,7 @@ TEST_CASE("a host admits a dweller, regards him anew, and he sees his abode as h
 	send_chat(*man.stream, "not mine");
 	CHECK(read_event(*man.stream).has_protocol_notice());
 
-	// Regarded as a neighbour, turning anew he sees the words.
+	// Regarded as a neighbour while he looks, he sees the abode anew at once: the words.
 	{
 		will::v1::ClientEvent regard;
 		regard.mutable_regard()->set_name(man_name);
@@ -304,9 +304,7 @@ TEST_CASE("a host admits a dweller, regards him anew, and he sees his abode as h
 	}
 	CHECK(read_event(*host.stream).has_protocol_notice());
 	CHECK(read_event(*man.stream).dwelling().kind() == will::v1::NEIGHBOUR);
-
-	send_turn_to_abode(*man.stream, host_name);
-	REQUIRE(read_event(*man.stream).has_turned());
+	REQUIRE(read_event(*man.stream).turned().abode_of() == host_name);
 	const will::v1::ServerEvent seen = read_event(*man.stream);
 	REQUIRE(seen.has_word());
 	CHECK(seen.word().body() == "secret");
@@ -320,6 +318,18 @@ TEST_CASE("a host admits a dweller, regards him anew, and he sees his abode as h
 	REQUIRE(live.has_word());
 	CHECK(live.word().body() == "news");
 
+	// Regarded as an acquaintance again, he sees the abode anew at once: no words.
+	{
+		will::v1::ClientEvent regard;
+		regard.mutable_regard()->set_name(man_name);
+		regard.mutable_regard()->set_kind(will::v1::ACQUAINTANCE);
+		REQUIRE(host.stream->Write(regard));
+	}
+	CHECK(read_event(*host.stream).has_protocol_notice());
+	CHECK(read_event(*man.stream).dwelling().kind() == will::v1::ACQUAINTANCE);
+	REQUIRE(read_event(*man.stream).turned().abode_of() == host_name);
+	CHECK(read_event(*man.stream).has_history_end());
+
 	// The host lists his dwellers.
 	{
 		will::v1::ClientEvent list;
@@ -330,7 +340,7 @@ TEST_CASE("a host admits a dweller, regards him anew, and he sees his abode as h
 	REQUIRE(dwellers.has_dwellers());
 	REQUIRE(dwellers.dwellers().dwellers_size() == 1);
 	CHECK(dwellers.dwellers().dwellers(0).name() == man_name);
-	CHECK(dwellers.dwellers().dwellers(0).kind() == will::v1::NEIGHBOUR);
+	CHECK(dwellers.dwellers().dwellers(0).kind() == will::v1::ACQUAINTANCE);
 
 	host.context->TryCancel();
 	man.context->TryCancel();

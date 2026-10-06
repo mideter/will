@@ -68,6 +68,9 @@ private:
 
 	/// Tell a dweller how the host regards him now.
 	void tell_dwelling(const domain::Man& host, const domain::Man& dweller);
+
+	/// A dweller looking at the host's abode sees it anew, as his new kind does.
+	void retell_abode(const domain::Man& host, const domain::Man& dweller);
 	const domain::Man& session_man(SessionId session_id);
 
 	domain::World& world_;
