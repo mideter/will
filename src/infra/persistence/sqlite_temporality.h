@@ -17,7 +17,8 @@ public:
 	/// Opens the time database at this path.
 	SqliteTemporality(std::string path, domain::Eternity& eternity);
 
-	domain::matter::Embodiment embody(domain::id::Soul soul, domain::DeviceToken token) override;
+	domain::matter::Vessel form(domain::DeviceToken token) override;
+	domain::matter::Embodiment embody(domain::id::Soul soul, domain::id::Vessel vessel) override;
 	std::vector<domain::matter::Vessel> vessels() const override;
 	std::vector<domain::matter::Embodiment> embodiments() const override;
 

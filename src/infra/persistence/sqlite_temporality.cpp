@@ -41,25 +41,28 @@ SqliteTemporality::SqliteTemporality(std::string path, domain::Eternity& eternit
 {}
 
 
-domain::matter::Embodiment SqliteTemporality::embody(const domain::id::Soul soul,
-													  domain::DeviceToken token)
+domain::matter::Vessel SqliteTemporality::form(domain::DeviceToken token)
 {
 	std::lock_guard lock(time_db_.mutex());
 	sqlite3* const db = time_db_.db();
-	SqliteTransaction tx(db);
 
-	SqliteStmt vessel_stmt(db, "INSERT INTO vessels (device_token) VALUES (?);", "prepare keep vessel");
-	vessel_stmt.bind_text(1, token.text(), "bind device_token");
-	vessel_stmt.step_done("keep vessel step");
+	SqliteStmt stmt(db, "INSERT INTO vessels (device_token) VALUES (?);", "prepare keep vessel");
+	stmt.bind_text(1, token.text(), "bind device_token");
+	stmt.step_done("keep vessel step");
 
-	const domain::id::Vessel vessel{sqlite_last_insert_id(db)};
+	return domain::matter::Vessel{domain::id::Vessel{sqlite_last_insert_id(db)}, std::move(token)};
+}
+
+
+domain::matter::Embodiment SqliteTemporality::embody(const domain::id::Soul soul, const domain::id::Vessel vessel)
+{
+	std::lock_guard lock(time_db_.mutex());
+	sqlite3* const db = time_db_.db();
 
 	SqliteStmt stmt(db, "INSERT INTO embodiments (soul_id, vessel_id) VALUES (?, ?);", "prepare embody");
 	stmt.bind_i64(1, static_cast<std::int64_t>(soul.value()), "bind soul_id");
 	stmt.bind_i64(2, static_cast<std::int64_t>(vessel.value()), "bind vessel_id");
 	stmt.step_done("embody step");
-
-	tx.commit();
 
 	return domain::matter::Embodiment{soul, vessel};
 }

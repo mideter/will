@@ -79,6 +79,7 @@ struct InMemoryShared {
 	// Eternity
 	std::vector<std::pair<id::Soul, SoulName>> souls;
 	std::vector<matter::Word> words;
+	std::vector<matter::Fatherhood> fatherhoods;
 
 	// Spatiality
 	std::vector<std::pair<id::Soul, matter::Abode>> abodes;
@@ -134,6 +135,23 @@ public:
 			out.emplace_back(id, name);
 		return out;
 	}
+
+	matter::Fatherhood father(const id::Soul father, const id::Soul child, const matter::Fatherhood::Line line) override
+	{
+		const matter::Fatherhood kept{father, child, line};
+		for (matter::Fatherhood& row : shared_.fatherhoods) {
+			if (row.child() != child || row.line() != line)
+				continue;
+			if (line == matter::Fatherhood::Line::Flesh)
+				throw std::logic_error("the child already has his father by flesh");
+			row = kept;
+			return kept;
+		}
+		shared_.fatherhoods.push_back(kept);
+		return kept;
+	}
+
+	std::vector<matter::Fatherhood> fatherhoods() const override { return shared_.fatherhoods; }
 
 	matter::Word utter(const id::Soul author, const Saying& saying) override
 	{
@@ -315,10 +333,14 @@ public:
 		, eternity_(eternity)
 	{}
 
-	matter::Embodiment embody(const id::Soul soul, DeviceToken token) override
+	matter::Vessel form(DeviceToken token) override
 	{
-		const id::Vessel vessel{++shared_.next_vessel_id};
-		shared_.vessels.emplace_back(vessel, std::move(token));
+		shared_.vessels.emplace_back(id::Vessel{++shared_.next_vessel_id}, std::move(token));
+		return shared_.vessels.back();
+	}
+
+	matter::Embodiment embody(const id::Soul soul, const id::Vessel vessel) override
+	{
 		shared_.embodiments.emplace_back(soul, vessel);
 		return shared_.embodiments.back();
 	}

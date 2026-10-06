@@ -93,6 +93,59 @@ std::vector<domain::matter::Soul> SqliteEternity::souls() const
 }
 
 
+domain::matter::Fatherhood SqliteEternity::father(const domain::id::Soul father, const domain::id::Soul child,
+												  const domain::matter::Fatherhood::Line line)
+{
+	const domain::matter::Fatherhood kept{father, child, line};
+
+	std::lock_guard lock(database_.mutex());
+	sqlite3* const db = database_.db();
+
+	if (line == domain::matter::Fatherhood::Line::Flesh) {
+		SqliteStmt had(db, "SELECT 1 FROM fatherhoods WHERE child_soul_id = ? AND line = ?;",
+					   "prepare fatherhood by flesh");
+		had.bind_i64(1, static_cast<std::int64_t>(child.value()), "bind child");
+		had.bind_i64(2, static_cast<std::int64_t>(line), "bind line");
+		if (had.step_row("fatherhood by flesh step"))
+			throw std::logic_error("the child already has his father by flesh");
+	}
+
+	SqliteStmt stmt(db, "INSERT OR REPLACE INTO fatherhoods (child_soul_id, line, father_soul_id) VALUES (?, ?, ?);",
+					"prepare father");
+	stmt.bind_i64(1, static_cast<std::int64_t>(child.value()), "bind child");
+	stmt.bind_i64(2, static_cast<std::int64_t>(line), "bind line");
+	stmt.bind_i64(3, static_cast<std::int64_t>(father.value()), "bind father");
+	stmt.step_done("father step");
+
+	return kept;
+}
+
+
+std::vector<domain::matter::Fatherhood> SqliteEternity::fatherhoods() const
+{
+	std::lock_guard lock(database_.mutex());
+
+	sqlite3* const db = database_.db();
+	SqliteStmt stmt(db, "SELECT father_soul_id, child_soul_id, line FROM fatherhoods ORDER BY child_soul_id, line;",
+					"prepare fatherhoods");
+
+	std::vector<domain::matter::Fatherhood> rows;
+	while (stmt.step_row("fatherhoods step")) {
+		const std::int64_t line = stmt.column_i64(2);
+		if (line < 0 || line > static_cast<std::int64_t>(domain::matter::Fatherhood::Line::Spirit))
+			throw std::runtime_error("fatherhoods: unknown line in database");
+
+		rows.push_back(domain::matter::Fatherhood{
+			domain::id::Soul{static_cast<std::uint64_t>(stmt.column_i64(0))},
+			domain::id::Soul{static_cast<std::uint64_t>(stmt.column_i64(1))},
+			static_cast<domain::matter::Fatherhood::Line>(line),
+		});
+	}
+
+	return rows;
+}
+
+
 domain::matter::Word SqliteEternity::utter(const domain::id::Soul author, const domain::Saying& saying)
 {
 	std::lock_guard lock(database_.mutex());

@@ -468,3 +468,42 @@ TEST_CASE("sqlite gives the rooms kept before aspects were the aspect of words")
 	::unlink((prefix + ".space.db").c_str());
 	::unlink((prefix + ".time.db").c_str());
 }
+
+
+TEST_CASE("sqlite keeps fatherhoods across reopen; the spiritual father is replaced, the fleshly is not")
+{
+	using namespace will;
+	using namespace will::domain;
+	using Line = matter::Fatherhood::Line;
+
+	const std::string prefix = "/tmp/will-sqlite-fatherhoods-test-" + std::to_string(getpid());
+	::unlink((prefix + ".eternity.db").c_str());
+	::unlink((prefix + ".space.db").c_str());
+	::unlink((prefix + ".time.db").c_str());
+
+	const id::Soul adam{1}, seth{2}, enos{3};
+	{
+		SqlitePersistenceBundle bundle(prefix);
+		Eternity& eternity = bundle.eternity();
+		eternity.father(adam, seth, Line::Flesh);
+		CHECK_THROWS_AS(eternity.father(enos, seth, Line::Flesh), std::logic_error);
+		eternity.father(adam, enos, Line::Spirit);
+		eternity.father(seth, enos, Line::Spirit);
+	}
+
+	{
+		SqlitePersistenceBundle bundle(prefix);
+		const std::vector<matter::Fatherhood> kept = bundle.eternity().fatherhoods();
+		REQUIRE(kept.size() == 2);
+		CHECK(kept[0].father() == adam);
+		CHECK(kept[0].child() == seth);
+		CHECK(kept[0].line() == Line::Flesh);
+		CHECK(kept[1].father() == seth);
+		CHECK(kept[1].child() == enos);
+		CHECK(kept[1].line() == Line::Spirit);
+	}
+
+	::unlink((prefix + ".eternity.db").c_str());
+	::unlink((prefix + ".space.db").c_str());
+	::unlink((prefix + ".time.db").c_str());
+}

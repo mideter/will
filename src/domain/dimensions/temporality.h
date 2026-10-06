@@ -27,9 +27,12 @@ class Temporality {
 public:
 	virtual ~Temporality() = default;
 
-	/// Keep a new vessel with this token and that this soul dwells in it
-	/// (one body per soul, one per token).
-	virtual matter::Embodiment embody(id::Soul soul, DeviceToken token) = 0;
+	/// Keep a new vessel with this token: a body awaiting its soul (one per token).
+	virtual matter::Vessel form(DeviceToken token) = 0;
+
+	/// Keep that this soul dwells in this vessel (one body per soul, one soul
+	/// per body).
+	virtual matter::Embodiment embody(id::Soul soul, id::Vessel vessel) = 0;
 
 	/// All vessels kept in time (for Creation awaken).
 	virtual std::vector<matter::Vessel> vessels() const = 0;

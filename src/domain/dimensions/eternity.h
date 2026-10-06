@@ -1,5 +1,6 @@
 #pragma once
 
+#include "matter/fatherhood.h"
 #include "matter/soul.h"
 #include "matter/word.h"
 #include "identity/word.h"
@@ -48,6 +49,14 @@ public:
 
 	/// All souls kept (for Creation awaken).
 	virtual std::vector<matter::Soul> souls() const = 0;
+
+	/// Keep that this soul fathers that child along the line. By spirit it
+	/// replaces the child's earlier spiritual father; by flesh it refuses
+	/// (std::logic_error) if the child already has his father.
+	virtual matter::Fatherhood father(id::Soul father, id::Soul child, matter::Fatherhood::Line line) = 0;
+
+	/// All fatherhoods kept (for Creation awaken).
+	virtual std::vector<matter::Fatherhood> fatherhoods() const = 0;
 
 	/// Keep a Saying and author; returns the eternal word.
 	virtual matter::Word utter(id::Soul author, const Saying& saying) = 0;

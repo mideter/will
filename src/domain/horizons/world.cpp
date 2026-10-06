@@ -154,9 +154,10 @@ std::vector<std::reference_wrapper<const Man>> World::hosts_of(const Man& dwelle
 const Man& World::beget(const DeviceToken& token)
 {
 	matter::Soul soul = eternity().enroll(SoulName::generate());
-	const matter::Embodiment embodied = temporality().embody(soul.id(), token);
+	matter::Vessel vessel = temporality().form(token);
+	const matter::Embodiment embodied = temporality().embody(soul.id(), vessel.id());
 
-	return accept(matter::Man{std::move(soul), matter::Vessel{embodied.vessel(), token}, embodied});
+	return accept(matter::Man{std::move(soul), std::move(vessel), embodied});
 }
 
 

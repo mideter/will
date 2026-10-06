@@ -56,6 +56,13 @@ CREATE TABLE IF NOT EXISTS words (
   body TEXT NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS fatherhoods (
+  child_soul_id INTEGER NOT NULL,
+  line INTEGER NOT NULL,
+  father_soul_id INTEGER NOT NULL,
+  PRIMARY KEY (child_soul_id, line)
+);
+
 CREATE TABLE IF NOT EXISTS place_hwm (
   id INTEGER PRIMARY KEY CHECK (id = 1),
   value INTEGER NOT NULL

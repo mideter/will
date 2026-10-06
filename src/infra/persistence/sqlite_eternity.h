@@ -25,6 +25,9 @@ public:
 	std::unique_ptr<domain::Temporality> temporality(domain::Birth<domain::Creation>) override;
 	domain::matter::Soul enroll(domain::SoulName name) override;
 	std::vector<domain::matter::Soul> souls() const override;
+	domain::matter::Fatherhood father(domain::id::Soul father, domain::id::Soul child,
+									  domain::matter::Fatherhood::Line line) override;
+	std::vector<domain::matter::Fatherhood> fatherhoods() const override;
 	domain::matter::Word utter(domain::id::Soul author, const domain::Saying& saying) override;
 	domain::matter::Word word(domain::id::Word id) const override;
 	std::vector<domain::matter::Word> words(const std::vector<domain::id::Word>& ids) const override;
