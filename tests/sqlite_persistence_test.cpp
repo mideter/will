@@ -14,6 +14,7 @@
 #include "relations/friend.h"
 #include "places/room.h"
 #include "sqlite_persistence_bundle.h"
+#include "domain_fakes.h"
 
 #include "identity/place.h"
 #include "values/abode_name.h"
@@ -47,6 +48,9 @@ letters_seen_by(const std::shared_ptr<const will::domain::Contemplation>& gaze)
 	return letters;
 }
 
+
+using will::domain::test::admit_at_gates;
+using will::domain::test::regard_in_reception;
 
 } // namespace
 
@@ -201,8 +205,8 @@ TEST_CASE("sqlite keeps a behest and its execution across reopen")
 		const auto& novice = static_cast<const Novice&>(world.welcome(token_novice));
 		const auto& testator = static_cast<const Testator&>(world.welcome(token_testator));
 
-		novice.admit(testator);
-		testator.admit(novice);
+		admit_at_gates(world, novice, testator);
+		admit_at_gates(world, testator, novice);
 		novice.supplicate(testator);
 		testator.accept(*testator.supplication(novice));
 		testator.wake();
@@ -290,8 +294,8 @@ TEST_CASE("sqlite keeps supplications, rejections and ties across reopen")
 		const auto& c = static_cast<const Testator&>(world.welcome(token_c));
 
 		// a asks b twice: rejected, then asked again and left awaiting.
-		a.admit(b);
-		b.admit(a);
+		admit_at_gates(world, a, b);
+		admit_at_gates(world, b, a);
 		a.supplicate(b);
 		CHECK_THROWS_AS(a.supplicate(b), std::logic_error);
 		b.reject(*b.supplication(a));
@@ -301,8 +305,8 @@ TEST_CASE("sqlite keeps supplications, rejections and ties across reopen")
 		a.supplicate(b);
 
 		// c asks b and is accepted.
-		c.admit(b);
-		b.admit(c);
+		admit_at_gates(world, c, b);
+		admit_at_gates(world, b, c);
 		c.supplicate(b);
 		CHECK(bundle.temporality().supplications(b.Soul::id()).size() == 2);
 		const Shepherding& shepherding = b.accept(*b.supplication(c));
@@ -398,8 +402,8 @@ TEST_CASE("sqlite keeps the dwellers of an abode and their kind across reopen")
 		World& world = bundle.world();
 		const Man& host = world.welcome(token_host);
 		const Man& man = world.welcome(token_man);
-		host.admit(man);
-		host.regard(man, matter::Dweller::Kind::Friend);
+		admit_at_gates(world, host, man);
+		regard_in_reception(world, host, man, matter::Dweller::Kind::Friend);
 	}
 
 	{
@@ -411,10 +415,53 @@ TEST_CASE("sqlite keeps the dwellers of an abode and their kind across reopen")
 		CHECK_FALSE(man.abode().dwells(host));
 		REQUIRE(bundle.spatiality().dwellers().size() == 1);
 
-		// Each abode keeps its one cell across reopen.
-		REQUIRE(host.abode().rooms().size() == 1);
-		CHECK(host.abode().rooms().front().get().name() == "Келья");
-		CHECK(bundle.spatiality().rooms(host.abode().id()).size() == 1);
+		// Each abode keeps its standard rooms across reopen: the cell, the gates, the reception.
+		REQUIRE(host.abode().rooms().size() == 3);
+		CHECK(host.abode().rooms()[0].get().name() == "Келья");
+		CHECK(host.abode().rooms()[1].get().name() == "Врата");
+		CHECK(host.abode().rooms()[2].get().name() == "Приёмная");
+		CHECK(bundle.spatiality().rooms(host.abode().id()).size() == 3);
+	}
+
+	::unlink((prefix + ".eternity.db").c_str());
+	::unlink((prefix + ".space.db").c_str());
+	::unlink((prefix + ".time.db").c_str());
+}
+
+
+TEST_CASE("sqlite gives the rooms kept before aspects were the aspect of words")
+{
+	using namespace will;
+
+	const std::string prefix = "/tmp/will-sqlite-room-aspect-test-" + std::to_string(getpid());
+	::unlink((prefix + ".eternity.db").c_str());
+	::unlink((prefix + ".space.db").c_str());
+	::unlink((prefix + ".time.db").c_str());
+
+	// A space database as it was kept before: a room without an aspect.
+	{
+		sqlite3* db = nullptr;
+		REQUIRE(sqlite3_open((prefix + ".space.db").c_str(), &db) == SQLITE_OK);
+		REQUIRE(sqlite3_exec(db,
+							 "CREATE TABLE rooms (id INTEGER PRIMARY KEY, abode_id INTEGER NOT NULL, "
+							 "place_id INTEGER NOT NULL, part INTEGER NOT NULL, UNIQUE (abode_id, place_id));"
+							 "INSERT INTO rooms (id, abode_id, place_id, part) VALUES (7, 3, 3, 1);",
+							 nullptr, nullptr, nullptr)
+				== SQLITE_OK);
+		sqlite3_close(db);
+	}
+
+	{
+		SqlitePersistenceBundle bundle(prefix);
+		const auto rooms = bundle.spatiality().rooms(domain::id::Place{3});
+		REQUIRE(rooms.size() == 1);
+		CHECK(rooms.front().id() == domain::id::Place{7});
+		CHECK(rooms.front().aspect() == domain::matter::Room::Aspect::Words);
+		CHECK(rooms.front().part() == domain::matter::Room::Part::Outer);
+
+		// Another aspect of the same place may now be kept beside it.
+		bundle.spatiality().furnish(domain::id::Place{3}, domain::id::Place{3}, domain::matter::Room::Aspect::Threshold);
+		CHECK(bundle.spatiality().rooms(domain::id::Place{3}).size() == 2);
 	}
 
 	::unlink((prefix + ".eternity.db").c_str());

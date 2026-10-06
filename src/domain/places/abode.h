@@ -24,6 +24,8 @@ class Behest;
 class Contemplation;
 class Letter;
 class Man;
+class Gates;
+class Reception;
 class Room;
 class Supplication;
 class World;
@@ -66,8 +68,12 @@ public:
 	/// The rooms of this abode, in the order they were furnished.
 	std::vector<std::reference_wrapper<const Room>> rooms() const;
 
-	/// The room of this abode reflecting this place; none if there is none.
+	/// The room of this abode reflecting the words of this place; none if there is none.
 	const Room* room(const Place& reflects) const;
+
+	/// The standard rooms: the Gates and the Reception. Every abode has them.
+	const Gates& gates() const;
+	const Reception& reception() const;
 
 	/// The room of this abode by its name; none if there is none.
 	const Room* room(std::string_view name) const;

@@ -21,12 +21,12 @@ public:
 
 	Abode& abode() const noexcept { return *abode_; }
 
-	/// Admit a man into one's abode as an acquaintance. Throws if he already
-	/// dwells there.
+	/// Let a man in as an acquaintance: one stands in one's gates and he stands
+	/// at them. Throws if he already dwells here or either is not at the gates.
 	void admit(const Man& man) const;
 
-	/// Regard a dweller of one's abode as of this kind. Throws if he does not
-	/// dwell there.
+	/// Regard a dweller of one's abode as of this kind, standing in one's
+	/// reception. Throws if he does not dwell there or one is elsewhere.
 	void regard(const Man& dweller, matter::Dweller::Kind kind) const;
 
 	/// Set a room of one's abode in this part of it. Throws if the room is of

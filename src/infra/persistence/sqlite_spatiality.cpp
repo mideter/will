@@ -36,6 +36,14 @@ std::optional<domain::matter::Abode> kept_abode(sqlite3* db, const domain::id::S
 }
 
 
+domain::matter::Room::Aspect aspect_of(const std::int64_t kept)
+{
+	if (kept < 0 || kept > static_cast<std::int64_t>(domain::matter::Room::Aspect::Dwellers))
+		throw std::runtime_error("room: unknown aspect in database");
+	return static_cast<domain::matter::Room::Aspect>(kept);
+}
+
+
 } // namespace
 
 
@@ -119,26 +127,32 @@ std::vector<domain::matter::Dweller> SqliteSpatiality::dwellers() const
 }
 
 
-domain::matter::Room SqliteSpatiality::furnish(const domain::id::Place abode, const domain::id::Place reflects)
+domain::matter::Room SqliteSpatiality::furnish(const domain::id::Place abode, const domain::id::Place reflects,
+											   const domain::matter::Room::Aspect aspect)
 {
 	std::lock_guard lock(database_.mutex());
 	sqlite3* const db = database_.db();
 
 	{
-		SqliteStmt kept(db, "SELECT 1 FROM rooms WHERE abode_id = ? AND place_id = ?;", "prepare kept room");
+		SqliteStmt kept(db, "SELECT 1 FROM rooms WHERE abode_id = ? AND place_id = ? AND aspect = ?;",
+						"prepare kept room");
 		kept.bind_i64(1, static_cast<std::int64_t>(abode.value()), "bind abode_id");
 		kept.bind_i64(2, static_cast<std::int64_t>(reflects.value()), "bind place_id");
+		kept.bind_i64(3, static_cast<std::int64_t>(aspect), "bind aspect");
 		if (kept.step_row("kept room step"))
 			throw std::logic_error("the abode already has a room reflecting this place");
 	}
 
-	const domain::matter::Room room{eternity_.space().point(), abode, reflects, domain::matter::Room::Part::Inner};
+	const domain::matter::Room room{eternity_.space().point(), abode, reflects, aspect,
+									domain::matter::Room::Part::Inner};
 
-	SqliteStmt stmt(db, "INSERT INTO rooms (id, abode_id, place_id, part) VALUES (?, ?, ?, ?);", "prepare furnish");
+	SqliteStmt stmt(db, "INSERT INTO rooms (id, abode_id, place_id, aspect, part) VALUES (?, ?, ?, ?, ?);",
+					"prepare furnish");
 	stmt.bind_i64(1, static_cast<std::int64_t>(room.id().value()), "bind id");
 	stmt.bind_i64(2, static_cast<std::int64_t>(abode.value()), "bind abode_id");
 	stmt.bind_i64(3, static_cast<std::int64_t>(reflects.value()), "bind place_id");
-	stmt.bind_i64(4, static_cast<std::int64_t>(room.part()), "bind part");
+	stmt.bind_i64(4, static_cast<std::int64_t>(aspect), "bind aspect");
+	stmt.bind_i64(5, static_cast<std::int64_t>(room.part()), "bind part");
 	stmt.step_done("furnish step");
 
 	return room;
@@ -150,12 +164,13 @@ domain::matter::Room SqliteSpatiality::arrange(const domain::id::Place room, con
 	std::lock_guard lock(database_.mutex());
 	sqlite3* const db = database_.db();
 
-	SqliteStmt kept(db, "SELECT abode_id, place_id FROM rooms WHERE id = ?;", "prepare arranged room");
+	SqliteStmt kept(db, "SELECT abode_id, place_id, aspect FROM rooms WHERE id = ?;", "prepare arranged room");
 	kept.bind_i64(1, static_cast<std::int64_t>(room.value()), "bind id");
 	if (!kept.step_row("arranged room step"))
 		throw std::invalid_argument("unknown room");
 	const domain::matter::Room arranged{room, domain::id::Place{static_cast<std::uint64_t>(kept.column_i64(0))},
-										domain::id::Place{static_cast<std::uint64_t>(kept.column_i64(1))}, part};
+										domain::id::Place{static_cast<std::uint64_t>(kept.column_i64(1))},
+										aspect_of(kept.column_i64(2)), part};
 
 	SqliteStmt stmt(db, "UPDATE rooms SET part = ? WHERE id = ?;", "prepare arrange");
 	stmt.bind_i64(1, static_cast<std::int64_t>(part), "bind part");
@@ -170,7 +185,7 @@ std::vector<domain::matter::Room> SqliteSpatiality::rooms(const domain::id::Plac
 {
 	std::lock_guard lock(database_.mutex());
 
-	SqliteStmt stmt(database_.db(), "SELECT id, place_id, part FROM rooms WHERE abode_id = ? ORDER BY id;",
+	SqliteStmt stmt(database_.db(), "SELECT id, place_id, part, aspect FROM rooms WHERE abode_id = ? ORDER BY id;",
 					"prepare rooms");
 	stmt.bind_i64(1, static_cast<std::int64_t>(abode.value()), "bind abode_id");
 
@@ -182,7 +197,7 @@ std::vector<domain::matter::Room> SqliteSpatiality::rooms(const domain::id::Plac
 
 		rows.emplace_back(domain::id::Place{static_cast<std::uint64_t>(stmt.column_i64(0))}, abode,
 						  domain::id::Place{static_cast<std::uint64_t>(stmt.column_i64(1))},
-						  static_cast<domain::matter::Room::Part>(part));
+						  aspect_of(stmt.column_i64(3)), static_cast<domain::matter::Room::Part>(part));
 	}
 
 	return rows;

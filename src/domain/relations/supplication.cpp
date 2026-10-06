@@ -50,10 +50,11 @@ const Shepherding& Supplication::sign(const Testator& addressee) const
 	const Shepherding& shepherded = addressee.shepherd(dynamic_cast<const Shepherding&>(place));
 
 	// The tie is reflected in the abode of each side: Ведение and Послушание.
+	constexpr auto words = matter::Room::Aspect::Words;
 	addressee.abode().furnish(Birth<Supplication>{*this},
-							  addressee.spatiality().furnish(addressee.abode().id(), kept.id()));
+							  addressee.spatiality().furnish(addressee.abode().id(), kept.id(), words));
 	suppliant.abode().furnish(Birth<Supplication>{*this},
-							  addressee.spatiality().furnish(suppliant.abode().id(), kept.id()));
+							  addressee.spatiality().furnish(suppliant.abode().id(), kept.id(), words));
 
 	addressee.drop(*incoming);
 

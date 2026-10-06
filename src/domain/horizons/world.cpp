@@ -75,7 +75,8 @@ void World::awaken()
 		for (const id::Soul side : {kept.testator(), kept.novice()}) {
 			Abode& abode = living_man(side).abode();
 			if (!abode.room(tie))
-				abode.furnish(Birth<World>{*this}, spatiality().furnish(abode.id(), kept.id()));
+				abode.furnish(Birth<World>{*this},
+							  spatiality().furnish(abode.id(), kept.id(), matter::Room::Aspect::Words));
 		}
 	}
 

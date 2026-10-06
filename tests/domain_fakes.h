@@ -13,6 +13,7 @@
 #include "places/abode.h"
 #include "words/letter.h"
 #include "places/room.h"
+#include "men/witness.h"
 #include "words/recollection.h"
 #include "relations/contemplation.h"
 #include "men/soul.h"
@@ -216,13 +217,13 @@ public:
 
 	std::vector<matter::Dweller> dwellers() const override { return shared_.dwellers; }
 
-	matter::Room furnish(const id::Place abode, const id::Place reflects) override
+	matter::Room furnish(const id::Place abode, const id::Place reflects, const matter::Room::Aspect aspect) override
 	{
 		for (const matter::Room& row : shared_.rooms) {
-			if (row.abode() == abode && row.reflects() == reflects)
+			if (row.abode() == abode && row.reflects() == reflects && row.aspect() == aspect)
 				throw std::logic_error("the abode already has a room reflecting this place");
 		}
-		shared_.rooms.emplace_back(eternity_.space().point(), abode, reflects, matter::Room::Part::Inner);
+		shared_.rooms.emplace_back(eternity_.space().point(), abode, reflects, aspect, matter::Room::Part::Inner);
 		return shared_.rooms.back();
 	}
 
@@ -230,7 +231,7 @@ public:
 	{
 		for (matter::Room& row : shared_.rooms) {
 			if (row.id() == room) {
-				row = matter::Room{row.id(), row.abode(), row.reflects(), part};
+				row = matter::Room{row.id(), row.abode(), row.reflects(), row.aspect(), part};
 				return row;
 			}
 		}
@@ -485,6 +486,40 @@ private:
 	InMemoryEternity eternity_;
 	Life life_;
 };
+
+
+/// Turn a man's gaze to a room for an act, then back where it rested (or to sleep).
+template<typename Act>
+void looking_at(World& world, const Man& man, const Room& room, Act act)
+{
+	const auto& witness = static_cast<const Witness&>(man);
+	const std::shared_ptr<const Contemplation> before = world.contemplation(man.Soul::id());
+	witness.contemplate(room);
+	act();
+	if (!before) {
+		witness.sleep();
+	} else if (const auto* abode = dynamic_cast<const Abode*>(&before->place())) {
+		witness.contemplate(*abode);
+	} else {
+		witness.contemplate(dynamic_cast<const Room&>(before->place()));
+	}
+}
+
+
+/// The host lets a man in: both stand at the host's gates for it.
+inline void admit_at_gates(World& world, const Man& host, const Man& man)
+{
+	looking_at(world, host, host.abode().gates(), [&] {
+		looking_at(world, man, host.abode().gates(), [&] { host.admit(man); });
+	});
+}
+
+
+/// The host regards a dweller anew, standing in his reception.
+inline void regard_in_reception(World& world, const Man& host, const Man& man, const matter::Dweller::Kind kind)
+{
+	looking_at(world, host, host.abode().reception(), [&] { host.regard(man, kind); });
+}
 
 
 /// The cell of a man's abode: the room of his own records, where he writes.

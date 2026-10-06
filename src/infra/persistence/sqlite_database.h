@@ -37,6 +37,9 @@ private:
 	/// Rejections kept before answers were (table `rejections`) become answers.
 	void answer_kept_rejections();
 
+	/// Rooms kept before they had an aspect (all windows onto words) get one.
+	void give_rooms_their_aspect();
+
 	std::string db_path_;
 	SqliteFace face_;
 	sqlite3* db_ = nullptr;

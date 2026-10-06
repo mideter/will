@@ -1,10 +1,13 @@
 #include "man.h"
 
 #include "dimensions/spatiality.h"
+#include "men/witness.h"
 #include "places/room.h"
 #include "values/abode_name.h"
 
 #include <optional>
+#include <vector>
+#include <algorithm>
 #include <string>
 #include <utility>
 
@@ -25,16 +28,17 @@ Man::Man(matter::Man kept)
 
 	abode_ = std::make_unique<Abode>(Birth<Man>{*this}, std::move(*own));
 
-	// The cell, the room of one's own records, reflects the abode itself.
-	std::optional<matter::Room> cell;
-	for (matter::Room& kept : spatiality().rooms(abode_->id())) {
-		if (kept.reflects() == abode_->id())
-			cell = std::move(kept);
+	// The standard rooms reflect the abode itself: the cell its words, the gates
+	// its threshold, the reception its dwellers.
+	std::vector<matter::Room> rooms = spatiality().rooms(abode_->id());
+	for (const matter::Room::Aspect aspect :
+		 {matter::Room::Aspect::Words, matter::Room::Aspect::Threshold, matter::Room::Aspect::Dwellers}) {
+		const auto found = std::find_if(rooms.begin(), rooms.end(), [&](const matter::Room& room) {
+			return room.reflects() == abode_->id() && room.aspect() == aspect;
+		});
+		abode_->furnish(Birth<Man>{*this},
+						found != rooms.end() ? *found : spatiality().furnish(abode_->id(), abode_->id(), aspect));
 	}
-	if (!cell)
-		cell = spatiality().furnish(abode_->id(), abode_->id());
-
-	abode_->furnish(Birth<Man>{*this}, *cell);
 }
 
 
@@ -42,6 +46,13 @@ void Man::admit(const Man& man) const
 {
 	if (abode_->dwells(man))
 		throw std::logic_error("he already dwells in this abode");
+
+	// One lets in at one's open gates whoever stands there.
+	const Gates& gates = abode_->gates();
+	if (!gates.open())
+		throw std::logic_error("one admits only standing in one's gates");
+	if (!static_cast<const Witness&>(man).contemplates(gates))
+		throw std::logic_error("he does not stand at the gates");
 
 	abode_->admit(Birth<Man>{*this}, man,
 				  spatiality().dwell(abode_->id(), man.Soul::id(), matter::Dweller::Kind::Acquaintance));
@@ -61,6 +72,8 @@ void Man::regard(const Man& dweller, const matter::Dweller::Kind kind) const
 {
 	if (!abode_->dweller(dweller))
 		throw std::logic_error("he does not dwell in this abode");
+	if (!static_cast<const Witness&>(*this).contemplates(abode_->reception()))
+		throw std::logic_error("one regards dwellers only in one's reception");
 
 	abode_->admit(Birth<Man>{*this}, dweller, spatiality().dwell(abode_->id(), dweller.Soul::id(), kind));
 }

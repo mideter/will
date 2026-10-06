@@ -125,11 +125,21 @@ const Room& Abode::furnish(const matter::Room& kept)
 
 	std::lock_guard lock(*mutex_);
 	for (const std::unique_ptr<Room>& room : rooms_) {
-		if (&room->reflects() == &reflects)
+		if (&room->reflects() == &reflects && room->aspect() == kept.aspect())
 			throw std::logic_error("the abode already has a room reflecting this place");
 	}
 
-	rooms_.push_back(std::make_unique<Room>(Birth<Abode>{*this}, reflects, kept));
+	switch (kept.aspect()) {
+	case matter::Room::Aspect::Words:
+		rooms_.push_back(std::make_unique<Room>(Birth<Abode>{*this}, reflects, kept));
+		break;
+	case matter::Room::Aspect::Threshold:
+		rooms_.push_back(std::make_unique<Gates>(Birth<Abode>{*this}, kept));
+		break;
+	case matter::Room::Aspect::Dwellers:
+		rooms_.push_back(std::make_unique<Reception>(Birth<Abode>{*this}, kept));
+		break;
+	}
 	return *rooms_.back();
 }
 
@@ -150,10 +160,32 @@ const Room* Abode::room(const Place& reflects) const
 {
 	std::lock_guard lock(*mutex_);
 	for (const std::unique_ptr<Room>& room : rooms_) {
-		if (&room->reflects() == &reflects)
+		if (&room->reflects() == &reflects && room->aspect() == matter::Room::Aspect::Words)
 			return room.get();
 	}
 	return nullptr;
+}
+
+
+const Gates& Abode::gates() const
+{
+	std::lock_guard lock(*mutex_);
+	for (const std::unique_ptr<Room>& room : rooms_) {
+		if (const auto* gates = dynamic_cast<const Gates*>(room.get()))
+			return *gates;
+	}
+	throw std::logic_error("the abode has no gates");
+}
+
+
+const Reception& Abode::reception() const
+{
+	std::lock_guard lock(*mutex_);
+	for (const std::unique_ptr<Room>& room : rooms_) {
+		if (const auto* reception = dynamic_cast<const Reception*>(room.get()))
+			return *reception;
+	}
+	throw std::logic_error("the abode has no reception");
 }
 
 

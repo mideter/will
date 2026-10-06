@@ -1,5 +1,7 @@
 #include "sqlite_database.h"
 
+#include <string_view>
+
 #include "sqlite_util.h"
 
 #include <stdexcept>
@@ -85,8 +87,9 @@ CREATE TABLE IF NOT EXISTS rooms (
   id INTEGER PRIMARY KEY,
   abode_id INTEGER NOT NULL,
   place_id INTEGER NOT NULL,
+  aspect INTEGER NOT NULL DEFAULT 0,
   part INTEGER NOT NULL,
-  UNIQUE (abode_id, place_id)
+  UNIQUE (abode_id, place_id, aspect)
 );
 
 CREATE TABLE IF NOT EXISTS placements (
@@ -148,6 +151,38 @@ CREATE TABLE IF NOT EXISTS executions (
 
 	if (face_ == SqliteFace::Temporality)
 		answer_kept_rejections();
+	if (face_ == SqliteFace::Spatiality)
+		give_rooms_their_aspect();
+}
+
+
+void SqliteDatabase::give_rooms_their_aspect()
+{
+	bool has_aspect = false;
+	sqlite3_stmt* raw = nullptr;
+	check_sqlite(sqlite3_prepare_v2(db_, "PRAGMA table_info(rooms);", -1, &raw, nullptr), db_, "prepare rooms columns");
+	while (sqlite3_step(raw) == SQLITE_ROW) {
+		const auto* column = reinterpret_cast<const char*>(sqlite3_column_text(raw, 1));
+		if (column && std::string_view{column} == "aspect")
+			has_aspect = true;
+	}
+	sqlite3_finalize(raw);
+	if (has_aspect)
+		return;
+
+	// Rooms kept before they had an aspect were all windows onto words.
+	check_sqlite(sqlite3_exec(db_,
+							  "BEGIN;"
+							  "ALTER TABLE rooms RENAME TO rooms_without_aspect;"
+							  "CREATE TABLE rooms (id INTEGER PRIMARY KEY, abode_id INTEGER NOT NULL, "
+							  "place_id INTEGER NOT NULL, aspect INTEGER NOT NULL DEFAULT 0, part INTEGER NOT NULL, "
+							  "UNIQUE (abode_id, place_id, aspect));"
+							  "INSERT INTO rooms (id, abode_id, place_id, aspect, part) "
+							  "SELECT id, abode_id, place_id, 0, part FROM rooms_without_aspect;"
+							  "DROP TABLE rooms_without_aspect;"
+							  "COMMIT;",
+							  nullptr, nullptr, nullptr),
+				 db_, "give rooms their aspect");
 }
 
 

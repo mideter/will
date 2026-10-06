@@ -118,8 +118,8 @@ TEST_CASE("Behest is a word of will in a living Tie, born of the Tie or of its t
 
 	static_assert(!std::is_constructible_v<Behest, matter::Behest>);
 
-	novice.admit(testator);
-	testator.admit(novice);
+	admit_at_gates(world, novice, testator);
+	admit_at_gates(world, testator, novice);
 	novice.supplicate(testator);
 	const Shepherding& shepherding = testator.accept(*testator.supplication(novice));
 
@@ -155,8 +155,8 @@ TEST_CASE("Deed is the novice's word fulfilling a behest, his report or «сов
 
 	static_assert(!std::is_constructible_v<Deed, matter::Deed>);
 
-	novice.admit(testator);
-	testator.admit(novice);
+	admit_at_gates(world, novice, testator);
+	admit_at_gates(world, testator, novice);
 	novice.supplicate(testator);
 	const Shepherding& shepherding = testator.accept(*testator.supplication(novice));
 	testator.wake();

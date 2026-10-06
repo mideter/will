@@ -68,6 +68,8 @@ GrpcSession open_session(const std::uint16_t port)
 	const std::string target = "127.0.0.1:" + std::to_string(port);
 	session.channel = grpc::CreateChannel(target, grpc::InsecureChannelCredentials());
 	session.stub = will::v1::Messenger::NewStub(session.channel);
+	// A test that waits for a word the server never sends fails instead of hanging.
+	session.context->set_deadline(std::chrono::system_clock::now() + std::chrono::seconds(20));
 	session.stream = session.stub->Session(session.context.get());
 	return session;
 }

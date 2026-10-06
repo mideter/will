@@ -41,9 +41,9 @@ public:
 	virtual std::vector<matter::Dweller> dwellers() const = 0;
 
 	/// Keep a new room of this abode, in a new point of Space and in the inner
-	/// part, reflecting this place. Refuses (std::logic_error) if the abode
-	/// already has a room reflecting it.
-	virtual matter::Room furnish(id::Place abode, id::Place reflects) = 0;
+	/// part, reflecting this aspect of this place. Refuses (std::logic_error) if
+	/// the abode already has a room reflecting it.
+	virtual matter::Room furnish(id::Place abode, id::Place reflects, matter::Room::Aspect aspect) = 0;
 
 	/// Keep that this room stands in this part of its abode. Throws
 	/// (std::invalid_argument) if the room is unknown.

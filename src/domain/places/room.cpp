@@ -3,11 +3,13 @@
 #include "horizons/space.h"
 #include "men/man.h"
 #include "men/testator.h"
+#include "men/witness.h"
 #include "places/abode.h"
 #include "places/tie.h"
 #include "relations/acquaintance.h"
 
 #include <stdexcept>
+#include <utility>
 
 
 namespace will::domain {
@@ -17,6 +19,7 @@ Room::Room(const Birth<Abode> birth, const Place& reflects, matter::Room kept)
 	: Place(kept.id())
 	, abode_(birth.parent())
 	, reflects_(reflects)
+	, aspect_(kept.aspect())
 	, part_(kept.part())
 {
 	if (kept.abode() != abode_.id())
@@ -71,6 +74,64 @@ bool Room::dwells(const Man& man) const
 
 	const std::shared_ptr<const Acquaintance> dweller = abode_.dweller(man);
 	return dweller && dweller->enters(part());
+}
+
+
+Gates::Gates(const Birth<Abode> birth, matter::Room kept)
+	: Room(birth, birth.parent(), std::move(kept))
+{}
+
+
+std::string Gates::name() const
+{
+	return "Врата";
+}
+
+
+bool Gates::dwells(const Man&) const
+{
+	return true;
+}
+
+
+bool Gates::open() const
+{
+	return static_cast<const Witness&>(abode().host()).contemplates(*this);
+}
+
+
+const Place& Gates::source() const
+{
+	return Place::source();
+}
+
+
+bool Gates::shows(const Man&, const Word&) const
+{
+	return false;
+}
+
+
+Reception::Reception(const Birth<Abode> birth, matter::Room kept)
+	: Room(birth, birth.parent(), std::move(kept))
+{}
+
+
+std::string Reception::name() const
+{
+	return "Приёмная";
+}
+
+
+const Place& Reception::source() const
+{
+	return Place::source();
+}
+
+
+bool Reception::shows(const Man&, const Word&) const
+{
+	return false;
 }
 
 
