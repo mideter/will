@@ -81,6 +81,14 @@ CREATE TABLE IF NOT EXISTS dwellers (
   PRIMARY KEY (abode_id, soul_id)
 );
 
+CREATE TABLE IF NOT EXISTS rooms (
+  id INTEGER PRIMARY KEY,
+  abode_id INTEGER NOT NULL,
+  place_id INTEGER NOT NULL,
+  part INTEGER NOT NULL,
+  UNIQUE (abode_id, place_id)
+);
+
 CREATE TABLE IF NOT EXISTS placements (
   word_id INTEGER PRIMARY KEY,
   place_id INTEGER NOT NULL

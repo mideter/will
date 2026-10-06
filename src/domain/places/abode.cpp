@@ -2,6 +2,7 @@
 
 #include "relations/contemplation.h"
 #include "relations/friend.h"
+#include "places/room.h"
 #include "men/man.h"
 #include "men/witness.h"
 #include "words/letter.h"
@@ -25,6 +26,9 @@ Abode::Abode(const Birth<Man> birth, matter::Abode kept)
 {
 	Immanent<Space>::present<Abode>();
 }
+
+
+Abode::~Abode() = default;
 
 
 void Abode::admit(const Birth<Man> birth, const Man& man, const matter::Dweller& kept)
@@ -67,6 +71,73 @@ void Abode::admit(const Man& man, const matter::Dweller& kept)
 
 	std::lock_guard lock(*mutex_);
 	dwellers_.insert_or_assign(&man, std::move(born));
+}
+
+
+const Room& Abode::furnish(const Birth<Man> birth, const matter::Room& kept)
+{
+	if (&birth.parent() != &host_)
+		throw std::logic_error("only the host furnishes his abode");
+
+	return furnish(kept);
+}
+
+
+const Room& Abode::furnish(Birth<World>, const matter::Room& kept)
+{
+	return furnish(kept);
+}
+
+
+const Room& Abode::furnish(const matter::Room& kept)
+{
+	if (kept.abode() != id())
+		throw std::logic_error("the room is not of this abode");
+
+	const Place& reflects = kept.reflects() == id() ? static_cast<const Place&>(*this) : Place::of(kept.reflects());
+
+	std::lock_guard lock(*mutex_);
+	for (const std::unique_ptr<Room>& room : rooms_) {
+		if (&room->reflects() == &reflects)
+			throw std::logic_error("the abode already has a room reflecting this place");
+	}
+
+	rooms_.push_back(std::make_unique<Room>(Birth<Abode>{*this}, reflects, kept));
+	return *rooms_.back();
+}
+
+
+std::vector<std::reference_wrapper<const Room>> Abode::rooms() const
+{
+	std::lock_guard lock(*mutex_);
+
+	std::vector<std::reference_wrapper<const Room>> out;
+	out.reserve(rooms_.size());
+	for (const std::unique_ptr<Room>& room : rooms_)
+		out.emplace_back(*room);
+	return out;
+}
+
+
+const Room* Abode::room(const Place& reflects) const
+{
+	std::lock_guard lock(*mutex_);
+	for (const std::unique_ptr<Room>& room : rooms_) {
+		if (&room->reflects() == &reflects)
+			return room.get();
+	}
+	return nullptr;
+}
+
+
+const Room* Abode::room(const std::string_view name) const
+{
+	std::lock_guard lock(*mutex_);
+	for (const std::unique_ptr<Room>& room : rooms_) {
+		if (room->name() == name)
+			return room.get();
+	}
+	return nullptr;
 }
 
 

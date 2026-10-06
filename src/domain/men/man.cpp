@@ -23,6 +23,17 @@ Man::Man(matter::Man kept)
 		own = spatiality().abide(Soul::id(), AbodeName{std::string{Soul::name().text()}});
 
 	abode_ = std::make_unique<Abode>(Birth<Man>{*this}, std::move(*own));
+
+	// The cell, the room of one's own records, reflects the abode itself.
+	std::optional<matter::Room> cell;
+	for (matter::Room& kept : spatiality().rooms(abode_->id())) {
+		if (kept.reflects() == abode_->id())
+			cell = std::move(kept);
+	}
+	if (!cell)
+		cell = spatiality().furnish(abode_->id(), abode_->id());
+
+	abode_->furnish(Birth<Man>{*this}, *cell);
 }
 
 

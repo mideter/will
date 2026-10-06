@@ -2,12 +2,15 @@
 
 #include "matter/abode.h"
 #include "matter/dweller.h"
+#include "matter/room.h"
 #include "properties/birth.h"
 #include "matter/letter.h"
 #include "places/place.h"
 #include "values/abode_name.h"
 
 #include <memory>
+#include <string_view>
+#include <functional>
 #include <mutex>
 #include <unordered_map>
 #include <vector>
@@ -20,6 +23,7 @@ class Acquaintance;
 class Contemplation;
 class Letter;
 class Man;
+class Room;
 class World;
 
 
@@ -30,6 +34,7 @@ class World;
 class Abode : public Place {
 public:
 	Abode(Birth<Man> birth, matter::Abode kept);
+	~Abode() override;
 
 	const AbodeName& name() const noexcept { return name_; }
 
@@ -43,6 +48,21 @@ public:
 
 	/// The dwellers of this abode, in no particular order.
 	std::vector<std::shared_ptr<const Acquaintance>> dwellers() const;
+
+	/// A room is born here from its matter: the host furnishes it, or the World
+	/// recalls it on awakening. Throws if the matter is of another abode or the
+	/// abode already has a room reflecting that place.
+	const Room& furnish(Birth<Man> birth, const matter::Room& kept);
+	const Room& furnish(Birth<World> birth, const matter::Room& kept);
+
+	/// The rooms of this abode, in the order they were furnished.
+	std::vector<std::reference_wrapper<const Room>> rooms() const;
+
+	/// The room of this abode reflecting this place; none if there is none.
+	const Room* room(const Place& reflects) const;
+
+	/// The room of this abode by its name; none if there is none.
+	const Room* room(std::string_view name) const;
 
 	/// This man as a dweller here; none for the host and for a stranger.
 	std::shared_ptr<const Acquaintance> dweller(const Man& man) const;
@@ -60,11 +80,13 @@ public:
 
 private:
 	void admit(const Man& man, const matter::Dweller& kept);
+	const Room& furnish(const matter::Room& kept);
 
 	const Man& host_;
 	AbodeName name_;
 	mutable std::unique_ptr<std::mutex> mutex_;
 	std::unordered_map<const Man*, std::shared_ptr<const Acquaintance>> dwellers_;
+	std::vector<std::unique_ptr<Room>> rooms_;
 
 };
 

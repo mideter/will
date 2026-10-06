@@ -12,6 +12,7 @@
 #include "men/witness.h"
 #include "relations/contemplation.h"
 #include "relations/friend.h"
+#include "places/room.h"
 #include "sqlite_persistence_bundle.h"
 
 #include "identity/place.h"
@@ -406,6 +407,11 @@ TEST_CASE("sqlite keeps the dwellers of an abode and their kind across reopen")
 		CHECK(std::dynamic_pointer_cast<const Friend>(host.abode().dweller(man)));
 		CHECK_FALSE(man.abode().dwells(host));
 		REQUIRE(bundle.spatiality().dwellers().size() == 1);
+
+		// Each abode keeps its one cell across reopen.
+		REQUIRE(host.abode().rooms().size() == 1);
+		CHECK(host.abode().rooms().front().get().name() == "Келья");
+		CHECK(bundle.spatiality().rooms(host.abode().id()).size() == 1);
 	}
 
 	::unlink((prefix + ".eternity.db").c_str());

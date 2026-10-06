@@ -119,6 +119,55 @@ std::vector<domain::matter::Dweller> SqliteSpatiality::dwellers() const
 }
 
 
+domain::matter::Room SqliteSpatiality::furnish(const domain::id::Place abode, const domain::id::Place reflects)
+{
+	std::lock_guard lock(database_.mutex());
+	sqlite3* const db = database_.db();
+
+	{
+		SqliteStmt kept(db, "SELECT 1 FROM rooms WHERE abode_id = ? AND place_id = ?;", "prepare kept room");
+		kept.bind_i64(1, static_cast<std::int64_t>(abode.value()), "bind abode_id");
+		kept.bind_i64(2, static_cast<std::int64_t>(reflects.value()), "bind place_id");
+		if (kept.step_row("kept room step"))
+			throw std::logic_error("the abode already has a room reflecting this place");
+	}
+
+	const domain::matter::Room room{eternity_.space().point(), abode, reflects, domain::matter::Room::Part::Inner};
+
+	SqliteStmt stmt(db, "INSERT INTO rooms (id, abode_id, place_id, part) VALUES (?, ?, ?, ?);", "prepare furnish");
+	stmt.bind_i64(1, static_cast<std::int64_t>(room.id().value()), "bind id");
+	stmt.bind_i64(2, static_cast<std::int64_t>(abode.value()), "bind abode_id");
+	stmt.bind_i64(3, static_cast<std::int64_t>(reflects.value()), "bind place_id");
+	stmt.bind_i64(4, static_cast<std::int64_t>(room.part()), "bind part");
+	stmt.step_done("furnish step");
+
+	return room;
+}
+
+
+std::vector<domain::matter::Room> SqliteSpatiality::rooms(const domain::id::Place abode) const
+{
+	std::lock_guard lock(database_.mutex());
+
+	SqliteStmt stmt(database_.db(), "SELECT id, place_id, part FROM rooms WHERE abode_id = ? ORDER BY id;",
+					"prepare rooms");
+	stmt.bind_i64(1, static_cast<std::int64_t>(abode.value()), "bind abode_id");
+
+	std::vector<domain::matter::Room> rows;
+	while (stmt.step_row("rooms step")) {
+		const std::int64_t part = stmt.column_i64(2);
+		if (part < 0 || part > static_cast<std::int64_t>(domain::matter::Room::Part::Outer))
+			throw std::runtime_error("room: unknown part in database");
+
+		rows.emplace_back(domain::id::Place{static_cast<std::uint64_t>(stmt.column_i64(0))}, abode,
+						  domain::id::Place{static_cast<std::uint64_t>(stmt.column_i64(1))},
+						  static_cast<domain::matter::Room::Part>(part));
+	}
+
+	return rows;
+}
+
+
 domain::matter::Tie SqliteSpatiality::bind(const domain::id::Soul testator, const domain::id::Soul novice)
 {
 	std::lock_guard lock(database_.mutex());

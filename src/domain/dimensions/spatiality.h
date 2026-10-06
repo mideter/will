@@ -3,6 +3,7 @@
 #include "matter/placement.h"
 #include "matter/abode.h"
 #include "matter/dweller.h"
+#include "matter/room.h"
 #include "matter/tie.h"
 #include "identity/word.h"
 #include "identity/place.h"
@@ -38,6 +39,14 @@ public:
 
 	/// All dwellers kept in space (for Creation awaken).
 	virtual std::vector<matter::Dweller> dwellers() const = 0;
+
+	/// Keep a new room of this abode, in a new point of Space and in the inner
+	/// part, reflecting this place. Refuses (std::logic_error) if the abode
+	/// already has a room reflecting it.
+	virtual matter::Room furnish(id::Place abode, id::Place reflects) = 0;
+
+	/// The rooms kept in this abode.
+	virtual std::vector<matter::Room> rooms(id::Place abode) const = 0;
 
 	/// Keep the bond of a pair in a new point of Space.
 	/// Refuses (std::logic_error) if the pair is already bound.

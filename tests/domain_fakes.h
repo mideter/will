@@ -82,6 +82,7 @@ struct InMemoryShared {
 	std::vector<std::pair<id::Soul, matter::Abode>> abodes;
 	std::vector<matter::Tie> ties;
 	std::vector<matter::Dweller> dwellers;
+	std::vector<matter::Room> rooms;
 	std::vector<matter::Placement> placements;
 
 	// Temporality
@@ -213,6 +214,26 @@ public:
 	}
 
 	std::vector<matter::Dweller> dwellers() const override { return shared_.dwellers; }
+
+	matter::Room furnish(const id::Place abode, const id::Place reflects) override
+	{
+		for (const matter::Room& row : shared_.rooms) {
+			if (row.abode() == abode && row.reflects() == reflects)
+				throw std::logic_error("the abode already has a room reflecting this place");
+		}
+		shared_.rooms.emplace_back(eternity_.space().point(), abode, reflects, matter::Room::Part::Inner);
+		return shared_.rooms.back();
+	}
+
+	std::vector<matter::Room> rooms(const id::Place abode) const override
+	{
+		std::vector<matter::Room> out;
+		for (const matter::Room& row : shared_.rooms) {
+			if (row.abode() == abode)
+				out.push_back(row);
+		}
+		return out;
+	}
 
 	matter::Tie bind(const id::Soul testator, const id::Soul novice) override
 	{

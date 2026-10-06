@@ -4,6 +4,7 @@
 
 #include "domain_fakes.h"
 #include "relations/friend.h"
+#include "places/room.h"
 
 #include "horizons/creation.h"
 #include "matter/abode.h"
@@ -982,4 +983,34 @@ TEST_CASE("a tie binds only those who admitted each other into their abodes")
 	novice.supplicate(testator);
 	const Shepherding& shepherding = testator.accept(*testator.supplication(novice));
 	CHECK(&shepherding.novice() == &novice);
+}
+
+
+TEST_CASE("every abode has its cell, a room reflecting the abode itself, kept once")
+{
+	InMemoryShared store;
+	const DeviceToken token = DeviceToken::generate();
+	{
+		InMemoryCosmos cosmos(store);
+		World& world = cosmos.life().create().world();
+		const Man& man = world.welcome(token);
+
+		REQUIRE(man.abode().rooms().size() == 1);
+		const Room& cell = man.abode().rooms().front();
+		CHECK(cell.name() == "Келья");
+		CHECK(&cell.reflects() == static_cast<const Place*>(&man.abode()));
+		CHECK(&cell.abode() == &man.abode());
+		CHECK(cell.part() == matter::Room::Part::Inner);
+		CHECK(man.abode().room("Келья") == &cell);
+		CHECK(man.abode().room(man.abode()) == &cell);
+		CHECK(cell.dwells(man));
+		CHECK_THROWS_AS(cosmos.spatiality().furnish(man.abode().id(), man.abode().id()), std::logic_error);
+	}
+
+	// Awakening anew, the cell is recalled, not furnished again.
+	InMemoryCosmos cosmos(store);
+	const Man& man = cosmos.life().create().world().welcome(token);
+	REQUIRE(man.abode().rooms().size() == 1);
+	CHECK(store.rooms.size() == 1);
+	CHECK(man.abode().rooms().front().get().id() == store.rooms.front().id());
 }
