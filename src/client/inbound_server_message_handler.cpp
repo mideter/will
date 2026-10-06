@@ -33,9 +33,10 @@ void print_rooms(ConsoleUi& ui, const v1::Rooms& rooms)
 		return;
 	}
 	std::string told = "Rooms:";
+	int number = 0;
 	for (const v1::Room& room : rooms.rooms())
-		told += " " + room.name() + (room.part() == v1::OUTER ? " (outer);" : " (inner);");
-	ui.print_status(told + " — /room <name>");
+		told += " " + std::to_string(++number) + ". " + room.name() + (room.part() == v1::OUTER ? " (outer);" : " (inner);");
+	ui.print_status(told + " — /room <number>");
 }
 
 
@@ -76,8 +77,42 @@ void print_word(ConsoleUi& ui, const v1::Word& word, const bool dim)
 } // namespace
 
 
-LoadingHistoryMessageHandler::LoadingHistoryMessageHandler(ConsoleUi& ui)
+void ShownRooms::turned(std::string abode_of)
+{
+	std::lock_guard lock(mutex_);
+	looking_at_ = std::move(abode_of);
+}
+
+
+void ShownRooms::shown(const v1::Rooms& rooms)
+{
+	std::lock_guard lock(mutex_);
+	abode_of_ = looking_at_;
+	names_.clear();
+	for (const v1::Room& room : rooms.rooms())
+		names_.push_back(room.name());
+}
+
+
+std::optional<std::pair<std::string, std::string>> ShownRooms::numbered(const std::string_view number) const
+{
+	std::size_t index = 0;
+	for (const char c : number) {
+		if (c < '0' || c > '9')
+			return std::nullopt;
+		index = index * 10 + static_cast<std::size_t>(c - '0');
+	}
+
+	std::lock_guard lock(mutex_);
+	if (number.empty() || index == 0 || index > names_.size())
+		return std::nullopt;
+	return std::pair{abode_of_, names_[index - 1]};
+}
+
+
+LoadingHistoryMessageHandler::LoadingHistoryMessageHandler(ConsoleUi& ui, ShownRooms& rooms)
 	: ui_(ui)
+	, rooms_(rooms)
 {}
 
 
@@ -91,6 +126,7 @@ void LoadingHistoryMessageHandler::on(const v1::ServerEvent& event)
 		history_finished_ = true;
 		return;
 	case v1::ServerEvent::kRooms:
+		rooms_.shown(event.rooms());
 		print_rooms(ui_, event.rooms());
 		return;
 	case v1::ServerEvent::kOutstanding:
@@ -102,9 +138,10 @@ void LoadingHistoryMessageHandler::on(const v1::ServerEvent& event)
 }
 
 
-ReceivingMessageHandler::ReceivingMessageHandler(const WillClient& client, ConsoleUi& ui)
+ReceivingMessageHandler::ReceivingMessageHandler(const WillClient& client, ConsoleUi& ui, ShownRooms& rooms)
 	: client_(client)
 	, ui_(ui)
+	, rooms_(rooms)
 {}
 
 
@@ -135,11 +172,13 @@ void ReceivingMessageHandler::on(const v1::ServerEvent& event)
 	}
 	case v1::ServerEvent::kTurned: {
 		const auto& turned = event.turned();
+		rooms_.turned(turned.abode_of());
 		const std::string abode = turned.abode_of().empty() ? "home" : "abode of " + turned.abode_of();
 		ui_.print_status("── " + abode + (turned.room().empty() ? "" : " · " + turned.room()) + " ──");
 		return;
 	}
 	case v1::ServerEvent::kRooms:
+		rooms_.shown(event.rooms());
 		print_rooms(ui_, event.rooms());
 		return;
 	case v1::ServerEvent::kOutstanding:

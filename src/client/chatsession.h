@@ -2,6 +2,7 @@
 
 #include "consoleui.h"
 #include "willclient.h"
+#include "inbound_server_message_handler.h"
 
 #include "infra/transport/messenger.pb.h"
 
@@ -24,6 +25,7 @@ private:
 
 	WillClient& client_;
 	ConsoleUi& ui_;
+	mutable ShownRooms rooms_;
 };
 
 

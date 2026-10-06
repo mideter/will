@@ -57,7 +57,8 @@ will::v1::ServerEvent make_history_end()
 TEST_CASE("history load accepts items then HistoryEnd")
 {
 	will::ConsoleUi ui(will::ColorMode::Never);
-	will::LoadingHistoryMessageHandler handler(ui);
+	will::ShownRooms rooms;
+	will::LoadingHistoryMessageHandler handler(ui, rooms);
 
 	handler.on(make_history_item("older", false));
 	CHECK_FALSE(handler.history_finished());
@@ -70,7 +71,8 @@ TEST_CASE("history load accepts items then HistoryEnd")
 TEST_CASE("a word placed while history loads is told with it; other events are rejected")
 {
 	will::ConsoleUi ui(will::ColorMode::Never);
-	will::LoadingHistoryMessageHandler handler(ui);
+	will::ShownRooms rooms;
+	will::LoadingHistoryMessageHandler handler(ui, rooms);
 
 	handler.on(make_history_item("older", false));
 	handler.on(make_history_item("live-while-loading", false));

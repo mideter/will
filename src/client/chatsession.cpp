@@ -40,7 +40,7 @@ bool is_post_auth_server_event(const v1::ServerEvent& event) noexcept
 }
 
 
-bool handle_slash_command(WillClient& client, ConsoleUi& ui, const std::string& line)
+bool handle_slash_command(WillClient& client, ConsoleUi& ui, const ShownRooms& rooms, const std::string& line)
 {
 	if (line.empty() || line[0] != '/')
 		return false;
@@ -100,20 +100,27 @@ bool handle_slash_command(WillClient& client, ConsoleUi& ui, const std::string& 
 	}
 	if (cmd == "room") {
 		if (args.empty()) {
-			ui.print_status("usage: /room <name>");
+			ui.print_status("usage: /room <number|name>");
 			return true;
 		}
-		client.visit({}, args);
+		// A number is of the rooms last shown, in the abode they were shown in.
+		if (const auto numbered = rooms.numbered(args))
+			client.visit(numbered->first, numbered->second);
+		else
+			client.visit({}, args);
 		return true;
 	}
 	if (cmd == "arrange") {
 		const auto sp = args.find(' ');
 		const std::string_view part = args.substr(0, sp);
-		const std::string_view room = sp == std::string_view::npos ? std::string_view{} : args.substr(sp + 1);
+		std::string room{sp == std::string_view::npos ? std::string_view{} : args.substr(sp + 1)};
 		if (room.empty() || (part != "inner" && part != "outer")) {
-			ui.print_status("usage: /arrange inner|outer <room>");
+			ui.print_status("usage: /arrange inner|outer <number|room>");
 			return true;
 		}
+		// A number is only of the rooms of one's own abode.
+		if (const auto numbered = rooms.numbered(room); numbered && numbered->first.empty())
+			room = numbered->second;
 		client.arrange(room, part == "outer");
 		return true;
 	}
@@ -178,7 +185,7 @@ void ChatSession::run()
 			return;
 
 		try {
-			ReceivingMessageHandler handler{client_, ui_};
+			ReceivingMessageHandler handler{client_, ui_, rooms_};
 			on_server_event(event, handler);
 		}
 		catch (const std::exception& e) {
@@ -204,7 +211,7 @@ void ChatSession::run()
 			continue;
 		}
 
-		if (handle_slash_command(client_, ui_, line)) {
+		if (handle_slash_command(client_, ui_, rooms_, line)) {
 			ui_.print_prompt();
 			continue;
 		}
@@ -245,7 +252,7 @@ void ChatSession::loadHistory() const
 
 	client_.set_inbound_handler([&](const v1::ServerEvent& event) {
 		try {
-			LoadingHistoryMessageHandler handler{ui_};
+			LoadingHistoryMessageHandler handler{ui_, rooms_};
 			on_server_event(event, handler);
 
 			std::lock_guard lock(mutex);
