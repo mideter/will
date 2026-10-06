@@ -50,7 +50,7 @@ letters_seen_by(const std::shared_ptr<const will::domain::Contemplation>& gaze)
 
 
 using will::domain::test::admit_at_gates;
-using will::domain::test::regard_in_reception;
+using will::domain::test::regard_in_upper_room;
 
 } // namespace
 
@@ -403,7 +403,7 @@ TEST_CASE("sqlite keeps the dwellers of an abode and their kind across reopen")
 		const Man& host = world.welcome(token_host);
 		const Man& man = world.welcome(token_man);
 		admit_at_gates(world, host, man);
-		regard_in_reception(world, host, man, matter::Dweller::Kind::Friend);
+		regard_in_upper_room(world, host, man, matter::Dweller::Kind::Friend);
 	}
 
 	{
@@ -415,11 +415,11 @@ TEST_CASE("sqlite keeps the dwellers of an abode and their kind across reopen")
 		CHECK_FALSE(man.abode().dwells(host));
 		REQUIRE(bundle.spatiality().dwellers().size() == 1);
 
-		// Each abode keeps its standard rooms across reopen: the cell, the gates, the reception.
+		// Each abode keeps its standard rooms across reopen: the cell, the gates, the upper room.
 		REQUIRE(host.abode().rooms().size() == 3);
 		CHECK(host.abode().rooms()[0].get().name() == "Келья");
 		CHECK(host.abode().rooms()[1].get().name() == "Врата");
-		CHECK(host.abode().rooms()[2].get().name() == "Приёмная");
+		CHECK(host.abode().rooms()[2].get().name() == "Горница");
 		CHECK(bundle.spatiality().rooms(host.abode().id()).size() == 3);
 	}
 

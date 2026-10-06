@@ -9,9 +9,9 @@ namespace will::domain::matter {
 /// Room (Комната) — a window in an Abode onto what it reflects: the words of a
 /// place (the Abode itself — the cell of one's own records — or a Tie one is a
 /// side of), the threshold of the Abode (the Gates), or its dwellers (the
-/// Reception). It stands in the inner part of the Abode, seen by the host and
-/// his friends, or in the outer one, seen by his neighbours too. Spatiality
-/// keeps it.
+/// upper room — Горница). It stands in the inner part of the Abode, seen by the
+/// host and his friends, or in the outer one, seen by his neighbours too.
+/// Spatiality keeps it.
 class Room {
 public:
 	enum class Part {

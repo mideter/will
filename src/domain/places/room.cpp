@@ -112,24 +112,24 @@ bool Gates::shows(const Man&, const Word&) const
 }
 
 
-Reception::Reception(const Birth<Abode> birth, matter::Room kept)
+UpperRoom::UpperRoom(const Birth<Abode> birth, matter::Room kept)
 	: Room(birth, birth.parent(), std::move(kept))
 {}
 
 
-std::string Reception::name() const
+std::string UpperRoom::name() const
 {
-	return "Приёмная";
+	return "Горница";
 }
 
 
-const Place& Reception::source() const
+const Place& UpperRoom::source() const
 {
 	return Place::source();
 }
 
 
-bool Reception::shows(const Man&, const Word&) const
+bool UpperRoom::shows(const Man&, const Word&) const
 {
 	return false;
 }

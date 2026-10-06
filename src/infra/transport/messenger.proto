@@ -158,7 +158,7 @@ message TieFormed {
 
 
 // What a room reflects: the words of a place, the threshold of the abode (the
-// gates), or its dwellers (the reception).
+// gates), or its dwellers (the upper room).
 enum RoomAspect {
     WORDS = 0;
     THRESHOLD = 1;

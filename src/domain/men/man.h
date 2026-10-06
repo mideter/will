@@ -26,7 +26,7 @@ public:
 	void admit(const Man& man) const;
 
 	/// Regard a dweller of one's abode as of this kind, standing in one's
-	/// reception. Throws if he does not dwell there or one is elsewhere.
+	/// upper room. Throws if he does not dwell there or one is elsewhere.
 	void regard(const Man& dweller, matter::Dweller::Kind kind) const;
 
 	/// Set a room of one's abode in this part of it. Throws if the room is of

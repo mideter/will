@@ -18,7 +18,7 @@ namespace will {
 
 namespace domain {
 class Gates;
-class Reception;
+class UpperRoom;
 } // namespace domain
 
 
@@ -91,8 +91,8 @@ private:
 	/// Tell everyone standing in these gates how they stand now, but one.
 	void retell_gates(const domain::Gates& gates, const domain::Soul* except = nullptr);
 
-	/// Tell everyone in this reception its dwellers.
-	void retell_reception(const domain::Reception& reception);
+	/// Tell everyone in this upper room its dwellers.
+	void retell_upper_room(const domain::UpperRoom& upper_room);
 
 	/// How these gates stand, told to this man.
 	v1::ServerEvent threshold_event(const domain::Gates& gates, const domain::Man& listener) const;

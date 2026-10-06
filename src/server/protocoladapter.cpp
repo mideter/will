@@ -569,7 +569,7 @@ void ProtocolAdapter::handle_admit(const SessionId session_id, const v1::Admit& 
 	send_notice(session_id, std::string{man->name().text()} + " admitted as an acquaintance");
 	tell_dwelling(self, *man);
 	retell_gates(self.abode().gates());
-	retell_reception(self.abode().reception());
+	retell_upper_room(self.abode().upper_room());
 }
 
 
@@ -605,7 +605,7 @@ void ProtocolAdapter::handle_regard(const SessionId session_id, const v1::Regard
 	send_notice(session_id, std::string{man->name().text()} + " regarded anew");
 	tell_dwelling(self, *man);
 	retell_abode(self, *man);
-	retell_reception(self.abode().reception());
+	retell_upper_room(self.abode().upper_room());
 }
 
 
@@ -655,8 +655,8 @@ void ProtocolAdapter::tell_view(const SessionId session_id, const domain::Contem
 		send_event(session_id, end_event);
 		return;
 	}
-	if (const auto* reception = dynamic_cast<const domain::Reception*>(&gaze.place())) {
-		send_event(session_id, dwellers_event(reception->abode()));
+	if (const auto* upper_room = dynamic_cast<const domain::UpperRoom*>(&gaze.place())) {
+		send_event(session_id, dwellers_event(upper_room->abode()));
 		v1::ServerEvent end_event;
 		end_event.mutable_history_end();
 		send_event(session_id, end_event);
@@ -859,10 +859,10 @@ void ProtocolAdapter::retell_gates(const domain::Gates& gates, const domain::Sou
 }
 
 
-void ProtocolAdapter::retell_reception(const domain::Reception& reception)
+void ProtocolAdapter::retell_upper_room(const domain::UpperRoom& upper_room)
 {
-	const v1::ServerEvent event = dwellers_event(reception.abode());
-	for (const domain::Soul& soul : world_.contemplating(reception)) {
+	const v1::ServerEvent event = dwellers_event(upper_room.abode());
+	for (const domain::Soul& soul : world_.contemplating(upper_room)) {
 		const auto& man = static_cast<const domain::Man&>(soul);
 		send_to_vessel(man.Vessel::id(), event);
 	}

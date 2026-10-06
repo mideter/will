@@ -25,7 +25,7 @@ class Contemplation;
 class Letter;
 class Man;
 class Gates;
-class Reception;
+class UpperRoom;
 class Room;
 class Supplication;
 class World;
@@ -71,9 +71,9 @@ public:
 	/// The room of this abode reflecting the words of this place; none if there is none.
 	const Room* room(const Place& reflects) const;
 
-	/// The standard rooms: the Gates and the Reception. Every abode has them.
+	/// The standard rooms: the gates and the upper room. Every abode has them.
 	const Gates& gates() const;
-	const Reception& reception() const;
+	const UpperRoom& upper_room() const;
 
 	/// The room of this abode by its name; none if there is none.
 	const Room* room(std::string_view name) const;

@@ -515,10 +515,10 @@ inline void admit_at_gates(World& world, const Man& host, const Man& man)
 }
 
 
-/// The host regards a dweller anew, standing in his reception.
-inline void regard_in_reception(World& world, const Man& host, const Man& man, const matter::Dweller::Kind kind)
+/// The host regards a dweller anew, standing in his upper room.
+inline void regard_in_upper_room(World& world, const Man& host, const Man& man, const matter::Dweller::Kind kind)
 {
-	looking_at(world, host, host.abode().reception(), [&] { host.regard(man, kind); });
+	looking_at(world, host, host.abode().upper_room(), [&] { host.regard(man, kind); });
 }
 
 

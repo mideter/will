@@ -17,7 +17,7 @@ class Abode;
 /// Room (Комната) — a window in an Abode onto what it reflects; it has no words
 /// of its own. Its name is given by what it reflects: the Cell (Келья) the words
 /// of the Abode itself, a tie room the words of a Tie — Ведение for its testator,
-/// Послушание for its novice; the Gates its threshold, the Reception its
+/// Послушание for its novice; the Gates its threshold, the upper room (Горница) its
 /// dwellers. Born and held by its Abode.
 class Room : public Place {
 public:
@@ -71,12 +71,12 @@ public:
 };
 
 
-/// Reception (Приёмная) — the room reflecting the dwellers of an Abode: those
+/// UpperRoom (Горница) — the room reflecting the dwellers of an Abode: those
 /// who enter see them, and here alone the host regards them anew. It stands in a
 /// part like any room. It shows no words.
-class Reception final : public Room {
+class UpperRoom final : public Room {
 public:
-	Reception(Birth<Abode> birth, matter::Room kept);
+	UpperRoom(Birth<Abode> birth, matter::Room kept);
 
 	std::string name() const override;
 

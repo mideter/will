@@ -29,7 +29,7 @@ Man::Man(matter::Man kept)
 	abode_ = std::make_unique<Abode>(Birth<Man>{*this}, std::move(*own));
 
 	// The standard rooms reflect the abode itself: the cell its words, the gates
-	// its threshold, the reception its dwellers.
+	// its threshold, the upper room its dwellers.
 	std::vector<matter::Room> rooms = spatiality().rooms(abode_->id());
 	for (const matter::Room::Aspect aspect :
 		 {matter::Room::Aspect::Words, matter::Room::Aspect::Threshold, matter::Room::Aspect::Dwellers}) {
@@ -72,8 +72,8 @@ void Man::regard(const Man& dweller, const matter::Dweller::Kind kind) const
 {
 	if (!abode_->dweller(dweller))
 		throw std::logic_error("he does not dwell in this abode");
-	if (!static_cast<const Witness&>(*this).contemplates(abode_->reception()))
-		throw std::logic_error("one regards dwellers only in one's reception");
+	if (!static_cast<const Witness&>(*this).contemplates(abode_->upper_room()))
+		throw std::logic_error("one regards dwellers only in one's upper room");
 
 	abode_->admit(Birth<Man>{*this}, dweller, spatiality().dwell(abode_->id(), dweller.Soul::id(), kind));
 }

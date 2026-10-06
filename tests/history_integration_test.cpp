@@ -299,7 +299,7 @@ TEST_CASE("history request returns letters of the witness abode with is_mine")
 	CHECK(viewer_rooms.rooms().rooms(0).name() == "Келья");
 	CHECK(viewer_rooms.rooms().rooms(0).part() == will::v1::INNER);
 	CHECK(viewer_rooms.rooms().rooms(1).name() == "Врата");
-	CHECK(viewer_rooms.rooms().rooms(2).name() == "Приёмная");
+	CHECK(viewer_rooms.rooms().rooms(2).name() == "Горница");
 	will::v1::ServerEvent viewer_outstanding;
 	REQUIRE(viewer.stream->Read(&viewer_outstanding));
 	CHECK(viewer_outstanding.has_outstanding());
@@ -414,16 +414,16 @@ TEST_CASE("a host admits a dweller, regards him anew, and he sees his abode as h
 	send_turn_to_abode(*man.stream, host_name, "Келья");
 	CHECK(read_event(*man.stream).has_protocol_notice());
 
-	// Outside his reception the host may not regard him anew; in it he may. A friend is
-	// shown every room at once: the cell, the gates, the reception.
+	// Outside his upper room the host may not regard him anew; in it he may. A friend is
+	// shown every room at once: the cell, the gates, the upper room.
 	send_regard(*host.stream, man_name, will::v1::FRIEND);
 	CHECK(read_event(*host.stream).has_protocol_notice());
-	stand_in(*host.stream, {}, "Приёмная");
+	stand_in(*host.stream, {}, "Горница");
 	send_regard(*host.stream, man_name, will::v1::FRIEND);
 	CHECK(read_event(*host.stream).has_protocol_notice());
-	const will::v1::ServerEvent reception = read_event(*host.stream);
-	REQUIRE(reception.dwellers().dwellers_size() == 1);
-	CHECK(reception.dwellers().dwellers(0).kind() == will::v1::FRIEND);
+	const will::v1::ServerEvent upper_room = read_event(*host.stream);
+	REQUIRE(upper_room.dwellers().dwellers_size() == 1);
+	CHECK(upper_room.dwellers().dwellers(0).kind() == will::v1::FRIEND);
 	CHECK(read_event(*man.stream).dwelling().kind() == will::v1::FRIEND);
 	REQUIRE(read_event(*man.stream).turned().abode_of() == host_name);
 	const will::v1::ServerEvent open = read_event(*man.stream);
@@ -449,7 +449,7 @@ TEST_CASE("a host admits a dweller, regards him anew, and he sees his abode as h
 	CHECK(live.word().body() == "news");
 
 	// Regarded as an acquaintance again, he sees the abode anew at once: no words.
-	stand_in(*host.stream, {}, "Приёмная");
+	stand_in(*host.stream, {}, "Горница");
 	send_regard(*host.stream, man_name, will::v1::ACQUAINTANCE);
 	CHECK(read_event(*host.stream).has_protocol_notice());
 	CHECK(read_event(*host.stream).has_dwellers());

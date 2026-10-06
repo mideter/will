@@ -889,7 +889,7 @@ TEST_CASE("the host admits a man as an acquaintance and regards him anew")
 	REQUIRE(host.abode().dweller(man));
 	CHECK_FALSE(std::dynamic_pointer_cast<const Neighbour>(host.abode().dweller(man)));
 	CHECK_THROWS_AS(host.admit(man), std::logic_error);
-	regard_in_reception(world, host, man, matter::Dweller::Kind::Friend);
+	regard_in_upper_room(world, host, man, matter::Dweller::Kind::Friend);
 	CHECK(std::dynamic_pointer_cast<const Friend>(host.abode().dweller(man)));
 	REQUIRE(cosmos.spatiality().dwellers().size() == 1);
 	CHECK(cosmos.spatiality().dwellers().front().kind() == matter::Dweller::Kind::Friend);
@@ -915,7 +915,7 @@ TEST_CASE("dwellers outlive Life in matter and are recalled on awakening")
 		const Man& host = world.welcome(host_token);
 		const Man& man = world.welcome(man_token);
 		admit_at_gates(world, host, man);
-		regard_in_reception(world, host, man, matter::Dweller::Kind::Neighbour);
+		regard_in_upper_room(world, host, man, matter::Dweller::Kind::Neighbour);
 	}
 
 	InMemoryCosmos cosmos(store);
@@ -954,12 +954,12 @@ TEST_CASE("a dweller enters the rooms his kind opens: a friend all, a neighbour 
 	// The cell stands in the inner part: an acquaintance and a neighbour do not enter it.
 	CHECK_FALSE(cell.dwells(man));
 	CHECK_THROWS_AS(man.contemplate(cell), std::logic_error);
-	regard_in_reception(world, host, man, matter::Dweller::Kind::Neighbour);
+	regard_in_upper_room(world, host, man, matter::Dweller::Kind::Neighbour);
 	CHECK_FALSE(cell.dwells(man));
 	CHECK_THROWS_AS(man.contemplate(cell), std::logic_error);
 
 	// A friend enters all rooms, and sees the words.
-	regard_in_reception(world, host, man, matter::Dweller::Kind::Friend);
+	regard_in_upper_room(world, host, man, matter::Dweller::Kind::Friend);
 	CHECK(cell.dwells(man));
 	man.contemplate(cell);
 	const std::shared_ptr<const Contemplation> gaze = world.contemplation(man.Soul::id());
@@ -968,10 +968,10 @@ TEST_CASE("a dweller enters the rooms his kind opens: a friend all, a neighbour 
 	// Set in the outer part, the cell is entered by a neighbour too, but never by an acquaintance.
 	host.arrange(cell, matter::Room::Part::Outer);
 	CHECK(cell.part() == matter::Room::Part::Outer);
-	regard_in_reception(world, host, man, matter::Dweller::Kind::Neighbour);
+	regard_in_upper_room(world, host, man, matter::Dweller::Kind::Neighbour);
 	CHECK(cell.dwells(man));
 	CHECK(letters_seen_by(gaze).size() == 1);
-	regard_in_reception(world, host, man, matter::Dweller::Kind::Acquaintance);
+	regard_in_upper_room(world, host, man, matter::Dweller::Kind::Acquaintance);
 	CHECK_FALSE(cell.dwells(man));
 	CHECK(gaze->words().empty());
 
@@ -1006,7 +1006,7 @@ TEST_CASE("a tie is reflected in the abode of each side: Ведение and По
 		CHECK(leading->name() == "Ведение — " + novice_name);
 		CHECK(obeying->name() == "Послушание — " + testator_name);
 		CHECK(leading->part() == matter::Room::Part::Inner);
-		CHECK(testator.abode().rooms().size() == 4);  // the cell, the gates, the reception, Ведение
+		CHECK(testator.abode().rooms().size() == 4);  // the cell, the gates, the upper room, Ведение
 	}
 
 	// Awakening anew, the tie rooms are recalled with the tie.
@@ -1171,28 +1171,28 @@ TEST_CASE("one comes into another's abode through its gates, let in by its host 
 }
 
 
-TEST_CASE("the host regards his dwellers anew only in his reception; it shows no words")
+TEST_CASE("the host regards his dwellers anew only in his upper room; it shows no words")
 {
 	InMemoryCosmos cosmos;
 	World& world = cosmos.life().create().world();
 	const auto& host = static_cast<const Witness&>(world.welcome(DeviceToken::generate()));
 	const auto& man = static_cast<const Witness&>(world.welcome(DeviceToken::generate()));
-	const Reception& reception = host.abode().reception();
-	CHECK(reception.name() == "Приёмная");
-	CHECK(reception.part() == matter::Room::Part::Inner);
+	const UpperRoom& upper_room = host.abode().upper_room();
+	CHECK(upper_room.name() == "Горница");
+	CHECK(upper_room.part() == matter::Room::Part::Inner);
 
 	host.wake();
 	man.wake();
 	admit_at_gates(world, host, man);
 
-	// Elsewhere he may not regard him anew; in his reception he may.
+	// Elsewhere he may not regard him anew; in his upper room he may.
 	CHECK_THROWS_AS(host.regard(man, matter::Dweller::Kind::Friend), std::logic_error);
-	host.contemplate(reception);
+	host.contemplate(upper_room);
 	host.regard(man, matter::Dweller::Kind::Friend);
 	CHECK(std::dynamic_pointer_cast<const Friend>(host.abode().dweller(man)));
 
-	// The reception is a room like any: a friend enters it, and sees no words there.
-	CHECK(reception.dwells(man));
-	man.contemplate(reception);
+	// The upper room is a room like any: a friend enters it, and sees no words there.
+	CHECK(upper_room.dwells(man));
+	man.contemplate(upper_room);
 	CHECK(world.contemplation(man.Soul::id())->words().empty());
 }

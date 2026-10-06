@@ -137,7 +137,7 @@ const Room& Abode::furnish(const matter::Room& kept)
 		rooms_.push_back(std::make_unique<Gates>(Birth<Abode>{*this}, kept));
 		break;
 	case matter::Room::Aspect::Dwellers:
-		rooms_.push_back(std::make_unique<Reception>(Birth<Abode>{*this}, kept));
+		rooms_.push_back(std::make_unique<UpperRoom>(Birth<Abode>{*this}, kept));
 		break;
 	}
 	return *rooms_.back();
@@ -178,14 +178,14 @@ const Gates& Abode::gates() const
 }
 
 
-const Reception& Abode::reception() const
+const UpperRoom& Abode::upper_room() const
 {
 	std::lock_guard lock(*mutex_);
 	for (const std::unique_ptr<Room>& room : rooms_) {
-		if (const auto* reception = dynamic_cast<const Reception*>(room.get()))
-			return *reception;
+		if (const auto* upper_room = dynamic_cast<const UpperRoom*>(room.get()))
+			return *upper_room;
 	}
-	throw std::logic_error("the abode has no reception");
+	throw std::logic_error("the abode has no upper room");
 }
 
 
