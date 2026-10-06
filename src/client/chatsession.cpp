@@ -29,6 +29,10 @@ bool is_post_auth_server_event(const v1::ServerEvent& event) noexcept
 	case v1::ServerEvent::kTurned:
 	case v1::ServerEvent::kStirred:
 	case v1::ServerEvent::kProtocolNotice:
+	case v1::ServerEvent::kDwelling:
+	case v1::ServerEvent::kDwellers:
+	case v1::ServerEvent::kRooms:
+	case v1::ServerEvent::kOutstanding:
 		return true;
 	default:
 		return false;
