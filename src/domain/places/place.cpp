@@ -30,6 +30,12 @@ const Place& Place::of(const id::Place id)
 }
 
 
+const Place& Place::source() const
+{
+	return *this;
+}
+
+
 bool Place::shows(const Man&, const Word&) const
 {
 	return true;
@@ -38,8 +44,8 @@ bool Place::shows(const Man&, const Word&) const
 
 std::shared_ptr<const Recollection> Place::recollection(const Contemplation& gaze) const
 {
-	if (&gaze.place() != this)
-		throw std::logic_error("this place is not what is contemplated");
+	if (&gaze.place().source() != &source())
+		throw std::logic_error("these words are not what is contemplated");
 
 	return recollection();
 }
@@ -47,7 +53,7 @@ std::shared_ptr<const Recollection> Place::recollection(const Contemplation& gaz
 
 std::shared_ptr<const Recollection> Place::recollection() const
 {
-	return Life::recollection(Birth<Place>{*this});
+	return Life::recollection(Birth<Place>{source()});
 }
 
 

@@ -26,6 +26,31 @@ std::string kind_name(const v1::DwellerKind kind)
 }
 
 
+void print_rooms(ConsoleUi& ui, const v1::Rooms& rooms)
+{
+	if (rooms.rooms().empty()) {
+		ui.print_status("No room is open to you here.");
+		return;
+	}
+	std::string told = "Rooms:";
+	for (const v1::Room& room : rooms.rooms())
+		told += " " + room.name() + (room.part() == v1::OUTER ? " (outer);" : " (inner);");
+	ui.print_status(told + " — /room <name>");
+}
+
+
+void print_outstanding(ConsoleUi& ui, const v1::Outstanding& outstanding)
+{
+	if (outstanding.behests().empty()) {
+		ui.print_status("Nothing awaits you.");
+		return;
+	}
+	for (const v1::OutstandingBehest& waiting : outstanding.behests())
+		ui.print_status("Awaits in " + waiting.room() + ": #" + std::to_string(waiting.behest().id()) + " "
+						+ waiting.behest().body());
+}
+
+
 void print_word(ConsoleUi& ui, const v1::Word& word, const bool dim)
 {
 	const std::string number = "#" + std::to_string(word.id());
@@ -65,6 +90,12 @@ void LoadingHistoryMessageHandler::on(const v1::ServerEvent& event)
 	case v1::ServerEvent::kHistoryEnd:
 		history_finished_ = true;
 		return;
+	case v1::ServerEvent::kRooms:
+		print_rooms(ui_, event.rooms());
+		return;
+	case v1::ServerEvent::kOutstanding:
+		print_outstanding(ui_, event.outstanding());
+		return;
 	default:
 		throw std::runtime_error("Unexpected message while loading history");
 	}
@@ -102,12 +133,21 @@ void ReceivingMessageHandler::on(const v1::ServerEvent& event)
 						 + tie.counterpart_name() + " (you are " + role + ")");
 		return;
 	}
-	case v1::ServerEvent::kTurned:
-		if (!event.turned().abode_of().empty())
-			ui_.print_status("── abode of " + event.turned().abode_of() + " ──");
-		else
-			ui_.print_status(event.turned().tie_with().empty() ? "── home ──"
-															   : "── tie with " + event.turned().tie_with() + " ──");
+	case v1::ServerEvent::kTurned: {
+		const auto& turned = event.turned();
+		if (!turned.tie_with().empty()) {
+			ui_.print_status("── tie with " + turned.tie_with() + " ──");
+			return;
+		}
+		const std::string abode = turned.abode_of().empty() ? "home" : "abode of " + turned.abode_of();
+		ui_.print_status("── " + abode + (turned.room().empty() ? "" : " · " + turned.room()) + " ──");
+		return;
+	}
+	case v1::ServerEvent::kRooms:
+		print_rooms(ui_, event.rooms());
+		return;
+	case v1::ServerEvent::kOutstanding:
+		print_outstanding(ui_, event.outstanding());
 		return;
 	case v1::ServerEvent::kDwelling:
 		ui_.print_status("You dwell in the abode of " + event.dwelling().host_name() + " as "

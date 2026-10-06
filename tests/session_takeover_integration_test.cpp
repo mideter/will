@@ -193,6 +193,19 @@ TEST_CASE("second session with same device token displaces the first")
 
 	REQUIRE(wait_for_stream_end(first, std::chrono::seconds(2)));
 
+	// One writes in one's cell.
+	{
+		will::v1::ClientEvent turn;
+		turn.mutable_turn()->set_room("Келья");
+		REQUIRE(second.stream->Write(turn));
+		will::v1::ServerEvent event;
+		REQUIRE(second.stream->Read(&event));
+		REQUIRE(event.has_turned());
+		do {
+			REQUIRE(second.stream->Read(&event));
+		} while (!event.has_history_end());
+	}
+
 	will::v1::ClientEvent chat;
 	chat.mutable_chat()->set_body("after-takeover");
 	REQUIRE(second.stream->Write(chat));

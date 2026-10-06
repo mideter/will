@@ -68,11 +68,27 @@ message AcceptSupplication {
 }
 
 
-// Turn the gaze to the tie with this soul, or to the abode of this host one
-// dwells in, or home to one's own abode when both are empty.
+// Turn the gaze to the tie with this soul; or to an abode — the abode of this
+// host one dwells in, or one's own when abode_of is empty — and, when room is
+// given, into that room of it.
 message Turn {
     string tie_with = 1;
     string abode_of = 2;
+    string room = 3;
+}
+
+
+// The part of an abode a room stands in.
+enum RoomPart {
+    INNER = 0; // its friends enter
+    OUTER = 1; // its neighbours enter too
+}
+
+
+// Set a room of one's abode in this part of it.
+message Arrange {
+    string room = 1;
+    RoomPart part = 2;
 }
 
 
@@ -120,11 +136,36 @@ message TieFormed {
 }
 
 
-// The gaze now rests on the tie with this soul, or on the abode of this host,
-// or at home when both are empty.
+// The gaze now rests on the tie with this soul, or on an abode (of this host,
+// or one's own when empty) — in this room of it, when room is given.
 message Turned {
     string tie_with = 1;
     string abode_of = 2;
+    string room = 3;
+}
+
+
+message Room {
+    string name = 1;
+    RoomPart part = 2;
+}
+
+
+// The rooms of the abode one looks at that one may enter.
+message Rooms {
+    repeated Room rooms = 1;
+}
+
+
+message OutstandingBehest {
+    string room = 1;
+    Word behest = 2;
+}
+
+
+// What awaits the host in the rooms of his abode: behests not yet fulfilled.
+message Outstanding {
+    repeated OutstandingBehest behests = 1;
 }
 
 
@@ -172,6 +213,7 @@ message ClientEvent {
         Admit admit = 8;
         Regard regard = 9;
         ListDwellers list_dwellers = 10;
+        Arrange arrange = 11;
     }
 }
 
@@ -190,5 +232,7 @@ message ServerEvent {
         ProtocolNotice protocol_notice = 11;
         Dwelling dwelling = 12;
         Dwellers dwellers = 13;
+        Rooms rooms = 14;
+        Outstanding outstanding = 15;
     }
 }

@@ -10,6 +10,7 @@
 #include "places/shepherding.h"
 #include "men/testator.h"
 #include "places/tie.h"
+#include "places/room.h"
 #include "relations/friend.h"
 #include "relations/contemplation.h"
 #include "men/witness.h"
@@ -233,7 +234,11 @@ void ProtocolAdapter::handle_user_chat(const SessionId session_id, const v1::Cha
 	}
 
 	std::shared_ptr<const domain::Word> placed;
-	if (const auto* abode = dynamic_cast<const domain::Abode*>(&gaze->place())) {
+	if (dynamic_cast<const domain::Abode*>(&gaze->place())) {
+		send_notice(session_id, "one writes in a room: /room Келья");
+		return;
+	}
+	if (const auto* abode = dynamic_cast<const domain::Abode*>(&gaze->place().source())) {
 		if (&abode->host() != &man) {
 			send_notice(session_id, "only the host writes in his abode");
 			return;
@@ -248,7 +253,7 @@ void ProtocolAdapter::handle_user_chat(const SessionId session_id, const v1::Cha
 		placed = gaze->words().back();
 	} else {
 		// In a tie the testator wills; the novice fulfils with /done.
-		const auto& tie = dynamic_cast<const domain::Tie&>(gaze->place());
+		const auto& tie = dynamic_cast<const domain::Tie&>(gaze->place().source());
 		if (tie.testator().Soul::id() != man.Soul::id()) {
 			send_notice(session_id, "in a tie the novice fulfils behests: /done <number> [report]");
 			return;
@@ -266,7 +271,7 @@ void ProtocolAdapter::handle_user_chat(const SessionId session_id, const v1::Cha
 	ack.mutable_receipt_ack();
 	send_event(session_id, ack);
 
-	tell_placed(gaze->place(), *placed, man);
+	tell_placed(gaze->place().source(), *placed, man);
 }
 
 
@@ -274,7 +279,12 @@ void ProtocolAdapter::tell_placed(const domain::Place& place, const domain::Word
 {
 	for (const domain::Soul& beholder : world_.contemplating(place)) {
 		const auto& man = static_cast<const domain::Man&>(beholder);
-		if (man.Soul::id() != author.Soul::id() && place.shows(man, word))
+		if (man.Soul::id() == author.Soul::id())
+			continue;
+
+		// Each sees it as the place he looks at shows it: the place, or a room reflecting it.
+		const std::shared_ptr<const domain::Contemplation> gaze = world_.contemplation(man.Soul::id());
+		if (gaze && gaze->place().shows(man, word))
 			send_to_vessel(man.Vessel::id(), word_event(word, man.Soul::id()));
 	}
 
@@ -332,7 +342,7 @@ void ProtocolAdapter::handle_history_request(const SessionId session_id, const v
 		return;
 	}
 
-	tell_words(session_id, *gaze, man, request.limit());
+	tell_view(session_id, *gaze, man, request.limit());
 }
 
 
@@ -403,19 +413,30 @@ void ProtocolAdapter::handle_turn(const SessionId session_id, const v1::Turn& ms
 	const domain::Man& self = session_man(session_id);
 	const auto& witness = static_cast<const domain::Witness&>(self);
 
-	if (!msg.abode_of().empty()) {
-		const domain::Man* host = man_named(session_id, msg.abode_of());
-		if (!host)
-			return;
+	if (msg.tie_with().empty()) {
+		const domain::Man* host = &self;
+		if (!msg.abode_of().empty()) {
+			host = man_named(session_id, msg.abode_of());
+			if (!host)
+				return;
+		}
+
+		const domain::Place* place = &host->abode();
+		if (!msg.room().empty()) {
+			place = host->abode().room(msg.room());
+			if (!place) {
+				send_notice(session_id, "no such room");
+				return;
+			}
+		}
 
 		try {
-			witness.contemplate(host->abode());
+			witness.contemplate(*place);
 		} catch (const std::logic_error&) {
-			send_notice(session_id, "you do not dwell in that abode");
+			send_notice(session_id, msg.room().empty() ? "you do not dwell in that abode"
+													   : "you do not enter that room");
 			return;
 		}
-	} else if (msg.tie_with().empty()) {
-		witness.contemplate(witness.abode());
 	} else {
 		const domain::Man* counterpart = man_named(session_id, msg.tie_with());
 		if (!counterpart)
@@ -441,10 +462,11 @@ void ProtocolAdapter::handle_turn(const SessionId session_id, const v1::Turn& ms
 	v1::ServerEvent turned;
 	turned.mutable_turned()->set_tie_with(msg.tie_with());
 	turned.mutable_turned()->set_abode_of(msg.abode_of());
+	turned.mutable_turned()->set_room(msg.room());
 	send_event(session_id, turned);
 
 	if (const auto gaze = world_.contemplation(self.Soul::id()))
-		tell_words(session_id, *gaze, self, TurnWords);
+		tell_view(session_id, *gaze, self, TurnWords);
 }
 
 
@@ -454,7 +476,7 @@ void ProtocolAdapter::handle_fulfil(const SessionId session_id, const v1::Fulfil
 	const auto& novice = static_cast<const domain::Novice&>(self);
 
 	const std::shared_ptr<const domain::Contemplation> gaze = world_.contemplation(self.Soul::id());
-	if (!gaze || !dynamic_cast<const domain::Tie*>(&gaze->place())) {
+	if (!gaze || !dynamic_cast<const domain::Tie*>(&gaze->place().source())) {
 		send_notice(session_id, "turn to the tie first: /tie <name>");
 		return;
 	}
@@ -477,7 +499,7 @@ void ProtocolAdapter::handle_fulfil(const SessionId session_id, const v1::Fulfil
 
 		const std::shared_ptr<const domain::Deed> deed = novice.execute(*behest, std::move(report));
 		send_notice(session_id, "behest " + std::to_string(behest->id().value()) + " fulfilled");
-		tell_placed(gaze->place(), *deed, self);
+		tell_placed(gaze->place().source(), *deed, self);
 	} catch (const std::exception& e) {
 		send_notice(session_id, e.what());
 	}
@@ -571,7 +593,14 @@ void ProtocolAdapter::handle_regard(const SessionId session_id, const v1::Regard
 void ProtocolAdapter::retell_abode(const domain::Man& host, const domain::Man& dweller)
 {
 	const std::shared_ptr<const domain::Contemplation> gaze = world_.contemplation(dweller.Soul::id());
-	if (!gaze || &gaze->place() != static_cast<const domain::Place*>(&host.abode()))
+	if (!gaze)
+		return;
+
+	// He looks at the abode itself, or at one of its rooms.
+	const auto* room = dynamic_cast<const domain::Room*>(&gaze->place());
+	const bool here = &gaze->place() == static_cast<const domain::Place*>(&host.abode())
+					  || (room && &room->abode() == &host.abode());
+	if (!here)
 		return;
 
 	const auto sid = registry_.session_id_for_vessel(dweller.Vessel::id());
@@ -580,8 +609,10 @@ void ProtocolAdapter::retell_abode(const domain::Man& host, const domain::Man& d
 
 	v1::ServerEvent turned;
 	turned.mutable_turned()->set_abode_of(std::string{host.name().text()});
+	if (room)
+		turned.mutable_turned()->set_room(room->name());
 	send_event(*sid, turned);
-	tell_words(*sid, *gaze, dweller, TurnWords);
+	tell_view(*sid, *gaze, dweller, TurnWords);
 }
 
 
@@ -597,6 +628,68 @@ void ProtocolAdapter::handle_list_dwellers(const SessionId session_id)
 		told->set_kind(kind_of(*dweller));
 	}
 	send_event(session_id, event);
+}
+
+
+void ProtocolAdapter::tell_view(const SessionId session_id, const domain::Contemplation& gaze,
+								const domain::Man& listener, const std::uint32_t limit)
+{
+	const auto* abode = dynamic_cast<const domain::Abode*>(&gaze.place());
+	if (!abode) {
+		tell_words(session_id, gaze, listener, limit);
+		return;
+	}
+
+	v1::ServerEvent rooms_event;
+	auto* rooms = rooms_event.mutable_rooms();
+	for (const domain::Room& room : abode->rooms()) {
+		if (!room.dwells(listener))
+			continue;
+		auto* told = rooms->add_rooms();
+		told->set_name(room.name());
+		told->set_part(room.part() == domain::matter::Room::Part::Outer ? v1::OUTER : v1::INNER);
+	}
+	send_event(session_id, rooms_event);
+
+	if (&abode->host() == &listener) {
+		v1::ServerEvent outstanding_event;
+		auto* outstanding = outstanding_event.mutable_outstanding();
+		for (const std::shared_ptr<const domain::Behest>& behest : abode->outstanding()) {
+			auto* told = outstanding->add_behests();
+			if (const domain::Room* room = abode->room(behest->tie()))
+				told->set_room(room->name());
+			*told->mutable_behest() = word_event(*behest, listener.Soul::id()).word();
+		}
+		send_event(session_id, outstanding_event);
+	}
+
+	v1::ServerEvent end_event;
+	end_event.mutable_history_end();
+	send_event(session_id, end_event);
+}
+
+
+void ProtocolAdapter::handle_arrange(const SessionId session_id, const v1::Arrange& msg)
+{
+	const domain::Man& self = session_man(session_id);
+	const domain::Room* room = self.abode().room(msg.room());
+	if (!room) {
+		send_notice(session_id, "no such room");
+		return;
+	}
+
+	const auto part = msg.part() == v1::OUTER ? domain::matter::Room::Part::Outer : domain::matter::Room::Part::Inner;
+	try {
+		self.arrange(*room, part);
+	} catch (const std::exception& e) {
+		send_notice(session_id, e.what());
+		return;
+	}
+
+	send_notice(session_id, msg.room() + (part == domain::matter::Room::Part::Outer ? " is now in the outer part"
+																				  : " is now in the inner part"));
+	for (const std::shared_ptr<const domain::Acquaintance>& dweller : self.abode().dwellers())
+		retell_abode(self, dweller->man());
 }
 
 

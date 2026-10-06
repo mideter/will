@@ -42,8 +42,12 @@ public:
 	/** Fulfil a behest of the contemplated tie, with an optional report. */
 	void fulfil(std::uint64_t behest_id, std::string_view report) const;
 
-	/// Turn the gaze to the abode of this host one dwells in.
-	void visit(std::string_view host_name) const;
+	/// Turn the gaze to the abode of this host one dwells in, or to one's own
+	/// when empty; into this room of it, when given.
+	void visit(std::string_view host_name, std::string_view room = {}) const;
+
+	/// Set a room of one's abode in the outer part, or the inner one.
+	void arrange(std::string_view room, bool outer) const;
 
 	void admit(std::string_view name) const;
 	void regard(std::string_view name, v1::DwellerKind kind) const;

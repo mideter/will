@@ -81,7 +81,7 @@ std::vector<std::reference_wrapper<const Soul>> Heaven::contemplating(const Plac
 
 	std::vector<std::reference_wrapper<const Soul>> out;
 	for (const auto& [soul_id, contemplation] : contemplations_) {
-		if (&contemplation->place() != &place)
+		if (&contemplation->place().source() != &place.source())
 			continue;
 		const auto it = souls_.find(soul_id);
 		if (it == souls_.end() || !it->second)

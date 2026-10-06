@@ -34,6 +34,12 @@ public:
 	/// The host of its abode dwells here, and the dwellers whose kind enters its part.
 	bool dwells(const Man& man) const override;
 
+	/// A room shows the words of the place it reflects.
+	const Place& source() const override;
+
+	/// It shows them to whoever dwells here now.
+	bool shows(const Man& who, const Word& word) const override;
+
 private:
 	const Abode& abode_;
 	const Place& reflects_;

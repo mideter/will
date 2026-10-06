@@ -26,7 +26,8 @@ public:
 	/// of. Throws if he does not dwell there.
 	void contemplate(const Place& place) const;
 
-	/// Whether this witness contemplates this place now.
+	/// Whether this witness contemplates the words of this place now: the place
+	/// itself, or a room reflecting it.
 	bool contemplates(const Place& place) const;
 
 	void say(const Saying& saying) const final;

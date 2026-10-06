@@ -32,6 +32,8 @@ public:
 	/// Throws if unknown.
 	const Soul& soul(id::Soul soul_id) const;
 
+	/// The souls whose gaze sees the words of this place: on the place itself,
+	/// or on a room reflecting it.
 	std::vector<std::reference_wrapper<const Soul>> contemplating(const Place& place) const;
 
 	/// Supplications awaiting this soul's answer, oldest first.

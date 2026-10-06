@@ -12,6 +12,7 @@
 #include "relations/supplication.h"
 #include "places/abode.h"
 #include "words/letter.h"
+#include "places/room.h"
 #include "words/recollection.h"
 #include "relations/contemplation.h"
 #include "men/soul.h"
@@ -484,6 +485,13 @@ private:
 	InMemoryEternity eternity_;
 	Life life_;
 };
+
+
+/// The cell of a man's abode: the room of his own records, where he writes.
+inline const Room& cell_of(const Man& man)
+{
+	return *man.abode().room(man.abode());
+}
 
 
 /// The letters a gaze beholds (the words of an abode are letters).

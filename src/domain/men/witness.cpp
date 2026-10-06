@@ -3,6 +3,7 @@
 #include "matter/dating.h"
 #include "matter/letter.h"
 #include "matter/placement.h"
+#include "places/room.h"
 #include "words/letter.h"
 #include "matter/word.h"
 #include "places/abode.h"
@@ -46,7 +47,7 @@ void Witness::contemplate(const Place& place) const
 bool Witness::contemplates(const Place& place) const
 {
 	const std::shared_ptr<const Contemplation> gaze = contemplation();
-	return gaze && &gaze->place() == &place;
+	return gaze && &gaze->place().source() == &place.source();
 }
 
 
@@ -56,11 +57,12 @@ void Witness::say(const Saying& saying) const
 	if (!gaze)
 		throw std::logic_error("Witness is asleep");
 
-	const auto* abode = dynamic_cast<const Abode*>(&gaze->place());
-	if (!abode)
-		throw std::logic_error("one says only in an abode");
+	// One writes one's own records only in one's cell.
+	const auto* room = dynamic_cast<const Room*>(&gaze->place());
+	if (!room || &room->abode() != &abode() || &room->reflects() != static_cast<const Place*>(&abode()))
+		throw std::logic_error("one says only in one's cell");
 
-	const Abode& place = *abode;
+	const Abode& place = abode();
 
 	matter::Word uttered = utter(saying);
 	matter::Placement placed = spatiality().place(uttered.id(), place.id());

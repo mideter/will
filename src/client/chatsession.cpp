@@ -93,10 +93,32 @@ bool handle_slash_command(WillClient& client, ConsoleUi& ui, const std::string& 
 
 	if (cmd == "visit") {
 		if (args.empty()) {
-			ui.print_status("usage: /visit <name>");
+			ui.print_status("usage: /visit <name> [room]");
 			return true;
 		}
-		client.visit(args);
+		const auto sp = args.find(' ');
+		const std::string_view host = args.substr(0, sp);
+		const std::string_view room = sp == std::string_view::npos ? std::string_view{} : args.substr(sp + 1);
+		client.visit(host, room);
+		return true;
+	}
+	if (cmd == "room") {
+		if (args.empty()) {
+			ui.print_status("usage: /room <name>");
+			return true;
+		}
+		client.visit({}, args);
+		return true;
+	}
+	if (cmd == "arrange") {
+		const auto sp = args.find(' ');
+		const std::string_view part = args.substr(0, sp);
+		const std::string_view room = sp == std::string_view::npos ? std::string_view{} : args.substr(sp + 1);
+		if (room.empty() || (part != "inner" && part != "outer")) {
+			ui.print_status("usage: /arrange inner|outer <room>");
+			return true;
+		}
+		client.arrange(room, part == "outer");
 		return true;
 	}
 	if (cmd == "admit") {
@@ -130,7 +152,7 @@ bool handle_slash_command(WillClient& client, ConsoleUi& ui, const std::string& 
 		return true;
 	}
 
-	ui.print_status("unknown command; try /ask /accept /tie /home /done /admit /regard /dwellers /visit");
+	ui.print_status("unknown command; try /ask /accept /tie /home /done /room /arrange /admit /regard /dwellers /visit");
 	return true;
 }
 
@@ -172,7 +194,7 @@ void ChatSession::run()
 
 	ui_.print_status("Connected as " + client_.own_name() + ".");
 	ui_.print_status("Chat: type text. Obedience: /ask /accept /tie /home /done. "
-					 "Dwellers: /admit /regard /dwellers /visit. Ctrl+D to exit.");
+					 "Rooms: /room /arrange. Dwellers: /admit /regard /dwellers /visit. Ctrl+D to exit.");
 	ui_.set_live_prompt(true);
 	ui_.print_prompt();
 

@@ -88,6 +88,8 @@ TEST_CASE("sqlite persistence survives reopen")
 
 		static_cast<const Witness&>(man_a).wake();
 		static_cast<const Witness&>(man_b).wake();
+		static_cast<const Witness&>(man_a).contemplate(*man_a.abode().room(man_a.abode()));
+		static_cast<const Witness&>(man_b).contemplate(*man_b.abode().room(man_b.abode()));
 		man_a.say("from-peer");
 		man_b.say("from-me");
 
@@ -144,6 +146,7 @@ TEST_CASE("sqlite persistence survives reopen")
 		// After the World awakens anew everyone is asleep until he comes.
 		CHECK_FALSE(world.contemplation(man_a_reloaded.Soul::id()));
 		static_cast<const Witness&>(man_a_reloaded).wake();
+		static_cast<const Witness&>(man_a_reloaded).contemplate(*man_a_reloaded.abode().room(man_a_reloaded.abode()));
 
 		const auto letters = letters_seen_by(world.contemplation(man_a_reloaded.Soul::id()));
 		REQUIRE(letters.size() == 1);

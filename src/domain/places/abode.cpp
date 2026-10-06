@@ -3,6 +3,10 @@
 #include "relations/contemplation.h"
 #include "relations/friend.h"
 #include "places/room.h"
+#include "places/tie.h"
+#include "men/novice.h"
+#include "words/behest.h"
+#include "words/deed.h"
 #include "men/man.h"
 #include "men/witness.h"
 #include "words/letter.h"
@@ -12,6 +16,7 @@
 #include "properties/immanent.h"
 
 #include <stdexcept>
+#include <unordered_set>
 #include <utility>
 
 
@@ -186,13 +191,31 @@ std::shared_ptr<const Acquaintance> Abode::dweller(const Man& man) const
 }
 
 
-bool Abode::shows(const Man& who, const Word&) const
+bool Abode::shows(const Man&, const Word&) const
 {
-	if (&who == &host_)
-		return true;
+	return false;
+}
 
-	const Room* cell = room(*this);
-	return cell && cell->dwells(who);
+
+std::vector<std::shared_ptr<const Behest>> Abode::outstanding() const
+{
+	const auto& asker = dynamic_cast<const Novice&>(host_);
+
+	std::vector<std::shared_ptr<const Behest>> waiting;
+	for (const Room& room : rooms()) {
+		const auto* tie = dynamic_cast<const Tie*>(&room.reflects());
+		if (!tie)
+			continue;
+
+		std::unordered_set<id::Word> fulfilled;
+		for (const std::shared_ptr<const Deed>& deed : tie->deeds(asker))
+			fulfilled.insert(deed->behest());
+		for (std::shared_ptr<const Behest>& behest : tie->behests(asker)) {
+			if (!fulfilled.contains(behest->id()))
+				waiting.push_back(std::move(behest));
+		}
+	}
+	return waiting;
 }
 
 
@@ -208,7 +231,7 @@ bool Abode::dwells(const Man& man) const
 
 std::shared_ptr<const Letter> Abode::inscribe(const Contemplation& gaze, matter::Letter kept) const
 {
-	if (&gaze.place() != this)
+	if (&gaze.place().source() != this)
 		throw std::logic_error("this abode is not what is contemplated");
 	if (kept.placement().place() != id())
 		throw std::logic_error("the letter is not placed in this abode");

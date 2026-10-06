@@ -180,6 +180,7 @@ TEST_CASE("man say persists via temporality")
 	const Man& author = world.welcome(DeviceToken::generate());
 	const auto& witness = static_cast<const Witness&>(author);
 	witness.wake();
+	witness.contemplate(cell_of(witness));
 	author.say("hello");
 
 	const auto placed = cosmos.spatiality().placements(witness.abode().id(), 10);
@@ -205,6 +206,7 @@ TEST_CASE("letters of an abode are seen through contemplation by one who dwells 
 	const Man& man = world.welcome(test_token("feedfacefeedfacefeedfacefeedface"));
 	const auto& witness = static_cast<const Witness&>(man);
 	witness.wake();
+	witness.contemplate(cell_of(witness));
 
 	for (int i = 0; i < 5; ++i)
 		man.say("m" + std::to_string(i));
@@ -235,7 +237,7 @@ TEST_CASE("letters of an abode are seen through contemplation by one who dwells 
 
 	// Turning the gaze to an abode one dwells in ends the former gaze and begins a new one.
 	const std::shared_ptr<const Contemplation> former = world.contemplation(stranger.Soul::id());
-	stranger.contemplate(stranger.abode());
+	stranger.contemplate(cell_of(stranger));
 	CHECK(world.contemplation(stranger.Soul::id()) != former);
 	CHECK(world.contemplating(stranger.abode()).size() == 1);
 
@@ -272,6 +274,7 @@ TEST_CASE("letters of an abode live while it is contemplated, shared by every ga
 
 	// The first gaze births the letters from what the dimensions keep.
 	host.wake();
+	host.contemplate(cell_of(host));
 	CHECK(cosmos.spatiality().placement_reads() == 1);
 	CHECK(letters_seen_by(world.contemplation(host.Soul::id())).empty());
 
@@ -287,7 +290,7 @@ TEST_CASE("letters of an abode live while it is contemplated, shared by every ga
 
 	// A new gaze upon the same abode shares the very same letters: nothing is read anew.
 	const std::shared_ptr<const Contemplation> former = world.contemplation(host.Soul::id());
-	host.contemplate(host.abode());
+	host.contemplate(cell_of(host));
 	const std::shared_ptr<const Contemplation> current = world.contemplation(host.Soul::id());
 	REQUIRE(current != former);
 	CHECK(letters_seen_by(current)[0] == seen[0]);
@@ -305,6 +308,7 @@ TEST_CASE("letters of an abode live while it is contemplated, shared by every ga
 	// What is said in another abode enters only that abode's recollection.
 	const auto& other = static_cast<const Witness&>(world.welcome(DeviceToken::generate()));
 	other.wake();
+	other.contemplate(cell_of(other));
 	other.say("elsewhere");
 	CHECK(letters_seen_by(current).size() == 3);
 	CHECK(letters_seen_by(world.contemplation(other.Soul::id())).size() == 1);
@@ -327,13 +331,14 @@ TEST_CASE("the words of a place live together in its recollection, all or none")
 	const auto& host = static_cast<const Witness&>(world.welcome(DeviceToken::generate()));
 
 	host.wake();
+	host.contemplate(cell_of(host));
 	host.say("first");
 	host.say("second");
 
 	// While any gaze holds the recollection, every word in it lives, even one
 	// said after that gaze was let go by Heaven.
 	std::shared_ptr<const Contemplation> old_gaze = world.contemplation(host.Soul::id());
-	host.contemplate(host.abode());
+	host.contemplate(cell_of(host));
 	host.say("third");
 	const std::weak_ptr<const Letter> first = letters_seen_by(old_gaze).front();
 	const std::weak_ptr<const Letter> third = letters_seen_by(world.contemplation(host.Soul::id())).back();
@@ -349,6 +354,7 @@ TEST_CASE("the words of a place live together in its recollection, all or none")
 	// Waking, he recollects all three anew from the dimensions.
 	const std::size_t reads = cosmos.spatiality().placement_reads();
 	host.wake();
+	host.contemplate(cell_of(host));
 	const auto seen = letters_seen_by(world.contemplation(host.Soul::id()));
 	REQUIRE(seen.size() == 3);
 	CHECK(seen[0]->saying().body() == "first");
@@ -366,6 +372,7 @@ TEST_CASE("letters of an abode are gone with the last gaze and are born anew fro
 	const auto& host = static_cast<const Witness&>(world.welcome(DeviceToken::generate()));
 
 	host.wake();
+	host.contemplate(cell_of(host));
 	host.say("kept");
 	std::weak_ptr<const Letter> watched = letters_seen_by(world.contemplation(host.Soul::id())).front();
 	REQUIRE(watched.lock());
@@ -384,6 +391,7 @@ TEST_CASE("letters of an abode are gone with the last gaze and are born anew fro
 
 	// A new gaze births the letters anew from the dimensions.
 	host.wake();
+	host.contemplate(cell_of(host));
 	CHECK(cosmos.spatiality().placement_reads() == reads + 1);
 	const auto reborn = letters_seen_by(world.contemplation(host.Soul::id()));
 	REQUIRE(reborn.size() == 1);
@@ -535,8 +543,8 @@ TEST_CASE("the sides of a tie may contemplate it and behold its behests")
 	// In a tie one wills, one does not say.
 	CHECK_THROWS_AS(static_cast<const Man&>(testator).say("hello"), std::logic_error);
 
-	// Turning back, he contemplates his abode again.
-	testator.contemplate(testator.abode());
+	// Turning to his cell, he writes there.
+	testator.contemplate(cell_of(testator));
 	CHECK(world.contemplating(shepherding).empty());
 	static_cast<const Man&>(testator).say("hello");
 }
@@ -850,6 +858,7 @@ TEST_CASE("a tie shows its behests only to its sides; behests are not letters")
 	CHECK(letters_seen_by(world.contemplation(novice.Soul::id())).empty());
 
 	// A letter is not a behest.
+	novice.contemplate(cell_of(novice));
 	static_cast<const Witness&>(novice).say("hello");
 	REQUIRE(letters_seen_by(world.contemplation(novice.Soul::id())).size() == 1);
 	REQUIRE(obedience.behests(novice).size() == 1);
@@ -934,22 +943,26 @@ TEST_CASE("a dweller enters the rooms his kind opens: a friend all, a neighbour 
 	const Room& cell = *host.abode().room(host.abode());
 
 	host.wake();
+	host.contemplate(cell_of(host));
 	host.say("first");
 	host.admit(man);
+	// Looking at the abode itself, a dweller sees no words: they are seen in its rooms.
 	man.wake();
 	man.contemplate(host.abode());
-	const std::shared_ptr<const Contemplation> gaze = world.contemplation(man.Soul::id());
+	CHECK(world.contemplation(man.Soul::id())->words().empty());
 
 	// The cell stands in the inner part: an acquaintance and a neighbour do not enter it.
 	CHECK_FALSE(cell.dwells(man));
-	CHECK(gaze->words().empty());
+	CHECK_THROWS_AS(man.contemplate(cell), std::logic_error);
 	host.regard(man, matter::Dweller::Kind::Neighbour);
 	CHECK_FALSE(cell.dwells(man));
-	CHECK(gaze->words().empty());
+	CHECK_THROWS_AS(man.contemplate(cell), std::logic_error);
 
 	// A friend enters all rooms, and sees the words.
 	host.regard(man, matter::Dweller::Kind::Friend);
 	CHECK(cell.dwells(man));
+	man.contemplate(cell);
+	const std::shared_ptr<const Contemplation> gaze = world.contemplation(man.Soul::id());
 	CHECK(letters_seen_by(gaze).size() == 1);
 
 	// Set in the outer part, the cell is entered by a neighbour too, but never by an acquaintance.
@@ -1061,4 +1074,61 @@ TEST_CASE("every abode has its cell, a room reflecting the abode itself, kept on
 	REQUIRE(man.abode().rooms().size() == 1);
 	CHECK(store.rooms.size() == 1);
 	CHECK(man.abode().rooms().front().get().id() == store.rooms.front().id());
+}
+
+
+TEST_CASE("one writes only in one's cell; the abode itself shows no words")
+{
+	InMemoryCosmos cosmos;
+	World& world = cosmos.life().create().world();
+	const auto& host = static_cast<const Witness&>(world.welcome(DeviceToken::generate()));
+
+	// Woken, he looks at his abode itself: there he does not write, and sees no words.
+	host.wake();
+	CHECK(&world.contemplation(host.Soul::id())->place() == static_cast<const Place*>(&host.abode()));
+	CHECK_THROWS_AS(static_cast<const Man&>(host).say("at the threshold"), std::logic_error);
+
+	host.contemplate(cell_of(host));
+	static_cast<const Man&>(host).say("in the cell");
+	CHECK(letters_seen_by(world.contemplation(host.Soul::id())).size() == 1);
+
+	host.contemplate(host.abode());
+	CHECK(world.contemplation(host.Soul::id())->words().empty());
+
+	// Through his cell he contemplates the words of his abode.
+	host.contemplate(cell_of(host));
+	CHECK(host.contemplates(host.abode()));
+	CHECK(world.contemplating(host.abode()).size() == 1);
+}
+
+
+TEST_CASE("the abode shows its host what awaits him: behests not yet fulfilled")
+{
+	InMemoryCosmos cosmos;
+	World& world = cosmos.life().create().world();
+	const auto& novice = static_cast<const Novice&>(world.welcome(DeviceToken::generate()));
+	const auto& testator = static_cast<const Testator&>(world.welcome(DeviceToken::generate()));
+	novice.admit(testator);
+	testator.admit(novice);
+	novice.supplicate(testator);
+	const Shepherding& shepherding = testator.accept(*testator.supplication(novice));
+	CHECK(novice.abode().outstanding().empty());
+
+	// The testator wills through his room Ведение, as through the tie itself.
+	testator.wake();
+	testator.contemplate(*testator.abode().room(shepherding));
+	const std::shared_ptr<const Behest> fast = testator.will(shepherding, "fast");
+	const std::shared_ptr<const Behest> pray = testator.will(shepherding, "pray");
+
+	REQUIRE(novice.abode().outstanding().size() == 2);
+	CHECK(novice.abode().outstanding()[0]->id() == fast->id());
+	REQUIRE(testator.abode().outstanding().size() == 2);
+
+	// Fulfilled through the room Послушание, a behest no longer awaits.
+	novice.wake();
+	novice.contemplate(*novice.abode().room(shepherding));
+	novice.execute(*fast);
+	REQUIRE(novice.abode().outstanding().size() == 1);
+	CHECK(novice.abode().outstanding()[0]->id() == pray->id());
+	CHECK(testator.abode().outstanding().size() == 1);
 }

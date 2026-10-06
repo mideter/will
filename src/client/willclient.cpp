@@ -254,15 +254,29 @@ void WillClient::fulfil(const std::uint64_t behest_id, const std::string_view re
 }
 
 
-void WillClient::visit(const std::string_view host_name) const
+void WillClient::visit(const std::string_view host_name, const std::string_view room) const
 {
 	if (!authenticated_)
 		throw std::logic_error("WillClient: not authenticated");
 
 	v1::ClientEvent event;
 	event.mutable_turn()->set_abode_of(std::string{host_name});
+	event.mutable_turn()->set_room(std::string{room});
 	if (!write_event(event))
 		throw std::runtime_error("Will protocol: failed to send Turn");
+}
+
+
+void WillClient::arrange(const std::string_view room, const bool outer) const
+{
+	if (!authenticated_)
+		throw std::logic_error("WillClient: not authenticated");
+
+	v1::ClientEvent event;
+	event.mutable_arrange()->set_room(std::string{room});
+	event.mutable_arrange()->set_part(outer ? v1::OUTER : v1::INNER);
+	if (!write_event(event))
+		throw std::runtime_error("Will protocol: failed to send Arrange");
 }
 
 

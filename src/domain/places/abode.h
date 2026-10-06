@@ -20,6 +20,7 @@ namespace will::domain {
 
 
 class Acquaintance;
+class Behest;
 class Contemplation;
 class Letter;
 class Man;
@@ -29,9 +30,11 @@ class World;
 
 
 /// Abode (Обитель) — a man's own place, born of its host; in a sense the host
-/// is his Abode. Others dwell here as the host admits them: each is born an
-/// Acquaintance, a Neighbour or a Friend, and sees as his kind does; the host
-/// sees all. Place id from Space::point. Rooms come later.
+/// is his Abode. Its words are seen only through its rooms: the cell reflects
+/// the abode itself, a tie room a tie. Others dwell here as the host admits
+/// them: each is born an Acquaintance, a Neighbour or a Friend, and enters the
+/// rooms of the part his kind opens. Looking at the abode itself, the host sees
+/// what awaits him in its rooms; one writes only in a room.
 class Abode : public Place {
 public:
 	Abode(Birth<Man> birth, matter::Abode kept);
@@ -75,11 +78,15 @@ public:
 	/// The host and his dwellers dwell here.
 	bool dwells(const Man& man) const override;
 
-	/// To its host the abode shows all; to a dweller, what he sees through its cell.
+	/// The abode itself shows no words; they are seen through its rooms.
 	bool shows(const Man& who, const Word& word) const override;
 
-	/// A letter said here by the one whose gaze rests on it, born living from
-	/// the matter the dimensions returned when they kept it; it enters the
+	/// What awaits the host in the tie rooms: behests not yet fulfilled, oldest
+	/// first by room.
+	std::vector<std::shared_ptr<const Behest>> outstanding() const;
+
+	/// A letter said here by its host looking through the cell, born living
+	/// from the matter the dimensions returned when they kept it; it enters the
 	/// recollection of this abode.
 	std::shared_ptr<const Letter> inscribe(const Contemplation& gaze, matter::Letter kept) const;
 

@@ -45,6 +45,7 @@ private:
 	void handle_admit(SessionId session_id, const v1::Admit& msg);
 	void handle_regard(SessionId session_id, const v1::Regard& msg);
 	void handle_list_dwellers(SessionId session_id);
+	void handle_arrange(SessionId session_id, const v1::Arrange& msg);
 
 	/// Tell a word newly placed to those who contemplate the place, and a short
 	/// word of it to the other side of a tie who looks elsewhere.
@@ -71,6 +72,11 @@ private:
 
 	/// A dweller looking at the host's abode sees it anew, as his new kind does.
 	void retell_abode(const domain::Man& host, const domain::Man& dweller);
+
+	/// Tell what the gaze sees: at an abode itself, the rooms one may enter and,
+	/// to its host, what awaits him; elsewhere, the words.
+	void tell_view(SessionId session_id, const domain::Contemplation& gaze, const domain::Man& listener,
+				   std::uint32_t limit);
 	const domain::Man& session_man(SessionId session_id);
 
 	domain::World& world_;

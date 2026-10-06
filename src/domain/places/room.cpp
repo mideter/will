@@ -52,6 +52,18 @@ void Room::arrange(const Birth<Abode> birth, const matter::Room& kept) const
 }
 
 
+const Place& Room::source() const
+{
+	return reflects_.source();
+}
+
+
+bool Room::shows(const Man& who, const Word&) const
+{
+	return dwells(who);
+}
+
+
 bool Room::dwells(const Man& man) const
 {
 	if (&man == &abode_.host())
