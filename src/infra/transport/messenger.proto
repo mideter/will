@@ -157,6 +157,15 @@ message TieFormed {
 }
 
 
+// What a room reflects: the words of a place, the threshold of the abode (the
+// gates), or its dwellers (the reception).
+enum RoomAspect {
+    WORDS = 0;
+    THRESHOLD = 1;
+    DWELLERS = 2;
+}
+
+
 // The gaze now rests on an abode (of this host, or one's own when empty) — in
 // this room of it, when room is given. writable: one may write here (one's own
 // cell; a tie room of which one is the testator).
@@ -165,6 +174,15 @@ message Turned {
     string abode_of = 2;
     string room = 3;
     bool writable = 4;
+    RoomAspect aspect = 5;
+}
+
+
+// The gates one stands in: open while their host stands in them; to the host,
+// who stands at them waiting to be let in.
+message Threshold {
+    bool open = 1;
+    repeated string waiting = 2;
 }
 
 
@@ -277,5 +295,6 @@ message ServerEvent {
         Outstanding outstanding = 15;
         Dwellings dwellings = 16;
         Supplications supplications = 17;
+        Threshold threshold = 18;
     }
 }

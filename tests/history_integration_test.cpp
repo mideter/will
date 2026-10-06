@@ -217,7 +217,9 @@ void stand_in(SessionStream& stream, const std::string& host, const std::string&
 {
 	send_turn_to_abode(stream, host, room);
 	will::v1::ServerEvent event;
-	REQUIRE(stream.Read(&event));
+	do {
+		REQUIRE(stream.Read(&event));
+	} while (event.has_threshold());  // words about gates one stood in before
 	REQUIRE(event.has_turned());
 	do {
 		REQUIRE(stream.Read(&event));
@@ -229,6 +231,17 @@ void stand_in(SessionStream& stream, const std::string& host, const std::string&
 void enter_cell(SessionStream& stream)
 {
 	stand_in(stream, {}, "Келья");
+}
+
+
+/// The next event that is not a word about the gates.
+will::v1::ServerEvent next_past_gates(SessionStream& stream)
+{
+	will::v1::ServerEvent event;
+	do {
+		REQUIRE(stream.Read(&event));
+	} while (event.has_threshold());
+	return event;
 }
 
 
@@ -355,21 +368,38 @@ TEST_CASE("a host admits a dweller, regards him anew, and he sees his abode as h
 	send_turn_to_abode(*man.stream, host_name);
 	CHECK(read_event(*man.stream).has_protocol_notice());
 
-	// He comes to the gates; the host is not there and cannot let him in.
-	stand_in(*man.stream, host_name, "Врата");
+	// He comes to the gates: they are shut, the host is not there and cannot let him in.
+	send_turn_to_abode(*man.stream, host_name, "Врата");
+	const will::v1::ServerEvent at_gates = read_event(*man.stream);
+	CHECK(at_gates.turned().aspect() == will::v1::THRESHOLD);
+	const will::v1::ServerEvent shut = read_event(*man.stream);
+	REQUIRE(shut.has_threshold());
+	CHECK_FALSE(shut.threshold().open());
+	CHECK(read_event(*man.stream).has_history_end());
 	send_admit(*host.stream, man_name);
 	CHECK(read_event(*host.stream).has_protocol_notice());
 
-	// Standing in his gates, the host lets him in: he is told he dwells there as an acquaintance.
-	stand_in(*host.stream, {}, "Врата");
+	// The host comes into his gates: he sees who waits, and the one waiting sees them open.
+	send_turn_to_abode(*host.stream, {}, "Врата");
+	CHECK(read_event(*host.stream).has_turned());
+	const will::v1::ServerEvent waiting = read_event(*host.stream);
+	REQUIRE(waiting.threshold().waiting_size() == 1);
+	CHECK(waiting.threshold().waiting(0) == man_name);
+	CHECK(read_event(*host.stream).has_history_end());
+	CHECK(read_event(*man.stream).threshold().open());
+
+	// He lets him in: the one let in is told he dwells there as an acquaintance; no one waits now.
 	send_admit(*host.stream, man_name);
 	CHECK(read_event(*host.stream).has_protocol_notice());
+	CHECK(read_event(*host.stream).threshold().waiting_size() == 0);
 	const will::v1::ServerEvent dwelling = read_event(*man.stream);
 	REQUIRE(dwelling.has_dwelling());
 	CHECK(dwelling.dwelling().host_name() == host_name);
 	CHECK(dwelling.dwelling().kind() == will::v1::ACQUAINTANCE);
+	CHECK(read_event(*man.stream).has_threshold());
 
 	send_turn_to_abode(*man.stream, host_name);
+	CHECK(read_event(*host.stream).has_threshold());  // he left the gates the host stands in
 	const will::v1::ServerEvent turned = read_event(*man.stream);
 	REQUIRE(turned.has_turned());
 	CHECK(turned.turned().abode_of() == host_name);
@@ -391,6 +421,9 @@ TEST_CASE("a host admits a dweller, regards him anew, and he sees his abode as h
 	stand_in(*host.stream, {}, "Приёмная");
 	send_regard(*host.stream, man_name, will::v1::FRIEND);
 	CHECK(read_event(*host.stream).has_protocol_notice());
+	const will::v1::ServerEvent reception = read_event(*host.stream);
+	REQUIRE(reception.dwellers().dwellers_size() == 1);
+	CHECK(reception.dwellers().dwellers(0).kind() == will::v1::FRIEND);
 	CHECK(read_event(*man.stream).dwelling().kind() == will::v1::FRIEND);
 	REQUIRE(read_event(*man.stream).turned().abode_of() == host_name);
 	const will::v1::ServerEvent open = read_event(*man.stream);
@@ -419,6 +452,7 @@ TEST_CASE("a host admits a dweller, regards him anew, and he sees his abode as h
 	stand_in(*host.stream, {}, "Приёмная");
 	send_regard(*host.stream, man_name, will::v1::ACQUAINTANCE);
 	CHECK(read_event(*host.stream).has_protocol_notice());
+	CHECK(read_event(*host.stream).has_dwellers());
 	CHECK(read_event(*man.stream).dwelling().kind() == will::v1::ACQUAINTANCE);
 	REQUIRE(read_event(*man.stream).turned().room() == "Келья");
 	CHECK(read_event(*man.stream).has_history_end());
@@ -426,6 +460,7 @@ TEST_CASE("a host admits a dweller, regards him anew, and he sees his abode as h
 	// The host sets his cell in the outer part; a neighbour, looking at it, sees the words again.
 	send_regard(*host.stream, man_name, will::v1::NEIGHBOUR);
 	CHECK(read_event(*host.stream).has_protocol_notice());
+	CHECK(read_event(*host.stream).has_dwellers());
 	CHECK(read_event(*man.stream).dwelling().kind() == will::v1::NEIGHBOUR);
 	REQUIRE(read_event(*man.stream).turned().room() == "Келья");
 	CHECK(read_event(*man.stream).has_history_end());
@@ -485,13 +520,13 @@ TEST_CASE("one lists the abodes one dwells in and the supplications awaiting one
 	stand_in(*a.stream, {}, "Врата");
 	stand_in(*b.stream, a_name, "Врата");
 	send_admit(*a.stream, b_name);
-	CHECK(read_event(*a.stream).has_protocol_notice());
-	CHECK(read_event(*b.stream).has_dwelling());
+	CHECK(next_past_gates(*a.stream).has_protocol_notice());
+	CHECK(next_past_gates(*b.stream).has_dwelling());
 	stand_in(*b.stream, {}, "Врата");
 	stand_in(*a.stream, b_name, "Врата");
 	send_admit(*b.stream, a_name);
-	CHECK(read_event(*b.stream).has_protocol_notice());
-	CHECK(read_event(*a.stream).has_dwelling());
+	CHECK(next_past_gates(*b.stream).has_protocol_notice());
+	CHECK(next_past_gates(*a.stream).has_dwelling());
 
 	// b dwells with a, as an acquaintance.
 	{
@@ -499,7 +534,7 @@ TEST_CASE("one lists the abodes one dwells in and the supplications awaiting one
 		list.mutable_list_dwellings();
 		REQUIRE(b.stream->Write(list));
 	}
-	const will::v1::ServerEvent dwellings = read_event(*b.stream);
+	const will::v1::ServerEvent dwellings = next_past_gates(*b.stream);
 	REQUIRE(dwellings.has_dwellings());
 	REQUIRE(dwellings.dwellings().dwellings_size() == 1);
 	CHECK(dwellings.dwellings().dwellings(0).host_name() == a_name);
@@ -511,14 +546,14 @@ TEST_CASE("one lists the abodes one dwells in and the supplications awaiting one
 		ask.mutable_supplicate()->set_addressee_name(a_name);
 		REQUIRE(b.stream->Write(ask));
 	}
-	CHECK(read_event(*b.stream).has_protocol_notice());
-	CHECK(read_event(*a.stream).has_supplication_offer());
+	CHECK(next_past_gates(*b.stream).has_protocol_notice());
+	CHECK(next_past_gates(*a.stream).has_supplication_offer());
 	{
 		will::v1::ClientEvent list;
 		list.mutable_list_supplications();
 		REQUIRE(a.stream->Write(list));
 	}
-	const will::v1::ServerEvent awaiting = read_event(*a.stream);
+	const will::v1::ServerEvent awaiting = next_past_gates(*a.stream);
 	REQUIRE(awaiting.has_supplications());
 	REQUIRE(awaiting.supplications().suppliant_names_size() == 1);
 	CHECK(awaiting.supplications().suppliant_names(0) == b_name);
@@ -527,13 +562,13 @@ TEST_CASE("one lists the abodes one dwells in and the supplications awaiting one
 		reject.mutable_reject_supplication()->set_suppliant_name(b_name);
 		REQUIRE(a.stream->Write(reject));
 	}
-	CHECK(read_event(*a.stream).has_protocol_notice());
+	CHECK(next_past_gates(*a.stream).has_protocol_notice());
 	{
 		will::v1::ClientEvent list;
 		list.mutable_list_supplications();
 		REQUIRE(a.stream->Write(list));
 	}
-	CHECK(read_event(*a.stream).supplications().suppliant_names_size() == 0);
+	CHECK(next_past_gates(*a.stream).supplications().suppliant_names_size() == 0);
 
 	// b asks for rooms without moving his gaze: his own three; in a's abode, as an acquaintance, only the gates.
 	{
@@ -541,7 +576,7 @@ TEST_CASE("one lists the abodes one dwells in and the supplications awaiting one
 		list.mutable_list_rooms();
 		REQUIRE(b.stream->Write(list));
 	}
-	const will::v1::ServerEvent own_rooms = read_event(*b.stream);
+	const will::v1::ServerEvent own_rooms = next_past_gates(*b.stream);
 	REQUIRE(own_rooms.has_rooms());
 	REQUIRE(own_rooms.rooms().rooms_size() == 3);
 	CHECK(own_rooms.rooms().rooms(0).name() == "Келья");
@@ -550,7 +585,7 @@ TEST_CASE("one lists the abodes one dwells in and the supplications awaiting one
 		list.mutable_list_rooms()->set_abode_of(a_name);
 		REQUIRE(b.stream->Write(list));
 	}
-	const will::v1::ServerEvent their_rooms = read_event(*b.stream);
+	const will::v1::ServerEvent their_rooms = next_past_gates(*b.stream);
 	REQUIRE(their_rooms.rooms().rooms_size() == 1);
 	CHECK(their_rooms.rooms().rooms(0).name() == "Врата");
 

@@ -16,6 +16,13 @@
 namespace will {
 
 
+namespace domain {
+class Gates;
+class Reception;
+} // namespace domain
+
+
+
 class InboundClientMessageHandler;
 
 
@@ -80,6 +87,21 @@ private:
 
 	/// A dweller looking at the host's abode sees it anew, as his new kind does.
 	void retell_abode(const domain::Man& host, const domain::Man& dweller);
+
+	/// Tell everyone standing in these gates how they stand now, but one.
+	void retell_gates(const domain::Gates& gates, const domain::Soul* except = nullptr);
+
+	/// Tell everyone in this reception its dwellers.
+	void retell_reception(const domain::Reception& reception);
+
+	/// How these gates stand, told to this man.
+	v1::ServerEvent threshold_event(const domain::Gates& gates, const domain::Man& listener) const;
+
+	/// The dwellers of this abode, with their kind.
+	v1::ServerEvent dwellers_event(const domain::Abode& abode) const;
+
+	/// The gates this man looks at; none elsewhere.
+	const domain::Gates* gates_of_gaze(const domain::Man& man) const;
 
 	/// Tell the rooms of this abode that this man may enter.
 	void tell_rooms(SessionId session_id, const domain::Abode& abode, const domain::Man& listener);

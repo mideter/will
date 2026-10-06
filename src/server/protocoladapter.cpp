@@ -33,6 +33,9 @@ namespace will {
 namespace {
 
 
+v1::RoomAspect aspect_of(const domain::Place& place);
+
+
 /// The soul whose word this is.
 const domain::Soul& author_of(const domain::Word& word)
 {
@@ -208,7 +211,11 @@ void ProtocolAdapter::on_session_ended(const SessionId session_id)
 	if (current && *current != session_id)
 		return;
 
-	static_cast<const domain::Witness&>(world_.man(world_.vessel(vessel_id))).sleep();
+	const domain::Man& man = world_.man(world_.vessel(vessel_id));
+	const domain::Gates* left = gates_of_gaze(man);
+	static_cast<const domain::Witness&>(man).sleep();
+	if (left)
+		retell_gates(*left);
 }
 
 
@@ -425,6 +432,9 @@ void ProtocolAdapter::handle_turn(const SessionId session_id, const v1::Turn& ms
 			return;
 	}
 
+	// Those in the gates he leaves, and in those he enters, see him go and come.
+	const domain::Gates* left = gates_of_gaze(self);
+
 	try {
 		if (msg.room().empty()) {
 			witness.contemplate(host->abode());
@@ -445,10 +455,18 @@ void ProtocolAdapter::handle_turn(const SessionId session_id, const v1::Turn& ms
 	turned.mutable_turned()->set_abode_of(msg.abode_of());
 	turned.mutable_turned()->set_room(msg.room());
 	turned.mutable_turned()->set_writable(writes_here(self));
+	if (const auto gaze = world_.contemplation(self.Soul::id()))
+		turned.mutable_turned()->set_aspect(aspect_of(gaze->place()));
 	send_event(session_id, turned);
 
 	if (const auto gaze = world_.contemplation(self.Soul::id()))
 		tell_view(session_id, *gaze, self, TurnWords);
+
+	const domain::Gates* entered = gates_of_gaze(self);
+	if (left && left != entered)
+		retell_gates(*left);
+	if (entered)
+		retell_gates(*entered, &self);
 }
 
 
@@ -489,6 +507,22 @@ void ProtocolAdapter::handle_fulfil(const SessionId session_id, const v1::Fulfil
 
 
 namespace {
+
+
+v1::RoomAspect aspect_of(const domain::Place& place)
+{
+	const auto* room = dynamic_cast<const domain::Room*>(&place);
+	if (!room)
+		return v1::WORDS;
+	switch (room->aspect()) {
+	case domain::matter::Room::Aspect::Threshold:
+		return v1::THRESHOLD;
+	case domain::matter::Room::Aspect::Dwellers:
+		return v1::DWELLERS;
+	default:
+		return v1::WORDS;
+	}
+}
 
 
 v1::DwellerKind kind_of(const domain::Acquaintance& dweller)
@@ -534,6 +568,8 @@ void ProtocolAdapter::handle_admit(const SessionId session_id, const v1::Admit& 
 
 	send_notice(session_id, std::string{man->name().text()} + " admitted as an acquaintance");
 	tell_dwelling(self, *man);
+	retell_gates(self.abode().gates());
+	retell_reception(self.abode().reception());
 }
 
 
@@ -569,6 +605,7 @@ void ProtocolAdapter::handle_regard(const SessionId session_id, const v1::Regard
 	send_notice(session_id, std::string{man->name().text()} + " regarded anew");
 	tell_dwelling(self, *man);
 	retell_abode(self, *man);
+	retell_reception(self.abode().reception());
 }
 
 
@@ -594,6 +631,7 @@ void ProtocolAdapter::retell_abode(const domain::Man& host, const domain::Man& d
 	if (room)
 		turned.mutable_turned()->set_room(room->name());
 	turned.mutable_turned()->set_writable(writes_here(dweller));
+	turned.mutable_turned()->set_aspect(aspect_of(gaze->place()));
 	send_event(*sid, turned);
 	tell_view(*sid, *gaze, dweller, TurnWords);
 }
@@ -603,20 +641,28 @@ void ProtocolAdapter::handle_list_dwellers(const SessionId session_id)
 {
 	const domain::Man& self = session_man(session_id);
 
-	v1::ServerEvent event;
-	auto* list = event.mutable_dwellers();
-	for (const std::shared_ptr<const domain::Acquaintance>& dweller : self.abode().dwellers()) {
-		auto* told = list->add_dwellers();
-		told->set_name(std::string{dweller->man().name().text()});
-		told->set_kind(kind_of(*dweller));
-	}
-	send_event(session_id, event);
+	send_event(session_id, dwellers_event(self.abode()));
 }
 
 
 void ProtocolAdapter::tell_view(const SessionId session_id, const domain::Contemplation& gaze,
 								const domain::Man& listener, const std::uint32_t limit)
 {
+	if (const auto* gates = dynamic_cast<const domain::Gates*>(&gaze.place())) {
+		send_event(session_id, threshold_event(*gates, listener));
+		v1::ServerEvent end_event;
+		end_event.mutable_history_end();
+		send_event(session_id, end_event);
+		return;
+	}
+	if (const auto* reception = dynamic_cast<const domain::Reception*>(&gaze.place())) {
+		send_event(session_id, dwellers_event(reception->abode()));
+		v1::ServerEvent end_event;
+		end_event.mutable_history_end();
+		send_event(session_id, end_event);
+		return;
+	}
+
 	const auto* abode = dynamic_cast<const domain::Abode*>(&gaze.place());
 	if (!abode) {
 		tell_words(session_id, gaze, listener, limit);
@@ -761,6 +807,65 @@ void ProtocolAdapter::handle_list_rooms(const SessionId session_id, const v1::Li
 	}
 
 	tell_rooms(session_id, host->abode(), self);
+}
+
+
+v1::ServerEvent ProtocolAdapter::threshold_event(const domain::Gates& gates, const domain::Man& listener) const
+{
+	v1::ServerEvent event;
+	auto* threshold = event.mutable_threshold();
+	threshold->set_open(gates.open());
+
+	// Only the host sees who waits to be let in: those at his gates who do not dwell here.
+	if (&gates.abode().host() == &listener) {
+		for (const domain::Soul& soul : world_.contemplating(gates)) {
+			const auto& man = static_cast<const domain::Man&>(soul);
+			if (&man != &listener && !gates.abode().dweller(man))
+				threshold->add_waiting(std::string{man.name().text()});
+		}
+	}
+	return event;
+}
+
+
+v1::ServerEvent ProtocolAdapter::dwellers_event(const domain::Abode& abode) const
+{
+	v1::ServerEvent event;
+	auto* list = event.mutable_dwellers();
+	for (const std::shared_ptr<const domain::Acquaintance>& dweller : abode.dwellers()) {
+		auto* told = list->add_dwellers();
+		told->set_name(std::string{dweller->man().name().text()});
+		told->set_kind(kind_of(*dweller));
+	}
+	return event;
+}
+
+
+const domain::Gates* ProtocolAdapter::gates_of_gaze(const domain::Man& man) const
+{
+	const std::shared_ptr<const domain::Contemplation> gaze = world_.contemplation(man.Soul::id());
+	return gaze ? dynamic_cast<const domain::Gates*>(&gaze->place()) : nullptr;
+}
+
+
+void ProtocolAdapter::retell_gates(const domain::Gates& gates, const domain::Soul* except)
+{
+	for (const domain::Soul& soul : world_.contemplating(gates)) {
+		if (&soul == except)
+			continue;
+		const auto& man = static_cast<const domain::Man&>(soul);
+		send_to_vessel(man.Vessel::id(), threshold_event(gates, man));
+	}
+}
+
+
+void ProtocolAdapter::retell_reception(const domain::Reception& reception)
+{
+	const v1::ServerEvent event = dwellers_event(reception.abode());
+	for (const domain::Soul& soul : world_.contemplating(reception)) {
+		const auto& man = static_cast<const domain::Man&>(soul);
+		send_to_vessel(man.Vessel::id(), event);
+	}
 }
 
 

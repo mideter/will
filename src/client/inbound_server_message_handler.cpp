@@ -40,6 +40,19 @@ void print_rooms(ConsoleUi& ui, const v1::Rooms& rooms)
 }
 
 
+void print_threshold(ConsoleUi& ui, const v1::Threshold& threshold)
+{
+	if (!threshold.waiting().empty()) {
+		std::string told = "At the gates:";
+		for (const std::string& name : threshold.waiting())
+			told += " " + name;
+		ui.print_status(told + " — /admit <name>");
+		return;
+	}
+	ui.print_status(threshold.open() ? "The gates are open." : "The gates are shut: the host is not here.");
+}
+
+
 void print_outstanding(ConsoleUi& ui, const v1::Outstanding& outstanding)
 {
 	if (outstanding.behests().empty()) {
@@ -132,6 +145,9 @@ void LoadingHistoryMessageHandler::on(const v1::ServerEvent& event)
 	case v1::ServerEvent::kOutstanding:
 		print_outstanding(ui_, event.outstanding());
 		return;
+	case v1::ServerEvent::kThreshold:
+		print_threshold(ui_, event.threshold());
+		return;
 	default:
 		throw std::runtime_error("Unexpected message while loading history");
 	}
@@ -183,6 +199,9 @@ void ReceivingMessageHandler::on(const v1::ServerEvent& event)
 		return;
 	case v1::ServerEvent::kOutstanding:
 		print_outstanding(ui_, event.outstanding());
+		return;
+	case v1::ServerEvent::kThreshold:
+		print_threshold(ui_, event.threshold());
 		return;
 	case v1::ServerEvent::kDwelling:
 		ui_.print_status("You dwell in the abode of " + event.dwelling().host_name() + " as "

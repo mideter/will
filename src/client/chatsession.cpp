@@ -35,6 +35,7 @@ bool is_post_auth_server_event(const v1::ServerEvent& event) noexcept
 	case v1::ServerEvent::kOutstanding:
 	case v1::ServerEvent::kDwellings:
 	case v1::ServerEvent::kSupplications:
+	case v1::ServerEvent::kThreshold:
 		return true;
 	default:
 		return false;
@@ -156,6 +157,14 @@ bool handle_slash_command(WillClient& client, ConsoleUi& ui, ShownRooms& rooms, 
 		client.list_dwellers();
 		return true;
 	}
+	if (cmd == "gates") {
+		if (args.empty()) {
+			ui.print_status("usage: /gates <name>");
+			return true;
+		}
+		client.visit(args, "Врата");
+		return true;
+	}
 	if (cmd == "rooms") {
 		// The rooms shown next are of this abode: number them for it.
 		rooms.turned(std::string{args});
@@ -222,7 +231,7 @@ void ChatSession::run()
 
 	ui_.print_status("Connected as " + client_.own_name() + ".");
 	ui_.print_status("Chat: type text in a room. Obedience: /ask /accept /reject /supplications /done. "
-					 "Rooms: /rooms /room /arrange. Dwellers: /admit /regard /dwellers /dwellings /visit. Ctrl+D to exit.");
+					 "Rooms: /rooms /room /arrange. Gates: /gates /admit. Dwellers: /admit /regard /dwellers /dwellings /visit. Ctrl+D to exit.");
 	ui_.set_live_prompt(true);
 	ui_.print_prompt();
 
