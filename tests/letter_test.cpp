@@ -70,7 +70,7 @@ TEST_CASE("Letter is born of its abode from matter, with living place and author
 	Creation& creation = cosmos.life().create();
 	World& world = creation.world();
 
-	const Man& man = world.welcome(DeviceToken::generate());
+	const Man& man = born(world, DeviceToken::generate());
 	const auto& witness = static_cast<const Witness&>(man);
 
 	// Only the abode brings a letter forth.
@@ -97,7 +97,7 @@ TEST_CASE("matter::Letter rejects parts with different word ids")
 	Creation& creation = cosmos.life().create();
 	World& world = creation.world();
 
-	const Man& man = world.welcome(DeviceToken::generate());
+	const Man& man = born(world, DeviceToken::generate());
 	const auto& witness = static_cast<const Witness&>(man);
 
 	const matter::Word word{id::Word{1}, man.Soul::id(), "x"};
@@ -113,8 +113,8 @@ TEST_CASE("Behest is a word of will in a living Tie, born of the Tie or of its t
 	Creation& creation = cosmos.life().create();
 	World& world = creation.world();
 
-	const auto& testator = static_cast<const Testator&>(world.welcome(DeviceToken::generate()));
-	const auto& novice = static_cast<const Novice&>(world.welcome(DeviceToken::generate()));
+	const auto& testator = static_cast<const Testator&>(born(world, DeviceToken::generate()));
+	const auto& novice = static_cast<const Novice&>(born(world, DeviceToken::generate()));
 
 	static_assert(!std::is_constructible_v<Behest, matter::Behest>);
 
@@ -150,8 +150,8 @@ TEST_CASE("Deed is the novice's word fulfilling a behest, his report or «сов
 	Creation& creation = cosmos.life().create();
 	World& world = creation.world();
 
-	const auto& testator = static_cast<const Testator&>(world.welcome(DeviceToken::generate()));
-	const auto& novice = static_cast<const Novice&>(world.welcome(DeviceToken::generate()));
+	const auto& testator = static_cast<const Testator&>(born(world, DeviceToken::generate()));
+	const auto& novice = static_cast<const Novice&>(born(world, DeviceToken::generate()));
 
 	static_assert(!std::is_constructible_v<Deed, matter::Deed>);
 

@@ -176,21 +176,29 @@ void ProtocolAdapter::handle_bind_token(const SessionId session_id, const v1::Bi
 		return;
 	}
 
-	const domain::Man& man = world_.welcome(*device_token);
+	const domain::Vessel& body = world_.welcome(*device_token);
+	const auto* man = dynamic_cast<const domain::Man*>(&body);
 
 	std::optional<SessionId> displaced;
 	{
 		std::lock_guard lock(presence_mutex_);
-		displaced = registry_.bind_vessel(session_id, man.Vessel::id());
-		static_cast<const domain::Witness&>(man).wake();
-		woken_by_session_.insert_or_assign(session_id.value, man.Vessel::id());
+		displaced = registry_.bind_vessel(session_id, body.id());
+		if (man) {
+			static_cast<const domain::Witness&>(*man).wake();
+			woken_by_session_.insert_or_assign(session_id.value, body.id());
+		}
 	}
 
 	if (displaced)
 		close_session(*displaced);
 
 	v1::ServerEvent event;
-	event.mutable_auth_ok()->set_name(std::string{man.name().text()});
+	if (man) {
+		event.mutable_auth_ok()->set_name(std::string{man->name().text()});
+	} else {
+		event.mutable_auth_ok()->set_unborn(true);
+		event.mutable_auth_ok()->set_mark(body.id().value());
+	}
 	send_event(session_id, event);
 }
 

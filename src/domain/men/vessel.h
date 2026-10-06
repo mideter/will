@@ -12,6 +12,8 @@ namespace will::domain {
 /// Vessel (Сосуд) — device through which a soul reaches the world; inherits Dust.
 class Vessel : public Dust {
 public:
+	virtual ~Vessel() = default;
+
 	id::Vessel id() const noexcept { return id_; }
 	const DeviceToken& token() const noexcept { return token_; }
 

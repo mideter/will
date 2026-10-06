@@ -24,6 +24,7 @@ class Behest;
 class Contemplation;
 class Letter;
 class Man;
+class BirthRoom;
 class Gates;
 class UpperRoom;
 class Room;
@@ -71,9 +72,11 @@ public:
 	/// The room of this abode reflecting the words of this place; none if there is none.
 	const Room* room(const Place& reflects) const;
 
-	/// The standard rooms: the gates and the upper room. Every abode has them.
+	/// The standard rooms: the gates, the upper room and the birth room. Every
+	/// abode has them.
 	const Gates& gates() const;
 	const UpperRoom& upper_room() const;
+	const BirthRoom& birth_room() const;
 
 	/// The room of this abode by its name; none if there is none.
 	const Room* room(std::string_view name) const;

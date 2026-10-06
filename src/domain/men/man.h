@@ -1,14 +1,19 @@
 #pragma once
 
+#include "matter/fatherhood.h"
 #include "matter/man.h"
 #include "places/abode.h"
 #include "men/soul.h"
 #include "men/vessel.h"
 
+#include <atomic>
 #include <memory>
 
 
 namespace will::domain {
+
+
+class World;
 
 
 /// Man (Человек) — soul dwelling in a vessel. One object is both Soul and Vessel.
@@ -33,6 +38,13 @@ public:
 	/// another abode.
 	void arrange(const Room& room, matter::Room::Part part) const;
 
+	/// One's father along the line; none if one has none.
+	const Man* father(matter::Fatherhood::Line line) const noexcept;
+
+	/// One descends from this father along the line, as the fatherhood matter
+	/// says: the World tells it at birth, at choosing and on awakening.
+	void descend(Birth<World> birth, const Man& father, const matter::Fatherhood& kept) const;
+
 	bool operator==(const Man& other) const = default;
 
 protected:
@@ -40,6 +52,8 @@ protected:
 
 private:
 	std::unique_ptr<Abode> abode_;
+	mutable std::atomic<const Man*> father_by_flesh_ = nullptr;
+	mutable std::atomic<const Man*> father_by_spirit_ = nullptr;
 };
 
 

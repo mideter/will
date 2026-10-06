@@ -30,8 +30,12 @@ message HistoryRequest {
 message AuthRequired {}
 
 
+// The body is welcomed: the man dwelling in it by his name, or, unborn, the
+// mark of the body by which it is seen in birth rooms.
 message AuthOk {
     string name = 1;
+    bool unborn = 2;
+    uint64 mark = 3;
 }
 
 

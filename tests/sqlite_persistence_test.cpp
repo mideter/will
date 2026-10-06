@@ -12,6 +12,7 @@
 #include "men/witness.h"
 #include "relations/contemplation.h"
 #include "relations/friend.h"
+#include "relations/neighbour.h"
 #include "places/room.h"
 #include "sqlite_persistence_bundle.h"
 #include "domain_fakes.h"
@@ -51,6 +52,7 @@ letters_seen_by(const std::shared_ptr<const will::domain::Contemplation>& gaze)
 
 using will::domain::test::admit_at_gates;
 using will::domain::test::regard_in_upper_room;
+using will::domain::test::born;
 
 } // namespace
 
@@ -82,8 +84,8 @@ TEST_CASE("sqlite persistence survives reopen")
 		const DeviceToken token_b = *DeviceToken::parse("bbbb1234bbbb1234bbbb1234bbbb1234");
 		const DeviceToken token_created = *DeviceToken::parse(token_text);
 
-		const Man& man_a = world.welcome(token_a);
-		const Man& man_b = world.welcome(token_b);
+		const Man& man_a = born(world, token_a);
+		const Man& man_b = born(world, token_b);
 		soul_a_id = man_a.Soul::id();
 		soul_b_id = man_b.Soul::id();
 		name_a = man_a.name();
@@ -118,7 +120,7 @@ TEST_CASE("sqlite persistence survives reopen")
 						std::logic_error);
 		CHECK_FALSE(bundle.spatiality().abode(id::Soul{999999}));
 
-		const Man& man_created = world.welcome(token_created);
+		const Man& man_created = born(world, token_created);
 		created_id = man_created.Soul::id();
 		name_created = man_created.name();
 		CHECK(man_created.Soul::id().value() > 0);
@@ -132,7 +134,7 @@ TEST_CASE("sqlite persistence survives reopen")
 		World& world = bundle.world();
 
 		const DeviceToken token_created = *DeviceToken::parse(token_text);
-		const Man& reloaded = world.welcome(token_created);
+		const Man& reloaded = born(world, token_created);
 		CHECK(reloaded.Soul::id() == *created_id);
 		CHECK(world.knows(reloaded.Vessel::id()));
 		CHECK(world.man(world.vessel(reloaded.Vessel::id())).Soul::id() == *created_id);
@@ -141,7 +143,7 @@ TEST_CASE("sqlite persistence survives reopen")
 		CHECK(world.knows(*soul_a_id));
 		CHECK(world.soul(*soul_a_id).name() == *name_a);
 		const DeviceToken token_a = *DeviceToken::parse("aaaa1234aaaa1234aaaa1234aaaa1234");
-		const Man& man_a_reloaded = world.welcome(token_a);
+		const Man& man_a_reloaded = born(world, token_a);
 		CHECK(man_a_reloaded.Soul::id() == *soul_a_id);
 		CHECK(world.man(world.vessel(man_a_reloaded.Vessel::id())).Soul::id() == *soul_a_id);
 		CHECK(static_cast<const Witness&>(man_a_reloaded).abode().dwells(man_a_reloaded));
@@ -167,14 +169,15 @@ TEST_CASE("sqlite persistence survives reopen")
 		const auto souls = bundle.eternity().souls();
 		const auto vessels = bundle.temporality().vessels();
 		const auto embodiments = bundle.temporality().embodiments();
-		REQUIRE(souls.size() == 3);
-		REQUIRE(vessels.size() == 3);
-		REQUIRE(embodiments.size() == 3);
-		CHECK(souls.front().id() == *soul_a_id);
-		CHECK(souls.front().name() == *name_a);
-		CHECK(embodiments.front().soul() == *soul_a_id);
-		CHECK(embodiments.front().vessel() == man_a_reloaded.Vessel::id());
-		CHECK(vessels.front().id() == man_a_reloaded.Vessel::id());
+		// The forefather is the first of them.
+		REQUIRE(souls.size() == 4);
+		REQUIRE(vessels.size() == 4);
+		REQUIRE(embodiments.size() == 4);
+		CHECK(souls[1].id() == *soul_a_id);
+		CHECK(souls[1].name() == *name_a);
+		CHECK(embodiments[1].soul() == *soul_a_id);
+		CHECK(embodiments[1].vessel() == man_a_reloaded.Vessel::id());
+		CHECK(vessels[1].id() == man_a_reloaded.Vessel::id());
 	}
 
 	::unlink((prefix + ".eternity.db").c_str());
@@ -202,8 +205,8 @@ TEST_CASE("sqlite keeps a behest and its execution across reopen")
 		SqlitePersistenceBundle bundle(prefix);
 		World& world = bundle.world();
 
-		const auto& novice = static_cast<const Novice&>(world.welcome(token_novice));
-		const auto& testator = static_cast<const Testator&>(world.welcome(token_testator));
+		const auto& novice = static_cast<const Novice&>(born(world, token_novice));
+		const auto& testator = static_cast<const Testator&>(born(world, token_testator));
 
 		admit_at_gates(world, novice, testator);
 		admit_at_gates(world, testator, novice);
@@ -235,8 +238,8 @@ TEST_CASE("sqlite keeps a behest and its execution across reopen")
 		SqlitePersistenceBundle bundle(prefix);
 		World& world = bundle.world();
 
-		const auto& novice = static_cast<const Novice&>(world.welcome(token_novice));
-		const auto& testator = static_cast<const Testator&>(world.welcome(token_testator));
+		const auto& novice = static_cast<const Novice&>(born(world, token_novice));
+		const auto& testator = static_cast<const Testator&>(born(world, token_testator));
 
 		// The reborn tie shows the same behests to both sides, oldest first.
 		const std::vector<std::shared_ptr<const Behest>> shown = novice.obedience(testator).behests(novice);
@@ -289,9 +292,9 @@ TEST_CASE("sqlite keeps supplications, rejections and ties across reopen")
 		SqlitePersistenceBundle bundle(prefix);
 		World& world = bundle.world();
 
-		const auto& a = static_cast<const Testator&>(world.welcome(token_a));
-		const auto& b = static_cast<const Testator&>(world.welcome(token_b));
-		const auto& c = static_cast<const Testator&>(world.welcome(token_c));
+		const auto& a = static_cast<const Testator&>(born(world, token_a));
+		const auto& b = static_cast<const Testator&>(born(world, token_b));
+		const auto& c = static_cast<const Testator&>(born(world, token_c));
 
 		// a asks b twice: rejected, then asked again and left awaiting.
 		admit_at_gates(world, a, b);
@@ -319,9 +322,9 @@ TEST_CASE("sqlite keeps supplications, rejections and ties across reopen")
 		SqlitePersistenceBundle bundle(prefix);
 		World& world = bundle.world();
 
-		const auto& a = static_cast<const Testator&>(world.welcome(token_a));
-		const auto& b = static_cast<const Testator&>(world.welcome(token_b));
-		const auto& c = static_cast<const Testator&>(world.welcome(token_c));
+		const auto& a = static_cast<const Testator&>(born(world, token_a));
+		const auto& b = static_cast<const Testator&>(born(world, token_b));
+		const auto& c = static_cast<const Testator&>(born(world, token_c));
 
 		// The awaiting supplication is reborn on the addressee's heap; the accepted
 		// one is answered and stays behind; the tie is living.
@@ -400,8 +403,8 @@ TEST_CASE("sqlite keeps the dwellers of an abode and their kind across reopen")
 	{
 		SqlitePersistenceBundle bundle(prefix);
 		World& world = bundle.world();
-		const Man& host = world.welcome(token_host);
-		const Man& man = world.welcome(token_man);
+		const Man& host = born(world, token_host);
+		const Man& man = born(world, token_man);
 		admit_at_gates(world, host, man);
 		regard_in_upper_room(world, host, man, matter::Dweller::Kind::Friend);
 	}
@@ -409,18 +412,22 @@ TEST_CASE("sqlite keeps the dwellers of an abode and their kind across reopen")
 	{
 		SqlitePersistenceBundle bundle(prefix);
 		World& world = bundle.world();
-		const Man& host = world.welcome(token_host);
-		const Man& man = world.welcome(token_man);
+		const Man& host = born(world, token_host);
+		const Man& man = born(world, token_man);
 		CHECK(std::dynamic_pointer_cast<const Friend>(host.abode().dweller(man)));
 		CHECK_FALSE(man.abode().dwells(host));
-		REQUIRE(bundle.spatiality().dwellers().size() == 1);
+		// In the host's abode dwell the man and the host's father by flesh.
+		CHECK(host.abode().dwellers().size() == 2);
+		CHECK(std::dynamic_pointer_cast<const Neighbour>(host.abode().dweller(*host.father(matter::Fatherhood::Line::Flesh))));
 
-		// Each abode keeps its standard rooms across reopen: the cell, the gates, the upper room.
-		REQUIRE(host.abode().rooms().size() == 3);
+		// Each abode keeps its standard rooms across reopen: the cell, the gates,
+		// the upper room, the birth room.
+		REQUIRE(host.abode().rooms().size() == 4);
 		CHECK(host.abode().rooms()[0].get().name() == "Келья");
 		CHECK(host.abode().rooms()[1].get().name() == "Врата");
 		CHECK(host.abode().rooms()[2].get().name() == "Горница");
-		CHECK(bundle.spatiality().rooms(host.abode().id()).size() == 3);
+		CHECK(host.abode().rooms()[3].get().name() == "Родильная");
+		CHECK(bundle.spatiality().rooms(host.abode().id()).size() == 4);
 	}
 
 	::unlink((prefix + ".eternity.db").c_str());
@@ -481,26 +488,42 @@ TEST_CASE("sqlite keeps fatherhoods across reopen; the spiritual father is repla
 	::unlink((prefix + ".space.db").c_str());
 	::unlink((prefix + ".time.db").c_str());
 
-	const id::Soul adam{1}, seth{2}, enos{3};
+	const DeviceToken token_seth = *DeviceToken::parse("aaaa1234aaaa1234aaaa1234aaaa1234");
+	const DeviceToken token_enos = *DeviceToken::parse("bbbb1234bbbb1234bbbb1234bbbb1234");
+
+	std::optional<id::Soul> adam, seth, enos;
 	{
 		SqlitePersistenceBundle bundle(prefix);
+		World& world = bundle.world();
+		seth = born(world, token_seth).Soul::id();
+		enos = born(world, token_enos).Soul::id();
+		adam = will::domain::test::forefather(world).Soul::id();
+
 		Eternity& eternity = bundle.eternity();
-		eternity.father(adam, seth, Line::Flesh);
-		CHECK_THROWS_AS(eternity.father(enos, seth, Line::Flesh), std::logic_error);
-		eternity.father(adam, enos, Line::Spirit);
-		eternity.father(seth, enos, Line::Spirit);
+		CHECK_THROWS_AS(eternity.father(*enos, *seth, Line::Flesh), std::logic_error);
+		eternity.father(*adam, *enos, Line::Spirit);
+		eternity.father(*seth, *enos, Line::Spirit);
 	}
 
 	{
 		SqlitePersistenceBundle bundle(prefix);
 		const std::vector<matter::Fatherhood> kept = bundle.eternity().fatherhoods();
-		REQUIRE(kept.size() == 2);
+		REQUIRE(kept.size() == 3);
 		CHECK(kept[0].father() == adam);
 		CHECK(kept[0].child() == seth);
 		CHECK(kept[0].line() == Line::Flesh);
-		CHECK(kept[1].father() == seth);
+		CHECK(kept[1].father() == adam);
 		CHECK(kept[1].child() == enos);
-		CHECK(kept[1].line() == Line::Spirit);
+		CHECK(kept[1].line() == Line::Flesh);
+		CHECK(kept[2].father() == seth);
+		CHECK(kept[2].child() == enos);
+		CHECK(kept[2].line() == Line::Spirit);
+
+		// The living know their fathers again.
+		World& world = bundle.world();
+		const Man& living_enos = born(world, token_enos);
+		CHECK(living_enos.father(Line::Flesh)->Soul::id() == adam);
+		CHECK(living_enos.father(Line::Spirit)->Soul::id() == seth);
 	}
 
 	::unlink((prefix + ".eternity.db").c_str());

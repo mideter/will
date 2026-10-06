@@ -29,10 +29,11 @@ Man::Man(matter::Man kept)
 	abode_ = std::make_unique<Abode>(Birth<Man>{*this}, std::move(*own));
 
 	// The standard rooms reflect the abode itself: the cell its words, the gates
-	// its threshold, the upper room its dwellers.
+	// its threshold, the upper room its dwellers, the birth room the unborn.
 	std::vector<matter::Room> rooms = spatiality().rooms(abode_->id());
 	for (const matter::Room::Aspect aspect :
-		 {matter::Room::Aspect::Words, matter::Room::Aspect::Threshold, matter::Room::Aspect::Dwellers}) {
+		 {matter::Room::Aspect::Words, matter::Room::Aspect::Threshold, matter::Room::Aspect::Dwellers,
+		  matter::Room::Aspect::Birth}) {
 		const auto found = std::find_if(rooms.begin(), rooms.end(), [&](const matter::Room& room) {
 			return room.reflects() == abode_->id() && room.aspect() == aspect;
 		});
@@ -74,12 +75,42 @@ void Man::regard(const Man& dweller, const matter::Dweller::Kind kind) const
 		throw std::logic_error("he does not dwell in this abode");
 	if (!static_cast<const Witness&>(*this).contemplates(abode_->upper_room()))
 		throw std::logic_error("one regards dwellers only in one's upper room");
+	if (&dweller == father(matter::Fatherhood::Line::Flesh) && kind == matter::Dweller::Kind::Acquaintance)
+		throw std::logic_error("the father by flesh is ever at least a neighbour");
 
 	abode_->admit(Birth<Man>{*this}, dweller, spatiality().dwell(abode_->id(), dweller.Soul::id(), kind));
 }
 
 
 Man::~Man() = default;
+
+
+const Man* Man::father(const matter::Fatherhood::Line line) const noexcept
+{
+	switch (line) {
+	case matter::Fatherhood::Line::Flesh:
+		return father_by_flesh_.load();
+	case matter::Fatherhood::Line::Spirit:
+		return father_by_spirit_.load();
+	}
+	return nullptr;
+}
+
+
+void Man::descend(Birth<World>, const Man& father, const matter::Fatherhood& kept) const
+{
+	if (kept.child() != Soul::id() || kept.father() != father.Soul::id())
+		throw std::logic_error("the fatherhood is of other souls");
+
+	switch (kept.line()) {
+	case matter::Fatherhood::Line::Flesh:
+		father_by_flesh_.store(&father);
+		break;
+	case matter::Fatherhood::Line::Spirit:
+		father_by_spirit_.store(&father);
+		break;
+	}
+}
 
 
 } // namespace will::domain

@@ -1,5 +1,6 @@
 #include "room.h"
 
+#include "horizons/heaven.h"
 #include "horizons/space.h"
 #include "men/man.h"
 #include "men/testator.h"
@@ -130,6 +131,42 @@ const Place& UpperRoom::source() const
 
 
 bool UpperRoom::shows(const Man&, const Word&) const
+{
+	return false;
+}
+
+
+BirthRoom::BirthRoom(const Birth<Abode> birth, matter::Room kept)
+	: Room(birth, birth.parent(), std::move(kept))
+{}
+
+
+std::string BirthRoom::name() const
+{
+	return "Родильная";
+}
+
+
+bool BirthRoom::dwells(const Man& man) const
+{
+	if (!Room::dwells(man))
+		return false;
+
+	for (const Soul& soul : Immanent<Heaven>::horizon().contemplating(*this)) {
+		if (&soul != static_cast<const Soul*>(&man))
+			return false;
+	}
+	return true;
+}
+
+
+const Place& BirthRoom::source() const
+{
+	return Place::source();
+}
+
+
+bool BirthRoom::shows(const Man&, const Word&) const
 {
 	return false;
 }

@@ -570,17 +570,51 @@ inline std::vector<std::shared_ptr<const Letter>> letters_seen_by(const std::sha
 }
 
 
-inline const Soul& register_soul_with_vessel(World& world, const std::string_view device_token)
+/// The forefather: the first man of the world, begotten at once by his own
+/// token, that no man of a test is the father of the others.
+inline constexpr std::string_view elder_token = "f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0";
+
+inline const Man& forefather(World& world)
 {
-	const DeviceToken token = *DeviceToken::parse(device_token);
-	return world.welcome(token);
+	return dynamic_cast<const Man&>(world.welcome(*DeviceToken::parse(elder_token)));
 }
 
 
-/// Keep a soul and its vessel before Creation, as if kept by an earlier one.
+/// The man welcomed by this token; the unborn is born of the forefather,
+/// standing in his birth room.
+inline const Man& born(World& world, const DeviceToken& token)
+{
+	const Man& elder = forefather(world);
+	const Vessel& body = world.welcome(token);
+	if (const auto* man = dynamic_cast<const Man*>(&body))
+		return *man;
+
+	const Man* child = nullptr;
+	looking_at(world, elder, elder.abode().birth_room(),
+			   [&] { child = &world.bear(elder, dynamic_cast<const Unborn&>(body)); });
+	return *child;
+}
+
+
+inline const Soul& register_soul_with_vessel(World& world, const std::string_view device_token)
+{
+	return born(world, *DeviceToken::parse(device_token));
+}
+
+
+/// Keep a soul and its vessel before Creation, as if kept by an earlier one; the
+/// forefather is kept with the first, as the first man of that earlier world.
 inline void seed_man(InMemoryCosmos& cosmos, const id::Soul soul_id, const DeviceToken& token, const SoulName name)
 {
 	InMemoryShared& shared = cosmos.shared();
+	const id::Soul elder{900};
+	if (soul_id != elder && std::none_of(shared.souls.begin(), shared.souls.end(),
+										 [&](const auto& soul) { return soul.first == elder; })) {
+		shared.souls.emplace_back(elder, *SoulName::parse("elder000"));
+		shared.vessels.push_back(matter::Vessel{id::Vessel{900}, *DeviceToken::parse(elder_token)});
+		shared.embodiments.emplace_back(elder, id::Vessel{900});
+	}
+
 	shared.souls.emplace_back(soul_id, name);
 	const id::Vessel vessel_id{soul_id.value()};
 	shared.vessels.push_back(matter::Vessel{vessel_id, token});
