@@ -68,11 +68,11 @@ message AcceptSupplication {
 }
 
 
-// Turn the gaze to the tie with this soul; or to an abode — the abode of this
-// host one dwells in, or one's own when abode_of is empty — and, when room is
-// given, into that room of it.
+// Turn the gaze to an abode — the abode of this host one dwells in, or one's
+// own when abode_of is empty — and, when room is given, into that room of it.
+// A tie is seen through the room reflecting it.
 message Turn {
-    string tie_with = 1;
+    reserved 1;
     string abode_of = 2;
     string room = 3;
 }
@@ -136,10 +136,10 @@ message TieFormed {
 }
 
 
-// The gaze now rests on the tie with this soul, or on an abode (of this host,
-// or one's own when empty) — in this room of it, when room is given.
+// The gaze now rests on an abode (of this host, or one's own when empty) — in
+// this room of it, when room is given.
 message Turned {
-    string tie_with = 1;
+    reserved 1;
     string abode_of = 2;
     string room = 3;
 }
@@ -189,10 +189,12 @@ message Dwellers {
 }
 
 
-// A new word was placed in a tie one dwells in but does not contemplate.
+// A new word was placed in a tie one is a side of, while one looks elsewhere;
+// room is the room of one's abode reflecting that tie.
 message Stirred {
-    string tie_with = 1;
+    reserved 1;
     string author_name = 2;
+    string room = 3;
 }
 
 

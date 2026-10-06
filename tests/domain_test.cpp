@@ -516,7 +516,7 @@ TEST_CASE("the sides of a tie may contemplate it and behold its behests")
 	novice.supplicate(testator);
 	const Shepherding& shepherding = testator.accept(*testator.supplication(novice));
 	testator.wake();
-	testator.contemplate(shepherding);
+	testator.contemplate(room_in(testator, shepherding));
 	const std::shared_ptr<const Behest> willed_held = testator.will(shepherding, "fast");
 	const Behest& willed = *willed_held;
 
@@ -524,16 +524,16 @@ TEST_CASE("the sides of a tie may contemplate it and behold its behests")
 	testator.wake();
 	stranger.wake();
 
-	// Both sides dwell in the tie; a stranger does not and cannot turn his gaze to it.
+	// Both sides dwell in the tie and see it through their rooms; a stranger has no such room.
 	CHECK(shepherding.dwells(novice));
 	CHECK(shepherding.dwells(testator));
 	CHECK_FALSE(shepherding.dwells(stranger));
-	CHECK_THROWS_AS(stranger.contemplate(shepherding), std::logic_error);
+	CHECK_FALSE(stranger.abode().room(shepherding));
 
 	// Turning to the tie, a side beholds its behests as words.
-	testator.contemplate(shepherding);
+	testator.contemplate(room_in(testator, shepherding));
 	const std::shared_ptr<const Contemplation> gaze = world.contemplation(testator.Soul::id());
-	CHECK(&gaze->place() == static_cast<const Place*>(&shepherding));
+	CHECK(&gaze->place().source() == static_cast<const Place*>(&shepherding));
 	REQUIRE(gaze->words().size() == 1);
 	const auto behest = std::dynamic_pointer_cast<const Behest>(gaze->words().front());
 	REQUIRE(behest);
@@ -568,8 +568,8 @@ TEST_CASE("the words of a tie live while it is contemplated, one for both sides"
 	// Both sides turn to the tie: the testator's gaze births its words, the novice's shares them.
 	novice.wake();
 	testator.wake();
-	testator.contemplate(shepherding);
-	novice.contemplate(obedience);
+	testator.contemplate(room_in(testator, shepherding));
+	novice.contemplate(room_in(novice, obedience));
 	const std::shared_ptr<const Contemplation> testator_gaze = world.contemplation(testator.Soul::id());
 	const std::shared_ptr<const Contemplation> novice_gaze = world.contemplation(novice.Soul::id());
 	CHECK(testator_gaze->words().empty());
@@ -610,7 +610,7 @@ TEST_CASE("the words of a tie are gone with the last gaze and are born anew from
 	const Shepherding& shepherding = testator.accept(*testator.supplication(novice));
 
 	testator.wake();
-	testator.contemplate(shepherding);
+	testator.contemplate(room_in(testator, shepherding));
 
 	std::weak_ptr<const Behest> watched;
 	id::Word behest_id{1};
@@ -619,7 +619,7 @@ TEST_CASE("the words of a tie are gone with the last gaze and are born anew from
 		watched = behest;
 		behest_id = behest->id();
 		novice.wake();
-		novice.contemplate(novice.obedience(testator));
+		novice.contemplate(room_in(novice, novice.obedience(testator)));
 		novice.execute(*behest, Saying{"fasted"});
 		novice.sleep();
 	}
@@ -631,7 +631,7 @@ TEST_CASE("the words of a tie are gone with the last gaze and are born anew from
 
 	// Turning anew, the tie births them again from matter, in their order.
 	testator.wake();
-	testator.contemplate(shepherding);
+	testator.contemplate(room_in(testator, shepherding));
 	const auto words = world.contemplation(testator.Soul::id())->words();
 	REQUIRE(words.size() == 2);
 	const auto behest = std::dynamic_pointer_cast<const Behest>(words[0]);
@@ -791,7 +791,7 @@ TEST_CASE("will and execute within obedience")
 	REQUIRE(cosmos.spatiality().ties().size() == 1);
 	const Shepherding& shepherding = testator.shepherding(novice);
 	testator.wake();
-	testator.contemplate(shepherding);
+	testator.contemplate(room_in(testator, shepherding));
 	const std::shared_ptr<const Behest> behest_held = testator.will(shepherding, "fast");
 	const Behest& behest = *behest_held;
 	CHECK(behest.saying().body() == "fast");
@@ -811,7 +811,7 @@ TEST_CASE("will and execute within obedience")
 	// One fulfils a behest only while contemplating its tie.
 	CHECK_THROWS_AS(novice.execute(behest), std::logic_error);
 	novice.wake();
-	novice.contemplate(obedience);
+	novice.contemplate(room_in(novice, obedience));
 	const std::shared_ptr<const Deed> deed = novice.execute(behest);
 	CHECK(deed->behest() == behest.id());
 	REQUIRE(shepherding.deeds(testator).size() == 1);
@@ -840,7 +840,7 @@ TEST_CASE("a tie shows its behests only to its sides; behests are not letters")
 	testator.accept(*testator.supplication(novice));
 	testator.wake();
 	CHECK_THROWS_AS(testator.will(testator.shepherding(novice), "fast"), std::logic_error);
-	testator.contemplate(testator.shepherding(novice));
+	testator.contemplate(room_in(testator, testator.shepherding(novice)));
 	const std::shared_ptr<const Behest> behest_held = testator.will(testator.shepherding(novice), "fast");
 	const Behest& behest = *behest_held;
 

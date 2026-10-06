@@ -228,18 +228,6 @@ void WillClient::accept(const std::string_view suppliant_name) const
 }
 
 
-void WillClient::turn(const std::string_view tie_with) const
-{
-	if (!authenticated_)
-		throw std::logic_error("WillClient: not authenticated");
-
-	v1::ClientEvent event;
-	event.mutable_turn()->set_tie_with(std::string{tie_with});
-	if (!write_event(event))
-		throw std::runtime_error("Will protocol: failed to send Turn");
-}
-
-
 void WillClient::fulfil(const std::uint64_t behest_id, const std::string_view report) const
 {
 	if (!authenticated_)

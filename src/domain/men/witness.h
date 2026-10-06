@@ -9,6 +9,9 @@
 namespace will::domain {
 
 
+class Room;
+
+
 /// Witness (Свидетель) — living man; says in the waking world.
 /// Awake, he contemplates exactly one thing — his own Abode unless he turns
 /// elsewhere; asleep, nothing.
@@ -22,9 +25,10 @@ public:
 	/// Leave the waking world: contemplate nothing.
 	void sleep() const;
 
-	/// Turn the gaze to a place he dwells in — his abode, or a tie he is a side
-	/// of. Throws if he does not dwell there.
-	void contemplate(const Place& place) const;
+	/// Turn the gaze to an abode he dwells in, or to a room of it he enters: a
+	/// tie is seen through the room reflecting it. Throws if he does not dwell there.
+	void contemplate(const Abode& abode) const;
+	void contemplate(const Room& room) const;
 
 	/// Whether this witness contemplates the words of this place now: the place
 	/// itself, or a room reflecting it.

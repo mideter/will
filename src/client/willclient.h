@@ -37,7 +37,6 @@ public:
 	void ask(std::string_view addressee_name) const;
 	void accept(std::string_view suppliant_name) const;
 	/** Turn the gaze to the tie with this soul, or home when the name is empty. */
-	void turn(std::string_view tie_with) const;
 
 	/** Fulfil a behest of the contemplated tie, with an optional report. */
 	void fulfil(std::uint64_t behest_id, std::string_view report) const;

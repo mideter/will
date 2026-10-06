@@ -35,12 +35,21 @@ void Witness::sleep() const
 }
 
 
-void Witness::contemplate(const Place& place) const
+void Witness::contemplate(const Abode& abode) const
 {
-	if (!place.dwells(*this))
-		throw std::logic_error("Witness does not dwell in this place");
+	if (!abode.dwells(*this))
+		throw std::logic_error("Witness does not dwell in this abode");
 
-	Spirit::contemplate(place);
+	Spirit::contemplate(abode);
+}
+
+
+void Witness::contemplate(const Room& room) const
+{
+	if (!room.dwells(*this))
+		throw std::logic_error("Witness does not enter this room");
+
+	Spirit::contemplate(room);
 }
 
 

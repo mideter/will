@@ -135,10 +135,6 @@ void ReceivingMessageHandler::on(const v1::ServerEvent& event)
 	}
 	case v1::ServerEvent::kTurned: {
 		const auto& turned = event.turned();
-		if (!turned.tie_with().empty()) {
-			ui_.print_status("── tie with " + turned.tie_with() + " ──");
-			return;
-		}
 		const std::string abode = turned.abode_of().empty() ? "home" : "abode of " + turned.abode_of();
 		ui_.print_status("── " + abode + (turned.room().empty() ? "" : " · " + turned.room()) + " ──");
 		return;
@@ -165,8 +161,8 @@ void ReceivingMessageHandler::on(const v1::ServerEvent& event)
 		return;
 	}
 	case v1::ServerEvent::kStirred:
-		ui_.print_status("New word in the tie with " + event.stirred().tie_with() + " — /tie "
-						 + event.stirred().tie_with());
+		ui_.print_status("New word from " + event.stirred().author_name() + " in " + event.stirred().room()
+						 + " — /room " + event.stirred().room());
 		return;
 	case v1::ServerEvent::kProtocolNotice:
 		ui_.print_status(event.protocol_notice().message());

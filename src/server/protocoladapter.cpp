@@ -299,9 +299,13 @@ void ProtocolAdapter::tell_placed(const domain::Place& place, const domain::Word
 			return;
 	}
 
+	const domain::Room* room = other.abode().room(*tie);
+	if (!room)
+		return;
+
 	v1::ServerEvent event;
 	auto* stirred = event.mutable_stirred();
-	stirred->set_tie_with(std::string{author.name().text()});
+	stirred->set_room(room->name());
 	stirred->set_author_name(std::string{author.name().text()});
 	send_to_vessel(other.Vessel::id(), event);
 }
@@ -413,54 +417,30 @@ void ProtocolAdapter::handle_turn(const SessionId session_id, const v1::Turn& ms
 	const domain::Man& self = session_man(session_id);
 	const auto& witness = static_cast<const domain::Witness&>(self);
 
-	if (msg.tie_with().empty()) {
-		const domain::Man* host = &self;
-		if (!msg.abode_of().empty()) {
-			host = man_named(session_id, msg.abode_of());
-			if (!host)
-				return;
-		}
+	const domain::Man* host = &self;
+	if (!msg.abode_of().empty()) {
+		host = man_named(session_id, msg.abode_of());
+		if (!host)
+			return;
+	}
 
-		const domain::Place* place = &host->abode();
-		if (!msg.room().empty()) {
-			place = host->abode().room(msg.room());
-			if (!place) {
+	try {
+		if (msg.room().empty()) {
+			witness.contemplate(host->abode());
+		} else {
+			const domain::Room* room = host->abode().room(msg.room());
+			if (!room) {
 				send_notice(session_id, "no such room");
 				return;
 			}
+			witness.contemplate(*room);
 		}
-
-		try {
-			witness.contemplate(*place);
-		} catch (const std::logic_error&) {
-			send_notice(session_id, msg.room().empty() ? "you do not dwell in that abode"
-													   : "you do not enter that room");
-			return;
-		}
-	} else {
-		const domain::Man* counterpart = man_named(session_id, msg.tie_with());
-		if (!counterpart)
-			return;
-
-		const domain::Place* tie = nullptr;
-		try {
-			tie = &static_cast<const domain::Testator&>(self).shepherding(
-				static_cast<const domain::Novice&>(*counterpart));
-		} catch (const std::invalid_argument&) {
-			try {
-				tie = &static_cast<const domain::Novice&>(self).obedience(
-					static_cast<const domain::Testator&>(*counterpart));
-			} catch (const std::invalid_argument&) {
-				send_notice(session_id, "no tie with that soul");
-				return;
-			}
-		}
-
-		witness.contemplate(*tie);
+	} catch (const std::logic_error&) {
+		send_notice(session_id, msg.room().empty() ? "you do not dwell in that abode" : "you do not enter that room");
+		return;
 	}
 
 	v1::ServerEvent turned;
-	turned.mutable_turned()->set_tie_with(msg.tie_with());
 	turned.mutable_turned()->set_abode_of(msg.abode_of());
 	turned.mutable_turned()->set_room(msg.room());
 	send_event(session_id, turned);
@@ -477,7 +457,7 @@ void ProtocolAdapter::handle_fulfil(const SessionId session_id, const v1::Fulfil
 
 	const std::shared_ptr<const domain::Contemplation> gaze = world_.contemplation(self.Soul::id());
 	if (!gaze || !dynamic_cast<const domain::Tie*>(&gaze->place().source())) {
-		send_notice(session_id, "turn to the tie first: /tie <name>");
+		send_notice(session_id, "enter the room of the tie first: /room <name>");
 		return;
 	}
 

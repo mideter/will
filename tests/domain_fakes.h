@@ -494,6 +494,13 @@ inline const Room& cell_of(const Man& man)
 }
 
 
+/// The room of a man's abode reflecting this place (a tie he is a side of).
+inline const Room& room_in(const Man& man, const Place& reflected)
+{
+	return *man.abode().room(reflected);
+}
+
+
 /// The letters a gaze beholds (the words of an abode are letters).
 inline std::vector<std::shared_ptr<const Letter>> letters_seen_by(const std::shared_ptr<const Contemplation>& gaze)
 {
