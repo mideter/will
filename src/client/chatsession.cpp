@@ -51,13 +51,13 @@ bool is_post_auth_server_event(const v1::ServerEvent& event) noexcept
 /// The commands, a group to a line.
 void print_help(ConsoleUi& ui)
 {
-	ui.print_status("Rooms:      /rooms [name]  /room <number|name>  /home  /visit <name> [room]  "
-					"/arrange inner|outer <room>");
-	ui.print_status("Gates:      /gates <name>  /admit <name>");
-	ui.print_status("Dwellers:   /dwellers  /regard <name> acquaintance|neighbour|friend  /dwellings");
-	ui.print_status("Obedience:  /ask <name>  /accept <name>  /reject <name>  /supplications  /done <number> [report]");
-	ui.print_status("Birth:      /birth  /bear <mark>  /father <name>  /lineage");
-	ui.print_status("Type text in a room to write there. Ctrl+D to exit.");
+	ui.print_commands("Rooms", "/rooms [name]  /room <number|name>  /home  /visit <name> [room]  "
+							   "/arrange inner|outer <room>");
+	ui.print_commands("Gates", "/gates <name>  /admit <name>");
+	ui.print_commands("Dwellers", "/dwellers  /regard <name> acquaintance|neighbour|friend  /dwellings");
+	ui.print_commands("Obedience", "/ask <name>  /accept <name>  /reject <name>  /supplications  /done <number> [report]");
+	ui.print_commands("Birth", "/birth  /bear <mark>  /father <name>  /lineage");
+	ui.print_status("Type text in a room to write there.", "Ctrl+D to exit");
 }
 
 
@@ -80,7 +80,7 @@ bool handle_slash_command(WillClient& client, ConsoleUi& ui, ShownRooms& rooms, 
 	}
 	if (cmd == "ask") {
 		if (args.empty()) {
-			ui.print_status("usage: /ask <name>");
+			ui.print_notice("usage: /ask <name>");
 			return true;
 		}
 		client.ask(args);
@@ -88,7 +88,7 @@ bool handle_slash_command(WillClient& client, ConsoleUi& ui, ShownRooms& rooms, 
 	}
 	if (cmd == "accept") {
 		if (args.empty()) {
-			ui.print_status("usage: /accept <name>");
+			ui.print_notice("usage: /accept <name>");
 			return true;
 		}
 		client.accept(args);
@@ -105,16 +105,16 @@ bool handle_slash_command(WillClient& client, ConsoleUi& ui, ShownRooms& rooms, 
 		try {
 			client.fulfil(std::stoull(std::string{number}), report);
 		} catch (const std::invalid_argument&) {
-			ui.print_status("usage: /done <number> [report]");
+			ui.print_notice("usage: /done <number> [report]");
 		} catch (const std::out_of_range&) {
-			ui.print_status("usage: /done <number> [report]");
+			ui.print_notice("usage: /done <number> [report]");
 		}
 		return true;
 	}
 
 	if (cmd == "visit") {
 		if (args.empty()) {
-			ui.print_status("usage: /visit <name> [room]");
+			ui.print_notice("usage: /visit <name> [room]");
 			return true;
 		}
 		const auto sp = args.find(' ');
@@ -125,7 +125,7 @@ bool handle_slash_command(WillClient& client, ConsoleUi& ui, ShownRooms& rooms, 
 	}
 	if (cmd == "room") {
 		if (args.empty()) {
-			ui.print_status("usage: /room <number|name>");
+			ui.print_notice("usage: /room <number|name>");
 			return true;
 		}
 		// A number is of the rooms last shown, in the abode they were shown in.
@@ -140,7 +140,7 @@ bool handle_slash_command(WillClient& client, ConsoleUi& ui, ShownRooms& rooms, 
 		const std::string_view part = args.substr(0, sp);
 		std::string room{sp == std::string_view::npos ? std::string_view{} : args.substr(sp + 1)};
 		if (room.empty() || (part != "inner" && part != "outer")) {
-			ui.print_status("usage: /arrange inner|outer <number|room>");
+			ui.print_notice("usage: /arrange inner|outer <number|room>");
 			return true;
 		}
 		// A number is only of the rooms of one's own abode.
@@ -151,7 +151,7 @@ bool handle_slash_command(WillClient& client, ConsoleUi& ui, ShownRooms& rooms, 
 	}
 	if (cmd == "admit") {
 		if (args.empty()) {
-			ui.print_status("usage: /admit <name>");
+			ui.print_notice("usage: /admit <name>");
 			return true;
 		}
 		client.admit(args);
@@ -162,7 +162,7 @@ bool handle_slash_command(WillClient& client, ConsoleUi& ui, ShownRooms& rooms, 
 		const std::string_view name = args.substr(0, sp);
 		const std::string_view kind = sp == std::string_view::npos ? std::string_view{} : args.substr(sp + 1);
 		if (name.empty() || kind.empty()) {
-			ui.print_status("usage: /regard <name> acquaintance|neighbour|friend");
+			ui.print_notice("usage: /regard <name> acquaintance|neighbour|friend");
 			return true;
 		}
 		if (kind == "acquaintance")
@@ -172,7 +172,7 @@ bool handle_slash_command(WillClient& client, ConsoleUi& ui, ShownRooms& rooms, 
 		else if (kind == "friend")
 			client.regard(name, v1::FRIEND);
 		else
-			ui.print_status("usage: /regard <name> acquaintance|neighbour|friend");
+			ui.print_notice("usage: /regard <name> acquaintance|neighbour|friend");
 		return true;
 	}
 	if (cmd == "dwellers") {
@@ -181,7 +181,7 @@ bool handle_slash_command(WillClient& client, ConsoleUi& ui, ShownRooms& rooms, 
 	}
 	if (cmd == "gates") {
 		if (args.empty()) {
-			ui.print_status("usage: /gates <name>");
+			ui.print_notice("usage: /gates <name>");
 			return true;
 		}
 		client.visit(args, "Врата");
@@ -205,9 +205,9 @@ bool handle_slash_command(WillClient& client, ConsoleUi& ui, ShownRooms& rooms, 
 		try {
 			client.bear(std::stoull(std::string{args.starts_with('#') ? args.substr(1) : args}));
 		} catch (const std::invalid_argument&) {
-			ui.print_status("usage: /bear <mark>");
+			ui.print_notice("usage: /bear <mark>");
 		} catch (const std::out_of_range&) {
-			ui.print_status("usage: /bear <mark>");
+			ui.print_notice("usage: /bear <mark>");
 		}
 		return true;
 	}
@@ -217,7 +217,7 @@ bool handle_slash_command(WillClient& client, ConsoleUi& ui, ShownRooms& rooms, 
 	}
 	if (cmd == "father") {
 		if (args.empty()) {
-			ui.print_status("usage: /father <name>");
+			ui.print_notice("usage: /father <name>");
 			return true;
 		}
 		client.choose_father(args);
@@ -229,14 +229,14 @@ bool handle_slash_command(WillClient& client, ConsoleUi& ui, ShownRooms& rooms, 
 	}
 	if (cmd == "reject") {
 		if (args.empty()) {
-			ui.print_status("usage: /reject <name>");
+			ui.print_notice("usage: /reject <name>");
 			return true;
 		}
 		client.reject(args);
 		return true;
 	}
 
-	ui.print_status("unknown command; /help lists them");
+	ui.print_notice("unknown command", "/help lists them");
 	return true;
 }
 
@@ -263,7 +263,7 @@ void ChatSession::run()
 	// The main thread is blocked reading input, so the reader thread says it at once.
 	client_.set_closed_handler([this, &disconnected] {
 		if (!disconnected.exchange(true))
-			ui_.print_status("Disconnected from chat. Press Enter to exit.");
+			ui_.print_notice("Disconnected from chat. Press Enter to exit.");
 	});
 	client_.set_inbound_handler([this, &disconnected](const v1::ServerEvent& event) {
 		if (disconnected.load())
@@ -281,12 +281,13 @@ void ChatSession::run()
 	});
 
 	ui_.print_status("Connected as " + client_.own_name() + ".");
-	ui_.print_status("Type text in a room to write there. /help — commands. Ctrl+D to exit.");
+	ui_.print_status("Type text in a room to write there.", "/help for commands, Ctrl+D to exit");
 	ui_.set_live_prompt(true);
 	ui_.print_prompt();
 
 	std::string line;
 	while (!disconnected.load() && std::getline(std::cin, line)) {
+		ui_.line_entered();
 		if (disconnected.load())
 			break;
 
@@ -318,8 +319,10 @@ bool ChatSession::awaitBirth() const
 	if (!client_.mark())
 		return true;
 
-	ui_.print_status("You are not yet born. Your body is seen as #" + std::to_string(*client_.mark())
-					 + " in birth rooms: wait until someone bears you. Ctrl+D to leave.");
+	ui_.print_header("You are not yet born.");
+	ui_.print_status("Your body is seen as #" + std::to_string(*client_.mark())
+						 + " in birth rooms: wait until someone bears you.",
+					 "Ctrl+D to leave");
 
 	std::mutex mutex;
 	std::optional<std::string> name;
@@ -360,8 +363,9 @@ bool ChatSession::awaitBirth() const
 			left = true;
 			break;
 		}
+		ui_.line_entered();
 		if (!line.empty())
-			ui_.print_status("You are not yet born: nothing is done until someone bears you.");
+			ui_.print_notice("You are not yet born: nothing is done until someone bears you.");
 		ui_.print_prompt();
 	}
 	ui_.set_live_prompt(false);
@@ -377,7 +381,7 @@ bool ChatSession::awaitBirth() const
 		throw std::runtime_error("Disconnected while awaiting birth");
 
 	client_.born(*name);
-	ui_.print_status("You are born.");
+	ui_.print_header("You are born.");
 	return true;
 }
 

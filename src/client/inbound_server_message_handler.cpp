@@ -5,6 +5,7 @@
 
 #include <stdexcept>
 #include <string>
+#include <vector>
 
 
 namespace will {
@@ -32,21 +33,20 @@ void print_rooms(ConsoleUi& ui, const v1::Rooms& rooms)
 		ui.print_status("No room is open to you here.");
 		return;
 	}
-	std::string told = "Rooms:";
-	int number = 0;
+	std::vector<std::vector<std::string>> rows;
 	for (const v1::Room& room : rooms.rooms())
-		told += " " + std::to_string(++number) + ". " + room.name() + (room.part() == v1::OUTER ? " (outer);" : " (inner);");
-	ui.print_status(told + " — /room <number>");
+		rows.push_back({std::to_string(rows.size() + 1), room.name(), room.part() == v1::OUTER ? "outer" : "inner"});
+	ui.print_list("Rooms", rows, "/room <number>");
 }
 
 
 void print_threshold(ConsoleUi& ui, const v1::Threshold& threshold)
 {
 	if (!threshold.waiting().empty()) {
-		std::string told = "At the gates:";
+		std::vector<std::vector<std::string>> rows;
 		for (const std::string& name : threshold.waiting())
-			told += " " + name;
-		ui.print_status(told + " — /admit <name>");
+			rows.push_back({name});
+		ui.print_list("At the gates", rows, "/admit <name>");
 		return;
 	}
 	ui.print_status(threshold.open() ? "The gates are open." : "The gates are shut: the host is not here.");
@@ -59,10 +59,10 @@ void print_unborn(ConsoleUi& ui, const v1::Unborn& unborn)
 		ui.print_status("No one awaits birth.");
 		return;
 	}
-	std::string told = "Awaiting birth:";
+	std::vector<std::vector<std::string>> rows;
 	for (const std::uint64_t mark : unborn.marks())
-		told += " #" + std::to_string(mark);
-	ui.print_status(told + " — /bear <mark>");
+		rows.push_back({"#" + std::to_string(mark)});
+	ui.print_list("Awaiting birth", rows, "/bear <mark>");
 }
 
 
@@ -72,9 +72,10 @@ void print_outstanding(ConsoleUi& ui, const v1::Outstanding& outstanding)
 		ui.print_status("Nothing awaits you.");
 		return;
 	}
+	std::vector<std::vector<std::string>> rows;
 	for (const v1::OutstandingBehest& waiting : outstanding.behests())
-		ui.print_status("Awaits in " + waiting.room() + ": #" + std::to_string(waiting.behest().id()) + " "
-						+ waiting.behest().body());
+		rows.push_back({waiting.room(), "#" + std::to_string(waiting.behest().id()), waiting.behest().body()});
+	ui.print_list("Awaits you", rows, "/room <name>");
 }
 
 
@@ -83,8 +84,8 @@ void print_word(ConsoleUi& ui, const v1::Word& word, const bool dim)
 	const std::string number = "#" + std::to_string(word.id());
 	switch (word.kind()) {
 	case v1::Word::BEHEST:
-		ui.print_status("Behest " + number + " from " + word.name() + ": " + word.body()
-						+ (word.is_mine() ? std::string{} : " — /done " + std::to_string(word.id())));
+		ui.print_status("Behest " + number + " from " + word.name() + ": " + word.body(),
+						word.is_mine() ? std::string{} : "/done " + std::to_string(word.id()) + " [report]");
 		return;
 	case v1::Word::DEED:
 		ui.print_status("Deed " + number + " by " + word.name() + " fulfils #"
@@ -192,13 +193,13 @@ void ReceivingMessageHandler::on(const v1::ServerEvent& event)
 		print_word(ui_, event.word(), false);
 		return;
 	case v1::ServerEvent::kSupplicationOffer:
-		ui_.print_status("Supplication from " + event.supplication_offer().suppliant_name()
-						 + " — /accept " + event.supplication_offer().suppliant_name());
+		ui_.print_notice("Supplication from " + event.supplication_offer().suppliant_name(),
+						 "/accept " + event.supplication_offer().suppliant_name());
 		return;
 	case v1::ServerEvent::kTieFormed: {
 		const auto& tie = event.tie_formed();
 		const char* role = tie.as_novice() ? "novice" : "testator";
-		ui_.print_status(std::string("Tie #") + std::to_string(tie.tie_id()) + " with "
+		ui_.print_notice(std::string("Tie #") + std::to_string(tie.tie_id()) + " with "
 						 + tie.counterpart_name() + " (you are " + role + ")");
 		return;
 	}
@@ -206,7 +207,7 @@ void ReceivingMessageHandler::on(const v1::ServerEvent& event)
 		const auto& turned = event.turned();
 		rooms_.turned(turned.abode_of());
 		const std::string abode = turned.abode_of().empty() ? "home" : "abode of " + turned.abode_of();
-		ui_.print_status("── " + abode + (turned.room().empty() ? "" : " · " + turned.room()) + " ──");
+		ui_.print_header("── " + abode + (turned.room().empty() ? "" : " · " + turned.room()) + " ──");
 		return;
 	}
 	case v1::ServerEvent::kRooms:
@@ -220,18 +221,19 @@ void ReceivingMessageHandler::on(const v1::ServerEvent& event)
 		print_threshold(ui_, event.threshold());
 		return;
 	case v1::ServerEvent::kDwelling:
-		ui_.print_status("You dwell in the abode of " + event.dwelling().host_name() + " as "
-						 + kind_name(event.dwelling().kind()) + " — /visit " + event.dwelling().host_name());
+		ui_.print_notice("You dwell in the abode of " + event.dwelling().host_name() + " as "
+							 + kind_name(event.dwelling().kind()),
+						 "/visit " + event.dwelling().host_name());
 		return;
 	case v1::ServerEvent::kDwellings: {
 		if (event.dwellings().dwellings().empty()) {
 			ui_.print_status("You dwell in no other abode.");
 			return;
 		}
-		std::string told = "You dwell with:";
+		std::vector<std::vector<std::string>> rows;
 		for (const v1::Dwelling& dwelling : event.dwellings().dwellings())
-			told += " " + dwelling.host_name() + " (" + kind_name(dwelling.kind()) + ")";
-		ui_.print_status(told + " — /visit <name>");
+			rows.push_back({dwelling.host_name(), kind_name(dwelling.kind())});
+		ui_.print_list("You dwell with", rows, "/visit <name>");
 		return;
 	}
 	case v1::ServerEvent::kSupplications: {
@@ -239,8 +241,10 @@ void ReceivingMessageHandler::on(const v1::ServerEvent& event)
 			ui_.print_status("No supplication awaits you.");
 			return;
 		}
+		std::vector<std::vector<std::string>> rows;
 		for (const std::string& name : event.supplications().suppliant_names())
-			ui_.print_status("Supplication from " + name + " — /accept " + name + " or /reject " + name);
+			rows.push_back({name});
+		ui_.print_list("Supplications", rows, "/accept <name> or /reject <name>");
 		return;
 	}
 	case v1::ServerEvent::kDwellers: {
@@ -248,10 +252,10 @@ void ReceivingMessageHandler::on(const v1::ServerEvent& event)
 			ui_.print_status("No one dwells in your abode.");
 			return;
 		}
-		std::string told = "Dwellers:";
+		std::vector<std::vector<std::string>> rows;
 		for (const v1::Dweller& dweller : event.dwellers().dwellers())
-			told += " " + dweller.name() + " (" + kind_name(dweller.kind()) + ")";
-		ui_.print_status(told);
+			rows.push_back({dweller.name(), kind_name(dweller.kind())});
+		ui_.print_list("Dwellers", rows, "/regard <name> <kind>");
 		return;
 	}
 	case v1::ServerEvent::kUnborn:
@@ -262,18 +266,18 @@ void ReceivingMessageHandler::on(const v1::ServerEvent& event)
 			ui_.print_status("No one is your child by spirit.");
 			return;
 		}
-		std::string told = "Your line:";
+		std::vector<std::vector<std::string>> rows;
 		for (const v1::Descent& descent : event.lineage().descents())
-			told += " " + descent.name() + " (of " + descent.father_name() + ");";
-		ui_.print_status(told);
+			rows.push_back({descent.name(), "child of " + descent.father_name()});
+		ui_.print_list("Your line", rows);
 		return;
 	}
 	case v1::ServerEvent::kStirred:
-		ui_.print_status("New word from " + event.stirred().author_name() + " in " + event.stirred().room()
-						 + " — /room " + event.stirred().room());
+		ui_.print_notice("New word from " + event.stirred().author_name() + " in " + event.stirred().room(),
+						 "/room " + event.stirred().room());
 		return;
 	case v1::ServerEvent::kProtocolNotice:
-		ui_.print_status(event.protocol_notice().message());
+		ui_.print_notice(event.protocol_notice().message());
 		return;
 	case v1::ServerEvent::EVENT_NOT_SET:
 		break;
