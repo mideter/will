@@ -1,5 +1,6 @@
 #pragma once
 
+#include "matter/dweller.h"
 #include "matter/room.h"
 #include "places/place.h"
 #include "properties/birth.h"
@@ -54,9 +55,11 @@ private:
 
 /// Gates (Врата) — the room reflecting the threshold of an Abode. Anyone who
 /// would come into another's Abode enters its Gates by the host's name and stands
-/// there until he leaves. The host, entering his Gates, opens them: he sees who
-/// stands there and may let him in. The Gates show no words.
-class Gates final : public Room {
+/// there until he leaves. Those who keep the Gates — the host, and the dwellers
+/// whose kind enters the part they stand in — open them by standing there: they
+/// see who waits and may let him in, an acquaintance of the host, whoever lets
+/// him in. The Gates show no words.
+class Gates final : public Room, private Immanent<Heaven> {
 public:
 	Gates(Birth<Abode> birth, matter::Room kept);
 
@@ -65,8 +68,16 @@ public:
 	/// Anyone may stand at the gates.
 	bool dwells(const Man& man) const override;
 
-	/// Open while the host stands in them.
+	/// Whether this man keeps the gates: the host, or a dweller whose kind
+	/// enters the part they stand in.
+	bool keeps(const Man& man) const;
+
+	/// Open while one who keeps them stands in them.
 	bool open() const;
+
+	/// A keeper standing here lets in one who stands here and does not dwell in
+	/// the abode, as the dweller matter says. Throws otherwise.
+	void admit(Birth<Man> keeper, const Man& man, const matter::Dweller& kept) const;
 
 	const Place& source() const override;
 	bool shows(const Man& who, const Word& word) const override;

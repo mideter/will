@@ -2,6 +2,7 @@
 
 #include "dimensions/spatiality.h"
 #include "men/witness.h"
+#include "relations/contemplation.h"
 #include "places/room.h"
 #include "values/abode_name.h"
 
@@ -45,18 +46,21 @@ Man::Man(matter::Man kept)
 
 void Man::admit(const Man& man) const
 {
-	if (abode_->dwells(man))
+	// One lets in at the gates one stands in and keeps — one's own, or another's
+	// whose kind lets one keep them; the one let in becomes the host's acquaintance.
+	const std::shared_ptr<const Contemplation> gaze = contemplation();
+	const auto* gates = gaze ? dynamic_cast<const Gates*>(&gaze->place()) : nullptr;
+	if (!gates)
+		throw std::logic_error("one admits only standing in gates");
+	if (!gates->keeps(*this))
+		throw std::logic_error("one keeps the gates only by one's kind");
+	if (gates->abode().dwells(man))
 		throw std::logic_error("he already dwells in this abode");
-
-	// One lets in at one's open gates whoever stands there.
-	const Gates& gates = abode_->gates();
-	if (!gates.open())
-		throw std::logic_error("one admits only standing in one's gates");
-	if (!static_cast<const Witness&>(man).contemplates(gates))
+	if (!static_cast<const Witness&>(man).contemplates(*gates))
 		throw std::logic_error("he does not stand at the gates");
 
-	abode_->admit(Birth<Man>{*this}, man,
-				  spatiality().dwell(abode_->id(), man.Soul::id(), matter::Dweller::Kind::Acquaintance));
+	gates->admit(Birth<Man>{*this}, man,
+				 spatiality().dwell(gates->abode().id(), man.Soul::id(), matter::Dweller::Kind::Acquaintance));
 }
 
 

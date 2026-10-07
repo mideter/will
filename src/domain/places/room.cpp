@@ -95,9 +95,35 @@ bool Gates::dwells(const Man&) const
 }
 
 
+bool Gates::keeps(const Man& man) const
+{
+	return Room::dwells(man);
+}
+
+
 bool Gates::open() const
 {
-	return static_cast<const Witness&>(abode().host()).contemplates(*this);
+	for (const Soul& soul : Immanent<Heaven>::horizon().contemplating(*this)) {
+		if (keeps(static_cast<const Man&>(soul)))
+			return true;
+	}
+	return false;
+}
+
+
+void Gates::admit(const Birth<Man> keeper, const Man& man, const matter::Dweller& kept) const
+{
+	const Man& who = keeper.parent();
+	if (!static_cast<const Witness&>(who).contemplates(*this))
+		throw std::logic_error("one admits only standing in gates");
+	if (!keeps(who))
+		throw std::logic_error("one keeps the gates only by one's kind");
+	if (abode().dwells(man))
+		throw std::logic_error("he already dwells in this abode");
+	if (!static_cast<const Witness&>(man).contemplates(*this))
+		throw std::logic_error("he does not stand at the gates");
+
+	abode().host().abode().admit(Birth<Gates>{*this}, man, kept);
 }
 
 

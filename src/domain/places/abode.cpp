@@ -51,6 +51,17 @@ void Abode::admit(Birth<World>, const Man& man, const matter::Dweller& kept)
 }
 
 
+void Abode::admit(const Birth<Gates> birth, const Man& man, const matter::Dweller& kept)
+{
+	if (&birth.parent().abode() != this)
+		throw std::logic_error("one is let in only at the gates of this abode");
+	if (kept.kind() != matter::Dweller::Kind::Acquaintance)
+		throw std::logic_error("one let in at the gates is an acquaintance");
+
+	admit(man, kept);
+}
+
+
 void Abode::admit(const Man& man, const matter::Dweller& kept)
 {
 	if (kept.abode() != id())

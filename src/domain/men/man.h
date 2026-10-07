@@ -26,8 +26,10 @@ public:
 
 	Abode& abode() const noexcept { return *abode_; }
 
-	/// Let a man in as an acquaintance: one stands in one's gates and he stands
-	/// at them. Throws if he already dwells here or either is not at the gates.
+	/// Let a man in at the gates one stands in and keeps — one's own, or another's
+	/// whose kind lets one keep them: he becomes an acquaintance of their host.
+	/// Throws if one stands elsewhere or does not keep them, if he already dwells
+	/// there or does not stand at them.
 	void admit(const Man& man) const;
 
 	/// Regard a dweller of one's abode as of this kind, standing in one's

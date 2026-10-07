@@ -53,6 +53,9 @@ public:
 	void admit(Birth<Man> birth, const Man& man, const matter::Dweller& kept);
 	void admit(Birth<World> birth, const Man& man, const matter::Dweller& kept);
 
+	/// One is let in at the gates of this abode, by whoever keeps them.
+	void admit(Birth<Gates> birth, const Man& man, const matter::Dweller& kept);
+
 	/// The dwellers of this abode, in no particular order. The fathers by spirit
 	/// of the host are not among them: they are unseen.
 	std::vector<std::shared_ptr<const Acquaintance>> dwellers() const;

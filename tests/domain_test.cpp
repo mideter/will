@@ -1375,3 +1375,54 @@ TEST_CASE("a man chooses his father by spirit, an unseen friend of all his spiri
 	CHECK(grandson.father(Line::Spirit) != &son);
 	CHECK(world.lineage(elder).size() == 1);
 }
+
+
+TEST_CASE("whoever keeps the gates by his kind opens them and lets in an acquaintance of the host")
+{
+	InMemoryCosmos cosmos;
+	World& world = cosmos.life().create().world();
+
+	const auto& anna = static_cast<const Witness&>(born(world, DeviceToken::generate()));
+	const auto& boris = static_cast<const Witness&>(born(world, DeviceToken::generate()));
+	const auto& viktor = static_cast<const Witness&>(born(world, DeviceToken::generate()));
+	const auto& galina = static_cast<const Witness&>(born(world, DeviceToken::generate()));
+	const Gates& gates = anna.abode().gates();
+	CHECK(gates.part() == matter::Room::Part::Inner);
+
+	// Boris is Anna's acquaintance: standing in her gates, he does not keep them.
+	admit_at_gates(world, anna, boris);
+	boris.wake();
+	viktor.wake();
+	boris.contemplate(gates);
+	viktor.contemplate(gates);
+	CHECK_FALSE(gates.keeps(boris));
+	CHECK_FALSE(gates.open());
+	CHECK_THROWS_AS(boris.admit(viktor), std::logic_error);
+
+	// A friend, he keeps them: they are open without Anna, and he lets Viktor in —
+	// as Anna's acquaintance, not his.
+	regard_in_upper_room(world, anna, boris, matter::Dweller::Kind::Friend);
+	CHECK(gates.keeps(boris));
+	CHECK(gates.open());
+	boris.admit(viktor);
+	REQUIRE(anna.abode().dweller(viktor));
+	CHECK_FALSE(std::dynamic_pointer_cast<const Neighbour>(anna.abode().dweller(viktor)));
+	CHECK_FALSE(boris.abode().dwells(viktor));
+	CHECK_THROWS_AS(boris.admit(viktor), std::logic_error);
+
+	// Away from the gates, one lets no one in.
+	boris.contemplate(boris.abode());
+	CHECK_FALSE(gates.open());
+	galina.wake();
+	galina.contemplate(gates);
+	CHECK_THROWS_AS(boris.admit(galina), std::logic_error);
+
+	// Set in the outer part, the gates are kept by a neighbour too.
+	looking_at(world, anna, anna.abode().upper_room(), [&] { anna.regard(viktor, matter::Dweller::Kind::Neighbour); });
+	anna.arrange(gates, matter::Room::Part::Outer);
+	viktor.contemplate(gates);
+	CHECK(gates.keeps(viktor));
+	viktor.admit(galina);
+	CHECK(anna.abode().dweller(galina));
+	CHECK_FALSE(viktor.abode().dwells(galina));
+}
