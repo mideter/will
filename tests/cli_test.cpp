@@ -112,7 +112,7 @@ TEST_CASE("will-server all options")
 			  "--max-clients",
 			  "128",
 			  "--db-path",
-			  "/tmp/custom.db",
+			  "/tmp/custom",
 			  "--keepalive-interval",
 			  "15",
 			  "--keepalive-timeout",
@@ -121,7 +121,7 @@ TEST_CASE("will-server all options")
 
 	CHECK(config.listen_port == 9000);
 	CHECK(config.max_connections == 128);
-	CHECK(config.db_path == "/tmp/custom.db");
+	CHECK(config.db_path == "/tmp/custom");
 	CHECK(config.keepalive_interval_seconds == 15);
 	CHECK(config.keepalive_timeout_seconds == 5);
 }

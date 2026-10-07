@@ -1,4 +1,4 @@
 #!/bin/sh
 set -eu
 
-exec /usr/bin/will-server --db-path /var/lib/will-server/will.db
+exec /usr/bin/will-server --db-path /var/lib/will-server

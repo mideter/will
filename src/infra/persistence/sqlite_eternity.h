@@ -13,11 +13,11 @@ namespace will {
 
 
 /// SQLite Eternity — souls, the one Time and Space, indelible words.
-/// Opens prefix.eternity.db; realises Spatiality and Temporality over
-/// prefix.space.db and prefix.time.db when Creation asks.
+/// Opens will.eternity.db in its directory; realises Spatiality and Temporality
+/// over will.space.db and will.time.db there when Creation asks.
 class SqliteEternity final : public domain::Eternity {
 public:
-	explicit SqliteEternity(std::string prefix);
+	explicit SqliteEternity(std::string directory);
 
 	domain::Time& time() override;
 	domain::Space& space() override;
@@ -33,7 +33,7 @@ public:
 	std::vector<domain::matter::Word> words(const std::vector<domain::id::Word>& ids) const override;
 
 private:
-	std::string prefix_;
+	std::string directory_;
 	mutable SqliteDatabase database_;
 	SystemTime time_;
 	SqliteSpace space_;

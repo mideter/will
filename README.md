@@ -5,7 +5,7 @@ Will is a C++20 gRPC messenger with a dedicated server and chat client. Clients 
 ## Features
 
 - **Device-token authentication** — each client generates a persistent token on first run; one token maps to one user account
-- **Persistent chat** — messages stored in SQLite (`will.db` by default)
+- **Persistent chat** — stored in three SQLite databases, `will.eternity.db`, `will.space.db` and `will.time.db`, in the directory given by `--db-path` (the working directory by default)
 - **Chat history** — clients can request the last *N* messages on connect (`--history`, default 50)
 - **Load testing** — `will-load-clients` opens many concurrent authenticated sessions
 - **Layered design** — domain use cases, protobuf/gRPC transport, SQLite persistence
@@ -73,7 +73,7 @@ Listens on gRPC port **7770** by default. Key options:
 | Option | Default | Description |
 |--------|---------|-------------|
 | `--port` | `7770` | Listen port |
-| `--db-path` | `will.db` | SQLite database file |
+| `--db-path` | `.` | Existing directory of the SQLite databases (`will.eternity.db`, `will.space.db`, `will.time.db`) |
 | `--max-clients` | `4096` | Max concurrent sessions |
 | `--keepalive-interval` | `30` | gRPC HTTP/2 keepalive ping interval (seconds) |
 | `--keepalive-timeout` | `10` | gRPC HTTP/2 keepalive ping timeout (seconds) |
@@ -138,6 +138,6 @@ Build and install:
 sudo dpkg -i build/deb-packaging/will-server_*.deb
 ```
 
-The package installs `will-server.service` (enabled on install). Message history is stored in `/var/lib/will-server/will.db`.
+The package installs `will-server.service` (enabled on install). The databases are stored in `/var/lib/will-server` (`will.eternity.db`, `will.space.db`, `will.time.db`).
 
 See [`packaging/deb/README.Debian`](packaging/deb/README.Debian) for deployment notes and scaling recommendations.

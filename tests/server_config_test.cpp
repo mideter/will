@@ -3,7 +3,10 @@
 
 #include "serverconfigvalidator.h"
 
+#include <filesystem>
+#include <fstream>
 #include <string>
+#include <unistd.h>
 #include <utility>
 
 
@@ -54,6 +57,31 @@ TEST_CASE("ServerConfig rejects zero fields")
 		ServerConfig config;
 		config.keepalive_timeout_seconds = 0;
 		require_throws_field(config, "keepalive_timeout_seconds");
+	}
+}
+
+
+TEST_CASE("ServerConfig takes the databases only from an existing directory")
+{
+	{
+		ServerConfig config;
+		config.db_path = "/nonexistent-will-directory";
+		require_throws_field(config, "db_path");
+	}
+	{
+		// A path to a file, as the database path once was, is refused rather than
+		// taken for an empty world.
+		const std::string file = "/tmp/will-config-test-" + std::to_string(::getpid()) + ".db";
+		std::ofstream{file} << "";
+		ServerConfig config;
+		config.db_path = file;
+		require_throws_field(config, "db_path");
+		std::filesystem::remove(file);
+	}
+	{
+		ServerConfig config;
+		config.db_path = "/tmp";
+		CHECK_NOTHROW(ServerConfigValidator::validate(config));
 	}
 }
 

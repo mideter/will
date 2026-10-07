@@ -26,6 +26,7 @@
 
 #include <sqlite3.h>
 
+#include <filesystem>
 #include <memory>
 #include <optional>
 #include <stdexcept>
@@ -50,6 +51,14 @@ letters_seen_by(const std::shared_ptr<const will::domain::Contemplation>& gaze)
 }
 
 
+/// An empty directory for the databases of one test.
+void fresh_directory(const std::string& directory)
+{
+	std::filesystem::remove_all(directory);
+	std::filesystem::create_directories(directory);
+}
+
+
 using will::domain::test::admit_at_gates;
 using will::domain::test::regard_in_upper_room;
 using will::domain::test::born;
@@ -62,10 +71,8 @@ TEST_CASE("sqlite persistence survives reopen")
 	using namespace will;
 	using namespace will::domain;
 
-	const std::string prefix = "/tmp/will-sqlite-persistence-test-" + std::to_string(getpid());
-	::unlink((prefix + ".eternity.db").c_str());
-	::unlink((prefix + ".space.db").c_str());
-	::unlink((prefix + ".time.db").c_str());
+	const std::string directory = "/tmp/will-sqlite-persistence-test-" + std::to_string(getpid());
+	fresh_directory(directory);
 
 	std::optional<id::Soul> soul_a_id;
 	std::optional<id::Soul> soul_b_id;
@@ -77,7 +84,7 @@ TEST_CASE("sqlite persistence survives reopen")
 	const std::string token_text = "abcd1234abcd1234abcd1234abcd1234";
 
 	{
-		SqlitePersistenceBundle bundle(prefix);
+		SqlitePersistenceBundle bundle(directory);
 		World& world = bundle.world();
 
 		const DeviceToken token_a = *DeviceToken::parse("aaaa1234aaaa1234aaaa1234aaaa1234");
@@ -130,7 +137,7 @@ TEST_CASE("sqlite persistence survives reopen")
 	}
 
 	{
-		SqlitePersistenceBundle bundle(prefix);
+		SqlitePersistenceBundle bundle(directory);
 		World& world = bundle.world();
 
 		const DeviceToken token_created = *DeviceToken::parse(token_text);
@@ -180,9 +187,7 @@ TEST_CASE("sqlite persistence survives reopen")
 		CHECK(vessels[1].id() == man_a_reloaded.Vessel::id());
 	}
 
-	::unlink((prefix + ".eternity.db").c_str());
-	::unlink((prefix + ".space.db").c_str());
-	::unlink((prefix + ".time.db").c_str());
+	std::filesystem::remove_all(directory);
 }
 
 
@@ -191,10 +196,8 @@ TEST_CASE("sqlite keeps a behest and its execution across reopen")
 	using namespace will;
 	using namespace will::domain;
 
-	const std::string prefix = "/tmp/will-sqlite-behest-test-" + std::to_string(getpid());
-	::unlink((prefix + ".eternity.db").c_str());
-	::unlink((prefix + ".space.db").c_str());
-	::unlink((prefix + ".time.db").c_str());
+	const std::string directory = "/tmp/will-sqlite-behest-test-" + std::to_string(getpid());
+	fresh_directory(directory);
 
 	const DeviceToken token_novice = *DeviceToken::parse("aaaa1234aaaa1234aaaa1234aaaa1234");
 	const DeviceToken token_testator = *DeviceToken::parse("bbbb1234bbbb1234bbbb1234bbbb1234");
@@ -202,7 +205,7 @@ TEST_CASE("sqlite keeps a behest and its execution across reopen")
 	std::optional<id::Word> done_id;
 
 	{
-		SqlitePersistenceBundle bundle(prefix);
+		SqlitePersistenceBundle bundle(directory);
 		World& world = bundle.world();
 
 		const auto& novice = static_cast<const Novice&>(born(world, token_novice));
@@ -235,7 +238,7 @@ TEST_CASE("sqlite keeps a behest and its execution across reopen")
 	}
 
 	{
-		SqlitePersistenceBundle bundle(prefix);
+		SqlitePersistenceBundle bundle(directory);
 		World& world = bundle.world();
 
 		const auto& novice = static_cast<const Novice&>(born(world, token_novice));
@@ -268,9 +271,7 @@ TEST_CASE("sqlite keeps a behest and its execution across reopen")
 		CHECK(novice.obedience(testator).deeds(novice).size() == 2);
 	}
 
-	::unlink((prefix + ".eternity.db").c_str());
-	::unlink((prefix + ".space.db").c_str());
-	::unlink((prefix + ".time.db").c_str());
+	std::filesystem::remove_all(directory);
 }
 
 
@@ -279,17 +280,15 @@ TEST_CASE("sqlite keeps supplications, rejections and ties across reopen")
 	using namespace will;
 	using namespace will::domain;
 
-	const std::string prefix = "/tmp/will-sqlite-supplication-test-" + std::to_string(getpid());
-	::unlink((prefix + ".eternity.db").c_str());
-	::unlink((prefix + ".space.db").c_str());
-	::unlink((prefix + ".time.db").c_str());
+	const std::string directory = "/tmp/will-sqlite-supplication-test-" + std::to_string(getpid());
+	fresh_directory(directory);
 
 	const DeviceToken token_a = *DeviceToken::parse("aaaa1234aaaa1234aaaa1234aaaa1234");
 	const DeviceToken token_b = *DeviceToken::parse("bbbb1234bbbb1234bbbb1234bbbb1234");
 	const DeviceToken token_c = *DeviceToken::parse("cccc1234cccc1234cccc1234cccc1234");
 
 	{
-		SqlitePersistenceBundle bundle(prefix);
+		SqlitePersistenceBundle bundle(directory);
 		World& world = bundle.world();
 
 		const auto& a = static_cast<const Testator&>(born(world, token_a));
@@ -319,7 +318,7 @@ TEST_CASE("sqlite keeps supplications, rejections and ties across reopen")
 	}
 
 	{
-		SqlitePersistenceBundle bundle(prefix);
+		SqlitePersistenceBundle bundle(directory);
 		World& world = bundle.world();
 
 		const auto& a = static_cast<const Testator&>(born(world, token_a));
@@ -340,9 +339,7 @@ TEST_CASE("sqlite keeps supplications, rejections and ties across reopen")
 		CHECK(bundle.spatiality().ties().size() == 2);
 	}
 
-	::unlink((prefix + ".eternity.db").c_str());
-	::unlink((prefix + ".space.db").c_str());
-	::unlink((prefix + ".time.db").c_str());
+	std::filesystem::remove_all(directory);
 }
 
 
@@ -351,15 +348,13 @@ TEST_CASE("sqlite answers the rejections kept before answers were")
 	using namespace will;
 	using namespace will::domain;
 
-	const std::string prefix = "/tmp/will-sqlite-rejections-test-" + std::to_string(getpid());
-	::unlink((prefix + ".eternity.db").c_str());
-	::unlink((prefix + ".space.db").c_str());
-	::unlink((prefix + ".time.db").c_str());
+	const std::string directory = "/tmp/will-sqlite-rejections-test-" + std::to_string(getpid());
+	fresh_directory(directory);
 
 	// A time database as it was kept before: a rejected supplication of the pair 1 → 2.
 	{
 		sqlite3* db = nullptr;
-		REQUIRE(sqlite3_open((prefix + ".time.db").c_str(), &db) == SQLITE_OK);
+		REQUIRE(sqlite3_open((directory + "/will.time.db").c_str(), &db) == SQLITE_OK);
 		REQUIRE(sqlite3_exec(db,
 							 "CREATE TABLE supplications (id INTEGER PRIMARY KEY AUTOINCREMENT, "
 							 "suppliant_soul_id INTEGER NOT NULL, addressee_soul_id INTEGER NOT NULL, "
@@ -373,7 +368,7 @@ TEST_CASE("sqlite answers the rejections kept before answers were")
 	}
 
 	{
-		SqlitePersistenceBundle bundle(prefix);
+		SqlitePersistenceBundle bundle(directory);
 
 		// The rejection became an answer: nothing awaits, and the pair may ask again.
 		CHECK(bundle.temporality().supplications(id::Soul{2}).empty());
@@ -381,9 +376,7 @@ TEST_CASE("sqlite answers the rejections kept before answers were")
 		CHECK(bundle.temporality().supplications(id::Soul{2}).size() == 1);
 	}
 
-	::unlink((prefix + ".eternity.db").c_str());
-	::unlink((prefix + ".space.db").c_str());
-	::unlink((prefix + ".time.db").c_str());
+	std::filesystem::remove_all(directory);
 }
 
 
@@ -392,16 +385,14 @@ TEST_CASE("sqlite keeps the dwellers of an abode and their kind across reopen")
 	using namespace will;
 	using namespace will::domain;
 
-	const std::string prefix = "/tmp/will-sqlite-dwellers-test-" + std::to_string(getpid());
-	::unlink((prefix + ".eternity.db").c_str());
-	::unlink((prefix + ".space.db").c_str());
-	::unlink((prefix + ".time.db").c_str());
+	const std::string directory = "/tmp/will-sqlite-dwellers-test-" + std::to_string(getpid());
+	fresh_directory(directory);
 
 	const DeviceToken token_host = *DeviceToken::parse("aaaa1234aaaa1234aaaa1234aaaa1234");
 	const DeviceToken token_man = *DeviceToken::parse("bbbb1234bbbb1234bbbb1234bbbb1234");
 
 	{
-		SqlitePersistenceBundle bundle(prefix);
+		SqlitePersistenceBundle bundle(directory);
 		World& world = bundle.world();
 		const Man& host = born(world, token_host);
 		const Man& man = born(world, token_man);
@@ -410,7 +401,7 @@ TEST_CASE("sqlite keeps the dwellers of an abode and their kind across reopen")
 	}
 
 	{
-		SqlitePersistenceBundle bundle(prefix);
+		SqlitePersistenceBundle bundle(directory);
 		World& world = bundle.world();
 		const Man& host = born(world, token_host);
 		const Man& man = born(world, token_man);
@@ -430,9 +421,7 @@ TEST_CASE("sqlite keeps the dwellers of an abode and their kind across reopen")
 		CHECK(bundle.spatiality().rooms(host.abode().id()).size() == 4);
 	}
 
-	::unlink((prefix + ".eternity.db").c_str());
-	::unlink((prefix + ".space.db").c_str());
-	::unlink((prefix + ".time.db").c_str());
+	std::filesystem::remove_all(directory);
 }
 
 
@@ -440,15 +429,13 @@ TEST_CASE("sqlite gives the rooms kept before aspects were the aspect of words")
 {
 	using namespace will;
 
-	const std::string prefix = "/tmp/will-sqlite-room-aspect-test-" + std::to_string(getpid());
-	::unlink((prefix + ".eternity.db").c_str());
-	::unlink((prefix + ".space.db").c_str());
-	::unlink((prefix + ".time.db").c_str());
+	const std::string directory = "/tmp/will-sqlite-room-aspect-test-" + std::to_string(getpid());
+	fresh_directory(directory);
 
 	// A space database as it was kept before: a room without an aspect.
 	{
 		sqlite3* db = nullptr;
-		REQUIRE(sqlite3_open((prefix + ".space.db").c_str(), &db) == SQLITE_OK);
+		REQUIRE(sqlite3_open((directory + "/will.space.db").c_str(), &db) == SQLITE_OK);
 		REQUIRE(sqlite3_exec(db,
 							 "CREATE TABLE rooms (id INTEGER PRIMARY KEY, abode_id INTEGER NOT NULL, "
 							 "place_id INTEGER NOT NULL, part INTEGER NOT NULL, UNIQUE (abode_id, place_id));"
@@ -459,7 +446,7 @@ TEST_CASE("sqlite gives the rooms kept before aspects were the aspect of words")
 	}
 
 	{
-		SqlitePersistenceBundle bundle(prefix);
+		SqlitePersistenceBundle bundle(directory);
 		const auto rooms = bundle.spatiality().rooms(domain::id::Place{3});
 		REQUIRE(rooms.size() == 1);
 		CHECK(rooms.front().id() == domain::id::Place{7});
@@ -471,9 +458,7 @@ TEST_CASE("sqlite gives the rooms kept before aspects were the aspect of words")
 		CHECK(bundle.spatiality().rooms(domain::id::Place{3}).size() == 2);
 	}
 
-	::unlink((prefix + ".eternity.db").c_str());
-	::unlink((prefix + ".space.db").c_str());
-	::unlink((prefix + ".time.db").c_str());
+	std::filesystem::remove_all(directory);
 }
 
 
@@ -483,17 +468,15 @@ TEST_CASE("sqlite keeps fatherhoods across reopen; the spiritual father is repla
 	using namespace will::domain;
 	using Line = matter::Fatherhood::Line;
 
-	const std::string prefix = "/tmp/will-sqlite-fatherhoods-test-" + std::to_string(getpid());
-	::unlink((prefix + ".eternity.db").c_str());
-	::unlink((prefix + ".space.db").c_str());
-	::unlink((prefix + ".time.db").c_str());
+	const std::string directory = "/tmp/will-sqlite-fatherhoods-test-" + std::to_string(getpid());
+	fresh_directory(directory);
 
 	const DeviceToken token_seth = *DeviceToken::parse("aaaa1234aaaa1234aaaa1234aaaa1234");
 	const DeviceToken token_enos = *DeviceToken::parse("bbbb1234bbbb1234bbbb1234bbbb1234");
 
 	std::optional<id::Soul> adam, seth, enos;
 	{
-		SqlitePersistenceBundle bundle(prefix);
+		SqlitePersistenceBundle bundle(directory);
 		World& world = bundle.world();
 		seth = born(world, token_seth).Soul::id();
 		enos = born(world, token_enos).Soul::id();
@@ -506,7 +489,7 @@ TEST_CASE("sqlite keeps fatherhoods across reopen; the spiritual father is repla
 	}
 
 	{
-		SqlitePersistenceBundle bundle(prefix);
+		SqlitePersistenceBundle bundle(directory);
 		const std::vector<matter::Fatherhood> kept = bundle.eternity().fatherhoods();
 		REQUIRE(kept.size() == 3);
 		CHECK(kept[0].father() == adam);
@@ -526,7 +509,5 @@ TEST_CASE("sqlite keeps fatherhoods across reopen; the spiritual father is repla
 		CHECK(living_enos.father(Line::Spirit)->Soul::id() == seth);
 	}
 
-	::unlink((prefix + ".eternity.db").c_str());
-	::unlink((prefix + ".space.db").c_str());
-	::unlink((prefix + ".time.db").c_str());
+	std::filesystem::remove_all(directory);
 }

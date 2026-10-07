@@ -7,8 +7,8 @@
 namespace will {
 
 
-SqlitePersistenceBundle::SqlitePersistenceBundle(std::string prefix)
-	: eternity_(std::move(prefix))
+SqlitePersistenceBundle::SqlitePersistenceBundle(std::string directory)
+	: eternity_(std::move(directory))
 {
 	life_.create();
 }

@@ -13,6 +13,7 @@
 
 #include <chrono>
 #include <cstdlib>
+#include <filesystem>
 #include <iostream>
 #include <memory>
 #include <string>
@@ -105,6 +106,14 @@ constexpr const char* ViewerToken = "22222222222222222222222222222222";
 std::uint16_t pick_port()
 {
 	return static_cast<std::uint16_t>(20000 + (getpid() % 10000));
+}
+
+
+/// An empty directory for the databases of one server.
+void fresh_directory(const std::string& directory)
+{
+	std::filesystem::remove_all(directory);
+	std::filesystem::create_directories(directory);
 }
 
 
@@ -311,11 +320,9 @@ std::string born_named(Elder& elder, SessionStream& stream, const char* device_t
 TEST_CASE("history request returns letters of the witness abode with is_mine")
 {
 	const std::uint16_t port = pick_port();
-	const std::string db_path = "/tmp/will-history-test-" + std::to_string(getpid()) + ".db";
+	const std::string db_path = "/tmp/will-history-test-" + std::to_string(getpid());
 
-	::unlink((db_path.substr(0, db_path.size() - 3) + ".eternity.db").c_str());
-	::unlink((db_path.substr(0, db_path.size() - 3) + ".space.db").c_str());
-	::unlink((db_path.substr(0, db_path.size() - 3) + ".time.db").c_str());
+	fresh_directory(db_path);
 
 	RunningServer server{start_server(g_server_exe, port, db_path)};
 	const pid_t server_pid = server.pid();
@@ -379,22 +386,17 @@ TEST_CASE("history request returns letters of the witness abode with is_mine")
 	viewer.context->TryCancel();
 	elder.session.context->TryCancel();
 	server.stop();
-	const std::string prefix = db_path.substr(0, db_path.size() - 3);
-	::unlink((prefix + ".eternity.db").c_str());
-	::unlink((prefix + ".space.db").c_str());
-	::unlink((prefix + ".time.db").c_str());
+	std::filesystem::remove_all(db_path);
 }
 
 
 TEST_CASE("a host admits a dweller, regards him anew, and he sees his abode as his kind does")
 {
 	const std::uint16_t port = static_cast<std::uint16_t>(pick_port() + 1);
-	const std::string prefix = "/tmp/will-dwellers-test-" + std::to_string(getpid());
-	::unlink((prefix + ".eternity.db").c_str());
-	::unlink((prefix + ".space.db").c_str());
-	::unlink((prefix + ".time.db").c_str());
+	const std::string directory = "/tmp/will-dwellers-test-" + std::to_string(getpid());
+	fresh_directory(directory);
 
-	RunningServer server{start_server(g_server_exe, port, prefix + ".db")};
+	RunningServer server{start_server(g_server_exe, port, directory)};
 	const pid_t server_pid = server.pid();
 	REQUIRE(server_pid > 0);
 	wait_for_server(port);
@@ -540,21 +542,17 @@ TEST_CASE("a host admits a dweller, regards him anew, and he sees his abode as h
 	man.context->TryCancel();
 	elder.session.context->TryCancel();
 	server.stop();
-	::unlink((prefix + ".eternity.db").c_str());
-	::unlink((prefix + ".space.db").c_str());
-	::unlink((prefix + ".time.db").c_str());
+	std::filesystem::remove_all(directory);
 }
 
 
 TEST_CASE("one lists the abodes one dwells in and the supplications awaiting one, and rejects one")
 {
 	const std::uint16_t port = static_cast<std::uint16_t>(pick_port() + 2);
-	const std::string prefix = "/tmp/will-lists-test-" + std::to_string(getpid());
-	::unlink((prefix + ".eternity.db").c_str());
-	::unlink((prefix + ".space.db").c_str());
-	::unlink((prefix + ".time.db").c_str());
+	const std::string directory = "/tmp/will-lists-test-" + std::to_string(getpid());
+	fresh_directory(directory);
 
-	RunningServer server{start_server(g_server_exe, port, prefix + ".db")};
+	RunningServer server{start_server(g_server_exe, port, directory)};
 	REQUIRE(server.pid() > 0);
 	wait_for_server(port);
 
@@ -647,21 +645,17 @@ TEST_CASE("one lists the abodes one dwells in and the supplications awaiting one
 	b.context->TryCancel();
 	elder.session.context->TryCancel();
 	server.stop();
-	::unlink((prefix + ".eternity.db").c_str());
-	::unlink((prefix + ".space.db").c_str());
-	::unlink((prefix + ".time.db").c_str());
+	std::filesystem::remove_all(directory);
 }
 
 
 TEST_CASE("an unborn body waits, seen in birth rooms; it is born of the host of the room; a man chooses his father by spirit")
 {
 	const std::uint16_t port = static_cast<std::uint16_t>(pick_port() + 3);
-	const std::string prefix = "/tmp/will-birth-test-" + std::to_string(getpid());
-	::unlink((prefix + ".eternity.db").c_str());
-	::unlink((prefix + ".space.db").c_str());
-	::unlink((prefix + ".time.db").c_str());
+	const std::string directory = "/tmp/will-birth-test-" + std::to_string(getpid());
+	fresh_directory(directory);
 
-	RunningServer server{start_server(g_server_exe, port, prefix + ".db")};
+	RunningServer server{start_server(g_server_exe, port, directory)};
 	REQUIRE(server.pid() > 0);
 	wait_for_server(port);
 
@@ -734,9 +728,7 @@ TEST_CASE("an unborn body waits, seen in birth rooms; it is born of the host of 
 	seth.context->TryCancel();
 	elder.session.context->TryCancel();
 	server.stop();
-	::unlink((prefix + ".eternity.db").c_str());
-	::unlink((prefix + ".space.db").c_str());
-	::unlink((prefix + ".time.db").c_str());
+	std::filesystem::remove_all(directory);
 }
 
 

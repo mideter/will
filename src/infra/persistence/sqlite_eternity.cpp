@@ -5,6 +5,7 @@
 #include "sqlite_util.h"
 #include "values/saying.h"
 
+#include <filesystem>
 #include <stdexcept>
 #include <string>
 #include <sqlite3.h>
@@ -16,33 +17,32 @@ namespace will {
 namespace {
 
 
-std::string face_path(std::string prefix, const char* face)
+/// The database of one face in the directory: will.eternity.db, will.space.db, will.time.db.
+std::string face_path(const std::string& directory, const char* face)
 {
-	if (prefix.size() > 3 && prefix.ends_with(".db"))
-		prefix.resize(prefix.size() - 3);
-	return prefix + "." + face + ".db";
+	return (std::filesystem::path{directory} / (std::string{"will."} + face + ".db")).string();
 }
 
 
 } // namespace
 
 
-SqliteEternity::SqliteEternity(std::string prefix)
-	: prefix_(std::move(prefix))
-	, database_(face_path(prefix_, "eternity"), SqliteFace::Eternity)
+SqliteEternity::SqliteEternity(std::string directory)
+	: directory_(std::move(directory))
+	, database_(face_path(directory_, "eternity"), SqliteFace::Eternity)
 	, space_(database_)
 {}
 
 
 std::unique_ptr<domain::Spatiality> SqliteEternity::spatiality(domain::Birth<domain::Creation>)
 {
-	return std::make_unique<SqliteSpatiality>(face_path(prefix_, "space"), *this);
+	return std::make_unique<SqliteSpatiality>(face_path(directory_, "space"), *this);
 }
 
 
 std::unique_ptr<domain::Temporality> SqliteEternity::temporality(domain::Birth<domain::Creation>)
 {
-	return std::make_unique<SqliteTemporality>(face_path(prefix_, "time"), *this);
+	return std::make_unique<SqliteTemporality>(face_path(directory_, "time"), *this);
 }
 
 

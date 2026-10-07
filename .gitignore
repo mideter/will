@@ -2,6 +2,7 @@ build/
 run/
 .xmake/
 will.db*
+will.*.db
 
 *.o
 *.obj

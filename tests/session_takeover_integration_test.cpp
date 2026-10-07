@@ -15,6 +15,7 @@
 #include <chrono>
 #include <csignal>
 #include <cstdlib>
+#include <filesystem>
 #include <iostream>
 #include <memory>
 #include <string>
@@ -131,6 +132,14 @@ std::uint16_t pick_port()
 }
 
 
+/// An empty directory for the databases of one server.
+void fresh_directory(const std::string& directory)
+{
+	std::filesystem::remove_all(directory);
+	std::filesystem::create_directories(directory);
+}
+
+
 pid_t start_server(const char* server_exe, std::uint16_t port, const std::string& db_path)
 {
 	const pid_t pid = fork();
@@ -201,11 +210,9 @@ constexpr const char* DeviceToken = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
 TEST_CASE("second session with same device token displaces the first")
 {
 	const std::uint16_t port = pick_port();
-	const std::string db_path = "/tmp/will-session-takeover-test-" + std::to_string(getpid()) + ".db";
+	const std::string db_path = "/tmp/will-session-takeover-test-" + std::to_string(getpid());
 
-	::unlink((db_path.substr(0, db_path.size() - 3) + ".eternity.db").c_str());
-	::unlink((db_path.substr(0, db_path.size() - 3) + ".space.db").c_str());
-	::unlink((db_path.substr(0, db_path.size() - 3) + ".time.db").c_str());
+	fresh_directory(db_path);
 
 	RunningServer server{start_server(g_server_exe, port, db_path)};
 	const pid_t server_pid = server.pid();
@@ -242,10 +249,7 @@ TEST_CASE("second session with same device token displaces the first")
 
 	second.context->TryCancel();
 	server.stop();
-	const std::string prefix = db_path.substr(0, db_path.size() - 3);
-	::unlink((prefix + ".eternity.db").c_str());
-	::unlink((prefix + ".space.db").c_str());
-	::unlink((prefix + ".time.db").c_str());
+	std::filesystem::remove_all(db_path);
 }
 
 
@@ -266,12 +270,10 @@ bool wait_for_exit(pid_t pid, std::chrono::milliseconds timeout)
 TEST_CASE("server stops on SIGTERM while a session is still open")
 {
 	const std::uint16_t port = pick_port();
-	const std::string prefix = "/tmp/will-server-stop-test-" + std::to_string(getpid());
-	const std::string db_path = prefix + ".db";
+	const std::string directory = "/tmp/will-server-stop-test-" + std::to_string(getpid());
+	const std::string db_path = directory;
 
-	::unlink((prefix + ".eternity.db").c_str());
-	::unlink((prefix + ".space.db").c_str());
-	::unlink((prefix + ".time.db").c_str());
+	fresh_directory(directory);
 
 	RunningServer server{start_server(g_server_exe, port, db_path)};
 	const pid_t server_pid = server.pid();
@@ -292,9 +294,7 @@ TEST_CASE("server stops on SIGTERM while a session is still open")
 	CHECK(stopped);
 	CHECK(wait_for_stream_end(session, std::chrono::seconds(2)));
 
-	::unlink((prefix + ".eternity.db").c_str());
-	::unlink((prefix + ".space.db").c_str());
-	::unlink((prefix + ".time.db").c_str());
+	std::filesystem::remove_all(directory);
 }
 
 

@@ -22,7 +22,7 @@ ServerCliApp::ServerCliApp(const ServerConfig& defaults)
 
 	app_.add_option("--port", port_)->description("Listen port");
 	app_.add_option("--max-clients", max_clients_)->description("Max concurrent connections");
-	app_.add_option("--db-path", db_path_)->description("SQLite path prefix (opens .eternity/.space/.time)");
+	app_.add_option("--db-path", db_path_)->description("Directory of the SQLite databases (will.eternity/.space/.time.db)");
 	app_.add_option("--keepalive-interval", keepalive_interval_seconds_)
 		->description("gRPC HTTP/2 keepalive ping interval in seconds");
 	app_.add_option("--keepalive-timeout", keepalive_timeout_seconds_)
@@ -39,7 +39,7 @@ void ServerCliApp::print_help(std::ostream& os) const
 		"  -h, --help                      Print usage and exit\n"
 		"  --port PORT                     Listen port (default {})\n"
 		"  --max-clients N                 Max concurrent connections (default {})\n"
-		"  --db-path PATH                  SQLite database path (default {})\n"
+		"  --db-path DIR                   Directory of the databases (default {})\n"
 		"  --keepalive-interval SECONDS    gRPC keepalive ping interval (default {})\n"
 		"  --keepalive-timeout SECONDS     gRPC keepalive ping timeout (default {})\n",
 		ServerConfig::DefaultListenPort,

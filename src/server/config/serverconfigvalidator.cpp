@@ -1,7 +1,9 @@
 #include "serverconfigvalidator.h"
 
 #include <cstddef>
+#include <filesystem>
 #include <format>
+#include <system_error>
 
 
 namespace will {
@@ -32,6 +34,11 @@ std::optional<std::string_view> ServerConfigValidator::db_path_reason(const std:
 {
 	if (db_path.empty())
 		return "must not be empty";
+	// The databases live in an existing directory: a missing one is not made, lest
+	// a mistaken path start an empty world.
+	std::error_code error;
+	if (!std::filesystem::is_directory(std::filesystem::path{db_path}, error))
+		return "must be an existing directory";
 
 	return std::nullopt;
 }

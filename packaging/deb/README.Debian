@@ -7,14 +7,17 @@ After installation the systemd unit `will-server.service` is enabled.
 Logs: journalctl -u will-server -f
 
 The daemon runs as the unprivileged system user `will-server`.
-Message history is stored in /var/lib/will-server/will.db (set by will-server.service).
+The databases are stored in /var/lib/will-server: will.eternity.db, will.space.db
+and will.time.db (--db-path /var/lib/will-server, set by will-server-start).
+The directory must exist: the server does not create it.
 
 Device-token authentication
 ---------------------------
 
 Clients authenticate with a persistent device token sent via BindToken on connect.
-Each unique token maps to one user account (one user per device). New tokens are
-registered automatically on first successful authentication.
+Each unique token maps to one body (one user per device). The first token on an
+empty server is born a man at once; every later new token is an unborn body that
+waits until someone bears it standing in a birth room (Родильная).
 
 Scaling (single process)
 ------------------------

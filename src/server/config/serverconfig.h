@@ -14,7 +14,7 @@ struct ServerConfig {
 	static constexpr int MaxListenPort = 65535;
 	static constexpr std::uint16_t DefaultListenPort = 7770;
 	static constexpr std::size_t DefaultMaxConnections = 4096;
-	static constexpr const char* DefaultDbPath = "will.db";
+	static constexpr const char* DefaultDbPath = ".";
 	static constexpr int DefaultKeepaliveIntervalSeconds = 30;
 	static constexpr int DefaultKeepaliveTimeoutSeconds = 10;
 
