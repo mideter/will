@@ -649,7 +649,7 @@ TEST_CASE("one lists the abodes one dwells in and the supplications awaiting one
 }
 
 
-TEST_CASE("an unborn body waits, seen in birth rooms; it is born of the host of the room; a man chooses his father by spirit")
+TEST_CASE("an unborn body waits, seen in birth rooms; it is born of the host of the room; the father by spirit is not yet open")
 {
 	const std::uint16_t port = static_cast<std::uint16_t>(pick_port() + 3);
 	const std::string directory = "/tmp/will-birth-test-" + std::to_string(getpid());
@@ -707,23 +707,19 @@ TEST_CASE("an unborn body waits, seen in birth rooms; it is born of the host of 
 	send_turn_to_abode(*seth.stream, elder.name, "Родильная");
 	CHECK(read_event(*seth.stream).has_protocol_notice());
 
-	// Seth chooses Adam as his father by spirit; Adam sees his line and is told.
+	// The father by spirit is not yet open: neither choosing him nor the line is done.
 	{
 		will::v1::ClientEvent choose;
 		choose.mutable_choose_father()->set_name(elder.name);
 		REQUIRE(seth.stream->Write(choose));
 	}
-	CHECK(read_event(*seth.stream).has_protocol_notice());
-	CHECK(read_event(adam).has_protocol_notice());
+	CHECK(read_event(*seth.stream).protocol_notice().message() == "the father by spirit is not yet open");
 	{
 		will::v1::ClientEvent list;
 		list.mutable_list_lineage();
 		REQUIRE(adam.Write(list));
 	}
-	const will::v1::ServerEvent line = read_event(adam);
-	REQUIRE(line.lineage().descents_size() == 1);
-	CHECK(line.lineage().descents(0).name() == seth_name);
-	CHECK(line.lineage().descents(0).father_name() == elder.name);
+	CHECK(read_event(adam).protocol_notice().message() == "the father by spirit is not yet open");
 
 	seth.context->TryCancel();
 	elder.session.context->TryCancel();

@@ -56,7 +56,7 @@ void print_help(ConsoleUi& ui)
 	ui.print_commands("Gates", "/gates <name>  /admit <name>");
 	ui.print_commands("Dwellers", "/dwellers  /regard <name> acquaintance|neighbour|friend  /dwellings");
 	ui.print_commands("Obedience", "/ask <name>  /accept <name>  /reject <name>  /supplications  /done <number> [report]");
-	ui.print_commands("Birth", "/birth  /bear <mark>  /father <name>  /lineage");
+	ui.print_commands("Birth", "/birth  /bear <mark>");
 	ui.print_status("Type text in a room to write there.", "Ctrl+D to exit");
 }
 
@@ -213,18 +213,6 @@ bool handle_slash_command(WillClient& client, ConsoleUi& ui, ShownRooms& rooms, 
 	}
 	if (cmd == "birth") {
 		client.visit({}, "Родильная");
-		return true;
-	}
-	if (cmd == "father") {
-		if (args.empty()) {
-			ui.print_notice("usage: /father <name>");
-			return true;
-		}
-		client.choose_father(args);
-		return true;
-	}
-	if (cmd == "lineage") {
-		client.list_lineage();
 		return true;
 	}
 	if (cmd == "reject") {

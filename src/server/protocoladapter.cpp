@@ -818,39 +818,16 @@ void ProtocolAdapter::handle_bear(const SessionId session_id, const v1::Bear& ms
 }
 
 
-void ProtocolAdapter::handle_choose_father(const SessionId session_id, const v1::ChooseFather& msg)
+void ProtocolAdapter::handle_choose_father(const SessionId session_id, const v1::ChooseFather&)
 {
-	const domain::Man& child = session_man(session_id);
-	const domain::Man* father = man_named(session_id, msg.name());
-	if (!father)
-		return;
-
-	try {
-		world_.choose_father(child, *father);
-	} catch (const std::logic_error& e) {
-		send_notice(session_id, e.what());
-		return;
-	}
-
-	send_notice(session_id, std::string{father->name().text()} + " is now your father by spirit");
-	v1::ServerEvent event;
-	event.mutable_protocol_notice()->set_message(std::string{child.name().text()} + " chose you as his father by spirit");
-	send_to_vessel(father->Vessel::id(), event);
+	// The father by spirit is not yet open: the domain keeps him, the wire does not yet lead to him.
+	send_notice(session_id, "the father by spirit is not yet open");
 }
 
 
 void ProtocolAdapter::handle_list_lineage(const SessionId session_id)
 {
-	const domain::Man& self = session_man(session_id);
-
-	v1::ServerEvent event;
-	auto* lineage = event.mutable_lineage();
-	for (const domain::World::Descent& descent : world_.lineage(self)) {
-		auto* told = lineage->add_descents();
-		told->set_name(std::string{descent.child.get().name().text()});
-		told->set_father_name(std::string{descent.father.get().name().text()});
-	}
-	send_event(session_id, event);
+	send_notice(session_id, "the father by spirit is not yet open");
 }
 
 
