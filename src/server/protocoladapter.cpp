@@ -693,6 +693,9 @@ void ProtocolAdapter::tell_view(const SessionId session_id, const domain::Contem
 	}
 	if (const auto* upper_room = dynamic_cast<const domain::UpperRoom*>(&gaze.place())) {
 		send_event(session_id, dwellers_event(upper_room->abode()));
+		// The host arranges his abode here: he is shown all its rooms, each in its part.
+		if (&upper_room->abode().host() == &listener)
+			send_event(session_id, arranged_rooms_event(upper_room->abode()));
 		v1::ServerEvent end_event;
 		end_event.mutable_history_end();
 		send_event(session_id, end_event);
@@ -751,6 +754,7 @@ void ProtocolAdapter::handle_arrange(const SessionId session_id, const v1::Arran
 
 	send_notice(session_id, msg.room() + (part == domain::matter::Room::Part::Outer ? " is now in the outer part"
 																				  : " is now in the inner part"));
+	send_event(session_id, arranged_rooms_event(self.abode()));
 	for (const std::shared_ptr<const domain::Acquaintance>& dweller : self.abode().dwellers())
 		retell_abode(self, dweller->man());
 	retell_gates(self.abode().gates());  // set in another part, they are kept by other kinds
@@ -903,6 +907,19 @@ bool ProtocolAdapter::writes_here(const domain::Man& man) const
 		return true;
 	const auto* tie = dynamic_cast<const domain::Tie*>(&room->reflects());
 	return tie && tie->testator().Soul::id() == man.Soul::id();
+}
+
+
+v1::ServerEvent ProtocolAdapter::arranged_rooms_event(const domain::Abode& abode) const
+{
+	v1::ServerEvent event;
+	auto* rooms = event.mutable_rooms();
+	for (const domain::Room& room : abode.rooms()) {
+		auto* told = rooms->add_rooms();
+		told->set_name(room.name());
+		told->set_part(room.part() == domain::matter::Room::Part::Outer ? v1::OUTER : v1::INNER);
+	}
+	return event;
 }
 
 

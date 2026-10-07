@@ -116,6 +116,10 @@ private:
 	/// The gates this man looks at; none elsewhere.
 	const domain::Gates* gates_of_gaze(const domain::Man& man) const;
 
+	/// All the rooms of this abode, each in its part: what its host arranges in
+	/// his upper room.
+	v1::ServerEvent arranged_rooms_event(const domain::Abode& abode) const;
+
 	/// Tell the rooms of this abode that this man may enter.
 	void tell_rooms(SessionId session_id, const domain::Abode& abode, const domain::Man& listener);
 

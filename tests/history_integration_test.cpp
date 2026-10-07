@@ -522,6 +522,25 @@ TEST_CASE("a host admits a dweller, regards him anew, and he sees his abode as h
 	REQUIRE(read_event(*man.stream).turned().room() == "Келья");
 	CHECK(read_event(*man.stream).has_history_end());
 
+	// Away from his upper room the host does not arrange his rooms.
+	stand_in(*host.stream, {}, {});
+	{
+		will::v1::ClientEvent arrange;
+		arrange.mutable_arrange()->set_room("Келья");
+		arrange.mutable_arrange()->set_part(will::v1::OUTER);
+		REQUIRE(host.stream->Write(arrange));
+	}
+	CHECK(read_event(*host.stream).protocol_notice().message() == "one arranges rooms only in one's upper room");
+
+	// In it he sees his dwellers and all his rooms, each in its part.
+	send_turn_to_abode(*host.stream, {}, "Горница");
+	CHECK(read_event(*host.stream).has_turned());
+	CHECK(read_event(*host.stream).has_dwellers());
+	const will::v1::ServerEvent shown_rooms = read_event(*host.stream);
+	REQUIRE(shown_rooms.rooms().rooms_size() == 4);
+	CHECK(shown_rooms.rooms().rooms(0).part() == will::v1::INNER);
+	CHECK(read_event(*host.stream).has_history_end());
+
 	// The host sets his cell in the outer part; a neighbour, looking at it, sees the words again.
 	send_regard(*host.stream, man_name, will::v1::NEIGHBOUR);
 	CHECK(read_event(*host.stream).has_protocol_notice());
@@ -536,6 +555,10 @@ TEST_CASE("a host admits a dweller, regards him anew, and he sees his abode as h
 		REQUIRE(host.stream->Write(arrange));
 	}
 	CHECK(read_event(*host.stream).has_protocol_notice());
+	const will::v1::ServerEvent arranged = read_event(*host.stream);  // all his rooms, each in its part
+	REQUIRE(arranged.rooms().rooms_size() == 4);
+	CHECK(arranged.rooms().rooms(0).name() == "Келья");
+	CHECK(arranged.rooms().rooms(0).part() == will::v1::OUTER);
 	REQUIRE(read_event(*man.stream).turned().room() == "Келья");
 	CHECK(read_event(*man.stream).word().body() == "secret");
 	CHECK(read_event(*man.stream).word().body() == "news");

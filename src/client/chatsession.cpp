@@ -51,10 +51,10 @@ bool is_post_auth_server_event(const v1::ServerEvent& event) noexcept
 /// The commands, a group to a line.
 void print_help(ConsoleUi& ui)
 {
-	ui.print_commands("Rooms", "/rooms [name]  /room <number|name>  /home  /visit <name> [room]  "
-							   "/arrange inner|outer <room>");
+	ui.print_commands("Rooms", "/rooms [name]  /room <number|name>  /home  /visit <name> [room]");
 	ui.print_commands("Gates", "/gates <name>  /admit <name>");
 	ui.print_commands("Dwellers", "/dwellers  /regard <name> acquaintance|neighbour|friend  /dwellings");
+	ui.print_commands("Arranging", "/arrange inner|outer <number|room>  (in the upper room, as /regard)");
 	ui.print_commands("Obedience", "/ask <name>  /accept <name>  /reject <name>  /supplications  /done <number> [report]");
 	ui.print_commands("Birth", "/birth  /bear <mark>");
 	ui.print_status("Type text in a room to write there.", "Ctrl+D to exit");

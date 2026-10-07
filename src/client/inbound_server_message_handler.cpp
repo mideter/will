@@ -27,7 +27,7 @@ std::string kind_name(const v1::DwellerKind kind)
 }
 
 
-void print_rooms(ConsoleUi& ui, const v1::Rooms& rooms)
+void print_rooms(ConsoleUi& ui, const v1::Rooms& rooms, const bool arranging)
 {
 	if (rooms.rooms().empty()) {
 		ui.print_status("No room is open to you here.");
@@ -36,7 +36,7 @@ void print_rooms(ConsoleUi& ui, const v1::Rooms& rooms)
 	std::vector<std::vector<std::string>> rows;
 	for (const v1::Room& room : rooms.rooms())
 		rows.push_back({std::to_string(rows.size() + 1), room.name(), room.part() == v1::OUTER ? "outer" : "inner"});
-	ui.print_list("Rooms", rows, "/room <number>");
+	ui.print_list("Rooms", rows, arranging ? "/arrange inner|outer <number>" : "/room <number>");
 }
 
 
@@ -109,10 +109,18 @@ void print_word(ConsoleUi& ui, const v1::Word& word, const bool dim)
 } // namespace
 
 
-void ShownRooms::turned(std::string abode_of)
+void ShownRooms::turned(std::string abode_of, std::string room)
 {
 	std::lock_guard lock(mutex_);
 	looking_at_ = std::move(abode_of);
+	room_ = std::move(room);
+}
+
+
+bool ShownRooms::arranging() const
+{
+	std::lock_guard lock(mutex_);
+	return looking_at_.empty() && room_ == "Горница";
 }
 
 
@@ -159,7 +167,7 @@ void LoadingHistoryMessageHandler::on(const v1::ServerEvent& event)
 		return;
 	case v1::ServerEvent::kRooms:
 		rooms_.shown(event.rooms());
-		print_rooms(ui_, event.rooms());
+		print_rooms(ui_, event.rooms(), rooms_.arranging());
 		return;
 	case v1::ServerEvent::kOutstanding:
 		print_outstanding(ui_, event.outstanding());
@@ -210,14 +218,14 @@ void ReceivingMessageHandler::on(const v1::ServerEvent& event)
 	}
 	case v1::ServerEvent::kTurned: {
 		const auto& turned = event.turned();
-		rooms_.turned(turned.abode_of());
+		rooms_.turned(turned.abode_of(), turned.room());
 		const std::string abode = turned.abode_of().empty() ? "home" : "abode of " + turned.abode_of();
 		ui_.print_header("── " + abode + (turned.room().empty() ? "" : " · " + turned.room()) + " ──");
 		return;
 	}
 	case v1::ServerEvent::kRooms:
 		rooms_.shown(event.rooms());
-		print_rooms(ui_, event.rooms());
+		print_rooms(ui_, event.rooms(), rooms_.arranging());
 		return;
 	case v1::ServerEvent::kOutstanding:
 		print_outstanding(ui_, event.outstanding());
