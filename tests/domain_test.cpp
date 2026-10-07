@@ -976,8 +976,12 @@ TEST_CASE("a dweller enters the rooms his kind opens: a friend all, a neighbour 
 	const std::shared_ptr<const Contemplation> gaze = world.contemplation(man.Soul::id());
 	CHECK(letters_seen_by(gaze).size() == 1);
 
+	// Rooms are arranged only in the upper room.
+	CHECK_THROWS_AS(host.arrange(cell, matter::Room::Part::Outer), std::logic_error);
+	CHECK(cell.part() == matter::Room::Part::Inner);
+
 	// Set in the outer part, the cell is entered by a neighbour too, but never by an acquaintance.
-	host.arrange(cell, matter::Room::Part::Outer);
+	arrange_in_upper_room(world, host, cell, matter::Room::Part::Outer);
 	CHECK(cell.part() == matter::Room::Part::Outer);
 	regard_in_upper_room(world, host, man, matter::Dweller::Kind::Neighbour);
 	CHECK(cell.dwells(man));
@@ -1419,7 +1423,7 @@ TEST_CASE("whoever keeps the gates by his kind opens them and lets in an acquain
 
 	// Set in the outer part, the gates are kept by a neighbour too.
 	looking_at(world, anna, anna.abode().upper_room(), [&] { anna.regard(viktor, matter::Dweller::Kind::Neighbour); });
-	anna.arrange(gates, matter::Room::Part::Outer);
+	arrange_in_upper_room(world, anna, gates, matter::Room::Part::Outer);
 	viktor.contemplate(gates);
 	CHECK(gates.keeps(viktor));
 	viktor.admit(galina);

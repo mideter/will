@@ -36,8 +36,8 @@ public:
 	/// upper room. Throws if he does not dwell there or one is elsewhere.
 	void regard(const Man& dweller, matter::Dweller::Kind kind) const;
 
-	/// Set a room of one's abode in this part of it. Throws if the room is of
-	/// another abode.
+	/// Set a room of one's abode in this part of it, standing in one's upper
+	/// room. Throws if the room is of another abode or one is elsewhere.
 	void arrange(const Room& room, matter::Room::Part part) const;
 
 	/// One's father along the line; none if one has none.

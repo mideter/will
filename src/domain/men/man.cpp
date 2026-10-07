@@ -68,6 +68,8 @@ void Man::arrange(const Room& room, const matter::Room::Part part) const
 {
 	if (&room.abode() != abode_.get())
 		throw std::logic_error("the room is not of this abode");
+	if (!static_cast<const Witness&>(*this).contemplates(abode_->upper_room()))
+		throw std::logic_error("one arranges rooms only in one's upper room");
 
 	abode_->arrange(Birth<Man>{*this}, spatiality().arrange(room.id(), part));
 }

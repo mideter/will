@@ -544,6 +544,13 @@ inline void regard_in_upper_room(World& world, const Man& host, const Man& man, 
 }
 
 
+/// The host sets a room of his abode in a part, standing in his upper room.
+inline void arrange_in_upper_room(World& world, const Man& host, const Room& room, const matter::Room::Part part)
+{
+	looking_at(world, host, host.abode().upper_room(), [&] { host.arrange(room, part); });
+}
+
+
 /// The cell of a man's abode: the room of his own records, where he writes.
 inline const Room& cell_of(const Man& man)
 {
