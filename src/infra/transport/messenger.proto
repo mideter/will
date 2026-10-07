@@ -42,7 +42,24 @@ message AuthOk {
 message ReceiptAck {}
 
 
+// One go at an exercise: so many repetitions with this weight, in grams; zero
+// weight is one's own.
+message Approach {
+    uint32 weight_grams = 1;
+    uint32 repetitions = 2;
+}
+
+
+// An exercise, named freely, done in approaches.
+message Exercise {
+    string name = 1;
+    repeated Approach approaches = 2;
+}
+
+
 // A word in the place the client contemplates — told in history or as it is placed.
+// A behest that is a training carries the exercises it wills; a deed fulfilling
+// one, the exercises done.
 message Word {
     enum Kind {
         LETTER = 0;
@@ -56,6 +73,7 @@ message Word {
     string body = 4;
     Kind kind = 5;
     uint64 behest_id = 6; // the behest a deed fulfils
+    repeated Exercise exercises = 7;
 }
 
 
@@ -142,10 +160,20 @@ message Regard {
 message ListDwellers {}
 
 
-// Fulfil a behest of the contemplated tie, with an optional report.
+// Fulfil a behest of the contemplated tie, with an optional report. A training
+// is fulfilled with the exercises done; none given, as willed.
 message Fulfil {
     uint64 behest_id = 1;
     string report = 2;
+    repeated Exercise performed = 3;
+}
+
+
+// Will a training in the tie one looks at as its testator: these exercises,
+// under this title («Тренировка» when empty).
+message Train {
+    string title = 1;
+    repeated Exercise exercises = 2;
 }
 
 
@@ -319,6 +347,7 @@ message ClientEvent {
         Bear bear = 16;
         ChooseFather choose_father = 17;
         ListLineage list_lineage = 18;
+        Train train = 19;
     }
 }
 

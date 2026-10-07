@@ -273,7 +273,8 @@ void WillClient::accept(const std::string_view suppliant_name) const
 }
 
 
-void WillClient::fulfil(const std::uint64_t behest_id, const std::string_view report) const
+void WillClient::fulfil(const std::uint64_t behest_id, const std::string_view report,
+						const std::vector<v1::Exercise>& performed) const
 {
 	if (!authenticated_)
 		throw std::logic_error("WillClient: not authenticated");
@@ -282,8 +283,25 @@ void WillClient::fulfil(const std::uint64_t behest_id, const std::string_view re
 	auto* msg = event.mutable_fulfil();
 	msg->set_behest_id(behest_id);
 	msg->set_report(std::string{report});
+	for (const v1::Exercise& exercise : performed)
+		*msg->add_performed() = exercise;
 	if (!write_event(event))
 		throw std::runtime_error("Will protocol: failed to send Fulfil");
+}
+
+
+void WillClient::train(const std::string_view title, const std::vector<v1::Exercise>& exercises) const
+{
+	if (!authenticated_)
+		throw std::logic_error("WillClient: not authenticated");
+
+	v1::ClientEvent event;
+	auto* msg = event.mutable_train();
+	msg->set_title(std::string{title});
+	for (const v1::Exercise& exercise : exercises)
+		*msg->add_exercises() = exercise;
+	if (!write_event(event))
+		throw std::runtime_error("Will protocol: failed to send Train");
 }
 
 

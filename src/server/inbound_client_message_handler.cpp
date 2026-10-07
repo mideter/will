@@ -87,6 +87,9 @@ void InboundClientMessageHandler::on_bound_event(const v1::ClientEvent& event)
 	case v1::ClientEvent::kListLineage:
 		adapter_.handle_list_lineage(session_id_);
 		return;
+	case v1::ClientEvent::kTrain:
+		adapter_.handle_train(session_id_, event.train());
+		return;
 	case v1::ClientEvent::EVENT_NOT_SET:
 		break;
 	}
@@ -118,6 +121,7 @@ void InboundClientMessageHandler::on_unbound_event(const v1::ClientEvent& event)
 	case v1::ClientEvent::kBear:
 	case v1::ClientEvent::kChooseFather:
 	case v1::ClientEvent::kListLineage:
+	case v1::ClientEvent::kTrain:
 		adapter_.send_auth_required(session_id_);
 		return;
 	case v1::ClientEvent::EVENT_NOT_SET:

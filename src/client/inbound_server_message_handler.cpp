@@ -84,15 +84,57 @@ void print_outstanding(ConsoleUi& ui, const v1::Outstanding& outstanding)
 }
 
 
+/// A weight as one reads it: kilograms, or one's own.
+std::string weight_text(const std::uint32_t grams)
+{
+	if (grams == 0)
+		return "own";
+	std::string kilograms = std::to_string(grams / 1000);
+	if (const std::uint32_t rest = grams % 1000; rest != 0) {
+		std::string fraction = std::to_string(1000 + rest).substr(1);
+		while (fraction.back() == '0')
+			fraction.pop_back();
+		kilograms += "." + fraction;
+	}
+	return kilograms;
+}
+
+
+/// Exercises a row each: the name, then the approaches.
+std::vector<std::vector<std::string>> exercise_rows(const v1::Word& word)
+{
+	std::vector<std::vector<std::string>> rows;
+	for (const v1::Exercise& exercise : word.exercises()) {
+		std::string approaches;
+		for (const v1::Approach& go : exercise.approaches())
+			approaches += (approaches.empty() ? "" : "  ") + weight_text(go.weight_grams()) + "×"
+						  + std::to_string(go.repetitions());
+		rows.push_back({exercise.name(), approaches});
+	}
+	return rows;
+}
+
+
 void print_word(ConsoleUi& ui, const v1::Word& word, const bool dim)
 {
 	const std::string number = "#" + std::to_string(word.id());
 	switch (word.kind()) {
 	case v1::Word::BEHEST:
+		if (!word.exercises().empty()) {
+			ui.print_list("Training " + number + " from " + word.name() + ": " + word.body(), exercise_rows(word),
+						  word.is_mine() ? std::string{} : "/done " + std::to_string(word.id()) + " [report] [| …]");
+			return;
+		}
 		ui.print_status("Behest " + number + " from " + word.name() + ": " + word.body(),
 						word.is_mine() ? std::string{} : "/done " + std::to_string(word.id()) + " [report]");
 		return;
 	case v1::Word::DEED:
+		if (!word.exercises().empty()) {
+			ui.print_list("Deed " + number + " by " + word.name() + " fulfils #" + std::to_string(word.behest_id())
+							  + ": " + word.body(),
+						  exercise_rows(word));
+			return;
+		}
 		ui.print_status("Deed " + number + " by " + word.name() + " fulfils #"
 						+ std::to_string(word.behest_id()) + ": " + word.body());
 		return;

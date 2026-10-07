@@ -61,6 +61,7 @@ private:
 	void handle_bear(SessionId session_id, const v1::Bear& msg);
 	void handle_choose_father(SessionId session_id, const v1::ChooseFather& msg);
 	void handle_list_lineage(SessionId session_id);
+	void handle_train(SessionId session_id, const v1::Train& msg);
 
 	/// Whether the body of this session awaits its birth.
 	bool awaits_birth(SessionId session_id) const;

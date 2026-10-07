@@ -39,7 +39,11 @@ public:
 	/** Turn the gaze to the tie with this soul, or home when the name is empty. */
 
 	/** Fulfil a behest of the contemplated tie, with an optional report. */
-	void fulfil(std::uint64_t behest_id, std::string_view report) const;
+	void fulfil(std::uint64_t behest_id, std::string_view report,
+				const std::vector<v1::Exercise>& performed = {}) const;
+
+	/// Will a training in the tie one looks at as its testator.
+	void train(std::string_view title, const std::vector<v1::Exercise>& exercises) const;
 
 	/// Turn the gaze to the abode of this host one dwells in, or to one's own
 	/// when empty; into this room of it, when given.

@@ -10,6 +10,7 @@
 #include <stdexcept>
 #include <string>
 #include <string_view>
+#include <vector>
 #include <poll.h>
 #include <unistd.h>
 
@@ -48,6 +49,86 @@ bool is_post_auth_server_event(const v1::ServerEvent& event) noexcept
 }
 
 
+std::string_view trimmed(std::string_view text)
+{
+	while (!text.empty() && text.front() == ' ')
+		text.remove_prefix(1);
+	while (!text.empty() && text.back() == ' ')
+		text.remove_suffix(1);
+	return text;
+}
+
+
+/// An approach as typed: «60x10», «62.5x8», «0x8» (one's own weight). None if it is not one.
+std::optional<v1::Approach> approach_of(const std::string_view token)
+{
+	const auto x = token.find_first_of("xх×");
+	if (x == std::string_view::npos || x == 0)
+		return std::nullopt;
+	std::string kilograms{token.substr(0, x)};
+	for (char& c : kilograms) {
+		if (c == ',')
+			c = '.';
+	}
+	const std::size_t after = token.find_first_not_of("xх×", x);  // «х» and «×» take more than one byte
+	if (after == std::string_view::npos)
+		return std::nullopt;
+	try {
+		std::size_t used = 0;
+		const double weight = std::stod(kilograms, &used);
+		const std::string repetitions{token.substr(after)};
+		std::size_t counted = 0;
+		const unsigned long reps = std::stoul(repetitions, &counted);
+		if (used != kilograms.size() || counted != repetitions.size() || weight < 0)
+			return std::nullopt;
+		v1::Approach approach;
+		approach.set_weight_grams(static_cast<std::uint32_t>(weight * 1000 + 0.5));
+		approach.set_repetitions(static_cast<std::uint32_t>(reps));
+		return approach;
+	} catch (const std::exception&) {
+		return std::nullopt;
+	}
+}
+
+
+/// Exercises as typed, separated by «|»: a name, then its approaches. None if one has no approach.
+std::optional<std::vector<v1::Exercise>> exercises_of(std::string_view text)
+{
+	std::vector<v1::Exercise> exercises;
+	while (!text.empty()) {
+		const auto bar = text.find('|');
+		const std::string_view part = trimmed(text.substr(0, bar));
+		text = bar == std::string_view::npos ? std::string_view{} : text.substr(bar + 1);
+		if (part.empty())
+			continue;
+
+		// The approaches are the last words; what is before them is the name.
+		std::vector<std::string_view> words;
+		for (std::string_view rest = part; !rest.empty();) {
+			const auto space = rest.find(' ');
+			if (const std::string_view word = rest.substr(0, space); !word.empty())
+				words.push_back(word);
+			rest = space == std::string_view::npos ? std::string_view{} : rest.substr(space + 1);
+		}
+		std::size_t first = words.size();
+		while (first > 0 && approach_of(words[first - 1]))
+			--first;
+		if (first == words.size() || first == 0)
+			return std::nullopt;
+
+		v1::Exercise exercise;
+		std::string name;
+		for (std::size_t i = 0; i < first; ++i)
+			name += (i ? " " : "") + std::string{words[i]};
+		exercise.set_name(name);
+		for (std::size_t i = first; i < words.size(); ++i)
+			*exercise.add_approaches() = *approach_of(words[i]);
+		exercises.push_back(std::move(exercise));
+	}
+	return exercises;
+}
+
+
 /// The commands, a group to a line.
 void print_help(ConsoleUi& ui)
 {
@@ -56,6 +137,7 @@ void print_help(ConsoleUi& ui)
 	ui.print_commands("Dwellers", "/dwellers  /regard <name> acquaintance|neighbour|friend  /dwellings");
 	ui.print_commands("Arranging", "/arrange inner|outer <number|room>  (in the upper room, as /regard)");
 	ui.print_commands("Obedience", "/ask <name>  /accept <name>  /reject <name>  /supplications  /done <number> [report]");
+	ui.print_commands("Training", "/train [title] | <exercise> 60x10 70x8 | …  /done <number> [report] | <exercise> 60x10 …");
 	ui.print_commands("Birth", "/birth  /bear <mark>");
 	ui.print_status("Type text in a room to write there.", "Ctrl+D to exit");
 }
@@ -99,16 +181,38 @@ bool handle_slash_command(WillClient& client, ConsoleUi& ui, ShownRooms& rooms, 
 		return true;
 	}
 	if (cmd == "done") {
-		const auto sp = args.find(' ');
-		const std::string_view number = args.substr(0, sp);
-		const std::string_view report = sp == std::string_view::npos ? std::string_view{} : args.substr(sp + 1);
-		try {
-			client.fulfil(std::stoull(std::string{number}), report);
-		} catch (const std::invalid_argument&) {
-			ui.print_notice("usage: /done <number> [report]");
-		} catch (const std::out_of_range&) {
-			ui.print_notice("usage: /done <number> [report]");
+		// After «|», what was done in a training: each exercise with its approaches.
+		const auto bar = args.find('|');
+		const std::string_view head = trimmed(args.substr(0, bar));
+		const auto sp = head.find(' ');
+		const std::string_view number = head.substr(0, sp);
+		const std::string_view report = sp == std::string_view::npos ? std::string_view{} : trimmed(head.substr(sp + 1));
+		std::vector<v1::Exercise> performed;
+		if (bar != std::string_view::npos) {
+			const auto done = exercises_of(args.substr(bar + 1));
+			if (!done) {
+				ui.print_notice("usage: /done <number> [report] | <exercise> 60x10 70x8 | …");
+				return true;
+			}
+			performed = *done;
 		}
+		try {
+			client.fulfil(std::stoull(std::string{number}), report, performed);
+		} catch (const std::invalid_argument&) {
+			ui.print_notice("usage: /done <number> [report] [| <exercise> 60x10 70x8 | …]");
+		} catch (const std::out_of_range&) {
+			ui.print_notice("usage: /done <number> [report] [| <exercise> 60x10 70x8 | …]");
+		}
+		return true;
+	}
+	if (cmd == "train") {
+		const auto bar = args.find('|');
+		const auto exercises = bar == std::string_view::npos ? std::nullopt : exercises_of(args.substr(bar + 1));
+		if (!exercises || exercises->empty()) {
+			ui.print_notice("usage: /train [title] | <exercise> 60x10 70x8 | <exercise> 0x8 …");
+			return true;
+		}
+		client.train(trimmed(args.substr(0, bar)), *exercises);
 		return true;
 	}
 

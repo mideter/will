@@ -4,6 +4,7 @@
 
 #include "words/behest.h"
 #include "words/deed.h"
+#include "words/training.h"
 #include "places/abode.h"
 #include "men/novice.h"
 #include "places/obedience.h"
@@ -47,6 +48,37 @@ const domain::Soul& author_of(const domain::Word& word)
 }
 
 
+/// Exercises as the wire tells them.
+void tell_exercises(const std::vector<domain::Exercise>& exercises,
+					google::protobuf::RepeatedPtrField<v1::Exercise>& told)
+{
+	for (const domain::Exercise& exercise : exercises) {
+		v1::Exercise* wire = told.Add();
+		wire->set_name(exercise.name());
+		for (const domain::Approach& approach : exercise.approaches()) {
+			v1::Approach* go = wire->add_approaches();
+			go->set_weight_grams(approach.weight().grams());
+			go->set_repetitions(approach.repetitions());
+		}
+	}
+}
+
+
+/// Exercises as the wire brings them. Throws std::invalid_argument if any is not one.
+std::vector<domain::Exercise> exercises_of(const google::protobuf::RepeatedPtrField<v1::Exercise>& wire)
+{
+	std::vector<domain::Exercise> exercises;
+	exercises.reserve(static_cast<std::size_t>(wire.size()));
+	for (const v1::Exercise& exercise : wire) {
+		std::vector<domain::Approach> approaches;
+		for (const v1::Approach& go : exercise.approaches())
+			approaches.emplace_back(domain::Weight{go.weight_grams()}, go.repetitions());
+		exercises.emplace_back(exercise.name(), std::move(approaches));
+	}
+	return exercises;
+}
+
+
 /// A word as the wire tells it to one who listens.
 v1::ServerEvent word_event(const domain::Word& word, const domain::id::Soul listener)
 {
@@ -61,9 +93,12 @@ v1::ServerEvent word_event(const domain::Word& word, const domain::id::Soul list
 
 	if (dynamic_cast<const domain::Behest*>(&word)) {
 		told->set_kind(v1::Word::BEHEST);
+		if (const auto* training = dynamic_cast<const domain::Training*>(&word))
+			tell_exercises(training->exercises(), *told->mutable_exercises());
 	} else if (const auto* deed = dynamic_cast<const domain::Deed*>(&word)) {
 		told->set_kind(v1::Word::DEED);
 		told->set_behest_id(deed->behest().value());
+		tell_exercises(deed->performed(), *told->mutable_exercises());
 	} else {
 		told->set_kind(v1::Word::LETTER);
 	}
@@ -520,8 +555,12 @@ void ProtocolAdapter::handle_fulfil(const SessionId session_id, const v1::Fulfil
 		std::optional<domain::Saying> report;
 		if (!msg.report().empty())
 			report.emplace(msg.report());
+		std::optional<std::vector<domain::Exercise>> performed;
+		if (!msg.performed().empty())
+			performed = exercises_of(msg.performed());
 
-		const std::shared_ptr<const domain::Deed> deed = novice.execute(*behest, std::move(report));
+		const std::shared_ptr<const domain::Deed> deed
+			= novice.execute(*behest, std::move(report), std::move(performed));
 		send_notice(session_id, "behest " + std::to_string(behest->id().value()) + " fulfilled");
 		tell_placed(gaze->place().source(), *deed, self);
 	} catch (const std::exception& e) {
@@ -788,6 +827,38 @@ void ProtocolAdapter::handle_list_supplications(const SessionId session_id)
 	for (const std::shared_ptr<const domain::Supplication>& pending : self.supplications())
 		list->add_suppliant_names(std::string{pending->suppliant().name().text()});
 	send_event(session_id, event);
+}
+
+
+void ProtocolAdapter::handle_train(const SessionId session_id, const v1::Train& msg)
+{
+	const domain::Man& self = session_man(session_id);
+	const std::shared_ptr<const domain::Contemplation> gaze = world_.contemplation(self.Soul::id());
+	const auto* tie = gaze ? dynamic_cast<const domain::Tie*>(&gaze->place().source()) : nullptr;
+	if (!tie) {
+		send_notice(session_id, "enter the room of the tie first: /room <name>");
+		return;
+	}
+	if (tie->testator().Soul::id() != self.Soul::id()) {
+		send_notice(session_id, "only the testator wills a training");
+		return;
+	}
+
+	std::shared_ptr<const domain::Training> training;
+	try {
+		training = static_cast<const domain::Testator&>(self).train(
+			*tie, domain::Saying{msg.title().empty() ? std::string{"Тренировка"} : msg.title()},
+			exercises_of(msg.exercises()));
+	} catch (const std::invalid_argument&) {
+		send_notice(session_id, "invalid training");
+		return;
+	} catch (const std::exception& e) {
+		send_notice(session_id, e.what());
+		return;
+	}
+
+	send_notice(session_id, "training " + std::to_string(training->id().value()) + " willed");
+	tell_placed(*tie, *training, self);
 }
 
 

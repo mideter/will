@@ -843,6 +843,105 @@ TEST_CASE("a friend keeping the host's gates lets one in, an acquaintance of the
 }
 
 
+TEST_CASE("the testator wills a training over the wire; the novice fulfils it telling what he has done")
+{
+	const std::uint16_t port = static_cast<std::uint16_t>(pick_port() + 5);
+	const std::string directory = "/tmp/will-training-test-" + std::to_string(getpid());
+	const ScratchDirectory scratch{directory};
+
+	RunningServer server{start_server(g_server_exe, port, directory)};
+	REQUIRE(server.pid() > 0);
+	wait_for_server(port);
+
+	Elder elder = first_man(port);
+	GrpcSession trainer = open_session(port);
+	GrpcSession novice = open_session(port);
+	const std::string trainer_name = born_named(elder, *trainer.stream, SenderToken);
+	const std::string novice_name = born_named(elder, *novice.stream, ViewerToken);
+
+	// They let each other in, and the novice asks the trainer, who accepts.
+	stand_in(*trainer.stream, {}, "Врата");
+	stand_in(*novice.stream, trainer_name, "Врата");
+	send_admit(*trainer.stream, novice_name);
+	read_until(*trainer.stream, [](const auto& e) { return e.has_protocol_notice(); });
+	read_until(*novice.stream, [](const auto& e) { return e.has_dwelling(); });
+	stand_in(*novice.stream, {}, "Врата");
+	stand_in(*trainer.stream, novice_name, "Врата");
+	send_admit(*novice.stream, trainer_name);
+	read_until(*novice.stream, [](const auto& e) { return e.has_protocol_notice(); });
+	read_until(*trainer.stream, [](const auto& e) { return e.has_dwelling(); });
+	{
+		will::v1::ClientEvent ask;
+		ask.mutable_supplicate()->set_addressee_name(trainer_name);
+		REQUIRE(novice.stream->Write(ask));
+	}
+	read_until(*trainer.stream, [](const auto& e) { return e.has_supplication_offer(); });
+	{
+		will::v1::ClientEvent accept;
+		accept.mutable_accept_supplication()->set_suppliant_name(novice_name);
+		REQUIRE(trainer.stream->Write(accept));
+	}
+	read_until(*trainer.stream, [](const auto& e) { return e.has_tie_formed(); });
+	read_until(*novice.stream, [](const auto& e) { return e.has_tie_formed(); });
+
+	// Each enters his room of the tie.
+	send_turn_to_abode(*trainer.stream, {}, "Ведение — " + novice_name);
+	read_until(*trainer.stream, [](const auto& e) { return e.has_history_end(); });
+	send_turn_to_abode(*novice.stream, {}, "Послушание — " + trainer_name);
+	read_until(*novice.stream, [](const auto& e) { return e.has_history_end(); });
+
+	// The novice does not will a training; the trainer does.
+	will::v1::ClientEvent train;
+	train.mutable_train()->set_title("Понедельник");
+	{
+		will::v1::Exercise* press = train.mutable_train()->add_exercises();
+		press->set_name("Жим лёжа");
+		for (const auto [grams, reps] : {std::pair{60'000u, 10u}, {70'000u, 8u}}) {
+			will::v1::Approach* go = press->add_approaches();
+			go->set_weight_grams(grams);
+			go->set_repetitions(reps);
+		}
+	}
+	REQUIRE(novice.stream->Write(train));
+	CHECK(read_until(*novice.stream, [](const auto& e) { return e.has_protocol_notice(); }).protocol_notice().message()
+		  == "only the testator wills a training");
+	REQUIRE(trainer.stream->Write(train));
+	CHECK(read_until(*trainer.stream, [](const auto& e) { return e.has_protocol_notice(); })
+			  .protocol_notice()
+			  .message()
+			  .ends_with(" willed"));
+
+	const will::v1::ServerEvent willed = read_until(*novice.stream, [](const auto& e) { return e.has_word(); });
+	CHECK(willed.word().kind() == will::v1::Word::BEHEST);
+	CHECK(willed.word().body() == "Понедельник");
+	REQUIRE(willed.word().exercises_size() == 1);
+	CHECK(willed.word().exercises(0).name() == "Жим лёжа");
+	REQUIRE(willed.word().exercises(0).approaches_size() == 2);
+	CHECK(willed.word().exercises(0).approaches(1).weight_grams() == 70'000);
+
+	// He fulfils it with what he has done; the trainer sees it.
+	will::v1::ClientEvent fulfil;
+	fulfil.mutable_fulfil()->set_behest_id(willed.word().id());
+	*fulfil.mutable_fulfil()->add_performed() = willed.word().exercises(0);
+	fulfil.mutable_fulfil()->mutable_performed(0)->mutable_approaches(1)->set_repetitions(6);
+	REQUIRE(novice.stream->Write(fulfil));
+	CHECK(read_until(*novice.stream, [](const auto& e) { return e.has_protocol_notice(); })
+			  .protocol_notice()
+			  .message()
+			  .ends_with(" fulfilled"));
+	const will::v1::ServerEvent done = read_until(*trainer.stream, [](const auto& e) { return e.has_word(); });
+	CHECK(done.word().kind() == will::v1::Word::DEED);
+	CHECK(done.word().behest_id() == willed.word().id());
+	REQUIRE(done.word().exercises_size() == 1);
+	CHECK(done.word().exercises(0).approaches(1).repetitions() == 6);
+
+	trainer.context->TryCancel();
+	novice.context->TryCancel();
+	elder.session.context->TryCancel();
+	server.stop();
+}
+
+
 int main(int argc, char** argv)
 {
 	if (argc < 2) {
