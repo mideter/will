@@ -1,5 +1,7 @@
 #pragma once
 
+#include "values/exercise.h"
+
 #include "matter/man.h"
 #include "matter/supplication.h"
 #include "properties/birth.h"
@@ -15,6 +17,9 @@
 
 
 namespace will::domain {
+
+
+class Training;
 
 
 class World;
@@ -35,6 +40,11 @@ public:
 
 	/// Will in a tie one contemplates. Throws if one looks elsewhere.
 	std::shared_ptr<const Behest> will(const Shepherding& shepherding, const Saying& saying) const;
+
+	/// Will a training — these exercises, under this title — in a tie one
+	/// contemplates. Throws if one looks elsewhere.
+	std::shared_ptr<const Training> train(const Shepherding& shepherding, const Saying& title,
+										  std::vector<Exercise> exercises) const;
 
 	/// Shepherding of the Tie with this novice. Throws if unknown.
 	const Shepherding& shepherding(const Novice& novice) const;

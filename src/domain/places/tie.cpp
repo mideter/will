@@ -2,6 +2,7 @@
 
 #include "words/behest.h"
 #include "words/deed.h"
+#include "words/training.h"
 #include "words/recollection.h"
 #include "relations/contemplation.h"
 #include "men/soul.h"
@@ -97,7 +98,11 @@ std::shared_ptr<const Behest> Tie::inscribe(Birth<Testator>, matter::Behest kept
 	if (kept.word().author() != testator_.Soul::id())
 		throw std::logic_error("only the testator of a tie wills in it");
 
-	auto behest = std::make_shared<const Behest>(Birth<Tie>{*this}, std::move(kept));
+	std::shared_ptr<const Behest> behest;
+	if (kept.training())
+		behest = std::make_shared<const Training>(Birth<Tie>{*this}, std::move(kept));
+	else
+		behest = std::make_shared<const Behest>(Birth<Tie>{*this}, std::move(kept));
 	enter(*recollection(), behest);
 
 	return behest;

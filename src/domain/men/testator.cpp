@@ -1,5 +1,7 @@
 #include "testator.h"
 
+#include "words/training.h"
+
 #include "matter/dating.h"
 #include "matter/placement.h"
 #include "matter/word.h"
@@ -46,6 +48,27 @@ std::shared_ptr<const Behest> Testator::will(const Shepherding& shepherding, con
 
 	return shepherding.inscribe(
 		Birth<Testator>{*this}, matter::Behest{std::move(uttered), std::move(placed), std::move(dated)});
+}
+
+
+std::shared_ptr<const Training> Testator::train(const Shepherding& shepherding, const Saying& title,
+												std::vector<Exercise> exercises) const
+{
+	if (shepherding.testator().Soul::id() != Soul::id())
+		throw std::logic_error("not the testator of this shepherding");
+	if (!contemplates(shepherding))
+		throw std::logic_error("one wills only in the tie one contemplates");
+	if (exercises.empty())
+		throw std::invalid_argument("a training wills exercises");
+
+	matter::Word uttered = utter(title);
+	matter::Training trained = exercise(uttered.id(), std::move(exercises));
+	matter::Placement placed = spatiality().place(uttered.id(), shepherding.id());
+	matter::Dating dated = temporality().date(uttered.id());
+
+	return std::static_pointer_cast<const Training>(shepherding.inscribe(
+		Birth<Testator>{*this},
+		matter::Behest{std::move(uttered), std::move(placed), std::move(dated), std::move(trained)}));
 }
 
 

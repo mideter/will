@@ -38,6 +38,7 @@ Deed::Deed(matter::Deed kept)
 	: Word(kept.id(), kept.word().saying())
 	, tie_(living_tie(kept.placement().place()))
 	, behest_(kept.execution().behest())
+	, performed_(kept.performed() ? kept.performed()->exercises() : std::vector<Exercise>{})
 	, created_at_(kept.dating().created_at())
 {
 	if (kept.word().author() != tie_.novice().Soul::id())

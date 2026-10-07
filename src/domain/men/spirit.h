@@ -1,5 +1,7 @@
 #pragma once
 
+#include "matter/training.h"
+
 #include "relations/contemplation.h"
 #include "matter/word.h"
 #include "horizons/heaven.h"
@@ -41,6 +43,9 @@ protected:
 	static const Soul& soul(id::Soul id);
 
 	matter::Word utter(const Saying& saying) const;
+
+	/// Eternity keeps the exercises of a word this spirit uttered.
+	matter::Training exercise(id::Word word, std::vector<Exercise> exercises) const;
 
 	bool knows(id::Soul soul_id) const;
 

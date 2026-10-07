@@ -1,5 +1,7 @@
 #pragma once
 
+#include "values/exercise.h"
+
 #include "matter/man.h"
 #include "places/obedience.h"
 #include "relations/supplication.h"
@@ -35,10 +37,13 @@ public:
 	void supplicate(const Testator& addressee) const;
 
 	/// Fulfil a behest of a tie where this soul is novice, with a report or,
-	/// without one, «совершено», while contemplating that tie. Throws if the
-	/// behest is already fulfilled or one looks elsewhere.
+	/// without one, «совершено», while contemplating that tie. A training is
+	/// fulfilled with the exercises done — as willed, when not told otherwise; a
+	/// plain behest takes none. Throws if the behest is already fulfilled or one
+	/// looks elsewhere.
 	std::shared_ptr<const Deed> execute(const Behest& behest,
-										std::optional<Saying> report = std::nullopt) const;
+										std::optional<Saying> report = std::nullopt,
+										std::optional<std::vector<Exercise>> performed = std::nullopt) const;
 
 	std::vector<std::reference_wrapper<const Obedience>> obediences() const;
 

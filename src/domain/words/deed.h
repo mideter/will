@@ -5,7 +5,10 @@
 #include "properties/birth.h"
 #include "places/tie.h"
 #include "words/word.h"
+#include "values/exercise.h"
 #include "values/timestamp.h"
+
+#include <vector>
 
 
 namespace will::domain {
@@ -14,7 +17,7 @@ namespace will::domain {
 class Life;
 /// Deed (Дело) — the novice's Word in a living Tie (Узы) fulfilling a Behest: his
 /// report, or «совершено» when he gives none. Born from matter::Deed; it does not
-/// change. It knows the behest it fulfils.
+/// change. It knows the behest it fulfils and, for a training, what he has done.
 class Deed : public Word {
 public:
 	/// Willed or done now, born of its tie; or recalled from memory, born of Life.
@@ -24,6 +27,9 @@ public:
 
 	const Tie& tie() const noexcept { return tie_; }
 	id::Word behest() const noexcept { return behest_; }
+
+	/// The exercises done, if it fulfils a training; none otherwise.
+	const std::vector<Exercise>& performed() const noexcept { return performed_; }
 	Timestamp created_at() const noexcept { return created_at_; }
 
 private:
@@ -31,6 +37,7 @@ private:
 
 	const Tie& tie_;
 	id::Word behest_;
+	std::vector<Exercise> performed_;
 	Timestamp created_at_;
 };
 

@@ -1,5 +1,7 @@
 #include "novice.h"
 
+#include "words/training.h"
+
 #include "places/tie.h"
 #include "relations/contemplation.h"
 #include "men/soul.h"
@@ -32,7 +34,8 @@ void Novice::supplicate(const Testator& addressee) const
 }
 
 
-std::shared_ptr<const Deed> Novice::execute(const Behest& behest, std::optional<Saying> report) const
+std::shared_ptr<const Deed> Novice::execute(const Behest& behest, std::optional<Saying> report,
+											 std::optional<std::vector<Exercise>> performed) const
 {
 	const Tie& tie = behest.tie();
 	if (tie.novice().Soul::id() != Soul::id())
@@ -42,14 +45,26 @@ std::shared_ptr<const Deed> Novice::execute(const Behest& behest, std::optional<
 	if (!temporality().executions({behest.id()}).empty())
 		throw std::logic_error("behest is already executed");
 
+	// A training is fulfilled with what was done, as willed unless told otherwise.
+	const auto* training = dynamic_cast<const Training*>(&behest);
+	if (!training && performed)
+		throw std::logic_error("a plain behest is fulfilled without exercises");
+	if (training && !performed)
+		performed = training->exercises();
+	if (performed && performed->empty())
+		throw std::invalid_argument("a training is fulfilled with the exercises done");
+
 	matter::Word uttered = utter(report ? *report : Saying{"совершено"});
+	std::optional<matter::Training> done;
+	if (performed)
+		done = exercise(uttered.id(), std::move(*performed));
 	matter::Placement placed = spatiality().place(uttered.id(), tie.id());
 	matter::Dating dated = temporality().date(uttered.id());
 	matter::Execution executed = temporality().execute(uttered.id(), behest.id());
 
 	return tie.inscribe(
 		Birth<Novice>{*this},
-		matter::Deed{std::move(uttered), std::move(placed), std::move(dated), std::move(executed)});
+		matter::Deed{std::move(uttered), std::move(placed), std::move(dated), std::move(executed), std::move(done)});
 }
 
 

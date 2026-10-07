@@ -33,6 +33,7 @@
 #include "matter/tie.h"
 #include "words/behest.h"
 #include "words/deed.h"
+#include "words/training.h"
 #include "words/word.h"
 #include "properties/immanent.h"
 #include "dimensions/eternity.h"
@@ -1449,4 +1450,75 @@ TEST_CASE("an exercise is named and done in approaches; an approach has repetiti
 					std::invalid_argument);
 
 	CHECK_THROWS_AS((matter::Training{id::Word{1}, {}}), std::invalid_argument);
+}
+
+
+TEST_CASE("the testator wills a training of exercises; the novice fulfils it telling what he has done")
+{
+	InMemoryCosmos cosmos;
+	World& world = cosmos.life().create().world();
+
+	const auto& novice = static_cast<const Novice&>(born(world, DeviceToken::generate()));
+	const auto& testator = static_cast<const Testator&>(born(world, DeviceToken::generate()));
+	admit_at_gates(world, novice, testator);
+	admit_at_gates(world, testator, novice);
+	novice.supplicate(testator);
+	const Shepherding& shepherding = testator.accept(*testator.supplication(novice));
+	const Obedience& obedience = novice.obedience(testator);
+
+	const std::vector<Exercise> willed{
+		Exercise{"Жим лёжа", {Approach{Weight{60'000}, 10}, Approach{Weight{70'000}, 8}, Approach{Weight{80'000}, 6}}},
+		Exercise{"Подтягивания", {Approach{Weight{0}, 8}, Approach{Weight{0}, 8}}},
+	};
+
+	// Only looking at the tie does the testator will a training.
+	CHECK_THROWS_AS(testator.train(shepherding, "Понедельник", willed), std::logic_error);
+	testator.wake();
+	testator.contemplate(room_in(testator, shepherding));
+	CHECK_THROWS_AS(testator.train(shepherding, "Пусто", {}), std::invalid_argument);
+	const std::shared_ptr<const Training> monday = testator.train(shepherding, "Понедельник", willed);
+	const std::shared_ptr<const Training> tuesday = testator.train(shepherding, "Вторник", {willed[1]});
+	CHECK(monday->saying().body() == "Понедельник");
+	CHECK(monday->exercises() == willed);
+
+	// A training is a behest: the novice sees it, and it awaits him.
+	REQUIRE(obedience.behests(novice).size() == 2);
+	CHECK(std::dynamic_pointer_cast<const Training>(obedience.behests(novice).front()));
+	CHECK(novice.abode().outstanding().size() == 2);
+
+	// Fulfilled as willed when he tells nothing else; or with what he has done.
+	novice.wake();
+	novice.contemplate(room_in(novice, obedience));
+	const std::shared_ptr<const Deed> as_willed = novice.execute(*tuesday);
+	CHECK(as_willed->performed() == tuesday->exercises());
+	const std::vector<Exercise> done{
+		Exercise{"Жим лёжа", {Approach{Weight{60'000}, 10}, Approach{Weight{70'000}, 7}, Approach{Weight{75'000}, 5}}},
+		Exercise{"Подтягивания", {Approach{Weight{0}, 8}, Approach{Weight{0}, 6}}},
+	};
+	const std::shared_ptr<const Deed> told = novice.execute(*monday, Saying{"тяжело"}, done);
+	CHECK(told->performed() == done);
+	CHECK(told->saying().body() == "тяжело");
+	CHECK(novice.abode().outstanding().empty());
+
+	// A plain behest is fulfilled without exercises.
+	testator.contemplate(room_in(testator, shepherding));
+	const std::shared_ptr<const Behest> plain = testator.will(shepherding, "Выспаться");
+	CHECK_THROWS_AS(novice.execute(*plain, std::nullopt, done), std::logic_error);
+	CHECK(novice.execute(*plain)->performed().empty());
+
+	// Born anew from matter, the training and what was done are as they were.
+	testator.sleep();
+	novice.sleep();
+	testator.wake();
+	testator.contemplate(room_in(testator, shepherding));
+	const auto words = world.contemplation(testator.Soul::id())->words();
+	REQUIRE(words.size() == 6);
+	const auto recalled = std::dynamic_pointer_cast<const Training>(words[0]);
+	REQUIRE(recalled);
+	CHECK(recalled.get() != monday.get());
+	CHECK(recalled->exercises() == willed);
+	CHECK_FALSE(std::dynamic_pointer_cast<const Training>(words[4]));
+	const auto recalled_told = std::dynamic_pointer_cast<const Deed>(words[3]);
+	REQUIRE(recalled_told);
+	CHECK(recalled_told->performed() == done);
 }

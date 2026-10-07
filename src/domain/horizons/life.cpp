@@ -8,6 +8,7 @@
 #include "places/tie.h"
 #include "words/behest.h"
 #include "words/deed.h"
+#include "words/training.h"
 #include "words/letter.h"
 #include "words/recollection.h"
 #include "words/word.h"
@@ -139,6 +140,19 @@ std::vector<std::shared_ptr<const Word>> Life::recall(const Place& place) const
 
 	const bool in_tie = dynamic_cast<const Tie*>(&place) != nullptr;
 
+	// The exercises of the words of a tie: what a training wills, what a deed has done.
+	std::unordered_map<id::Word, matter::Training> trained;
+	if (in_tie) {
+		for (matter::Training& row : eternity().trainings(ids))
+			trained.emplace(row.id(), std::move(row));
+	}
+	const auto training_of = [&](const id::Word id) -> std::optional<matter::Training> {
+		const auto t = trained.find(id);
+		if (t == trained.end())
+			return std::nullopt;
+		return std::move(t->second);
+	};
+
 	std::vector<std::shared_ptr<const Word>> words;
 	words.reserve(dated.size());
 	for (matter::Dating& dating : dated) {
@@ -153,10 +167,14 @@ std::vector<std::shared_ptr<const Word>> Life::recall(const Place& place) const
 		} else if (const auto e = executions.find(dating.id()); e != executions.end()) {
 			words.push_back(std::make_shared<const Deed>(
 				Birth<Life>{*this},
-				matter::Deed{std::move(u->second), std::move(placement), std::move(dating), std::move(e->second)}));
+				matter::Deed{std::move(u->second), std::move(placement), std::move(dating), std::move(e->second),
+							 training_of(dating.id())}));
 		} else {
-			words.push_back(std::make_shared<const Behest>(
-				Birth<Life>{*this}, matter::Behest{std::move(u->second), std::move(placement), std::move(dating)}));
+			matter::Behest kept{std::move(u->second), std::move(placement), std::move(dating), training_of(dating.id())};
+			if (kept.training())
+				words.push_back(std::make_shared<const Training>(Birth<Life>{*this}, std::move(kept)));
+			else
+				words.push_back(std::make_shared<const Behest>(Birth<Life>{*this}, std::move(kept)));
 		}
 	}
 
