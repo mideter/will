@@ -6,10 +6,12 @@
 #include <condition_variable>
 #include <iostream>
 #include <mutex>
-#include <stdexcept>
 #include <optional>
+#include <stdexcept>
 #include <string>
 #include <string_view>
+#include <poll.h>
+#include <unistd.h>
 
 
 namespace will {
@@ -234,7 +236,10 @@ ChatSession::ChatSession(WillClient& client, ConsoleUi& ui)
 
 void ChatSession::run()
 {
-	awaitBirth();
+	if (!awaitBirth()) {
+		client_.shutdown();
+		return;
+	}
 	loadHistory();
 
 	std::atomic<bool> disconnected{false};
@@ -294,44 +299,72 @@ void ChatSession::run()
 }
 
 
-void ChatSession::awaitBirth() const
+bool ChatSession::awaitBirth() const
 {
 	if (!client_.mark())
-		return;
+		return true;
 
 	ui_.print_status("You are not yet born. Your body is seen as #" + std::to_string(*client_.mark())
-					 + " in birth rooms: wait until someone bears you.");
+					 + " in birth rooms: wait until someone bears you. Ctrl+D to leave.");
 
 	std::mutex mutex;
-	std::condition_variable cv;
 	std::optional<std::string> name;
 	bool disconnected = false;
 
 	client_.set_closed_handler([&] {
 		std::lock_guard lock(mutex);
 		disconnected = true;
-		cv.notify_one();
 	});
 	client_.set_inbound_handler([&](const v1::ServerEvent& event) {
 		if (!event.has_auth_ok() || event.auth_ok().unborn())
 			return;
 		std::lock_guard lock(mutex);
 		name = event.auth_ok().name();
-		cv.notify_one();
 	});
 
-	std::unique_lock lock(mutex);
-	cv.wait(lock, [&] { return name || disconnected; });
-	lock.unlock();
+	// Waiting, one still reads what is typed: each line is answered at once, so
+	// nothing is kept to be done after the birth; Ctrl+D leaves. The input is
+	// looked at in short turns, that the birth is not held up by a read.
+	bool left = false;
+	ui_.set_live_prompt(true);
+	ui_.print_prompt();
+	while (true) {
+		{
+			std::lock_guard lock(mutex);
+			if (name || disconnected)
+				break;
+		}
+
+		if (std::cin.rdbuf()->in_avail() <= 0) {
+			pollfd input{STDIN_FILENO, POLLIN, 0};
+			if (::poll(&input, 1, 200) <= 0)
+				continue;
+		}
+
+		std::string line;
+		if (!std::getline(std::cin, line)) {
+			left = true;
+			break;
+		}
+		if (!line.empty())
+			ui_.print_status("You are not yet born: nothing is done until someone bears you.");
+		ui_.print_prompt();
+	}
+	ui_.set_live_prompt(false);
 
 	client_.set_closed_handler(nullptr);
 	client_.set_inbound_handler(nullptr);
 
+	if (left)
+		return false;
+
+	std::lock_guard lock(mutex);
 	if (!name)
 		throw std::runtime_error("Disconnected while awaiting birth");
 
 	client_.born(*name);
 	ui_.print_status("You are born.");
+	return true;
 }
 
 

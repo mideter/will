@@ -23,8 +23,8 @@ private:
 
 	void loadHistory() const;
 
-	/// An unborn body waits until it is born.
-	void awaitBirth() const;
+	/// An unborn body waits until it is born; false if one leaves meanwhile.
+	bool awaitBirth() const;
 
 	WillClient& client_;
 	ConsoleUi& ui_;
