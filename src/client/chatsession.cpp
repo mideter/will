@@ -48,6 +48,19 @@ bool is_post_auth_server_event(const v1::ServerEvent& event) noexcept
 }
 
 
+/// The commands, a group to a line.
+void print_help(ConsoleUi& ui)
+{
+	ui.print_status("Rooms:      /rooms [name]  /room <number|name>  /home  /visit <name> [room]  "
+					"/arrange inner|outer <room>");
+	ui.print_status("Gates:      /gates <name>  /admit <name>");
+	ui.print_status("Dwellers:   /dwellers  /regard <name> acquaintance|neighbour|friend  /dwellings");
+	ui.print_status("Obedience:  /ask <name>  /accept <name>  /reject <name>  /supplications  /done <number> [report]");
+	ui.print_status("Birth:      /birth  /bear <mark>  /father <name>  /lineage");
+	ui.print_status("Type text in a room to write there. Ctrl+D to exit.");
+}
+
+
 bool handle_slash_command(WillClient& client, ConsoleUi& ui, ShownRooms& rooms, const std::string& line)
 {
 	if (line.empty() || line[0] != '/')
@@ -61,6 +74,10 @@ bool handle_slash_command(WillClient& client, ConsoleUi& ui, ShownRooms& rooms, 
 	while (!args.empty() && args.front() == ' ')
 		args.remove_prefix(1);
 
+	if (cmd == "help") {
+		print_help(ui);
+		return true;
+	}
 	if (cmd == "ask") {
 		if (args.empty()) {
 			ui.print_status("usage: /ask <name>");
@@ -219,8 +236,7 @@ bool handle_slash_command(WillClient& client, ConsoleUi& ui, ShownRooms& rooms, 
 		return true;
 	}
 
-	ui.print_status("unknown command; try /ask /accept /reject /supplications /home /done /rooms /room /arrange /admit "
-					"/regard /dwellers /dwellings /visit /birth /bear /father /lineage");
+	ui.print_status("unknown command; /help lists them");
 	return true;
 }
 
@@ -265,9 +281,7 @@ void ChatSession::run()
 	});
 
 	ui_.print_status("Connected as " + client_.own_name() + ".");
-	ui_.print_status("Chat: type text in a room. Obedience: /ask /accept /reject /supplications /done. "
-					 "Rooms: /rooms /room /arrange. Gates: /gates /admit. Dwellers: /admit /regard /dwellers /dwellings /visit. "
-					 "Birth: /birth /bear /father /lineage. Ctrl+D to exit.");
+	ui_.print_status("Type text in a room to write there. /help — commands. Ctrl+D to exit.");
 	ui_.set_live_prompt(true);
 	ui_.print_prompt();
 
