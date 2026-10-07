@@ -194,4 +194,91 @@ std::vector<domain::matter::Word> SqliteEternity::words(const std::vector<domain
 }
 
 
+domain::matter::Training SqliteEternity::train(const domain::id::Word word, std::vector<domain::Exercise> exercises)
+{
+	domain::matter::Training kept{word, std::move(exercises)};
+
+	std::lock_guard lock(database_.mutex());
+	sqlite3* const db = database_.db();
+	SqliteTransaction tx(db);
+
+	SqliteStmt had(db, "SELECT 1 FROM exercises WHERE word_id = ? LIMIT 1;", "prepare had training");
+	had.bind_i64(1, static_cast<std::int64_t>(word.value()), "bind word");
+	if (had.step_row("had training step"))
+		throw std::logic_error("the word already has its exercises");
+
+	std::int64_t exercise_ord = 0;
+	for (const domain::Exercise& exercise : kept.exercises()) {
+		SqliteStmt stmt(db, "INSERT INTO exercises (word_id, ord, name) VALUES (?, ?, ?);", "prepare exercise");
+		stmt.bind_i64(1, static_cast<std::int64_t>(word.value()), "bind word");
+		stmt.bind_i64(2, exercise_ord, "bind ord");
+		stmt.bind_text(3, exercise.name(), "bind name");
+		stmt.step_done("exercise step");
+
+		std::int64_t approach_ord = 0;
+		for (const domain::Approach& approach : exercise.approaches()) {
+			SqliteStmt row(db,
+						   "INSERT INTO approaches (word_id, exercise_ord, ord, weight_grams, repetitions) "
+						   "VALUES (?, ?, ?, ?, ?);",
+						   "prepare approach");
+			row.bind_i64(1, static_cast<std::int64_t>(word.value()), "bind word");
+			row.bind_i64(2, exercise_ord, "bind exercise");
+			row.bind_i64(3, approach_ord++, "bind ord");
+			row.bind_i64(4, approach.weight().grams(), "bind weight");
+			row.bind_i64(5, approach.repetitions(), "bind repetitions");
+			row.step_done("approach step");
+		}
+		++exercise_ord;
+	}
+
+	tx.commit();
+	return kept;
+}
+
+
+std::vector<domain::matter::Training> SqliteEternity::trainings(const std::vector<domain::id::Word>& ids) const
+{
+	std::lock_guard lock(database_.mutex());
+	sqlite3* const db = database_.db();
+
+	std::vector<domain::matter::Training> out;
+	for (const domain::id::Word word : ids) {
+		std::vector<std::string> names;
+		{
+			SqliteStmt stmt(db, "SELECT name FROM exercises WHERE word_id = ? ORDER BY ord;", "prepare exercises");
+			stmt.bind_i64(1, static_cast<std::int64_t>(word.value()), "bind word");
+			while (stmt.step_row("exercises step"))
+				names.emplace_back(stmt.column_text(0));
+		}
+		if (names.empty())
+			continue;
+
+		std::vector<std::vector<domain::Approach>> approaches(names.size());
+		{
+			SqliteStmt stmt(db,
+							"SELECT exercise_ord, weight_grams, repetitions FROM approaches "
+							"WHERE word_id = ? ORDER BY exercise_ord, ord;",
+							"prepare approaches");
+			stmt.bind_i64(1, static_cast<std::int64_t>(word.value()), "bind word");
+			while (stmt.step_row("approaches step")) {
+				const auto exercise = static_cast<std::size_t>(stmt.column_i64(0));
+				if (exercise >= approaches.size())
+					throw std::runtime_error("approaches: an approach of no exercise in database");
+				approaches[exercise].push_back(domain::Approach{
+					domain::Weight{static_cast<std::uint32_t>(stmt.column_i64(1))},
+					static_cast<std::uint32_t>(stmt.column_i64(2)),
+				});
+			}
+		}
+
+		std::vector<domain::Exercise> exercises;
+		exercises.reserve(names.size());
+		for (std::size_t i = 0; i < names.size(); ++i)
+			exercises.emplace_back(std::move(names[i]), std::move(approaches[i]));
+		out.emplace_back(word, std::move(exercises));
+	}
+	return out;
+}
+
+
 } // namespace will

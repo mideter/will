@@ -2,6 +2,7 @@
 
 #include "matter/fatherhood.h"
 #include "matter/soul.h"
+#include "matter/training.h"
 #include "matter/word.h"
 #include "identity/word.h"
 #include "identity/soul.h"
@@ -66,6 +67,13 @@ public:
 
 	/// Order preserved; skips unknown.
 	virtual std::vector<matter::Word> words(const std::vector<id::Word>& ids) const = 0;
+
+	/// Keep the exercises of a word: what a behest wills, or what a deed has done.
+	/// Refuses (std::logic_error) if the word already has its exercises.
+	virtual matter::Training train(id::Word word, std::vector<Exercise> exercises) = 0;
+
+	/// The trainings of those of these words that have them.
+	virtual std::vector<matter::Training> trainings(const std::vector<id::Word>& ids) const = 0;
 
 protected:
 	/// The one realised Eternity declares itself.

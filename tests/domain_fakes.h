@@ -80,6 +80,7 @@ struct InMemoryShared {
 	std::vector<std::pair<id::Soul, SoulName>> souls;
 	std::vector<matter::Word> words;
 	std::vector<matter::Fatherhood> fatherhoods;
+	std::vector<matter::Training> trainings;
 
 	// Spatiality
 	std::vector<std::pair<id::Soul, matter::Abode>> abodes;
@@ -152,6 +153,28 @@ public:
 	}
 
 	std::vector<matter::Fatherhood> fatherhoods() const override { return shared_.fatherhoods; }
+
+	matter::Training train(const id::Word word, std::vector<Exercise> exercises) override
+	{
+		for (const matter::Training& row : shared_.trainings) {
+			if (row.id() == word)
+				throw std::logic_error("the word already has its exercises");
+		}
+		shared_.trainings.emplace_back(word, std::move(exercises));
+		return shared_.trainings.back();
+	}
+
+	std::vector<matter::Training> trainings(const std::vector<id::Word>& ids) const override
+	{
+		std::vector<matter::Training> out;
+		for (const id::Word id : ids) {
+			for (const matter::Training& row : shared_.trainings) {
+				if (row.id() == id)
+					out.push_back(row);
+			}
+		}
+		return out;
+	}
 
 	matter::Word utter(const id::Soul author, const Saying& saying) override
 	{

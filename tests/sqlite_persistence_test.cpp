@@ -523,3 +523,38 @@ TEST_CASE("sqlite keeps fatherhoods across reopen; the spiritual father is repla
 	}
 
 }
+
+
+TEST_CASE("sqlite keeps the exercises of a word across reopen, each approach with its weight and repetitions")
+{
+	using namespace will;
+	using namespace will::domain;
+
+	const std::string directory = "/tmp/will-sqlite-trainings-test-" + std::to_string(getpid());
+	const ScratchDirectory scratch{directory};
+
+	const id::Word willed{7}, plain{8};
+	{
+		SqlitePersistenceBundle bundle(directory);
+		Eternity& eternity = bundle.eternity();
+		eternity.train(willed, {
+			Exercise{"Жим лёжа", {Approach{Weight{60'000}, 10}, Approach{Weight{70'000}, 8}, Approach{Weight{62'500}, 6}}},
+			Exercise{"Подтягивания", {Approach{Weight{0}, 8}}},
+		});
+		CHECK_THROWS_AS(eternity.train(willed, {Exercise{"Присед", {Approach{Weight{100'000}, 5}}}}), std::logic_error);
+	}
+
+	{
+		SqlitePersistenceBundle bundle(directory);
+		const std::vector<matter::Training> kept = bundle.eternity().trainings({plain, willed});
+		REQUIRE(kept.size() == 1);
+		CHECK(kept[0].id() == willed);
+		REQUIRE(kept[0].exercises().size() == 2);
+		const Exercise& press = kept[0].exercises()[0];
+		CHECK(press.name() == "Жим лёжа");
+		REQUIRE(press.approaches().size() == 3);
+		CHECK(press.approaches()[1] == Approach{Weight{70'000}, 8});
+		CHECK(press.approaches()[2].weight().grams() == 62'500);
+		CHECK(kept[0].exercises()[1].approaches()[0].weight().own());
+	}
+}

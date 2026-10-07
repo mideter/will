@@ -6,6 +6,8 @@
 #include "relations/friend.h"
 #include "relations/neighbour.h"
 #include "men/unborn.h"
+#include "matter/training.h"
+#include "values/exercise.h"
 #include "places/room.h"
 
 #include "horizons/creation.h"
@@ -1429,4 +1431,22 @@ TEST_CASE("whoever keeps the gates by his kind opens them and lets in an acquain
 	viktor.admit(galina);
 	CHECK(anna.abode().dweller(galina));
 	CHECK_FALSE(viktor.abode().dwells(galina));
+}
+
+
+TEST_CASE("an exercise is named and done in approaches; an approach has repetitions; a weight is at most a ton")
+{
+	CHECK(Weight{0}.own());
+	CHECK_FALSE(Weight{2'500}.own());
+	CHECK_THROWS_AS(Weight{Weight::MaxGrams + 1}, std::invalid_argument);
+
+	CHECK_THROWS_AS((Approach{Weight{60'000}, 0}), std::invalid_argument);
+	CHECK_NOTHROW((Approach{Weight{60'000}, 1}));
+
+	CHECK_THROWS_AS((Exercise{"", {Approach{Weight{0}, 5}}}), std::invalid_argument);
+	CHECK_THROWS_AS((Exercise{"Присед", {}}), std::invalid_argument);
+	CHECK_THROWS_AS((Exercise{std::string(Exercise::MaxNameLength + 1, 'a'), {Approach{Weight{0}, 5}}}),
+					std::invalid_argument);
+
+	CHECK_THROWS_AS((matter::Training{id::Word{1}, {}}), std::invalid_argument);
 }

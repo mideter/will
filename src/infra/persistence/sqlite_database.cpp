@@ -63,6 +63,22 @@ CREATE TABLE IF NOT EXISTS fatherhoods (
   PRIMARY KEY (child_soul_id, line)
 );
 
+CREATE TABLE IF NOT EXISTS exercises (
+  word_id INTEGER NOT NULL,
+  ord INTEGER NOT NULL,
+  name TEXT NOT NULL,
+  PRIMARY KEY (word_id, ord)
+);
+
+CREATE TABLE IF NOT EXISTS approaches (
+  word_id INTEGER NOT NULL,
+  exercise_ord INTEGER NOT NULL,
+  ord INTEGER NOT NULL,
+  weight_grams INTEGER NOT NULL,
+  repetitions INTEGER NOT NULL,
+  PRIMARY KEY (word_id, exercise_ord, ord)
+);
+
 CREATE TABLE IF NOT EXISTS place_hwm (
   id INTEGER PRIMARY KEY CHECK (id = 1),
   value INTEGER NOT NULL
