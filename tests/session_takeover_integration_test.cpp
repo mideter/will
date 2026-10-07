@@ -19,7 +19,9 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <system_error>
 #include <thread>
+#include <utility>
 #include <vector>
 
 
@@ -132,12 +134,29 @@ std::uint16_t pick_port()
 }
 
 
-/// An empty directory for the databases of one server.
-void fresh_directory(const std::string& directory)
-{
-	std::filesystem::remove_all(directory);
-	std::filesystem::create_directories(directory);
-}
+/// An empty directory for the databases of one test, gone when the test ends —
+/// even when it fails.
+class ScratchDirectory {
+public:
+	explicit ScratchDirectory(std::string path)
+		: path_(std::move(path))
+	{
+		std::filesystem::remove_all(path_);
+		std::filesystem::create_directories(path_);
+	}
+
+	~ScratchDirectory()
+	{
+		std::error_code error;
+		std::filesystem::remove_all(path_, error);
+	}
+
+	ScratchDirectory(const ScratchDirectory&) = delete;
+	ScratchDirectory& operator=(const ScratchDirectory&) = delete;
+
+private:
+	std::string path_;
+};
 
 
 pid_t start_server(const char* server_exe, std::uint16_t port, const std::string& db_path)
@@ -212,7 +231,7 @@ TEST_CASE("second session with same device token displaces the first")
 	const std::uint16_t port = pick_port();
 	const std::string db_path = "/tmp/will-session-takeover-test-" + std::to_string(getpid());
 
-	fresh_directory(db_path);
+	const ScratchDirectory scratch{db_path};
 
 	RunningServer server{start_server(g_server_exe, port, db_path)};
 	const pid_t server_pid = server.pid();
@@ -249,7 +268,6 @@ TEST_CASE("second session with same device token displaces the first")
 
 	second.context->TryCancel();
 	server.stop();
-	std::filesystem::remove_all(db_path);
 }
 
 
@@ -273,7 +291,7 @@ TEST_CASE("server stops on SIGTERM while a session is still open")
 	const std::string directory = "/tmp/will-server-stop-test-" + std::to_string(getpid());
 	const std::string db_path = directory;
 
-	fresh_directory(directory);
+	const ScratchDirectory scratch{directory};
 
 	RunningServer server{start_server(g_server_exe, port, db_path)};
 	const pid_t server_pid = server.pid();
@@ -294,7 +312,6 @@ TEST_CASE("server stops on SIGTERM while a session is still open")
 	CHECK(stopped);
 	CHECK(wait_for_stream_end(session, std::chrono::seconds(2)));
 
-	std::filesystem::remove_all(directory);
 }
 
 
