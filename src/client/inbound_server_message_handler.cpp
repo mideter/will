@@ -42,14 +42,19 @@ void print_rooms(ConsoleUi& ui, const v1::Rooms& rooms)
 
 void print_threshold(ConsoleUi& ui, const v1::Threshold& threshold)
 {
-	if (!threshold.waiting().empty()) {
+	if (threshold.keeping()) {
+		if (threshold.waiting().empty()) {
+			ui.print_status("You keep the gates: no one waits.");
+			return;
+		}
 		std::vector<std::vector<std::string>> rows;
 		for (const std::string& name : threshold.waiting())
 			rows.push_back({name});
-		ui.print_list("At the gates", rows, "/admit <name>");
+		ui.print_list("You keep the gates; waiting", rows, "/admit <name>");
 		return;
 	}
-	ui.print_status(threshold.open() ? "The gates are open." : "The gates are shut: the host is not here.");
+	ui.print_status(threshold.open() ? "The gates are open: one who keeps them is here."
+									 : "The gates are shut: no one who keeps them is here.");
 }
 
 

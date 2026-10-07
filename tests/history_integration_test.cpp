@@ -314,6 +314,21 @@ std::string born_named(Elder& elder, SessionStream& stream, const char* device_t
 }
 
 
+/// Read events until one answers the question; fail on reading too many.
+template<typename Question>
+will::v1::ServerEvent read_until(SessionStream& stream, Question question)
+{
+	for (int read = 0; read < 50; ++read) {
+		will::v1::ServerEvent event;
+		REQUIRE(stream.Read(&event));
+		if (question(event))
+			return event;
+	}
+	FAIL("the awaited event did not come");
+	return {};
+}
+
+
 } // namespace
 
 
@@ -722,6 +737,69 @@ TEST_CASE("an unborn body waits, seen in birth rooms; it is born of the host of 
 	CHECK(read_event(adam).protocol_notice().message() == "the father by spirit is not yet open");
 
 	seth.context->TryCancel();
+	elder.session.context->TryCancel();
+	server.stop();
+	std::filesystem::remove_all(directory);
+}
+
+
+TEST_CASE("a friend keeping the host's gates lets one in, an acquaintance of the host, who is told")
+{
+	const std::uint16_t port = static_cast<std::uint16_t>(pick_port() + 4);
+	const std::string directory = "/tmp/will-keeper-test-" + std::to_string(getpid());
+	fresh_directory(directory);
+
+	RunningServer server{start_server(g_server_exe, port, directory)};
+	REQUIRE(server.pid() > 0);
+	wait_for_server(port);
+
+	Elder elder = first_man(port);
+	GrpcSession anna = open_session(port);
+	GrpcSession boris = open_session(port);
+	GrpcSession viktor = open_session(port);
+	const std::string anna_name = born_named(elder, *anna.stream, SenderToken);
+	const std::string boris_name = born_named(elder, *boris.stream, ViewerToken);
+	const std::string viktor_name = born_named(elder, *viktor.stream, "33333333333333333333333333333333");
+
+	// Anna lets Boris in and regards him as a friend; she stays in her upper room.
+	stand_in(*anna.stream, {}, "Врата");
+	stand_in(*boris.stream, anna_name, "Врата");
+	send_admit(*anna.stream, boris_name);
+	read_until(*anna.stream, [](const auto& e) { return e.has_protocol_notice(); });
+	read_until(*boris.stream, [](const auto& e) { return e.has_dwelling(); });
+	stand_in(*anna.stream, {}, "Горница");
+	send_regard(*anna.stream, boris_name, will::v1::FRIEND);
+	read_until(*anna.stream, [](const auto& e) { return e.has_dwellers(); });
+	CHECK(read_until(*boris.stream, [](const auto& e) { return e.has_dwelling(); }).dwelling().kind()
+		  == will::v1::FRIEND);
+
+	// Now Boris keeps her gates: they are open without her, and he sees Viktor waiting.
+	const will::v1::ServerEvent keeping
+		= read_until(*boris.stream, [](const auto& e) { return e.has_threshold() && e.threshold().keeping(); });
+	CHECK(keeping.threshold().open());
+	stand_in(*viktor.stream, anna_name, "Врата");
+	const will::v1::ServerEvent waiting = read_until(
+		*boris.stream, [](const auto& e) { return e.has_threshold() && e.threshold().waiting_size() == 1; });
+	CHECK(waiting.threshold().waiting(0) == viktor_name);
+
+	// He lets Viktor in: Viktor dwells with Anna, and Anna is told who let whom in.
+	send_admit(*boris.stream, viktor_name);
+	CHECK(read_until(*boris.stream, [](const auto& e) { return e.has_protocol_notice(); }).protocol_notice().message()
+		  == viktor_name + " admitted as an acquaintance");
+	const will::v1::ServerEvent dwelling = read_until(*viktor.stream, [](const auto& e) { return e.has_dwelling(); });
+	CHECK(dwelling.dwelling().host_name() == anna_name);
+	CHECK(dwelling.dwelling().kind() == will::v1::ACQUAINTANCE);
+	CHECK(read_until(*anna.stream, [](const auto& e) { return e.has_protocol_notice(); }).protocol_notice().message()
+		  == boris_name + " let " + viktor_name + " in as an acquaintance");
+	const will::v1::ServerEvent upper = read_until(*anna.stream, [](const auto& e) { return e.has_dwellers(); });
+	bool seen = false;
+	for (const will::v1::Dweller& dweller : upper.dwellers().dwellers())
+		seen = seen || (dweller.name() == viktor_name && dweller.kind() == will::v1::ACQUAINTANCE);
+	CHECK(seen);
+
+	anna.context->TryCancel();
+	boris.context->TryCancel();
+	viktor.context->TryCancel();
 	elder.session.context->TryCancel();
 	server.stop();
 	std::filesystem::remove_all(directory);

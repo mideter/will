@@ -585,6 +585,7 @@ void ProtocolAdapter::handle_admit(const SessionId session_id, const v1::Admit& 
 		return;
 
 	const domain::Man& self = session_man(session_id);
+	const domain::Gates* gates = gates_of_gaze(self);
 	try {
 		self.admit(*man);
 	} catch (const std::exception& e) {
@@ -592,10 +593,18 @@ void ProtocolAdapter::handle_admit(const SessionId session_id, const v1::Admit& 
 		return;
 	}
 
+	// He becomes an acquaintance of the host of the gates, whoever let him in.
+	const domain::Man& host = gates->abode().host();
 	send_notice(session_id, std::string{man->name().text()} + " admitted as an acquaintance");
-	tell_dwelling(self, *man);
-	retell_gates(self.abode().gates());
-	retell_upper_room(self.abode().upper_room());
+	if (&host != &self) {
+		v1::ServerEvent told;
+		told.mutable_protocol_notice()->set_message(std::string{self.name().text()} + " let "
+													+ std::string{man->name().text()} + " in as an acquaintance");
+		send_to_vessel(host.Vessel::id(), told);
+	}
+	tell_dwelling(host, *man);
+	retell_gates(*gates);
+	retell_upper_room(host.abode().upper_room());
 }
 
 
@@ -632,6 +641,7 @@ void ProtocolAdapter::handle_regard(const SessionId session_id, const v1::Regard
 	tell_dwelling(self, *man);
 	retell_abode(self, *man);
 	retell_upper_room(self.abode().upper_room());
+	retell_gates(self.abode().gates());  // his kind may let him keep them now, or no longer
 }
 
 
@@ -743,6 +753,7 @@ void ProtocolAdapter::handle_arrange(const SessionId session_id, const v1::Arran
 																				  : " is now in the inner part"));
 	for (const std::shared_ptr<const domain::Acquaintance>& dweller : self.abode().dwellers())
 		retell_abode(self, dweller->man());
+	retell_gates(self.abode().gates());  // set in another part, they are kept by other kinds
 }
 
 
@@ -934,9 +945,10 @@ v1::ServerEvent ProtocolAdapter::threshold_event(const domain::Gates& gates, con
 	v1::ServerEvent event;
 	auto* threshold = event.mutable_threshold();
 	threshold->set_open(gates.open());
+	threshold->set_keeping(gates.keeps(listener));
 
-	// Only the host sees who waits to be let in: those at his gates who do not dwell here.
-	if (&gates.abode().host() == &listener) {
+	// Only those who keep the gates see who waits to be let in: those at them who do not dwell here.
+	if (gates.keeps(listener)) {
 		for (const domain::Soul& soul : world_.contemplating(gates)) {
 			const auto& man = static_cast<const domain::Man&>(soul);
 			if (&man != &listener && !gates.abode().dweller(man))
