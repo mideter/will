@@ -338,8 +338,15 @@ void ReceivingMessageHandler::on(const v1::ServerEvent& event)
 			return;
 		}
 		std::vector<std::vector<std::string>> rows;
-		for (const v1::Dweller& dweller : event.dwellers().dwellers())
-			rows.push_back({dweller.name(), kind_name(dweller.kind())});
+		for (const v1::Dweller& dweller : event.dwellers().dwellers()) {
+			// How he stands to the host as a trainer.
+			const std::string standing = dweller.trainer() ? "your trainer"
+										 : dweller.novice() ? "your novice"
+										 : dweller.asks()   ? "asks you to train him"
+										 : dweller.asked()  ? "asked, awaits his answer"
+															: "";
+			rows.push_back({dweller.name(), kind_name(dweller.kind()), standing});
+		}
 		ui_.print_list("Dwellers", rows, "/regard <name> <kind>");
 		return;
 	}

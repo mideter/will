@@ -19,6 +19,7 @@
 #include <string>
 #include <system_error>
 #include <thread>
+#include <tuple>
 #include <utility>
 #include <vector>
 
@@ -507,6 +508,7 @@ TEST_CASE("a host admits a dweller, regards him anew, and he sees his abode as h
 	REQUIRE(upper_room.dwellers().dwellers_size() == 2);  // and the elder, his father by flesh
 	for (const will::v1::Dweller& dweller : upper_room.dwellers().dwellers())
 		CHECK(dweller.kind() == (dweller.name() == man_name ? will::v1::FRIEND : will::v1::NEIGHBOUR));
+	CHECK(read_event(*host.stream).has_rooms());  // the host in his upper room is told his rooms anew
 	CHECK(read_event(*man.stream).dwelling().kind() == will::v1::FRIEND);
 	REQUIRE(read_event(*man.stream).turned().abode_of() == host_name);
 	const will::v1::ServerEvent open = read_event(*man.stream);
@@ -536,6 +538,7 @@ TEST_CASE("a host admits a dweller, regards him anew, and he sees his abode as h
 	send_regard(*host.stream, man_name, will::v1::ACQUAINTANCE);
 	CHECK(read_event(*host.stream).has_protocol_notice());
 	CHECK(read_event(*host.stream).has_dwellers());
+	CHECK(read_event(*host.stream).has_rooms());
 	CHECK(read_event(*man.stream).dwelling().kind() == will::v1::ACQUAINTANCE);
 	REQUIRE(read_event(*man.stream).turned().room() == "Келья");
 	CHECK(read_event(*man.stream).has_history_end());
@@ -563,6 +566,7 @@ TEST_CASE("a host admits a dweller, regards him anew, and he sees his abode as h
 	send_regard(*host.stream, man_name, will::v1::NEIGHBOUR);
 	CHECK(read_event(*host.stream).has_protocol_notice());
 	CHECK(read_event(*host.stream).has_dwellers());
+	CHECK(read_event(*host.stream).has_rooms());
 	CHECK(read_event(*man.stream).dwelling().kind() == will::v1::NEIGHBOUR);
 	REQUIRE(read_event(*man.stream).turned().room() == "Келья");
 	CHECK(read_event(*man.stream).has_history_end());
@@ -655,6 +659,23 @@ TEST_CASE("one lists the abodes one dwells in and the supplications awaiting one
 	}
 	CHECK(next_past_gates(*b.stream).has_protocol_notice());
 	CHECK(next_past_gates(*a.stream).has_supplication_offer());
+
+	// Each sees, among his dwellers, how the other stands to him: b asked, a is asked.
+	const auto dweller_named = [](SessionStream& stream, const std::string& name) {
+		will::v1::ClientEvent list;
+		list.mutable_list_dwellers();
+		REQUIRE(stream.Write(list));
+		const will::v1::ServerEvent told = read_until(stream, [](const auto& e) { return e.has_dwellers(); });
+		for (const will::v1::Dweller& dweller : told.dwellers().dwellers()) {
+			if (dweller.name() == name)
+				return dweller;
+		}
+		FAIL("no such dweller");
+		return will::v1::Dweller{};
+	};
+	CHECK(dweller_named(*a.stream, b_name).asks());
+	CHECK_FALSE(dweller_named(*a.stream, b_name).asked());
+	CHECK(dweller_named(*b.stream, a_name).asked());
 	{
 		will::v1::ClientEvent list;
 		list.mutable_list_supplications();
@@ -676,6 +697,8 @@ TEST_CASE("one lists the abodes one dwells in and the supplications awaiting one
 		REQUIRE(a.stream->Write(list));
 	}
 	CHECK(next_past_gates(*a.stream).supplications().suppliant_names_size() == 0);
+	CHECK_FALSE(dweller_named(*a.stream, b_name).asks());
+	CHECK_FALSE(dweller_named(*b.stream, a_name).asked());
 
 	// b asks for rooms without moving his gaze: his own three; in a's abode, as an acquaintance, only the gates.
 	{
@@ -883,6 +906,26 @@ TEST_CASE("the testator wills a training over the wire; the novice fulfils it te
 	}
 	read_until(*trainer.stream, [](const auto& e) { return e.has_tie_formed(); });
 	read_until(*novice.stream, [](const auto& e) { return e.has_tie_formed(); });
+
+	// Each sees, among his dwellers, how the other stands to him in the tie.
+	for (const auto& [stream, other, trains] : {std::tuple{trainer.stream.get(), novice_name, false},
+												 std::tuple{novice.stream.get(), trainer_name, true}}) {
+		will::v1::ClientEvent list;
+		list.mutable_list_dwellers();
+		REQUIRE(stream->Write(list));
+		const will::v1::ServerEvent told = read_until(*stream, [](const auto& e) { return e.has_dwellers(); });
+		bool seen = false;
+		for (const will::v1::Dweller& dweller : told.dwellers().dwellers()) {
+			if (dweller.name() != other)
+				continue;
+			seen = true;
+			CHECK(dweller.trainer() == trains);
+			CHECK(dweller.novice() == !trains);
+			CHECK_FALSE(dweller.asked());
+			CHECK_FALSE(dweller.asks());
+		}
+		CHECK(seen);
+	}
 
 	// Each enters his room of the tie.
 	send_turn_to_abode(*trainer.stream, {}, "Ведение — " + novice_name);

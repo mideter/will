@@ -304,9 +304,16 @@ message Dwelling {
 }
 
 
+// A dweller of an abode, and how he stands to its host as a trainer: the host
+// asked him to become his trainer, and it awaits an answer (asked); he asks the
+// host (asks); he is the host's trainer (trainer); the host is his (novice).
 message Dweller {
     string name = 1;
     DwellerKind kind = 2;
+    bool asked = 3;
+    bool asks = 4;
+    bool trainer = 5;
+    bool novice = 6;
 }
 
 

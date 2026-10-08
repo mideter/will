@@ -450,6 +450,10 @@ void ProtocolAdapter::handle_supplicate(const SessionId session_id, const v1::Su
 	v1::ServerEvent offer;
 	offer.mutable_supplication_offer()->set_suppliant_name(std::string{self.name().text()});
 	send_to_vessel(addressee_man->Vessel::id(), offer);
+
+	// In either upper room the two now stand otherwise to each other.
+	retell_upper_room(self.abode().upper_room());
+	retell_upper_room(addressee_man->abode().upper_room());
 }
 
 
@@ -487,6 +491,9 @@ void ProtocolAdapter::handle_accept_supplication(const SessionId session_id,
 	formed_n->set_counterpart_name(std::string{self.name().text()});
 	formed_n->set_as_novice(true);
 	send_to_vessel(suppliant_man->Vessel::id(), to_novice);
+
+	retell_upper_room(self.abode().upper_room());
+	retell_upper_room(suppliant_man->abode().upper_room());
 }
 
 
@@ -1071,6 +1078,9 @@ void ProtocolAdapter::handle_reject_supplication(const SessionId session_id, con
 	}
 
 	send_notice(session_id, "supplication of " + msg.suppliant_name() + " rejected");
+
+	retell_upper_room(self.abode().upper_room());
+	retell_upper_room(suppliant->abode().upper_room());
 }
 
 
@@ -1157,12 +1167,37 @@ v1::ServerEvent ProtocolAdapter::threshold_event(const domain::Gates& gates, con
 
 v1::ServerEvent ProtocolAdapter::dwellers_event(const domain::Abode& abode) const
 {
+	const domain::Man& host = abode.host();
+
+	// Whether the suppliant awaits the answer of the addressee.
+	const auto asking = [](const domain::Man& suppliant, const domain::Man& addressee) {
+		for (const std::shared_ptr<const domain::Supplication>& pending :
+			 static_cast<const domain::Testator&>(addressee).supplications()) {
+			if (pending->suppliant().Soul::id() == suppliant.Soul::id())
+				return true;
+		}
+		return false;
+	};
+	// Whether the trainer shepherds the novice in a tie.
+	const auto shepherds = [](const domain::Man& trainer, const domain::Man& novice) {
+		for (const domain::Obedience& tie : static_cast<const domain::Novice&>(novice).obediences()) {
+			if (tie.testator().Soul::id() == trainer.Soul::id())
+				return true;
+		}
+		return false;
+	};
+
 	v1::ServerEvent event;
 	auto* list = event.mutable_dwellers();
 	for (const std::shared_ptr<const domain::Acquaintance>& dweller : abode.dwellers()) {
+		const domain::Man& man = dweller->man();
 		auto* told = list->add_dwellers();
-		told->set_name(std::string{dweller->man().name().text()});
+		told->set_name(std::string{man.name().text()});
 		told->set_kind(kind_of(*dweller));
+		told->set_asked(asking(host, man));
+		told->set_asks(asking(man, host));
+		told->set_trainer(shepherds(man, host));
+		told->set_novice(shepherds(host, man));
 	}
 	return event;
 }
@@ -1192,6 +1227,9 @@ void ProtocolAdapter::retell_upper_room(const domain::UpperRoom& upper_room)
 	for (const domain::Soul& soul : world_.contemplating(upper_room)) {
 		const auto& man = static_cast<const domain::Man&>(soul);
 		send_to_vessel(man.Vessel::id(), event);
+		// The host arranges here: a tie bound or let go changes his rooms too.
+		if (&man == &upper_room.abode().host())
+			send_to_vessel(man.Vessel::id(), arranged_rooms_event(upper_room.abode()));
 	}
 }
 
