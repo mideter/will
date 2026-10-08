@@ -270,4 +270,70 @@ SqliteTemporality::executions(const std::vector<domain::id::Word>& words) const
 }
 
 
+domain::matter::Effort SqliteTemporality::exert(const domain::id::Word training, const std::uint32_t exercise,
+												const std::uint32_t approach, const domain::Weight weight,
+												const std::uint32_t repetitions, const domain::Timestamp begun)
+{
+	const domain::matter::Effort effort{training, exercise, approach, weight, repetitions, begun,
+										eternity_.time().instant()};
+
+	std::lock_guard lock(time_db_.mutex());
+	sqlite3* const db = time_db_.db();
+
+	{
+		SqliteStmt kept(db,
+						"SELECT 1 FROM efforts WHERE training_word_id = ? AND exercise_ord = ? AND approach_ord = ?;",
+						"prepare kept effort");
+		kept.bind_i64(1, static_cast<std::int64_t>(training.value()), "bind training");
+		kept.bind_i64(2, exercise, "bind exercise");
+		kept.bind_i64(3, approach, "bind approach");
+		if (kept.step_row("kept effort step"))
+			throw std::logic_error("the approach is already done");
+	}
+
+	SqliteStmt stmt(db,
+					"INSERT INTO efforts (training_word_id, exercise_ord, approach_ord, weight_grams, repetitions, "
+					"begun_at_ns, finished_at_ns) VALUES (?, ?, ?, ?, ?, ?, ?);",
+					"prepare exert");
+	stmt.bind_i64(1, static_cast<std::int64_t>(training.value()), "bind training");
+	stmt.bind_i64(2, exercise, "bind exercise");
+	stmt.bind_i64(3, approach, "bind approach");
+	stmt.bind_i64(4, weight.grams(), "bind weight");
+	stmt.bind_i64(5, repetitions, "bind repetitions");
+	stmt.bind_i64(6, effort.begun().value(), "bind begun");
+	stmt.bind_i64(7, effort.finished().value(), "bind finished");
+	stmt.step_done("exert step");
+
+	return effort;
+}
+
+
+std::vector<domain::matter::Effort> SqliteTemporality::efforts(const std::vector<domain::id::Word>& trainings) const
+{
+	std::lock_guard lock(time_db_.mutex());
+	sqlite3* const db = time_db_.db();
+
+	std::vector<domain::matter::Effort> rows;
+	for (const domain::id::Word training : trainings) {
+		SqliteStmt stmt(db,
+						"SELECT exercise_ord, approach_ord, weight_grams, repetitions, begun_at_ns, finished_at_ns "
+						"FROM efforts WHERE training_word_id = ? ORDER BY finished_at_ns;",
+						"prepare efforts");
+		stmt.bind_i64(1, static_cast<std::int64_t>(training.value()), "bind training");
+		while (stmt.step_row("efforts step")) {
+			rows.push_back(domain::matter::Effort{
+				training,
+				static_cast<std::uint32_t>(stmt.column_i64(0)),
+				static_cast<std::uint32_t>(stmt.column_i64(1)),
+				domain::Weight{static_cast<std::uint32_t>(stmt.column_i64(2))},
+				static_cast<std::uint32_t>(stmt.column_i64(3)),
+				domain::Timestamp{stmt.column_i64(4)},
+				domain::Timestamp{stmt.column_i64(5)},
+			});
+		}
+	}
+	return rows;
+}
+
+
 } // namespace will

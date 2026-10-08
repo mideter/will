@@ -5,6 +5,7 @@
 #include "matter/dating.h"
 #include "matter/embodiment.h"
 #include "matter/vessel.h"
+#include "matter/effort.h"
 #include "matter/execution.h"
 #include "identity/word.h"
 #include "identity/soul.h"
@@ -63,6 +64,14 @@ public:
 
 	/// Executions in which any of these words is the deed or the fulfilled behest.
 	virtual std::vector<matter::Execution> executions(const std::vector<id::Word>& words) const = 0;
+
+	/// Keep that this approach of this training is done, begun then and finished
+	/// at the present instant. Refuses (std::logic_error) if it is already done.
+	virtual matter::Effort exert(id::Word training, std::uint32_t exercise, std::uint32_t approach, Weight weight,
+								 std::uint32_t repetitions, Timestamp begun) = 0;
+
+	/// The efforts of these trainings, in the order they were finished.
+	virtual std::vector<matter::Effort> efforts(const std::vector<id::Word>& trainings) const = 0;
 };
 
 

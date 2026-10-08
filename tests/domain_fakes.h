@@ -96,6 +96,7 @@ struct InMemoryShared {
 	std::vector<matter::Supplication> supplications;  // awaiting their answer
 	std::vector<matter::Answer> answers;
 	std::vector<matter::Execution> executions;
+	std::vector<matter::Effort> efforts;
 };
 
 
@@ -438,6 +439,30 @@ public:
 		}
 		shared_.executions.emplace_back(deed, behest);
 		return shared_.executions.back();
+	}
+
+	matter::Effort exert(const id::Word training, const std::uint32_t exercise, const std::uint32_t approach,
+						 const Weight weight, const std::uint32_t repetitions, const Timestamp begun) override
+	{
+		for (const matter::Effort& row : shared_.efforts) {
+			if (row.training() == training && row.exercise() == exercise && row.approach() == approach)
+				throw std::logic_error("the approach is already done");
+		}
+		shared_.efforts.emplace_back(training, exercise, approach, weight, repetitions, begun,
+									 eternity_.time().instant());
+		return shared_.efforts.back();
+	}
+
+	std::vector<matter::Effort> efforts(const std::vector<id::Word>& trainings) const override
+	{
+		std::vector<matter::Effort> out;
+		for (const id::Word training : trainings) {
+			for (const matter::Effort& row : shared_.efforts) {
+				if (row.training() == training)
+					out.push_back(row);
+			}
+		}
+		return out;
 	}
 
 	std::vector<matter::Execution> executions(const std::vector<id::Word>& words) const override

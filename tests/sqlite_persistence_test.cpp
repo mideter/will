@@ -592,3 +592,40 @@ TEST_CASE("sqlite gives the approaches kept before rest was no rest")
 	REQUIRE(kept.size() == 1);
 	CHECK(kept[0].exercises()[0].approaches()[0] == Approach{Weight{100'000}, 5, 0});
 }
+
+
+TEST_CASE("sqlite keeps the efforts of a training across reopen; an approach is done once")
+{
+	using namespace will;
+	using namespace will::domain;
+
+	const std::string directory = "/tmp/will-sqlite-efforts-test-" + std::to_string(getpid());
+	const ScratchDirectory scratch{directory};
+
+	const id::Word training{7};
+	Timestamp begun{0};
+	{
+		SqlitePersistenceBundle bundle(directory);
+		Temporality& time = bundle.temporality();
+		begun = Timestamp{bundle.eternity().time().instant().value() - 40'000'000'000};  // forty seconds ago
+		const matter::Effort first = time.exert(training, 0, 0, Weight{100'000}, 5, begun);
+		CHECK(first.finished() >= first.begun());
+		time.exert(training, 0, 1, Weight{100'000}, 3, begun);
+		CHECK_THROWS_AS(time.exert(training, 0, 0, Weight{100'000}, 5, begun), std::logic_error);
+	}
+
+	{
+		SqlitePersistenceBundle bundle(directory);
+		const std::vector<matter::Effort> kept = bundle.temporality().efforts({training, id::Word{8}});
+		REQUIRE(kept.size() == 2);
+		CHECK(kept[0].approach() == 0);
+		CHECK(kept[1].approach() == 1);
+		CHECK(kept[1].repetitions() == 3);
+		CHECK(kept[1].weight().grams() == 100'000);
+		CHECK(kept[0].begun() == begun);
+		CHECK(kept[0].finished() > kept[0].begun());
+	}
+
+	CHECK_THROWS_AS((matter::Effort{training, 0, 0, Weight{0}, 5, Timestamp{10}, Timestamp{9}}), std::invalid_argument);
+	CHECK_THROWS_AS((matter::Effort{training, 0, 0, Weight{0}, 0, Timestamp{9}, Timestamp{10}}), std::invalid_argument);
+}

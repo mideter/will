@@ -160,6 +160,17 @@ CREATE TABLE IF NOT EXISTS answers (
   answered_at_ns INTEGER NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS efforts (
+  training_word_id INTEGER NOT NULL,
+  exercise_ord INTEGER NOT NULL,
+  approach_ord INTEGER NOT NULL,
+  weight_grams INTEGER NOT NULL,
+  repetitions INTEGER NOT NULL,
+  begun_at_ns INTEGER NOT NULL,
+  finished_at_ns INTEGER NOT NULL,
+  PRIMARY KEY (training_word_id, exercise_ord, approach_ord)
+);
+
 CREATE TABLE IF NOT EXISTS executions (
   deed_word_id INTEGER PRIMARY KEY,
   behest_word_id INTEGER NOT NULL UNIQUE

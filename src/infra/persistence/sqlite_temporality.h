@@ -32,6 +32,9 @@ public:
 
 	domain::matter::Execution execute(domain::id::Word deed, domain::id::Word behest) override;
 	std::vector<domain::matter::Execution> executions(const std::vector<domain::id::Word>& words) const override;
+	domain::matter::Effort exert(domain::id::Word training, std::uint32_t exercise, std::uint32_t approach,
+								 domain::Weight weight, std::uint32_t repetitions, domain::Timestamp begun) override;
+	std::vector<domain::matter::Effort> efforts(const std::vector<domain::id::Word>& trainings) const override;
 
 private:
 	mutable SqliteDatabase time_db_;
