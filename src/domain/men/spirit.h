@@ -10,6 +10,7 @@
 #include "dimensions/eternity.h"
 #include "properties/immanent.h"
 #include "values/saying.h"
+#include "values/timestamp.h"
 
 #include <memory>
 #include <vector>
@@ -43,6 +44,9 @@ protected:
 	static const Soul& soul(id::Soul id);
 
 	matter::Word utter(const Saying& saying) const;
+
+	/// The present instant, by the one Time of Eternity.
+	Timestamp now() const;
 
 	/// Eternity keeps the exercises of a word this spirit uttered.
 	matter::Training exercise(id::Word word, std::vector<Exercise> exercises) const;

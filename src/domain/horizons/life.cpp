@@ -140,11 +140,15 @@ std::vector<std::shared_ptr<const Word>> Life::recall(const Place& place) const
 
 	const bool in_tie = dynamic_cast<const Tie*>(&place) != nullptr;
 
-	// The exercises of the words of a tie: what a training wills, what a deed has done.
+	// The exercises of the words of a tie: what a training wills, what a deed has
+	// done; and the approaches of the trainings done so far.
 	std::unordered_map<id::Word, matter::Training> trained;
+	std::unordered_map<id::Word, std::vector<matter::Effort>> exerted;
 	if (in_tie) {
 		for (matter::Training& row : eternity().trainings(ids))
 			trained.emplace(row.id(), std::move(row));
+		for (matter::Effort& row : temporality().efforts(ids))
+			exerted[row.training()].push_back(std::move(row));
 	}
 	const auto training_of = [&](const id::Word id) -> std::optional<matter::Training> {
 		const auto t = trained.find(id);
@@ -170,7 +174,14 @@ std::vector<std::shared_ptr<const Word>> Life::recall(const Place& place) const
 				matter::Deed{std::move(u->second), std::move(placement), std::move(dating), std::move(e->second),
 							 training_of(dating.id())}));
 		} else {
-			matter::Behest kept{std::move(u->second), std::move(placement), std::move(dating), training_of(dating.id())};
+			std::optional<matter::Training> training = training_of(dating.id());
+			std::vector<matter::Effort> efforts;
+			if (training) {
+				if (const auto x = exerted.find(dating.id()); x != exerted.end())
+					efforts = std::move(x->second);
+			}
+			matter::Behest kept{std::move(u->second), std::move(placement), std::move(dating), std::move(training),
+								std::move(efforts)};
 			if (kept.training())
 				words.push_back(std::make_shared<const Training>(Birth<Life>{*this}, std::move(kept)));
 			else

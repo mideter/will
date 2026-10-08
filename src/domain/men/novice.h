@@ -1,6 +1,9 @@
 #pragma once
 
 #include "values/exercise.h"
+#include "values/weight.h"
+#include "values/timestamp.h"
+#include "matter/effort.h"
 
 #include "matter/man.h"
 #include "places/obedience.h"
@@ -14,11 +17,15 @@
 
 #include <functional>
 #include <memory>
+#include <mutex>
 #include <optional>
 #include <vector>
 
 
 namespace will::domain {
+
+
+class Training;
 
 
 class Testator;
@@ -45,6 +52,28 @@ public:
 										std::optional<Saying> report = std::nullopt,
 										std::optional<std::vector<Exercise>> performed = std::nullopt) const;
 
+	/// The approach one is doing now: of which training, which one, begun when.
+	struct Underway {
+		id::Word training;
+		std::uint32_t exercise;
+		std::uint32_t approach;
+		Timestamp begun;
+	};
+
+	/// Begin an approach of a training of a tie where this soul is novice, while
+	/// contemplating that tie: an approach willed, or the next one beyond them.
+	/// Throws if the training is fulfilled, the approach is done or is no such,
+	/// or another approach is underway.
+	void begin(const Training& training, std::uint32_t exercise, std::uint32_t approach) const;
+
+	/// Finish the approach underway with the weight and repetitions done: the
+	/// effort is kept and the training holds it. Throws if none is underway of
+	/// this training, or one looks elsewhere.
+	matter::Effort finish(const Training& training, Weight weight, std::uint32_t repetitions) const;
+
+	/// The approach underway; none if one is doing none.
+	std::optional<Underway> underway() const;
+
 	std::vector<std::reference_wrapper<const Obedience>> obediences() const;
 
 	/// Owned Obedience face under this testator. Throws if unknown.
@@ -63,6 +92,8 @@ private:
 	const Obedience& follow(std::unique_ptr<Obedience> place) const;
 
 	mutable std::vector<std::unique_ptr<Obedience>> obediences_;
+	mutable std::mutex underway_mutex_;
+	mutable std::optional<Underway> underway_;
 };
 
 

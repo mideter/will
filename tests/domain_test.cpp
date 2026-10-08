@@ -1490,11 +1490,11 @@ TEST_CASE("the testator wills a training of exercises; the novice fulfils it tel
 	CHECK(std::dynamic_pointer_cast<const Training>(obedience.behests(novice).front()));
 	CHECK(novice.abode().owed().size() == 2);
 
-	// Fulfilled as willed when he tells nothing else; or with what he has done.
+	// Fulfilled with nothing done, the deed tells no exercises; or with what he has done.
 	novice.wake();
 	novice.contemplate(room_in(novice, obedience));
 	const std::shared_ptr<const Deed> as_willed = novice.execute(*tuesday);
-	CHECK(as_willed->performed() == tuesday->exercises());
+	CHECK(as_willed->performed().empty());
 	const std::vector<Exercise> done{
 		Exercise{"Жим лёжа", {Approach{Weight{60'000}, 10}, Approach{Weight{70'000}, 7}, Approach{Weight{75'000}, 5}}},
 		Exercise{"Подтягивания", {Approach{Weight{0}, 8}, Approach{Weight{0}, 6}}},
@@ -1525,4 +1525,88 @@ TEST_CASE("the testator wills a training of exercises; the novice fulfils it tel
 	const auto recalled_told = std::dynamic_pointer_cast<const Deed>(words[3]);
 	REQUIRE(recalled_told);
 	CHECK(recalled_told->performed() == done);
+}
+
+
+TEST_CASE("the novice does a training approach by approach: each begun and finished is an effort the training holds")
+{
+	InMemoryShared store;
+	const DeviceToken novice_token = DeviceToken::generate();
+	const DeviceToken testator_token = DeviceToken::generate();
+	id::Word training_id{1};
+	{
+		InMemoryCosmos cosmos(store);
+		World& world = cosmos.life().create().world();
+		const auto& novice = static_cast<const Novice&>(born(world, novice_token));
+		const auto& testator = static_cast<const Testator&>(born(world, testator_token));
+		admit_at_gates(world, novice, testator);
+		admit_at_gates(world, testator, novice);
+		novice.supplicate(testator);
+		const Shepherding& shepherding = testator.accept(*testator.supplication(novice));
+		const Obedience& obedience = novice.obedience(testator);
+
+		testator.wake();
+		testator.contemplate(room_in(testator, shepherding));
+		const std::shared_ptr<const Training> training = testator.train(shepherding, "Вторник", {
+			Exercise{"Присед", {Approach{Weight{100'000}, 5, 120}, Approach{Weight{100'000}, 5, 120}}},
+			Exercise{"Подтягивания", {Approach{Weight{0}, 8, 90}}},
+		});
+		training_id = training->id();
+
+		// Only looking at the tie does he begin; then one approach at a time.
+		CHECK_THROWS_AS(novice.begin(*training, 0, 0), std::logic_error);
+		novice.wake();
+		novice.contemplate(room_in(novice, obedience));
+		CHECK_THROWS_AS(novice.begin(*training, 2, 0), std::invalid_argument);
+		CHECK_THROWS_AS(novice.begin(*training, 0, 3), std::invalid_argument);
+		novice.begin(*training, 0, 0);
+		REQUIRE(novice.underway());
+		CHECK(novice.underway()->approach == 0);
+		CHECK_THROWS_AS(novice.begin(*training, 1, 0), std::logic_error);
+		CHECK_THROWS_AS(novice.execute(*training), std::logic_error);
+
+		cosmos.fake_time().set_instant(Timestamp{cosmos.fake_time().instant().value() + 40'000'000'000});
+		const matter::Effort first = novice.finish(*training, Weight{100'000}, 5);
+		CHECK_FALSE(novice.underway());
+		CHECK(first.finished().value() - first.begun().value() == 40'000'000'000);
+		CHECK_THROWS_AS(novice.finish(*training, Weight{100'000}, 5), std::logic_error);
+
+		// The training holds the effort: the testator, looking at the tie, sees it.
+		REQUIRE(training->efforts().size() == 1);
+		const auto seen = std::dynamic_pointer_cast<const Training>(shepherding.behests(testator).front());
+		REQUIRE(seen);
+		CHECK(seen->efforts().size() == 1);
+
+		// An approach is done once; any order; and one beyond those willed.
+		CHECK_THROWS_AS(novice.begin(*training, 0, 0), std::logic_error);
+		novice.begin(*training, 1, 0);
+		novice.finish(*training, Weight{0}, 6);
+		novice.begin(*training, 0, 2);
+		novice.finish(*training, Weight{90'000}, 4);
+		CHECK_THROWS_AS(novice.begin(*training, 0, 4), std::invalid_argument);
+
+		// Fulfilled, the deed tells what was done; then nothing more is begun.
+		const std::shared_ptr<const Deed> deed = novice.execute(*training, Saying{"тяжело"});
+		REQUIRE(deed->performed().size() == 2);
+		CHECK(deed->performed()[0].name() == "Присед");
+		REQUIRE(deed->performed()[0].approaches().size() == 2);
+		CHECK(deed->performed()[0].approaches()[1] == Approach{Weight{90'000}, 4, 0});
+		CHECK(deed->performed()[1].approaches()[0].repetitions() == 6);
+		CHECK_THROWS_AS(novice.begin(*training, 0, 1), std::logic_error);
+		testator.sleep();
+		novice.sleep();
+	}
+
+	// Born anew from matter, the training holds its efforts.
+	InMemoryCosmos cosmos(store);
+	World& world = cosmos.life().create().world();
+	const auto& testator = static_cast<const Testator&>(born(world, testator_token));
+	const auto& novice = static_cast<const Novice&>(born(world, novice_token));
+	testator.wake();
+	testator.contemplate(room_in(testator, testator.shepherding(novice)));
+	const auto recalled = std::dynamic_pointer_cast<const Training>(world.contemplation(testator.Soul::id())->words()[0]);
+	REQUIRE(recalled);
+	CHECK(recalled->id() == training_id);
+	REQUIRE(recalled->efforts().size() == 3);
+	CHECK(recalled->efforts()[0].repetitions() == 5);
 }
