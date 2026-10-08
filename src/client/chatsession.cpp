@@ -3,6 +3,7 @@
 #include "inbound_server_message_handler.h"
 
 #include <atomic>
+#include <cstdio>
 #include <condition_variable>
 #include <iostream>
 #include <mutex>
@@ -42,6 +43,8 @@ bool is_post_auth_server_event(const v1::ServerEvent& event) noexcept
 	case v1::ServerEvent::kThreshold:
 	case v1::ServerEvent::kUnborn:
 	case v1::ServerEvent::kLineage:
+	case v1::ServerEvent::kUnderway:
+	case v1::ServerEvent::kExerted:
 		return true;
 	default:
 		return false;
@@ -152,8 +155,8 @@ void print_help(ConsoleUi& ui)
 	ui.print_commands("Dwellers", "/dwellers  /regard <name> acquaintance|neighbour|friend  /dwellings");
 	ui.print_commands("Arranging", "/arrange inner|outer <number|room>  (in the upper room, as /regard)");
 	ui.print_commands("Obedience", "/ask <name>  /accept <name>  /reject <name>  /supplications  /done <number> [report]");
-	ui.print_commands("Training", "/train [title] | <exercise> 60x10/90 70x8/120 | …  (/90 — rest, s)  "
-								  "/done <number> [report] | <exercise> 60x10 …");
+	ui.print_commands("Training", "/train [title] | <exercise> 60x10/90 70x8/120 | …  (/90 — rest, s)");
+	ui.print_commands("", "/begin <training> <exercise> <approach>  /finish <training> 60x10  /done <training> [report]");
 	ui.print_commands("Birth", "/birth  /bear <mark>");
 	ui.print_status("Type text in a room to write there.", "Ctrl+D to exit");
 }
@@ -218,6 +221,31 @@ bool handle_slash_command(WillClient& client, ConsoleUi& ui, ShownRooms& rooms, 
 			ui.print_notice("usage: /done <number> [report] [| <exercise> 60x10 70x8 | …]");
 		} catch (const std::out_of_range&) {
 			ui.print_notice("usage: /done <number> [report] [| <exercise> 60x10 70x8 | …]");
+		}
+		return true;
+	}
+	if (cmd == "begin") {
+		// Numbers as one reads them, from one.
+		unsigned long n = 0, e = 0, a = 0;
+		if (std::sscanf(std::string{args}.c_str(), "%lu %lu %lu", &n, &e, &a) != 3 || e == 0 || a == 0) {
+			ui.print_notice("usage: /begin <training> <exercise> <approach>");
+			return true;
+		}
+		client.begin_approach(n, static_cast<std::uint32_t>(e - 1), static_cast<std::uint32_t>(a - 1));
+		return true;
+	}
+	if (cmd == "finish") {
+		const auto sp = args.find(' ');
+		const auto approach = sp == std::string_view::npos ? std::nullopt : approach_of(trimmed(args.substr(sp + 1)));
+		if (!approach) {
+			ui.print_notice("usage: /finish <training> <weight>x<repetitions>");
+			return true;
+		}
+		try {
+			client.finish_approach(std::stoull(std::string{args.substr(0, sp)}), approach->weight_grams(),
+								   approach->repetitions());
+		} catch (const std::exception&) {
+			ui.print_notice("usage: /finish <training> <weight>x<repetitions>");
 		}
 		return true;
 	}

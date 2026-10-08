@@ -58,6 +58,19 @@ message Exercise {
 }
 
 
+// An approach of a training done: which one (by place, from zero), with what
+// weight and how many repetitions, begun and finished when (nanoseconds since
+// the epoch). The rest before it is the time since the effort before it finished.
+message Effort {
+    uint32 exercise = 1;
+    uint32 approach = 2;
+    uint32 weight_grams = 3;
+    uint32 repetitions = 4;
+    int64 begun_at_ns = 5;
+    int64 finished_at_ns = 6;
+}
+
+
 // A word in the place the client contemplates — told in history or as it is placed.
 // A behest that is a training carries the exercises it wills; a deed fulfilling
 // one, the exercises done.
@@ -75,6 +88,7 @@ message Word {
     Kind kind = 5;
     uint64 behest_id = 6; // the behest a deed fulfils
     repeated Exercise exercises = 7;
+    repeated Effort efforts = 8;  // a training: the approaches done so far
 }
 
 
@@ -167,6 +181,22 @@ message Fulfil {
     uint64 behest_id = 1;
     string report = 2;
     repeated Exercise performed = 3;
+}
+
+
+// Begin an approach of a training of the tie one looks at as its novice.
+message BeginApproach {
+    uint64 behest_id = 1;
+    uint32 exercise = 2;
+    uint32 approach = 3;
+}
+
+
+// Finish the approach underway with the weight and repetitions done.
+message FinishApproach {
+    uint64 behest_id = 1;
+    uint32 weight_grams = 2;
+    uint32 repetitions = 3;
 }
 
 
@@ -298,6 +328,25 @@ message Dwellers {
 }
 
 
+// The approach of a training the novice is doing now (doing), or that he does
+// none now: told to those who look at the tie when he begins or finishes, and to
+// one entering a room of it.
+message Underway {
+    uint64 behest_id = 1;
+    uint32 exercise = 2;
+    uint32 approach = 3;
+    int64 begun_at_ns = 4;
+    bool doing = 5;
+}
+
+
+// An approach of a training is done: told to those who look at the tie.
+message Exerted {
+    uint64 behest_id = 1;
+    Effort effort = 2;
+}
+
+
 // The bodies awaiting their birth, by their marks, told to one standing in a
 // birth room: on entering it and whenever one comes or is born.
 message Unborn {
@@ -352,6 +401,8 @@ message ClientEvent {
         ChooseFather choose_father = 17;
         ListLineage list_lineage = 18;
         Train train = 19;
+        BeginApproach begin_approach = 20;
+        FinishApproach finish_approach = 21;
     }
 }
 
@@ -377,5 +428,7 @@ message ServerEvent {
         Threshold threshold = 18;
         Unborn unborn = 19;
         Lineage lineage = 20;
+        Underway underway = 21;
+        Exerted exerted = 22;
     }
 }

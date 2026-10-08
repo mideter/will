@@ -122,6 +122,23 @@ std::vector<std::vector<std::string>> exercise_rows(const v1::Word& word)
 }
 
 
+/// A span of time as one reads it: «0:42».
+std::string span_text(const std::int64_t nanoseconds)
+{
+	const std::int64_t seconds = nanoseconds / 1'000'000'000;
+	return std::to_string(seconds / 60) + ":" + (seconds % 60 < 10 ? "0" : "") + std::to_string(seconds % 60);
+}
+
+
+/// An effort as one reads it: «1.2 100×5 in 0:42» — exercise and approach from one.
+std::string effort_text(const v1::Effort& effort)
+{
+	return std::to_string(effort.exercise() + 1) + "." + std::to_string(effort.approach() + 1) + " "
+		   + weight_text(effort.weight_grams()) + "×" + std::to_string(effort.repetitions()) + " in "
+		   + span_text(effort.finished_at_ns() - effort.begun_at_ns());
+}
+
+
 void print_word(ConsoleUi& ui, const v1::Word& word, const bool dim)
 {
 	const std::string number = "#" + std::to_string(word.id());
@@ -129,7 +146,13 @@ void print_word(ConsoleUi& ui, const v1::Word& word, const bool dim)
 	case v1::Word::BEHEST:
 		if (!word.exercises().empty()) {
 			ui.print_list("Training " + number + " from " + word.name() + ": " + word.body(), exercise_rows(word),
-						  word.is_mine() ? std::string{} : "/done " + std::to_string(word.id()) + " [report] [| …]");
+						  word.is_mine() ? std::string{} : "/begin " + std::to_string(word.id()) + " <exercise> <approach>");
+			if (!word.efforts().empty()) {
+				std::string done = "Done:";
+				for (const v1::Effort& effort : word.efforts())
+					done += "  " + effort_text(effort);
+				ui.print_status(done);
+			}
 			return;
 		}
 		ui.print_status("Behest " + number + " from " + word.name() + ": " + word.body(),
@@ -334,6 +357,17 @@ void ReceivingMessageHandler::on(const v1::ServerEvent& event)
 		ui_.print_list("Your line", rows);
 		return;
 	}
+	case v1::ServerEvent::kUnderway:
+		if (event.underway().doing())
+			ui_.print_notice("Underway: training #" + std::to_string(event.underway().behest_id()) + ", exercise "
+								 + std::to_string(event.underway().exercise() + 1) + ", approach "
+								 + std::to_string(event.underway().approach() + 1),
+							 "/finish " + std::to_string(event.underway().behest_id()) + " <weight>x<repetitions>");
+		return;
+	case v1::ServerEvent::kExerted:
+		ui_.print_notice("Done in training #" + std::to_string(event.exerted().behest_id()) + ": "
+						 + effort_text(event.exerted().effort()));
+		return;
 	case v1::ServerEvent::kStirred:
 		ui_.print_notice("New word from " + event.stirred().author_name() + " in " + event.stirred().room(),
 						 "/room " + event.stirred().room());

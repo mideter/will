@@ -80,6 +80,18 @@ std::vector<domain::Exercise> exercises_of(const google::protobuf::RepeatedPtrFi
 }
 
 
+/// An effort as the wire tells it.
+void tell_effort(const domain::matter::Effort& effort, v1::Effort& told)
+{
+	told.set_exercise(effort.exercise());
+	told.set_approach(effort.approach());
+	told.set_weight_grams(effort.weight().grams());
+	told.set_repetitions(effort.repetitions());
+	told.set_begun_at_ns(effort.begun().value());
+	told.set_finished_at_ns(effort.finished().value());
+}
+
+
 /// A word as the wire tells it to one who listens.
 v1::ServerEvent word_event(const domain::Word& word, const domain::id::Soul listener)
 {
@@ -94,8 +106,11 @@ v1::ServerEvent word_event(const domain::Word& word, const domain::id::Soul list
 
 	if (dynamic_cast<const domain::Behest*>(&word)) {
 		told->set_kind(v1::Word::BEHEST);
-		if (const auto* training = dynamic_cast<const domain::Training*>(&word))
+		if (const auto* training = dynamic_cast<const domain::Training*>(&word)) {
 			tell_exercises(training->exercises(), *told->mutable_exercises());
+			for (const domain::matter::Effort& effort : training->efforts())
+				tell_effort(effort, *told->add_efforts());
+		}
 	} else if (const auto* deed = dynamic_cast<const domain::Deed*>(&word)) {
 		told->set_kind(v1::Word::DEED);
 		told->set_behest_id(deed->behest().value());
@@ -752,6 +767,11 @@ void ProtocolAdapter::tell_view(const SessionId session_id, const domain::Contem
 	const auto* abode = dynamic_cast<const domain::Abode*>(&gaze.place());
 	if (!abode) {
 		tell_words(session_id, gaze, listener, limit);
+		// In a room of a tie, one is told what its novice is doing now.
+		if (const auto* tie = dynamic_cast<const domain::Tie*>(&gaze.place().source())) {
+			if (static_cast<const domain::Novice&>(tie->novice()).underway())
+				send_event(session_id, underway_event(*tie));
+		}
 		return;
 	}
 
@@ -864,6 +884,89 @@ void ProtocolAdapter::handle_train(const SessionId session_id, const v1::Train& 
 
 	send_notice(session_id, "training " + std::to_string(training->id().value()) + " willed");
 	tell_placed(*tie, *training, self);
+}
+
+
+std::shared_ptr<const domain::Training> ProtocolAdapter::training_in_gaze(const SessionId session_id,
+																		   const domain::Man& man,
+																		   const std::uint64_t behest_id)
+{
+	const std::shared_ptr<const domain::Contemplation> gaze = world_.contemplation(man.Soul::id());
+	if (!gaze || !dynamic_cast<const domain::Tie*>(&gaze->place().source())) {
+		send_notice(session_id, "enter the room of the tie first: /room <name>");
+		return nullptr;
+	}
+	for (const std::shared_ptr<const domain::Word>& word : gaze->words()) {
+		if (word->id().value() == behest_id) {
+			if (auto training = std::dynamic_pointer_cast<const domain::Training>(word))
+				return training;
+		}
+	}
+	send_notice(session_id, "unknown training");
+	return nullptr;
+}
+
+
+void ProtocolAdapter::tell_tie(const domain::Tie& tie, const v1::ServerEvent& event)
+{
+	for (const domain::Soul& soul : world_.contemplating(tie))
+		send_to_vessel(static_cast<const domain::Man&>(soul).Vessel::id(), event);
+}
+
+
+v1::ServerEvent ProtocolAdapter::underway_event(const domain::Tie& tie) const
+{
+	v1::ServerEvent event;
+	auto* told = event.mutable_underway();
+	if (const auto doing = static_cast<const domain::Novice&>(tie.novice()).underway()) {
+		told->set_behest_id(doing->training.value());
+		told->set_exercise(doing->exercise);
+		told->set_approach(doing->approach);
+		told->set_begun_at_ns(doing->begun.value());
+		told->set_doing(true);
+	}
+	return event;
+}
+
+
+void ProtocolAdapter::handle_begin_approach(const SessionId session_id, const v1::BeginApproach& msg)
+{
+	const domain::Man& self = session_man(session_id);
+	const std::shared_ptr<const domain::Training> training = training_in_gaze(session_id, self, msg.behest_id());
+	if (!training)
+		return;
+
+	try {
+		static_cast<const domain::Novice&>(self).begin(*training, msg.exercise(), msg.approach());
+	} catch (const std::exception& e) {
+		send_notice(session_id, e.what());
+		return;
+	}
+	tell_tie(training->tie(), underway_event(training->tie()));
+}
+
+
+void ProtocolAdapter::handle_finish_approach(const SessionId session_id, const v1::FinishApproach& msg)
+{
+	const domain::Man& self = session_man(session_id);
+	const std::shared_ptr<const domain::Training> training = training_in_gaze(session_id, self, msg.behest_id());
+	if (!training)
+		return;
+
+	std::optional<domain::matter::Effort> effort;
+	try {
+		effort = static_cast<const domain::Novice&>(self).finish(*training, domain::Weight{msg.weight_grams()},
+																 msg.repetitions());
+	} catch (const std::exception& e) {
+		send_notice(session_id, e.what());
+		return;
+	}
+
+	v1::ServerEvent exerted;
+	exerted.mutable_exerted()->set_behest_id(training->id().value());
+	tell_effort(*effort, *exerted.mutable_exerted()->mutable_effort());
+	tell_tie(training->tie(), exerted);
+	tell_tie(training->tie(), underway_event(training->tie()));
 }
 
 

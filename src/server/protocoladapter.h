@@ -18,6 +18,8 @@ namespace will {
 
 namespace domain {
 class BirthRoom;
+class Tie;
+class Training;
 class Gates;
 class UpperRoom;
 } // namespace domain
@@ -62,6 +64,19 @@ private:
 	void handle_choose_father(SessionId session_id, const v1::ChooseFather& msg);
 	void handle_list_lineage(SessionId session_id);
 	void handle_train(SessionId session_id, const v1::Train& msg);
+	void handle_begin_approach(SessionId session_id, const v1::BeginApproach& msg);
+	void handle_finish_approach(SessionId session_id, const v1::FinishApproach& msg);
+
+	/// The training of this id among the words one beholds in the tie one looks at;
+	/// none (and a notice told) if one looks elsewhere or there is none.
+	std::shared_ptr<const domain::Training> training_in_gaze(SessionId session_id, const domain::Man& man,
+															 std::uint64_t behest_id);
+
+	/// Tell everyone looking at this tie.
+	void tell_tie(const domain::Tie& tie, const v1::ServerEvent& event);
+
+	/// What the novice of this tie is doing now, as the wire tells it.
+	v1::ServerEvent underway_event(const domain::Tie& tie) const;
 
 	/// Whether the body of this session awaits its birth.
 	bool awaits_birth(SessionId session_id) const;

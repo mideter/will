@@ -42,6 +42,10 @@ public:
 	void fulfil(std::uint64_t behest_id, std::string_view report,
 				const std::vector<v1::Exercise>& performed = {}) const;
 
+	/// Begin an approach (exercise and approach from zero) of a training; finish it.
+	void begin_approach(std::uint64_t behest_id, std::uint32_t exercise, std::uint32_t approach) const;
+	void finish_approach(std::uint64_t behest_id, std::uint32_t weight_grams, std::uint32_t repetitions) const;
+
 	/// Will a training in the tie one looks at as its testator.
 	void train(std::string_view title, const std::vector<v1::Exercise>& exercises) const;
 

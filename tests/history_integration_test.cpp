@@ -919,20 +919,57 @@ TEST_CASE("the testator wills a training over the wire; the novice fulfils it te
 	REQUIRE(willed.word().exercises(0).approaches_size() == 2);
 	CHECK(willed.word().exercises(0).approaches(1).weight_grams() == 70'000);
 
-	// He fulfils it with what he has done; the trainer sees it.
+	// He does it approach by approach: the trainer sees each begun and each done.
+	const std::uint64_t id = willed.word().id();
+	for (const auto [approach, reps] : {std::pair{0u, 10u}, {1u, 6u}}) {
+		will::v1::ClientEvent begin;
+		begin.mutable_begin_approach()->set_behest_id(id);
+		begin.mutable_begin_approach()->set_exercise(0);
+		begin.mutable_begin_approach()->set_approach(approach);
+		REQUIRE(novice.stream->Write(begin));
+		const will::v1::ServerEvent underway
+			= read_until(*trainer.stream, [](const auto& e) { return e.has_underway() && e.underway().doing(); });
+		CHECK(underway.underway().behest_id() == id);
+		CHECK(underway.underway().approach() == approach);
+
+		will::v1::ClientEvent finish;
+		finish.mutable_finish_approach()->set_behest_id(id);
+		finish.mutable_finish_approach()->set_weight_grams(70'000);
+		finish.mutable_finish_approach()->set_repetitions(reps);
+		REQUIRE(novice.stream->Write(finish));
+		const will::v1::ServerEvent exerted = read_until(*trainer.stream, [](const auto& e) { return e.has_exerted(); });
+		CHECK(exerted.exerted().behest_id() == id);
+		CHECK(exerted.exerted().effort().approach() == approach);
+		CHECK(exerted.exerted().effort().repetitions() == reps);
+		CHECK(exerted.exerted().effort().finished_at_ns() >= exerted.exerted().effort().begun_at_ns());
+		CHECK(read_until(*novice.stream, [](const auto& e) { return e.has_exerted(); }).exerted().effort().approach()
+			  == approach);
+	}
+
+	// The same approach is not done twice.
+	{
+		will::v1::ClientEvent again;
+		again.mutable_begin_approach()->set_behest_id(id);
+		again.mutable_begin_approach()->set_exercise(0);
+		again.mutable_begin_approach()->set_approach(0);
+		REQUIRE(novice.stream->Write(again));
+		CHECK(read_until(*novice.stream, [](const auto& e) { return e.has_protocol_notice(); }).protocol_notice().message()
+			  == "the approach is already done");
+	}
+
+	// He finishes the training: the deed tells what was done.
 	will::v1::ClientEvent fulfil;
-	fulfil.mutable_fulfil()->set_behest_id(willed.word().id());
-	*fulfil.mutable_fulfil()->add_performed() = willed.word().exercises(0);
-	fulfil.mutable_fulfil()->mutable_performed(0)->mutable_approaches(1)->set_repetitions(6);
+	fulfil.mutable_fulfil()->set_behest_id(id);
 	REQUIRE(novice.stream->Write(fulfil));
 	CHECK(read_until(*novice.stream, [](const auto& e) { return e.has_protocol_notice(); })
 			  .protocol_notice()
 			  .message()
 			  .ends_with(" fulfilled"));
-	const will::v1::ServerEvent done = read_until(*trainer.stream, [](const auto& e) { return e.has_word(); });
-	CHECK(done.word().kind() == will::v1::Word::DEED);
-	CHECK(done.word().behest_id() == willed.word().id());
+	const will::v1::ServerEvent done
+		= read_until(*trainer.stream, [](const auto& e) { return e.has_word() && e.word().kind() == will::v1::Word::DEED; });
+	CHECK(done.word().behest_id() == id);
 	REQUIRE(done.word().exercises_size() == 1);
+	REQUIRE(done.word().exercises(0).approaches_size() == 2);
 	CHECK(done.word().exercises(0).approaches(1).repetitions() == 6);
 
 	trainer.context->TryCancel();

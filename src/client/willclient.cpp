@@ -290,6 +290,38 @@ void WillClient::fulfil(const std::uint64_t behest_id, const std::string_view re
 }
 
 
+void WillClient::begin_approach(const std::uint64_t behest_id, const std::uint32_t exercise,
+								const std::uint32_t approach) const
+{
+	if (!authenticated_)
+		throw std::logic_error("WillClient: not authenticated");
+
+	v1::ClientEvent event;
+	auto* msg = event.mutable_begin_approach();
+	msg->set_behest_id(behest_id);
+	msg->set_exercise(exercise);
+	msg->set_approach(approach);
+	if (!write_event(event))
+		throw std::runtime_error("Will protocol: failed to send BeginApproach");
+}
+
+
+void WillClient::finish_approach(const std::uint64_t behest_id, const std::uint32_t weight_grams,
+								 const std::uint32_t repetitions) const
+{
+	if (!authenticated_)
+		throw std::logic_error("WillClient: not authenticated");
+
+	v1::ClientEvent event;
+	auto* msg = event.mutable_finish_approach();
+	msg->set_behest_id(behest_id);
+	msg->set_weight_grams(weight_grams);
+	msg->set_repetitions(repetitions);
+	if (!write_event(event))
+		throw std::runtime_error("Will protocol: failed to send FinishApproach");
+}
+
+
 void WillClient::train(const std::string_view title, const std::vector<v1::Exercise>& exercises) const
 {
 	if (!authenticated_)
