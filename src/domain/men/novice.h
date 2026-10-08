@@ -61,7 +61,8 @@ public:
 	};
 
 	/// Begin an approach of a training of a tie where this soul is novice, while
-	/// contemplating that tie: an approach willed, or the next one beyond them.
+	/// contemplating that tie: the next approach of an exercise in order — once the
+	/// willed are done, one beyond them. Exercises are done in any order.
 	/// Throws if the training is fulfilled, the approach is done or is no such,
 	/// or another approach is underway.
 	void begin(const Training& training, std::uint32_t exercise, std::uint32_t approach) const;

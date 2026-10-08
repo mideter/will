@@ -1577,11 +1577,13 @@ TEST_CASE("the novice does a training approach by approach: each begun and finis
 		REQUIRE(seen);
 		CHECK(seen->efforts().size() == 1);
 
-		// An approach is done once; any order; and one beyond those willed.
+		// An approach is done once; the approaches of an exercise in order, its
+		// exercises in any; and, once the willed are done, one beyond them.
 		CHECK_THROWS_AS(novice.begin(*training, 0, 0), std::logic_error);
+		CHECK_THROWS_AS(novice.begin(*training, 0, 2), std::logic_error);
 		novice.begin(*training, 1, 0);
 		novice.finish(*training, Weight{0}, 6);
-		novice.begin(*training, 0, 2);
+		novice.begin(*training, 0, 1);
 		novice.finish(*training, Weight{90'000}, 4);
 		CHECK_THROWS_AS(novice.begin(*training, 0, 4), std::invalid_argument);
 
@@ -1590,9 +1592,9 @@ TEST_CASE("the novice does a training approach by approach: each begun and finis
 		REQUIRE(deed->performed().size() == 2);
 		CHECK(deed->performed()[0].name() == "Присед");
 		REQUIRE(deed->performed()[0].approaches().size() == 2);
-		CHECK(deed->performed()[0].approaches()[1] == Approach{Weight{90'000}, 4, 0});
+		CHECK(deed->performed()[0].approaches()[1] == Approach{Weight{90'000}, 4, 120});
 		CHECK(deed->performed()[1].approaches()[0].repetitions() == 6);
-		CHECK_THROWS_AS(novice.begin(*training, 0, 1), std::logic_error);
+		CHECK_THROWS_AS(novice.begin(*training, 0, 2), std::logic_error);
 		testator.sleep();
 		novice.sleep();
 	}

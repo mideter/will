@@ -82,16 +82,23 @@ void Novice::begin(const Training& training, const std::uint32_t exercise, const
 	if (exercise >= training.exercises().size())
 		throw std::invalid_argument("no such exercise");
 
-	// The approaches willed, and beyond them one more at a time.
-	std::uint32_t next = static_cast<std::uint32_t>(training.exercises()[exercise].approaches().size());
+	// The approaches of an exercise go in order: the first not yet done; once the
+	// willed are done, one more beyond them at a time. Exercises go in any order.
+	const auto willed = static_cast<std::uint32_t>(training.exercises()[exercise].approaches().size());
+	std::uint32_t count = willed;
 	for (const matter::Effort& effort : training.efforts()) {
-		if (effort.exercise() == exercise && effort.approach() >= next)
-			next = effort.approach() + 1;
+		if (effort.exercise() == exercise && effort.approach() >= count)
+			count = effort.approach() + 1;
 	}
-	if (approach > next)
+	std::uint32_t next = 0;
+	while (next < count && training.done(exercise, next))
+		++next;
+	if (approach > count)
 		throw std::invalid_argument("no such approach");
 	if (training.done(exercise, approach))
 		throw std::logic_error("the approach is already done");
+	if (approach != next)
+		throw std::logic_error("the approaches of an exercise are done in order");
 
 	std::lock_guard lock(underway_mutex_);
 	if (underway_)
