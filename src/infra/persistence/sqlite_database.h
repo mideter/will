@@ -40,6 +40,9 @@ private:
 	/// Rooms kept before they had an aspect (all windows onto words) get one.
 	void give_rooms_their_aspect();
 
+	/// Approaches kept before they had a rest are given none.
+	void give_approaches_their_rest();
+
 	std::string db_path_;
 	SqliteFace face_;
 	sqlite3* db_ = nullptr;

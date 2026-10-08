@@ -1445,6 +1445,7 @@ TEST_CASE("an exercise is named and done in approaches; an approach has repetiti
 	CHECK_THROWS_AS(Weight{Weight::MaxGrams + 1}, std::invalid_argument);
 
 	CHECK_THROWS_AS((Approach{Weight{60'000}, 0}), std::invalid_argument);
+	CHECK_THROWS_AS((Approach{Weight{60'000}, 5, Approach::MaxRestSeconds + 1}), std::invalid_argument);
 	CHECK_NOTHROW((Approach{Weight{60'000}, 1}));
 
 	CHECK_THROWS_AS((Exercise{"", {Approach{Weight{0}, 5}}}), std::invalid_argument);

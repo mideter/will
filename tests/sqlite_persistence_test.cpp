@@ -538,7 +538,7 @@ TEST_CASE("sqlite keeps the exercises of a word across reopen, each approach wit
 		SqlitePersistenceBundle bundle(directory);
 		Eternity& eternity = bundle.eternity();
 		eternity.train(willed, {
-			Exercise{"Жим лёжа", {Approach{Weight{60'000}, 10}, Approach{Weight{70'000}, 8}, Approach{Weight{62'500}, 6}}},
+			Exercise{"Жим лёжа", {Approach{Weight{60'000}, 10, 90}, Approach{Weight{70'000}, 8, 120}, Approach{Weight{62'500}, 6}}},
 			Exercise{"Подтягивания", {Approach{Weight{0}, 8}}},
 		});
 		CHECK_THROWS_AS(eternity.train(willed, {Exercise{"Присед", {Approach{Weight{100'000}, 5}}}}), std::logic_error);
@@ -553,8 +553,42 @@ TEST_CASE("sqlite keeps the exercises of a word across reopen, each approach wit
 		const Exercise& press = kept[0].exercises()[0];
 		CHECK(press.name() == "Жим лёжа");
 		REQUIRE(press.approaches().size() == 3);
-		CHECK(press.approaches()[1] == Approach{Weight{70'000}, 8});
+		CHECK(press.approaches()[1] == Approach{Weight{70'000}, 8, 120});
+		CHECK(press.approaches()[0].rest_seconds() == 90);
+		CHECK(press.approaches()[2].rest_seconds() == 0);
 		CHECK(press.approaches()[2].weight().grams() == 62'500);
 		CHECK(kept[0].exercises()[1].approaches()[0].weight().own());
 	}
+}
+
+
+TEST_CASE("sqlite gives the approaches kept before rest was no rest")
+{
+	using namespace will;
+	using namespace will::domain;
+
+	const std::string directory = "/tmp/will-sqlite-rest-test-" + std::to_string(getpid());
+	const ScratchDirectory scratch{directory};
+
+	// As kept before approaches had a rest.
+	{
+		sqlite3* db = nullptr;
+		REQUIRE(sqlite3_open((directory + "/will.eternity.db").c_str(), &db) == SQLITE_OK);
+		REQUIRE(sqlite3_exec(db,
+							 "CREATE TABLE exercises (word_id INTEGER NOT NULL, ord INTEGER NOT NULL, name TEXT NOT NULL, "
+							 "PRIMARY KEY (word_id, ord));"
+							 "CREATE TABLE approaches (word_id INTEGER NOT NULL, exercise_ord INTEGER NOT NULL, "
+							 "ord INTEGER NOT NULL, weight_grams INTEGER NOT NULL, repetitions INTEGER NOT NULL, "
+							 "PRIMARY KEY (word_id, exercise_ord, ord));"
+							 "INSERT INTO exercises VALUES (5, 0, 'Присед');"
+							 "INSERT INTO approaches VALUES (5, 0, 0, 100000, 5);",
+							 nullptr, nullptr, nullptr)
+				== SQLITE_OK);
+		sqlite3_close(db);
+	}
+
+	SqlitePersistenceBundle bundle(directory);
+	const std::vector<matter::Training> kept = bundle.eternity().trainings({id::Word{5}});
+	REQUIRE(kept.size() == 1);
+	CHECK(kept[0].exercises()[0].approaches()[0] == Approach{Weight{100'000}, 5, 0});
 }

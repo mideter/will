@@ -218,14 +218,15 @@ domain::matter::Training SqliteEternity::train(const domain::id::Word word, std:
 		std::int64_t approach_ord = 0;
 		for (const domain::Approach& approach : exercise.approaches()) {
 			SqliteStmt row(db,
-						   "INSERT INTO approaches (word_id, exercise_ord, ord, weight_grams, repetitions) "
-						   "VALUES (?, ?, ?, ?, ?);",
+						   "INSERT INTO approaches (word_id, exercise_ord, ord, weight_grams, repetitions, rest_seconds) "
+						   "VALUES (?, ?, ?, ?, ?, ?);",
 						   "prepare approach");
 			row.bind_i64(1, static_cast<std::int64_t>(word.value()), "bind word");
 			row.bind_i64(2, exercise_ord, "bind exercise");
 			row.bind_i64(3, approach_ord++, "bind ord");
 			row.bind_i64(4, approach.weight().grams(), "bind weight");
 			row.bind_i64(5, approach.repetitions(), "bind repetitions");
+			row.bind_i64(6, approach.rest_seconds(), "bind rest");
 			row.step_done("approach step");
 		}
 		++exercise_ord;
@@ -256,7 +257,7 @@ std::vector<domain::matter::Training> SqliteEternity::trainings(const std::vecto
 		std::vector<std::vector<domain::Approach>> approaches(names.size());
 		{
 			SqliteStmt stmt(db,
-							"SELECT exercise_ord, weight_grams, repetitions FROM approaches "
+							"SELECT exercise_ord, weight_grams, repetitions, rest_seconds FROM approaches "
 							"WHERE word_id = ? ORDER BY exercise_ord, ord;",
 							"prepare approaches");
 			stmt.bind_i64(1, static_cast<std::int64_t>(word.value()), "bind word");
@@ -267,6 +268,7 @@ std::vector<domain::matter::Training> SqliteEternity::trainings(const std::vecto
 				approaches[exercise].push_back(domain::Approach{
 					domain::Weight{static_cast<std::uint32_t>(stmt.column_i64(1))},
 					static_cast<std::uint32_t>(stmt.column_i64(2)),
+					static_cast<std::uint32_t>(stmt.column_i64(3)),
 				});
 			}
 		}

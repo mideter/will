@@ -109,9 +109,13 @@ std::vector<std::vector<std::string>> exercise_rows(const v1::Word& word)
 	std::vector<std::vector<std::string>> rows;
 	for (const v1::Exercise& exercise : word.exercises()) {
 		std::string approaches;
-		for (const v1::Approach& go : exercise.approaches())
+		for (const v1::Approach& go : exercise.approaches()) {
 			approaches += (approaches.empty() ? "" : "  ") + weight_text(go.weight_grams()) + "×"
 						  + std::to_string(go.repetitions());
+			if (go.rest_seconds() != 0)
+				approaches += "/" + std::to_string(go.rest_seconds() / 60) + ":"
+							  + (go.rest_seconds() % 60 < 10 ? "0" : "") + std::to_string(go.rest_seconds() % 60);
+		}
 		rows.push_back({exercise.name(), approaches});
 	}
 	return rows;

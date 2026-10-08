@@ -76,6 +76,7 @@ CREATE TABLE IF NOT EXISTS approaches (
   ord INTEGER NOT NULL,
   weight_grams INTEGER NOT NULL,
   repetitions INTEGER NOT NULL,
+  rest_seconds INTEGER NOT NULL DEFAULT 0,
   PRIMARY KEY (word_id, exercise_ord, ord)
 );
 
@@ -172,10 +173,34 @@ CREATE TABLE IF NOT EXISTS executions (
 
 	check_sqlite(sqlite3_exec(db_, sql, nullptr, nullptr, nullptr), db_, "init_schema");
 
+	if (face_ == SqliteFace::Eternity)
+		give_approaches_their_rest();
 	if (face_ == SqliteFace::Temporality)
 		answer_kept_rejections();
 	if (face_ == SqliteFace::Spatiality)
 		give_rooms_their_aspect();
+}
+
+
+void SqliteDatabase::give_approaches_their_rest()
+{
+	bool has_rest = false;
+	sqlite3_stmt* raw = nullptr;
+	check_sqlite(sqlite3_prepare_v2(db_, "PRAGMA table_info(approaches);", -1, &raw, nullptr), db_,
+				 "prepare approaches columns");
+	while (sqlite3_step(raw) == SQLITE_ROW) {
+		const auto* column = reinterpret_cast<const char*>(sqlite3_column_text(raw, 1));
+		if (column && std::string_view{column} == "rest_seconds")
+			has_rest = true;
+	}
+	sqlite3_finalize(raw);
+	if (has_rest)
+		return;
+
+	// Approaches kept before they had a rest were followed by none.
+	check_sqlite(sqlite3_exec(db_, "ALTER TABLE approaches ADD COLUMN rest_seconds INTEGER NOT NULL DEFAULT 0;",
+							  nullptr, nullptr, nullptr),
+				 db_, "give approaches their rest");
 }
 
 

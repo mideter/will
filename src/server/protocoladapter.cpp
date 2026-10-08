@@ -59,6 +59,7 @@ void tell_exercises(const std::vector<domain::Exercise>& exercises,
 			v1::Approach* go = wire->add_approaches();
 			go->set_weight_grams(approach.weight().grams());
 			go->set_repetitions(approach.repetitions());
+			go->set_rest_seconds(approach.rest_seconds());
 		}
 	}
 }
@@ -72,7 +73,7 @@ std::vector<domain::Exercise> exercises_of(const google::protobuf::RepeatedPtrFi
 	for (const v1::Exercise& exercise : wire) {
 		std::vector<domain::Approach> approaches;
 		for (const v1::Approach& go : exercise.approaches())
-			approaches.emplace_back(domain::Weight{go.weight_grams()}, go.repetitions());
+			approaches.emplace_back(domain::Weight{go.weight_grams()}, go.repetitions(), go.rest_seconds());
 		exercises.emplace_back(exercise.name(), std::move(approaches));
 	}
 	return exercises;

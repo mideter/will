@@ -59,9 +59,23 @@ std::string_view trimmed(std::string_view text)
 }
 
 
-/// An approach as typed: «60x10», «62.5x8», «0x8» (one's own weight). None if it is not one.
-std::optional<v1::Approach> approach_of(const std::string_view token)
+/// An approach as typed: «60x10», «62.5x8», «0x8» (one's own weight), with the rest
+/// after it in seconds: «60x10/90». None if it is not one.
+std::optional<v1::Approach> approach_of(std::string_view token)
 {
+	std::uint32_t rest = 0;
+	if (const auto slash = token.find('/'); slash != std::string_view::npos) {
+		try {
+			std::size_t used = 0;
+			const std::string seconds{token.substr(slash + 1)};
+			rest = static_cast<std::uint32_t>(std::stoul(seconds, &used));
+			if (used != seconds.size())
+				return std::nullopt;
+		} catch (const std::exception&) {
+			return std::nullopt;
+		}
+		token = token.substr(0, slash);
+	}
 	const auto x = token.find_first_of("xх×");
 	if (x == std::string_view::npos || x == 0)
 		return std::nullopt;
@@ -84,6 +98,7 @@ std::optional<v1::Approach> approach_of(const std::string_view token)
 		v1::Approach approach;
 		approach.set_weight_grams(static_cast<std::uint32_t>(weight * 1000 + 0.5));
 		approach.set_repetitions(static_cast<std::uint32_t>(reps));
+		approach.set_rest_seconds(rest);
 		return approach;
 	} catch (const std::exception&) {
 		return std::nullopt;
@@ -137,7 +152,8 @@ void print_help(ConsoleUi& ui)
 	ui.print_commands("Dwellers", "/dwellers  /regard <name> acquaintance|neighbour|friend  /dwellings");
 	ui.print_commands("Arranging", "/arrange inner|outer <number|room>  (in the upper room, as /regard)");
 	ui.print_commands("Obedience", "/ask <name>  /accept <name>  /reject <name>  /supplications  /done <number> [report]");
-	ui.print_commands("Training", "/train [title] | <exercise> 60x10 70x8 | …  /done <number> [report] | <exercise> 60x10 …");
+	ui.print_commands("Training", "/train [title] | <exercise> 60x10/90 70x8/120 | …  (/90 — rest, s)  "
+								  "/done <number> [report] | <exercise> 60x10 …");
 	ui.print_commands("Birth", "/birth  /bear <mark>");
 	ui.print_status("Type text in a room to write there.", "Ctrl+D to exit");
 }

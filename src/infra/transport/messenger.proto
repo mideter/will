@@ -42,11 +42,12 @@ message AuthOk {
 message ReceiptAck {}
 
 
-// One go at an exercise: so many repetitions with this weight, in grams; zero
-// weight is one's own.
+// One go at an exercise: so many repetitions with this weight, in grams (zero
+// weight is one's own), and the rest after it, in seconds.
 message Approach {
     uint32 weight_grams = 1;
     uint32 repetitions = 2;
+    uint32 rest_seconds = 3;
 }
 
 
