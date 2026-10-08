@@ -208,7 +208,7 @@ void SqliteDatabase::give_approaches_their_rest()
 	if (has_rest)
 		return;
 
-	// Approaches kept before they had a rest were followed by none.
+	// Approaches kept before they had a rest had none willed before them.
 	check_sqlite(sqlite3_exec(db_, "ALTER TABLE approaches ADD COLUMN rest_seconds INTEGER NOT NULL DEFAULT 0;",
 							  nullptr, nullptr, nullptr),
 				 db_, "give approaches their rest");

@@ -62,22 +62,41 @@ std::string_view trimmed(std::string_view text)
 }
 
 
+/// Seconds as typed: «90» or «1:30». None if it is not a span.
+std::optional<std::uint32_t> seconds_of(std::string_view text)
+{
+	const auto colon = text.find(':');
+	try {
+		std::size_t used = 0;
+		const std::string first{text.substr(0, colon)};
+		std::uint32_t seconds = static_cast<std::uint32_t>(std::stoul(first, &used));
+		if (used != first.size())
+			return std::nullopt;
+		if (colon != std::string_view::npos) {
+			const std::string second{text.substr(colon + 1)};
+			const unsigned long within = std::stoul(second, &used);
+			if (used != second.size() || second.size() != 2 || within > 59)
+				return std::nullopt;
+			seconds = seconds * 60 + static_cast<std::uint32_t>(within);
+		}
+		return seconds;
+	} catch (const std::exception&) {
+		return std::nullopt;
+	}
+}
+
+
 /// An approach as typed: «60x10», «62.5x8», «0x8» (one's own weight), with the rest
-/// after it in seconds: «60x10/90». None if it is not one.
+/// before it: «1:30/60x10» or «90/60x10». None if it is not one.
 std::optional<v1::Approach> approach_of(std::string_view token)
 {
 	std::uint32_t rest = 0;
 	if (const auto slash = token.find('/'); slash != std::string_view::npos) {
-		try {
-			std::size_t used = 0;
-			const std::string seconds{token.substr(slash + 1)};
-			rest = static_cast<std::uint32_t>(std::stoul(seconds, &used));
-			if (used != seconds.size())
-				return std::nullopt;
-		} catch (const std::exception&) {
+		const auto seconds = seconds_of(token.substr(0, slash));
+		if (!seconds)
 			return std::nullopt;
-		}
-		token = token.substr(0, slash);
+		rest = *seconds;
+		token = token.substr(slash + 1);
 	}
 	const auto x = token.find_first_of("xх×");
 	if (x == std::string_view::npos || x == 0)
@@ -155,7 +174,7 @@ void print_help(ConsoleUi& ui)
 	ui.print_commands("Dwellers", "/dwellers  /regard <name> acquaintance|neighbour|friend  /dwellings");
 	ui.print_commands("Arranging", "/arrange inner|outer <number|room>  (in the upper room, as /regard)");
 	ui.print_commands("Obedience", "/ask <name>  /accept <name>  /reject <name>  /supplications  /done <number> [report]");
-	ui.print_commands("Training", "/train [title] | <exercise> 60x10/90 70x8/120 | …  (/90 — rest, s)");
+	ui.print_commands("Training", "/train [title] | <exercise> 60x10 1:30/70x8 2:00/80x6 | …  (1:30/ — rest before)");
 	ui.print_commands("", "/begin <training> <exercise> <approach>  /finish <training> 60x10  /done <training> [report]");
 	ui.print_commands("Birth", "/birth  /bear <mark>");
 	ui.print_status("Type text in a room to write there.", "Ctrl+D to exit");
@@ -253,7 +272,7 @@ bool handle_slash_command(WillClient& client, ConsoleUi& ui, ShownRooms& rooms, 
 		const auto bar = args.find('|');
 		const auto exercises = bar == std::string_view::npos ? std::nullopt : exercises_of(args.substr(bar + 1));
 		if (!exercises || exercises->empty()) {
-			ui.print_notice("usage: /train [title] | <exercise> 60x10 70x8 | <exercise> 0x8 …");
+			ui.print_notice("usage: /train [title] | <exercise> 60x10 1:30/70x8 | <exercise> 0x8 …");
 			return true;
 		}
 		client.train(trimmed(args.substr(0, bar)), *exercises);

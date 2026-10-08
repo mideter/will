@@ -20,7 +20,7 @@ class Tie;
 
 
 /// Training (Тренировка) — a behest that wills exercises: each done in approaches,
-/// each approach with its weight, repetitions and the rest after it. Its word is
+/// each approach with its weight, repetitions and the rest before it. Its word is
 /// the testator's title or remark. The novice does it approach by approach — each
 /// done is an effort it holds — and fulfils it by a deed.
 class Training final : public Behest {

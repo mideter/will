@@ -9,7 +9,8 @@ namespace will::domain {
 
 
 /// Approach (Подход) — one go at an exercise: so many repetitions with this weight,
-/// and the rest after it, in seconds, before the next go.
+/// and the rest before it, in seconds: how rested one comes to it. The first effort of
+/// a training comes fully rested whatever is willed.
 class Approach {
 public:
 	static constexpr std::uint32_t MaxRepetitions = 10'000;
