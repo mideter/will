@@ -95,9 +95,13 @@ public:
 	/// The abode itself shows no words; they are seen through its rooms.
 	bool shows(const Man& who, const Word& word) const override;
 
-	/// What awaits the host in the tie rooms: behests not yet fulfilled, oldest
-	/// first by room.
-	std::vector<std::shared_ptr<const Behest>> outstanding() const;
+	/// What awaits the host's attention: behests not yet fulfilled in the ties
+	/// where he is the novice, oldest first by room.
+	std::vector<std::shared_ptr<const Behest>> owed() const;
+
+	/// What the host has set for others: behests not yet fulfilled in the ties
+	/// where he is the testator, oldest first by room.
+	std::vector<std::shared_ptr<const Behest>> awaited() const;
 
 	/// A letter said here by its host looking through the cell, born living
 	/// from the matter the dimensions returned when they kept it; it enters the
@@ -108,6 +112,10 @@ public:
 	bool ancestor(const Man& man) const;
 
 private:
+	/// Behests not yet fulfilled in the tie rooms where the host is the novice
+	/// (or, else, the testator).
+	std::vector<std::shared_ptr<const Behest>> unfulfilled(bool host_is_novice) const;
+
 	void admit(const Man& man, const matter::Dweller& kept);
 	const Room& furnish(const matter::Room& kept);
 

@@ -256,9 +256,12 @@ message OutstandingBehest {
 }
 
 
-// What awaits the host in the rooms of his abode: behests not yet fulfilled.
+// What is not yet fulfilled in the rooms of the host's ties: what awaits his
+// attention, where he is the novice; what he has set for others, where he is
+// the testator.
 message Outstanding {
-    repeated OutstandingBehest behests = 1;
+    repeated OutstandingBehest owed = 1;
+    repeated OutstandingBehest awaited = 2;
 }
 
 

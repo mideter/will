@@ -1124,7 +1124,7 @@ TEST_CASE("one writes only in one's cell; the abode itself shows no words")
 }
 
 
-TEST_CASE("the abode shows its host what awaits him: behests not yet fulfilled")
+TEST_CASE("the abode shows its host what awaits his attention and what he has set for others")
 {
 	InMemoryCosmos cosmos;
 	World& world = cosmos.life().create().world();
@@ -1134,7 +1134,7 @@ TEST_CASE("the abode shows its host what awaits him: behests not yet fulfilled")
 	admit_at_gates(world, testator, novice);
 	novice.supplicate(testator);
 	const Shepherding& shepherding = testator.accept(*testator.supplication(novice));
-	CHECK(novice.abode().outstanding().empty());
+	CHECK(novice.abode().owed().empty());
 
 	// The testator wills through his room Ведение, as through the tie itself.
 	testator.wake();
@@ -1142,17 +1142,20 @@ TEST_CASE("the abode shows its host what awaits him: behests not yet fulfilled")
 	const std::shared_ptr<const Behest> fast = testator.will(shepherding, "fast");
 	const std::shared_ptr<const Behest> pray = testator.will(shepherding, "pray");
 
-	REQUIRE(novice.abode().outstanding().size() == 2);
-	CHECK(novice.abode().outstanding()[0]->id() == fast->id());
-	REQUIRE(testator.abode().outstanding().size() == 2);
+	REQUIRE(novice.abode().owed().size() == 2);
+	CHECK(novice.abode().owed()[0]->id() == fast->id());
+	// The testator does not owe what he has set: it is set for the novice.
+	CHECK(testator.abode().owed().empty());
+	REQUIRE(testator.abode().awaited().size() == 2);
+	CHECK(novice.abode().awaited().empty());
 
 	// Fulfilled through the room Послушание, a behest no longer awaits.
 	novice.wake();
 	novice.contemplate(*novice.abode().room(shepherding));
 	novice.execute(*fast);
-	REQUIRE(novice.abode().outstanding().size() == 1);
-	CHECK(novice.abode().outstanding()[0]->id() == pray->id());
-	CHECK(testator.abode().outstanding().size() == 1);
+	REQUIRE(novice.abode().owed().size() == 1);
+	CHECK(novice.abode().owed()[0]->id() == pray->id());
+	CHECK(testator.abode().awaited().size() == 1);
 }
 
 
@@ -1484,7 +1487,7 @@ TEST_CASE("the testator wills a training of exercises; the novice fulfils it tel
 	// A training is a behest: the novice sees it, and it awaits him.
 	REQUIRE(obedience.behests(novice).size() == 2);
 	CHECK(std::dynamic_pointer_cast<const Training>(obedience.behests(novice).front()));
-	CHECK(novice.abode().outstanding().size() == 2);
+	CHECK(novice.abode().owed().size() == 2);
 
 	// Fulfilled as willed when he tells nothing else; or with what he has done.
 	novice.wake();
@@ -1498,7 +1501,7 @@ TEST_CASE("the testator wills a training of exercises; the novice fulfils it tel
 	const std::shared_ptr<const Deed> told = novice.execute(*monday, Saying{"тяжело"}, done);
 	CHECK(told->performed() == done);
 	CHECK(told->saying().body() == "тяжело");
-	CHECK(novice.abode().outstanding().empty());
+	CHECK(novice.abode().owed().empty());
 
 	// A plain behest is fulfilled without exercises.
 	testator.contemplate(room_in(testator, shepherding));

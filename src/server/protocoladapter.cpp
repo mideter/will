@@ -759,12 +759,16 @@ void ProtocolAdapter::tell_view(const SessionId session_id, const domain::Contem
 	if (&abode->host() == &listener) {
 		v1::ServerEvent outstanding_event;
 		auto* outstanding = outstanding_event.mutable_outstanding();
-		for (const std::shared_ptr<const domain::Behest>& behest : abode->outstanding()) {
-			auto* told = outstanding->add_behests();
-			if (const domain::Room* room = abode->room(behest->tie()))
-				told->set_room(room->name());
-			*told->mutable_behest() = word_event(*behest, listener.Soul::id()).word();
-		}
+		const auto tell = [&](const std::vector<std::shared_ptr<const domain::Behest>>& behests, auto&& add) {
+			for (const std::shared_ptr<const domain::Behest>& behest : behests) {
+				v1::OutstandingBehest* told = add();
+				if (const domain::Room* room = abode->room(behest->tie()))
+					told->set_room(room->name());
+				*told->mutable_behest() = word_event(*behest, listener.Soul::id()).word();
+			}
+		};
+		tell(abode->owed(), [&] { return outstanding->add_owed(); });
+		tell(abode->awaited(), [&] { return outstanding->add_awaited(); });
 		send_event(session_id, outstanding_event);
 	}
 

@@ -257,14 +257,26 @@ bool Abode::shows(const Man&, const Word&) const
 }
 
 
-std::vector<std::shared_ptr<const Behest>> Abode::outstanding() const
+std::vector<std::shared_ptr<const Behest>> Abode::owed() const
+{
+	return unfulfilled(true);
+}
+
+
+std::vector<std::shared_ptr<const Behest>> Abode::awaited() const
+{
+	return unfulfilled(false);
+}
+
+
+std::vector<std::shared_ptr<const Behest>> Abode::unfulfilled(const bool host_is_novice) const
 {
 	const auto& asker = dynamic_cast<const Novice&>(host_);
 
 	std::vector<std::shared_ptr<const Behest>> waiting;
 	for (const Room& room : rooms()) {
 		const auto* tie = dynamic_cast<const Tie*>(&room.reflects());
-		if (!tie)
+		if (!tie || (tie->novice().Soul::id() == host_.Soul::id()) != host_is_novice)
 			continue;
 
 		std::unordered_set<id::Word> fulfilled;

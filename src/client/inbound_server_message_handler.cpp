@@ -73,14 +73,17 @@ void print_unborn(ConsoleUi& ui, const v1::Unborn& unborn)
 
 void print_outstanding(ConsoleUi& ui, const v1::Outstanding& outstanding)
 {
-	if (outstanding.behests().empty()) {
-		ui.print_status("Nothing awaits you.");
-		return;
-	}
-	std::vector<std::vector<std::string>> rows;
-	for (const v1::OutstandingBehest& waiting : outstanding.behests())
-		rows.push_back({waiting.room(), "#" + std::to_string(waiting.behest().id()), waiting.behest().body()});
-	ui.print_list("Awaits you", rows, "/room <name>");
+	// An empty list is not told.
+	const auto print = [&](const auto& behests, const std::string& title, const std::string& hint) {
+		if (behests.empty())
+			return;
+		std::vector<std::vector<std::string>> rows;
+		for (const v1::OutstandingBehest& waiting : behests)
+			rows.push_back({waiting.room(), "#" + std::to_string(waiting.behest().id()), waiting.behest().body()});
+		ui.print_list(title, rows, hint);
+	};
+	print(outstanding.owed(), "Awaits your attention", "/room <name>");
+	print(outstanding.awaited(), "Set for others", "");
 }
 
 
