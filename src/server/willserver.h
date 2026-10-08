@@ -10,7 +10,7 @@ namespace will {
 
 class WillServer {
 public:
-	static constexpr const char* Version = "6.0.0";
+	static constexpr const char* Version = "7.0.0";
 
 	explicit WillServer(ServerConfig config = {});
 

@@ -37,7 +37,7 @@ echo "==> Configuring and building will-server (Release)..."
 (
 	cd "${ROOT}"
 	xmake f -m release -y
-	xmake build will-server -j"$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 4)"
+	xmake build -j"$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 4)" will-server
 )
 
 install -m755 "${ROOT}/build/will-server" "${STAGE}/usr/bin/will-server"
