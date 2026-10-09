@@ -1076,11 +1076,11 @@ TEST_CASE("every abode has its cell, a room reflecting the abode itself, kept on
 
 		REQUIRE(man.abode().rooms().size() == 3);
 		const Room& cell = man.abode().rooms().front();
-		CHECK(cell.name() == "Келья");
+		CHECK(cell.name() == "Слово");
 		CHECK(&cell.reflects() == static_cast<const Place*>(&man.abode()));
 		CHECK(&cell.abode() == &man.abode());
 		CHECK(cell.part() == matter::Room::Part::Inner);
-		CHECK(man.abode().room("Келья") == &cell);
+		CHECK(man.abode().room("Слово") == &cell);
 		CHECK(man.abode().room(man.abode()) == &cell);
 		CHECK(cell.dwells(man));
 		CHECK_THROWS_AS(cosmos.spatiality().furnish(man.abode().id(), man.abode().id(), matter::Room::Aspect::Words),

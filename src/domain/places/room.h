@@ -18,7 +18,7 @@ class Heaven;
 
 
 /// Room (Комната) — a window in an Abode onto what it reflects; it has no words
-/// of its own. Its name is given by what it reflects: the Cell (Келья) the words
+/// of its own. Its name is given by what it reflects: the Word (Слово) the words
 /// of the Abode itself, a tie room the words of a Tie — Ведение for its testator,
 /// Послушание for its novice; the Gates its threshold, the upper room (Горница) its
 /// dwellers. Born and held by its Abode.

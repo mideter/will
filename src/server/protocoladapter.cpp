@@ -313,7 +313,7 @@ void ProtocolAdapter::handle_user_chat(const SessionId session_id, const v1::Cha
 
 	std::shared_ptr<const domain::Word> placed;
 	if (dynamic_cast<const domain::Abode*>(&gaze->place())) {
-		send_notice(session_id, "one writes in a room: /room Келья");
+		send_notice(session_id, "one writes in a room: /room Слово");
 		return;
 	}
 	if (const auto* abode = dynamic_cast<const domain::Abode*>(&gaze->place().source())) {

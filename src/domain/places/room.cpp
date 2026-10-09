@@ -35,7 +35,7 @@ Room::Room(const Birth<Abode> birth, const Place& reflects, matter::Room kept)
 std::string Room::name() const
 {
 	if (&reflects_ == static_cast<const Place*>(&abode_))
-		return "Келья";
+		return "Слово";
 
 	if (const auto* tie = dynamic_cast<const Tie*>(&reflects_)) {
 		if (tie->testator().Soul::id() == abode_.host().Soul::id())

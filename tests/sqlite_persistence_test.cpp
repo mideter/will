@@ -429,7 +429,7 @@ TEST_CASE("sqlite keeps the dwellers of an abode and their kind across reopen")
 		// Each abode keeps its standard rooms across reopen: the cell, the gates,
 		// the upper room.
 		REQUIRE(host.abode().rooms().size() == 3);
-		CHECK(host.abode().rooms()[0].get().name() == "Келья");
+		CHECK(host.abode().rooms()[0].get().name() == "Слово");
 		CHECK(host.abode().rooms()[1].get().name() == "Врата");
 		CHECK(host.abode().rooms()[2].get().name() == "Горница");
 		CHECK(bundle.spatiality().rooms(host.abode().id()).size() == 3);

@@ -247,7 +247,7 @@ void stand_in(SessionStream& stream, const std::string& host, const std::string&
 /// Turn into one's own cell, where one writes.
 void enter_cell(SessionStream& stream)
 {
-	stand_in(stream, {}, "Келья");
+	stand_in(stream, {}, "Слово");
 }
 
 
@@ -392,7 +392,7 @@ TEST_CASE("history request returns letters of the witness abode with is_mine")
 	REQUIRE(viewer.stream->Read(&viewer_rooms));
 	REQUIRE(viewer_rooms.has_rooms());
 	REQUIRE(viewer_rooms.rooms().rooms_size() == 3);
-	CHECK(viewer_rooms.rooms().rooms(0).name() == "Келья");
+	CHECK(viewer_rooms.rooms().rooms(0).name() == "Слово");
 	CHECK(viewer_rooms.rooms().rooms(0).part() == will::v1::INNER);
 	CHECK(viewer_rooms.rooms().rooms(1).name() == "Врата");
 	CHECK(viewer_rooms.rooms().rooms(2).name() == "Горница");
@@ -506,7 +506,7 @@ TEST_CASE("a host admits a dweller, regards him anew, and he sees his abode as h
 	// He may look, but not write there, nor enter the inner cell.
 	send_chat(*man.stream, "not mine");
 	CHECK(read_event(*man.stream).has_protocol_notice());
-	send_turn_to_abode(*man.stream, host_name, "Келья");
+	send_turn_to_abode(*man.stream, host_name, "Слово");
 	CHECK(read_event(*man.stream).has_protocol_notice());
 
 	// Outside his upper room the host may not regard him anew; in it he may. A friend is
@@ -525,12 +525,12 @@ TEST_CASE("a host admits a dweller, regards him anew, and he sees his abode as h
 	REQUIRE(read_event(*man.stream).turned().abode_of() == host_name);
 	const will::v1::ServerEvent open = read_event(*man.stream);
 	REQUIRE(open.rooms().rooms_size() == 3);
-	CHECK(open.rooms().rooms(0).name() == "Келья");
+	CHECK(open.rooms().rooms(0).name() == "Слово");
 	CHECK(read_event(*man.stream).has_history_end());
 
 	// Entering the cell, he sees the words.
-	send_turn_to_abode(*man.stream, host_name, "Келья");
-	CHECK(read_event(*man.stream).turned().room() == "Келья");
+	send_turn_to_abode(*man.stream, host_name, "Слово");
+	CHECK(read_event(*man.stream).turned().room() == "Слово");
 	const will::v1::ServerEvent seen = read_event(*man.stream);
 	REQUIRE(seen.has_word());
 	CHECK(seen.word().body() == "secret");
@@ -552,14 +552,14 @@ TEST_CASE("a host admits a dweller, regards him anew, and he sees his abode as h
 	CHECK(read_event(*host.stream).has_dwellers());
 	CHECK(read_event(*host.stream).has_rooms());
 	CHECK(read_event(*man.stream).dwelling().kind() == will::v1::ACQUAINTANCE);
-	REQUIRE(read_event(*man.stream).turned().room() == "Келья");
+	REQUIRE(read_event(*man.stream).turned().room() == "Слово");
 	CHECK(read_event(*man.stream).has_history_end());
 
 	// Away from his upper room the host does not arrange his rooms.
 	stand_in(*host.stream, {}, {});
 	{
 		will::v1::ClientEvent arrange;
-		arrange.mutable_arrange()->set_room("Келья");
+		arrange.mutable_arrange()->set_room("Слово");
 		arrange.mutable_arrange()->set_part(will::v1::OUTER);
 		REQUIRE(host.stream->Write(arrange));
 	}
@@ -580,20 +580,20 @@ TEST_CASE("a host admits a dweller, regards him anew, and he sees his abode as h
 	CHECK(read_event(*host.stream).has_dwellers());
 	CHECK(read_event(*host.stream).has_rooms());
 	CHECK(read_event(*man.stream).dwelling().kind() == will::v1::NEIGHBOUR);
-	REQUIRE(read_event(*man.stream).turned().room() == "Келья");
+	REQUIRE(read_event(*man.stream).turned().room() == "Слово");
 	CHECK(read_event(*man.stream).has_history_end());
 	{
 		will::v1::ClientEvent arrange;
-		arrange.mutable_arrange()->set_room("Келья");
+		arrange.mutable_arrange()->set_room("Слово");
 		arrange.mutable_arrange()->set_part(will::v1::OUTER);
 		REQUIRE(host.stream->Write(arrange));
 	}
 	CHECK(read_event(*host.stream).has_protocol_notice());
 	const will::v1::ServerEvent arranged = read_event(*host.stream);  // all his rooms, each in its part
 	REQUIRE(arranged.rooms().rooms_size() == 3);
-	CHECK(arranged.rooms().rooms(0).name() == "Келья");
+	CHECK(arranged.rooms().rooms(0).name() == "Слово");
 	CHECK(arranged.rooms().rooms(0).part() == will::v1::OUTER);
-	REQUIRE(read_event(*man.stream).turned().room() == "Келья");
+	REQUIRE(read_event(*man.stream).turned().room() == "Слово");
 	CHECK(read_event(*man.stream).word().body() == "secret");
 	CHECK(read_event(*man.stream).word().body() == "news");
 	CHECK(read_event(*man.stream).has_history_end());
@@ -721,7 +721,7 @@ TEST_CASE("one lists the abodes one dwells in and the supplications awaiting one
 	const will::v1::ServerEvent own_rooms = next_past_gates(*b.stream);
 	REQUIRE(own_rooms.has_rooms());
 	REQUIRE(own_rooms.rooms().rooms_size() == 3);
-	CHECK(own_rooms.rooms().rooms(0).name() == "Келья");
+	CHECK(own_rooms.rooms().rooms(0).name() == "Слово");
 	{
 		will::v1::ClientEvent list;
 		list.mutable_list_rooms()->set_abode_of(a_name);
@@ -771,7 +771,7 @@ TEST_CASE("an unborn body waits, seen by the keepers of gates; it is born of the
 	REQUIRE(welcomed.auth_ok().unborn());
 	CHECK(welcomed.auth_ok().name().empty());
 	const std::uint64_t mark = welcomed.auth_ok().mark();
-	send_turn_to_abode(*seth.stream, {}, "Келья");
+	send_turn_to_abode(*seth.stream, {}, "Слово");
 	CHECK(read_event(*seth.stream).protocol_notice().message() == "one awaits one's birth");
 
 	// Adam sees him awaiting at once, and bears him.

@@ -251,7 +251,7 @@ TEST_CASE("second session with same device token displaces the first")
 	// One writes in one's cell.
 	{
 		will::v1::ClientEvent turn;
-		turn.mutable_turn()->set_room("Келья");
+		turn.mutable_turn()->set_room("Слово");
 		REQUIRE(second.stream->Write(turn));
 		will::v1::ServerEvent event;
 		REQUIRE(second.stream->Read(&event));
