@@ -370,7 +370,17 @@ TEST_CASE("history request returns letters of the witness abode with is_mine")
 	born_named(elder, *sender.stream, SenderToken);
 	enter_cell(*sender.stream);
 	send_chat(*sender.stream, "hello-from-sender");
-	drain_receipt_ack(*sender.stream);
+	{
+		// The receipt carries the word itself: the author is not told it otherwise.
+		will::v1::ServerEvent receipt;
+		REQUIRE(sender.stream->Read(&receipt));
+		REQUIRE(receipt.has_receipt_ack());
+		REQUIRE(receipt.receipt_ack().has_word());
+		CHECK(receipt.receipt_ack().word().body() == "hello-from-sender");
+		CHECK(receipt.receipt_ack().word().is_mine());
+		CHECK(receipt.receipt_ack().word().kind() == will::v1::Word::LETTER);
+		CHECK(receipt.receipt_ack().word().id() != 0);
+	}
 
 	GrpcSession viewer = open_session(port);
 	REQUIRE(viewer.stream);

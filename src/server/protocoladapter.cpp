@@ -346,7 +346,7 @@ void ProtocolAdapter::handle_user_chat(const SessionId session_id, const v1::Cha
 	}
 
 	v1::ServerEvent ack;
-	ack.mutable_receipt_ack();
+	*ack.mutable_receipt_ack()->mutable_word() = word_event(*placed, man.Soul::id()).word();
 	send_event(session_id, ack);
 
 	tell_placed(gaze->place().source(), *placed, man);

@@ -39,7 +39,11 @@ message AuthOk {
 }
 
 
-message ReceiptAck {}
+// The saying is placed; the word it became, as its author sees it: the server
+// does not tell the author his word otherwise.
+message ReceiptAck {
+    Word word = 1;
+}
 
 
 // One go at an exercise: so many repetitions with this weight, in grams (zero
