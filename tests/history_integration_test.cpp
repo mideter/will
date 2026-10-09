@@ -236,7 +236,7 @@ void stand_in(SessionStream& stream, const std::string& host, const std::string&
 	will::v1::ServerEvent event;
 	do {
 		REQUIRE(stream.Read(&event));
-	} while (event.has_threshold());  // words about gates one stood in before
+	} while (event.has_threshold() || event.has_unborn());  // words about gates one stood in before
 	REQUIRE(event.has_turned());
 	do {
 		REQUIRE(stream.Read(&event));
@@ -257,7 +257,7 @@ will::v1::ServerEvent next_past_gates(SessionStream& stream)
 	will::v1::ServerEvent event;
 	do {
 		REQUIRE(stream.Read(&event));
-	} while (event.has_threshold());
+	} while (event.has_threshold() || event.has_unborn());
 	return event;
 }
 
@@ -282,8 +282,8 @@ void send_regard(SessionStream& stream, const std::string& name, const will::v1:
 constexpr const char* ElderToken = "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee";
 
 
-/// The first man of the server: begotten at once, he bears the others in his
-/// birth room, that no man of a test is the father of another.
+/// The first man of the server: begotten at once, he bears the others at his
+/// gates, that no man of a test is the father of another.
 struct Elder {
 	GrpcSession session;
 	std::string name;
@@ -319,7 +319,7 @@ std::string born_named(Elder& elder, SessionStream& stream, const char* device_t
 	REQUIRE(welcomed.auth_ok().unborn());
 
 	SessionStream& midwife = *elder.session.stream;
-	stand_in(midwife, {}, "Родильная");
+	stand_in(midwife, {}, "Врата");
 	send_bear(midwife, welcomed.auth_ok().mark());
 	CHECK(read_event(midwife).has_protocol_notice());
 	CHECK(read_event(midwife).has_dwelling());  // he dwells in the child's abode as a neighbour
@@ -391,12 +391,11 @@ TEST_CASE("history request returns letters of the witness abode with is_mine")
 	will::v1::ServerEvent viewer_rooms;
 	REQUIRE(viewer.stream->Read(&viewer_rooms));
 	REQUIRE(viewer_rooms.has_rooms());
-	REQUIRE(viewer_rooms.rooms().rooms_size() == 4);
+	REQUIRE(viewer_rooms.rooms().rooms_size() == 3);
 	CHECK(viewer_rooms.rooms().rooms(0).name() == "Келья");
 	CHECK(viewer_rooms.rooms().rooms(0).part() == will::v1::INNER);
 	CHECK(viewer_rooms.rooms().rooms(1).name() == "Врата");
 	CHECK(viewer_rooms.rooms().rooms(2).name() == "Горница");
-	CHECK(viewer_rooms.rooms().rooms(3).name() == "Родильная");
 	will::v1::ServerEvent viewer_outstanding;
 	REQUIRE(viewer.stream->Read(&viewer_outstanding));
 	CHECK(viewer_outstanding.has_outstanding());
@@ -478,6 +477,7 @@ TEST_CASE("a host admits a dweller, regards him anew, and he sees his abode as h
 	const will::v1::ServerEvent waiting = read_event(*host.stream);
 	REQUIRE(waiting.threshold().waiting_size() == 1);
 	CHECK(waiting.threshold().waiting(0) == man_name);
+	CHECK(read_event(*host.stream).has_unborn());  // keeping the gates, he sees the unborn too
 	CHECK(read_event(*host.stream).has_history_end());
 	CHECK(read_event(*man.stream).threshold().open());
 
@@ -485,6 +485,7 @@ TEST_CASE("a host admits a dweller, regards him anew, and he sees his abode as h
 	send_admit(*host.stream, man_name);
 	CHECK(read_event(*host.stream).has_protocol_notice());
 	CHECK(read_event(*host.stream).threshold().waiting_size() == 0);
+	CHECK(read_event(*host.stream).has_unborn());
 	const will::v1::ServerEvent dwelling = read_event(*man.stream);
 	REQUIRE(dwelling.has_dwelling());
 	CHECK(dwelling.dwelling().host_name() == host_name);
@@ -493,6 +494,7 @@ TEST_CASE("a host admits a dweller, regards him anew, and he sees his abode as h
 
 	send_turn_to_abode(*man.stream, host_name);
 	CHECK(read_event(*host.stream).has_threshold());  // he left the gates the host stands in
+	CHECK(read_event(*host.stream).has_unborn());
 	const will::v1::ServerEvent turned = read_event(*man.stream);
 	REQUIRE(turned.has_turned());
 	CHECK(turned.turned().abode_of() == host_name);
@@ -522,7 +524,7 @@ TEST_CASE("a host admits a dweller, regards him anew, and he sees his abode as h
 	CHECK(read_event(*man.stream).dwelling().kind() == will::v1::FRIEND);
 	REQUIRE(read_event(*man.stream).turned().abode_of() == host_name);
 	const will::v1::ServerEvent open = read_event(*man.stream);
-	REQUIRE(open.rooms().rooms_size() == 4);
+	REQUIRE(open.rooms().rooms_size() == 3);
 	CHECK(open.rooms().rooms(0).name() == "Келья");
 	CHECK(read_event(*man.stream).has_history_end());
 
@@ -568,7 +570,7 @@ TEST_CASE("a host admits a dweller, regards him anew, and he sees his abode as h
 	CHECK(read_event(*host.stream).has_turned());
 	CHECK(read_event(*host.stream).has_dwellers());
 	const will::v1::ServerEvent shown_rooms = read_event(*host.stream);
-	REQUIRE(shown_rooms.rooms().rooms_size() == 4);
+	REQUIRE(shown_rooms.rooms().rooms_size() == 3);
 	CHECK(shown_rooms.rooms().rooms(0).part() == will::v1::INNER);
 	CHECK(read_event(*host.stream).has_history_end());
 
@@ -588,7 +590,7 @@ TEST_CASE("a host admits a dweller, regards him anew, and he sees his abode as h
 	}
 	CHECK(read_event(*host.stream).has_protocol_notice());
 	const will::v1::ServerEvent arranged = read_event(*host.stream);  // all his rooms, each in its part
-	REQUIRE(arranged.rooms().rooms_size() == 4);
+	REQUIRE(arranged.rooms().rooms_size() == 3);
 	CHECK(arranged.rooms().rooms(0).name() == "Келья");
 	CHECK(arranged.rooms().rooms(0).part() == will::v1::OUTER);
 	REQUIRE(read_event(*man.stream).turned().room() == "Келья");
@@ -718,7 +720,7 @@ TEST_CASE("one lists the abodes one dwells in and the supplications awaiting one
 	}
 	const will::v1::ServerEvent own_rooms = next_past_gates(*b.stream);
 	REQUIRE(own_rooms.has_rooms());
-	REQUIRE(own_rooms.rooms().rooms_size() == 4);
+	REQUIRE(own_rooms.rooms().rooms_size() == 3);
 	CHECK(own_rooms.rooms().rooms(0).name() == "Келья");
 	{
 		will::v1::ClientEvent list;
@@ -736,7 +738,7 @@ TEST_CASE("one lists the abodes one dwells in and the supplications awaiting one
 }
 
 
-TEST_CASE("an unborn body waits, seen in birth rooms; it is born of the host of the room; the father by spirit is not yet open")
+TEST_CASE("an unborn body waits, seen by the keepers of gates; it is born of their host; the father by spirit is not yet open")
 {
 	const std::uint16_t port = static_cast<std::uint16_t>(pick_port() + 3);
 	const std::string directory = "/tmp/will-birth-test-" + std::to_string(getpid());
@@ -750,9 +752,10 @@ TEST_CASE("an unborn body waits, seen in birth rooms; it is born of the host of 
 	Elder elder = first_man(port);
 	SessionStream& adam = *elder.session.stream;
 
-	// Standing in his birth room, he sees no one awaiting.
-	send_turn_to_abode(adam, {}, "Родильная");
-	CHECK(read_event(adam).turned().aspect() == will::v1::BIRTH);
+	// Standing at his gates, he keeps them and sees no one awaiting birth.
+	send_turn_to_abode(adam, {}, "Врата");
+	CHECK(read_event(adam).turned().aspect() == will::v1::THRESHOLD);
+	CHECK(read_event(adam).threshold().keeping());
 	CHECK(read_event(adam).unborn().marks_size() == 0);
 	CHECK(read_event(adam).has_history_end());
 
@@ -788,11 +791,26 @@ TEST_CASE("an unborn body waits, seen in birth rooms; it is born of the host of 
 	CHECK(dwelling.dwelling().host_name() == elder.name);
 	CHECK(dwelling.dwelling().kind() == will::v1::ACQUAINTANCE);
 
-	// One man at a time stands in a birth room: Adam is in his, so Seth's own is open
-	// to Seth, but Seth, a stranger to Adam's inner part, may not enter Adam's.
-	stand_in(*seth.stream, {}, "Родильная");
-	send_turn_to_abode(*seth.stream, elder.name, "Родильная");
-	CHECK(read_event(*seth.stream).has_protocol_notice());
+	// Many stand at the gates at once. Seth comes to Adam's gates beside him: he only
+	// waits there, does not keep them, and is not shown the unborn.
+	send_turn_to_abode(*seth.stream, elder.name, "Врата");
+	CHECK(read_event(*seth.stream).turned().aspect() == will::v1::THRESHOLD);
+	CHECK_FALSE(read_event(*seth.stream).threshold().keeping());
+	CHECK(read_event(*seth.stream).has_history_end());
+
+	// Another body comes: Adam sees it, Seth does not, nor may he bear it.
+	GrpcSession enos = open_session(port);
+	REQUIRE(enos.stream);
+	{
+		will::v1::ClientEvent bind;
+		bind.mutable_bind_token()->set_token(ViewerToken);
+		REQUIRE(enos.stream->Write(bind));
+	}
+	const std::uint64_t enos_mark = read_event(*enos.stream).auth_ok().mark();
+	const will::v1::ServerEvent seen = read_until(adam, [](const auto& e) { return e.unborn().marks_size() > 0; });
+	CHECK(seen.unborn().marks(0) == enos_mark);
+	send_bear(*seth.stream, enos_mark);
+	CHECK(read_event(*seth.stream).protocol_notice().message() == "one bears only at gates one keeps");
 
 	// The father by spirit is not yet open: neither choosing him nor the line is done.
 	{
@@ -806,8 +824,10 @@ TEST_CASE("an unborn body waits, seen in birth rooms; it is born of the host of 
 		list.mutable_list_lineage();
 		REQUIRE(adam.Write(list));
 	}
-	CHECK(read_event(adam).protocol_notice().message() == "the father by spirit is not yet open");
+	CHECK(read_until(adam, [](const auto& e) { return e.has_protocol_notice(); }).protocol_notice().message()
+		  == "the father by spirit is not yet open");
 
+	enos.context->TryCancel();
 	seth.context->TryCancel();
 	elder.session.context->TryCancel();
 	server.stop();

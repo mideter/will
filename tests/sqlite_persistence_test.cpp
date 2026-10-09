@@ -427,13 +427,12 @@ TEST_CASE("sqlite keeps the dwellers of an abode and their kind across reopen")
 		CHECK(std::dynamic_pointer_cast<const Neighbour>(host.abode().dweller(*host.father(matter::Fatherhood::Line::Flesh))));
 
 		// Each abode keeps its standard rooms across reopen: the cell, the gates,
-		// the upper room, the birth room.
-		REQUIRE(host.abode().rooms().size() == 4);
+		// the upper room.
+		REQUIRE(host.abode().rooms().size() == 3);
 		CHECK(host.abode().rooms()[0].get().name() == "Келья");
 		CHECK(host.abode().rooms()[1].get().name() == "Врата");
 		CHECK(host.abode().rooms()[2].get().name() == "Горница");
-		CHECK(host.abode().rooms()[3].get().name() == "Родильная");
-		CHECK(bundle.spatiality().rooms(host.abode().id()).size() == 4);
+		CHECK(bundle.spatiality().rooms(host.abode().id()).size() == 3);
 	}
 
 }
@@ -472,6 +471,38 @@ TEST_CASE("sqlite gives the rooms kept before aspects were the aspect of words")
 		CHECK(bundle.spatiality().rooms(domain::id::Place{3}).size() == 2);
 	}
 
+}
+
+
+TEST_CASE("sqlite lets the birth rooms kept before go: one is born through the gates")
+{
+	using namespace will;
+
+	const std::string directory = "/tmp/will-sqlite-birth-room-test-" + std::to_string(getpid());
+	const ScratchDirectory scratch{directory};
+
+	// A space database as it was kept before: the cell, the gates, the upper room, the birth room.
+	{
+		sqlite3* db = nullptr;
+		REQUIRE(sqlite3_open((directory + "/will.space.db").c_str(), &db) == SQLITE_OK);
+		REQUIRE(sqlite3_exec(db,
+							 "CREATE TABLE rooms (id INTEGER PRIMARY KEY, abode_id INTEGER NOT NULL, "
+							 "place_id INTEGER NOT NULL, aspect INTEGER NOT NULL DEFAULT 0, part INTEGER NOT NULL, "
+							 "UNIQUE (abode_id, place_id, aspect));"
+							 "INSERT INTO rooms (id, abode_id, place_id, aspect, part) VALUES "
+							 "(7, 3, 3, 0, 0), (8, 3, 3, 1, 1), (9, 3, 3, 2, 0), (10, 3, 3, 3, 0);",
+							 nullptr, nullptr, nullptr)
+				== SQLITE_OK);
+		sqlite3_close(db);
+	}
+
+	SqlitePersistenceBundle bundle(directory);
+	const auto rooms = bundle.spatiality().rooms(domain::id::Place{3});
+	REQUIRE(rooms.size() == 3);
+	CHECK(rooms[0].aspect() == domain::matter::Room::Aspect::Words);
+	CHECK(rooms[1].aspect() == domain::matter::Room::Aspect::Threshold);
+	CHECK(rooms[1].part() == domain::matter::Room::Part::Outer);
+	CHECK(rooms[2].aspect() == domain::matter::Room::Aspect::Dwellers);
 }
 
 

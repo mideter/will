@@ -7,7 +7,7 @@ namespace will::domain::matter {
 
 
 /// Fatherhood (Отцовство) — a father and his child, by flesh or by spirit.
-/// The father by flesh is the host of the birth room the child was born in: one,
+/// The father by flesh is the host of the gates the child was born at: one,
 /// never changed. The father by spirit the child chooses: at most one at a time.
 /// Eternity keeps it, for it binds souls.
 class Fatherhood {

@@ -21,7 +21,7 @@ class Heaven;
 /// of its own. Its name is given by what it reflects: the Cell (Келья) the words
 /// of the Abode itself, a tie room the words of a Tie — Ведение for its testator,
 /// Послушание for its novice; the Gates its threshold, the upper room (Горница) its
-/// dwellers, the birth room (Родильная) the unborn. Born and held by its Abode.
+/// dwellers. Born and held by its Abode.
 class Room : public Place {
 public:
 	Room(Birth<Abode> birth, const Place& reflects, matter::Room kept);
@@ -53,12 +53,14 @@ private:
 };
 
 
-/// Gates (Врата) — the room reflecting the threshold of an Abode. Anyone who
-/// would come into another's Abode enters its Gates by the host's name and stands
-/// there until he leaves. Those who keep the Gates — the host, and the dwellers
-/// whose kind enters the part they stand in — open them by standing there: they
-/// see who waits and may let him in, an acquaintance of the host, whoever lets
-/// him in. The Gates show no words.
+/// Gates (Врата) — the room reflecting the threshold of an Abode: one comes in
+/// through it born or to be born. Anyone who would come into another's Abode
+/// enters its Gates by the host's name and stands there until he leaves. Those
+/// who keep the Gates — the host, and the dwellers whose kind enters the part
+/// they stand in — open them by standing there: they see who waits and may let
+/// him in, an acquaintance of the host, whoever lets him in; and they see the
+/// unborn and may bear one, a child of the host, whoever bears him. The Gates
+/// show no words.
 class Gates final : public Room, private Immanent<Heaven> {
 public:
 	Gates(Birth<Abode> birth, matter::Room kept);
@@ -92,24 +94,6 @@ public:
 	UpperRoom(Birth<Abode> birth, matter::Room kept);
 
 	std::string name() const override;
-
-	const Place& source() const override;
-	bool shows(const Man& who, const Word& word) const override;
-};
-
-
-/// BirthRoom (Родильная) — the room reflecting the unborn: every body awaiting
-/// its soul is seen here, and whoever stands here may bear one. The child is
-/// born of the host of the room, his father by flesh, whoever bears him. One
-/// man at a time stands here — the host as well. It shows no words.
-class BirthRoom final : public Room, private Immanent<Heaven> {
-public:
-	BirthRoom(Birth<Abode> birth, matter::Room kept);
-
-	std::string name() const override;
-
-	/// One enters by the part, as any room, while no one else stands here.
-	bool dwells(const Man& man) const override;
 
 	const Place& source() const override;
 	bool shows(const Man& who, const Word& word) const override;

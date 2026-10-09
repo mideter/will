@@ -176,7 +176,7 @@ void print_help(ConsoleUi& ui)
 	ui.print_commands("Obedience", "/ask <name>  /accept <name>  /reject <name>  /supplications  /done <number> [report]");
 	ui.print_commands("Training", "/train [title] | <exercise> 60x10 1:30/70x8 2:00/80x6 | …  (1:30/ — rest before)");
 	ui.print_commands("", "/begin <training> <exercise> <approach>  /finish <training> 60x10  /done <training> [report]");
-	ui.print_commands("Birth", "/birth  /bear <mark>");
+	ui.print_commands("Birth", "/birth (your gates: the unborn)  /bear <mark>");
 	ui.print_status("Type text in a room to write there.", "Ctrl+D to exit");
 }
 
@@ -379,7 +379,8 @@ bool handle_slash_command(WillClient& client, ConsoleUi& ui, ShownRooms& rooms, 
 		return true;
 	}
 	if (cmd == "birth") {
-		client.visit({}, "Родильная");
+		// The unborn are seen at one's own gates.
+		client.visit({}, "Врата");
 		return true;
 	}
 	if (cmd == "reject") {
@@ -476,7 +477,7 @@ bool ChatSession::awaitBirth() const
 
 	ui_.print_header("You are not yet born.");
 	ui_.print_status("Your body is seen as #" + std::to_string(*client_.mark())
-						 + " in birth rooms: wait until someone bears you.",
+						 + " at the gates: wait until someone bears you.",
 					 "Ctrl+D to leave");
 
 	std::mutex mutex;

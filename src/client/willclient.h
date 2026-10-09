@@ -64,7 +64,7 @@ public:
 	void list_supplications() const;
 	void reject(std::string_view suppliant_name) const;
 
-	/// Bear the unborn with this mark, standing in a birth room.
+	/// Bear the unborn with this mark, standing in gates one keeps.
 	void bear(std::uint64_t mark) const;
 	void choose_father(std::string_view name) const;
 	void list_lineage() const;

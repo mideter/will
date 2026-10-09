@@ -38,7 +38,7 @@ std::optional<domain::matter::Abode> kept_abode(sqlite3* db, const domain::id::S
 
 domain::matter::Room::Aspect aspect_of(const std::int64_t kept)
 {
-	if (kept < 0 || kept > static_cast<std::int64_t>(domain::matter::Room::Aspect::Birth))
+	if (kept < 0 || kept > static_cast<std::int64_t>(domain::matter::Room::Aspect::Dwellers))
 		throw std::runtime_error("room: unknown aspect in database");
 	return static_cast<domain::matter::Room::Aspect>(kept);
 }

@@ -252,9 +252,9 @@ void ProtocolAdapter::handle_bind_token(const SessionId session_id, const v1::Bi
 	}
 	send_event(session_id, event);
 
-	// Those in birth rooms see the new body awaiting.
+	// The keepers standing in gates see the new body awaiting.
 	if (!man)
-		retell_birth_rooms();
+		retell_unborn();
 }
 
 
@@ -524,12 +524,7 @@ void ProtocolAdapter::handle_turn(const SessionId session_id, const v1::Turn& ms
 			witness.contemplate(*room);
 		}
 	} catch (const std::logic_error&) {
-		const auto* birth_room = msg.room().empty() ? nullptr
-													: dynamic_cast<const domain::BirthRoom*>(host->abode().room(msg.room()));
-		if (birth_room && birth_room->domain::Room::dwells(self))
-			send_notice(session_id, "the birth room holds one at a time");
-		else
-			send_notice(session_id, msg.room().empty() ? "you do not dwell in that abode" : "you do not enter that room");
+		send_notice(session_id, msg.room().empty() ? "you do not dwell in that abode" : "you do not enter that room");
 		return;
 	}
 
@@ -605,8 +600,6 @@ v1::RoomAspect aspect_of(const domain::Place& place)
 		return v1::THRESHOLD;
 	case domain::matter::Room::Aspect::Dwellers:
 		return v1::DWELLERS;
-	case domain::matter::Room::Aspect::Birth:
-		return v1::BIRTH;
 	default:
 		return v1::WORDS;
 	}
@@ -748,6 +741,9 @@ void ProtocolAdapter::tell_view(const SessionId session_id, const domain::Contem
 {
 	if (const auto* gates = dynamic_cast<const domain::Gates*>(&gaze.place())) {
 		send_event(session_id, threshold_event(*gates, listener));
+		// Who keeps the gates sees the unborn too: he may bear one through them.
+		if (gates->keeps(listener))
+			send_event(session_id, unborn_event());
 		v1::ServerEvent end_event;
 		end_event.mutable_history_end();
 		send_event(session_id, end_event);
@@ -758,13 +754,6 @@ void ProtocolAdapter::tell_view(const SessionId session_id, const domain::Contem
 		// The host arranges his abode here: he is shown all its rooms, each in its part.
 		if (&upper_room->abode().host() == &listener)
 			send_event(session_id, arranged_rooms_event(upper_room->abode()));
-		v1::ServerEvent end_event;
-		end_event.mutable_history_end();
-		send_event(session_id, end_event);
-		return;
-	}
-	if (dynamic_cast<const domain::BirthRoom*>(&gaze.place())) {
-		send_event(session_id, unborn_event());
 		v1::ServerEvent end_event;
 		end_event.mutable_history_end();
 		send_event(session_id, end_event);
@@ -1015,7 +1004,7 @@ void ProtocolAdapter::handle_bear(const SessionId session_id, const v1::Bear& ms
 	tell_dwelling(father, child);
 	tell_dwelling(child, father);
 	retell_upper_room(father.abode().upper_room());
-	retell_birth_rooms();
+	retell_unborn();
 }
 
 
@@ -1042,7 +1031,7 @@ v1::ServerEvent ProtocolAdapter::unborn_event() const
 }
 
 
-void ProtocolAdapter::retell_birth_rooms()
+void ProtocolAdapter::retell_unborn()
 {
 	std::vector<domain::id::Vessel> woken;
 	{
@@ -1057,7 +1046,8 @@ void ProtocolAdapter::retell_birth_rooms()
 		if (!man)
 			continue;
 		const std::shared_ptr<const domain::Contemplation> gaze = world_.contemplation(man->Soul::id());
-		if (gaze && dynamic_cast<const domain::BirthRoom*>(&gaze->place()))
+		const auto* gates = gaze ? dynamic_cast<const domain::Gates*>(&gaze->place()) : nullptr;
+		if (gates && gates->keeps(*man))
 			send_to_vessel(vessel, event);
 	}
 }
@@ -1217,6 +1207,9 @@ void ProtocolAdapter::retell_gates(const domain::Gates& gates, const domain::Sou
 			continue;
 		const auto& man = static_cast<const domain::Man&>(soul);
 		send_to_vessel(man.Vessel::id(), threshold_event(gates, man));
+		// One who now keeps them sees the unborn as well.
+		if (gates.keeps(man))
+			send_to_vessel(man.Vessel::id(), unborn_event());
 	}
 }
 

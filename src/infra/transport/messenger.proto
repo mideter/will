@@ -31,7 +31,7 @@ message AuthRequired {}
 
 
 // The body is welcomed: the man dwelling in it by his name, or, unborn, the
-// mark of the body by which it is seen in birth rooms.
+// mark of the body by which the keepers of gates see it.
 message AuthOk {
     string name = 1;
     bool unborn = 2;
@@ -212,8 +212,8 @@ message Train {
 }
 
 
-// Bear the unborn with this mark, standing in a birth room: the child is born
-// of the host of that room.
+// Bear the unborn with this mark, standing in gates one keeps: the child is born
+// of the host of those gates.
 message Bear {
     uint64 mark = 1;
 }
@@ -242,12 +242,14 @@ message TieFormed {
 
 
 // What a room reflects: the words of a place, the threshold of the abode (the
-// gates), its dwellers (the upper room), or the unborn (the birth room).
+// gates, through which one comes in, born or to be born), or its dwellers (the
+// upper room).
 enum RoomAspect {
     WORDS = 0;
     THRESHOLD = 1;
     DWELLERS = 2;
-    BIRTH = 3;
+    reserved 3;  // the birth room: one is born through the gates now
+    reserved "BIRTH";
 }
 
 
@@ -358,8 +360,8 @@ message Exerted {
 }
 
 
-// The bodies awaiting their birth, by their marks, told to one standing in a
-// birth room: on entering it and whenever one comes or is born.
+// The bodies awaiting their birth, by their marks, told to one standing in gates
+// he keeps: on entering them and whenever one comes or is born.
 message Unborn {
     repeated uint64 marks = 1;
 }

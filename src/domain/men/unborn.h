@@ -12,8 +12,8 @@ class World;
 
 
 /// Unborn (Нерождённый) — a body awaiting its soul: a device came into the world,
-/// but no one has borne it yet. It only waits, seen in every birth room by the
-/// mark of its body. Born and held by the World until it is born a man.
+/// but no one has borne it yet. It only waits, seen by the keepers of every gates
+/// by the mark of its body. Born and held by the World until it is born a man.
 class Unborn final : public Vessel {
 public:
 	Unborn(Birth<World>, matter::Vessel kept);

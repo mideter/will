@@ -17,7 +17,6 @@ namespace will {
 
 
 namespace domain {
-class BirthRoom;
 class Tie;
 class Training;
 class Gates;
@@ -117,8 +116,8 @@ private:
 	/// Tell everyone in this upper room its dwellers.
 	void retell_upper_room(const domain::UpperRoom& upper_room);
 
-	/// Tell everyone standing in a birth room the unborn.
-	void retell_birth_rooms();
+	/// Tell everyone standing in gates he keeps the unborn.
+	void retell_unborn();
 
 	/// The unborn, by their marks.
 	v1::ServerEvent unborn_event() const;

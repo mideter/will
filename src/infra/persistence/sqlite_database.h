@@ -40,6 +40,9 @@ private:
 	/// Rooms kept before they had an aspect (all windows onto words) get one.
 	void give_rooms_their_aspect();
 
+	/// Birth rooms kept before birth came through the gates are gone.
+	void fold_birth_rooms_into_gates();
+
 	/// Approaches kept before they had a rest are given none.
 	void give_approaches_their_rest();
 

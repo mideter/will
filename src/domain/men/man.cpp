@@ -30,11 +30,10 @@ Man::Man(matter::Man kept)
 	abode_ = std::make_unique<Abode>(Birth<Man>{*this}, std::move(*own));
 
 	// The standard rooms reflect the abode itself: the cell its words, the gates
-	// its threshold, the upper room its dwellers, the birth room the unborn.
+	// its threshold, the upper room its dwellers.
 	std::vector<matter::Room> rooms = spatiality().rooms(abode_->id());
 	for (const matter::Room::Aspect aspect :
-		 {matter::Room::Aspect::Words, matter::Room::Aspect::Threshold, matter::Room::Aspect::Dwellers,
-		  matter::Room::Aspect::Birth}) {
+		 {matter::Room::Aspect::Words, matter::Room::Aspect::Threshold, matter::Room::Aspect::Dwellers}) {
 		const auto found = std::find_if(rooms.begin(), rooms.end(), [&](const matter::Room& room) {
 			return room.reflects() == abode_->id() && room.aspect() == aspect;
 		});

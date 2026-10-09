@@ -48,10 +48,11 @@ public:
 	/// The unborn body with this id. Throws (std::invalid_argument) if none awaits.
 	const Unborn& unborn(id::Vessel id) const;
 
-	/// A midwife standing in a birth room bears the unborn: a soul is enrolled
-	/// into its body, and the man is born of the host of that room, his father by
+	/// A midwife standing in gates he keeps bears the unborn: a soul is enrolled
+	/// into its body, and the man is born of the host of those gates, his father by
 	/// flesh. The father becomes a neighbour in the child's abode, the child an
-	/// acquaintance in the father's. Throws if the midwife stands elsewhere.
+	/// acquaintance in the father's. Throws if the midwife stands elsewhere or does
+	/// not keep the gates he stands in.
 	const Man& bear(const Man& midwife, const Unborn& unborn);
 
 	/// A man chooses his father by spirit; the father cannot refuse. The former

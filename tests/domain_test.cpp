@@ -273,7 +273,7 @@ TEST_CASE("letters of an abode live while it is contemplated, shared by every ga
 	World& world = creation.world();
 
 	const auto& host = static_cast<const Witness&>(born(world, DeviceToken::generate()));
-	// The forefather bore him standing in his birth room: what was read for it is not counted.
+	// The forefather bore him standing at his gates: what was read for it is not counted.
 	const std::size_t born_reads = cosmos.spatiality().placement_reads();
 
 	// Asleep, nobody beholds the abode: nothing is read from the dimensions.
@@ -377,7 +377,7 @@ TEST_CASE("letters of an abode are gone with the last gaze and are born anew fro
 	World& world = creation.world();
 
 	const auto& host = static_cast<const Witness&>(born(world, DeviceToken::generate()));
-	// The forefather bore him standing in his birth room: what was read for it is not counted.
+	// The forefather bore him standing at his gates: what was read for it is not counted.
 	const std::size_t born_reads = cosmos.spatiality().placement_reads();
 
 	host.wake();
@@ -1024,7 +1024,7 @@ TEST_CASE("a tie is reflected in the abode of each side: Ведение and По
 		CHECK(leading->name() == "Ведение — " + novice_name);
 		CHECK(obeying->name() == "Послушание — " + testator_name);
 		CHECK(leading->part() == matter::Room::Part::Inner);
-		CHECK(testator.abode().rooms().size() == 5);  // the cell, the gates, the upper room, the birth room, Ведение
+		CHECK(testator.abode().rooms().size() == 4);  // the cell, the gates, the upper room, Ведение
 	}
 
 	// Awakening anew, the tie rooms are recalled with the tie.
@@ -1034,7 +1034,7 @@ TEST_CASE("a tie is reflected in the abode of each side: Ведение and По
 	const auto& testator = static_cast<const Testator&>(born(world, testator_token));
 	CHECK(testator.abode().room("Ведение — " + novice_name));
 	CHECK(novice.abode().room("Послушание — " + testator_name));
-	CHECK(store.rooms.size() == 14);  // four standard rooms in each of three abodes (the forefather's too), two tie rooms
+	CHECK(store.rooms.size() == 11);  // three standard rooms in each of three abodes (the forefather's too), two tie rooms
 }
 
 
@@ -1055,13 +1055,13 @@ TEST_CASE("a tie bound before rooms were is given its rooms on awakening")
 	}
 	// As kept before tie rooms were: only the standard rooms remain.
 	std::erase_if(store.rooms, [](const matter::Room& room) { return room.reflects() != room.abode(); });
-	REQUIRE(store.rooms.size() == 12);
+	REQUIRE(store.rooms.size() == 9);
 
 	InMemoryCosmos cosmos(store);
 	World& world = cosmos.life().create().world();
 	const auto& novice = static_cast<const Novice&>(born(world, novice_token));
-	CHECK(novice.abode().rooms().size() == 5);
-	CHECK(store.rooms.size() == 14);
+	CHECK(novice.abode().rooms().size() == 4);
+	CHECK(store.rooms.size() == 11);
 }
 
 
@@ -1074,7 +1074,7 @@ TEST_CASE("every abode has its cell, a room reflecting the abode itself, kept on
 		World& world = cosmos.life().create().world();
 		const Man& man = born(world, token);
 
-		REQUIRE(man.abode().rooms().size() == 4);
+		REQUIRE(man.abode().rooms().size() == 3);
 		const Room& cell = man.abode().rooms().front();
 		CHECK(cell.name() == "Келья");
 		CHECK(&cell.reflects() == static_cast<const Place*>(&man.abode()));
@@ -1090,8 +1090,8 @@ TEST_CASE("every abode has its cell, a room reflecting the abode itself, kept on
 	// Awakening anew, the cell is recalled, not furnished again.
 	InMemoryCosmos cosmos(store);
 	const Man& man = born(cosmos.life().create().world(), token);
-	REQUIRE(man.abode().rooms().size() == 4);
-	CHECK(store.rooms.size() == 8);  // and the forefather's four
+	REQUIRE(man.abode().rooms().size() == 3);
+	CHECK(store.rooms.size() == 6);  // and the forefather's three
 	const id::Place cell = man.abode().rooms().front().get().id();
 	CHECK(std::count_if(store.rooms.begin(), store.rooms.end(), [&](const matter::Room& room) {
 		return room.id() == cell;
@@ -1255,7 +1255,7 @@ TEST_CASE("the first man is begotten at once; a body coming after awaits its bir
 }
 
 
-TEST_CASE("one bears in a birth room; the child is born of its host, who is ever his neighbour")
+TEST_CASE("one bears at gates one keeps; the child is born of their host, who is ever his neighbour")
 {
 	InMemoryShared store;
 	const DeviceToken child_token = DeviceToken::generate();
@@ -1267,29 +1267,32 @@ TEST_CASE("one bears in a birth room; the child is born of its host, who is ever
 		const auto& boris = static_cast<const Witness&>(born(world, DeviceToken::generate()));
 		const auto& unborn = dynamic_cast<const Unborn&>(world.welcome(child_token));
 
-		// Not standing in a birth room, one does not bear.
+		// Not standing at gates, one does not bear.
 		boris.wake();
 		CHECK_THROWS_AS(world.bear(boris, unborn), std::logic_error);
 
-		// The birth room stands in the inner part: only Anna's friend enters it.
-		const BirthRoom& room = anna.abode().birth_room();
-		CHECK(room.name() == "Родильная");
-		CHECK(room.part() == matter::Room::Part::Inner);
-		CHECK_THROWS_AS(boris.contemplate(room), std::logic_error);
+		// There is no birth room: one is born through the gates.
+		CHECK(anna.abode().rooms().size() == 3);
+		CHECK_FALSE(anna.abode().room("Родильная"));
+
+		// At Anna's gates Boris only waits: a stranger does not keep them, nor bears.
+		const Gates& gates = anna.abode().gates();
+		CHECK(gates.part() == matter::Room::Part::Inner);
+		boris.contemplate(gates);
+		CHECK_FALSE(gates.keeps(boris));
+		CHECK_THROWS_AS(world.bear(boris, unborn), std::logic_error);
+		boris.contemplate(boris.abode());
 		admit_at_gates(world, anna, boris);
 		regard_in_upper_room(world, anna, boris, matter::Dweller::Kind::Friend);
 
-		// One man at a time stands there: while Anna is in it, Boris does not enter.
-		anna.contemplate(room);
-		CHECK_FALSE(room.dwells(boris));
-		CHECK_THROWS_AS(boris.contemplate(room), std::logic_error);
-		CHECK(room.dwells(anna));
-		anna.contemplate(anna.abode());
-		CHECK(room.dwells(boris));
-		boris.contemplate(room);
-		CHECK_FALSE(room.dwells(anna));
+		// Many stand at the gates at once: Anna and her friend both keep them.
+		anna.contemplate(gates);
+		boris.contemplate(gates);
+		CHECK(gates.dwells(anna));
+		CHECK(gates.dwells(boris));
+		CHECK(gates.keeps(boris));
 
-		// Boris bears in Anna's birth room: the child is born of Anna.
+		// Boris bears at Anna's gates: the child is born of Anna.
 		const Man& child = world.bear(boris, unborn);
 		CHECK(world.unborn().empty());
 		CHECK(&world.man(world.vessel(child.Vessel::id())) == &child);
@@ -1348,7 +1351,7 @@ TEST_CASE("a man chooses his father by spirit, an unseen friend of all his spiri
 		// room, yet unseen among their dwellers and not regarded anew.
 		CHECK(std::dynamic_pointer_cast<const Friend>(son.abode().dweller(elder)));
 		CHECK(std::dynamic_pointer_cast<const Friend>(grandson.abode().dweller(elder)));
-		CHECK(grandson.abode().birth_room().dwells(elder));
+		CHECK(grandson.abode().upper_room().dwells(elder));
 		elder.wake();
 		elder.contemplate(cell_of(grandson));
 		for (const auto& dweller : son.abode().dwellers())

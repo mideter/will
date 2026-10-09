@@ -188,8 +188,10 @@ CREATE TABLE IF NOT EXISTS executions (
 		give_approaches_their_rest();
 	if (face_ == SqliteFace::Temporality)
 		answer_kept_rejections();
-	if (face_ == SqliteFace::Spatiality)
+	if (face_ == SqliteFace::Spatiality) {
 		give_rooms_their_aspect();
+		fold_birth_rooms_into_gates();
+	}
 }
 
 
@@ -242,6 +244,15 @@ void SqliteDatabase::give_rooms_their_aspect()
 							  "COMMIT;",
 							  nullptr, nullptr, nullptr),
 				 db_, "give rooms their aspect");
+}
+
+
+void SqliteDatabase::fold_birth_rooms_into_gates()
+{
+	// A birth room (aspect 3) showed the unborn and held no words: the gates show
+	// them now, and nothing kept is lost with it.
+	check_sqlite(sqlite3_exec(db_, "DELETE FROM rooms WHERE aspect = 3;", nullptr, nullptr, nullptr), db_,
+				 "fold birth rooms into gates");
 }
 
 

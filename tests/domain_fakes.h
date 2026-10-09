@@ -636,7 +636,7 @@ inline const Man& forefather(World& world)
 
 
 /// The man welcomed by this token; the unborn is born of the forefather,
-/// standing in his birth room.
+/// standing at his gates.
 inline const Man& born(World& world, const DeviceToken& token)
 {
 	const Man& elder = forefather(world);
@@ -645,7 +645,7 @@ inline const Man& born(World& world, const DeviceToken& token)
 		return *man;
 
 	const Man* child = nullptr;
-	looking_at(world, elder, elder.abode().birth_room(),
+	looking_at(world, elder, elder.abode().gates(),
 			   [&] { child = &world.bear(elder, dynamic_cast<const Unborn&>(body)); });
 	return *child;
 }

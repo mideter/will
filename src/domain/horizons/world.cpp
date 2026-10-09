@@ -184,11 +184,13 @@ const Unborn& World::unborn(const id::Vessel id) const
 const Man& World::bear(const Man& midwife, const Unborn& unborn)
 {
 	const std::shared_ptr<const Contemplation> gaze = contemplation(midwife.Soul::id());
-	const auto* room = gaze ? dynamic_cast<const BirthRoom*>(&gaze->place()) : nullptr;
-	if (!room)
-		throw std::logic_error("one bears only standing in a birth room");
+	const auto* gates = gaze ? dynamic_cast<const Gates*>(&gaze->place()) : nullptr;
+	if (!gates)
+		throw std::logic_error("one bears only standing in gates");
+	if (!gates->keeps(midwife))
+		throw std::logic_error("one bears only at gates one keeps");
 
-	const Man& father = room->abode().host();
+	const Man& father = gates->abode().host();
 	matter::Vessel body{unborn.id(), unborn.token()};
 	{
 		std::lock_guard lock(mutex_);
