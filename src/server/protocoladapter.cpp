@@ -331,15 +331,20 @@ void ProtocolAdapter::handle_user_chat(const SessionId session_id, const v1::Cha
 		}
 		placed = gaze->words().back();
 	} else {
-		// In a tie the testator wills; the novice fulfils with /done.
-		const auto& tie = dynamic_cast<const domain::Tie&>(gaze->place().source());
-		if (tie.testator().Soul::id() != man.Soul::id()) {
+		// In a tie the testator wills; the novice fulfils with /done. At the gates and in
+		// the upper room no one writes: they show no words.
+		const auto* tie = dynamic_cast<const domain::Tie*>(&gaze->place().source());
+		if (!tie) {
+			send_notice(session_id, "one does not write here");
+			return;
+		}
+		if (tie->testator().Soul::id() != man.Soul::id()) {
 			send_notice(session_id, "in a tie the novice fulfils behests: /done <number> [report]");
 			return;
 		}
 
 		try {
-			placed = static_cast<const domain::Testator&>(man).will(tie, std::string{chat.body()});
+			placed = static_cast<const domain::Testator&>(man).will(*tie, std::string{chat.body()});
 		} catch (const std::exception& e) {
 			send_notice(session_id, e.what());
 			return;

@@ -58,15 +58,41 @@ grpc::Status MessengerService::Session(grpc::ServerContext* context,
 	const auto session = registry_.register_session(context, stream);
 	const SessionId session_id = session->id();
 
+	// However the session ends, it is let go: the man falls asleep and leaves where he
+	// stood, and the registry forgets the session. Without this an error in a handler
+	// left him awake at the gates and the session counted against the limit.
+	struct Farewell {
+		ProtocolAdapter& adapter;
+		SessionRegistry& registry;
+		SessionId id;
+
+		~Farewell()
+		{
+			try {
+				adapter.on_session_ended(id);
+			} catch (const std::exception& e) {
+				std::cerr << "Session " << id.value << ": ending it failed: " << e.what() << '\n';
+			}
+			registry.unregister_session(id);
+		}
+	} farewell{adapter_, registry_, session_id};
+
 	v1::ClientEvent event;
 	while (!session->closed() && stream->Read(&event)) {
-		adapter_.on_client_event(session_id, event);
+		// An error a handler did not foresee closes this session only, and is told.
+		try {
+			adapter_.on_client_event(session_id, event);
+		} catch (const std::exception& e) {
+			std::cerr << "Session " << registry_.peer_address(session_id) << ": unexpected error: " << e.what() << '\n';
+			registry_.close_session(session_id);
+		} catch (...) {
+			std::cerr << "Session " << registry_.peer_address(session_id) << ": unexpected error\n";
+			registry_.close_session(session_id);
+		}
 		if (session->closed())
 			break;
 	}
 
-	adapter_.on_session_ended(session_id);
-	registry_.unregister_session(session_id);
 	return grpc::Status::OK;
 }
 

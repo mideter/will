@@ -1118,6 +1118,39 @@ TEST_CASE("the testator wills a training over the wire; the novice fulfils it te
 }
 
 
+TEST_CASE("one does not write at the gates nor in the upper room, and the session lives on")
+{
+	const std::uint16_t port = static_cast<std::uint16_t>(pick_port() + 8);
+	const std::string directory = "/tmp/will-no-writing-test-" + std::to_string(getpid());
+	const ScratchDirectory scratch{directory};
+
+	RunningServer server{start_server(g_server_exe, port, directory)};
+	REQUIRE(server.pid() > 0);
+	wait_for_server(port);
+
+	Elder elder = first_man(port);
+	SessionStream& adam = *elder.session.stream;
+
+	for (const char* room : {"Врата", "Горница"}) {
+		stand_in(adam, {}, room);
+		send_chat(adam, "not here");
+		will::v1::ServerEvent told;
+		REQUIRE(adam.Read(&told));
+		CHECK(told.protocol_notice().message() == "one does not write here");
+	}
+
+	// He is still there: he turns to his word and writes in it.
+	stand_in(adam, {}, "Слово");
+	send_chat(adam, "here");
+	will::v1::ServerEvent receipt;
+	REQUIRE(adam.Read(&receipt));
+	CHECK(receipt.receipt_ack().word().body() == "here");
+
+	elder.session.context->TryCancel();
+	server.stop();
+}
+
+
 TEST_CASE("the server speaks with TLS beside the open port, and only with TLS once the open port is closed")
 {
 	const std::uint16_t port = static_cast<std::uint16_t>(pick_port() + 6);
