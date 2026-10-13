@@ -10,15 +10,12 @@
 namespace will::domain {
 
 
-/// Exercise (Упражнение) — named freely by the testator, done in approaches, each
-/// with its own weight and repetitions.
+/// Exercise (Упражнение) — named freely by the testator.
 class Exercise {
 public:
 	static constexpr std::size_t MaxNameLength = 128;
 	static constexpr std::size_t MaxApproaches = 100;
 
-	/// Throws std::invalid_argument if the name is empty or too long, or there
-	/// are no approaches or too many.
 	Exercise(std::string name, std::vector<Approach> approaches);
 
 	const std::string& name() const noexcept { return name_; }

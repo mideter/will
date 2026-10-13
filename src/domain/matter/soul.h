@@ -7,7 +7,6 @@
 namespace will::domain::matter {
 
 
-/// Matter of living Soul (Душа) — its id and name. Eternity keeps it.
 class Soul {
 public:
 	Soul(id::Soul id, SoulName name);

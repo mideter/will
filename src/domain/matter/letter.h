@@ -9,9 +9,7 @@
 namespace will::domain::matter {
 
 
-/// Matter of living Letter (Письмо) — the parts of a Word gathered from the three
-/// dimensions: uttered in Eternity, placed in Spatiality, dated in Temporality.
-/// Composite: no single dimension keeps it. The parts share the word id.
+/// Gathered from the three dimensions; no single one keeps it.
 class Letter {
 public:
 	Letter(Word word, Placement placement, Dating dating);

@@ -7,9 +7,7 @@
 namespace will::domain::matter {
 
 
-/// Embodiment (Воплощение) — a soul dwells in a vessel as its body, kept in time.
-/// Part of the matter of Man; it has no living pair of its own: the living Man
-/// is the soul in the body. Temporality keeps Embodiments.
+/// Embodiment (Воплощение) — a soul dwells in this body; it has no living pair of its own.
 class Embodiment {
 public:
 	Embodiment(id::Soul soul, id::Vessel vessel);

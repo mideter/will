@@ -10,7 +10,6 @@
 namespace will::domain {
 
 
-/// Validates opaque device tokens presented by clients.
 class DeviceToken {
 public:
 	static constexpr std::size_t MinLength = 32;

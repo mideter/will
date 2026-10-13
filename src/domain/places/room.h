@@ -17,11 +17,8 @@ class Abode;
 class Heaven;
 
 
-/// Room (Комната) — a window in an Abode onto what it reflects; it has no words
-/// of its own. Its name is given by what it reflects: the Word (Слово) the words
-/// of the Abode itself, a tie room the words of a Tie — Ведение for its testator,
-/// Послушание for its novice; the Gates its threshold, the upper room (Горница) its
-/// dwellers. Born and held by its Abode.
+/// Room (Комната) — a window in an Abode onto what it reflects, with no words of its
+/// own: Слово onto the abode, Ведение and Послушание onto a tie.
 class Room : public Place {
 public:
 	Room(Birth<Abode> birth, const Place& reflects, matter::Room kept);
@@ -33,20 +30,16 @@ public:
 
 	virtual std::string name() const;
 
-	/// The room stands now where its matter says: its host arranged it.
 	void arrange(Birth<Abode> birth, const matter::Room& kept) const;
 
-	/// The host of its abode dwells here, and the dwellers whose kind enters its part.
+	/// The host, and the dwellers whose kind enters its part.
 	bool dwells(const Man& man) const override;
 
-	/// A room shows the words of the place it reflects.
 	const Place& source() const override;
 
-	/// One writes in a room of one's own abode that shows words, as the place it
-	/// reflects takes one's words.
+	/// One writes in a room of one's own abode that shows words.
 	std::exception_ptr refuses_word_of(const Man& writer) const override;
 
-	/// It shows them to whoever dwells here now.
 	bool shows(const Man& who, const Word& word) const override;
 
 private:
@@ -57,14 +50,9 @@ private:
 };
 
 
-/// Gates (Врата) — the room reflecting the threshold of an Abode: one comes in
-/// through it born or to be born. Anyone who would come into another's Abode
-/// enters its Gates by the host's name and stands there until he leaves. Those
-/// who keep the Gates — the host, and the dwellers whose kind enters the part
-/// they stand in — open them by standing there: they see who waits and may let
-/// him in, an acquaintance of the host, whoever lets him in; and they see the
-/// unborn and may bear one, a child of the host, whoever bears him. The Gates
-/// show no words.
+/// Gates (Врата) — the threshold of an Abode, through which one comes in, born or to be
+/// born: those who keep them let in an acquaintance of the host and bear a child of
+/// his, whoever does it.
 class Gates final : public Room, private Immanent<Heaven> {
 public:
 	Gates(Birth<Abode> birth, matter::Room kept);
@@ -74,15 +62,12 @@ public:
 	/// Anyone may stand at the gates.
 	bool dwells(const Man& man) const override;
 
-	/// Whether this man keeps the gates: the host, or a dweller whose kind
-	/// enters the part they stand in.
+	/// The host, or a dweller whose kind enters the part they stand in.
 	bool keeps(const Man& man) const;
 
 	/// Open while one who keeps them stands in them.
 	bool open() const;
 
-	/// A keeper standing here lets in one who stands here and does not dwell in
-	/// the abode, as the dweller matter says. Throws otherwise.
 	void admit(Birth<Man> keeper, const Man& man, const matter::Dweller& kept) const;
 
 	const Place& source() const override;
@@ -90,9 +75,8 @@ public:
 };
 
 
-/// UpperRoom (Горница) — the room reflecting the dwellers of an Abode: those
-/// who enter see them, and here alone the host regards them anew. It stands in a
-/// part like any room. It shows no words.
+/// UpperRoom (Горница) — the room of an Abode's dwellers: here alone the host regards
+/// them anew and arranges his rooms.
 class UpperRoom final : public Room {
 public:
 	UpperRoom(Birth<Abode> birth, matter::Room kept);

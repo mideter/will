@@ -12,12 +12,8 @@ class Life;
 class Soul;
 
 
-/// Word (Слово) — that which the spirit utters; ontological role, immanent to
-/// Life: it lives in the Recollection of its place, while that is held. Its
-/// matter is kept by the dimensions; its identity is given in Eternity. Neither
-/// copied nor moved.
-/// Holds what was said (Saying) but is not the text itself.
-/// Living Letter, Behest and Deed are Word in the world.
+/// Word (Слово) — what the spirit utters: a letter, a behest or a deed. It lives in the
+/// recollection of its place, while that is held.
 class Word : public Immanent<Life> {
 public:
 	virtual ~Word() = default;
@@ -25,7 +21,7 @@ public:
 	id::Word id() const noexcept { return id_; }
 	const Saying& saying() const noexcept { return saying_; }
 
-	/// Who uttered it: a letter's writer, a behest's testator, a deed's novice.
+	/// A letter's writer, a behest's testator, a deed's novice.
 	virtual const Soul& author() const = 0;
 
 protected:

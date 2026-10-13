@@ -32,12 +32,8 @@ class Supplication;
 class World;
 
 
-/// Abode (Обитель) — a man's own place, born of its host; in a sense the host
-/// is his Abode. Its words are seen only through its rooms: the cell reflects
-/// the abode itself, a tie room a tie. Others dwell here as the host admits
-/// them: each is born an Acquaintance, a Neighbour or a Friend, and enters the
-/// rooms of the part his kind opens. Looking at the abode itself, the host sees
-/// what awaits him in its rooms; one writes only in a room.
+/// Abode (Обитель) — a man's own place: its words are seen only through its rooms,
+/// and others dwell in it as its host admits them.
 class Abode : public Place {
 public:
 	Abode(Birth<Man> birth, matter::Abode kept);
@@ -47,47 +43,36 @@ public:
 
 	const Man& host() const noexcept { return host_; }
 
-	/// A man dwells here as his dweller matter says: the host admits him or
-	/// regards him anew, or the World recalls him on awakening. Throws if the
-	/// matter is of another abode or another soul, or the man is the host.
 	void admit(Birth<Man> birth, const Man& man, const matter::Dweller& kept);
 	void admit(Birth<World> birth, const Man& man, const matter::Dweller& kept);
 
-	/// One is let in at the gates of this abode, by whoever keeps them.
+	/// Let in at the gates, by whoever keeps them.
 	void admit(Birth<Gates> birth, const Man& man, const matter::Dweller& kept);
 
-	/// The dwellers of this abode, in no particular order. The fathers by spirit
-	/// of the host are not among them: they are unseen.
+	/// The host's fathers by spirit are not among them: they are unseen.
 	std::vector<std::shared_ptr<const Acquaintance>> dwellers() const;
 
-	/// A room is born here from its matter: the host furnishes it, or the World
-	/// recalls it on awakening. Throws if the matter is of another abode or the
-	/// abode already has a room reflecting that place.
 	const Room& furnish(Birth<Man> birth, const matter::Room& kept);
 	const Room& furnish(Birth<World> birth, const matter::Room& kept);
 	const Room& furnish(Birth<Supplication> birth, const matter::Room& kept);
 
-	/// A room of this abode stands now where the host arranged it.
 	void arrange(Birth<Man> birth, const matter::Room& kept) const;
 
-	/// The rooms of this abode, in the order they were furnished.
+	/// In the order they were furnished.
 	std::vector<std::reference_wrapper<const Room>> rooms() const;
 
-	/// The room of this abode reflecting the words of this place; none if there is none.
 	const Room* room(const Place& reflects) const;
 
-	/// The standard rooms: the gates and the upper room. Every abode has them.
+	/// Every abode has them.
 	const Gates& gates() const;
 	const UpperRoom& upper_room() const;
 
-	/// The room of this abode by its name; none if there is none.
 	const Room* room(std::string_view name) const;
 
-	/// This man as a dweller here; none for the host and for a stranger. A
-	/// father by spirit of the host, near or far, is ever a friend here.
+	/// None for the host and for a stranger; a father by spirit of the host is ever a friend.
 	std::shared_ptr<const Acquaintance> dweller(const Man& man) const;
 
-	/// The host, his dwellers and his fathers by spirit dwell here.
+	/// The host, his dwellers and his fathers by spirit.
 	bool dwells(const Man& man) const override;
 
 	/// The abode itself shows no words; they are seen through its rooms.
@@ -97,25 +82,18 @@ public:
 	std::exception_ptr refuses_writer(const Man& writer) const override;
 	std::shared_ptr<const Word> receive(const Contemplation& gaze, const Saying& saying) const override;
 
-	/// What awaits the host's attention: behests not yet fulfilled in the ties
-	/// where he is the novice, oldest first by room.
+	/// Behests not yet fulfilled where the host is the novice, oldest first by room.
 	std::vector<std::shared_ptr<const Behest>> owed() const;
 
-	/// What the host has set for others: behests not yet fulfilled in the ties
-	/// where he is the testator, oldest first by room.
+	/// Behests not yet fulfilled where the host is the testator, oldest first by room.
 	std::vector<std::shared_ptr<const Behest>> awaited() const;
 
-	/// A letter said here by its host looking through the cell, born living
-	/// from the matter the dimensions returned when they kept it; it enters the
-	/// recollection of this abode.
 	std::shared_ptr<const Letter> inscribe(const Contemplation& gaze, matter::Letter kept) const;
 
-	/// Whether this man is a father by spirit of the host, near or far.
+	/// Whether he is a father by spirit of the host, near or far.
 	bool ancestor(const Man& man) const;
 
 private:
-	/// Behests not yet fulfilled in the tie rooms where the host is the novice
-	/// (or, else, the testator).
 	std::vector<std::shared_ptr<const Behest>> unfulfilled(bool host_is_novice) const;
 
 	void admit(const Man& man, const matter::Dweller& kept);

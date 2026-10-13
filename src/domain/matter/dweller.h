@@ -7,10 +7,8 @@
 namespace will::domain::matter {
 
 
-/// Dweller (Обитатель) — a soul dwelling in another's Abode, and how its host
-/// regards him: an acquaintance (знакомый) sees only that he dwells there; a
-/// neighbour (ближний) sees the outer part; a friend (друг) sees all.
-/// Spatiality keeps it; the host is not a dweller of his own Abode.
+/// Dweller (Обитатель) — one dwelling in another's abode as its host regards him:
+/// знакомый, ближний or друг.
 class Dweller {
 public:
 	enum class Kind {

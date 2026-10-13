@@ -4,11 +4,8 @@
 namespace will::domain {
 
 
-/// Immanent (Имманентное) — presence in the waking world; neither copy nor transfer.
-/// Heaven, Earth, and Space inherit Immanent of themselves.
-/// Spirit is immanent to Heaven, Dust to Earth, Place to Space; they present a
-/// Presence level through present<Presence>(). Matter may be handed; the living
-/// is only brought forth and present()'ed.
+/// Immanent (Имманентное) — presence in the waking world: the living is only brought
+/// forth and presented, never copied nor handed, as matter may be.
 template<typename Horizon>
 class Immanent {
 public:
@@ -21,7 +18,6 @@ protected:
 	Immanent() = default;
 	~Immanent() = default;
 
-	/// The horizon this is immanent to.
 	static Horizon& horizon() { return Horizon::the(); }
 
 	/// Present this object as Presence (inheritance level at the call site).

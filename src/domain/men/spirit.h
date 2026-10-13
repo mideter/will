@@ -25,49 +25,38 @@ class Soul;
 class Supplication;
 
 
-/// Spirit (Дух) — highest foundation of the soul; immanent to Heaven.
-/// Will belongs to spirit (utter); living Witness reveals it as say.
-/// Living Man presents the soul to Heaven at birth.
-/// Neither copy nor transfer; only Soul may bring forth Spirit.
+/// Spirit (Дух) — the highest of the soul: it alone utters; a living witness says.
 class Spirit : public Immanent<Heaven> {
 public:
 	virtual ~Spirit() = default;
 
-	/// Living revelation; implemented by Witness.
 	virtual void say(const Saying& saying) const = 0;
 
 
 protected:
 	Spirit() = default;
 
-	/// Living soul known to Heaven. Throws if unknown.
 	static const Soul& soul(id::Soul id);
 
 	matter::Word utter(const Saying& saying) const;
 
-	/// The present instant, by the one Time of Eternity.
 	Timestamp now() const;
 
-	/// Eternity keeps the exercises of a word this spirit uttered.
 	matter::Training exercise(id::Word word, std::vector<Exercise> exercises) const;
 
 	bool knows(id::Soul soul_id) const;
 
 	void contemplate(const Place& place) const;
 
-	/// Contemplate nothing.
 	void cease() const;
 
-	/// Supplications awaiting this spirit's answer, oldest first.
+	/// Oldest first.
 	std::vector<std::shared_ptr<const Supplication>> supplications() const;
 
-	/// Heaven keeps a supplication heard by this spirit until it is answered.
 	static void keep(std::shared_ptr<const Supplication> supplication);
 
-	/// Heaven lets an answered supplication go.
 	static void release(const Supplication& supplication);
 
-	/// Null while this spirit contemplates nothing.
 	std::shared_ptr<const Contemplation> contemplation() const;
 
 private:

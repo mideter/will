@@ -11,9 +11,7 @@ class Temporality;
 class Spatiality;
 
 
-/// Dust (Прах) — earthly foundation of the vessel; immanent to Earth.
-/// Carrier of immanence: through Dust the vessel participates in Earth.
-/// Knows Temporality and Spatiality through Earth.
+/// Dust (Прах) — the earthly foundation of the body: through it the body is of Earth.
 class Dust : public Immanent<Earth> {
 public:
 	Temporality& temporality() const { return earth().temporality(); }

@@ -33,8 +33,7 @@ Man::Man(matter::Man kept)
 
 	abode_ = std::make_unique<Abode>(Birth<Man>{*this}, std::move(*own));
 
-	// The standard rooms reflect the abode itself: the cell its words, the gates
-	// its threshold, the upper room its dwellers.
+	// The standard rooms: Слово, Врата, Горница.
 	std::vector<matter::Room> rooms = spatiality().rooms(abode_->id());
 	for (const matter::Room::Aspect aspect :
 		 {matter::Room::Aspect::Words, matter::Room::Aspect::Threshold, matter::Room::Aspect::Dwellers}) {

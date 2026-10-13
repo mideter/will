@@ -8,7 +8,6 @@
 namespace will::domain::id {
 
 
-/// Persistent vessel identity assigned by storage.
 class Vessel : public Id {
 public:
 	explicit Vessel(std::uint64_t value) : Id(value) {}

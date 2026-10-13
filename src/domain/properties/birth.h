@@ -11,7 +11,6 @@ namespace will::domain {
 template<typename Parent>
 class Birth {
 public:
-	/// The one who gives birth.
 	const Parent& parent() const noexcept { return parent_; }
 
 private:

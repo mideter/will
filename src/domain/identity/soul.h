@@ -8,7 +8,6 @@
 namespace will::domain::id {
 
 
-/// Persistent soul identity assigned by storage.
 class Soul : public Id {
 public:
 	explicit Soul(std::uint64_t value) : Id(value) {}

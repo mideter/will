@@ -15,7 +15,6 @@ public:
 	static constexpr std::size_t MinLength = 1;
 	static constexpr std::size_t MaxLength = 32;
 
-	/// Throws std::invalid_argument if input is not a valid abode name.
 	explicit AbodeName(std::string_view input);
 
 	std::string_view text() const noexcept { return value_; }

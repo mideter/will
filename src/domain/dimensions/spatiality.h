@@ -18,54 +18,43 @@
 namespace will::domain {
 
 
-/// Spatiality (Пространственность) — places and where a Word is fixed.
-/// Living places are known to Space; Spatiality keeps spatial matter.
+/// Spatiality (Пространственность) — places and where a word is fixed: abodes,
+/// dwellers, rooms, ties, placements.
 class Spatiality {
 public:
 	static constexpr std::uint32_t MaxLetterLimit = 1000;
 
 	virtual ~Spatiality() = default;
 
-	/// The abode of this host, if kept.
 	virtual std::optional<matter::Abode> abode(id::Soul host) const = 0;
 
-	/// Keep a new abode of this host in a new point of Space.
 	/// Refuses (std::logic_error) if the host already keeps one.
 	virtual matter::Abode abide(id::Soul host, AbodeName name) = 0;
 
-	/// Keep that this soul dwells in this abode, regarded as of this kind (a
-	/// kind kept anew replaces the former one).
+	/// A kind kept anew replaces the former one.
 	virtual matter::Dweller dwell(id::Place abode, id::Soul soul, matter::Dweller::Kind kind) = 0;
 
-	/// All dwellers kept in space (for Creation awaken).
 	virtual std::vector<matter::Dweller> dwellers() const = 0;
 
-	/// Keep a new room of this abode, in a new point of Space and in the inner
-	/// part, reflecting this aspect of this place. Refuses (std::logic_error) if
-	/// the abode already has a room reflecting it.
+	/// In the inner part. Refuses (std::logic_error) if the abode already has a room
+	/// reflecting this aspect of this place.
 	virtual matter::Room furnish(id::Place abode, id::Place reflects, matter::Room::Aspect aspect) = 0;
 
-	/// Keep that this room stands in this part of its abode. Throws
-	/// (std::invalid_argument) if the room is unknown.
+	/// Throws (std::invalid_argument) if the room is unknown.
 	virtual matter::Room arrange(id::Place room, matter::Room::Part part) = 0;
 
-	/// The rooms kept in this abode.
 	virtual std::vector<matter::Room> rooms(id::Place abode) const = 0;
 
-	/// Keep the bond of a pair in a new point of Space.
 	/// Refuses (std::logic_error) if the pair is already bound.
 	virtual matter::Tie bind(id::Soul testator, id::Soul novice) = 0;
 
-	/// All ties kept in space.
 	virtual std::vector<matter::Tie> ties() const = 0;
 
-	/// Fix a word in a place.
 	virtual matter::Placement place(id::Word id, id::Place place) = 0;
 
-	/// matter::Placement of this word, if kept.
 	virtual std::optional<matter::Placement> placement(id::Word id) const = 0;
 
-	/// Placements in this place, newest first up to limit (caller dates/sorts for history).
+	/// Newest first, up to the limit.
 	virtual std::vector<matter::Placement> placements(id::Place place, std::uint32_t limit) const = 0;
 };
 

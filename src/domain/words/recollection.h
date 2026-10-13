@@ -16,22 +16,17 @@ class Place;
 class Word;
 
 
-/// Recollection (Воспоминание) — the words of one place called to life from
-/// the memory the dimensions keep. The gazes upon the place hold it; while it
-/// is held, all its words live, and they end with it: the words of a place live
-/// all or none. Memory stays kept. Born of Life, which knows it while it is
-/// held; immanent to Life. A word newly placed enters it, brought by its place.
+/// Recollection (Воспоминание) — the words of a place called to life from memory while
+/// the gazes hold it: they live all or none.
 class Recollection : public Immanent<Life> {
 public:
 	Recollection(Birth<Life>, const Place& place, std::vector<std::shared_ptr<const Word>> words);
 
 	const Place& place() const noexcept { return place_; }
 
-	/// Its words, oldest first.
+	/// Oldest first.
 	std::vector<std::shared_ptr<const Word>> words() const;
 
-	/// A word newly placed enters, brought by the place it is placed in.
-	/// Throws if another place brings it.
 	void enter(Birth<Place> birth, std::shared_ptr<const Word> word) const;
 
 private:

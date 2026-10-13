@@ -15,12 +15,9 @@ class Abode;
 class Life;
 
 
-/// Letter (Письмо) — Word fixed in time in a Place; born from matter::Letter.
-/// Living place and author via Place::of / Soul::of.
+/// Letter (Письмо) — a word its host wrote in his abode.
 class Letter : public Word {
 public:
-	/// Said now, born of its abode; or recalled from memory, born of Life.
-	/// Place and author must be known to Space and Heaven.
 	Letter(Birth<Abode>, matter::Letter kept);
 	Letter(Birth<Life>, matter::Letter kept);
 

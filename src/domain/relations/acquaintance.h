@@ -13,11 +13,8 @@ class Man;
 class Space;
 
 
-/// Acquaintance (Знакомый) — a man dwelling in another's Abode as its host
-/// admitted him: every dweller is at least an acquaintance. He enters none of
-/// its rooms, and only knows that he dwells there. Born and held by the Abode;
-/// regarded anew, he is born anew of the new kind. A Neighbour is an
-/// acquaintance who enters more.
+/// Acquaintance (Знакомый) — every dweller is at least one: he enters none of the rooms
+/// and only knows that he dwells there. Regarded anew, he is born anew of the new kind.
 class Acquaintance : public Immanent<Space> {
 public:
 	Acquaintance(Birth<Abode>, const Man& man);
@@ -25,7 +22,6 @@ public:
 
 	const Man& man() const noexcept { return man_; }
 
-	/// Whether he enters the rooms of this part of the abode.
 	virtual bool enters(matter::Room::Part part) const;
 
 private:

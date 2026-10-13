@@ -6,9 +6,7 @@
 namespace will::domain::matter {
 
 
-/// Answer (Ответ) — the addressee's answer to a supplication awaiting it, in one
-/// of two forms: accepted (the pair is bound) or rejected; fixed in time.
-/// Temporality keeps it; a supplication awaits until its answer is kept.
+/// Answer (Ответ) — to a supplication: accepted, the pair is bound; or rejected.
 class Answer {
 public:
 	enum class Form {

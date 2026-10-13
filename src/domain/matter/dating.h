@@ -7,8 +7,6 @@
 namespace will::domain::matter {
 
 
-/// Dating — Word fixed in time; matter for a living Word (Letter, Behest).
-/// Temporality keeps Datings.
 class Dating {
 public:
 	Dating(id::Word id, Timestamp created_at);

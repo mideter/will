@@ -8,9 +8,7 @@
 namespace will::domain::id {
 
 
-/// Persistent place identity — where a Word may be fixed in time.
-/// Minted only by Space::point (abodes, ties, …).
-/// Id 1 may remain as an orphan letter tail from the former global abode.
+/// Minted only by Space::point.
 class Place : public Id {
 public:
 	explicit Place(std::uint64_t value) : Id(value) {}

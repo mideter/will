@@ -6,9 +6,7 @@
 namespace will::domain::matter {
 
 
-/// Matter of living Supplication (Прошение) — suppliant asks addressee to become
-/// Завещатель, fixed in time. Temporality keeps it; it awaits until its
-/// matter::Answer is kept.
+/// Supplication (Просьба) — awaits until its answer is kept.
 class Supplication {
 public:
 	Supplication(id::Soul suppliant, id::Soul addressee);

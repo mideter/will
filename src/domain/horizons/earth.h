@@ -17,28 +17,21 @@ class Temporality;
 class Spatiality;
 
 
-/// Earth (Земля) — symbol of the visible world.
-/// Speaks with Temporality and Spatiality.
-/// Dust reaches Temporality and Spatiality via friendship.
-/// Earth is in space and time. Live registry of vessels; abodes live with men;
-/// places are known to Space; spatial matter to Spatiality.
+/// Earth (Земля) — the visible world: the bodies, and the dimensions that keep matter.
 class Earth : private Immanent<Earth> {
 public:
 	bool knows(id::Vessel id) const;
 
-	/// Throws if unknown.
 	const Vessel& vessel(id::Vessel id) const;
 
 protected:
 	friend class Dust;
 	friend class Immanent<Earth>;
 
-	/// As World.
 	Earth(Temporality& temporality, Spatiality& spatiality);
 
 	~Earth();
 
-	/// For World::welcome. Empty if unknown.
 	std::optional<id::Vessel> id_of(const DeviceToken& token) const;
 
 	Temporality& temporality() noexcept { return temporality_; }
@@ -48,10 +41,8 @@ protected:
 	const Spatiality& spatiality() const noexcept { return spatiality_; }
 
 private:
-	/// Vessel owned by a heap-stable Man.
 	void present(const Vessel& vessel);
 
-	/// Throws if not yet brought forth / already destroyed.
 	static Earth& the();
 
 	static Earth* current_;

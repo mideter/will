@@ -17,16 +17,10 @@ class Shepherding;
 class Testator;
 
 
-/// Supplication (Прошение) — request to enter the shared Obedience/Shepherding place.
-/// Pair (suppliant, addressee): future novice and the Testator asked to become Завещатель.
-/// Born from matter::Supplication. Living: a relation of one soul to another,
-/// immanent to Heaven, neither copied nor moved. The suppliant submits it to the
-/// addressee, who hears it and keeps it until he answers (sign / reject).
-/// Signed by the addressee, it binds the pair on his behalf: matter::Tie is kept
-/// and the living Tie is born.
+/// Supplication (Просьба) — one asks another to become his testator; accepted, it binds
+/// them in a tie.
 class Supplication : public Immanent<Heaven> {
 public:
-	/// Both souls must be known to Heaven.
 	Supplication(Birth<Novice>, matter::Supplication kept);
 	Supplication(Birth<World>, matter::Supplication kept);
 

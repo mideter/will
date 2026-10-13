@@ -25,12 +25,8 @@ class Spatiality;
 class Temporality;
 
 
-/// Eternity (Вечность) — who endures; indelible Saying and author.
-/// Time and Space belong to Eternity; each is one, reached only from here.
-/// Spatiality and Temporality arise in Creation: Eternity realises them at its
-/// asking; their matter outlives every Creation.
-/// Speaks in souls; dwelling in a vessel belongs to Temporality / World.
-/// One Eternity; Life proceeds from it.
+/// Eternity (Вечность) — what endures: souls, their words, fatherhood. Time and Space
+/// are reached only from it; it realises Spatiality and Temporality for a Creation.
 class Eternity {
 public:
 	virtual ~Eternity();
@@ -39,27 +35,20 @@ public:
 
 	virtual Space& space() = 0;
 
-	/// Realise Spatiality for the Creation that asks.
 	virtual std::unique_ptr<Spatiality> spatiality(Birth<Creation>) = 0;
 
-	/// Realise Temporality for the Creation that asks.
 	virtual std::unique_ptr<Temporality> temporality(Birth<Creation>) = 0;
 
-	/// Enroll a soul in the book of life.
 	virtual matter::Soul enroll(SoulName name) = 0;
 
-	/// All souls kept (for Creation awaken).
 	virtual std::vector<matter::Soul> souls() const = 0;
 
-	/// Keep that this soul fathers that child along the line. By spirit it
-	/// replaces the child's earlier spiritual father; by flesh it refuses
-	/// (std::logic_error) if the child already has his father.
+	/// By spirit it replaces the child's earlier father; by flesh it refuses
+	/// (std::logic_error) if the child already has one.
 	virtual matter::Fatherhood father(id::Soul father, id::Soul child, matter::Fatherhood::Line line) = 0;
 
-	/// All fatherhoods kept (for Creation awaken).
 	virtual std::vector<matter::Fatherhood> fatherhoods() const = 0;
 
-	/// Keep a Saying and author; returns the eternal word.
 	virtual matter::Word utter(id::Soul author, const Saying& saying) = 0;
 
 	/// Throws if unknown.
@@ -68,15 +57,12 @@ public:
 	/// Order preserved; skips unknown.
 	virtual std::vector<matter::Word> words(const std::vector<id::Word>& ids) const = 0;
 
-	/// Keep the exercises of a word: what a behest wills, or what a deed has done.
 	/// Refuses (std::logic_error) if the word already has its exercises.
 	virtual matter::Training train(id::Word word, std::vector<Exercise> exercises) = 0;
 
-	/// The trainings of those of these words that have them.
 	virtual std::vector<matter::Training> trainings(const std::vector<id::Word>& ids) const = 0;
 
 protected:
-	/// The one realised Eternity declares itself.
 	Eternity();
 
 	Eternity(const Eternity&) = delete;

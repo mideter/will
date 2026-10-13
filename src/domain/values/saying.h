@@ -7,12 +7,11 @@
 namespace will::domain {
 
 
-/// Saying (Речение) — external manifestation of Word; text the spirit utters.
+/// Saying (Речение) — the text the spirit utters; not the word itself.
 class Saying {
 public:
 	static constexpr std::size_t MaxBodyLength = 4096;
 
-	/// Throws std::invalid_argument if body is empty or too long.
 	Saying(std::string body);
 	Saying(const char* body);
 

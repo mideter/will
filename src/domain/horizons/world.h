@@ -23,12 +23,7 @@
 namespace will::domain {
 
 
-/// World (Мир) — the one living cosmos: Heaven and Earth as invisible and visible.
-/// In space and time; Time and Space of Eternity.
-/// Eternity is reached from Heaven. Each living man has a personal abode.
-/// Brought forth only by Creation as Heaven and Earth; Space already of Eternity.
-/// Living people are Testator on the heap; World alone births them.
-/// One soul — one living man; indexed by id::Soul.
+/// World (Мир) — the one living cosmos, Heaven and Earth; it alone gives men birth.
 class World : public Heaven, public Earth {
 public:
 	using Heaven::knows;
@@ -36,56 +31,41 @@ public:
 
 	~World();
 
-	/// Man dwelling in this vessel. Throws if the vessel has no man (broken invariant).
 	const Man& man(const Vessel& vessel) const;
 
-	/// Welcome a vessel's token: the man dwelling in its body, or the unborn
-	/// body awaiting its soul. An unknown token is given a body to await its
-	/// birth — unless no man is yet: the first is begotten at once.
+	/// The man in this token's body, or an unborn body awaiting its soul; the first
+	/// on an empty world is begotten at once.
 	const Vessel& welcome(const DeviceToken& token);
 
-	/// The present instant of the world, as its time tells it: the same by which
-	/// words and efforts are dated.
+	/// The same time by which words and efforts are dated.
 	Timestamp now();
 
-	/// The bodies awaiting their soul, in the order they came.
+	/// In the order they came.
 	std::vector<std::reference_wrapper<const Unborn>> unborn() const;
 
-	/// The unborn body with this id. Throws (std::invalid_argument) if none awaits.
 	const Unborn& unborn(id::Vessel id) const;
 
-	/// A midwife standing in gates he keeps bears the unborn: a soul is enrolled
-	/// into its body, and the man is born of the host of those gates, his father by
-	/// flesh. The father becomes a neighbour in the child's abode, the child an
-	/// acquaintance in the father's. Throws if the midwife stands elsewhere or does
-	/// not keep the gates he stands in.
+	/// Born of the host of the gates — his father by flesh — whoever bears him: the
+	/// father becomes a neighbour in the child's abode, the child an acquaintance in his.
 	const Man& bear(const Man& midwife, const Unborn& unborn);
 
-	/// A man chooses his father by spirit; the father cannot refuse. The former
-	/// one, if any, is replaced. Throws (std::logic_error) if he chooses himself
-	/// or one descending from him by spirit.
+	/// The father cannot refuse; the former one is replaced.
 	void choose_father(const Man& child, const Man& father);
 
-	/// One descendant by spirit and the father he is the child of.
 	struct Descent {
 		std::reference_wrapper<const Man> child;
 		std::reference_wrapper<const Man> father;
 	};
 
-	/// The whole spiritual line of this man: his children by spirit, theirs, and
-	/// so on, generation by generation.
+	/// His children by spirit, theirs, and so on.
 	std::vector<Descent> lineage(const Man& father) const;
 
-	/// Living man by public soul name. Throws if unknown.
 	const Man& man(const SoulName& name) const;
 
-	/// The hosts in whose abodes this man dwells.
 	std::vector<std::reference_wrapper<const Man>> hosts_of(const Man& dweller) const;
 
-	/// What the world could not recollect on awakening, and what it made whole again:
-	/// kept things that do not agree among the dimensions — a body joined to a soul
-	/// that is not kept, a tie or a dweller of one who does not live. Such are passed
-	/// over, never erased, that the world awakens all the same; each is told here.
+	/// What was kept but does not agree among the dimensions — passed over on
+	/// awakening, never erased — and what was made whole again.
 	const std::vector<std::string>& unrecollected() const noexcept { return unrecollected_; }
 
 private:
@@ -93,16 +73,9 @@ private:
 
 	World(Eternity& eternity, Temporality& temporality, Spatiality& spatiality);
 
-	/// Accept kept men (Creation).
 	void awaken();
-
-	/// Enroll a soul, embody it in a vessel, birth Testator.
 	const Man& beget(const DeviceToken& token);
-
-	/// A body awaits its soul.
 	const Unborn& await(matter::Vessel kept);
-
-	/// Place a Testator on the heap from its matter.
 	const Man& accept(matter::Man kept);
 
 	const Man& living_man(id::Soul id) const;

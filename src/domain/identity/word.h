@@ -8,8 +8,7 @@
 namespace will::domain::id {
 
 
-/// Persistent identity of an uttered Word (Слово); assigned by Eternity.
-/// Shared by every role the Word takes (Letter, Behest).
+/// Shared by all the parts of a word's matter.
 class Word : public Id {
 public:
 	explicit Word(std::uint64_t value) : Id(value) {}

@@ -8,12 +8,9 @@
 namespace will::domain::matter {
 
 
-/// Matter of living Man (Человек) — soul and body gathered from two dimensions:
-/// the Soul from Eternity, the Vessel and the Embodiment from Temporality.
-/// Composite: no single dimension keeps it.
+/// Soul and body, gathered from Eternity and Temporality.
 class Man {
 public:
-	/// The embodiment must join exactly this soul to exactly this vessel.
 	Man(Soul soul, Vessel vessel, const Embodiment& embodiment);
 
 	const Soul& soul() const noexcept { return soul_; }

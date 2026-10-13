@@ -13,10 +13,7 @@
 namespace will::domain::matter {
 
 
-/// Matter of living Deed (Дело) — the novice's word fulfilling a behest: its parts
-/// gathered from the three dimensions and the Execution naming the behest, and,
-/// fulfilling a training, the exercises done. Composite: no single dimension keeps
-/// it. The parts share the word id.
+/// Gathered from the three dimensions; no single one keeps it.
 class Deed {
 public:
 	Deed(Word word, Placement placement, Dating dating, Execution execution,
@@ -28,7 +25,6 @@ public:
 	const Dating& dating() const noexcept { return dating_; }
 	const Execution& execution() const noexcept { return execution_; }
 
-	/// The exercises done, if it fulfils a training.
 	const std::optional<Training>& performed() const noexcept { return performed_; }
 
 private:

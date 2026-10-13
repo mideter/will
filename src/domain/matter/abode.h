@@ -7,8 +7,6 @@
 namespace will::domain::matter {
 
 
-/// Matter of living Abode (Обитель) — abode id and name kept in Spatiality.
-/// Not the living Abode (heap presence in Space).
 class Abode {
 public:
 	Abode(id::Place id, AbodeName name);

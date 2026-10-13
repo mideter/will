@@ -16,39 +16,29 @@ class Letter;
 class Word;
 
 
-/// Witness (Свидетель) — living man; says in the waking world.
-/// Awake, he contemplates exactly one thing — his own Abode unless he turns
-/// elsewhere; asleep, nothing.
-/// Further modes: Novice, Testator. Heap object is always Testator;
-/// Witness is the base living mode.
+/// Witness (Свидетель) — a living man in the waking world: awake, he contemplates one
+/// thing, his own abode unless he turns elsewhere; asleep, nothing.
 class Witness : public Man {
 public:
-	/// Come to the waking world: contemplate one's own Abode.
 	void wake() const;
 
-	/// Leave the waking world: contemplate nothing.
 	void sleep() const;
 
-	/// Turn the gaze to an abode he dwells in, or to a room of it he enters: a
-	/// tie is seen through the room reflecting it. Throws if he does not dwell there.
+	/// A tie is seen only through the room reflecting it.
 	void contemplate(const Abode& abode) const;
 	void contemplate(const Room& room) const;
 
-	/// Whether this witness contemplates the words of this place now: the place
-	/// itself, or a room reflecting it.
+	/// The place itself, or a room reflecting it.
 	bool contemplates(const Place& place) const;
 
 	void say(const Saying& saying) const final;
 
-	/// Write where one stands: the place takes it as its words are taken — a letter
-	/// in one's own word, a behest in a tie one wills in — or the world refuses,
-	/// before anything is kept. The word it became.
+	/// Write where one stands: a letter in one's own word, a behest in a tie one wills in.
 	std::shared_ptr<const Word> write(const Saying& saying) const;
 
-	/// Whether one may write where one stands now.
 	bool writes_here() const;
 
-	/// Record in one's own word: a letter. Refuses elsewhere.
+	/// A letter in one's own word.
 	std::shared_ptr<const Letter> record(const Saying& saying) const;
 
 protected:

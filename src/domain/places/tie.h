@@ -16,11 +16,8 @@ class Novice;
 class Testator;
 
 
-/// Tie (Узы) — one living shared place: both Obedience and Shepherding.
-/// Born from matter::Tie; owned on the heap by the Novice as Послушание.
-/// Testator shepherds a non-owning Shepherding view. Counterpart sides live in
-/// the faces (testator in Obedience, novice in Shepherding); accessors are
-/// completed here. Spatiality keeps matter::Tie.
+/// Tie (Узы) — the place a testator and a novice share: Послушание to the one, Ведение
+/// to the other.
 class Tie : public Obedience, public Shepherding {
 public:
 	Tie(Birth<Novice>, matter::Tie kept);
@@ -35,10 +32,8 @@ public:
 	std::shared_ptr<const Deed> inscribe(Birth<Novice>, matter::Deed kept) const override;
 	std::shared_ptr<const Behest> inscribe(Birth<Testator>, matter::Behest kept) const override;
 
-	/// Its two sides dwell in a tie.
 	bool dwells(const Man& man) const override;
 
-	/// The other side, seen from one of its sides.
 	const Man& counterpart(const Man& side) const;
 
 	/// A tie takes its testator's words, as behests.

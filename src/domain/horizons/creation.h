@@ -16,17 +16,12 @@ namespace will::domain {
 class Life;
 
 
-/// Creation (Творение) — genesis, the act of Life: brings forth Heaven, Earth,
-/// the World, and awakens the living cosmos. Time and Space are of Eternity;
-/// World is Heaven and Earth. Only Life creates; Creation is immanent to Life.
-/// Spatiality and Temporality arise in Creation: it asks Eternity, reached
-/// through the Life that gives it birth, to realise them, owns them, and gives
-/// them to the World. One Creation in Life; their matter outlives it.
+/// Creation (Творение) — the act of Life: it has Eternity realise the dimensions, brings
+/// forth the World and awakens it; their matter outlives it.
 class Creation : public Immanent<Life> {
 public:
 	explicit Creation(Birth<Life> birth);
 
-	/// The dimensions this Creation brought forth; they keep for whoever reads.
 	Spatiality& spatiality() const noexcept { return *spatiality_; }
 	Temporality& temporality() const noexcept { return *temporality_; }
 
