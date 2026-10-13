@@ -9,6 +9,7 @@ namespace will::domain {
 
 
 class Life;
+class Soul;
 
 
 /// Word (Слово) — that which the spirit utters; ontological role, immanent to
@@ -23,6 +24,9 @@ public:
 
 	id::Word id() const noexcept { return id_; }
 	const Saying& saying() const noexcept { return saying_; }
+
+	/// Who uttered it: a letter's writer, a behest's testator, a deed's novice.
+	virtual const Soul& author() const = 0;
 
 protected:
 	Word(id::Word id, Saying saying);

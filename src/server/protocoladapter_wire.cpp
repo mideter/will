@@ -35,16 +35,6 @@
 namespace will::wire {
 
 
-const domain::Soul& author_of(const domain::Word& word)
-{
-	if (const auto* letter = dynamic_cast<const domain::Letter*>(&word))
-		return letter->author();
-	if (const auto* behest = dynamic_cast<const domain::Behest*>(&word))
-		return behest->tie().testator();
-	return dynamic_cast<const domain::Deed&>(word).tie().novice();
-}
-
-
 void tell_exercises(const std::vector<domain::Exercise>& exercises,
 					google::protobuf::RepeatedPtrField<v1::Exercise>& told)
 {
@@ -88,7 +78,7 @@ void tell_effort(const domain::matter::Effort& effort, v1::Effort& told)
 
 v1::ServerEvent word_event(const domain::Word& word, const domain::id::Soul listener)
 {
-	const domain::Soul& author = author_of(word);
+	const domain::Soul& author = word.author();
 
 	v1::ServerEvent event;
 	auto* told = event.mutable_word();
@@ -116,14 +106,6 @@ v1::ServerEvent word_event(const domain::Word& word, const domain::id::Soul list
 }
 
 
-const domain::Man& counterpart_in(const domain::Tie& tie, const domain::Man& side)
-{
-	if (tie.testator().Soul::id() == side.Soul::id())
-		return tie.novice();
-	return tie.testator();
-}
-
-
 std::string words_of(const v1::NoticeCode code, const std::vector<std::string>& args)
 {
 	const auto arg = [&](const std::size_t i) { return i < args.size() ? args[i] : std::string{}; };
@@ -136,26 +118,16 @@ std::string words_of(const v1::NoticeCode code, const std::vector<std::string>& 
 		return "invalid soul name";
 	case v1::NOTICE_UNKNOWN_NAME:
 		return "unknown soul name";
-	case v1::NOTICE_WRITE_IN_A_ROOM:
-		return "one writes in a room: /room Слово";
-	case v1::NOTICE_NO_WRITING_HERE:
-		return "one does not write here";
-	case v1::NOTICE_NOVICE_FULFILS:
-		return "in a tie the novice fulfils behests: /done <number> [report]";
 	case v1::NOTICE_NO_SUCH_ROOM:
 		return "no such room";
 	case v1::NOTICE_YOU_DO_NOT_DWELL:
 		return "you do not dwell in that abode";
 	case v1::NOTICE_YOU_DO_NOT_ENTER:
 		return "you do not enter that room";
-	case v1::NOTICE_ENTER_TIE_ROOM:
-		return "enter the room of the tie first: /room <name>";
 	case v1::NOTICE_UNKNOWN_BEHEST:
 		return "unknown behest";
 	case v1::NOTICE_UNKNOWN_KIND:
 		return "unknown dweller kind";
-	case v1::NOTICE_ONLY_TESTATOR_TRAINS:
-		return "only the testator wills a training";
 	case v1::NOTICE_INVALID_TRAINING:
 		return "invalid training";
 	case v1::NOTICE_UNKNOWN_TRAINING:

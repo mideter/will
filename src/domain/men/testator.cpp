@@ -2,6 +2,10 @@
 #include "values/refusal.h"
 
 #include "words/training.h"
+#include "words/letter.h"
+#include "places/abode.h"
+#include "places/room.h"
+#include "places/tie.h"
 
 #include "matter/dating.h"
 #include "matter/placement.h"
@@ -39,7 +43,7 @@ void Testator::reject(const Supplication& ask) const
 std::shared_ptr<const Behest> Testator::will(const Shepherding& shepherding, const Saying& saying) const
 {
 	if (shepherding.testator().Soul::id() != Soul::id())
-		throw std::logic_error("not the testator of this shepherding");
+		throw Refusal(Refusal::Reason::OnlyTestatorWills, "only the testator of a tie wills in it");
 	if (!contemplates(shepherding))
 		throw Refusal(Refusal::Reason::WillOnlyInContemplatedTie, "one wills only in the tie one contemplates");
 
@@ -56,7 +60,7 @@ std::shared_ptr<const Training> Testator::train(const Shepherding& shepherding, 
 												std::vector<Exercise> exercises) const
 {
 	if (shepherding.testator().Soul::id() != Soul::id())
-		throw std::logic_error("not the testator of this shepherding");
+		throw Refusal(Refusal::Reason::OnlyTestatorWills, "only the testator of a tie wills in it");
 	if (!contemplates(shepherding))
 		throw Refusal(Refusal::Reason::WillOnlyInContemplatedTie, "one wills only in the tie one contemplates");
 	if (exercises.empty())
@@ -156,6 +160,42 @@ void Testator::hold(std::shared_ptr<const Supplication> supplication) const
 		throw std::logic_error("supplication is not addressed to this soul");
 
 	keep(std::move(supplication));
+}
+
+
+std::shared_ptr<const Word> Testator::write(const Saying& saying) const
+{
+	const std::shared_ptr<const Contemplation> gaze = contemplation();
+	if (!gaze)
+		throw std::logic_error("Witness is asleep");
+
+	// In a tie one wills; anywhere else one may only record in one's own word.
+	if (const auto* tie = dynamic_cast<const Tie*>(&gaze->place().source()))
+		return will(*tie, saying);
+	return record(saying);
+}
+
+
+bool Testator::writes_here() const
+{
+	const std::shared_ptr<const Contemplation> gaze = contemplation();
+	const auto* room = gaze ? dynamic_cast<const Room*>(&gaze->place()) : nullptr;
+	if (!room || &room->abode() != &abode() || room->aspect() != matter::Room::Aspect::Words)
+		return false;
+	if (&room->reflects() == static_cast<const Place*>(&abode()))
+		return true;
+	const auto* tie = dynamic_cast<const Tie*>(&room->reflects());
+	return tie && tie->testator().Soul::id() == Soul::id();
+}
+
+
+std::shared_ptr<const Training> Testator::train(const Saying& title, std::vector<Exercise> exercises) const
+{
+	const std::shared_ptr<const Contemplation> gaze = contemplation();
+	const auto* tie = gaze ? dynamic_cast<const Tie*>(&gaze->place().source()) : nullptr;
+	if (!tie)
+		throw Refusal(Refusal::Reason::WillOnlyInContemplatedTie, "one wills only in the tie one contemplates");
+	return train(*tie, title, std::move(exercises));
 }
 
 

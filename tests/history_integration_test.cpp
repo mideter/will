@@ -1058,8 +1058,10 @@ TEST_CASE("the testator wills a training over the wire; the novice fulfils it te
 		}
 	}
 	REQUIRE(novice.stream->Write(train));
-	CHECK(read_until(*novice.stream, [](const auto& e) { return e.has_protocol_notice(); }).protocol_notice().message()
-		  == "only the testator wills a training");
+	const will::v1::ServerEvent not_testator
+		= read_until(*novice.stream, [](const auto& e) { return e.has_protocol_notice(); });
+	CHECK(not_testator.protocol_notice().message() == "only the testator of a tie wills in it");
+	CHECK(not_testator.protocol_notice().code() == will::v1::NOTICE_ONLY_TESTATOR_WILLS);
 	REQUIRE(trainer.stream->Write(train));
 	CHECK(read_until(*trainer.stream, [](const auto& e) { return e.has_protocol_notice(); })
 			  .protocol_notice()
@@ -1258,8 +1260,9 @@ TEST_CASE("one does not write at the gates nor in the upper room, and the sessio
 		send_chat(adam, "not here");
 		will::v1::ServerEvent told;
 		REQUIRE(adam.Read(&told));
-		CHECK(told.protocol_notice().message() == "one does not write here");
-		CHECK(told.protocol_notice().code() == will::v1::NOTICE_NO_WRITING_HERE);
+		// The world refuses it itself: one writes only in one's own word or in a tie one wills in.
+		CHECK(told.protocol_notice().message() == "one writes only in one's own word or in a tie one wills in");
+		CHECK(told.protocol_notice().code() == will::v1::NOTICE_SAY_ONLY_IN_WORD);
 	}
 
 	// He is still there: he turns to his word and writes in it.

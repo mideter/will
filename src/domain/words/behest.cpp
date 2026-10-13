@@ -1,6 +1,7 @@
 #include "behest.h"
 
 #include "places/place.h"
+#include "places/tie.h"
 #include "men/testator.h"
 
 #include <stdexcept>
@@ -41,6 +42,12 @@ Behest::Behest(matter::Behest kept)
 {
 	if (kept.word().author() != tie_.testator().Soul::id())
 		throw std::invalid_argument("behest must be uttered by the testator of its tie");
+}
+
+
+const Soul& Behest::author() const
+{
+	return tie_.testator();
 }
 
 

@@ -28,10 +28,6 @@ class Effort;
 namespace will::wire {
 
 
-/// The soul whose word this is.
-const domain::Soul& author_of(const domain::Word& word);
-
-
 /// Exercises as the wire tells them.
 void tell_exercises(const std::vector<domain::Exercise>& exercises,
 					google::protobuf::RepeatedPtrField<v1::Exercise>& told);
@@ -47,10 +43,6 @@ void tell_effort(const domain::matter::Effort& effort, v1::Effort& told);
 
 /// A word as the wire tells it to one who listens.
 v1::ServerEvent word_event(const domain::Word& word, const domain::id::Soul listener);
-
-
-/// The other side of a tie, seen from one of its sides.
-const domain::Man& counterpart_in(const domain::Tie& tie, const domain::Man& side);
 
 
 /// The server's own words for what it tells by a code, the names in it given apart.

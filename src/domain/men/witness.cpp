@@ -63,14 +63,22 @@ bool Witness::contemplates(const Place& place) const
 
 void Witness::say(const Saying& saying) const
 {
+	(void)record(saying);
+}
+
+
+std::shared_ptr<const Letter> Witness::record(const Saying& saying) const
+{
 	const std::shared_ptr<const Contemplation> gaze = contemplation();
 	if (!gaze)
 		throw std::logic_error("Witness is asleep");
 
-	// One writes one's own records only in one's cell.
+	// One writes one's own records only in one's word: the room of one's abode that
+	// shows its words — the gates and the upper room reflect it too, but show none.
 	const auto* room = dynamic_cast<const Room*>(&gaze->place());
-	if (!room || &room->abode() != &abode() || &room->reflects() != static_cast<const Place*>(&abode()))
-		throw Refusal(Refusal::Reason::SayOnlyInWord, "one says only in one's cell");
+	if (!room || &room->abode() != &abode() || &room->reflects() != static_cast<const Place*>(&abode())
+		|| room->aspect() != matter::Room::Aspect::Words)
+		throw Refusal(Refusal::Reason::SayOnlyInWord, "one writes only in one's own word or in a tie one wills in");
 
 	const Abode& place = abode();
 
@@ -78,7 +86,7 @@ void Witness::say(const Saying& saying) const
 	matter::Placement placed = spatiality().place(uttered.id(), place.id());
 	matter::Dating dated = temporality().date(uttered.id());
 
-	place.inscribe(*gaze, matter::Letter{std::move(uttered), std::move(placed), std::move(dated)});
+	return place.inscribe(*gaze, matter::Letter{std::move(uttered), std::move(placed), std::move(dated)});
 }
 
 

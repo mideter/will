@@ -2,6 +2,7 @@
 
 #include "men/novice.h"
 #include "places/place.h"
+#include "places/tie.h"
 
 #include <stdexcept>
 #include <utility>
@@ -43,6 +44,12 @@ Deed::Deed(matter::Deed kept)
 {
 	if (kept.word().author() != tie_.novice().Soul::id())
 		throw std::invalid_argument("deed must be uttered by the novice of its tie");
+}
+
+
+const Soul& Deed::author() const
+{
+	return tie_.novice();
 }
 
 

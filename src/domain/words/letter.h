@@ -25,7 +25,7 @@ public:
 	Letter(Birth<Life>, matter::Letter kept);
 
 	const Place& place() const noexcept { return place_; }
-	const Soul& author() const noexcept { return author_; }
+	const Soul& author() const noexcept override { return author_; }
 	Timestamp created_at() const noexcept { return created_at_; }
 
 private:

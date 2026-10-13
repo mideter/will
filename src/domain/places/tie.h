@@ -37,6 +37,9 @@ public:
 
 	/// Its two sides dwell in a tie.
 	bool dwells(const Man& man) const override;
+
+	/// The other side, seen from one of its sides.
+	const Man& counterpart(const Man& side) const;
 };
 
 

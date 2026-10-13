@@ -1706,3 +1706,61 @@ TEST_CASE("a refusal names its reason, beside what the world says of it")
 		CHECK(std::string{error.what()} == "one is not one's own father");
 	}
 }
+
+
+TEST_CASE("one writes where one stands: a letter in one's word, a behest in a tie one wills in, nothing elsewhere")
+{
+	InMemoryCosmos cosmos;
+	World& world = cosmos.life().create().world();
+	const auto& testator = static_cast<const Testator&>(born(world, DeviceToken::generate()));
+	const auto& novice = static_cast<const Testator&>(born(world, DeviceToken::generate()));
+	admit_at_gates(world, testator, novice);
+	admit_at_gates(world, novice, testator);
+	novice.supplicate(testator);
+	const Tie& tie = dynamic_cast<const Tie&>(testator.accept(*testator.supplication(novice)));
+
+	const auto reason_of = [](auto&& act) -> std::optional<Refusal::Reason> {
+		try {
+			act();
+		} catch (const Refusal& refusal) {
+			return refusal.reason();
+		}
+		return std::nullopt;
+	};
+
+	// In one's own word: a letter, written by oneself.
+	testator.contemplate(cell_of(testator));
+	CHECK(testator.writes_here());
+	const auto letter = testator.write(Saying{"запись"});
+	CHECK(dynamic_cast<const Letter*>(letter.get()));
+	CHECK(&letter->author() == static_cast<const Soul*>(&testator));
+
+	// At the gates and in the upper room no one writes: they show no words.
+	for (const Room* room : {static_cast<const Room*>(&testator.abode().gates()),
+							 static_cast<const Room*>(&testator.abode().upper_room())}) {
+		testator.contemplate(*room);
+		CHECK_FALSE(testator.writes_here());
+		CHECK(reason_of([&] { testator.write(Saying{"нет"}); }) == Refusal::Reason::SayOnlyInWord);
+	}
+
+	// In the tie the testator wills; the behest is his, its counterpart the novice.
+	testator.contemplate(room_in(testator, tie));
+	CHECK(testator.writes_here());
+	const auto behest = testator.write(Saying{"задание"});
+	CHECK(dynamic_cast<const Behest*>(behest.get()));
+	CHECK(&behest->author() == static_cast<const Soul*>(&testator));
+	CHECK(&tie.counterpart(testator) == static_cast<const Man*>(&novice));
+	CHECK(&tie.counterpart(novice) == static_cast<const Man*>(&testator));
+
+	// The novice, in the same tie, does not will: the world refuses him.
+	novice.contemplate(room_in(novice, tie));
+	CHECK_FALSE(novice.writes_here());
+	CHECK(reason_of([&] { novice.write(Saying{"нет"}); }) == Refusal::Reason::OnlyTestatorWills);
+	CHECK(reason_of([&] { novice.train(Saying{"нет"}, {Exercise{"Жим", {Approach{Weight{0}, 5}}}}); })
+		  == Refusal::Reason::OnlyTestatorWills);
+
+	// Standing in no tie, one wills no training.
+	testator.contemplate(cell_of(testator));
+	CHECK(reason_of([&] { testator.train(Saying{"нет"}, {Exercise{"Жим", {Approach{Weight{0}, 5}}}}); })
+		  == Refusal::Reason::WillOnlyInContemplatedTie);
+}

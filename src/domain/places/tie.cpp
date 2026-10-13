@@ -116,4 +116,12 @@ bool Tie::dwells(const Man& man) const
 }
 
 
+const Man& Tie::counterpart(const Man& side) const
+{
+	if (testator().Soul::id() == side.Soul::id())
+		return novice();
+	return testator();
+}
+
+
 } // namespace will::domain

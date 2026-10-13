@@ -438,18 +438,16 @@ enum NoticeCode {
     NOTICE_NOT_DESCENDANT_AS_FATHER = 38;
 
     // What the server itself refuses.
+    // 102–104, 108 and 111 were the server's own copies of the world's rules: the
+    // world refuses those itself now.
+    reserved 102, 103, 104, 108, 111;
     NOTICE_INVALID_NAME = 100;
     NOTICE_UNKNOWN_NAME = 101;
-    NOTICE_WRITE_IN_A_ROOM = 102;
-    NOTICE_NO_WRITING_HERE = 103;
-    NOTICE_NOVICE_FULFILS = 104;
     NOTICE_NO_SUCH_ROOM = 105;
     NOTICE_YOU_DO_NOT_DWELL = 106;
     NOTICE_YOU_DO_NOT_ENTER = 107;
-    NOTICE_ENTER_TIE_ROOM = 108;
     NOTICE_UNKNOWN_BEHEST = 109;
     NOTICE_UNKNOWN_KIND = 110;
-    NOTICE_ONLY_TESTATOR_TRAINS = 111;
     NOTICE_INVALID_TRAINING = 112;
     NOTICE_UNKNOWN_TRAINING = 113;
     NOTICE_FATHER_BY_SPIRIT_CLOSED = 114;

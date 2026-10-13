@@ -20,6 +20,7 @@ namespace will::domain {
 
 
 class Training;
+class Word;
 
 
 class World;
@@ -40,6 +41,17 @@ public:
 
 	/// Will in a tie one contemplates. Throws if one looks elsewhere.
 	std::shared_ptr<const Behest> will(const Shepherding& shepherding, const Saying& saying) const;
+
+	/// Write where one stands: in one's own word a letter, in a tie one wills in a
+	/// behest; the word it became. Anywhere else the world refuses.
+	std::shared_ptr<const Word> write(const Saying& saying) const;
+
+	/// Whether one may write where one stands now.
+	bool writes_here() const;
+
+	/// Will a training in the tie one stands in, as its testator. The world refuses
+	/// if one stands in no tie, or in one where one is the novice.
+	std::shared_ptr<const Training> train(const Saying& title, std::vector<Exercise> exercises) const;
 
 	/// Will a training — these exercises, under this title — in a tie one
 	/// contemplates. Throws if one looks elsewhere.

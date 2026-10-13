@@ -24,6 +24,9 @@ public:
 	const Tie& tie() const noexcept { return tie_; }
 	Timestamp created_at() const noexcept { return created_at_; }
 
+	/// The testator of its tie.
+	const Soul& author() const override;
+
 private:
 	explicit Behest(matter::Behest kept);
 

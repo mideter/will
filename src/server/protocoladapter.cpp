@@ -208,16 +208,7 @@ void ProtocolAdapter::send_auth_required(const SessionId session_id)
 
 bool ProtocolAdapter::writes_here(const domain::Man& man) const
 {
-	const std::shared_ptr<const domain::Contemplation> gaze = world_.contemplation(man.Soul::id());
-	const auto* room = gaze ? dynamic_cast<const domain::Room*>(&gaze->place()) : nullptr;
-	if (!room || &room->abode() != &man.abode())
-		return false;
-
-	// One's own cell, or the room of a tie one wills in.
-	if (&room->reflects() == static_cast<const domain::Place*>(&man.abode()))
-		return true;
-	const auto* tie = dynamic_cast<const domain::Tie*>(&room->reflects());
-	return tie && tie->testator().Soul::id() == man.Soul::id();
+	return static_cast<const domain::Testator&>(man).writes_here();
 }
 
 

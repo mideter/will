@@ -5,11 +5,14 @@
 #include "men/man.h"
 #include "values/saying.h"
 
+#include <memory>
+
 
 namespace will::domain {
 
 
 class Room;
+class Letter;
 
 
 /// Witness (Свидетель) — living man; says in the waking world.
@@ -37,6 +40,9 @@ public:
 	void say(const Saying& saying) const final;
 
 protected:
+	/// Say in one's own word, and the letter it became. Refuses elsewhere.
+	std::shared_ptr<const Letter> record(const Saying& saying) const;
+
 	explicit Witness(matter::Man kept);
 };
 

@@ -28,6 +28,9 @@ public:
 	const Tie& tie() const noexcept { return tie_; }
 	id::Word behest() const noexcept { return behest_; }
 
+	/// The novice of its tie.
+	const Soul& author() const override;
+
 	/// The exercises done, if it fulfils a training; none otherwise.
 	const std::vector<Exercise>& performed() const noexcept { return performed_; }
 	Timestamp created_at() const noexcept { return created_at_; }

@@ -55,43 +55,16 @@ void ProtocolAdapter::handle_user_chat(const SessionId session_id, const v1::Cha
 		return;
 	}
 
+	// Where he stands decides what his word becomes, or that the world refuses it.
 	std::shared_ptr<const domain::Word> placed;
-	if (dynamic_cast<const domain::Abode*>(&gaze->place())) {
-		refuse(session_id, v1::NOTICE_WRITE_IN_A_ROOM);
+	try {
+		placed = static_cast<const domain::Testator&>(man).write(domain::Saying{chat.body()});
+	} catch (const domain::Refusal& refusal) {
+		refuse(session_id, refusal);
 		return;
-	}
-	if (const auto* abode = dynamic_cast<const domain::Abode*>(&gaze->place().source())) {
-		if (&abode->host() != &man) {
-			refuse(session_id, v1::NOTICE_ONLY_HOST_WRITES);
-			return;
-		}
-
-		try {
-			man.say(std::string{chat.body()});
-		} catch (const std::exception&) {
-			close_with_protocol_error(session_id, "Protocol error: invalid ChatMessage");
-			return;
-		}
-		placed = gaze->words().back();
-	} else {
-		// In a tie the testator wills; the novice fulfils with /done. At the gates and in
-		// the upper room no one writes: they show no words.
-		const auto* tie = dynamic_cast<const domain::Tie*>(&gaze->place().source());
-		if (!tie) {
-			refuse(session_id, v1::NOTICE_NO_WRITING_HERE);
-			return;
-		}
-		if (tie->testator().Soul::id() != man.Soul::id()) {
-			refuse(session_id, v1::NOTICE_NOVICE_FULFILS);
-			return;
-		}
-
-		try {
-			placed = static_cast<const domain::Testator&>(man).will(*tie, std::string{chat.body()});
-		} catch (const std::exception& e) {
-			refuse(session_id, e);
-			return;
-		}
+	} catch (const std::exception&) {
+		close_with_protocol_error(session_id, "Protocol error: invalid ChatMessage");
+		return;
 	}
 
 	v1::ServerEvent ack;
@@ -120,7 +93,7 @@ void ProtocolAdapter::tell_placed(const domain::Place& place, const domain::Word
 	if (!tie)
 		return;
 
-	const domain::Man& other = counterpart_in(*tie, author);
+	const domain::Man& other = tie->counterpart(author);
 	for (const domain::Soul& beholder : world_.contemplating(place)) {
 		if (beholder.id() == other.Soul::id())
 			return;
@@ -254,10 +227,8 @@ void ProtocolAdapter::handle_fulfil(const SessionId session_id, const v1::Fulfil
 	const auto& novice = static_cast<const domain::Novice&>(self);
 
 	const std::shared_ptr<const domain::Contemplation> gaze = world_.contemplation(self.Soul::id());
-	if (!gaze || !dynamic_cast<const domain::Tie*>(&gaze->place().source())) {
-		refuse(session_id, v1::NOTICE_ENTER_TIE_ROOM);
+	if (!gaze)
 		return;
-	}
 
 	// The number a client names is matched here, at the border, among the words he beholds.
 	std::shared_ptr<const domain::Behest> behest;
@@ -281,7 +252,7 @@ void ProtocolAdapter::handle_fulfil(const SessionId session_id, const v1::Fulfil
 		const std::shared_ptr<const domain::Deed> deed
 			= novice.execute(*behest, std::move(report), std::move(performed));
 		send_notice(session_id, v1::NOTICE_BEHEST_FULFILLED, {std::to_string(behest->id().value())});
-		tell_placed(gaze->place().source(), *deed, self);
+		tell_placed(deed->tie(), *deed, self);
 	} catch (const std::exception& e) {
 		refuse(session_id, e);
 	}
@@ -303,21 +274,12 @@ void ProtocolAdapter::handle_list_supplications(const SessionId session_id)
 void ProtocolAdapter::handle_train(const SessionId session_id, const v1::Train& msg)
 {
 	const domain::Man& self = session_man(session_id);
-	const std::shared_ptr<const domain::Contemplation> gaze = world_.contemplation(self.Soul::id());
-	const auto* tie = gaze ? dynamic_cast<const domain::Tie*>(&gaze->place().source()) : nullptr;
-	if (!tie) {
-		refuse(session_id, v1::NOTICE_ENTER_TIE_ROOM);
-		return;
-	}
-	if (tie->testator().Soul::id() != self.Soul::id()) {
-		refuse(session_id, v1::NOTICE_ONLY_TESTATOR_TRAINS);
-		return;
-	}
 
+	// He wills it in the tie he stands in, as its testator — or the world refuses.
 	std::shared_ptr<const domain::Training> training;
 	try {
 		training = static_cast<const domain::Testator&>(self).train(
-			*tie, domain::Saying{msg.title().empty() ? std::string{"Тренировка"} : msg.title()},
+			domain::Saying{msg.title().empty() ? std::string{"Тренировка"} : msg.title()},
 			exercises_of(msg.exercises()));
 	} catch (const std::invalid_argument&) {
 		refuse(session_id, v1::NOTICE_INVALID_TRAINING);
@@ -328,7 +290,7 @@ void ProtocolAdapter::handle_train(const SessionId session_id, const v1::Train& 
 	}
 
 	send_notice(session_id, v1::NOTICE_TRAINING_WILLED, {std::to_string(training->id().value())});
-	tell_placed(*tie, *training, self);
+	tell_placed(training->tie(), *training, self);
 }
 
 
@@ -337,10 +299,8 @@ std::shared_ptr<const domain::Training> ProtocolAdapter::training_in_gaze(const 
 																		   const std::uint64_t behest_id)
 {
 	const std::shared_ptr<const domain::Contemplation> gaze = world_.contemplation(man.Soul::id());
-	if (!gaze || !dynamic_cast<const domain::Tie*>(&gaze->place().source())) {
-		refuse(session_id, v1::NOTICE_ENTER_TIE_ROOM);
+	if (!gaze)
 		return nullptr;
-	}
 	for (const std::shared_ptr<const domain::Word>& word : gaze->words()) {
 		if (word->id().value() == behest_id) {
 			if (auto training = std::dynamic_pointer_cast<const domain::Training>(word))
