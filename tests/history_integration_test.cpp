@@ -1173,6 +1173,64 @@ TEST_CASE("a numbered request is answered once, by its number: granted or refuse
 }
 
 
+TEST_CASE("one who does not read does not hold up one who writes")
+{
+	const std::uint16_t port = static_cast<std::uint16_t>(pick_port() + 10);
+	const std::string directory = "/tmp/will-slow-reader-test-" + std::to_string(getpid());
+	const ScratchDirectory scratch{directory};
+
+	RunningServer server{start_server(g_server_exe, port, directory)};
+	REQUIRE(server.pid() > 0);
+	wait_for_server(port);
+
+	Elder elder = first_man(port);
+	SessionStream& adam = *elder.session.stream;
+	GrpcSession boris = open_session(port);
+	REQUIRE(boris.stream);
+	const std::string boris_name = born_named(elder, *boris.stream, SenderToken);
+
+	// Turning, whatever else is told on the way.
+	const auto turn_to = [](SessionStream& stream, const std::string& host, const std::string& room) {
+		send_turn_to_abode(stream, host, room);
+		read_until(stream, [](const auto& e) { return e.has_turned(); });
+		read_until(stream, [](const auto& e) { return e.has_history_end(); });
+	};
+
+	// Adam lets Boris in at his gates and makes him a friend: Boris may look at Adam's word.
+	turn_to(*boris.stream, elder.name, "Врата");
+	turn_to(adam, {}, "Врата");
+	send_admit(adam, boris_name);
+	read_until(adam, [](const auto& e) { return e.has_protocol_notice(); });
+	turn_to(adam, {}, "Горница");
+	send_regard(adam, boris_name, will::v1::FRIEND);
+	read_until(adam, [](const auto& e) { return e.has_protocol_notice(); });
+	turn_to(*boris.stream, elder.name, "Слово");
+	turn_to(adam, {}, "Слово");
+
+	// Boris looks at Adam's word and reads no more; Adam writes much, and each word of
+	// his is acknowledged at once, however full Boris's way is.
+	// He reads his own answers as he goes, as a client does.
+	constexpr int Words = 3000;
+	constexpr int Batch = 100;
+	const std::string body(4000, 'x');
+	int acknowledged = 0;
+	will::v1::ServerEvent event;
+	for (int sent = 0; sent < Words; sent += Batch) {
+		for (int i = 0; i < Batch; ++i)
+			send_chat(adam, body.c_str());
+		while (acknowledged < sent + Batch && adam.Read(&event)) {
+			if (event.has_receipt_ack())
+				++acknowledged;
+		}
+	}
+	CHECK(acknowledged == Words);
+
+	boris.context->TryCancel();
+	elder.session.context->TryCancel();
+	server.stop();
+}
+
+
 TEST_CASE("one does not write at the gates nor in the upper room, and the session lives on")
 {
 	const std::uint16_t port = static_cast<std::uint16_t>(pick_port() + 8);

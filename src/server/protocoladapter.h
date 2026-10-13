@@ -88,8 +88,9 @@ private:
 	void tell_words(SessionId session_id, const domain::Contemplation& gaze, const domain::Man& listener,
 					std::uint32_t limit);
 
-	/// How many words are told on turning to a place.
+	/// How many words are told on turning to a place, and at most on asking for history.
 	static constexpr std::uint32_t TurnWords = 50;
+	static constexpr std::uint32_t MaxHistoryWords = 500;
 
 	void send_auth_required(SessionId session_id);
 	void send_event(SessionId session_id, const v1::ServerEvent& event);

@@ -19,6 +19,7 @@
 #include "words/letter.h"
 #include "values/device_token.h"
 
+#include <algorithm>
 #include <cstddef>
 #include <cstdint>
 #include <exception>
@@ -452,8 +453,10 @@ void ProtocolAdapter::tell_words(const SessionId session_id, const domain::Conte
 {
 	const std::vector<std::shared_ptr<const domain::Word>> words = gaze.words();
 
-	// How many words to send is the client's wish, not the place's concern.
-	const std::size_t first = words.size() > limit ? words.size() - limit : 0;
+	// How many words to send is the client's wish, not the place's concern — within what
+	// a session may hold untold at once (Session::MaxPending), lest the asker be closed.
+	const std::size_t told = std::min<std::size_t>(limit, MaxHistoryWords);
+	const std::size_t first = words.size() > told ? words.size() - told : 0;
 	for (std::size_t i = first; i < words.size(); ++i)
 		send_event(session_id, word_event(*words[i], listener.Soul::id()));
 

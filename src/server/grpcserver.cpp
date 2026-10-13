@@ -64,18 +64,20 @@ grpc::Status MessengerService::Session(grpc::ServerContext* context,
 	struct Farewell {
 		ProtocolAdapter& adapter;
 		SessionRegistry& registry;
-		SessionId id;
+		will::Session& session;
 
 		~Farewell()
 		{
 			try {
-				adapter.on_session_ended(id);
+				adapter.on_session_ended(session.id());
 			} catch (const std::exception& e) {
-				std::cerr << "Session " << id.value << ": ending it failed: " << e.what() << '\n';
+				std::cerr << "Session " << session.id().value << ": ending it failed: " << e.what() << '\n';
 			}
-			registry.unregister_session(id);
+			registry.unregister_session(session.id());
+			// The stream is gone when this handler returns: its writer stops first.
+			session.finish();
 		}
-	} farewell{adapter_, registry_, session_id};
+	} farewell{adapter_, registry_, *session};
 
 	v1::ClientEvent event;
 	while (!session->closed() && stream->Read(&event)) {
