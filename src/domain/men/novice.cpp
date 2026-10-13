@@ -85,8 +85,6 @@ void Novice::begin(const Training& training, const std::uint32_t exercise, const
 	if (exercise >= training.exercises().size())
 		throw NoSuchExercise();
 
-	// The approaches of an exercise go in order: the first not yet done; once the
-	// willed are done, one more beyond them at a time. Exercises go in any order.
 	const auto willed = static_cast<std::uint32_t>(training.exercises()[exercise].approaches().size());
 	std::uint32_t count = willed;
 	for (const matter::Effort& effort : training.efforts()) {
