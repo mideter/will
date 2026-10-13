@@ -86,6 +86,47 @@ TEST_CASE("ServerConfig takes the databases only from an existing directory")
 }
 
 
+TEST_CASE("ServerConfig takes TLS from an existing certificate and key together, on a port of its own")
+{
+	const std::filesystem::path directory = "/tmp/will-config-tls-test-" + std::to_string(getpid());
+	std::filesystem::create_directories(directory);
+	const std::string cert = (directory / "server.crt").string();
+	const std::string key = (directory / "server.key").string();
+	std::ofstream{cert} << "cert";
+	std::ofstream{key} << "key";
+
+	ServerConfig config;
+	config.tls_cert = cert;
+	config.tls_key = key;
+	CHECK(config.tls());
+	CHECK_NOTHROW(ServerConfigValidator::validate(config));
+
+	// The certificate without its key, or a file that is not there, is not taken.
+	ServerConfig without_key = config;
+	without_key.tls_key.clear();
+	require_throws_field(without_key, "tls_key");
+	ServerConfig missing = config;
+	missing.tls_cert = (directory / "absent.crt").string();
+	require_throws_field(missing, "tls_cert");
+
+	// TLS listens beside the open port, not on it.
+	ServerConfig same_port = config;
+	same_port.tls_port = same_port.listen_port;
+	require_throws_field(same_port, "tls_port");
+
+	// The open port may be closed only when TLS is there to listen.
+	ServerConfig tls_only = config;
+	tls_only.plain = false;
+	tls_only.tls_port = tls_only.listen_port;
+	CHECK_NOTHROW(ServerConfigValidator::validate(tls_only));
+	ServerConfig nothing;
+	nothing.plain = false;
+	require_throws_field(nothing, "plain");
+
+	std::filesystem::remove_all(directory);
+}
+
+
 TEST_CASE("ServerConfigValidator::accept returns validated config")
 {
 	ServerConfig config;

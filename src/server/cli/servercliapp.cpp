@@ -17,6 +17,10 @@ ServerCliApp::ServerCliApp(const ServerConfig& defaults)
 	, db_path_(defaults.db_path)
 	, keepalive_interval_seconds_(defaults.keepalive_interval_seconds)
 	, keepalive_timeout_seconds_(defaults.keepalive_timeout_seconds)
+	, tls_cert_(defaults.tls_cert)
+	, tls_key_(defaults.tls_key)
+	, tls_port_(static_cast<int>(defaults.tls_port))
+	, no_plain_(!defaults.plain)
 {
 	app_.allow_extras(false);
 
@@ -27,6 +31,10 @@ ServerCliApp::ServerCliApp(const ServerConfig& defaults)
 		->description("gRPC HTTP/2 keepalive ping interval in seconds");
 	app_.add_option("--keepalive-timeout", keepalive_timeout_seconds_)
 		->description("gRPC HTTP/2 keepalive ping timeout in seconds");
+	app_.add_option("--tls-cert", tls_cert_)->description("TLS certificate chain (PEM)");
+	app_.add_option("--tls-key", tls_key_)->description("TLS private key (PEM)");
+	app_.add_option("--tls-port", tls_port_)->description("TLS listen port");
+	app_.add_flag("--no-plain", no_plain_)->description("Do not listen in the open (TLS only)");
 }
 
 
@@ -41,12 +49,17 @@ void ServerCliApp::print_help(std::ostream& os) const
 		"  --max-clients N                 Max concurrent connections (default {})\n"
 		"  --db-path DIR                   Directory of the databases (default {})\n"
 		"  --keepalive-interval SECONDS    gRPC keepalive ping interval (default {})\n"
-		"  --keepalive-timeout SECONDS     gRPC keepalive ping timeout (default {})\n",
+		"  --keepalive-timeout SECONDS     gRPC keepalive ping timeout (default {})\n"
+		"  --tls-cert FILE                 TLS certificate chain, PEM (with --tls-key: listen with TLS too)\n"
+		"  --tls-key FILE                  TLS private key, PEM\n"
+		"  --tls-port PORT                 TLS listen port (default {})\n"
+		"  --no-plain                      Do not listen in the open: TLS only\n",
 		ServerConfig::DefaultListenPort,
 		ServerConfig::DefaultMaxConnections,
 		ServerConfig::DefaultDbPath,
 		ServerConfig::DefaultKeepaliveIntervalSeconds,
-		ServerConfig::DefaultKeepaliveTimeoutSeconds);
+		ServerConfig::DefaultKeepaliveTimeoutSeconds,
+		ServerConfig::DefaultTlsPort);
 }
 
 
@@ -70,6 +83,10 @@ void ServerCliApp::apply_to(ServerConfig& config) const
 	config.db_path = db_path_;
 	config.keepalive_interval_seconds = keepalive_interval_seconds_;
 	config.keepalive_timeout_seconds = keepalive_timeout_seconds_;
+	config.tls_cert = tls_cert_;
+	config.tls_key = tls_key_;
+	config.tls_port = static_cast<std::uint16_t>(tls_port_);
+	config.plain = !no_plain_;
 }
 
 

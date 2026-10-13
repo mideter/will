@@ -23,8 +23,14 @@ void WillServer::run()
 
 void WillServer::log_startup(const ServerConfig& config)
 {
-	std::cout << "Starting Will Messenger Server v" << Version << " on port " << config.listen_port
-			  << " (max " << config.max_connections << " clients, gRPC)\n";
+	std::cout << "Starting Will Messenger Server v" << Version << " on";
+	if (config.plain)
+		std::cout << " port " << config.listen_port;
+	if (config.plain && config.tls())
+		std::cout << " and";
+	if (config.tls())
+		std::cout << " TLS port " << config.tls_port;
+	std::cout << " (max " << config.max_connections << " clients, gRPC)\n";
 }
 
 

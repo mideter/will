@@ -2,6 +2,8 @@
 
 #include <chrono>
 #include <csignal>
+#include <fstream>
+#include <iterator>
 #include <iostream>
 #include <stdexcept>
 #include <string>
@@ -21,6 +23,16 @@ void handle_signal(int)
 {
 	if (GrpcMessengerServer* server = g_server_for_signal.load())
 		server->request_stop();
+}
+
+
+/// The whole of a file (a PEM certificate or key). Throws if it cannot be read.
+std::string read_file(const std::string& path)
+{
+	std::ifstream in{path, std::ios::binary};
+	if (!in)
+		throw std::runtime_error("cannot read " + path);
+	return std::string{std::istreambuf_iterator<char>{in}, std::istreambuf_iterator<char>{}};
 }
 
 
@@ -69,9 +81,17 @@ GrpcMessengerServer::GrpcMessengerServer(ServerConfig config, domain::World& wor
 void GrpcMessengerServer::run()
 {
 	const std::string address = "0.0.0.0:" + std::to_string(config_.listen_port);
+	const std::string tls_address = "0.0.0.0:" + std::to_string(config_.tls_port);
 
 	grpc::ServerBuilder builder;
-	builder.AddListeningPort(address, grpc::InsecureServerCredentials());
+	if (config_.plain)
+		builder.AddListeningPort(address, grpc::InsecureServerCredentials());
+	if (config_.tls()) {
+		// The key stays on the server; clients trust its certificate as they are told.
+		grpc::SslServerCredentialsOptions tls;
+		tls.pem_key_cert_pairs.push_back({read_file(config_.tls_key), read_file(config_.tls_cert)});
+		builder.AddListeningPort(tls_address, grpc::SslServerCredentials(tls));
+	}
 	builder.RegisterService(&service_);
 	builder.AddChannelArgument(GRPC_ARG_KEEPALIVE_TIME_MS, config_.keepalive_interval_seconds * 1000);
 	builder.AddChannelArgument(GRPC_ARG_KEEPALIVE_TIMEOUT_MS, config_.keepalive_timeout_seconds * 1000);
@@ -80,7 +100,7 @@ void GrpcMessengerServer::run()
 
 	server_ = builder.BuildAndStart();
 	if (!server_)
-		throw std::runtime_error("Failed to start gRPC server on " + address);
+		throw std::runtime_error("Failed to start gRPC server on " + (config_.plain ? address : tls_address));
 
 	g_server_for_signal.store(this);
 	std::signal(SIGINT, handle_signal);

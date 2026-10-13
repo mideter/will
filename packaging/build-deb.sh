@@ -77,6 +77,8 @@ case "$1" in
 				--shell /usr/sbin/nologin --disabled-login will-server
 		fi
 		install -d -o will-server -g will-server -m 0750 /var/lib/will-server
+		# The TLS certificate and key, made on this server; the key never leaves it.
+		install -d -o root -g will-server -m 0750 /etc/will-server/tls
 		if [ -d /run/systemd/system ] && [ -x "$(command -v systemctl)" ]; then
 			systemctl daemon-reload
 			systemctl enable will-server.service >/dev/null 2>&1 || true

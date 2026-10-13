@@ -17,7 +17,26 @@ Device-token authentication
 Clients authenticate with a persistent device token sent via BindToken on connect.
 Each unique token maps to one body (one user per device). The first token on an
 empty server is born a man at once; every later new token is an unborn body that
-waits until someone bears it standing in a birth room (Родильная).
+waits until someone who may let in at the gates (Врата) bears it there.
+
+TLS
+---
+
+The server speaks with TLS on port 17771 once a certificate and its key lie in
+/etc/will-server/tls; the open port 7770 stays for clients not yet renewed.
+Make them on this server, that the key never leaves it:
+
+  cd /etc/will-server/tls
+  sudo openssl req -x509 -newkey ec -pkeyopt ec_paramgen_curve:P-256 -nodes \
+      -days 3650 -subj "/CN=will" -addext "subjectAltName=IP:<server address>" \
+      -keyout server.key -out server.crt
+  sudo chown root:will-server server.key server.crt
+  sudo chmod 0640 server.key
+  sudo systemctl restart will-server
+
+The certificate (server.crt) is public: it is built into the clients, which trust
+it alone. Open port 17771 in the firewall. Flags: --tls-cert, --tls-key, --tls-port,
+and --no-plain to stop listening in the open.
 
 Scaling (single process)
 ------------------------

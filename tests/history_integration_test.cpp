@@ -14,6 +14,7 @@
 #include <chrono>
 #include <cstdlib>
 #include <filesystem>
+#include <fstream>
 #include <iostream>
 #include <memory>
 #include <string>
@@ -147,6 +148,64 @@ pid_t start_server(const char* server_exe, std::uint16_t port, const std::string
 	execl(server_exe, server_exe, "--port", port_str.c_str(), "--db-path", db_path.c_str(),
 		  static_cast<char*>(nullptr));
 	_exit(127);
+}
+
+
+/// A self-signed certificate for 127.0.0.1 and its key, for tests only.
+constexpr const char* TestCert = R"pem(-----BEGIN CERTIFICATE-----
+MIIBkDCCATagAwIBAgIULNzGmAlQ3iiu+Er6FQowBIGCr9owCgYIKoZIzj0EAwIw
+FDESMBAGA1UEAwwJd2lsbC10ZXN0MCAXDTI2MTAxMzEwMzYzMFoYDzIxMjYwOTE5
+MTAzNjMwWjAUMRIwEAYDVQQDDAl3aWxsLXRlc3QwWTATBgcqhkjOPQIBBggqhkjO
+PQMBBwNCAAToVYKmitqtINK5tc7TwB7j4SQIoxqPs8jzKMLT3k0uWHQd1yFjVJ9B
+y+e2KQJRzQkHdwyCHkX4n9o6Xk4g9HqRo2QwYjAdBgNVHQ4EFgQUC1XRW+6TAKQu
+dsp9AbPwnQYmABIwHwYDVR0jBBgwFoAUC1XRW+6TAKQudsp9AbPwnQYmABIwDwYD
+VR0TAQH/BAUwAwEB/zAPBgNVHREECDAGhwR/AAABMAoGCCqGSM49BAMCA0gAMEUC
+IQDwjDCGVNLffEFWt2HuCkXX6F7MSz1bfjcWcfGYnaQH/QIgVg/bhXETbZQQ2Xvx
+/RX3VN52q+kY/d8tZO8dcEaEazE=
+-----END CERTIFICATE-----
+)pem";
+constexpr const char* TestKey = R"pem(-----BEGIN PRIVATE KEY-----
+MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgf4a3DxyncLHrPJkK
+IlHut7z/5HzdqDZJU1uoE9+xnJGhRANCAAToVYKmitqtINK5tc7TwB7j4SQIoxqP
+s8jzKMLT3k0uWHQd1yFjVJ9By+e2KQJRzQkHdwyCHkX4n9o6Xk4g9HqR
+-----END PRIVATE KEY-----
+)pem";
+
+
+void write_file(const std::string& path, const char* text)
+{
+	std::ofstream out{path};
+	out << text;
+}
+
+
+/// Start the server with these arguments after its path.
+pid_t start_server_with(const char* server_exe, const std::vector<std::string>& args)
+{
+	const pid_t pid = fork();
+	if (pid != 0)
+		return pid;
+
+	std::vector<char*> argv{const_cast<char*>(server_exe)};
+	for (const std::string& arg : args)
+		argv.push_back(const_cast<char*>(arg.c_str()));
+	argv.push_back(nullptr);
+	execv(server_exe, argv.data());
+	_exit(127);
+}
+
+
+/// A session over TLS, trusting only this certificate.
+GrpcSession open_tls_session(const std::uint16_t port, const char* cert)
+{
+	GrpcSession session;
+	grpc::SslCredentialsOptions tls;
+	tls.pem_root_certs = cert;
+	session.channel = grpc::CreateChannel("127.0.0.1:" + std::to_string(port), grpc::SslCredentials(tls));
+	session.stub = will::v1::Messenger::NewStub(session.channel);
+	session.context->set_deadline(std::chrono::system_clock::now() + std::chrono::seconds(20));
+	session.stream = session.stub->Session(session.context.get());
+	return session;
 }
 
 
@@ -1055,6 +1114,74 @@ TEST_CASE("the testator wills a training over the wire; the novice fulfils it te
 	trainer.context->TryCancel();
 	novice.context->TryCancel();
 	elder.session.context->TryCancel();
+	server.stop();
+}
+
+
+TEST_CASE("the server speaks with TLS beside the open port, and only with TLS once the open port is closed")
+{
+	const std::uint16_t port = static_cast<std::uint16_t>(pick_port() + 6);
+	const std::uint16_t tls_port = static_cast<std::uint16_t>(pick_port() + 7);
+	const std::string directory = "/tmp/will-tls-test-" + std::to_string(getpid());
+	const ScratchDirectory scratch{directory};
+	write_file(directory + "/server.crt", TestCert);
+	write_file(directory + "/server.key", TestKey);
+	const std::vector<std::string> tls_args{"--port", std::to_string(port), "--db-path", directory,
+											"--tls-cert", directory + "/server.crt",
+											"--tls-key", directory + "/server.key",
+											"--tls-port", std::to_string(tls_port)};
+	{
+		RunningServer server{start_server_with(g_server_exe, tls_args)};
+		REQUIRE(server.pid() > 0);
+		wait_for_server(port);
+		wait_for_server(tls_port);
+
+		// Over TLS, trusting the server's certificate, one comes in as ever.
+		GrpcSession secure = open_tls_session(tls_port, TestCert);
+		REQUIRE(secure.stream);
+		CHECK_FALSE(bind_named(*secure.stream, ElderToken).empty());
+
+		// The open port still serves the old clients.
+		GrpcSession open = open_session(port);
+		REQUIRE(open.stream);
+		{
+			will::v1::ClientEvent bind;
+			bind.mutable_bind_token()->set_token(SenderToken);
+			REQUIRE(open.stream->Write(bind));
+		}
+		CHECK(read_event(*open.stream).auth_ok().unborn());
+
+		// In the open the TLS port is not understood.
+		GrpcSession wrong = open_session(tls_port);
+		REQUIRE(wrong.stream);
+		{
+			will::v1::ClientEvent bind;
+			bind.mutable_bind_token()->set_token(ViewerToken);
+			wrong.stream->Write(bind);
+		}
+		will::v1::ServerEvent nothing;
+		CHECK_FALSE(wrong.stream->Read(&nothing));
+
+		wrong.context->TryCancel();
+		open.context->TryCancel();
+		secure.context->TryCancel();
+		server.stop();
+	}
+
+	// With the open port closed, only TLS is heard.
+	std::vector<std::string> tls_only = tls_args;
+	tls_only.push_back("--no-plain");
+	RunningServer server{start_server_with(g_server_exe, tls_only)};
+	REQUIRE(server.pid() > 0);
+	wait_for_server(tls_port);
+	const int fd = connect_tcp("127.0.0.1", port);
+	CHECK(fd < 0);
+	if (fd >= 0)
+		::close(fd);
+	GrpcSession secure = open_tls_session(tls_port, TestCert);
+	REQUIRE(secure.stream);
+	CHECK_FALSE(bind_named(*secure.stream, ElderToken).empty());
+	secure.context->TryCancel();
 	server.stop();
 }
 

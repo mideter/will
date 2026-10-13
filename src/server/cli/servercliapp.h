@@ -34,6 +34,10 @@ private:
 	std::string db_path_;
 	int keepalive_interval_seconds_;
 	int keepalive_timeout_seconds_;
+	std::string tls_cert_;
+	std::string tls_key_;
+	int tls_port_;
+	bool no_plain_ = false;
 };
 
 

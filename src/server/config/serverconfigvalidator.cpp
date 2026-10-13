@@ -44,6 +44,18 @@ std::optional<std::string_view> ServerConfigValidator::db_path_reason(const std:
 }
 
 
+std::optional<std::string_view> ServerConfigValidator::pem_file_reason(const std::string_view path)
+{
+	if (path.empty())
+		return "must be given together with the other TLS file";
+	std::error_code error;
+	if (!std::filesystem::is_regular_file(std::filesystem::path{path}, error))
+		return "must be an existing file";
+
+	return std::nullopt;
+}
+
+
 template<typename T>
 std::optional<std::string_view> ServerConfigValidator::positive_reason(const T value)
 {
@@ -61,6 +73,16 @@ void ServerConfigValidator::validate(const ServerConfig& config)
 	require("db_path", db_path_reason(config.db_path));
 	require("keepalive_interval_seconds", positive_reason(config.keepalive_interval_seconds));
 	require("keepalive_timeout_seconds", positive_reason(config.keepalive_timeout_seconds));
+	if (config.tls()) {
+		require("tls_cert", pem_file_reason(config.tls_cert));
+		require("tls_key", pem_file_reason(config.tls_key));
+		require("tls_port", listen_port_reason(config.tls_port));
+		if (config.plain && config.tls_port == config.listen_port)
+			throw ServerConfigError("tls_port", "must differ from the open port");
+	} else if (!config.plain) {
+		// Closing the open port leaves nothing to listen on without TLS.
+		throw ServerConfigError("plain", "may be closed only when TLS is given");
+	}
 }
 
 
