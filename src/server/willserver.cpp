@@ -17,6 +17,9 @@ WillServer::WillServer(ServerConfig config)
 void WillServer::run()
 {
 	log_startup(config_);
+	// What is kept but does not agree is passed over, not lost: it is told, to be looked into.
+	for (const std::string& what : persistence_.world().unrecollected())
+		std::cerr << "Not recollected: " << what << '\n';
 	server_.run();
 }
 

@@ -13,6 +13,7 @@
 #include "values/timestamp.h"
 
 #include <memory>
+#include <string>
 #include <vector>
 #include <functional>
 #include <mutex>
@@ -81,6 +82,12 @@ public:
 	/// The hosts in whose abodes this man dwells.
 	std::vector<std::reference_wrapper<const Man>> hosts_of(const Man& dweller) const;
 
+	/// What the world could not recollect on awakening, and what it made whole again:
+	/// kept things that do not agree among the dimensions — a body joined to a soul
+	/// that is not kept, a tie or a dweller of one who does not live. Such are passed
+	/// over, never erased, that the world awakens all the same; each is told here.
+	const std::vector<std::string>& unrecollected() const noexcept { return unrecollected_; }
+
 private:
 	friend class Creation;
 
@@ -99,11 +106,13 @@ private:
 	const Man& accept(matter::Man kept);
 
 	const Man& living_man(id::Soul id) const;
+	bool lives(id::Soul id) const;
 
 	mutable std::mutex mutex_;
 	std::unordered_map<id::Soul, std::unique_ptr<Man>> men_;
 	std::unordered_map<id::Vessel, id::Soul> soul_id_by_vessel_;
 	std::vector<std::unique_ptr<Unborn>> unborn_;
+	std::vector<std::string> unrecollected_;
 };
 
 

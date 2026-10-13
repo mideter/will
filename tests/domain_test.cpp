@@ -1615,3 +1615,64 @@ TEST_CASE("the novice does a training approach by approach: each begun and finis
 	REQUIRE(recalled->efforts().size() == 3);
 	CHECK(recalled->efforts()[0].repetitions() == 5);
 }
+
+
+TEST_CASE("the world awakens though what is kept disagrees: it passes it over, tells it, and makes fatherhood whole")
+{
+	InMemoryShared store;
+	const DeviceToken anna_token = DeviceToken::generate();
+	const DeviceToken boris_token = DeviceToken::generate();
+	std::optional<id::Soul> kept_boris;
+	std::optional<id::Place> kept_anna_abode;
+	std::optional<id::Soul> kept_elder;
+	{
+		InMemoryCosmos cosmos(store);
+		World& world = cosmos.life().create().world();
+		const auto& anna = static_cast<const Testator&>(born(world, anna_token));
+		const auto& boris = static_cast<const Novice&>(born(world, boris_token));
+		admit_at_gates(world, anna, boris);
+		admit_at_gates(world, boris, anna);
+		boris.supplicate(anna);
+		anna.accept(*anna.supplication(boris));
+		kept_boris = boris.Soul::id();
+		kept_anna_abode = anna.abode().id();
+		kept_elder = forefather(world).Soul::id();
+		CHECK(world.unrecollected().empty());
+	}
+
+	const id::Soul boris_id = *kept_boris;
+	const id::Place anna_abode = *kept_anna_abode;
+	const id::Soul elder_id = *kept_elder;
+
+	// What is kept no longer agrees: Boris's body has lost its soul, a body is joined to a
+	// soul never kept, a dweller dwells where no one keeps the abode, and Anna's father
+	// no longer dwells in her abode.
+	std::erase_if(store.embodiments, [&](const matter::Embodiment& e) { return e.soul() == boris_id; });
+	store.embodiments.emplace_back(id::Soul{9999}, id::Vessel{9998});
+	store.dwellers.emplace_back(id::Place{12345}, elder_id, matter::Dweller::Kind::Friend);
+	std::erase_if(store.dwellers, [&](const matter::Dweller& d) { return d.abode() == anna_abode && d.soul() == elder_id; });
+
+	// The world awakens all the same, and says what it passed over and what it made whole.
+	InMemoryCosmos cosmos(store);
+	World& world = cosmos.life().create().world();
+	const auto told = [&](const std::string_view what) {
+		return std::any_of(world.unrecollected().begin(), world.unrecollected().end(),
+						   [&](const std::string& said) { return said.find(what) != std::string::npos; });
+	};
+	CHECK(told("embodiment of soul 9999"));
+	CHECK(told("soul " + std::to_string(boris_id.value()) + " ("));  // Boris's soul, in no body now
+	CHECK(told("has no body"));
+	CHECK(told("tie "));                           // Anna's tie with Boris, who does not live
+	CHECK(told("dweller " + std::to_string(boris_id.value())));
+	CHECK(told("of abode 12345"));
+	CHECK(told("fatherhood of " + std::to_string(elder_id.value()) + " over " + std::to_string(boris_id.value())));
+	CHECK(told("made a neighbour of his child"));
+
+	const Man& anna = born(world, anna_token);
+	CHECK(anna.abode().dwells(forefather(world)));
+	CHECK(std::any_of(store.dwellers.begin(), store.dwellers.end(), [&](const matter::Dweller& d) {
+		return d.abode() == anna_abode && d.soul() == elder_id;
+	}));
+	// Anna's tie with Boris is not recollected: no room of it stands in her abode.
+	CHECK(anna.abode().rooms().size() == 3);
+}

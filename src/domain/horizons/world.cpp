@@ -23,7 +23,9 @@
 #include <algorithm>
 #include <functional>
 #include <stdexcept>
+#include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -56,14 +58,27 @@ void World::awaken()
 	for (matter::Vessel& kept : temporality().vessels())
 		vessels.emplace(kept.id(), std::move(kept));
 
+	const auto unrecollected = [this](std::string what) { unrecollected_.push_back(std::move(what)); };
+
 	for (const matter::Embodiment& embodied : temporality().embodiments()) {
 		const auto soul = souls.find(embodied.soul());
 		const auto vessel = vessels.find(embodied.vessel());
-		if (soul == souls.end() || vessel == vessels.end())
-			throw std::runtime_error("a kept embodiment joins a soul or a vessel that is not kept");
+		if (soul == souls.end() || vessel == vessels.end()) {
+			unrecollected("embodiment of soul " + std::to_string(embodied.soul().value()) + " in body "
+						  + std::to_string(embodied.vessel().value()) + ": the soul or the body is not kept");
+			continue;
+		}
 
 		(void)accept(matter::Man{soul->second, vessel->second, embodied});
 		vessels.erase(vessel);
+	}
+
+	// A soul kept in no body cannot be entered: its body awaits a birth anew, and he
+	// who comes in it will be another. It is told, that it be seen before that.
+	for (const auto& [id, kept] : souls) {
+		if (!lives(id))
+			unrecollected("soul " + std::to_string(id.value()) + " (" + std::string{kept.name().text()}
+						  + ") has no body");
 	}
 
 	// The bodies no soul dwells in await their birth.
@@ -75,10 +90,25 @@ void World::awaken()
 	for (matter::Vessel& kept : awaiting)
 		(void)await(std::move(kept));
 
-	for (const matter::Fatherhood& kept : eternity().fatherhoods())
+	std::vector<matter::Fatherhood> by_flesh;
+	for (const matter::Fatherhood& kept : eternity().fatherhoods()) {
+		if (!lives(kept.child()) || !lives(kept.father())) {
+			unrecollected("fatherhood of " + std::to_string(kept.father().value()) + " over "
+						  + std::to_string(kept.child().value()) + ": one of them does not live");
+			continue;
+		}
 		living_man(kept.child()).descend(Birth<World>{*this}, living_man(kept.father()), kept);
+		if (kept.line() == matter::Fatherhood::Line::Flesh)
+			by_flesh.push_back(kept);
+	}
 
+	std::unordered_set<id::Place> ties;
 	for (matter::Tie kept : spatiality().ties()) {
+		if (!lives(kept.testator()) || !lives(kept.novice())) {
+			unrecollected("tie " + std::to_string(kept.id().value()) + ": one of its sides does not live");
+			continue;
+		}
+		ties.insert(kept.id());
 		const auto& novice = static_cast<const Novice&>(Soul::of(kept.novice()));
 		const Obedience& place = novice.follow(std::move(kept));
 		static_cast<const Testator&>(place.testator()).shepherd(
@@ -90,11 +120,13 @@ void World::awaken()
 	for (const auto& [soul_id, man] : men_) {
 		Abode& abode = man->abode();
 		for (const matter::Room& kept : spatiality().rooms(abode.id())) {
-			if (kept.reflects() != abode.id())
+			if (kept.reflects() != abode.id() && ties.contains(kept.reflects()))
 				abode.furnish(Birth<World>{*this}, kept);
 		}
 	}
 	for (const matter::Tie& kept : spatiality().ties()) {
+		if (!ties.contains(kept.id()))
+			continue;
 		const Place& tie = Place::of(kept.id());
 		for (const id::Soul side : {kept.testator(), kept.novice()}) {
 			Abode& abode = living_man(side).abode();
@@ -109,17 +141,47 @@ void World::awaken()
 		hosts.emplace(man->abode().id(), man.get());
 	for (const matter::Dweller& kept : spatiality().dwellers()) {
 		const auto host = hosts.find(kept.abode());
-		if (host == hosts.end())
-			throw std::runtime_error("a kept dweller dwells in an abode no living man keeps");
-
+		if (host == hosts.end() || !lives(kept.soul())) {
+			unrecollected("dweller " + std::to_string(kept.soul().value()) + " of abode "
+						  + std::to_string(kept.abode().value()) + ": he or the host does not live");
+			continue;
+		}
 		host->second->abode().admit(Birth<World>{*this}, living_man(kept.soul()), kept);
+	}
+
+	// The father by flesh ever dwells in his child's abode as a neighbour at least, the
+	// child in his as an acquaintance: if a birth was cut short before that was kept,
+	// it is kept now.
+	for (const matter::Fatherhood& kept : by_flesh) {
+		const Man& father = living_man(kept.father());
+		const Man& child = living_man(kept.child());
+		if (!child.abode().dwells(father)) {
+			child.abode().admit(Birth<World>{*this}, father,
+								spatiality().dwell(child.abode().id(), father.Soul::id(),
+												   matter::Dweller::Kind::Neighbour));
+			unrecollected("father " + std::to_string(father.Soul::id().value()) + " made a neighbour of his child "
+						  + std::to_string(child.Soul::id().value()) + " again");
+		}
+		if (!father.abode().dwells(child)) {
+			father.abode().admit(Birth<World>{*this}, child,
+								 spatiality().dwell(father.abode().id(), child.Soul::id(),
+													matter::Dweller::Kind::Acquaintance));
+			unrecollected("child " + std::to_string(child.Soul::id().value()) + " made an acquaintance of his father "
+						  + std::to_string(father.Soul::id().value()) + " again");
+		}
 	}
 
 	for (const auto& [soul_id, man] : men_) {
 		const auto& addressee = static_cast<const Testator&>(*man);
 
-		for (matter::Supplication kept : temporality().supplications(soul_id))
+		for (matter::Supplication kept : temporality().supplications(soul_id)) {
+			if (!lives(kept.suppliant())) {
+				unrecollected("supplication of " + std::to_string(kept.suppliant().value())
+							  + ": the suppliant does not live");
+				continue;
+			}
 			addressee.hear(Birth<World>{*this}, std::move(kept));
+		}
 	}
 }
 
@@ -331,6 +393,14 @@ const Man& World::accept(matter::Man kept)
 	men_.insert_or_assign(soul_id, std::move(ptr));
 	soul_id_by_vessel_.insert_or_assign(vessel_id, soul_id);
 	return live;
+}
+
+
+bool World::lives(const id::Soul id) const
+{
+	std::lock_guard lock(mutex_);
+	const auto it = men_.find(id);
+	return it != men_.end() && it->second;
 }
 
 
