@@ -10,6 +10,7 @@
 #include "identity/vessel.h"
 #include "values/device_token.h"
 #include "values/soul_name.h"
+#include "values/timestamp.h"
 
 #include <memory>
 #include <vector>
@@ -41,6 +42,10 @@ public:
 	/// body awaiting its soul. An unknown token is given a body to await its
 	/// birth — unless no man is yet: the first is begotten at once.
 	const Vessel& welcome(const DeviceToken& token);
+
+	/// The present instant of the world, as its time tells it: the same by which
+	/// words and efforts are dated.
+	Timestamp now();
 
 	/// The bodies awaiting their soul, in the order they came.
 	std::vector<std::reference_wrapper<const Unborn>> unborn() const;

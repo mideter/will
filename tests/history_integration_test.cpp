@@ -769,6 +769,13 @@ TEST_CASE("an unborn body waits, seen by the keepers of gates; it is born of the
 	}
 	const will::v1::ServerEvent welcomed = read_event(*seth.stream);
 	REQUIRE(welcomed.auth_ok().unborn());
+	// The welcome tells the server's present instant, that the client set its clock at once.
+	{
+		const std::int64_t now_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(
+										std::chrono::system_clock::now().time_since_epoch())
+										.count();
+		CHECK(std::llabs(welcomed.auth_ok().server_time_ns() - now_ns) < 5'000'000'000LL);
+	}
 	CHECK(welcomed.auth_ok().name().empty());
 	const std::uint64_t mark = welcomed.auth_ok().mark();
 	send_turn_to_abode(*seth.stream, {}, "Слово");

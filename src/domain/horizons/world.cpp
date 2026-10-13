@@ -181,6 +181,12 @@ const Unborn& World::unborn(const id::Vessel id) const
 }
 
 
+Timestamp World::now()
+{
+	return eternity().time().instant();
+}
+
+
 const Man& World::bear(const Man& midwife, const Unborn& unborn)
 {
 	const std::shared_ptr<const Contemplation> gaze = contemplation(midwife.Soul::id());

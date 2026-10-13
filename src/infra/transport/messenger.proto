@@ -36,6 +36,9 @@ message AuthOk {
     string name = 1;
     bool unborn = 2;
     uint64 mark = 3;
+    // The server's present instant (nanoseconds since the epoch), the same by
+    // which it dates words and efforts: the client sets its clock by it at once.
+    int64 server_time_ns = 4;
 }
 
 

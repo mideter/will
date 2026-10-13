@@ -250,6 +250,7 @@ void ProtocolAdapter::handle_bind_token(const SessionId session_id, const v1::Bi
 		event.mutable_auth_ok()->set_unborn(true);
 		event.mutable_auth_ok()->set_mark(body.id().value());
 	}
+	event.mutable_auth_ok()->set_server_time_ns(world_.now().value());
 	send_event(session_id, event);
 
 	// The keepers standing in gates see the new body awaiting.
@@ -997,6 +998,7 @@ void ProtocolAdapter::handle_bear(const SessionId session_id, const v1::Bear& ms
 		}
 		v1::ServerEvent event;
 		event.mutable_auth_ok()->set_name(std::string{child.name().text()});
+		event.mutable_auth_ok()->set_server_time_ns(world_.now().value());
 		send_event(*child_session, event);
 	}
 
