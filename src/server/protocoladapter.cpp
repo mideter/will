@@ -18,6 +18,7 @@
 #include "men/witness.h"
 #include "words/letter.h"
 #include "values/device_token.h"
+#include "values/refusal.h"
 
 #include <algorithm>
 #include <cstddef>
@@ -133,6 +134,121 @@ const domain::Man& counterpart_in(const domain::Tie& tie, const domain::Man& sid
 }
 
 
+/// The server's own words for what it tells by a code, the names in it given apart.
+std::string words_of(const v1::NoticeCode code, const std::vector<std::string>& args)
+{
+	const auto arg = [&](const std::size_t i) { return i < args.size() ? args[i] : std::string{}; };
+	switch (code) {
+	case v1::NOTICE_NO_SUCH_UNBORN:
+		return "no such unborn";
+	case v1::NOTICE_ONLY_HOST_WRITES:
+		return "only the host writes in his abode";
+	case v1::NOTICE_INVALID_NAME:
+		return "invalid soul name";
+	case v1::NOTICE_UNKNOWN_NAME:
+		return "unknown soul name";
+	case v1::NOTICE_WRITE_IN_A_ROOM:
+		return "one writes in a room: /room Слово";
+	case v1::NOTICE_NO_WRITING_HERE:
+		return "one does not write here";
+	case v1::NOTICE_NOVICE_FULFILS:
+		return "in a tie the novice fulfils behests: /done <number> [report]";
+	case v1::NOTICE_NO_SUCH_ROOM:
+		return "no such room";
+	case v1::NOTICE_YOU_DO_NOT_DWELL:
+		return "you do not dwell in that abode";
+	case v1::NOTICE_YOU_DO_NOT_ENTER:
+		return "you do not enter that room";
+	case v1::NOTICE_ENTER_TIE_ROOM:
+		return "enter the room of the tie first: /room <name>";
+	case v1::NOTICE_UNKNOWN_BEHEST:
+		return "unknown behest";
+	case v1::NOTICE_UNKNOWN_KIND:
+		return "unknown dweller kind";
+	case v1::NOTICE_ONLY_TESTATOR_TRAINS:
+		return "only the testator wills a training";
+	case v1::NOTICE_INVALID_TRAINING:
+		return "invalid training";
+	case v1::NOTICE_UNKNOWN_TRAINING:
+		return "unknown training";
+	case v1::NOTICE_FATHER_BY_SPIRIT_CLOSED:
+		return "the father by spirit is not yet open";
+	case v1::NOTICE_AWAITS_BIRTH:
+		return "one awaits one's birth";
+	case v1::NOTICE_SUPPLICATION_SENT:
+		return "supplication sent";
+	case v1::NOTICE_BEHEST_FULFILLED:
+		return "behest " + arg(0) + " fulfilled";
+	case v1::NOTICE_ADMITTED:
+		return arg(0) + " admitted as an acquaintance";
+	case v1::NOTICE_LET_IN:
+		return arg(0) + " let " + arg(1) + " in as an acquaintance";
+	case v1::NOTICE_REGARDED:
+		return arg(0) + " regarded anew";
+	case v1::NOTICE_ARRANGED_OUTER:
+		return arg(0) + " is now in the outer part";
+	case v1::NOTICE_ARRANGED_INNER:
+		return arg(0) + " is now in the inner part";
+	case v1::NOTICE_TRAINING_WILLED:
+		return "training " + arg(0) + " willed";
+	case v1::NOTICE_BORN:
+		return arg(0) + " born";
+	case v1::NOTICE_SUPPLICATION_REJECTED:
+		return "supplication of " + arg(0) + " rejected";
+	default:
+		return "refused";
+	}
+}
+
+
+/// The code by which the world's reason for refusing is told.
+v1::NoticeCode code_of(const domain::Refusal::Reason reason)
+{
+	using Reason = domain::Refusal::Reason;
+	switch (reason) {
+	case Reason::AdmitOnlyAtGates: return v1::NOTICE_ADMIT_ONLY_AT_GATES;
+	case Reason::KeepGatesByKind: return v1::NOTICE_KEEP_GATES_BY_KIND;
+	case Reason::AlreadyDwells: return v1::NOTICE_ALREADY_DWELLS;
+	case Reason::NotAtGates: return v1::NOTICE_NOT_AT_GATES;
+	case Reason::BearOnlyAtGates: return v1::NOTICE_BEAR_ONLY_AT_GATES;
+	case Reason::BearOnlyAtKeptGates: return v1::NOTICE_BEAR_ONLY_AT_KEPT_GATES;
+	case Reason::NoSuchUnborn: return v1::NOTICE_NO_SUCH_UNBORN;
+	case Reason::DoesNotDwell: return v1::NOTICE_DOES_NOT_DWELL;
+	case Reason::DoesNotEnterRoom: return v1::NOTICE_DOES_NOT_ENTER_ROOM;
+	case Reason::RegardOnlyInUpperRoom: return v1::NOTICE_REGARD_ONLY_IN_UPPER_ROOM;
+	case Reason::ArrangeOnlyInUpperRoom: return v1::NOTICE_ARRANGE_ONLY_IN_UPPER_ROOM;
+	case Reason::FatherByFleshNeighbour: return v1::NOTICE_FATHER_BY_FLESH_NEIGHBOUR;
+	case Reason::FatherBySpiritFriend: return v1::NOTICE_FATHER_BY_SPIRIT_FRIEND;
+	case Reason::OnlyHostWrites: return v1::NOTICE_ONLY_HOST_WRITES;
+	case Reason::SayOnlyInWord: return v1::NOTICE_SAY_ONLY_IN_WORD;
+	case Reason::CannotSupplicateOneself: return v1::NOTICE_CANNOT_SUPPLICATE_ONESELF;
+	case Reason::SupplicateOnlyDweller: return v1::NOTICE_SUPPLICATE_ONLY_DWELLER;
+	case Reason::HearOnlyDweller: return v1::NOTICE_HEAR_ONLY_DWELLER;
+	case Reason::AlreadyTied: return v1::NOTICE_ALREADY_TIED;
+	case Reason::TieOnlyMutualDwellers: return v1::NOTICE_TIE_ONLY_MUTUAL_DWELLERS;
+	case Reason::UnknownSupplication: return v1::NOTICE_UNKNOWN_SUPPLICATION;
+	case Reason::WillOnlyInContemplatedTie: return v1::NOTICE_WILL_ONLY_IN_CONTEMPLATED_TIE;
+	case Reason::OnlyTestatorWills: return v1::NOTICE_ONLY_TESTATOR_WILLS;
+	case Reason::FulfilOnlyInContemplatedTie: return v1::NOTICE_FULFIL_ONLY_IN_CONTEMPLATED_TIE;
+	case Reason::OnlyNoviceFulfils: return v1::NOTICE_ONLY_NOVICE_FULFILS;
+	case Reason::AlreadyFulfilled: return v1::NOTICE_ALREADY_FULFILLED;
+	case Reason::PlainBehestWithoutExercises: return v1::NOTICE_PLAIN_BEHEST_WITHOUT_EXERCISES;
+	case Reason::TrainOnlyInContemplatedTie: return v1::NOTICE_TRAIN_ONLY_IN_CONTEMPLATED_TIE;
+	case Reason::OnlyNoviceTrains: return v1::NOTICE_ONLY_NOVICE_TRAINS;
+	case Reason::NoSuchExercise: return v1::NOTICE_NO_SUCH_EXERCISE;
+	case Reason::NoSuchApproach: return v1::NOTICE_NO_SUCH_APPROACH;
+	case Reason::ApproachAlreadyDone: return v1::NOTICE_APPROACH_ALREADY_DONE;
+	case Reason::ApproachesInOrder: return v1::NOTICE_APPROACHES_IN_ORDER;
+	case Reason::AnotherApproachUnderway: return v1::NOTICE_ANOTHER_APPROACH_UNDERWAY;
+	case Reason::NoApproachUnderway: return v1::NOTICE_NO_APPROACH_UNDERWAY;
+	case Reason::FinishApproachFirst: return v1::NOTICE_FINISH_APPROACH_FIRST;
+	case Reason::NotOwnFather: return v1::NOTICE_NOT_OWN_FATHER;
+	case Reason::NotDescendantAsFather: return v1::NOTICE_NOT_DESCENDANT_AS_FATHER;
+	}
+	return v1::NOTICE_UNSPECIFIED;
+}
+
+
 } // namespace
 
 
@@ -173,6 +289,9 @@ void ProtocolAdapter::on_client_event(const SessionId session_id, const v1::Clie
 	reply.mutable_reply()->set_request_id(answer.request_id);
 	reply.mutable_reply()->set_granted(!answer.refused);
 	reply.mutable_reply()->set_notice(answer.notice);
+	reply.mutable_reply()->set_code(answer.code);
+	for (std::string& arg : answer.args)
+		reply.mutable_reply()->add_args(std::move(arg));
 	send_event(session_id, reply);
 }
 
@@ -189,33 +308,53 @@ void ProtocolAdapter::send_event(const SessionId session_id, const v1::ServerEve
 }
 
 
-void ProtocolAdapter::send_notice(const SessionId session_id, const std::string_view message)
+void ProtocolAdapter::send_notice(const SessionId session_id, const v1::NoticeCode code,
+								  std::vector<std::string> args)
 {
-	tell_asker(session_id, message, false);
+	std::string message = words_of(code, args);
+	tell_asker(session_id, code, std::move(args), std::move(message), false);
 }
 
 
-void ProtocolAdapter::refuse(const SessionId session_id, const std::string_view message)
+void ProtocolAdapter::refuse(const SessionId session_id, const v1::NoticeCode code, std::vector<std::string> args)
 {
-	tell_asker(session_id, message, true);
+	std::string message = words_of(code, args);
+	tell_asker(session_id, code, std::move(args), std::move(message), true);
 }
 
 
-void ProtocolAdapter::tell_asker(const SessionId session_id, const std::string_view message, const bool refusal)
+void ProtocolAdapter::refuse(const SessionId session_id, const std::exception& thrown)
+{
+	const auto* refusal = dynamic_cast<const domain::Refusal*>(&thrown);
+	tell_asker(session_id, refusal ? code_of(refusal->reason()) : v1::NOTICE_UNSPECIFIED, {}, thrown.what(), true);
+}
+
+
+void ProtocolAdapter::tell_asker(const SessionId session_id, const v1::NoticeCode code, std::vector<std::string> args,
+								 std::string message, const bool refusal)
 {
 	{
 		std::lock_guard lock(answering_mutex_);
 		if (const auto it = answering_.find(session_id.value); it != answering_.end()) {
-			it->second.refused = it->second.refused || refusal;
-			if (it->second.notice.empty())
-				it->second.notice = std::string{message};
+			Answer& answer = it->second;
+			answer.refused = answer.refused || refusal;
+			if (!answer.told && (code != v1::NOTICE_UNSPECIFIED || !message.empty())) {
+				answer.told = true;
+				answer.code = code;
+				answer.args = std::move(args);
+				answer.notice = std::move(message);
+			}
 			return;
 		}
 	}
 	if (message.empty())
 		return;
 	v1::ServerEvent event;
-	event.mutable_protocol_notice()->set_message(std::string{message});
+	auto* notice = event.mutable_protocol_notice();
+	notice->set_message(message);
+	notice->set_code(code);
+	for (std::string& arg : args)
+		notice->add_args(std::move(arg));
 	send_event(session_id, event);
 }
 
@@ -258,14 +397,14 @@ const domain::Man* ProtocolAdapter::man_named(const SessionId session_id, const 
 {
 	const auto name = domain::SoulName::parse(name_text);
 	if (!name) {
-		refuse(session_id, "invalid soul name");
+		refuse(session_id, v1::NOTICE_INVALID_NAME);
 		return nullptr;
 	}
 
 	try {
 		return &world_.man(*name);
 	} catch (const std::invalid_argument&) {
-		refuse(session_id, "unknown soul name");
+		refuse(session_id, v1::NOTICE_UNKNOWN_NAME);
 		return nullptr;
 	}
 }
@@ -344,7 +483,7 @@ void ProtocolAdapter::on_session_ended(const SessionId session_id)
 
 void ProtocolAdapter::send_auth_required(const SessionId session_id)
 {
-	refuse(session_id, {});  // a numbered request before the token is not granted
+	tell_asker(session_id, v1::NOTICE_UNSPECIFIED, {}, {}, true);  // a numbered request before the token is not granted
 	v1::ServerEvent event;
 	event.mutable_auth_required();
 	send_event(session_id, event);
@@ -367,12 +506,12 @@ void ProtocolAdapter::handle_user_chat(const SessionId session_id, const v1::Cha
 
 	std::shared_ptr<const domain::Word> placed;
 	if (dynamic_cast<const domain::Abode*>(&gaze->place())) {
-		refuse(session_id, "one writes in a room: /room Слово");
+		refuse(session_id, v1::NOTICE_WRITE_IN_A_ROOM);
 		return;
 	}
 	if (const auto* abode = dynamic_cast<const domain::Abode*>(&gaze->place().source())) {
 		if (&abode->host() != &man) {
-			refuse(session_id, "only the host writes in his abode");
+			refuse(session_id, v1::NOTICE_ONLY_HOST_WRITES);
 			return;
 		}
 
@@ -388,18 +527,18 @@ void ProtocolAdapter::handle_user_chat(const SessionId session_id, const v1::Cha
 		// the upper room no one writes: they show no words.
 		const auto* tie = dynamic_cast<const domain::Tie*>(&gaze->place().source());
 		if (!tie) {
-			refuse(session_id, "one does not write here");
+			refuse(session_id, v1::NOTICE_NO_WRITING_HERE);
 			return;
 		}
 		if (tie->testator().Soul::id() != man.Soul::id()) {
-			refuse(session_id, "in a tie the novice fulfils behests: /done <number> [report]");
+			refuse(session_id, v1::NOTICE_NOVICE_FULFILS);
 			return;
 		}
 
 		try {
 			placed = static_cast<const domain::Testator&>(man).will(*tie, std::string{chat.body()});
 		} catch (const std::exception& e) {
-			refuse(session_id, e.what());
+			refuse(session_id, e);
 			return;
 		}
 	}
@@ -502,11 +641,11 @@ void ProtocolAdapter::handle_supplicate(const SessionId session_id, const v1::Su
 	try {
 		novice.supplicate(testator);
 	} catch (const std::exception& e) {
-		refuse(session_id, e.what());
+		refuse(session_id, e);
 		return;
 	}
 
-	send_notice(session_id, "supplication sent");
+	send_notice(session_id, v1::NOTICE_SUPPLICATION_SENT);
 
 	v1::ServerEvent offer;
 	offer.mutable_supplication_offer()->set_suppliant_name(std::string{self.name().text()});
@@ -533,7 +672,7 @@ void ProtocolAdapter::handle_accept_supplication(const SessionId session_id,
 	try {
 		formed = testator.accept(*testator.supplication(novice)).id();
 	} catch (const std::exception& e) {
-		refuse(session_id, e.what());
+		refuse(session_id, e);
 		return;
 	}
 
@@ -579,13 +718,13 @@ void ProtocolAdapter::handle_turn(const SessionId session_id, const v1::Turn& ms
 		} else {
 			const domain::Room* room = host->abode().room(msg.room());
 			if (!room) {
-				refuse(session_id, "no such room");
+				refuse(session_id, v1::NOTICE_NO_SUCH_ROOM);
 				return;
 			}
 			witness.contemplate(*room);
 		}
 	} catch (const std::logic_error&) {
-		refuse(session_id, msg.room().empty() ? "you do not dwell in that abode" : "you do not enter that room");
+		refuse(session_id, msg.room().empty() ? v1::NOTICE_YOU_DO_NOT_DWELL : v1::NOTICE_YOU_DO_NOT_ENTER);
 		return;
 	}
 
@@ -615,7 +754,7 @@ void ProtocolAdapter::handle_fulfil(const SessionId session_id, const v1::Fulfil
 
 	const std::shared_ptr<const domain::Contemplation> gaze = world_.contemplation(self.Soul::id());
 	if (!gaze || !dynamic_cast<const domain::Tie*>(&gaze->place().source())) {
-		refuse(session_id, "enter the room of the tie first: /room <name>");
+		refuse(session_id, v1::NOTICE_ENTER_TIE_ROOM);
 		return;
 	}
 
@@ -626,7 +765,7 @@ void ProtocolAdapter::handle_fulfil(const SessionId session_id, const v1::Fulfil
 			behest = std::dynamic_pointer_cast<const domain::Behest>(word);
 	}
 	if (!behest) {
-		refuse(session_id, "unknown behest");
+		refuse(session_id, v1::NOTICE_UNKNOWN_BEHEST);
 		return;
 	}
 
@@ -640,10 +779,10 @@ void ProtocolAdapter::handle_fulfil(const SessionId session_id, const v1::Fulfil
 
 		const std::shared_ptr<const domain::Deed> deed
 			= novice.execute(*behest, std::move(report), std::move(performed));
-		send_notice(session_id, "behest " + std::to_string(behest->id().value()) + " fulfilled");
+		send_notice(session_id, v1::NOTICE_BEHEST_FULFILLED, {std::to_string(behest->id().value())});
 		tell_placed(gaze->place().source(), *deed, self);
 	} catch (const std::exception& e) {
-		refuse(session_id, e.what());
+		refuse(session_id, e);
 	}
 }
 
@@ -705,17 +844,21 @@ void ProtocolAdapter::handle_admit(const SessionId session_id, const v1::Admit& 
 	try {
 		self.admit(*man);
 	} catch (const std::exception& e) {
-		refuse(session_id, e.what());
+		refuse(session_id, e);
 		return;
 	}
 
 	// He becomes an acquaintance of the host of the gates, whoever let him in.
 	const domain::Man& host = gates->abode().host();
-	send_notice(session_id, std::string{man->name().text()} + " admitted as an acquaintance");
+	send_notice(session_id, v1::NOTICE_ADMITTED, {std::string{man->name().text()}});
 	if (&host != &self) {
+		const std::vector<std::string> names{std::string{self.name().text()}, std::string{man->name().text()}};
 		v1::ServerEvent told;
-		told.mutable_protocol_notice()->set_message(std::string{self.name().text()} + " let "
-													+ std::string{man->name().text()} + " in as an acquaintance");
+		auto* notice = told.mutable_protocol_notice();
+		notice->set_message(words_of(v1::NOTICE_LET_IN, names));
+		notice->set_code(v1::NOTICE_LET_IN);
+		for (const std::string& name : names)
+			notice->add_args(name);
 		send_to_vessel(host.Vessel::id(), told);
 	}
 	tell_dwelling(host, *man);
@@ -741,7 +884,7 @@ void ProtocolAdapter::handle_regard(const SessionId session_id, const v1::Regard
 		kind = domain::matter::Dweller::Kind::Friend;
 		break;
 	default:
-		refuse(session_id, "unknown dweller kind");
+		refuse(session_id, v1::NOTICE_UNKNOWN_KIND);
 		return;
 	}
 
@@ -749,11 +892,11 @@ void ProtocolAdapter::handle_regard(const SessionId session_id, const v1::Regard
 	try {
 		self.regard(*man, kind);
 	} catch (const std::exception& e) {
-		refuse(session_id, e.what());
+		refuse(session_id, e);
 		return;
 	}
 
-	send_notice(session_id, std::string{man->name().text()} + " regarded anew");
+	send_notice(session_id, v1::NOTICE_REGARDED, {std::string{man->name().text()}});
 	tell_dwelling(self, *man);
 	retell_abode(self, *man);
 	retell_upper_room(self.abode().upper_room());
@@ -861,7 +1004,7 @@ void ProtocolAdapter::handle_arrange(const SessionId session_id, const v1::Arran
 	const domain::Man& self = session_man(session_id);
 	const domain::Room* room = self.abode().room(msg.room());
 	if (!room) {
-		refuse(session_id, "no such room");
+		refuse(session_id, v1::NOTICE_NO_SUCH_ROOM);
 		return;
 	}
 
@@ -869,12 +1012,13 @@ void ProtocolAdapter::handle_arrange(const SessionId session_id, const v1::Arran
 	try {
 		self.arrange(*room, part);
 	} catch (const std::exception& e) {
-		refuse(session_id, e.what());
+		refuse(session_id, e);
 		return;
 	}
 
-	send_notice(session_id, msg.room() + (part == domain::matter::Room::Part::Outer ? " is now in the outer part"
-																				  : " is now in the inner part"));
+	send_notice(session_id,
+				part == domain::matter::Room::Part::Outer ? v1::NOTICE_ARRANGED_OUTER : v1::NOTICE_ARRANGED_INNER,
+				{msg.room()});
 	send_event(session_id, arranged_rooms_event(self.abode()));
 	for (const std::shared_ptr<const domain::Acquaintance>& dweller : self.abode().dwellers())
 		retell_abode(self, dweller->man());
@@ -918,11 +1062,11 @@ void ProtocolAdapter::handle_train(const SessionId session_id, const v1::Train& 
 	const std::shared_ptr<const domain::Contemplation> gaze = world_.contemplation(self.Soul::id());
 	const auto* tie = gaze ? dynamic_cast<const domain::Tie*>(&gaze->place().source()) : nullptr;
 	if (!tie) {
-		refuse(session_id, "enter the room of the tie first: /room <name>");
+		refuse(session_id, v1::NOTICE_ENTER_TIE_ROOM);
 		return;
 	}
 	if (tie->testator().Soul::id() != self.Soul::id()) {
-		refuse(session_id, "only the testator wills a training");
+		refuse(session_id, v1::NOTICE_ONLY_TESTATOR_TRAINS);
 		return;
 	}
 
@@ -932,14 +1076,14 @@ void ProtocolAdapter::handle_train(const SessionId session_id, const v1::Train& 
 			*tie, domain::Saying{msg.title().empty() ? std::string{"Тренировка"} : msg.title()},
 			exercises_of(msg.exercises()));
 	} catch (const std::invalid_argument&) {
-		refuse(session_id, "invalid training");
+		refuse(session_id, v1::NOTICE_INVALID_TRAINING);
 		return;
 	} catch (const std::exception& e) {
-		refuse(session_id, e.what());
+		refuse(session_id, e);
 		return;
 	}
 
-	send_notice(session_id, "training " + std::to_string(training->id().value()) + " willed");
+	send_notice(session_id, v1::NOTICE_TRAINING_WILLED, {std::to_string(training->id().value())});
 	tell_placed(*tie, *training, self);
 }
 
@@ -950,7 +1094,7 @@ std::shared_ptr<const domain::Training> ProtocolAdapter::training_in_gaze(const 
 {
 	const std::shared_ptr<const domain::Contemplation> gaze = world_.contemplation(man.Soul::id());
 	if (!gaze || !dynamic_cast<const domain::Tie*>(&gaze->place().source())) {
-		refuse(session_id, "enter the room of the tie first: /room <name>");
+		refuse(session_id, v1::NOTICE_ENTER_TIE_ROOM);
 		return nullptr;
 	}
 	for (const std::shared_ptr<const domain::Word>& word : gaze->words()) {
@@ -959,7 +1103,7 @@ std::shared_ptr<const domain::Training> ProtocolAdapter::training_in_gaze(const 
 				return training;
 		}
 	}
-	refuse(session_id, "unknown training");
+	refuse(session_id, v1::NOTICE_UNKNOWN_TRAINING);
 	return nullptr;
 }
 
@@ -996,7 +1140,7 @@ void ProtocolAdapter::handle_begin_approach(const SessionId session_id, const v1
 	try {
 		static_cast<const domain::Novice&>(self).begin(*training, msg.exercise(), msg.approach());
 	} catch (const std::exception& e) {
-		refuse(session_id, e.what());
+		refuse(session_id, e);
 		return;
 	}
 	tell_tie(training->tie(), underway_event(training->tie()));
@@ -1015,7 +1159,7 @@ void ProtocolAdapter::handle_finish_approach(const SessionId session_id, const v
 		effort = static_cast<const domain::Novice&>(self).finish(*training, domain::Weight{msg.weight_grams()},
 																 msg.repetitions());
 	} catch (const std::exception& e) {
-		refuse(session_id, e.what());
+		refuse(session_id, e);
 		return;
 	}
 
@@ -1035,7 +1179,7 @@ void ProtocolAdapter::handle_bear(const SessionId session_id, const v1::Bear& ms
 	try {
 		unborn = &world_.unborn(domain::id::Vessel{msg.mark()});
 	} catch (const std::exception&) {
-		refuse(session_id, "no such unborn");
+		refuse(session_id, v1::NOTICE_NO_SUCH_UNBORN);
 		return;
 	}
 
@@ -1043,7 +1187,7 @@ void ProtocolAdapter::handle_bear(const SessionId session_id, const v1::Bear& ms
 	try {
 		born = &world_.bear(midwife, *unborn);
 	} catch (const std::logic_error& e) {
-		refuse(session_id, e.what());
+		refuse(session_id, e);
 		return;
 	}
 	const domain::Man& child = *born;
@@ -1062,7 +1206,7 @@ void ProtocolAdapter::handle_bear(const SessionId session_id, const v1::Bear& ms
 		send_event(*child_session, event);
 	}
 
-	send_notice(session_id, std::string{child.name().text()} + " born");
+	send_notice(session_id, v1::NOTICE_BORN, {std::string{child.name().text()}});
 	tell_dwelling(father, child);
 	tell_dwelling(child, father);
 	retell_upper_room(father.abode().upper_room());
@@ -1073,13 +1217,13 @@ void ProtocolAdapter::handle_bear(const SessionId session_id, const v1::Bear& ms
 void ProtocolAdapter::handle_choose_father(const SessionId session_id, const v1::ChooseFather&)
 {
 	// The father by spirit is not yet open: the domain keeps him, the wire does not yet lead to him.
-	refuse(session_id, "the father by spirit is not yet open");
+	refuse(session_id, v1::NOTICE_FATHER_BY_SPIRIT_CLOSED);
 }
 
 
 void ProtocolAdapter::handle_list_lineage(const SessionId session_id)
 {
-	refuse(session_id, "the father by spirit is not yet open");
+	refuse(session_id, v1::NOTICE_FATHER_BY_SPIRIT_CLOSED);
 }
 
 
@@ -1125,11 +1269,11 @@ void ProtocolAdapter::handle_reject_supplication(const SessionId session_id, con
 	try {
 		self.reject(*self.supplication(static_cast<const domain::Novice&>(*suppliant)));
 	} catch (const std::exception& e) {
-		refuse(session_id, e.what());
+		refuse(session_id, e);
 		return;
 	}
 
-	send_notice(session_id, "supplication of " + msg.suppliant_name() + " rejected");
+	send_notice(session_id, v1::NOTICE_SUPPLICATION_REJECTED, {msg.suppliant_name()});
 
 	retell_upper_room(self.abode().upper_room());
 	retell_upper_room(suppliant->abode().upper_room());
@@ -1190,7 +1334,7 @@ void ProtocolAdapter::handle_list_rooms(const SessionId session_id, const v1::Li
 			return;
 	}
 	if (!host->abode().dwells(self)) {
-		refuse(session_id, "you do not dwell in that abode");
+		refuse(session_id, v1::NOTICE_YOU_DO_NOT_DWELL);
 		return;
 	}
 

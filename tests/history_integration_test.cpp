@@ -853,7 +853,8 @@ TEST_CASE("an unborn body waits, seen by the keepers of gates; it is born of the
 	REQUIRE(awaiting.unborn().marks_size() == 1);
 	CHECK(awaiting.unborn().marks(0) == mark);
 	send_bear(adam, mark);
-	const std::string born_notice = read_event(adam).protocol_notice().message();
+	const will::v1::ServerEvent born_told = read_event(adam);
+	const std::string born_notice = born_told.protocol_notice().message();
 	CHECK(read_event(adam).has_dwelling());
 	CHECK(read_event(adam).unborn().marks_size() == 0);
 
@@ -861,6 +862,10 @@ TEST_CASE("an unborn body waits, seen by the keepers of gates; it is born of the
 	REQUIRE(born.has_auth_ok());
 	const std::string seth_name = born.auth_ok().name();
 	CHECK(born_notice == seth_name + " born");
+	// What was done is told by its code, the name in it apart.
+	CHECK(born_told.protocol_notice().code() == will::v1::NOTICE_BORN);
+	REQUIRE(born_told.protocol_notice().args_size() == 1);
+	CHECK(born_told.protocol_notice().args(0) == seth_name);
 	const will::v1::ServerEvent dwelling = read_event(*seth.stream);
 	CHECK(dwelling.dwelling().host_name() == elder.name);
 	CHECK(dwelling.dwelling().kind() == will::v1::ACQUAINTANCE);
@@ -884,7 +889,10 @@ TEST_CASE("an unborn body waits, seen by the keepers of gates; it is born of the
 	const will::v1::ServerEvent seen = read_until(adam, [](const auto& e) { return e.unborn().marks_size() > 0; });
 	CHECK(seen.unborn().marks(0) == enos_mark);
 	send_bear(*seth.stream, enos_mark);
-	CHECK(read_event(*seth.stream).protocol_notice().message() == "one bears only at gates one keeps");
+	const will::v1::ServerEvent not_keeper = read_event(*seth.stream);
+	CHECK(not_keeper.protocol_notice().message() == "one bears only at gates one keeps");
+	// The world's refusal is told by its reason's code, beside its words.
+	CHECK(not_keeper.protocol_notice().code() == will::v1::NOTICE_BEAR_ONLY_AT_KEPT_GATES);
 
 	// The father by spirit is not yet open: neither choosing him nor the line is done.
 	{
@@ -1152,6 +1160,7 @@ TEST_CASE("a numbered request is answered once, by its number: granted or refuse
 	CHECK(refused.reply().request_id() == 7);
 	CHECK_FALSE(refused.reply().granted());
 	CHECK(refused.reply().notice() == "no such room");
+	CHECK(refused.reply().code() == will::v1::NOTICE_NO_SUCH_ROOM);
 
 	// Granted: what it brings comes first, then the answer, with what is said of it.
 	{
@@ -1250,6 +1259,7 @@ TEST_CASE("one does not write at the gates nor in the upper room, and the sessio
 		will::v1::ServerEvent told;
 		REQUIRE(adam.Read(&told));
 		CHECK(told.protocol_notice().message() == "one does not write here");
+		CHECK(told.protocol_notice().code() == will::v1::NOTICE_NO_WRITING_HERE);
 	}
 
 	// He is still there: he turns to his word and writes in it.

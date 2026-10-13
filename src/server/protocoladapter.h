@@ -8,7 +8,9 @@
 #include "infra/transport/messenger.pb.h"
 
 #include <cstdint>
+#include <exception>
 #include <mutex>
+#include <vector>
 #include <string_view>
 #include <unordered_map>
 
@@ -95,10 +97,14 @@ private:
 	void send_auth_required(SessionId session_id);
 	void send_event(SessionId session_id, const v1::ServerEvent& event);
 	/// Tell the asker what came of his request: into his Reply if he numbered it, else as
-	/// a notice. send_notice tells what was done; refuse, why it was not.
-	void send_notice(SessionId session_id, std::string_view message);
-	void refuse(SessionId session_id, std::string_view message);
-	void tell_asker(SessionId session_id, std::string_view message, bool refusal);
+	/// a notice — by its code and the names in it, and in the server's own words.
+	/// send_notice tells what was done; refuse, why it was not.
+	void send_notice(SessionId session_id, v1::NoticeCode code, std::vector<std::string> args = {});
+	void refuse(SessionId session_id, v1::NoticeCode code, std::vector<std::string> args = {});
+	/// Refuse by what was thrown: the world's Refusal by its reason, else by its words.
+	void refuse(SessionId session_id, const std::exception& thrown);
+	void tell_asker(SessionId session_id, v1::NoticeCode code, std::vector<std::string> args, std::string message,
+					bool refusal);
 	void send_to_vessel(domain::id::Vessel vessel_id, const v1::ServerEvent& event);
 	void close_with_protocol_error(SessionId session_id, std::string_view message);
 	void close_session(SessionId session_id);
@@ -162,6 +168,9 @@ private:
 	struct Answer {
 		std::uint64_t request_id = 0;
 		bool refused = false;
+		bool told = false;
+		v1::NoticeCode code = v1::NOTICE_UNSPECIFIED;
+		std::vector<std::string> args;
 		std::string notice;
 	};
 	std::mutex answering_mutex_;

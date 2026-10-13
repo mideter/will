@@ -391,8 +391,88 @@ message Stirred {
 }
 
 
+// What a notice tells, by code: each client says it in its own words, the names and
+// numbers in it given apart (args, in the order the code's words name them). The
+// message is the server's own words, for whoever does not know the code.
+enum NoticeCode {
+    NOTICE_UNSPECIFIED = 0;
+
+    // What the world refuses (a domain Refusal and its reason).
+    NOTICE_ADMIT_ONLY_AT_GATES = 1;
+    NOTICE_KEEP_GATES_BY_KIND = 2;
+    NOTICE_ALREADY_DWELLS = 3;
+    NOTICE_NOT_AT_GATES = 4;
+    NOTICE_BEAR_ONLY_AT_GATES = 5;
+    NOTICE_BEAR_ONLY_AT_KEPT_GATES = 6;
+    NOTICE_NO_SUCH_UNBORN = 7;
+    NOTICE_DOES_NOT_DWELL = 8;
+    NOTICE_DOES_NOT_ENTER_ROOM = 9;
+    NOTICE_REGARD_ONLY_IN_UPPER_ROOM = 10;
+    NOTICE_ARRANGE_ONLY_IN_UPPER_ROOM = 11;
+    NOTICE_FATHER_BY_FLESH_NEIGHBOUR = 12;
+    NOTICE_FATHER_BY_SPIRIT_FRIEND = 13;
+    NOTICE_ONLY_HOST_WRITES = 14;
+    NOTICE_SAY_ONLY_IN_WORD = 15;
+    NOTICE_CANNOT_SUPPLICATE_ONESELF = 16;
+    NOTICE_SUPPLICATE_ONLY_DWELLER = 17;
+    NOTICE_HEAR_ONLY_DWELLER = 18;
+    NOTICE_ALREADY_TIED = 19;
+    NOTICE_TIE_ONLY_MUTUAL_DWELLERS = 20;
+    NOTICE_UNKNOWN_SUPPLICATION = 21;
+    NOTICE_WILL_ONLY_IN_CONTEMPLATED_TIE = 22;
+    NOTICE_ONLY_TESTATOR_WILLS = 23;
+    NOTICE_FULFIL_ONLY_IN_CONTEMPLATED_TIE = 24;
+    NOTICE_ONLY_NOVICE_FULFILS = 25;
+    NOTICE_ALREADY_FULFILLED = 26;
+    NOTICE_PLAIN_BEHEST_WITHOUT_EXERCISES = 27;
+    NOTICE_TRAIN_ONLY_IN_CONTEMPLATED_TIE = 28;
+    NOTICE_ONLY_NOVICE_TRAINS = 29;
+    NOTICE_NO_SUCH_EXERCISE = 30;
+    NOTICE_NO_SUCH_APPROACH = 31;
+    NOTICE_APPROACH_ALREADY_DONE = 32;
+    NOTICE_APPROACHES_IN_ORDER = 33;
+    NOTICE_ANOTHER_APPROACH_UNDERWAY = 34;
+    NOTICE_NO_APPROACH_UNDERWAY = 35;
+    NOTICE_FINISH_APPROACH_FIRST = 36;
+    NOTICE_NOT_OWN_FATHER = 37;
+    NOTICE_NOT_DESCENDANT_AS_FATHER = 38;
+
+    // What the server itself refuses.
+    NOTICE_INVALID_NAME = 100;
+    NOTICE_UNKNOWN_NAME = 101;
+    NOTICE_WRITE_IN_A_ROOM = 102;
+    NOTICE_NO_WRITING_HERE = 103;
+    NOTICE_NOVICE_FULFILS = 104;
+    NOTICE_NO_SUCH_ROOM = 105;
+    NOTICE_YOU_DO_NOT_DWELL = 106;
+    NOTICE_YOU_DO_NOT_ENTER = 107;
+    NOTICE_ENTER_TIE_ROOM = 108;
+    NOTICE_UNKNOWN_BEHEST = 109;
+    NOTICE_UNKNOWN_KIND = 110;
+    NOTICE_ONLY_TESTATOR_TRAINS = 111;
+    NOTICE_INVALID_TRAINING = 112;
+    NOTICE_UNKNOWN_TRAINING = 113;
+    NOTICE_FATHER_BY_SPIRIT_CLOSED = 114;
+    NOTICE_AWAITS_BIRTH = 115;
+
+    // What was done.
+    NOTICE_SUPPLICATION_SENT = 200;
+    NOTICE_BEHEST_FULFILLED = 201;        // args: behest id
+    NOTICE_ADMITTED = 202;                // args: who was let in
+    NOTICE_LET_IN = 203;                  // args: who let in, who was let in
+    NOTICE_REGARDED = 204;                // args: who
+    NOTICE_ARRANGED_OUTER = 205;          // args: room
+    NOTICE_ARRANGED_INNER = 206;          // args: room
+    NOTICE_TRAINING_WILLED = 207;         // args: training id
+    NOTICE_BORN = 208;                    // args: who was born
+    NOTICE_SUPPLICATION_REJECTED = 209;   // args: whose
+}
+
+
 message ProtocolNotice {
     string message = 1;
+    NoticeCode code = 2;
+    repeated string args = 3;
 }
 
 
@@ -404,6 +484,8 @@ message Reply {
     uint64 request_id = 1;
     bool granted = 2;
     string notice = 3;
+    NoticeCode code = 4;
+    repeated string args = 5;
 }
 
 
