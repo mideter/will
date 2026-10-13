@@ -3,8 +3,10 @@
 #include "identity/place.h"
 #include "properties/birth.h"
 #include "properties/immanent.h"
+#include "values/refusal.h"
 
 #include <memory>
+#include <optional>
 #include <vector>
 
 
@@ -17,6 +19,7 @@ class Man;
 class Space;
 class Life;
 class Recollection;
+class Saying;
 class Word;
 
 
@@ -44,6 +47,20 @@ public:
 	/// Whether this place shows this word to the one who looks; a place shows
 	/// all its words to all who dwell in it, unless it says otherwise.
 	virtual bool shows(const Man& who, const Word& word) const;
+
+	/// Whether one standing here may write, and if not, why. One writes in a room
+	/// that shows the words of one's own abode or of a tie, and only as the place
+	/// whose words they are takes them; anywhere else the world refuses.
+	virtual std::optional<Refusal> refuses_word_of(const Man& writer) const;
+
+	/// Whose words this place takes as written here, asked of the place whose words
+	/// they are: the host's in an abode, the testator's in a tie; none elsewhere.
+	virtual std::optional<Refusal> refuses_writer(const Man& writer) const;
+
+	/// What one writes here becomes, by this place: the place whose words they are
+	/// has the writer do the deed its words are made by — record a letter in an
+	/// abode, will a behest in a tie. Asked once it has not refused the writer.
+	virtual std::shared_ptr<const Word> receive(const Contemplation& gaze, const Saying& saying) const;
 
 	/// The recollection of the words seen here, for a gaze upon them. Throws if
 	/// the gaze sees other words.

@@ -92,6 +92,10 @@ public:
 	/// The abode itself shows no words; they are seen through its rooms.
 	bool shows(const Man& who, const Word& word) const override;
 
+	/// An abode takes its host's words, as letters.
+	std::optional<Refusal> refuses_writer(const Man& writer) const override;
+	std::shared_ptr<const Word> receive(const Contemplation& gaze, const Saying& saying) const override;
+
 	/// What awaits the host's attention: behests not yet fulfilled in the ties
 	/// where he is the novice, oldest first by room.
 	std::vector<std::shared_ptr<const Behest>> owed() const;

@@ -63,4 +63,32 @@ void Place::enter(const Recollection& recollection, std::shared_ptr<const Word> 
 }
 
 
+namespace {
+
+Refusal not_written_here()
+{
+	return Refusal(Refusal::Reason::SayOnlyInWord, "one writes only in one's own word or in a tie one wills in");
+}
+
+} // namespace
+
+
+std::optional<Refusal> Place::refuses_word_of(const Man&) const
+{
+	return not_written_here();
+}
+
+
+std::optional<Refusal> Place::refuses_writer(const Man&) const
+{
+	return not_written_here();
+}
+
+
+std::shared_ptr<const Word> Place::receive(const Contemplation&, const Saying&) const
+{
+	throw std::logic_error("this place takes no written words");
+}
+
+
 } // namespace will::domain

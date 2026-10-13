@@ -79,6 +79,14 @@ bool Room::dwells(const Man& man) const
 }
 
 
+std::optional<Refusal> Room::refuses_word_of(const Man& writer) const
+{
+	if (aspect_ != matter::Room::Aspect::Words || &abode_ != &writer.abode())
+		return Place::refuses_word_of(writer);
+	return reflects_.refuses_writer(writer);
+}
+
+
 Gates::Gates(const Birth<Abode> birth, matter::Room kept)
 	: Room(birth, birth.parent(), std::move(kept))
 {}

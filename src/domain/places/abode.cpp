@@ -302,6 +302,21 @@ bool Abode::dwells(const Man& man) const
 }
 
 
+std::optional<Refusal> Abode::refuses_writer(const Man& writer) const
+{
+	if (&writer != &host_)
+		return Refusal(Refusal::Reason::OnlyHostWrites, "only the host writes in his abode");
+	return std::nullopt;
+}
+
+
+std::shared_ptr<const Word> Abode::receive(const Contemplation& gaze, const Saying& saying) const
+{
+	// What the host writes here is his record: a letter.
+	return gaze.who().record(saying);
+}
+
+
 std::shared_ptr<const Letter> Abode::inscribe(const Contemplation& gaze, matter::Letter kept) const
 {
 	if (&gaze.place().source() != this)

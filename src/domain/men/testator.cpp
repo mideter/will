@@ -163,32 +163,6 @@ void Testator::hold(std::shared_ptr<const Supplication> supplication) const
 }
 
 
-std::shared_ptr<const Word> Testator::write(const Saying& saying) const
-{
-	const std::shared_ptr<const Contemplation> gaze = contemplation();
-	if (!gaze)
-		throw std::logic_error("Witness is asleep");
-
-	// In a tie one wills; anywhere else one may only record in one's own word.
-	if (const auto* tie = dynamic_cast<const Tie*>(&gaze->place().source()))
-		return will(*tie, saying);
-	return record(saying);
-}
-
-
-bool Testator::writes_here() const
-{
-	const std::shared_ptr<const Contemplation> gaze = contemplation();
-	const auto* room = gaze ? dynamic_cast<const Room*>(&gaze->place()) : nullptr;
-	if (!room || &room->abode() != &abode() || room->aspect() != matter::Room::Aspect::Words)
-		return false;
-	if (&room->reflects() == static_cast<const Place*>(&abode()))
-		return true;
-	const auto* tie = dynamic_cast<const Tie*>(&room->reflects());
-	return tie && tie->testator().Soul::id() == Soul::id();
-}
-
-
 std::shared_ptr<const Training> Testator::train(const Saying& title, std::vector<Exercise> exercises) const
 {
 	const std::shared_ptr<const Contemplation> gaze = contemplation();

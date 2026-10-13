@@ -58,7 +58,7 @@ void ProtocolAdapter::handle_user_chat(const SessionId session_id, const v1::Cha
 	// Where he stands decides what his word becomes, or that the world refuses it.
 	std::shared_ptr<const domain::Word> placed;
 	try {
-		placed = static_cast<const domain::Testator&>(man).write(domain::Saying{chat.body()});
+		placed = static_cast<const domain::Witness&>(man).write(domain::Saying{chat.body()});
 	} catch (const domain::Refusal& refusal) {
 		refuse(session_id, refusal);
 		return;

@@ -208,7 +208,7 @@ void ProtocolAdapter::send_auth_required(const SessionId session_id)
 
 bool ProtocolAdapter::writes_here(const domain::Man& man) const
 {
-	return static_cast<const domain::Testator&>(man).writes_here();
+	return static_cast<const domain::Witness&>(man).writes_here();
 }
 
 

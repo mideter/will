@@ -124,4 +124,19 @@ const Man& Tie::counterpart(const Man& side) const
 }
 
 
+std::optional<Refusal> Tie::refuses_writer(const Man& writer) const
+{
+	if (writer.Soul::id() != testator().Soul::id())
+		return Refusal(Refusal::Reason::OnlyTestatorWills, "only the testator of a tie wills in it");
+	return std::nullopt;
+}
+
+
+std::shared_ptr<const Word> Tie::receive(const Contemplation& gaze, const Saying& saying) const
+{
+	// What its testator writes here, he wills: a behest.
+	return static_cast<const Testator&>(gaze.who()).will(*this, saying);
+}
+
+
 } // namespace will::domain

@@ -13,6 +13,7 @@ namespace will::domain {
 
 class Room;
 class Letter;
+class Word;
 
 
 /// Witness (Свидетель) — living man; says in the waking world.
@@ -39,10 +40,18 @@ public:
 
 	void say(const Saying& saying) const final;
 
-protected:
-	/// Say in one's own word, and the letter it became. Refuses elsewhere.
+	/// Write where one stands: the place takes it as its words are taken — a letter
+	/// in one's own word, a behest in a tie one wills in — or the world refuses,
+	/// before anything is kept. The word it became.
+	std::shared_ptr<const Word> write(const Saying& saying) const;
+
+	/// Whether one may write where one stands now.
+	bool writes_here() const;
+
+	/// Record in one's own word: a letter. Refuses elsewhere.
 	std::shared_ptr<const Letter> record(const Saying& saying) const;
 
+protected:
 	explicit Witness(matter::Man kept);
 };
 
