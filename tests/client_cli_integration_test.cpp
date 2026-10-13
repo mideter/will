@@ -8,6 +8,8 @@
 #include <iostream>
 #include <string>
 #include <string_view>
+#include <sys/prctl.h>
+#include <csignal>
 #include <sys/wait.h>
 #include <unistd.h>
 #include <vector>
@@ -51,6 +53,9 @@ RunResult run_will_client(const char* client_exe, const std::vector<std::string>
 
 	if (pid == 0) {
 		close(pipefd[0]);
+		// The child dies with the test, even when the test dies first (a failed check
+		// that aborts it): no server is left behind holding the port and the output.
+		prctl(PR_SET_PDEATHSIG, SIGKILL);
 
 		const int nullfd = open("/dev/null", O_WRONLY);
 		if (nullfd >= 0) {

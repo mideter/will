@@ -8,6 +8,8 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
+#include <sys/prctl.h>
+#include <csignal>
 #include <sys/wait.h>
 #include <unistd.h>
 
@@ -143,6 +145,9 @@ pid_t start_server(const char* server_exe, std::uint16_t port, const std::string
 	const pid_t pid = fork();
 	if (pid != 0)
 		return pid;
+	// The child dies with the test, even when the test dies first (a failed check
+	// that aborts it): no server is left behind holding the port and the output.
+	prctl(PR_SET_PDEATHSIG, SIGKILL);
 
 	const std::string port_str = std::to_string(port);
 	execl(server_exe, server_exe, "--port", port_str.c_str(), "--db-path", db_path.c_str(),
@@ -185,6 +190,9 @@ pid_t start_server_with(const char* server_exe, const std::vector<std::string>& 
 	const pid_t pid = fork();
 	if (pid != 0)
 		return pid;
+	// The child dies with the test, even when the test dies first (a failed check
+	// that aborts it): no server is left behind holding the port and the output.
+	prctl(PR_SET_PDEATHSIG, SIGKILL);
 
 	std::vector<char*> argv{const_cast<char*>(server_exe)};
 	for (const std::string& arg : args)
