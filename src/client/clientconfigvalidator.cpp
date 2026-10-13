@@ -1,5 +1,8 @@
 #include "clientconfigvalidator.h"
 
+#include <filesystem>
+#include <system_error>
+
 #include <arpa/inet.h>
 
 #include <format>
@@ -52,11 +55,22 @@ std::optional<std::string_view> ClientConfigValidator::device_token_path_reason(
 }
 
 
+std::optional<std::string_view> ClientConfigValidator::tls_cert_reason(const std::string& path)
+{
+	std::error_code error;
+	if (!path.empty() && !std::filesystem::is_regular_file(std::filesystem::path{path}, error))
+		return "must be an existing file";
+
+	return std::nullopt;
+}
+
+
 void ClientConfigValidator::validate(const ClientConfig& config)
 {
 	require("host", host_reason(config.host));
 	require("port", port_reason(config.port));
 	require("device_token_path", device_token_path_reason(config.device_token_path));
+	require("tls_cert", tls_cert_reason(config.tls_cert));
 }
 
 

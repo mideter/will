@@ -142,3 +142,25 @@ TEST_CASE("will-client --port 0 parses")
 	const will::ClientConfig config = will::ClientCliApp{}.parse(args.argc(), args.argv());
 	CHECK(config.port == 0);
 }
+
+
+TEST_CASE("will-client --tls-cert speaks TLS, on the TLS port unless told another")
+{
+	{
+		Argv args{"will-client", "--tls-cert", "/etc/will/server.crt"};
+		const will::ClientConfig config = will::ClientCliApp{}.parse(args.argc(), args.argv());
+		CHECK(config.tls_cert == "/etc/will/server.crt");
+		CHECK(config.port == will::ClientConfig::DefaultTlsPort);
+	}
+	{
+		Argv args{"will-client", "--tls-cert", "/etc/will/server.crt", "--port", "27771"};
+		const will::ClientConfig config = will::ClientCliApp{}.parse(args.argc(), args.argv());
+		CHECK(config.port == 27771);
+	}
+	{
+		Argv args{"will-client"};
+		const will::ClientConfig config = will::ClientCliApp{}.parse(args.argc(), args.argv());
+		CHECK(config.tls_cert.empty());
+		CHECK(config.port == will::ClientConfig::DefaultPort);
+	}
+}

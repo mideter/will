@@ -84,6 +84,9 @@ public:
 	void born(std::string name);
 
 private:
+	/// In the open, or TLS trusting only the server certificate of the config.
+	std::shared_ptr<grpc::ChannelCredentials> credentials() const;
+
 	static domain::DeviceToken load_or_create_device_token(const std::string& path);
 	void authenticate_device(std::string_view device_token);
 	/** Must be called before BindToken is sent: the reply may arrive at once. */

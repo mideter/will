@@ -26,6 +26,7 @@ private:
 	static std::optional<std::string_view> host_reason(const std::string& host);
 	static std::optional<std::string_view> port_reason(std::uint16_t port);
 	static std::optional<std::string_view> device_token_path_reason(const std::string& path);
+	static std::optional<std::string_view> tls_cert_reason(const std::string& path);
 };
 
 

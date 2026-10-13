@@ -22,6 +22,7 @@ struct ClientConfig {
 	static constexpr int MinPort = 1;
 	static constexpr int MaxPort = 65535;
 	static constexpr std::uint16_t DefaultPort = 7770;
+	static constexpr std::uint16_t DefaultTlsPort = 17771;
 	static constexpr std::string_view NovosibirskHost = "83.217.202.145";
 	static constexpr std::string_view DefaultHost = "127.0.0.1";
 	static constexpr std::string_view DefaultDeviceTokenPath = "will.device_token";
@@ -35,6 +36,9 @@ struct ClientConfig {
 	bool quiet_receipts = DefaultQuietReceipts;
 	std::uint32_t history_limit = DefaultHistoryLimit;
 	ColorMode color = DefaultColor;
+	/// The server's certificate (PEM file) to trust: given, the client speaks only TLS
+	/// and trusts it alone; empty, it speaks in the open.
+	std::string tls_cert;
 };
 
 

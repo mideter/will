@@ -16,7 +16,9 @@ ClientCliApp::ClientCliApp()
 	app_.allow_extras(false);
 
 	app_.add_option("--host", config_.host)->description("Server IPv4 address");
-	app_.add_option("--port", config_.port)->description("Server TCP port");
+	port_ = app_.add_option("--port", config_.port)->description("Server TCP port");
+	app_.add_option("--tls-cert", config_.tls_cert)
+		->description("The server's certificate (PEM) to trust: speak TLS, on port 17771 unless told");
 	app_.add_option("--device-token-path", config_.device_token_path)
 		->description("Path to persistent device token file");
 	app_.add_flag("--quiet", config_.quiet_receipts)
@@ -43,7 +45,8 @@ void ClientCliApp::print_help(std::ostream& os) const
 		"Options:\n"
 		"  -h, --help                      Print usage and exit\n"
 		"  --host HOST                     Server IPv4 address (default {}; Novosibirsk: {})\n"
-		"  --port PORT                     Server TCP port (default {})\n"
+		"  --port PORT                     Server TCP port (default {}; with --tls-cert {})\n"
+		"  --tls-cert FILE                 Speak TLS, trusting only this server certificate (PEM)\n"
 		"  --device-token-path PATH        Device token file (default {})\n"
 		"  --quiet                         Suppress delivery checkmarks on [me] lines\n"
 		"  --history N                     Request last N messages on connect (default {})\n"
@@ -52,6 +55,7 @@ void ClientCliApp::print_help(std::ostream& os) const
 		ClientConfig::DefaultHost,
 		ClientConfig::NovosibirskHost,
 		ClientConfig::DefaultPort,
+		ClientConfig::DefaultTlsPort,
 		ClientConfig::DefaultDeviceTokenPath,
 		ClientConfig::DefaultHistoryLimit);
 }
@@ -73,6 +77,9 @@ void ClientCliApp::exit_on_parse_error(const CLI::ParseError& error) const
 ClientConfig ClientCliApp::parse(int argc, char* argv[])
 {
 	app_.parse(argc, argv);
+	// TLS has a port of its own, beside the open one.
+	if (!config_.tls_cert.empty() && port_->count() == 0)
+		config_.port = ClientConfig::DefaultTlsPort;
 	return config_;
 }
 

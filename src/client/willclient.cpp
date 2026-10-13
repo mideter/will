@@ -4,6 +4,7 @@
 
 #include <fstream>
 #include <future>
+#include <iterator>
 #include <stdexcept>
 #include <utility>
 
@@ -143,6 +144,21 @@ domain::DeviceToken WillClient::load_or_create_device_token(const std::string& p
 }
 
 
+std::shared_ptr<grpc::ChannelCredentials> WillClient::credentials() const
+{
+	if (config_.tls_cert.empty())
+		return grpc::InsecureChannelCredentials();
+
+	// Trust this server's certificate alone, not the system's authorities.
+	std::ifstream in{config_.tls_cert, std::ios::binary};
+	if (!in)
+		throw std::runtime_error("WillClient: cannot read " + config_.tls_cert);
+	grpc::SslCredentialsOptions tls;
+	tls.pem_root_certs.assign(std::istreambuf_iterator<char>{in}, std::istreambuf_iterator<char>{});
+	return grpc::SslCredentials(tls);
+}
+
+
 void WillClient::connect()
 {
 	if (stream_)
@@ -151,7 +167,7 @@ void WillClient::connect()
 	const domain::DeviceToken device_token = load_or_create_device_token(config_.device_token_path);
 
 	const std::string target = config_.host + ":" + std::to_string(config_.port);
-	channel_ = grpc::CreateChannel(target, grpc::InsecureChannelCredentials());
+	channel_ = grpc::CreateChannel(target, credentials());
 	stub_ = v1::Messenger::NewStub(channel_);
 	context_ = std::make_unique<grpc::ClientContext>();
 	stream_ = stub_->Session(context_.get());

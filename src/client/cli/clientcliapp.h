@@ -25,6 +25,7 @@ public:
 private:
 	CLI::App app_;
 	ClientConfig config_;
+	CLI::Option* port_ = nullptr;
 };
 
 
