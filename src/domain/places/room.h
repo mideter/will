@@ -44,7 +44,7 @@ public:
 
 	/// One writes in a room of one's own abode that shows words, as the place it
 	/// reflects takes one's words.
-	std::optional<Refusal> refuses_word_of(const Man& writer) const override;
+	std::exception_ptr refuses_word_of(const Man& writer) const override;
 
 	/// It shows them to whoever dwells here now.
 	bool shows(const Man& who, const Word& word) const override;

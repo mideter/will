@@ -4,7 +4,7 @@
 
 #include "identity/soul.h"
 #include "values/exercise.h"
-#include "values/refusal.h"
+#include "refusals/refusal.h"
 
 #include <string>
 #include <vector>
@@ -49,8 +49,8 @@ v1::ServerEvent word_event(const domain::Word& word, const domain::id::Soul list
 std::string words_of(const v1::NoticeCode code, const std::vector<std::string>& args);
 
 
-/// The code by which the world's reason for refusing is told.
-v1::NoticeCode code_of(const domain::Refusal::Reason reason);
+/// The code the wire tells the world's refusal by.
+v1::NoticeCode code_of(const domain::Refusal& refusal);
 
 
 v1::RoomAspect aspect_of(const domain::Place& place);

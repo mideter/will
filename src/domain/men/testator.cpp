@@ -1,5 +1,7 @@
 #include "testator.h"
-#include "values/refusal.h"
+#include "refusals/tie.h"
+#include "refusals/testator.h"
+#include "refusals/refusal.h"
 
 #include "words/training.h"
 #include "words/letter.h"
@@ -43,9 +45,9 @@ void Testator::reject(const Supplication& ask) const
 std::shared_ptr<const Behest> Testator::will(const Shepherding& shepherding, const Saying& saying) const
 {
 	if (shepherding.testator().Soul::id() != Soul::id())
-		throw Refusal(Refusal::Reason::OnlyTestatorWills, "only the testator of a tie wills in it");
+		throw OnlyTestatorWills();
 	if (!contemplates(shepherding))
-		throw Refusal(Refusal::Reason::WillOnlyInContemplatedTie, "one wills only in the tie one contemplates");
+		throw WillOnlyInContemplatedTie();
 
 	matter::Word uttered = utter(saying);
 	matter::Placement placed = spatiality().place(uttered.id(), shepherding.id());
@@ -60,9 +62,9 @@ std::shared_ptr<const Training> Testator::train(const Shepherding& shepherding, 
 												std::vector<Exercise> exercises) const
 {
 	if (shepherding.testator().Soul::id() != Soul::id())
-		throw Refusal(Refusal::Reason::OnlyTestatorWills, "only the testator of a tie wills in it");
+		throw OnlyTestatorWills();
 	if (!contemplates(shepherding))
-		throw Refusal(Refusal::Reason::WillOnlyInContemplatedTie, "one wills only in the tie one contemplates");
+		throw WillOnlyInContemplatedTie();
 	if (exercises.empty())
 		throw std::invalid_argument("a training wills exercises");
 
@@ -118,7 +120,7 @@ std::shared_ptr<const Supplication> Testator::supplication(const Novice& supplia
 			return std::move(pending);
 	}
 
-	throw Refusal(Refusal::Reason::UnknownSupplication, "unknown supplication");
+	throw UnknownSupplication();
 }
 
 
@@ -132,10 +134,10 @@ void Testator::hear(const Birth<Novice> birth) const
 {
 	const Novice& suppliant = birth.parent();
 	if (!abode().dweller(suppliant))
-		throw Refusal(Refusal::Reason::HearOnlyDweller, "one hears only a dweller of one's abode");
+		throw HearOnlyDweller();
 	for (const Shepherding* place : shepherdings_) {
 		if (place && place->novice().Soul::id() == suppliant.Soul::id())
-			throw Refusal(Refusal::Reason::AlreadyTied, "obedience already exists for this pair");
+			throw AlreadyTied();
 	}
 
 	hold(std::make_shared<const Supplication>(birth, temporality().ask(suppliant.Soul::id(), Soul::id())));
@@ -168,7 +170,7 @@ std::shared_ptr<const Training> Testator::train(const Saying& title, std::vector
 	const std::shared_ptr<const Contemplation> gaze = contemplation();
 	const auto* tie = gaze ? dynamic_cast<const Tie*>(&gaze->place().source()) : nullptr;
 	if (!tie)
-		throw Refusal(Refusal::Reason::WillOnlyInContemplatedTie, "one wills only in the tie one contemplates");
+		throw WillOnlyInContemplatedTie();
 	return train(*tie, title, std::move(exercises));
 }
 

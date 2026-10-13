@@ -1,5 +1,9 @@
 #include "witness.h"
-#include "values/refusal.h"
+#include "refusals/room.h"
+#include "refusals/place.h"
+#include "refusals/abode.h"
+#include "places/place.h"
+#include "refusals/refusal.h"
 
 #include "matter/dating.h"
 #include "matter/letter.h"
@@ -39,7 +43,7 @@ void Witness::sleep() const
 void Witness::contemplate(const Abode& abode) const
 {
 	if (!abode.dwells(*this))
-		throw Refusal(Refusal::Reason::DoesNotDwell, "Witness does not dwell in this abode");
+		throw DoesNotDwell();
 
 	Spirit::contemplate(abode);
 }
@@ -48,7 +52,7 @@ void Witness::contemplate(const Abode& abode) const
 void Witness::contemplate(const Room& room) const
 {
 	if (!room.dwells(*this))
-		throw Refusal(Refusal::Reason::DoesNotEnterRoom, "Witness does not enter this room");
+		throw DoesNotEnterRoom();
 
 	Spirit::contemplate(room);
 }
@@ -74,8 +78,8 @@ std::shared_ptr<const Word> Witness::write(const Saying& saying) const
 		throw std::logic_error("Witness is asleep");
 
 	// The place says whether it takes one's words, before anything is uttered.
-	if (std::optional<Refusal> refusal = gaze->place().refuses_word_of(*this))
-		throw *refusal;
+	if (const std::exception_ptr refusal = gaze->place().refuses_word_of(*this))
+		std::rethrow_exception(refusal);
 
 	return gaze->place().source().receive(*gaze, saying);
 }
@@ -98,7 +102,7 @@ std::shared_ptr<const Letter> Witness::record(const Saying& saying) const
 	const auto* room = dynamic_cast<const Room*>(&gaze->place());
 	if (!room || &room->abode() != &abode() || &room->reflects() != static_cast<const Place*>(&abode())
 		|| room->aspect() != matter::Room::Aspect::Words)
-		throw Refusal(Refusal::Reason::SayOnlyInWord, "one writes only in one's own word or in a tie one wills in");
+		throw SayOnlyInWord();
 
 	const Abode& place = abode();
 	matter::Word uttered = utter(saying);

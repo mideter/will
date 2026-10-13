@@ -1,5 +1,6 @@
 #include "abode.h"
-#include "values/refusal.h"
+#include "refusals/abode.h"
+#include "refusals/refusal.h"
 
 #include "relations/contemplation.h"
 #include "relations/friend.h"
@@ -302,11 +303,11 @@ bool Abode::dwells(const Man& man) const
 }
 
 
-std::optional<Refusal> Abode::refuses_writer(const Man& writer) const
+std::exception_ptr Abode::refuses_writer(const Man& writer) const
 {
 	if (&writer != &host_)
-		return Refusal(Refusal::Reason::OnlyHostWrites, "only the host writes in his abode");
-	return std::nullopt;
+		return std::make_exception_ptr(OnlyHostWrites());
+	return nullptr;
 }
 
 
@@ -326,7 +327,7 @@ std::shared_ptr<const Letter> Abode::inscribe(const Contemplation& gaze, matter:
 	if (kept.word().author() != gaze.who().Soul::id())
 		throw std::logic_error("only its author inscribes a letter");
 	if (kept.word().author() != host_.Soul::id())
-		throw Refusal(Refusal::Reason::OnlyHostWrites, "only the host writes in his abode");
+		throw OnlyHostWrites();
 
 	auto letter = std::make_shared<const Letter>(Birth<Abode>{*this}, std::move(kept));
 	enter(*recollection(gaze), letter);

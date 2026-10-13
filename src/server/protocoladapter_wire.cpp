@@ -1,4 +1,14 @@
 #include "protocoladapter_wire.h"
+#include "refusals/world.h"
+#include "refusals/training.h"
+#include "refusals/tie.h"
+#include "refusals/testator.h"
+#include "refusals/room.h"
+#include "refusals/place.h"
+#include "refusals/novice.h"
+#include "refusals/abode.h"
+#include "horizons/world.h"
+#include "places/place.h"
 
 #include "inbound_client_message_handler.h"
 
@@ -18,7 +28,7 @@
 #include "men/witness.h"
 #include "words/letter.h"
 #include "values/device_token.h"
-#include "values/refusal.h"
+#include "refusals/refusal.h"
 
 #include <algorithm>
 #include <cstddef>
@@ -30,6 +40,9 @@
 #include <optional>
 #include <string>
 #include <vector>
+#include <unordered_map>
+#include <typeinfo>
+#include <typeindex>
 
 
 namespace will::wire {
@@ -162,50 +175,52 @@ std::string words_of(const v1::NoticeCode code, const std::vector<std::string>& 
 }
 
 
-v1::NoticeCode code_of(const domain::Refusal::Reason reason)
+v1::NoticeCode code_of(const domain::Refusal& refusal)
 {
-	using Reason = domain::Refusal::Reason;
-	switch (reason) {
-	case Reason::AdmitOnlyAtGates: return v1::NOTICE_ADMIT_ONLY_AT_GATES;
-	case Reason::KeepGatesByKind: return v1::NOTICE_KEEP_GATES_BY_KIND;
-	case Reason::AlreadyDwells: return v1::NOTICE_ALREADY_DWELLS;
-	case Reason::NotAtGates: return v1::NOTICE_NOT_AT_GATES;
-	case Reason::BearOnlyAtGates: return v1::NOTICE_BEAR_ONLY_AT_GATES;
-	case Reason::BearOnlyAtKeptGates: return v1::NOTICE_BEAR_ONLY_AT_KEPT_GATES;
-	case Reason::NoSuchUnborn: return v1::NOTICE_NO_SUCH_UNBORN;
-	case Reason::DoesNotDwell: return v1::NOTICE_DOES_NOT_DWELL;
-	case Reason::DoesNotEnterRoom: return v1::NOTICE_DOES_NOT_ENTER_ROOM;
-	case Reason::RegardOnlyInUpperRoom: return v1::NOTICE_REGARD_ONLY_IN_UPPER_ROOM;
-	case Reason::ArrangeOnlyInUpperRoom: return v1::NOTICE_ARRANGE_ONLY_IN_UPPER_ROOM;
-	case Reason::FatherByFleshNeighbour: return v1::NOTICE_FATHER_BY_FLESH_NEIGHBOUR;
-	case Reason::FatherBySpiritFriend: return v1::NOTICE_FATHER_BY_SPIRIT_FRIEND;
-	case Reason::OnlyHostWrites: return v1::NOTICE_ONLY_HOST_WRITES;
-	case Reason::SayOnlyInWord: return v1::NOTICE_SAY_ONLY_IN_WORD;
-	case Reason::CannotSupplicateOneself: return v1::NOTICE_CANNOT_SUPPLICATE_ONESELF;
-	case Reason::SupplicateOnlyDweller: return v1::NOTICE_SUPPLICATE_ONLY_DWELLER;
-	case Reason::HearOnlyDweller: return v1::NOTICE_HEAR_ONLY_DWELLER;
-	case Reason::AlreadyTied: return v1::NOTICE_ALREADY_TIED;
-	case Reason::TieOnlyMutualDwellers: return v1::NOTICE_TIE_ONLY_MUTUAL_DWELLERS;
-	case Reason::UnknownSupplication: return v1::NOTICE_UNKNOWN_SUPPLICATION;
-	case Reason::WillOnlyInContemplatedTie: return v1::NOTICE_WILL_ONLY_IN_CONTEMPLATED_TIE;
-	case Reason::OnlyTestatorWills: return v1::NOTICE_ONLY_TESTATOR_WILLS;
-	case Reason::FulfilOnlyInContemplatedTie: return v1::NOTICE_FULFIL_ONLY_IN_CONTEMPLATED_TIE;
-	case Reason::OnlyNoviceFulfils: return v1::NOTICE_ONLY_NOVICE_FULFILS;
-	case Reason::AlreadyFulfilled: return v1::NOTICE_ALREADY_FULFILLED;
-	case Reason::PlainBehestWithoutExercises: return v1::NOTICE_PLAIN_BEHEST_WITHOUT_EXERCISES;
-	case Reason::TrainOnlyInContemplatedTie: return v1::NOTICE_TRAIN_ONLY_IN_CONTEMPLATED_TIE;
-	case Reason::OnlyNoviceTrains: return v1::NOTICE_ONLY_NOVICE_TRAINS;
-	case Reason::NoSuchExercise: return v1::NOTICE_NO_SUCH_EXERCISE;
-	case Reason::NoSuchApproach: return v1::NOTICE_NO_SUCH_APPROACH;
-	case Reason::ApproachAlreadyDone: return v1::NOTICE_APPROACH_ALREADY_DONE;
-	case Reason::ApproachesInOrder: return v1::NOTICE_APPROACHES_IN_ORDER;
-	case Reason::AnotherApproachUnderway: return v1::NOTICE_ANOTHER_APPROACH_UNDERWAY;
-	case Reason::NoApproachUnderway: return v1::NOTICE_NO_APPROACH_UNDERWAY;
-	case Reason::FinishApproachFirst: return v1::NOTICE_FINISH_APPROACH_FIRST;
-	case Reason::NotOwnFather: return v1::NOTICE_NOT_OWN_FATHER;
-	case Reason::NotDescendantAsFather: return v1::NOTICE_NOT_DESCENDANT_AS_FATHER;
-	}
-	return v1::NOTICE_UNSPECIFIED;
+	// The world's refusals are its beings' rules; here, at the border, each is given the
+	// code the wire tells it by.
+	static const std::unordered_map<std::type_index, v1::NoticeCode> codes{
+		{typeid(domain::AdmitOnlyAtGates), v1::NOTICE_ADMIT_ONLY_AT_GATES},
+		{typeid(domain::KeepGatesByKind), v1::NOTICE_KEEP_GATES_BY_KIND},
+		{typeid(domain::AlreadyDwells), v1::NOTICE_ALREADY_DWELLS},
+		{typeid(domain::NotAtGates), v1::NOTICE_NOT_AT_GATES},
+		{typeid(domain::BearOnlyAtGates), v1::NOTICE_BEAR_ONLY_AT_GATES},
+		{typeid(domain::BearOnlyAtKeptGates), v1::NOTICE_BEAR_ONLY_AT_KEPT_GATES},
+		{typeid(domain::NoSuchUnborn), v1::NOTICE_NO_SUCH_UNBORN},
+		{typeid(domain::DoesNotDwell), v1::NOTICE_DOES_NOT_DWELL},
+		{typeid(domain::DoesNotEnterRoom), v1::NOTICE_DOES_NOT_ENTER_ROOM},
+		{typeid(domain::RegardOnlyInUpperRoom), v1::NOTICE_REGARD_ONLY_IN_UPPER_ROOM},
+		{typeid(domain::ArrangeOnlyInUpperRoom), v1::NOTICE_ARRANGE_ONLY_IN_UPPER_ROOM},
+		{typeid(domain::FatherByFleshNeighbour), v1::NOTICE_FATHER_BY_FLESH_NEIGHBOUR},
+		{typeid(domain::FatherBySpiritFriend), v1::NOTICE_FATHER_BY_SPIRIT_FRIEND},
+		{typeid(domain::OnlyHostWrites), v1::NOTICE_ONLY_HOST_WRITES},
+		{typeid(domain::SayOnlyInWord), v1::NOTICE_SAY_ONLY_IN_WORD},
+		{typeid(domain::CannotSupplicateOneself), v1::NOTICE_CANNOT_SUPPLICATE_ONESELF},
+		{typeid(domain::SupplicateOnlyDweller), v1::NOTICE_SUPPLICATE_ONLY_DWELLER},
+		{typeid(domain::HearOnlyDweller), v1::NOTICE_HEAR_ONLY_DWELLER},
+		{typeid(domain::AlreadyTied), v1::NOTICE_ALREADY_TIED},
+		{typeid(domain::TieOnlyMutualDwellers), v1::NOTICE_TIE_ONLY_MUTUAL_DWELLERS},
+		{typeid(domain::UnknownSupplication), v1::NOTICE_UNKNOWN_SUPPLICATION},
+		{typeid(domain::WillOnlyInContemplatedTie), v1::NOTICE_WILL_ONLY_IN_CONTEMPLATED_TIE},
+		{typeid(domain::OnlyTestatorWills), v1::NOTICE_ONLY_TESTATOR_WILLS},
+		{typeid(domain::FulfilOnlyInContemplatedTie), v1::NOTICE_FULFIL_ONLY_IN_CONTEMPLATED_TIE},
+		{typeid(domain::OnlyNoviceFulfils), v1::NOTICE_ONLY_NOVICE_FULFILS},
+		{typeid(domain::AlreadyFulfilled), v1::NOTICE_ALREADY_FULFILLED},
+		{typeid(domain::PlainBehestWithoutExercises), v1::NOTICE_PLAIN_BEHEST_WITHOUT_EXERCISES},
+		{typeid(domain::TrainOnlyInContemplatedTie), v1::NOTICE_TRAIN_ONLY_IN_CONTEMPLATED_TIE},
+		{typeid(domain::OnlyNoviceTrains), v1::NOTICE_ONLY_NOVICE_TRAINS},
+		{typeid(domain::NoSuchExercise), v1::NOTICE_NO_SUCH_EXERCISE},
+		{typeid(domain::NoSuchApproach), v1::NOTICE_NO_SUCH_APPROACH},
+		{typeid(domain::ApproachAlreadyDone), v1::NOTICE_APPROACH_ALREADY_DONE},
+		{typeid(domain::ApproachesInOrder), v1::NOTICE_APPROACHES_IN_ORDER},
+		{typeid(domain::AnotherApproachUnderway), v1::NOTICE_ANOTHER_APPROACH_UNDERWAY},
+		{typeid(domain::NoApproachUnderway), v1::NOTICE_NO_APPROACH_UNDERWAY},
+		{typeid(domain::FinishApproachFirst), v1::NOTICE_FINISH_APPROACH_FIRST},
+		{typeid(domain::NotOwnFather), v1::NOTICE_NOT_OWN_FATHER},
+		{typeid(domain::NotDescendantAsFather), v1::NOTICE_NOT_DESCENDANT_AS_FATHER},
+	};
+	const auto it = codes.find(typeid(refusal));
+	return it == codes.end() ? v1::NOTICE_UNSPECIFIED : it->second;
 }
 
 

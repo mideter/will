@@ -19,7 +19,7 @@
 #include "men/witness.h"
 #include "words/letter.h"
 #include "values/device_token.h"
-#include "values/refusal.h"
+#include "refusals/refusal.h"
 
 #include <algorithm>
 #include <cstddef>
@@ -113,7 +113,7 @@ void ProtocolAdapter::refuse(const SessionId session_id, const v1::NoticeCode co
 void ProtocolAdapter::refuse(const SessionId session_id, const std::exception& thrown)
 {
 	const auto* refusal = dynamic_cast<const domain::Refusal*>(&thrown);
-	tell_asker(session_id, refusal ? code_of(refusal->reason()) : v1::NOTICE_UNSPECIFIED, {}, thrown.what(), true);
+	tell_asker(session_id, refusal ? code_of(*refusal) : v1::NOTICE_UNSPECIFIED, {}, thrown.what(), true);
 }
 
 

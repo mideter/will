@@ -1,5 +1,10 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <optional>
+#include "refusals/world.h"
+#include "refusals/tie.h"
+#include "refusals/testator.h"
+#include "refusals/place.h"
+#include "refusals/novice.h"
 #include <doctest/doctest.h>
 
 #include "domain_fakes.h"
@@ -34,7 +39,7 @@
 #include "words/behest.h"
 #include "words/deed.h"
 #include "words/training.h"
-#include "values/refusal.h"
+#include "refusals/refusal.h"
 #include "words/word.h"
 #include "properties/immanent.h"
 #include "dimensions/eternity.h"
@@ -1679,25 +1684,16 @@ TEST_CASE("the world awakens though what is kept disagrees: it passes it over, t
 }
 
 
-TEST_CASE("a refusal names its reason, beside what the world says of it")
+TEST_CASE("a refusal is of its kind, the rule of the being that keeps it, in its own words")
 {
 	InMemoryCosmos cosmos;
 	World& world = cosmos.life().create().world();
 	const auto& man = static_cast<const Novice&>(born(world, DeviceToken::generate()));
 
-	const auto reason_of = [](auto&& act) -> std::optional<Refusal::Reason> {
-		try {
-			act();
-		} catch (const Refusal& refusal) {
-			return refusal.reason();
-		}
-		return std::nullopt;
-	};
 
 	// One does not ask oneself; one is not one's own father.
-	CHECK(reason_of([&] { man.supplicate(static_cast<const Testator&>(man)); })
-		  == Refusal::Reason::CannotSupplicateOneself);
-	CHECK(reason_of([&] { world.choose_father(man, man); }) == Refusal::Reason::NotOwnFather);
+	CHECK_THROWS_AS(man.supplicate(static_cast<const Testator&>(man)), CannotSupplicateOneself);
+	CHECK_THROWS_AS(world.choose_father(man, man), NotOwnFather);
 
 	// A refusal is told in words too, and is caught as any logic_error.
 	try {
@@ -1719,14 +1715,6 @@ TEST_CASE("one writes where one stands: a letter in one's word, a behest in a ti
 	novice.supplicate(testator);
 	const Tie& tie = dynamic_cast<const Tie&>(testator.accept(*testator.supplication(novice)));
 
-	const auto reason_of = [](auto&& act) -> std::optional<Refusal::Reason> {
-		try {
-			act();
-		} catch (const Refusal& refusal) {
-			return refusal.reason();
-		}
-		return std::nullopt;
-	};
 
 	// In one's own word: a letter, written by oneself.
 	testator.contemplate(cell_of(testator));
@@ -1740,7 +1728,7 @@ TEST_CASE("one writes where one stands: a letter in one's word, a behest in a ti
 							 static_cast<const Room*>(&testator.abode().upper_room())}) {
 		testator.contemplate(*room);
 		CHECK_FALSE(testator.writes_here());
-		CHECK(reason_of([&] { testator.write(Saying{"нет"}); }) == Refusal::Reason::SayOnlyInWord);
+		CHECK_THROWS_AS(testator.write(Saying{"нет"}), SayOnlyInWord);
 	}
 
 	// In the tie the testator wills; the behest is his, its counterpart the novice.
@@ -1755,12 +1743,10 @@ TEST_CASE("one writes where one stands: a letter in one's word, a behest in a ti
 	// The novice, in the same tie, does not will: the world refuses him.
 	novice.contemplate(room_in(novice, tie));
 	CHECK_FALSE(novice.writes_here());
-	CHECK(reason_of([&] { novice.write(Saying{"нет"}); }) == Refusal::Reason::OnlyTestatorWills);
-	CHECK(reason_of([&] { novice.train(Saying{"нет"}, {Exercise{"Жим", {Approach{Weight{0}, 5}}}}); })
-		  == Refusal::Reason::OnlyTestatorWills);
+	CHECK_THROWS_AS(novice.write(Saying{"нет"}), OnlyTestatorWills);
+	CHECK_THROWS_AS(novice.train(Saying{"нет"}, {Exercise{"Жим", {Approach{Weight{0}, 5}}}}), OnlyTestatorWills);
 
 	// Standing in no tie, one wills no training.
 	testator.contemplate(cell_of(testator));
-	CHECK(reason_of([&] { testator.train(Saying{"нет"}, {Exercise{"Жим", {Approach{Weight{0}, 5}}}}); })
-		  == Refusal::Reason::WillOnlyInContemplatedTie);
+	CHECK_THROWS_AS(testator.train(Saying{"нет"}, {Exercise{"Жим", {Approach{Weight{0}, 5}}}}), WillOnlyInContemplatedTie);
 }

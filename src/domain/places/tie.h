@@ -42,7 +42,7 @@ public:
 	const Man& counterpart(const Man& side) const;
 
 	/// A tie takes its testator's words, as behests.
-	std::optional<Refusal> refuses_writer(const Man& writer) const override;
+	std::exception_ptr refuses_writer(const Man& writer) const override;
 	std::shared_ptr<const Word> receive(const Contemplation& gaze, const Saying& saying) const override;
 };
 

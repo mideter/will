@@ -1,5 +1,7 @@
 #include "dimensions/eternity.h"
-#include "values/refusal.h"
+#include "refusals/world.h"
+#include "refusals/room.h"
+#include "refusals/refusal.h"
 #include "world.h"
 
 #include "places/room.h"
@@ -240,7 +242,7 @@ const Unborn& World::unborn(const id::Vessel id) const
 		if (body->id() == id)
 			return *body;
 	}
-	throw Refusal(Refusal::Reason::NoSuchUnborn, "no such unborn");
+	throw NoSuchUnborn();
 }
 
 
@@ -255,9 +257,9 @@ const Man& World::bear(const Man& midwife, const Unborn& unborn)
 	const std::shared_ptr<const Contemplation> gaze = contemplation(midwife.Soul::id());
 	const auto* gates = gaze ? dynamic_cast<const Gates*>(&gaze->place()) : nullptr;
 	if (!gates)
-		throw Refusal(Refusal::Reason::BearOnlyAtGates, "one bears only standing in gates");
+		throw BearOnlyAtGates();
 	if (!gates->keeps(midwife))
-		throw Refusal(Refusal::Reason::BearOnlyAtKeptGates, "one bears only at gates one keeps");
+		throw BearOnlyAtKeptGates();
 
 	const Man& father = gates->abode().host();
 	matter::Vessel body{unborn.id(), unborn.token()};
@@ -266,7 +268,7 @@ const Man& World::bear(const Man& midwife, const Unborn& unborn)
 		const auto it = std::find_if(unborn_.begin(), unborn_.end(),
 									 [&](const std::unique_ptr<Unborn>& body) { return body.get() == &unborn; });
 		if (it == unborn_.end())
-			throw Refusal(Refusal::Reason::NoSuchUnborn, "no such unborn");
+			throw NoSuchUnborn();
 	}
 
 	matter::Soul soul = eternity().enroll(SoulName::generate());
@@ -296,10 +298,10 @@ void World::choose_father(const Man& child, const Man& father)
 	using Line = matter::Fatherhood::Line;
 
 	if (&child == &father)
-		throw Refusal(Refusal::Reason::NotOwnFather, "one is not one's own father");
+		throw NotOwnFather();
 	for (const Man* elder = father.father(Line::Spirit); elder; elder = elder->father(Line::Spirit)) {
 		if (elder == &child)
-			throw Refusal(Refusal::Reason::NotDescendantAsFather, "one does not choose a descendant by spirit as one's father");
+			throw NotDescendantAsFather();
 	}
 
 	const matter::Fatherhood kept = eternity().father(father.Soul::id(), child.Soul::id(), Line::Spirit);

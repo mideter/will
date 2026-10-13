@@ -1,5 +1,7 @@
 #include "room.h"
-#include "values/refusal.h"
+#include "refusals/room.h"
+#include "refusals/abode.h"
+#include "refusals/refusal.h"
 
 #include "horizons/heaven.h"
 #include "horizons/space.h"
@@ -79,7 +81,7 @@ bool Room::dwells(const Man& man) const
 }
 
 
-std::optional<Refusal> Room::refuses_word_of(const Man& writer) const
+std::exception_ptr Room::refuses_word_of(const Man& writer) const
 {
 	if (aspect_ != matter::Room::Aspect::Words || &abode_ != &writer.abode())
 		return Place::refuses_word_of(writer);
@@ -124,13 +126,13 @@ void Gates::admit(const Birth<Man> keeper, const Man& man, const matter::Dweller
 {
 	const Man& who = keeper.parent();
 	if (!static_cast<const Witness&>(who).contemplates(*this))
-		throw Refusal(Refusal::Reason::AdmitOnlyAtGates, "one admits only standing in gates");
+		throw AdmitOnlyAtGates();
 	if (!keeps(who))
-		throw Refusal(Refusal::Reason::KeepGatesByKind, "one keeps the gates only by one's kind");
+		throw KeepGatesByKind();
 	if (abode().dwells(man))
-		throw Refusal(Refusal::Reason::AlreadyDwells, "he already dwells in this abode");
+		throw AlreadyDwells();
 	if (!static_cast<const Witness&>(man).contemplates(*this))
-		throw Refusal(Refusal::Reason::NotAtGates, "he does not stand at the gates");
+		throw NotAtGates();
 
 	abode().host().abode().admit(Birth<Gates>{*this}, man, kept);
 }

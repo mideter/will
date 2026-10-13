@@ -21,7 +21,7 @@
 #include "men/witness.h"
 #include "words/letter.h"
 #include "values/device_token.h"
-#include "values/refusal.h"
+#include "refusals/refusal.h"
 
 #include <algorithm>
 #include <cstddef>

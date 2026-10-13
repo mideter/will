@@ -1,5 +1,7 @@
 #include "supplication.h"
-#include "values/refusal.h"
+#include "refusals/tie.h"
+#include "places/tie.h"
+#include "refusals/refusal.h"
 
 #include "places/abode.h"
 
@@ -42,7 +44,7 @@ const Shepherding& Supplication::sign(const Testator& addressee) const
 	const std::shared_ptr<const Supplication> incoming = addressee.supplication(suppliant_);
 	const Novice& suppliant = suppliant_;
 	if (!addressee.abode().dweller(suppliant) || !suppliant.abode().dweller(addressee))
-		throw Refusal(Refusal::Reason::TieOnlyMutualDwellers, "a tie binds only those who dwell in each other's abodes");
+		throw TieOnlyMutualDwellers();
 
 	const matter::Tie kept = addressee.spatiality().bind(addressee.Soul::id(), suppliant.Soul::id());
 	addressee.temporality().answer(suppliant.Soul::id(), addressee.Soul::id(), matter::Answer::Form::Accepted);

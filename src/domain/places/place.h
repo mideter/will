@@ -3,8 +3,8 @@
 #include "identity/place.h"
 #include "properties/birth.h"
 #include "properties/immanent.h"
-#include "values/refusal.h"
 
+#include <exception>
 #include <memory>
 #include <optional>
 #include <vector>
@@ -51,11 +51,11 @@ public:
 	/// Whether one standing here may write, and if not, why. One writes in a room
 	/// that shows the words of one's own abode or of a tie, and only as the place
 	/// whose words they are takes them; anywhere else the world refuses.
-	virtual std::optional<Refusal> refuses_word_of(const Man& writer) const;
+	virtual std::exception_ptr refuses_word_of(const Man& writer) const;
 
 	/// Whose words this place takes as written here, asked of the place whose words
 	/// they are: the host's in an abode, the testator's in a tie; none elsewhere.
-	virtual std::optional<Refusal> refuses_writer(const Man& writer) const;
+	virtual std::exception_ptr refuses_writer(const Man& writer) const;
 
 	/// What one writes here becomes, by this place: the place whose words they are
 	/// has the writer do the deed its words are made by — record a letter in an
