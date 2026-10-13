@@ -396,6 +396,17 @@ message ProtocolNotice {
 }
 
 
+// The answer to a client event that carried a request_id: granted or refused, with
+// what the server has to say of it. While it answers a numbered request the server
+// tells the asker nothing else of its own; the asker knows its answer by the number,
+// not by the words.
+message Reply {
+    uint64 request_id = 1;
+    bool granted = 2;
+    string notice = 3;
+}
+
+
 message ClientEvent {
     oneof event {
         BindToken bind_token = 1;
@@ -420,6 +431,9 @@ message ClientEvent {
         BeginApproach begin_approach = 20;
         FinishApproach finish_approach = 21;
     }
+    // Numbered, the event is answered by one Reply with this number; zero, as before,
+    // by notices.
+    uint64 request_id = 100;
 }
 
 
@@ -446,5 +460,6 @@ message ServerEvent {
         Lineage lineage = 20;
         Underway underway = 21;
         Exerted exerted = 22;
+        Reply reply = 23;
     }
 }

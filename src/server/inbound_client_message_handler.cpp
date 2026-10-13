@@ -28,7 +28,7 @@ void InboundClientMessageHandler::on_bound_event(const v1::ClientEvent& event)
 	// An unborn body only waits.
 	if (event.event_case() != v1::ClientEvent::kBindToken && event.event_case() != v1::ClientEvent::EVENT_NOT_SET
 		&& adapter_.awaits_birth(session_id_)) {
-		adapter_.send_notice(session_id_, "one awaits one's birth");
+		adapter_.refuse(session_id_, "one awaits one's birth");
 		return;
 	}
 

@@ -1118,6 +1118,53 @@ TEST_CASE("the testator wills a training over the wire; the novice fulfils it te
 }
 
 
+TEST_CASE("a numbered request is answered once, by its number: granted or refused, with what is said of it")
+{
+	const std::uint16_t port = static_cast<std::uint16_t>(pick_port() + 9);
+	const std::string directory = "/tmp/will-reply-test-" + std::to_string(getpid());
+	const ScratchDirectory scratch{directory};
+
+	RunningServer server{start_server(g_server_exe, port, directory)};
+	REQUIRE(server.pid() > 0);
+	wait_for_server(port);
+
+	Elder elder = first_man(port);
+	SessionStream& adam = *elder.session.stream;
+
+	// Refused: the answer says so, and nothing is told besides.
+	{
+		will::v1::ClientEvent turn;
+		turn.mutable_turn()->set_room("Нет такой");
+		turn.set_request_id(7);
+		REQUIRE(adam.Write(turn));
+	}
+	will::v1::ServerEvent refused;
+	REQUIRE(adam.Read(&refused));
+	REQUIRE(refused.has_reply());
+	CHECK(refused.reply().request_id() == 7);
+	CHECK_FALSE(refused.reply().granted());
+	CHECK(refused.reply().notice() == "no such room");
+
+	// Granted: what it brings comes first, then the answer, with what is said of it.
+	{
+		will::v1::ClientEvent turn;
+		turn.mutable_turn()->set_room("Слово");
+		turn.set_request_id(8);
+		REQUIRE(adam.Write(turn));
+	}
+	const will::v1::ServerEvent granted = read_until(adam, [](const auto& e) { return e.has_reply(); });
+	CHECK(granted.reply().request_id() == 8);
+	CHECK(granted.reply().granted());
+
+	// Unnumbered, as before: a notice.
+	send_turn_to_abode(adam, {}, "Нет такой");
+	CHECK(read_event(adam).protocol_notice().message() == "no such room");
+
+	elder.session.context->TryCancel();
+	server.stop();
+}
+
+
 TEST_CASE("one does not write at the gates nor in the upper room, and the session lives on")
 {
 	const std::uint16_t port = static_cast<std::uint16_t>(pick_port() + 8);

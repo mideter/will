@@ -93,7 +93,11 @@ private:
 
 	void send_auth_required(SessionId session_id);
 	void send_event(SessionId session_id, const v1::ServerEvent& event);
+	/// Tell the asker what came of his request: into his Reply if he numbered it, else as
+	/// a notice. send_notice tells what was done; refuse, why it was not.
 	void send_notice(SessionId session_id, std::string_view message);
+	void refuse(SessionId session_id, std::string_view message);
+	void tell_asker(SessionId session_id, std::string_view message, bool refusal);
 	void send_to_vessel(domain::id::Vessel vessel_id, const v1::ServerEvent& event);
 	void close_with_protocol_error(SessionId session_id, std::string_view message);
 	void close_session(SessionId session_id);
@@ -151,6 +155,16 @@ private:
 	/// of the same body begins.
 	std::mutex presence_mutex_;
 	std::unordered_map<std::uint64_t, domain::id::Vessel> woken_by_session_;
+
+	/// A numbered request being answered: what is said to the asker meanwhile goes into
+	/// its one Reply, sent when the request is handled.
+	struct Answer {
+		std::uint64_t request_id = 0;
+		bool refused = false;
+		std::string notice;
+	};
+	std::mutex answering_mutex_;
+	std::unordered_map<std::uint64_t, Answer> answering_;
 };
 
 

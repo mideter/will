@@ -144,7 +144,35 @@ ProtocolAdapter::ProtocolAdapter(domain::World& world, SessionRegistry& registry
 void ProtocolAdapter::on_client_event(const SessionId session_id, const v1::ClientEvent& event)
 {
 	InboundClientMessageHandler handler{*this, session_id};
-	handler.on(event);
+	if (event.request_id() == 0) {
+		handler.on(event);
+		return;
+	}
+
+	// A numbered request is answered once, by its number.
+	{
+		std::lock_guard lock(answering_mutex_);
+		answering_.insert_or_assign(session_id.value, Answer{event.request_id()});
+	}
+	try {
+		handler.on(event);
+	} catch (...) {
+		std::lock_guard lock(answering_mutex_);
+		answering_.erase(session_id.value);
+		throw;
+	}
+
+	Answer answer;
+	{
+		std::lock_guard lock(answering_mutex_);
+		if (auto node = answering_.extract(session_id.value))
+			answer = std::move(node.mapped());
+	}
+	v1::ServerEvent reply;
+	reply.mutable_reply()->set_request_id(answer.request_id);
+	reply.mutable_reply()->set_granted(!answer.refused);
+	reply.mutable_reply()->set_notice(answer.notice);
+	send_event(session_id, reply);
 }
 
 
@@ -162,6 +190,29 @@ void ProtocolAdapter::send_event(const SessionId session_id, const v1::ServerEve
 
 void ProtocolAdapter::send_notice(const SessionId session_id, const std::string_view message)
 {
+	tell_asker(session_id, message, false);
+}
+
+
+void ProtocolAdapter::refuse(const SessionId session_id, const std::string_view message)
+{
+	tell_asker(session_id, message, true);
+}
+
+
+void ProtocolAdapter::tell_asker(const SessionId session_id, const std::string_view message, const bool refusal)
+{
+	{
+		std::lock_guard lock(answering_mutex_);
+		if (const auto it = answering_.find(session_id.value); it != answering_.end()) {
+			it->second.refused = it->second.refused || refusal;
+			if (it->second.notice.empty())
+				it->second.notice = std::string{message};
+			return;
+		}
+	}
+	if (message.empty())
+		return;
 	v1::ServerEvent event;
 	event.mutable_protocol_notice()->set_message(std::string{message});
 	send_event(session_id, event);
@@ -206,14 +257,14 @@ const domain::Man* ProtocolAdapter::man_named(const SessionId session_id, const 
 {
 	const auto name = domain::SoulName::parse(name_text);
 	if (!name) {
-		send_notice(session_id, "invalid soul name");
+		refuse(session_id, "invalid soul name");
 		return nullptr;
 	}
 
 	try {
 		return &world_.man(*name);
 	} catch (const std::invalid_argument&) {
-		send_notice(session_id, "unknown soul name");
+		refuse(session_id, "unknown soul name");
 		return nullptr;
 	}
 }
@@ -292,6 +343,7 @@ void ProtocolAdapter::on_session_ended(const SessionId session_id)
 
 void ProtocolAdapter::send_auth_required(const SessionId session_id)
 {
+	refuse(session_id, {});  // a numbered request before the token is not granted
 	v1::ServerEvent event;
 	event.mutable_auth_required();
 	send_event(session_id, event);
@@ -314,12 +366,12 @@ void ProtocolAdapter::handle_user_chat(const SessionId session_id, const v1::Cha
 
 	std::shared_ptr<const domain::Word> placed;
 	if (dynamic_cast<const domain::Abode*>(&gaze->place())) {
-		send_notice(session_id, "one writes in a room: /room Слово");
+		refuse(session_id, "one writes in a room: /room Слово");
 		return;
 	}
 	if (const auto* abode = dynamic_cast<const domain::Abode*>(&gaze->place().source())) {
 		if (&abode->host() != &man) {
-			send_notice(session_id, "only the host writes in his abode");
+			refuse(session_id, "only the host writes in his abode");
 			return;
 		}
 
@@ -335,18 +387,18 @@ void ProtocolAdapter::handle_user_chat(const SessionId session_id, const v1::Cha
 		// the upper room no one writes: they show no words.
 		const auto* tie = dynamic_cast<const domain::Tie*>(&gaze->place().source());
 		if (!tie) {
-			send_notice(session_id, "one does not write here");
+			refuse(session_id, "one does not write here");
 			return;
 		}
 		if (tie->testator().Soul::id() != man.Soul::id()) {
-			send_notice(session_id, "in a tie the novice fulfils behests: /done <number> [report]");
+			refuse(session_id, "in a tie the novice fulfils behests: /done <number> [report]");
 			return;
 		}
 
 		try {
 			placed = static_cast<const domain::Testator&>(man).will(*tie, std::string{chat.body()});
 		} catch (const std::exception& e) {
-			send_notice(session_id, e.what());
+			refuse(session_id, e.what());
 			return;
 		}
 	}
@@ -447,7 +499,7 @@ void ProtocolAdapter::handle_supplicate(const SessionId session_id, const v1::Su
 	try {
 		novice.supplicate(testator);
 	} catch (const std::exception& e) {
-		send_notice(session_id, e.what());
+		refuse(session_id, e.what());
 		return;
 	}
 
@@ -478,7 +530,7 @@ void ProtocolAdapter::handle_accept_supplication(const SessionId session_id,
 	try {
 		formed = testator.accept(*testator.supplication(novice)).id();
 	} catch (const std::exception& e) {
-		send_notice(session_id, e.what());
+		refuse(session_id, e.what());
 		return;
 	}
 
@@ -524,13 +576,13 @@ void ProtocolAdapter::handle_turn(const SessionId session_id, const v1::Turn& ms
 		} else {
 			const domain::Room* room = host->abode().room(msg.room());
 			if (!room) {
-				send_notice(session_id, "no such room");
+				refuse(session_id, "no such room");
 				return;
 			}
 			witness.contemplate(*room);
 		}
 	} catch (const std::logic_error&) {
-		send_notice(session_id, msg.room().empty() ? "you do not dwell in that abode" : "you do not enter that room");
+		refuse(session_id, msg.room().empty() ? "you do not dwell in that abode" : "you do not enter that room");
 		return;
 	}
 
@@ -560,7 +612,7 @@ void ProtocolAdapter::handle_fulfil(const SessionId session_id, const v1::Fulfil
 
 	const std::shared_ptr<const domain::Contemplation> gaze = world_.contemplation(self.Soul::id());
 	if (!gaze || !dynamic_cast<const domain::Tie*>(&gaze->place().source())) {
-		send_notice(session_id, "enter the room of the tie first: /room <name>");
+		refuse(session_id, "enter the room of the tie first: /room <name>");
 		return;
 	}
 
@@ -571,7 +623,7 @@ void ProtocolAdapter::handle_fulfil(const SessionId session_id, const v1::Fulfil
 			behest = std::dynamic_pointer_cast<const domain::Behest>(word);
 	}
 	if (!behest) {
-		send_notice(session_id, "unknown behest");
+		refuse(session_id, "unknown behest");
 		return;
 	}
 
@@ -588,7 +640,7 @@ void ProtocolAdapter::handle_fulfil(const SessionId session_id, const v1::Fulfil
 		send_notice(session_id, "behest " + std::to_string(behest->id().value()) + " fulfilled");
 		tell_placed(gaze->place().source(), *deed, self);
 	} catch (const std::exception& e) {
-		send_notice(session_id, e.what());
+		refuse(session_id, e.what());
 	}
 }
 
@@ -650,7 +702,7 @@ void ProtocolAdapter::handle_admit(const SessionId session_id, const v1::Admit& 
 	try {
 		self.admit(*man);
 	} catch (const std::exception& e) {
-		send_notice(session_id, e.what());
+		refuse(session_id, e.what());
 		return;
 	}
 
@@ -686,7 +738,7 @@ void ProtocolAdapter::handle_regard(const SessionId session_id, const v1::Regard
 		kind = domain::matter::Dweller::Kind::Friend;
 		break;
 	default:
-		send_notice(session_id, "unknown dweller kind");
+		refuse(session_id, "unknown dweller kind");
 		return;
 	}
 
@@ -694,7 +746,7 @@ void ProtocolAdapter::handle_regard(const SessionId session_id, const v1::Regard
 	try {
 		self.regard(*man, kind);
 	} catch (const std::exception& e) {
-		send_notice(session_id, e.what());
+		refuse(session_id, e.what());
 		return;
 	}
 
@@ -806,7 +858,7 @@ void ProtocolAdapter::handle_arrange(const SessionId session_id, const v1::Arran
 	const domain::Man& self = session_man(session_id);
 	const domain::Room* room = self.abode().room(msg.room());
 	if (!room) {
-		send_notice(session_id, "no such room");
+		refuse(session_id, "no such room");
 		return;
 	}
 
@@ -814,7 +866,7 @@ void ProtocolAdapter::handle_arrange(const SessionId session_id, const v1::Arran
 	try {
 		self.arrange(*room, part);
 	} catch (const std::exception& e) {
-		send_notice(session_id, e.what());
+		refuse(session_id, e.what());
 		return;
 	}
 
@@ -863,11 +915,11 @@ void ProtocolAdapter::handle_train(const SessionId session_id, const v1::Train& 
 	const std::shared_ptr<const domain::Contemplation> gaze = world_.contemplation(self.Soul::id());
 	const auto* tie = gaze ? dynamic_cast<const domain::Tie*>(&gaze->place().source()) : nullptr;
 	if (!tie) {
-		send_notice(session_id, "enter the room of the tie first: /room <name>");
+		refuse(session_id, "enter the room of the tie first: /room <name>");
 		return;
 	}
 	if (tie->testator().Soul::id() != self.Soul::id()) {
-		send_notice(session_id, "only the testator wills a training");
+		refuse(session_id, "only the testator wills a training");
 		return;
 	}
 
@@ -877,10 +929,10 @@ void ProtocolAdapter::handle_train(const SessionId session_id, const v1::Train& 
 			*tie, domain::Saying{msg.title().empty() ? std::string{"Тренировка"} : msg.title()},
 			exercises_of(msg.exercises()));
 	} catch (const std::invalid_argument&) {
-		send_notice(session_id, "invalid training");
+		refuse(session_id, "invalid training");
 		return;
 	} catch (const std::exception& e) {
-		send_notice(session_id, e.what());
+		refuse(session_id, e.what());
 		return;
 	}
 
@@ -895,7 +947,7 @@ std::shared_ptr<const domain::Training> ProtocolAdapter::training_in_gaze(const 
 {
 	const std::shared_ptr<const domain::Contemplation> gaze = world_.contemplation(man.Soul::id());
 	if (!gaze || !dynamic_cast<const domain::Tie*>(&gaze->place().source())) {
-		send_notice(session_id, "enter the room of the tie first: /room <name>");
+		refuse(session_id, "enter the room of the tie first: /room <name>");
 		return nullptr;
 	}
 	for (const std::shared_ptr<const domain::Word>& word : gaze->words()) {
@@ -904,7 +956,7 @@ std::shared_ptr<const domain::Training> ProtocolAdapter::training_in_gaze(const 
 				return training;
 		}
 	}
-	send_notice(session_id, "unknown training");
+	refuse(session_id, "unknown training");
 	return nullptr;
 }
 
@@ -941,7 +993,7 @@ void ProtocolAdapter::handle_begin_approach(const SessionId session_id, const v1
 	try {
 		static_cast<const domain::Novice&>(self).begin(*training, msg.exercise(), msg.approach());
 	} catch (const std::exception& e) {
-		send_notice(session_id, e.what());
+		refuse(session_id, e.what());
 		return;
 	}
 	tell_tie(training->tie(), underway_event(training->tie()));
@@ -960,7 +1012,7 @@ void ProtocolAdapter::handle_finish_approach(const SessionId session_id, const v
 		effort = static_cast<const domain::Novice&>(self).finish(*training, domain::Weight{msg.weight_grams()},
 																 msg.repetitions());
 	} catch (const std::exception& e) {
-		send_notice(session_id, e.what());
+		refuse(session_id, e.what());
 		return;
 	}
 
@@ -980,7 +1032,7 @@ void ProtocolAdapter::handle_bear(const SessionId session_id, const v1::Bear& ms
 	try {
 		unborn = &world_.unborn(domain::id::Vessel{msg.mark()});
 	} catch (const std::exception&) {
-		send_notice(session_id, "no such unborn");
+		refuse(session_id, "no such unborn");
 		return;
 	}
 
@@ -988,7 +1040,7 @@ void ProtocolAdapter::handle_bear(const SessionId session_id, const v1::Bear& ms
 	try {
 		born = &world_.bear(midwife, *unborn);
 	} catch (const std::logic_error& e) {
-		send_notice(session_id, e.what());
+		refuse(session_id, e.what());
 		return;
 	}
 	const domain::Man& child = *born;
@@ -1018,13 +1070,13 @@ void ProtocolAdapter::handle_bear(const SessionId session_id, const v1::Bear& ms
 void ProtocolAdapter::handle_choose_father(const SessionId session_id, const v1::ChooseFather&)
 {
 	// The father by spirit is not yet open: the domain keeps him, the wire does not yet lead to him.
-	send_notice(session_id, "the father by spirit is not yet open");
+	refuse(session_id, "the father by spirit is not yet open");
 }
 
 
 void ProtocolAdapter::handle_list_lineage(const SessionId session_id)
 {
-	send_notice(session_id, "the father by spirit is not yet open");
+	refuse(session_id, "the father by spirit is not yet open");
 }
 
 
@@ -1070,7 +1122,7 @@ void ProtocolAdapter::handle_reject_supplication(const SessionId session_id, con
 	try {
 		self.reject(*self.supplication(static_cast<const domain::Novice&>(*suppliant)));
 	} catch (const std::exception& e) {
-		send_notice(session_id, e.what());
+		refuse(session_id, e.what());
 		return;
 	}
 
@@ -1135,7 +1187,7 @@ void ProtocolAdapter::handle_list_rooms(const SessionId session_id, const v1::Li
 			return;
 	}
 	if (!host->abode().dwells(self)) {
-		send_notice(session_id, "you do not dwell in that abode");
+		refuse(session_id, "you do not dwell in that abode");
 		return;
 	}
 
