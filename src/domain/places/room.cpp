@@ -1,4 +1,5 @@
 #include "room.h"
+#include "values/refusal.h"
 
 #include "horizons/heaven.h"
 #include "horizons/space.h"
@@ -115,13 +116,13 @@ void Gates::admit(const Birth<Man> keeper, const Man& man, const matter::Dweller
 {
 	const Man& who = keeper.parent();
 	if (!static_cast<const Witness&>(who).contemplates(*this))
-		throw std::logic_error("one admits only standing in gates");
+		throw Refusal(Refusal::Reason::AdmitOnlyAtGates, "one admits only standing in gates");
 	if (!keeps(who))
-		throw std::logic_error("one keeps the gates only by one's kind");
+		throw Refusal(Refusal::Reason::KeepGatesByKind, "one keeps the gates only by one's kind");
 	if (abode().dwells(man))
-		throw std::logic_error("he already dwells in this abode");
+		throw Refusal(Refusal::Reason::AlreadyDwells, "he already dwells in this abode");
 	if (!static_cast<const Witness&>(man).contemplates(*this))
-		throw std::logic_error("he does not stand at the gates");
+		throw Refusal(Refusal::Reason::NotAtGates, "he does not stand at the gates");
 
 	abode().host().abode().admit(Birth<Gates>{*this}, man, kept);
 }

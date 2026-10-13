@@ -1,4 +1,5 @@
 #include "man.h"
+#include "values/refusal.h"
 
 #include "dimensions/spatiality.h"
 #include "men/witness.h"
@@ -50,13 +51,13 @@ void Man::admit(const Man& man) const
 	const std::shared_ptr<const Contemplation> gaze = contemplation();
 	const auto* gates = gaze ? dynamic_cast<const Gates*>(&gaze->place()) : nullptr;
 	if (!gates)
-		throw std::logic_error("one admits only standing in gates");
+		throw Refusal(Refusal::Reason::AdmitOnlyAtGates, "one admits only standing in gates");
 	if (!gates->keeps(*this))
-		throw std::logic_error("one keeps the gates only by one's kind");
+		throw Refusal(Refusal::Reason::KeepGatesByKind, "one keeps the gates only by one's kind");
 	if (gates->abode().dwells(man))
-		throw std::logic_error("he already dwells in this abode");
+		throw Refusal(Refusal::Reason::AlreadyDwells, "he already dwells in this abode");
 	if (!static_cast<const Witness&>(man).contemplates(*gates))
-		throw std::logic_error("he does not stand at the gates");
+		throw Refusal(Refusal::Reason::NotAtGates, "he does not stand at the gates");
 
 	gates->admit(Birth<Man>{*this}, man,
 				 spatiality().dwell(gates->abode().id(), man.Soul::id(), matter::Dweller::Kind::Acquaintance));
@@ -68,7 +69,7 @@ void Man::arrange(const Room& room, const matter::Room::Part part) const
 	if (&room.abode() != abode_.get())
 		throw std::logic_error("the room is not of this abode");
 	if (!static_cast<const Witness&>(*this).contemplates(abode_->upper_room()))
-		throw std::logic_error("one arranges rooms only in one's upper room");
+		throw Refusal(Refusal::Reason::ArrangeOnlyInUpperRoom, "one arranges rooms only in one's upper room");
 
 	abode_->arrange(Birth<Man>{*this}, spatiality().arrange(room.id(), part));
 }
@@ -77,13 +78,13 @@ void Man::arrange(const Room& room, const matter::Room::Part part) const
 void Man::regard(const Man& dweller, const matter::Dweller::Kind kind) const
 {
 	if (abode_->ancestor(dweller))
-		throw std::logic_error("the father by spirit is ever a friend");
+		throw Refusal(Refusal::Reason::FatherBySpiritFriend, "the father by spirit is ever a friend");
 	if (!abode_->dweller(dweller))
-		throw std::logic_error("he does not dwell in this abode");
+		throw Refusal(Refusal::Reason::DoesNotDwell, "he does not dwell in this abode");
 	if (!static_cast<const Witness&>(*this).contemplates(abode_->upper_room()))
-		throw std::logic_error("one regards dwellers only in one's upper room");
+		throw Refusal(Refusal::Reason::RegardOnlyInUpperRoom, "one regards dwellers only in one's upper room");
 	if (&dweller == father(matter::Fatherhood::Line::Flesh) && kind == matter::Dweller::Kind::Acquaintance)
-		throw std::logic_error("the father by flesh is ever at least a neighbour");
+		throw Refusal(Refusal::Reason::FatherByFleshNeighbour, "the father by flesh is ever at least a neighbour");
 
 	abode_->admit(Birth<Man>{*this}, dweller, spatiality().dwell(abode_->id(), dweller.Soul::id(), kind));
 }

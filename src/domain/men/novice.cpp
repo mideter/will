@@ -1,4 +1,5 @@
 #include "novice.h"
+#include "values/refusal.h"
 
 #include <algorithm>
 
@@ -28,9 +29,9 @@ Novice::Novice(matter::Man kept)
 void Novice::supplicate(const Testator& addressee) const
 {
 	if (addressee.Soul::id() == Soul::id())
-		throw std::invalid_argument("cannot supplicate oneself");
+		throw Refusal(Refusal::Reason::CannotSupplicateOneself, "cannot supplicate oneself");
 	if (!abode().dweller(addressee))
-		throw std::logic_error("one supplicates only a dweller of one's abode");
+		throw Refusal(Refusal::Reason::SupplicateOnlyDweller, "one supplicates only a dweller of one's abode");
 
 	addressee.hear(Birth<Novice>{*this});
 }
@@ -76,11 +77,11 @@ void Novice::begin(const Training& training, const std::uint32_t exercise, const
 	if (tie.novice().Soul::id() != Soul::id())
 		throw std::logic_error("not the novice of this behest");
 	if (!contemplates(tie))
-		throw std::logic_error("one does a training only in the tie one contemplates");
+		throw Refusal(Refusal::Reason::TrainOnlyInContemplatedTie, "one does a training only in the tie one contemplates");
 	if (!temporality().executions({training.id()}).empty())
-		throw std::logic_error("behest is already executed");
+		throw Refusal(Refusal::Reason::AlreadyFulfilled, "behest is already executed");
 	if (exercise >= training.exercises().size())
-		throw std::invalid_argument("no such exercise");
+		throw Refusal(Refusal::Reason::NoSuchExercise, "no such exercise");
 
 	// The approaches of an exercise go in order: the first not yet done; once the
 	// willed are done, one more beyond them at a time. Exercises go in any order.
@@ -94,15 +95,15 @@ void Novice::begin(const Training& training, const std::uint32_t exercise, const
 	while (next < count && training.done(exercise, next))
 		++next;
 	if (approach > count)
-		throw std::invalid_argument("no such approach");
+		throw Refusal(Refusal::Reason::NoSuchApproach, "no such approach");
 	if (training.done(exercise, approach))
-		throw std::logic_error("the approach is already done");
+		throw Refusal(Refusal::Reason::ApproachAlreadyDone, "the approach is already done");
 	if (approach != next)
-		throw std::logic_error("the approaches of an exercise are done in order");
+		throw Refusal(Refusal::Reason::ApproachesInOrder, "the approaches of an exercise are done in order");
 
 	std::lock_guard lock(underway_mutex_);
 	if (underway_)
-		throw std::logic_error("another approach is underway");
+		throw Refusal(Refusal::Reason::AnotherApproachUnderway, "another approach is underway");
 	underway_ = Underway{training.id(), exercise, approach, now()};
 }
 
@@ -110,13 +111,13 @@ void Novice::begin(const Training& training, const std::uint32_t exercise, const
 matter::Effort Novice::finish(const Training& training, const Weight weight, const std::uint32_t repetitions) const
 {
 	if (!contemplates(training.tie()))
-		throw std::logic_error("one does a training only in the tie one contemplates");
+		throw Refusal(Refusal::Reason::TrainOnlyInContemplatedTie, "one does a training only in the tie one contemplates");
 
 	Underway doing{training.id(), 0, 0, Timestamp{0}};
 	{
 		std::lock_guard lock(underway_mutex_);
 		if (!underway_ || underway_->training != training.id())
-			throw std::logic_error("no approach of this training is underway");
+			throw Refusal(Refusal::Reason::NoApproachUnderway, "no approach of this training is underway");
 		doing = *underway_;
 	}
 
@@ -145,17 +146,17 @@ std::shared_ptr<const Deed> Novice::execute(const Behest& behest, std::optional<
 	if (tie.novice().Soul::id() != Soul::id())
 		throw std::logic_error("not the novice of this behest");
 	if (!contemplates(tie))
-		throw std::logic_error("one fulfils a behest only in the tie one contemplates");
+		throw Refusal(Refusal::Reason::FulfilOnlyInContemplatedTie, "one fulfils a behest only in the tie one contemplates");
 	if (!temporality().executions({behest.id()}).empty())
-		throw std::logic_error("behest is already executed");
+		throw Refusal(Refusal::Reason::AlreadyFulfilled, "behest is already executed");
 
 	// A training is fulfilled with what was done: its efforts, unless told otherwise.
 	const auto* training = dynamic_cast<const Training*>(&behest);
 	if (!training && performed)
-		throw std::logic_error("a plain behest is fulfilled without exercises");
+		throw Refusal(Refusal::Reason::PlainBehestWithoutExercises, "a plain behest is fulfilled without exercises");
 	if (training) {
 		if (const auto doing = underway(); doing && doing->training == training->id())
-			throw std::logic_error("finish the approach underway first");
+			throw Refusal(Refusal::Reason::FinishApproachFirst, "finish the approach underway first");
 		if (!performed)
 			performed = done_of(*training);
 	}

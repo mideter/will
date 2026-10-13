@@ -1,4 +1,5 @@
 #include "tie.h"
+#include "values/refusal.h"
 
 #include "words/behest.h"
 #include "words/deed.h"
@@ -82,7 +83,7 @@ std::shared_ptr<const Deed> Tie::inscribe(Birth<Novice>, matter::Deed kept) cons
 	if (kept.placement().place() != id())
 		throw std::logic_error("the deed is not placed in this tie");
 	if (kept.word().author() != novice_.Soul::id())
-		throw std::logic_error("only the novice of a tie does a deed in it");
+		throw Refusal(Refusal::Reason::OnlyNoviceFulfils, "only the novice of a tie does a deed in it");
 
 	auto deed = std::make_shared<const Deed>(Birth<Tie>{*this}, std::move(kept));
 	enter(*recollection(), deed);
@@ -96,7 +97,7 @@ std::shared_ptr<const Behest> Tie::inscribe(Birth<Testator>, matter::Behest kept
 	if (kept.placement().place() != id())
 		throw std::logic_error("the behest is not placed in this tie");
 	if (kept.word().author() != testator_.Soul::id())
-		throw std::logic_error("only the testator of a tie wills in it");
+		throw Refusal(Refusal::Reason::OnlyTestatorWills, "only the testator of a tie wills in it");
 
 	std::shared_ptr<const Behest> behest;
 	if (kept.training())

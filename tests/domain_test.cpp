@@ -34,6 +34,7 @@
 #include "words/behest.h"
 #include "words/deed.h"
 #include "words/training.h"
+#include "values/refusal.h"
 #include "words/word.h"
 #include "properties/immanent.h"
 #include "dimensions/eternity.h"
@@ -763,7 +764,7 @@ TEST_CASE("reject closes pending supplication; wrong party cannot accept")
 	testator.reject(ask);
 	CHECK(testator.supplications().empty());
 	CHECK(cosmos.temporality().supplications(b.Soul::id()).empty());
-	CHECK_THROWS_AS(testator.supplication(novice), std::invalid_argument);
+	CHECK_THROWS_AS(testator.supplication(novice), Refusal);
 	REQUIRE(cosmos.shared().answers.size() == 1);
 	CHECK(cosmos.shared().answers.front().form() == matter::Answer::Form::Rejected);
 	CHECK_THROWS_AS(cosmos.temporality().answer(a.Soul::id(), b.Soul::id(), matter::Answer::Form::Rejected),
@@ -774,7 +775,7 @@ TEST_CASE("reject closes pending supplication; wrong party cannot accept")
 	novice.supplicate(testator);
 	CHECK(cosmos.temporality().supplications(b.Soul::id()).size() == 1);
 	CHECK_THROWS_AS(novice.supplicate(testator), std::logic_error);
-	CHECK_THROWS_AS(novice.supplicate(static_cast<const Testator&>(a)), std::invalid_argument);
+	CHECK_THROWS_AS(novice.supplicate(static_cast<const Testator&>(a)), Refusal);
 }
 
 
@@ -1560,8 +1561,8 @@ TEST_CASE("the novice does a training approach by approach: each begun and finis
 		CHECK_THROWS_AS(novice.begin(*training, 0, 0), std::logic_error);
 		novice.wake();
 		novice.contemplate(room_in(novice, obedience));
-		CHECK_THROWS_AS(novice.begin(*training, 2, 0), std::invalid_argument);
-		CHECK_THROWS_AS(novice.begin(*training, 0, 3), std::invalid_argument);
+		CHECK_THROWS_AS(novice.begin(*training, 2, 0), Refusal);
+		CHECK_THROWS_AS(novice.begin(*training, 0, 3), Refusal);
 		novice.begin(*training, 0, 0);
 		REQUIRE(novice.underway());
 		CHECK(novice.underway()->approach == 0);
@@ -1588,7 +1589,7 @@ TEST_CASE("the novice does a training approach by approach: each begun and finis
 		novice.finish(*training, Weight{0}, 6);
 		novice.begin(*training, 0, 1);
 		novice.finish(*training, Weight{90'000}, 4);
-		CHECK_THROWS_AS(novice.begin(*training, 0, 4), std::invalid_argument);
+		CHECK_THROWS_AS(novice.begin(*training, 0, 4), Refusal);
 
 		// Fulfilled, the deed tells what was done; then nothing more is begun.
 		const std::shared_ptr<const Deed> deed = novice.execute(*training, Saying{"тяжело"});
@@ -1675,4 +1676,33 @@ TEST_CASE("the world awakens though what is kept disagrees: it passes it over, t
 	}));
 	// Anna's tie with Boris is not recollected: no room of it stands in her abode.
 	CHECK(anna.abode().rooms().size() == 3);
+}
+
+
+TEST_CASE("a refusal names its reason, beside what the world says of it")
+{
+	InMemoryCosmos cosmos;
+	World& world = cosmos.life().create().world();
+	const auto& man = static_cast<const Novice&>(born(world, DeviceToken::generate()));
+
+	const auto reason_of = [](auto&& act) -> std::optional<Refusal::Reason> {
+		try {
+			act();
+		} catch (const Refusal& refusal) {
+			return refusal.reason();
+		}
+		return std::nullopt;
+	};
+
+	// One does not ask oneself; one is not one's own father.
+	CHECK(reason_of([&] { man.supplicate(static_cast<const Testator&>(man)); })
+		  == Refusal::Reason::CannotSupplicateOneself);
+	CHECK(reason_of([&] { world.choose_father(man, man); }) == Refusal::Reason::NotOwnFather);
+
+	// A refusal is told in words too, and is caught as any logic_error.
+	try {
+		world.choose_father(man, man);
+	} catch (const std::logic_error& error) {
+		CHECK(std::string{error.what()} == "one is not one's own father");
+	}
 }

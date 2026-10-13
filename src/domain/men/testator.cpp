@@ -1,4 +1,5 @@
 #include "testator.h"
+#include "values/refusal.h"
 
 #include "words/training.h"
 
@@ -40,7 +41,7 @@ std::shared_ptr<const Behest> Testator::will(const Shepherding& shepherding, con
 	if (shepherding.testator().Soul::id() != Soul::id())
 		throw std::logic_error("not the testator of this shepherding");
 	if (!contemplates(shepherding))
-		throw std::logic_error("one wills only in the tie one contemplates");
+		throw Refusal(Refusal::Reason::WillOnlyInContemplatedTie, "one wills only in the tie one contemplates");
 
 	matter::Word uttered = utter(saying);
 	matter::Placement placed = spatiality().place(uttered.id(), shepherding.id());
@@ -57,7 +58,7 @@ std::shared_ptr<const Training> Testator::train(const Shepherding& shepherding, 
 	if (shepherding.testator().Soul::id() != Soul::id())
 		throw std::logic_error("not the testator of this shepherding");
 	if (!contemplates(shepherding))
-		throw std::logic_error("one wills only in the tie one contemplates");
+		throw Refusal(Refusal::Reason::WillOnlyInContemplatedTie, "one wills only in the tie one contemplates");
 	if (exercises.empty())
 		throw std::invalid_argument("a training wills exercises");
 
@@ -113,7 +114,7 @@ std::shared_ptr<const Supplication> Testator::supplication(const Novice& supplia
 			return std::move(pending);
 	}
 
-	throw std::invalid_argument("unknown supplication");
+	throw Refusal(Refusal::Reason::UnknownSupplication, "unknown supplication");
 }
 
 
@@ -127,10 +128,10 @@ void Testator::hear(const Birth<Novice> birth) const
 {
 	const Novice& suppliant = birth.parent();
 	if (!abode().dweller(suppliant))
-		throw std::logic_error("one hears only a dweller of one's abode");
+		throw Refusal(Refusal::Reason::HearOnlyDweller, "one hears only a dweller of one's abode");
 	for (const Shepherding* place : shepherdings_) {
 		if (place && place->novice().Soul::id() == suppliant.Soul::id())
-			throw std::logic_error("obedience already exists for this pair");
+			throw Refusal(Refusal::Reason::AlreadyTied, "obedience already exists for this pair");
 	}
 
 	hold(std::make_shared<const Supplication>(birth, temporality().ask(suppliant.Soul::id(), Soul::id())));

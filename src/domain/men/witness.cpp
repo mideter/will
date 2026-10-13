@@ -1,4 +1,5 @@
 #include "witness.h"
+#include "values/refusal.h"
 
 #include "matter/dating.h"
 #include "matter/letter.h"
@@ -38,7 +39,7 @@ void Witness::sleep() const
 void Witness::contemplate(const Abode& abode) const
 {
 	if (!abode.dwells(*this))
-		throw std::logic_error("Witness does not dwell in this abode");
+		throw Refusal(Refusal::Reason::DoesNotDwell, "Witness does not dwell in this abode");
 
 	Spirit::contemplate(abode);
 }
@@ -47,7 +48,7 @@ void Witness::contemplate(const Abode& abode) const
 void Witness::contemplate(const Room& room) const
 {
 	if (!room.dwells(*this))
-		throw std::logic_error("Witness does not enter this room");
+		throw Refusal(Refusal::Reason::DoesNotEnterRoom, "Witness does not enter this room");
 
 	Spirit::contemplate(room);
 }
@@ -69,7 +70,7 @@ void Witness::say(const Saying& saying) const
 	// One writes one's own records only in one's cell.
 	const auto* room = dynamic_cast<const Room*>(&gaze->place());
 	if (!room || &room->abode() != &abode() || &room->reflects() != static_cast<const Place*>(&abode()))
-		throw std::logic_error("one says only in one's cell");
+		throw Refusal(Refusal::Reason::SayOnlyInWord, "one says only in one's cell");
 
 	const Abode& place = abode();
 
