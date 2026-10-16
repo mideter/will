@@ -64,15 +64,9 @@ void Place::enter(const Recollection& recollection, std::shared_ptr<const Word> 
 }
 
 
-std::exception_ptr Place::refuses_word_of(const Man&) const
+bool Place::takes_words_of(const Man&) const
 {
-	return std::make_exception_ptr(SayOnlyInWord());
-}
-
-
-std::exception_ptr Place::refuses_writer(const Man&) const
-{
-	return nullptr;
+	return true;
 }
 
 

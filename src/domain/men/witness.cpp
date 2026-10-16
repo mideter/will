@@ -77,18 +77,19 @@ std::shared_ptr<const Word> Witness::write(const Saying& saying) const
 	if (!gaze)
 		throw std::logic_error("Witness is asleep");
 
-	// The place says whether it takes one's words, before anything is uttered.
-	if (const std::exception_ptr refusal = gaze->place().refuses_word_of(*this))
-		std::rethrow_exception(refusal);
+	const auto* cell = dynamic_cast<const Cell*>(&gaze->place());
+	if (!cell)
+		throw SayOnlyInWord();
 
-	return gaze->place().source().receive(*gaze, saying);
+	return cell->write(*gaze, saying);
 }
 
 
 bool Witness::writes_here() const
 {
 	const std::shared_ptr<const Contemplation> gaze = contemplation();
-	return gaze && !gaze->place().refuses_word_of(*this);
+	const auto* cell = gaze ? dynamic_cast<const Cell*>(&gaze->place()) : nullptr;
+	return cell && cell->writable_by(*this);
 }
 
 

@@ -125,11 +125,9 @@ const Man& Tie::counterpart(const Man& side) const
 }
 
 
-std::exception_ptr Tie::refuses_writer(const Man& writer) const
+bool Tie::takes_words_of(const Man& writer) const
 {
-	if (writer.Soul::id() != testator().Soul::id())
-		return std::make_exception_ptr(OnlyTestatorWills());
-	return nullptr;
+	return writer.Soul::id() == testator().Soul::id();
 }
 
 

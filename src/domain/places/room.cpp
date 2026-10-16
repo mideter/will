@@ -1,6 +1,7 @@
 #include "room.h"
 #include "refusals/room.h"
 #include "refusals/abode.h"
+#include "refusals/place.h"
 #include "refusals/refusal.h"
 
 #include "horizons/heaven.h"
@@ -11,6 +12,7 @@
 #include "places/abode.h"
 #include "places/tie.h"
 #include "relations/acquaintance.h"
+#include "relations/contemplation.h"
 
 #include <stdexcept>
 #include <utility>
@@ -86,11 +88,20 @@ bool Cell::shows(const Man& who, const Word&) const
 }
 
 
-std::exception_ptr Cell::refuses_word_of(const Man& writer) const
+bool Cell::writable_by(const Man& writer) const
 {
-	if (&abode() != &writer.abode())
-		return Place::refuses_word_of(writer);
-	return reflects().refuses_writer(writer);
+	return &abode() == &writer.abode() && reflects().takes_words_of(writer);
+}
+
+
+std::shared_ptr<const Word> Cell::write(const Contemplation& gaze, const Saying& saying) const
+{
+	if (&gaze.place() != this)
+		throw std::logic_error("this cell is not what is contemplated");
+	if (&abode() != &gaze.who().abode())
+		throw SayOnlyInWord();
+
+	return reflects().receive(gaze, saying);
 }
 
 

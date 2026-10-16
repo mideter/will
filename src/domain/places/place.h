@@ -4,7 +4,6 @@
 #include "properties/birth.h"
 #include "properties/immanent.h"
 
-#include <exception>
 #include <memory>
 #include <optional>
 #include <vector>
@@ -41,12 +40,9 @@ public:
 	/// All its words to all who dwell in it, unless it says otherwise.
 	virtual bool shows(const Man& who, const Word& word) const;
 
-	/// Why one standing here may not write; none if one may.
-	virtual std::exception_ptr refuses_word_of(const Man& writer) const;
-
-	/// Asked of the place whose words they are. In an abode none is refused: only its host
-	/// stands in its word, the room of his own abode.
-	virtual std::exception_ptr refuses_writer(const Man& writer) const;
+	/// Asked by a cell of the place it reflects. An abode takes all: only its host stands
+	/// in its cell.
+	virtual bool takes_words_of(const Man& writer) const;
 
 	/// The place has the writer do the deed its words are made by: record a letter in an
 	/// abode, will a behest in a tie.

@@ -7,6 +7,7 @@
 #include "properties/immanent.h"
 
 #include <atomic>
+#include <memory>
 #include <string>
 
 
@@ -53,10 +54,13 @@ public:
 
 	const Place& source() const override;
 
-	/// One writes in a cell of one's own abode.
-	std::exception_ptr refuses_word_of(const Man& writer) const override;
-
 	bool shows(const Man& who, const Word& word) const override;
+
+	/// One writes in a cell of one's own abode, what the place it reflects takes.
+	bool writable_by(const Man& writer) const;
+
+	/// What the words become, the place it reflects decides.
+	std::shared_ptr<const Word> write(const Contemplation& gaze, const Saying& saying) const;
 };
 
 
