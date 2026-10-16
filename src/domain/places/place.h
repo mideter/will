@@ -44,7 +44,8 @@ public:
 	/// Why one standing here may not write; none if one may.
 	virtual std::exception_ptr refuses_word_of(const Man& writer) const;
 
-	/// Asked of the place whose words they are: the host's in an abode, the testator's in a tie.
+	/// Asked of the place whose words they are. In an abode none is refused: only its host
+	/// stands in its word, the room of his own abode.
 	virtual std::exception_ptr refuses_writer(const Man& writer) const;
 
 	/// The place has the writer do the deed its words are made by: record a letter in an

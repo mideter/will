@@ -398,6 +398,8 @@ enum NoticeCode {
     NOTICE_UNSPECIFIED = 0;
 
     // What the world refuses (a domain Refusal and its reason).
+    // 14 was «only the host writes»: one's word is in one's own abode, so only its host stands there.
+    reserved 14;
     NOTICE_ADMIT_ONLY_AT_GATES = 1;
     NOTICE_KEEP_GATES_BY_KIND = 2;
     NOTICE_ALREADY_DWELLS = 3;
@@ -411,7 +413,6 @@ enum NoticeCode {
     NOTICE_ARRANGE_ONLY_IN_UPPER_ROOM = 11;
     NOTICE_FATHER_BY_FLESH_NEIGHBOUR = 12;
     NOTICE_FATHER_BY_SPIRIT_FRIEND = 13;
-    NOTICE_ONLY_HOST_WRITES = 14;
     NOTICE_SAY_ONLY_IN_WORD = 15;
     NOTICE_CANNOT_SUPPLICATE_ONESELF = 16;
     NOTICE_SUPPLICATE_ONLY_DWELLER = 17;

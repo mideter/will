@@ -303,14 +303,6 @@ bool Abode::dwells(const Man& man) const
 }
 
 
-std::exception_ptr Abode::refuses_writer(const Man& writer) const
-{
-	if (&writer != &host_)
-		return std::make_exception_ptr(OnlyHostWrites());
-	return nullptr;
-}
-
-
 std::shared_ptr<const Word> Abode::receive(const Contemplation& gaze, const Saying& saying) const
 {
 	// What the host writes here is his record: a letter.
@@ -327,7 +319,7 @@ std::shared_ptr<const Letter> Abode::inscribe(const Contemplation& gaze, matter:
 	if (kept.word().author() != gaze.who().Soul::id())
 		throw std::logic_error("only its author inscribes a letter");
 	if (kept.word().author() != host_.Soul::id())
-		throw OnlyHostWrites();
+		throw std::logic_error("only the host inscribes a letter");
 
 	auto letter = std::make_shared<const Letter>(Birth<Abode>{*this}, std::move(kept));
 	enter(*recollection(gaze), letter);

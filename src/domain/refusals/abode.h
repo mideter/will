@@ -21,13 +21,6 @@ public:
 	{}
 };
 
-class OnlyHostWrites final : public Refusal {
-public:
-	OnlyHostWrites()
-		: Refusal("only the host writes in his abode")
-	{}
-};
-
 class FatherByFleshNeighbour final : public Refusal {
 public:
 	FatherByFleshNeighbour()

@@ -125,8 +125,6 @@ std::string words_of(const v1::NoticeCode code, const std::vector<std::string>& 
 	switch (code) {
 	case v1::NOTICE_NO_SUCH_UNBORN:
 		return "no such unborn";
-	case v1::NOTICE_ONLY_HOST_WRITES:
-		return "only the host writes in his abode";
 	case v1::NOTICE_INVALID_NAME:
 		return "invalid soul name";
 	case v1::NOTICE_UNKNOWN_NAME:
@@ -193,7 +191,6 @@ v1::NoticeCode code_of(const domain::Refusal& refusal)
 		{typeid(domain::ArrangeOnlyInUpperRoom), v1::NOTICE_ARRANGE_ONLY_IN_UPPER_ROOM},
 		{typeid(domain::FatherByFleshNeighbour), v1::NOTICE_FATHER_BY_FLESH_NEIGHBOUR},
 		{typeid(domain::FatherBySpiritFriend), v1::NOTICE_FATHER_BY_SPIRIT_FRIEND},
-		{typeid(domain::OnlyHostWrites), v1::NOTICE_ONLY_HOST_WRITES},
 		{typeid(domain::SayOnlyInWord), v1::NOTICE_SAY_ONLY_IN_WORD},
 		{typeid(domain::CannotSupplicateOneself), v1::NOTICE_CANNOT_SUPPLICATE_ONESELF},
 		{typeid(domain::SupplicateOnlyDweller), v1::NOTICE_SUPPLICATE_ONLY_DWELLER},

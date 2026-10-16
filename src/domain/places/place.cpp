@@ -72,7 +72,7 @@ std::exception_ptr Place::refuses_word_of(const Man&) const
 
 std::exception_ptr Place::refuses_writer(const Man&) const
 {
-	return std::make_exception_ptr(SayOnlyInWord());
+	return nullptr;
 }
 
 
