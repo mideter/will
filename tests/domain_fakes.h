@@ -600,16 +600,16 @@ inline void arrange_in_upper_room(World& world, const Man& host, const Room& roo
 
 
 /// The cell of a man's abode: the room of his own records, where he writes.
-inline const Room& cell_of(const Man& man)
+inline const Cell& cell_of(const Man& man)
 {
-	return *man.abode().room(man.abode());
+	return *man.abode().cell(man.abode());
 }
 
 
 /// The room of a man's abode reflecting this place (a tie he is a side of).
-inline const Room& room_in(const Man& man, const Place& reflected)
+inline const Cell& room_in(const Man& man, const Place& reflected)
 {
-	return *man.abode().room(reflected);
+	return *man.abode().cell(reflected);
 }
 
 

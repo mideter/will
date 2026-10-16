@@ -99,13 +99,13 @@ void ProtocolAdapter::tell_placed(const domain::Place& place, const domain::Word
 			return;
 	}
 
-	const domain::Room* room = other.abode().room(*tie);
-	if (!room)
+	const domain::Cell* cell = other.abode().cell(*tie);
+	if (!cell)
 		return;
 
 	v1::ServerEvent event;
 	auto* stirred = event.mutable_stirred();
-	stirred->set_room(room->name());
+	stirred->set_room(cell->name());
 	stirred->set_author_name(std::string{author.name().text()});
 	send_to_vessel(other.Vessel::id(), event);
 }

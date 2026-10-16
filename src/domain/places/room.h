@@ -17,36 +17,46 @@ class Abode;
 class Heaven;
 
 
-/// Room (Комната) — a window in an Abode onto what it reflects, with no words of its
-/// own: Слово onto the abode, Ведение and Послушание onto a tie.
+/// Room (Комната) — a window in an Abode onto a place, with no words of its own.
 class Room : public Place {
 public:
-	Room(Birth<Abode> birth, const Place& reflects, matter::Room kept);
-
 	const Abode& abode() const noexcept { return abode_; }
 	const Place& reflects() const noexcept { return reflects_; }
 	matter::Room::Aspect aspect() const noexcept { return aspect_; }
 	matter::Room::Part part() const noexcept { return part_.load(); }
 
-	virtual std::string name() const;
+	virtual std::string name() const = 0;
 
 	void arrange(Birth<Abode> birth, const matter::Room& kept) const;
 
 	/// The host, and the dwellers whose kind enters its part.
 	bool dwells(const Man& man) const override;
 
-	const Place& source() const override;
-
-	/// One writes in a room of one's own abode that shows words.
-	std::exception_ptr refuses_word_of(const Man& writer) const override;
-
-	bool shows(const Man& who, const Word& word) const override;
+protected:
+	Room(Birth<Abode> birth, const Place& reflects, matter::Room kept);
 
 private:
 	const Abode& abode_;
 	const Place& reflects_;
 	const matter::Room::Aspect aspect_;
 	mutable std::atomic<matter::Room::Part> part_;
+};
+
+
+/// Cell (Келья) — the window onto the words of a place: of its abode, «Слово» in the
+/// interface; of a tie, «Ведение» or «Послушание».
+class Cell final : public Room {
+public:
+	Cell(Birth<Abode> birth, const Place& reflects, matter::Room kept);
+
+	std::string name() const override;
+
+	const Place& source() const override;
+
+	/// One writes in a cell of one's own abode.
+	std::exception_ptr refuses_word_of(const Man& writer) const override;
+
+	bool shows(const Man& who, const Word& word) const override;
 };
 
 
@@ -69,9 +79,6 @@ public:
 	bool open() const;
 
 	void admit(Birth<Man> keeper, const Man& man, const matter::Dweller& kept) const;
-
-	const Place& source() const override;
-	bool shows(const Man& who, const Word& word) const override;
 };
 
 
@@ -82,9 +89,6 @@ public:
 	UpperRoom(Birth<Abode> birth, matter::Room kept);
 
 	std::string name() const override;
-
-	const Place& source() const override;
-	bool shows(const Man& who, const Word& word) const override;
 };
 
 

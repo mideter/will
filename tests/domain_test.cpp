@@ -543,7 +543,7 @@ TEST_CASE("the sides of a tie may contemplate it and behold its behests")
 	CHECK(shepherding.dwells(novice));
 	CHECK(shepherding.dwells(testator));
 	CHECK_FALSE(shepherding.dwells(stranger));
-	CHECK_FALSE(stranger.abode().room(shepherding));
+	CHECK_FALSE(stranger.abode().cell(shepherding));
 
 	// Turning to the tie, a side beholds its behests as words.
 	testator.contemplate(room_in(testator, shepherding));
@@ -960,7 +960,7 @@ TEST_CASE("a dweller enters the rooms his kind opens: a friend all, a neighbour 
 
 	const auto& host = static_cast<const Witness&>(born(world, DeviceToken::generate()));
 	const auto& man = static_cast<const Witness&>(born(world, DeviceToken::generate()));
-	const Room& cell = *host.abode().room(host.abode());
+	const Room& cell = *host.abode().cell(host.abode());
 
 	host.wake();
 	host.contemplate(cell_of(host));
@@ -1023,8 +1023,8 @@ TEST_CASE("a tie is reflected in the abode of each side: Ведение and По
 		novice.supplicate(testator);
 		const Shepherding& shepherding = testator.accept(*testator.supplication(novice));
 
-		const Room* leading = testator.abode().room(shepherding);
-		const Room* obeying = novice.abode().room(shepherding);
+		const Cell* leading = testator.abode().cell(shepherding);
+		const Cell* obeying = novice.abode().cell(shepherding);
 		REQUIRE(leading);
 		REQUIRE(obeying);
 		CHECK(leading->name() == "Ведение — " + novice_name);
@@ -1087,7 +1087,7 @@ TEST_CASE("every abode has its cell, a room reflecting the abode itself, kept on
 		CHECK(&cell.abode() == &man.abode());
 		CHECK(cell.part() == matter::Room::Part::Inner);
 		CHECK(man.abode().room("Слово") == &cell);
-		CHECK(man.abode().room(man.abode()) == &cell);
+		CHECK(man.abode().cell(man.abode()) == &cell);
 		CHECK(cell.dwells(man));
 		CHECK_THROWS_AS(cosmos.spatiality().furnish(man.abode().id(), man.abode().id(), matter::Room::Aspect::Words),
 						std::logic_error);
@@ -1144,7 +1144,7 @@ TEST_CASE("the abode shows its host what awaits his attention and what he has se
 
 	// The testator wills through his room Ведение, as through the tie itself.
 	testator.wake();
-	testator.contemplate(*testator.abode().room(shepherding));
+	testator.contemplate(*testator.abode().cell(shepherding));
 	const std::shared_ptr<const Behest> fast = testator.will(shepherding, "fast");
 	const std::shared_ptr<const Behest> pray = testator.will(shepherding, "pray");
 
@@ -1157,7 +1157,7 @@ TEST_CASE("the abode shows its host what awaits his attention and what he has se
 
 	// Fulfilled through the room Послушание, a behest no longer awaits.
 	novice.wake();
-	novice.contemplate(*novice.abode().room(shepherding));
+	novice.contemplate(*novice.abode().cell(shepherding));
 	novice.execute(*fast);
 	REQUIRE(novice.abode().owed().size() == 1);
 	CHECK(novice.abode().owed()[0]->id() == pray->id());

@@ -255,8 +255,8 @@ void ProtocolAdapter::tell_view(const SessionId session_id, const domain::Contem
 		const auto tell = [&](const std::vector<std::shared_ptr<const domain::Behest>>& behests, auto&& add) {
 			for (const std::shared_ptr<const domain::Behest>& behest : behests) {
 				v1::OutstandingBehest* told = add();
-				if (const domain::Room* room = abode->room(behest->tie()))
-					told->set_room(room->name());
+				if (const domain::Cell* cell = abode->cell(behest->tie()))
+					told->set_room(cell->name());
 				*told->mutable_behest() = word_event(*behest, listener.Soul::id()).word();
 			}
 		};

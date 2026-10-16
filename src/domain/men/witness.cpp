@@ -99,9 +99,8 @@ std::shared_ptr<const Letter> Witness::record(const Saying& saying) const
 		throw std::logic_error("Witness is asleep");
 
 	// One records only in one's word: the room of one's abode that shows its words.
-	const auto* room = dynamic_cast<const Room*>(&gaze->place());
-	if (!room || &room->abode() != &abode() || &room->reflects() != static_cast<const Place*>(&abode())
-		|| room->aspect() != matter::Room::Aspect::Words)
+	const auto* cell = dynamic_cast<const Cell*>(&gaze->place());
+	if (!cell || &cell->abode() != &abode() || &cell->reflects() != static_cast<const Place*>(&abode()))
 		throw SayOnlyInWord();
 
 	const Abode& place = abode();

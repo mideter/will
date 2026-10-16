@@ -120,8 +120,8 @@ TEST_CASE("sqlite persistence survives reopen")
 
 		static_cast<const Witness&>(man_a).wake();
 		static_cast<const Witness&>(man_b).wake();
-		static_cast<const Witness&>(man_a).contemplate(*man_a.abode().room(man_a.abode()));
-		static_cast<const Witness&>(man_b).contemplate(*man_b.abode().room(man_b.abode()));
+		static_cast<const Witness&>(man_a).contemplate(*man_a.abode().cell(man_a.abode()));
+		static_cast<const Witness&>(man_b).contemplate(*man_b.abode().cell(man_b.abode()));
 		man_a.say("from-peer");
 		man_b.say("from-me");
 
@@ -178,7 +178,7 @@ TEST_CASE("sqlite persistence survives reopen")
 		// After the World awakens anew everyone is asleep until he comes.
 		CHECK_FALSE(world.contemplation(man_a_reloaded.Soul::id()));
 		static_cast<const Witness&>(man_a_reloaded).wake();
-		static_cast<const Witness&>(man_a_reloaded).contemplate(*man_a_reloaded.abode().room(man_a_reloaded.abode()));
+		static_cast<const Witness&>(man_a_reloaded).contemplate(*man_a_reloaded.abode().cell(man_a_reloaded.abode()));
 
 		const auto letters = letters_seen_by(world.contemplation(man_a_reloaded.Soul::id()));
 		REQUIRE(letters.size() == 1);
@@ -234,9 +234,9 @@ TEST_CASE("sqlite keeps a behest and its execution across reopen")
 		novice.supplicate(testator);
 		testator.accept(*testator.supplication(novice));
 		testator.wake();
-		testator.contemplate(*testator.abode().room(testator.shepherding(novice)));
+		testator.contemplate(*testator.abode().cell(testator.shepherding(novice)));
 		novice.wake();
-		novice.contemplate(*novice.abode().room(novice.obedience(testator)));
+		novice.contemplate(*novice.abode().cell(novice.obedience(testator)));
 
 		const std::shared_ptr<const Behest> open_held = testator.will(testator.shepherding(novice), "fast");
 		const Behest& open = *open_held;
@@ -282,7 +282,7 @@ TEST_CASE("sqlite keeps a behest and its execution across reopen")
 		CHECK(deeds.front()->behest() == *done_id);
 		CHECK(deeds.front()->saying().body() == "совершено");
 		novice.wake();
-		novice.contemplate(*novice.abode().room(novice.obedience(testator)));
+		novice.contemplate(*novice.abode().cell(novice.obedience(testator)));
 		CHECK_THROWS_AS(novice.execute(done), std::logic_error);
 
 		novice.execute(open);

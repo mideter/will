@@ -133,7 +133,7 @@ void World::awaken()
 		const Place& tie = Place::of(kept.id());
 		for (const id::Soul side : {kept.testator(), kept.novice()}) {
 			Abode& abode = living_man(side).abode();
-			if (!abode.room(tie))
+			if (!abode.cell(tie))
 				abode.furnish(Birth<World>{*this},
 							  spatiality().furnish(abode.id(), kept.id(), matter::Room::Aspect::Words));
 		}

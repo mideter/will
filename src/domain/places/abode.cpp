@@ -144,7 +144,7 @@ const Room& Abode::furnish(const matter::Room& kept)
 
 	switch (kept.aspect()) {
 	case matter::Room::Aspect::Words:
-		rooms_.push_back(std::make_unique<Room>(Birth<Abode>{*this}, reflects, kept));
+		rooms_.push_back(std::make_unique<Cell>(Birth<Abode>{*this}, reflects, kept));
 		break;
 	case matter::Room::Aspect::Threshold:
 		rooms_.push_back(std::make_unique<Gates>(Birth<Abode>{*this}, kept));
@@ -169,12 +169,13 @@ std::vector<std::reference_wrapper<const Room>> Abode::rooms() const
 }
 
 
-const Room* Abode::room(const Place& reflects) const
+const Cell* Abode::cell(const Place& reflects) const
 {
 	std::lock_guard lock(*mutex_);
 	for (const std::unique_ptr<Room>& room : rooms_) {
-		if (&room->reflects() == &reflects && room->aspect() == matter::Room::Aspect::Words)
-			return room.get();
+		const auto* cell = dynamic_cast<const Cell*>(room.get());
+		if (cell && &cell->reflects() == &reflects)
+			return cell;
 	}
 	return nullptr;
 }

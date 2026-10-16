@@ -27,6 +27,7 @@ class Letter;
 class Man;
 class Gates;
 class UpperRoom;
+class Cell;
 class Room;
 class Supplication;
 class World;
@@ -61,7 +62,7 @@ public:
 	/// In the order they were furnished.
 	std::vector<std::reference_wrapper<const Room>> rooms() const;
 
-	const Room* room(const Place& reflects) const;
+	const Cell* cell(const Place& reflects) const;
 
 	/// Every abode has them.
 	const Gates& gates() const;
