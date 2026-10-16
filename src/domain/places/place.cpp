@@ -70,7 +70,7 @@ bool Place::takes_words_of(const Man&) const
 }
 
 
-std::shared_ptr<const Word> Place::receive(const Contemplation&, const Saying&) const
+std::shared_ptr<const Word> Place::receive(Birth<Cell>, const Saying&) const
 {
 	throw std::logic_error("this place takes no written words");
 }

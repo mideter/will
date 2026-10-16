@@ -27,6 +27,7 @@ class Letter;
 class Man;
 class Gates;
 class UpperRoom;
+class Witness;
 class Cell;
 class Room;
 class Supplication;
@@ -79,7 +80,7 @@ public:
 	/// The abode itself shows no words; they are seen through its rooms.
 	bool shows(const Man& who, const Word& word) const override;
 
-	std::shared_ptr<const Word> receive(const Contemplation& gaze, const Saying& saying) const override;
+	std::shared_ptr<const Word> receive(Birth<Cell> cell, const Saying& saying) const override;
 
 	/// Behests not yet fulfilled where the host is the novice, oldest first by room.
 	std::vector<std::shared_ptr<const Behest>> owed() const;
@@ -87,7 +88,7 @@ public:
 	/// Behests not yet fulfilled where the host is the testator, oldest first by room.
 	std::vector<std::shared_ptr<const Behest>> awaited() const;
 
-	std::shared_ptr<const Letter> inscribe(const Contemplation& gaze, matter::Letter kept) const;
+	std::shared_ptr<const Letter> inscribe(Birth<Witness>, matter::Letter kept) const;
 
 	/// Whether he is a father by spirit of the host, near or far.
 	bool ancestor(const Man& man) const;

@@ -12,6 +12,7 @@
 namespace will::domain {
 
 
+class Cell;
 class Contemplation;
 class Life;
 class Man;
@@ -40,13 +41,13 @@ public:
 	/// All its words to all who dwell in it, unless it says otherwise.
 	virtual bool shows(const Man& who, const Word& word) const;
 
-	/// Asked by a cell of the place it reflects. An abode takes all: only its host stands
-	/// in its cell.
-	virtual bool takes_words_of(const Man& writer) const;
+	/// Asked by a cell of the place it reflects, of the cell's host: whoever stands in the
+	/// cell writes as its host. An abode takes its host's words.
+	virtual bool takes_words_of(const Man& host) const;
 
-	/// The place has the writer do the deed its words are made by: record a letter in an
-	/// abode, will a behest in a tie.
-	virtual std::shared_ptr<const Word> receive(const Contemplation& gaze, const Saying& saying) const;
+	/// The place has the cell's host do the deed its words are made by: record a letter in
+	/// an abode, will a behest in a tie.
+	virtual std::shared_ptr<const Word> receive(Birth<Cell> cell, const Saying& saying) const;
 
 	std::shared_ptr<const Recollection> recollection(const Contemplation& gaze) const;
 

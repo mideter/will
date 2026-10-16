@@ -613,6 +613,20 @@ inline const Cell& room_in(const Man& man, const Place& reflected)
 }
 
 
+/// What a man writes where he stands.
+inline std::shared_ptr<const Word> write(const Man& man, const Saying& saying)
+{
+	return static_cast<const Witness&>(man).write(saying);
+}
+
+
+/// What a man writes in the cell of a tie he stands in: a behest.
+inline std::shared_ptr<const Behest> will_here(const Man& man, const Saying& saying)
+{
+	return std::dynamic_pointer_cast<const Behest>(write(man, saying));
+}
+
+
 /// The letters a gaze beholds (the words of an abode are letters).
 inline std::vector<std::shared_ptr<const Letter>> letters_seen_by(const std::shared_ptr<const Contemplation>& gaze)
 {

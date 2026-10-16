@@ -68,8 +68,6 @@ private:
 	friend class Supplication;
 	friend class World;
 
-	using Witness::say;
-
 	const Obedience& follow(matter::Tie kept) const;
 	const Obedience& follow(std::unique_ptr<Obedience> place) const;
 

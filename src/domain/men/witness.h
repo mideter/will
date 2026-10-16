@@ -11,6 +11,7 @@
 namespace will::domain {
 
 
+class Cell;
 class Room;
 class Letter;
 class Word;
@@ -31,15 +32,13 @@ public:
 	/// The place itself, or a room reflecting it.
 	bool contemplates(const Place& place) const;
 
-	void say(const Saying& saying) const final;
-
 	/// Write where one stands: a letter in one's own word, a behest in a tie one wills in.
 	std::shared_ptr<const Word> write(const Saying& saying) const;
 
 	bool writes_here() const;
 
-	/// A letter in one's own word.
-	std::shared_ptr<const Letter> record(const Saying& saying) const;
+	/// A letter in one's abode, written by whoever stands in its cell.
+	std::shared_ptr<const Letter> record(Birth<Cell> cell, const Saying& saying) const;
 
 protected:
 	explicit Witness(matter::Man kept);

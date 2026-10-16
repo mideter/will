@@ -1,4 +1,5 @@
 #include "tie.h"
+#include "places/room.h"
 #include "refusals/tie.h"
 #include "refusals/refusal.h"
 
@@ -125,16 +126,33 @@ const Man& Tie::counterpart(const Man& side) const
 }
 
 
-bool Tie::takes_words_of(const Man& writer) const
+bool Tie::takes_words_of(const Man& host) const
 {
-	return writer.Soul::id() == testator().Soul::id();
+	return host.Soul::id() == testator().Soul::id();
 }
 
 
-std::shared_ptr<const Word> Tie::receive(const Contemplation& gaze, const Saying& saying) const
+const Testator& Tie::willing(const Birth<Cell> cell) const
 {
-	// What its testator writes here, he wills: a behest.
-	return static_cast<const Testator&>(gaze.who()).will(*this, saying);
+	if (&cell.parent().reflects() != static_cast<const Place*>(this))
+		throw std::logic_error("the cell does not reflect this tie");
+	if (!takes_words_of(cell.parent().abode().host()))
+		throw OnlyTestatorWills();
+	return testator_;
+}
+
+
+std::shared_ptr<const Word> Tie::receive(const Birth<Cell> cell, const Saying& saying) const
+{
+	// What is written in its testator's cell, he wills: a behest.
+	return willing(cell).will(cell, *this, saying);
+}
+
+
+std::shared_ptr<const Training> Tie::train(const Birth<Cell> cell, const Saying& title,
+										   std::vector<Exercise> exercises) const
+{
+	return willing(cell).train(cell, *this, title, std::move(exercises));
 }
 
 

@@ -19,6 +19,7 @@
 namespace will::domain {
 
 
+class Cell;
 class Training;
 class Word;
 
@@ -35,12 +36,12 @@ public:
 	const Shepherding& accept(const Supplication& ask) const;
 	void reject(const Supplication& ask) const;
 
-	std::shared_ptr<const Behest> will(const Shepherding& shepherding, const Saying& saying) const;
+	std::shared_ptr<const Behest> will(Birth<Cell> cell, const Shepherding& shepherding, const Saying& saying) const;
 
-	/// In the tie one stands in.
+	/// In the cell of a tie one stands in.
 	std::shared_ptr<const Training> train(const Saying& title, std::vector<Exercise> exercises) const;
 
-	std::shared_ptr<const Training> train(const Shepherding& shepherding, const Saying& title,
+	std::shared_ptr<const Training> train(Birth<Cell> cell, const Shepherding& shepherding, const Saying& title,
 										  std::vector<Exercise> exercises) const;
 
 	const Shepherding& shepherding(const Novice& novice) const;

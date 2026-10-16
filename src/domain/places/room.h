@@ -6,6 +6,8 @@
 #include "properties/birth.h"
 #include "properties/immanent.h"
 
+#include "values/exercise.h"
+
 #include <atomic>
 #include <memory>
 #include <string>
@@ -16,6 +18,7 @@ namespace will::domain {
 
 class Abode;
 class Heaven;
+class Training;
 
 
 /// Room (Комната) — a window in an Abode onto a place, with no words of its own.
@@ -56,11 +59,14 @@ public:
 
 	bool shows(const Man& who, const Word& word) const override;
 
-	/// One writes in a cell of one's own abode, what the place it reflects takes.
-	bool writable_by(const Man& writer) const;
+	/// Whoever stands here writes as its host, what the place it reflects takes of him.
+	bool writable() const;
 
 	/// What the words become, the place it reflects decides.
 	std::shared_ptr<const Word> write(const Contemplation& gaze, const Saying& saying) const;
+
+	std::shared_ptr<const Training> train(const Contemplation& gaze, const Saying& title,
+										  std::vector<Exercise> exercises) const;
 };
 
 

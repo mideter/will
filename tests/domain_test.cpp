@@ -99,7 +99,7 @@ TEST_CASE("welcome creates man with personal abode")
 	// A man is born asleep: he contemplates nothing until he wakes.
 	CHECK_FALSE(world.contemplation(man.Soul::id()));
 	CHECK(world.contemplating(man.abode()).empty());
-	CHECK_THROWS_AS(man.say("in my sleep"), std::logic_error);
+	CHECK_THROWS_AS(write(man, "in my sleep"), std::logic_error);
 
 	witness.wake();
 	REQUIRE(world.contemplation(man.Soul::id()));
@@ -192,7 +192,7 @@ TEST_CASE("man say persists via temporality")
 	const auto& witness = static_cast<const Witness&>(author);
 	witness.wake();
 	witness.contemplate(cell_of(witness));
-	author.say("hello");
+	write(author, "hello");
 
 	const auto placed = cosmos.spatiality().placements(witness.abode().id(), 10);
 	REQUIRE(placed.size() == 1);
@@ -220,7 +220,7 @@ TEST_CASE("letters of an abode are seen through contemplation by one who dwells 
 	witness.contemplate(cell_of(witness));
 
 	for (int i = 0; i < 5; ++i)
-		man.say("m" + std::to_string(i));
+		write(man, "m" + std::to_string(i));
 
 	const auto items = letters_seen_by(world.contemplation(witness.Soul::id()));
 	REQUIRE(items.size() == 5);
@@ -261,7 +261,7 @@ TEST_CASE("letters of an abode are seen through contemplation by one who dwells 
 	CHECK_FALSE(world.contemplation(witness.Soul::id()));
 	CHECK(world.contemplating(witness.abode()).empty());
 	CHECK(letters_seen_by(held).size() == 5);
-	CHECK_THROWS_AS(man.say("asleep"), std::logic_error);
+	CHECK_THROWS_AS(write(man, "asleep"), std::logic_error);
 
 	// Sleeping twice is nothing; waking returns him to his own abode.
 	witness.sleep();
@@ -292,8 +292,8 @@ TEST_CASE("letters of an abode live while it is contemplated, shared by every ga
 	CHECK(letters_seen_by(world.contemplation(host.Soul::id())).empty());
 
 	// A letter said is born living at once and beheld, without reading the dimensions again.
-	host.say("first");
-	host.say("second");
+	write(host, "first");
+	write(host, "second");
 	const auto seen = letters_seen_by(world.contemplation(host.Soul::id()));
 	REQUIRE(seen.size() == 2);
 	CHECK(seen[0]->saying().body() == "first");
@@ -313,7 +313,7 @@ TEST_CASE("letters of an abode live while it is contemplated, shared by every ga
 
 	// Every gaze still held upon the abode shares its one recollection, and
 	// beholds what is said next.
-	host.say("third");
+	write(host, "third");
 	CHECK(letters_seen_by(current).size() == 3);
 	CHECK(letters_seen_by(former).size() == 3);
 	CHECK(letters_seen_by(former)[2] == letters_seen_by(current)[2]);
@@ -322,16 +322,9 @@ TEST_CASE("letters of an abode live while it is contemplated, shared by every ga
 	const auto& other = static_cast<const Witness&>(born(world, DeviceToken::generate()));
 	other.wake();
 	other.contemplate(cell_of(other));
-	other.say("elsewhere");
+	write(other, "elsewhere");
 	CHECK(letters_seen_by(current).size() == 3);
 	CHECK(letters_seen_by(world.contemplation(other.Soul::id())).size() == 1);
-
-	// Only its author inscribes a letter, and only into the abode he contemplates.
-	const auto stray = matter::Letter{matter::Word{id::Word{900}, other.Soul::id(), "not his"},
-									  matter::Placement{id::Word{900}, host.abode().id()},
-									  matter::Dating{id::Word{900}, Timestamp{1}}};
-	CHECK_THROWS_AS(host.abode().inscribe(*current, stray), std::logic_error);
-	CHECK_THROWS_AS(other.abode().inscribe(*current, stray), std::logic_error);
 }
 
 
@@ -345,14 +338,14 @@ TEST_CASE("the words of a place live together in its recollection, all or none")
 
 	host.wake();
 	host.contemplate(cell_of(host));
-	host.say("first");
-	host.say("second");
+	write(host, "first");
+	write(host, "second");
 
 	// While any gaze holds the recollection, every word in it lives, even one
 	// said after that gaze was let go by Heaven.
 	std::shared_ptr<const Contemplation> old_gaze = world.contemplation(host.Soul::id());
 	host.contemplate(cell_of(host));
-	host.say("third");
+	write(host, "third");
 	const std::weak_ptr<const Letter> first = letters_seen_by(old_gaze).front();
 	const std::weak_ptr<const Letter> third = letters_seen_by(world.contemplation(host.Soul::id())).back();
 	host.sleep();
@@ -388,7 +381,7 @@ TEST_CASE("letters of an abode are gone with the last gaze and are born anew fro
 
 	host.wake();
 	host.contemplate(cell_of(host));
-	host.say("kept");
+	write(host, "kept");
 	std::weak_ptr<const Letter> watched = letters_seen_by(world.contemplation(host.Soul::id())).front();
 	REQUIRE(watched.lock());
 	CHECK(cosmos.spatiality().placement_reads() == born_reads + 1);
@@ -532,7 +525,7 @@ TEST_CASE("the sides of a tie may contemplate it and behold its behests")
 	const Shepherding& shepherding = testator.accept(*testator.supplication(novice));
 	testator.wake();
 	testator.contemplate(room_in(testator, shepherding));
-	const std::shared_ptr<const Behest> willed_held = testator.will(shepherding, "fast");
+	const std::shared_ptr<const Behest> willed_held = will_here(testator, "fast");
 	const Behest& willed = *willed_held;
 
 	novice.wake();
@@ -555,13 +548,13 @@ TEST_CASE("the sides of a tie may contemplate it and behold its behests")
 	CHECK(behest->id() == willed.id());
 	CHECK(world.contemplating(shepherding).size() == 1);
 
-	// In a tie one wills, one does not say.
-	CHECK_THROWS_AS(static_cast<const Man&>(testator).say("hello"), std::logic_error);
+	// What he writes in the tie, he wills.
+	CHECK(will_here(testator, "hello"));
 
-	// Turning to his cell, he writes there.
+	// Turning to his cell, he writes a letter there.
 	testator.contemplate(cell_of(testator));
 	CHECK(world.contemplating(shepherding).empty());
-	static_cast<const Man&>(testator).say("hello");
+	CHECK(std::dynamic_pointer_cast<const Letter>(write(testator, "hello")));
 }
 
 
@@ -591,7 +584,7 @@ TEST_CASE("the words of a tie live while it is contemplated, one for both sides"
 	CHECK(novice_gaze->words().empty());
 
 	// A behest willed is beheld at once by both, as one and the same word.
-	const std::shared_ptr<const Behest> behest = testator.will(shepherding, "fast");
+	const std::shared_ptr<const Behest> behest = will_here(testator, "fast");
 	REQUIRE(testator_gaze->words().size() == 1);
 	REQUIRE(novice_gaze->words().size() == 1);
 	CHECK(testator_gaze->words()[0] == behest);
@@ -630,7 +623,7 @@ TEST_CASE("the words of a tie are gone with the last gaze and are born anew from
 	std::weak_ptr<const Behest> watched;
 	id::Word behest_id{1};
 	{
-		const std::shared_ptr<const Behest> behest = testator.will(shepherding, "fast");
+		const std::shared_ptr<const Behest> behest = will_here(testator, "fast");
 		watched = behest;
 		behest_id = behest->id();
 		novice.wake();
@@ -807,13 +800,11 @@ TEST_CASE("will and execute within obedience")
 	const Shepherding& shepherding = testator.shepherding(novice);
 	testator.wake();
 	testator.contemplate(room_in(testator, shepherding));
-	const std::shared_ptr<const Behest> behest_held = testator.will(shepherding, "fast");
+	const std::shared_ptr<const Behest> behest_held = will_here(testator, "fast");
 	const Behest& behest = *behest_held;
 	CHECK(behest.saying().body() == "fast");
 	CHECK(&behest.tie().testator() == &testator);
 	CHECK(&behest.tie().novice() == &novice);
-
-	CHECK_THROWS_AS(static_cast<const Testator&>(a).will(shepherding, "no"), std::logic_error);
 
 	// The tie shows its behests to either side, through the one who asks.
 	const Obedience& obedience = novice.obedience(testator);
@@ -854,9 +845,9 @@ TEST_CASE("a tie shows its behests only to its sides; behests are not letters")
 	novice.supplicate(testator);
 	testator.accept(*testator.supplication(novice));
 	testator.wake();
-	CHECK_THROWS_AS(testator.will(testator.shepherding(novice), "fast"), std::logic_error);
+	CHECK_THROWS_AS(will_here(testator, "fast"), std::logic_error);
 	testator.contemplate(room_in(testator, testator.shepherding(novice)));
-	const std::shared_ptr<const Behest> behest_held = testator.will(testator.shepherding(novice), "fast");
+	const std::shared_ptr<const Behest> behest_held = will_here(testator, "fast");
 	const Behest& behest = *behest_held;
 
 	novice.wake();
@@ -874,7 +865,7 @@ TEST_CASE("a tie shows its behests only to its sides; behests are not letters")
 
 	// A letter is not a behest.
 	novice.contemplate(cell_of(novice));
-	static_cast<const Witness&>(novice).say("hello");
+	write(novice, "hello");
 	REQUIRE(letters_seen_by(world.contemplation(novice.Soul::id())).size() == 1);
 	REQUIRE(obedience.behests(novice).size() == 1);
 	CHECK(obedience.behests(novice).front()->id() == behest.id());
@@ -917,10 +908,18 @@ TEST_CASE("the host admits a man as an acquaintance and regards him anew")
 	// Admission is not mutual: the host does not dwell in the man's abode.
 	CHECK_FALSE(man.abode().dwells(host));
 
-	// A dweller may turn his gaze to the abode, but only the host writes in it.
+	// A dweller may turn his gaze to the abode, but one writes only in a cell.
 	man.wake();
 	man.contemplate(host.abode());
-	CHECK_THROWS_AS(static_cast<const Man&>(man).say("not mine"), std::logic_error);
+	CHECK_THROWS_AS(write(man, "not mine"), SayOnlyInWord);
+
+	// Entering the host's cell, the friend writes there as the host: the letter is his.
+	man.contemplate(cell_of(host));
+	CHECK(static_cast<const Witness&>(man).writes_here());
+	const auto letter = std::dynamic_pointer_cast<const Letter>(write(man, "for the host"));
+	REQUIRE(letter);
+	CHECK(&letter->author() == static_cast<const Soul*>(&host));
+	CHECK(&letter->place() == &host.abode());
 }
 
 
@@ -964,7 +963,7 @@ TEST_CASE("a dweller enters the rooms his kind opens: a friend all, a neighbour 
 
 	host.wake();
 	host.contemplate(cell_of(host));
-	host.say("first");
+	write(host, "first");
 	admit_at_gates(world, host, man);
 	// Looking at the abode itself, a dweller sees no words: they are seen in its rooms.
 	man.wake();
@@ -1114,10 +1113,10 @@ TEST_CASE("one writes only in one's cell; the abode itself shows no words")
 	// Woken, he looks at his abode itself: there he does not write, and sees no words.
 	host.wake();
 	CHECK(&world.contemplation(host.Soul::id())->place() == static_cast<const Place*>(&host.abode()));
-	CHECK_THROWS_AS(static_cast<const Man&>(host).say("at the threshold"), std::logic_error);
+	CHECK_THROWS_AS(write(host, "at the threshold"), std::logic_error);
 
 	host.contemplate(cell_of(host));
-	static_cast<const Man&>(host).say("in the cell");
+	write(host, "in the cell");
 	CHECK(letters_seen_by(world.contemplation(host.Soul::id())).size() == 1);
 
 	host.contemplate(host.abode());
@@ -1145,8 +1144,8 @@ TEST_CASE("the abode shows its host what awaits his attention and what he has se
 	// The testator wills through his room Ведение, as through the tie itself.
 	testator.wake();
 	testator.contemplate(*testator.abode().cell(shepherding));
-	const std::shared_ptr<const Behest> fast = testator.will(shepherding, "fast");
-	const std::shared_ptr<const Behest> pray = testator.will(shepherding, "pray");
+	const std::shared_ptr<const Behest> fast = will_here(testator, "fast");
+	const std::shared_ptr<const Behest> pray = will_here(testator, "pray");
 
 	REQUIRE(novice.abode().owed().size() == 2);
 	CHECK(novice.abode().owed()[0]->id() == fast->id());
@@ -1485,12 +1484,12 @@ TEST_CASE("the testator wills a training of exercises; the novice fulfils it tel
 	};
 
 	// Only looking at the tie does the testator will a training.
-	CHECK_THROWS_AS(testator.train(shepherding, "Понедельник", willed), std::logic_error);
+	CHECK_THROWS_AS(testator.train("Понедельник", willed), std::logic_error);
 	testator.wake();
 	testator.contemplate(room_in(testator, shepherding));
-	CHECK_THROWS_AS(testator.train(shepherding, "Пусто", {}), std::invalid_argument);
-	const std::shared_ptr<const Training> monday = testator.train(shepherding, "Понедельник", willed);
-	const std::shared_ptr<const Training> tuesday = testator.train(shepherding, "Вторник", {willed[1]});
+	CHECK_THROWS_AS(testator.train("Пусто", {}), std::invalid_argument);
+	const std::shared_ptr<const Training> monday = testator.train("Понедельник", willed);
+	const std::shared_ptr<const Training> tuesday = testator.train("Вторник", {willed[1]});
 	CHECK(monday->saying().body() == "Понедельник");
 	CHECK(monday->exercises() == willed);
 
@@ -1515,7 +1514,7 @@ TEST_CASE("the testator wills a training of exercises; the novice fulfils it tel
 
 	// A plain behest is fulfilled without exercises.
 	testator.contemplate(room_in(testator, shepherding));
-	const std::shared_ptr<const Behest> plain = testator.will(shepherding, "Выспаться");
+	const std::shared_ptr<const Behest> plain = will_here(testator, "Выспаться");
 	CHECK_THROWS_AS(novice.execute(*plain, std::nullopt, done), std::logic_error);
 	CHECK(novice.execute(*plain)->performed().empty());
 
@@ -1556,7 +1555,7 @@ TEST_CASE("the novice does a training approach by approach: each begun and finis
 
 		testator.wake();
 		testator.contemplate(room_in(testator, shepherding));
-		const std::shared_ptr<const Training> training = testator.train(shepherding, "Вторник", {
+		const std::shared_ptr<const Training> training = testator.train("Вторник", {
 			Exercise{"Присед", {Approach{Weight{100'000}, 5, 120}, Approach{Weight{100'000}, 5, 120}}},
 			Exercise{"Подтягивания", {Approach{Weight{0}, 8, 90}}},
 		});
@@ -1749,4 +1748,18 @@ TEST_CASE("one writes where one stands: a letter in one's word, a behest in a ti
 	// Standing in no tie, one wills no training.
 	testator.contemplate(cell_of(testator));
 	CHECK_THROWS_AS(testator.train(Saying{"нет"}, {Exercise{"Жим", {Approach{Weight{0}, 5}}}}), WillOnlyInContemplatedTie);
+
+	// A friend of the testator, entering his cell of the tie, wills there as the testator.
+	const auto& friend_ = static_cast<const Testator&>(born(world, DeviceToken::generate()));
+	admit_at_gates(world, testator, friend_);
+	regard_in_upper_room(world, testator, friend_, matter::Dweller::Kind::Friend);
+	friend_.wake();
+	friend_.contemplate(room_in(testator, tie));
+	CHECK(friend_.writes_here());
+	const auto willed = will_here(friend_, "от друга");
+	REQUIRE(willed);
+	CHECK(&willed->author() == static_cast<const Soul*>(&testator));
+	CHECK(&willed->tie() == &tie);
+	const auto trained = friend_.train(Saying{"Тренировка"}, {Exercise{"Жим", {Approach{Weight{0}, 5}}}});
+	CHECK(&trained->author() == static_cast<const Soul*>(&testator));
 }

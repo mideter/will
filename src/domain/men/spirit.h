@@ -25,13 +25,10 @@ class Soul;
 class Supplication;
 
 
-/// Spirit (Дух) — the highest of the soul: it alone utters; a living witness says.
+/// Spirit (Дух) — the highest of the soul: it alone utters.
 class Spirit : public Immanent<Heaven> {
 public:
 	virtual ~Spirit() = default;
-
-	virtual void say(const Saying& saying) const = 0;
-
 
 protected:
 	Spirit() = default;

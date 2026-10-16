@@ -42,13 +42,8 @@ void Testator::reject(const Supplication& ask) const
 }
 
 
-std::shared_ptr<const Behest> Testator::will(const Shepherding& shepherding, const Saying& saying) const
+std::shared_ptr<const Behest> Testator::will(Birth<Cell>, const Shepherding& shepherding, const Saying& saying) const
 {
-	if (shepherding.testator().Soul::id() != Soul::id())
-		throw OnlyTestatorWills();
-	if (!contemplates(shepherding))
-		throw WillOnlyInContemplatedTie();
-
 	matter::Word uttered = utter(saying);
 	matter::Placement placed = spatiality().place(uttered.id(), shepherding.id());
 	matter::Dating dated = temporality().date(uttered.id());
@@ -58,13 +53,9 @@ std::shared_ptr<const Behest> Testator::will(const Shepherding& shepherding, con
 }
 
 
-std::shared_ptr<const Training> Testator::train(const Shepherding& shepherding, const Saying& title,
+std::shared_ptr<const Training> Testator::train(Birth<Cell>, const Shepherding& shepherding, const Saying& title,
 												std::vector<Exercise> exercises) const
 {
-	if (shepherding.testator().Soul::id() != Soul::id())
-		throw OnlyTestatorWills();
-	if (!contemplates(shepherding))
-		throw WillOnlyInContemplatedTie();
 	if (exercises.empty())
 		throw std::invalid_argument("a training wills exercises");
 
@@ -168,10 +159,10 @@ void Testator::hold(std::shared_ptr<const Supplication> supplication) const
 std::shared_ptr<const Training> Testator::train(const Saying& title, std::vector<Exercise> exercises) const
 {
 	const std::shared_ptr<const Contemplation> gaze = contemplation();
-	const auto* tie = gaze ? dynamic_cast<const Tie*>(&gaze->place().source()) : nullptr;
-	if (!tie)
+	const auto* cell = gaze ? dynamic_cast<const Cell*>(&gaze->place()) : nullptr;
+	if (!cell)
 		throw WillOnlyInContemplatedTie();
-	return train(*tie, title, std::move(exercises));
+	return cell->train(*gaze, title, std::move(exercises));
 }
 
 

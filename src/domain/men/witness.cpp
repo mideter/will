@@ -65,12 +65,6 @@ bool Witness::contemplates(const Place& place) const
 }
 
 
-void Witness::say(const Saying& saying) const
-{
-	(void)record(saying);
-}
-
-
 std::shared_ptr<const Word> Witness::write(const Saying& saying) const
 {
 	const std::shared_ptr<const Contemplation> gaze = contemplation();
@@ -89,26 +83,20 @@ bool Witness::writes_here() const
 {
 	const std::shared_ptr<const Contemplation> gaze = contemplation();
 	const auto* cell = gaze ? dynamic_cast<const Cell*>(&gaze->place()) : nullptr;
-	return cell && cell->writable_by(*this);
+	return cell && cell->writable();
 }
 
 
-std::shared_ptr<const Letter> Witness::record(const Saying& saying) const
+std::shared_ptr<const Letter> Witness::record(const Birth<Cell> cell, const Saying& saying) const
 {
-	const std::shared_ptr<const Contemplation> gaze = contemplation();
-	if (!gaze)
-		throw std::logic_error("Witness is asleep");
-
-	// One records only in one's word: the room of one's abode that shows its words.
-	const auto* cell = dynamic_cast<const Cell*>(&gaze->place());
-	if (!cell || &cell->abode() != &abode() || &cell->reflects() != static_cast<const Place*>(&abode()))
-		throw SayOnlyInWord();
+	if (&cell.parent().abode() != &abode())
+		throw std::logic_error("the cell is not of this abode");
 
 	const Abode& place = abode();
 	matter::Word uttered = utter(saying);
 	matter::Placement placed = spatiality().place(uttered.id(), place.id());
 	matter::Dating dated = temporality().date(uttered.id());
-	return place.inscribe(*gaze, matter::Letter{std::move(uttered), std::move(placed), std::move(dated)});
+	return place.inscribe(Birth<Witness>{*this}, matter::Letter{std::move(uttered), std::move(placed), std::move(dated)});
 }
 
 

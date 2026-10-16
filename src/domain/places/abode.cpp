@@ -304,26 +304,25 @@ bool Abode::dwells(const Man& man) const
 }
 
 
-std::shared_ptr<const Word> Abode::receive(const Contemplation& gaze, const Saying& saying) const
+std::shared_ptr<const Word> Abode::receive(const Birth<Cell> cell, const Saying& saying) const
 {
-	// What the host writes here is his record: a letter.
-	return gaze.who().record(saying);
+	if (&cell.parent().abode() != this)
+		throw std::logic_error("the cell is not of this abode");
+
+	// What is written here is its host's record: a letter.
+	return static_cast<const Witness&>(host_).record(cell, saying);
 }
 
 
-std::shared_ptr<const Letter> Abode::inscribe(const Contemplation& gaze, matter::Letter kept) const
+std::shared_ptr<const Letter> Abode::inscribe(Birth<Witness>, matter::Letter kept) const
 {
-	if (&gaze.place().source() != this)
-		throw std::logic_error("this abode is not what is contemplated");
 	if (kept.placement().place() != id())
 		throw std::logic_error("the letter is not placed in this abode");
-	if (kept.word().author() != gaze.who().Soul::id())
-		throw std::logic_error("only its author inscribes a letter");
 	if (kept.word().author() != host_.Soul::id())
 		throw std::logic_error("only the host inscribes a letter");
 
 	auto letter = std::make_shared<const Letter>(Birth<Abode>{*this}, std::move(kept));
-	enter(*recollection(gaze), letter);
+	enter(*recollection(), letter);
 
 	return letter;
 }

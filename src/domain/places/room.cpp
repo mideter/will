@@ -2,6 +2,8 @@
 #include "refusals/room.h"
 #include "refusals/abode.h"
 #include "refusals/place.h"
+#include "refusals/tie.h"
+#include "refusals/testator.h"
 #include "refusals/refusal.h"
 
 #include "horizons/heaven.h"
@@ -13,6 +15,7 @@
 #include "places/tie.h"
 #include "relations/acquaintance.h"
 #include "relations/contemplation.h"
+#include "words/training.h"
 
 #include <stdexcept>
 #include <utility>
@@ -88,9 +91,9 @@ bool Cell::shows(const Man& who, const Word&) const
 }
 
 
-bool Cell::writable_by(const Man& writer) const
+bool Cell::writable() const
 {
-	return &abode() == &writer.abode() && reflects().takes_words_of(writer);
+	return reflects().takes_words_of(abode().host());
 }
 
 
@@ -98,10 +101,21 @@ std::shared_ptr<const Word> Cell::write(const Contemplation& gaze, const Saying&
 {
 	if (&gaze.place() != this)
 		throw std::logic_error("this cell is not what is contemplated");
-	if (&abode() != &gaze.who().abode())
-		throw SayOnlyInWord();
 
-	return reflects().receive(gaze, saying);
+	return reflects().receive(Birth<Cell>{*this}, saying);
+}
+
+
+std::shared_ptr<const Training> Cell::train(const Contemplation& gaze, const Saying& title,
+											std::vector<Exercise> exercises) const
+{
+	if (&gaze.place() != this)
+		throw std::logic_error("this cell is not what is contemplated");
+	const auto* tie = dynamic_cast<const Tie*>(&reflects());
+	if (!tie)
+		throw WillOnlyInContemplatedTie();
+
+	return tie->train(Birth<Cell>{*this}, title, std::move(exercises));
 }
 
 
