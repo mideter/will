@@ -135,7 +135,7 @@ std::shared_ptr<const Deed> Novice::execute(Birth<Cell>, const Behest& behest, s
 	matter::Word uttered = utter(report ? *report : Saying{"совершено"});
 	std::optional<matter::Training> done;
 	if (performed)
-		done = exercise(uttered.id(), std::move(*performed));
+		done = utter(uttered.id(), std::move(*performed));
 	matter::Placement placed = spatiality().place(uttered.id(), tie.id());
 	matter::Dating dated = temporality().date(uttered.id());
 	matter::Execution executed = temporality().execute(uttered.id(), behest.id());

@@ -31,7 +31,7 @@ public:
 	domain::matter::Word utter(domain::id::Soul author, const domain::Saying& saying) override;
 	domain::matter::Word word(domain::id::Word id) const override;
 	std::vector<domain::matter::Word> words(const std::vector<domain::id::Word>& ids) const override;
-	domain::matter::Training train(domain::id::Word word, std::vector<domain::Exercise> exercises) override;
+	domain::matter::Training utter(domain::id::Word word, std::vector<domain::Exercise> exercises) override;
 	std::vector<domain::matter::Training> trainings(const std::vector<domain::id::Word>& ids) const override;
 
 private:

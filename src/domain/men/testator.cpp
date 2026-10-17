@@ -55,7 +55,7 @@ std::shared_ptr<const Training> Testator::train(Birth<Cell>, const Shepherding& 
 		throw std::invalid_argument("a training wills exercises");
 
 	matter::Word uttered = utter(title);
-	matter::Training trained = exercise(uttered.id(), std::move(exercises));
+	matter::Training trained = utter(uttered.id(), std::move(exercises));
 	matter::Placement placed = spatiality().place(uttered.id(), shepherding.id());
 	matter::Dating dated = temporality().date(uttered.id());
 

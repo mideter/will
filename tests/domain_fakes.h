@@ -156,7 +156,7 @@ public:
 
 	std::vector<matter::Fatherhood> fatherhoods() const override { return shared_.fatherhoods; }
 
-	matter::Training train(const id::Word word, std::vector<Exercise> exercises) override
+	matter::Training utter(const id::Word word, std::vector<Exercise> exercises) override
 	{
 		for (const matter::Training& row : shared_.trainings) {
 			if (row.id() == word)

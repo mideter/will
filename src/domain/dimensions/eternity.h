@@ -58,7 +58,7 @@ public:
 	virtual std::vector<matter::Word> words(const std::vector<id::Word>& ids) const = 0;
 
 	/// Refuses (std::logic_error) if the word already has its exercises.
-	virtual matter::Training train(id::Word word, std::vector<Exercise> exercises) = 0;
+	virtual matter::Training utter(id::Word word, std::vector<Exercise> exercises) = 0;
 
 	virtual std::vector<matter::Training> trainings(const std::vector<id::Word>& ids) const = 0;
 

@@ -569,11 +569,11 @@ TEST_CASE("sqlite keeps the exercises of a word across reopen, each approach wit
 	{
 		SqlitePersistenceBundle bundle(directory);
 		Eternity& eternity = bundle.eternity();
-		eternity.train(willed, {
+		eternity.utter(willed, {
 			Exercise{"Жим лёжа", {Approach{Weight{60'000}, 10, 90}, Approach{Weight{70'000}, 8, 120}, Approach{Weight{62'500}, 6}}},
 			Exercise{"Подтягивания", {Approach{Weight{0}, 8}}},
 		});
-		CHECK_THROWS_AS(eternity.train(willed, {Exercise{"Присед", {Approach{Weight{100'000}, 5}}}}), std::logic_error);
+		CHECK_THROWS_AS(eternity.utter(willed, {Exercise{"Присед", {Approach{Weight{100'000}, 5}}}}), std::logic_error);
 	}
 
 	{

@@ -15,9 +15,9 @@ matter::Word Spirit::utter(const Saying& saying) const
 }
 
 
-matter::Training Spirit::exercise(const id::Word word, std::vector<Exercise> exercises) const
+matter::Training Spirit::utter(const id::Word word, std::vector<Exercise> exercises) const
 {
-	return eternity().train(word, std::move(exercises));
+	return eternity().utter(word, std::move(exercises));
 }
 
 

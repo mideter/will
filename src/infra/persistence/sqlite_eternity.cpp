@@ -194,7 +194,7 @@ std::vector<domain::matter::Word> SqliteEternity::words(const std::vector<domain
 }
 
 
-domain::matter::Training SqliteEternity::train(const domain::id::Word word, std::vector<domain::Exercise> exercises)
+domain::matter::Training SqliteEternity::utter(const domain::id::Word word, std::vector<domain::Exercise> exercises)
 {
 	domain::matter::Training kept{word, std::move(exercises)};
 
