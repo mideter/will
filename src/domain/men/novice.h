@@ -38,11 +38,7 @@ public:
 	/// Ask the addressee to become one's testator.
 	void supplicate(const Testator& addressee) const;
 
-	/// In the cell of the behest's tie one stands in. Without a report the deed says «совершено».
-	std::shared_ptr<const Deed> execute(const Behest& behest,
-										std::optional<Saying> report = std::nullopt,
-										std::optional<std::vector<Exercise>> performed = std::nullopt) const;
-
+	/// Without a report the deed says «совершено».
 	std::shared_ptr<const Deed> execute(Birth<Cell> cell, const Behest& behest, std::optional<Saying> report,
 										std::optional<std::vector<Exercise>> performed) const;
 
@@ -55,10 +51,8 @@ public:
 
 	/// Exercises are done in any order, the approaches of an exercise in order; once
 	/// the willed are done, one beyond them.
-	void begin(const Training& training, std::uint32_t exercise, std::uint32_t approach) const;
 	void begin(Birth<Cell> cell, const Training& training, std::uint32_t exercise, std::uint32_t approach) const;
 
-	matter::Effort finish(const Training& training, Weight weight, std::uint32_t repetitions) const;
 	matter::Effort finish(Birth<Cell> cell, const Training& training, Weight weight, std::uint32_t repetitions) const;
 
 	std::optional<Underway> underway() const;

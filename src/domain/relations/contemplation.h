@@ -11,8 +11,11 @@
 namespace will::domain {
 
 
+class Cell;
+class Gates;
 class Heaven;
 class Recollection;
+class UpperRoom;
 class Witness;
 class Word;
 
@@ -26,6 +29,14 @@ public:
 
 	/// Those the place shows to who looks, oldest first.
 	std::vector<std::shared_ptr<const Word>> words() const;
+
+	/// The room one stands in, of the kind one would act in.
+	const Cell& cell() const;
+	const UpperRoom& upper_room() const;
+	const Gates& gates() const;
+
+	/// Whether what one writes here is taken.
+	bool writable() const;
 
 	Contemplation(Birth<Heaven>, const Witness& who, const Place& place);
 

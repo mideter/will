@@ -400,7 +400,8 @@ enum NoticeCode {
     // What the world refuses (a domain Refusal and its reason).
     // 14 was «only the host writes»: one's word is in one's own abode, so only its host stands there.
     reserved 14;
-    NOTICE_ADMIT_ONLY_AT_GATES = 1;
+    // 1, 10, 11 and 15 told where a deed is done, each its own: one refusal for each kind of room tells it now.
+    reserved 1, 10, 11, 15;
     NOTICE_KEEP_GATES_BY_KIND = 2;
     NOTICE_ALREADY_DWELLS = 3;
     NOTICE_NOT_AT_GATES = 4;
@@ -409,11 +410,8 @@ enum NoticeCode {
     NOTICE_NO_SUCH_UNBORN = 7;
     NOTICE_DOES_NOT_DWELL = 8;
     NOTICE_DOES_NOT_ENTER_ROOM = 9;
-    NOTICE_REGARD_ONLY_IN_UPPER_ROOM = 10;
-    NOTICE_ARRANGE_ONLY_IN_UPPER_ROOM = 11;
     NOTICE_FATHER_BY_FLESH_NEIGHBOUR = 12;
     NOTICE_FATHER_BY_SPIRIT_FRIEND = 13;
-    NOTICE_SAY_ONLY_IN_WORD = 15;
     NOTICE_CANNOT_SUPPLICATE_ONESELF = 16;
     NOTICE_SUPPLICATE_ONLY_DWELLER = 17;
     NOTICE_HEAR_ONLY_DWELLER = 18;
@@ -438,6 +436,9 @@ enum NoticeCode {
     NOTICE_NOT_OWN_FATHER = 37;
     NOTICE_NOT_DESCENDANT_AS_FATHER = 38;
     NOTICE_REGARD_NOT_ONESELF = 39;
+    NOTICE_STAND_IN_CELL = 40;
+    NOTICE_STAND_IN_UPPER_ROOM = 41;
+    NOTICE_STAND_AT_GATES = 42;
 
     // What the server itself refuses.
     // 102–104, 108 and 111 were the server's own copies of the world's rules: the

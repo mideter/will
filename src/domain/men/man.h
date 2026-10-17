@@ -13,6 +13,7 @@
 namespace will::domain {
 
 
+class Gates;
 class UpperRoom;
 class World;
 
@@ -24,15 +25,11 @@ public:
 
 	Abode& abode() const noexcept { return *abode_; }
 
-	/// He becomes an acquaintance of the host of the gates, whoever lets him in.
-	void admit(const Man& man) const;
+	/// He becomes an acquaintance of the host, whoever lets him in.
+	void admit(Birth<Gates> gates, const Man& man) const;
 
-	/// In the upper room one stands in.
-	void regard(const Man& dweller, matter::Dweller::Kind kind) const;
 	void regard(Birth<UpperRoom> upper_room, const Man& dweller, matter::Dweller::Kind kind) const;
 
-	/// In the upper room one stands in.
-	void arrange(const Room& room, matter::Room::Part part) const;
 	void arrange(Birth<UpperRoom> upper_room, const Room& room, matter::Room::Part part) const;
 
 	const Man* father(matter::Fatherhood::Line line) const noexcept;

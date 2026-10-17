@@ -156,14 +156,4 @@ void Testator::hold(std::shared_ptr<const Supplication> supplication) const
 }
 
 
-std::shared_ptr<const Training> Testator::train(const Saying& title, std::vector<Exercise> exercises) const
-{
-	const std::shared_ptr<const Contemplation> gaze = contemplation();
-	const auto* cell = gaze ? dynamic_cast<const Cell*>(&gaze->place()) : nullptr;
-	if (!cell)
-		throw WillOnlyInContemplatedTie();
-	return cell->train(*gaze, title, std::move(exercises));
-}
-
-
 } // namespace will::domain

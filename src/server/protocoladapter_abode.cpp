@@ -114,7 +114,8 @@ void ProtocolAdapter::handle_admit(const SessionId session_id, const v1::Admit& 
 	const domain::Man& self = session_man(session_id);
 	const domain::Gates* gates = gates_of_gaze(self);
 	try {
-		self.admit(*man);
+		const domain::Contemplation& gaze = gaze_of(self);
+		gaze.gates().admit(gaze, *man);
 	} catch (const std::exception& e) {
 		refuse(session_id, e);
 		return;
@@ -162,7 +163,8 @@ void ProtocolAdapter::handle_regard(const SessionId session_id, const v1::Regard
 
 	const domain::Man& self = session_man(session_id);
 	try {
-		self.regard(*man, kind);
+		const domain::Contemplation& gaze = gaze_of(self);
+		gaze.upper_room().regard(gaze, *man, kind);
 	} catch (const std::exception& e) {
 		refuse(session_id, e);
 		return;
@@ -284,7 +286,8 @@ void ProtocolAdapter::handle_arrange(const SessionId session_id, const v1::Arran
 
 	const auto part = msg.part() == v1::OUTER ? domain::matter::Room::Part::Outer : domain::matter::Room::Part::Inner;
 	try {
-		self.arrange(*room, part);
+		const domain::Contemplation& gaze = gaze_of(self);
+		gaze.upper_room().arrange(gaze, *room, part);
 	} catch (const std::exception& e) {
 		refuse(session_id, e);
 		return;

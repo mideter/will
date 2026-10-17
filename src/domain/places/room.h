@@ -86,7 +86,7 @@ public:
 						  std::uint32_t repetitions) const;
 
 private:
-	template<typename Refused>
+	template<typename OtherTie, typename NotNovice>
 	const Novice& obeying(const Contemplation& gaze, const Behest& behest) const;
 };
 
@@ -109,7 +109,8 @@ public:
 	/// Open while one who keeps them stands in them.
 	bool open() const;
 
-	void admit(Birth<Man> keeper, const Man& man, const matter::Dweller& kept) const;
+	/// The one let in becomes the host's acquaintance, whoever keeps the gates.
+	void admit(const Contemplation& gaze, const Man& man) const;
 };
 
 
@@ -122,9 +123,9 @@ public:
 	std::string name() const override;
 
 	/// Whoever stands here regards as the host, but not himself.
-	void regard(Birth<Man> who, const Man& dweller, matter::Dweller::Kind kind) const;
+	void regard(const Contemplation& gaze, const Man& dweller, matter::Dweller::Kind kind) const;
 
-	void arrange(Birth<Man> who, const Room& room, matter::Room::Part part) const;
+	void arrange(const Contemplation& gaze, const Room& room, matter::Room::Part part) const;
 };
 
 

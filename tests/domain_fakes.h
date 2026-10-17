@@ -558,6 +558,92 @@ private:
 };
 
 
+/// Where a man stands; asleep, he does nothing.
+inline const Contemplation& gaze_of(World& world, const Man& man)
+{
+	const std::shared_ptr<const Contemplation> gaze = world.contemplation(man.Soul::id());
+	if (!gaze)
+		throw std::logic_error("he contemplates nothing");
+	return *gaze;
+}
+
+
+/// What a man writes where he stands.
+inline std::shared_ptr<const Word> write(World& world, const Man& man, const Saying& saying)
+{
+	const Contemplation& gaze = gaze_of(world, man);
+	return gaze.cell().write(gaze, saying);
+}
+
+
+/// What a man writes in the cell of a tie he stands in: a behest.
+inline std::shared_ptr<const Behest> will_here(World& world, const Man& man, const Saying& saying)
+{
+	return std::dynamic_pointer_cast<const Behest>(write(world, man, saying));
+}
+
+
+inline bool writes_here(World& world, const Man& man)
+{
+	const std::shared_ptr<const Contemplation> gaze = world.contemplation(man.Soul::id());
+	return gaze && gaze->writable();
+}
+
+
+inline std::shared_ptr<const Training> train(World& world, const Man& man, const Saying& title,
+											 std::vector<Exercise> exercises)
+{
+	const Contemplation& gaze = gaze_of(world, man);
+	return gaze.cell().train(gaze, title, std::move(exercises));
+}
+
+
+inline std::shared_ptr<const Deed> execute(World& world, const Man& man, const Behest& behest,
+										   std::optional<Saying> report = std::nullopt,
+										   std::optional<std::vector<Exercise>> performed = std::nullopt)
+{
+	const Contemplation& gaze = gaze_of(world, man);
+	return gaze.cell().fulfil(gaze, behest, std::move(report), std::move(performed));
+}
+
+
+inline void begin(World& world, const Man& man, const Training& training, std::uint32_t exercise,
+				  std::uint32_t approach)
+{
+	const Contemplation& gaze = gaze_of(world, man);
+	gaze.cell().begin(gaze, training, exercise, approach);
+}
+
+
+inline matter::Effort finish(World& world, const Man& man, const Training& training, Weight weight,
+							 std::uint32_t repetitions)
+{
+	const Contemplation& gaze = gaze_of(world, man);
+	return gaze.cell().finish(gaze, training, weight, repetitions);
+}
+
+
+inline void admit(World& world, const Man& keeper, const Man& man)
+{
+	const Contemplation& gaze = gaze_of(world, keeper);
+	gaze.gates().admit(gaze, man);
+}
+
+
+inline void regard(World& world, const Man& man, const Man& dweller, matter::Dweller::Kind kind)
+{
+	const Contemplation& gaze = gaze_of(world, man);
+	gaze.upper_room().regard(gaze, dweller, kind);
+}
+
+
+inline void arrange(World& world, const Man& man, const Room& room, matter::Room::Part part)
+{
+	const Contemplation& gaze = gaze_of(world, man);
+	gaze.upper_room().arrange(gaze, room, part);
+}
+
+
 /// Turn a man's gaze to a room for an act, then back where it rested (or to sleep).
 template<typename Act>
 void looking_at(World& world, const Man& man, const Room& room, Act act)
@@ -580,7 +666,7 @@ void looking_at(World& world, const Man& man, const Room& room, Act act)
 inline void admit_at_gates(World& world, const Man& host, const Man& man)
 {
 	looking_at(world, host, host.abode().gates(), [&] {
-		looking_at(world, man, host.abode().gates(), [&] { host.admit(man); });
+		looking_at(world, man, host.abode().gates(), [&] { admit(world, host, man); });
 	});
 }
 
@@ -588,14 +674,14 @@ inline void admit_at_gates(World& world, const Man& host, const Man& man)
 /// The host regards a dweller anew, standing in his upper room.
 inline void regard_in_upper_room(World& world, const Man& host, const Man& man, const matter::Dweller::Kind kind)
 {
-	looking_at(world, host, host.abode().upper_room(), [&] { host.regard(man, kind); });
+	looking_at(world, host, host.abode().upper_room(), [&] { regard(world, host, man, kind); });
 }
 
 
 /// The host sets a room of his abode in a part, standing in his upper room.
 inline void arrange_in_upper_room(World& world, const Man& host, const Room& room, const matter::Room::Part part)
 {
-	looking_at(world, host, host.abode().upper_room(), [&] { host.arrange(room, part); });
+	looking_at(world, host, host.abode().upper_room(), [&] { arrange(world, host, room, part); });
 }
 
 
@@ -610,20 +696,6 @@ inline const Cell& cell_of(const Man& man)
 inline const Cell& room_in(const Man& man, const Place& reflected)
 {
 	return *man.abode().cell(reflected);
-}
-
-
-/// What a man writes where he stands.
-inline std::shared_ptr<const Word> write(const Man& man, const Saying& saying)
-{
-	return static_cast<const Witness&>(man).write(saying);
-}
-
-
-/// What a man writes in the cell of a tie he stands in: a behest.
-inline std::shared_ptr<const Behest> will_here(const Man& man, const Saying& saying)
-{
-	return std::dynamic_pointer_cast<const Behest>(write(man, saying));
 }
 
 

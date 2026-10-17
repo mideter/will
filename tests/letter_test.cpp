@@ -79,7 +79,7 @@ TEST_CASE("Letter is born of its abode from matter, with living place and author
 	cosmos.fake_time().set_instant(Timestamp{100});
 	witness.wake();
 	witness.contemplate(cell_of(man));
-	write(man, "hello");
+	write(world, man, "hello");
 
 	const auto letters = letters_seen_by(world.contemplation(man.Soul::id()));
 	REQUIRE(letters.size() == 1);
@@ -126,7 +126,7 @@ TEST_CASE("Behest is a word of will in a living Tie, born of the Tie or of its t
 	cosmos.fake_time().set_instant(Timestamp{50});
 	testator.wake();
 	testator.contemplate(room_in(testator, shepherding));
-	const std::shared_ptr<const Behest> behest_held = will_here(testator, "do this");
+	const std::shared_ptr<const Behest> behest_held = will_here(world, testator, "do this");
 	const Behest& behest = *behest_held;
 	CHECK(&behest.tie().testator() == &testator);
 	CHECK(&behest.tie().novice() == &novice);
@@ -163,28 +163,28 @@ TEST_CASE("Deed is the novice's word fulfilling a behest, his report or «сов
 	testator.contemplate(room_in(testator, shepherding));
 	novice.wake();
 	novice.contemplate(room_in(novice, novice.obedience(testator)));
-	const std::shared_ptr<const Behest> fast_held = will_here(testator, "fast");
+	const std::shared_ptr<const Behest> fast_held = will_here(world, testator, "fast");
 	const Behest& fast = *fast_held;
-	const std::shared_ptr<const Behest> pray_held = will_here(testator, "pray");
+	const std::shared_ptr<const Behest> pray_held = will_here(world, testator, "pray");
 	const Behest& pray = *pray_held;
 
 	// Only the novice of the tie fulfils its behest.
-	CHECK_THROWS_AS(testator.execute(fast), std::logic_error);
+	CHECK_THROWS_AS(execute(world, testator, fast), std::logic_error);
 
 	cosmos.fake_time().set_instant(Timestamp{70});
-	const std::shared_ptr<const Deed> silent = novice.execute(fast);
+	const std::shared_ptr<const Deed> silent = execute(world, novice, fast);
 	CHECK(silent->behest() == fast.id());
 	CHECK(silent->saying().body() == "совершено");
 	CHECK(&silent->tie().novice() == &novice);
 	CHECK(silent->created_at() == Timestamp{70});
 	CHECK(silent->id() != fast.id());
 
-	const std::shared_ptr<const Deed> reported = novice.execute(pray, Saying{"prayed till dawn"});
+	const std::shared_ptr<const Deed> reported = execute(world, novice, pray, Saying{"prayed till dawn"});
 	CHECK(reported->behest() == pray.id());
 	CHECK(reported->saying().body() == "prayed till dawn");
 
 	// A behest is fulfilled once; the behest itself does not change.
-	CHECK_THROWS_AS(novice.execute(fast), std::logic_error);
+	CHECK_THROWS_AS(execute(world, novice, fast), std::logic_error);
 	CHECK(fast.saying().body() == "fast");
 
 	// The tie shows its behests and, apart, the deeds that fulfil them.

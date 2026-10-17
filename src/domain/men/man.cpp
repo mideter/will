@@ -46,46 +46,9 @@ Man::Man(matter::Man kept)
 }
 
 
-void Man::admit(const Man& man) const
+void Man::admit(const Birth<Gates> gates, const Man& man) const
 {
-	// One lets in at the gates one stands in and keeps — one's own, or another's
-	// whose kind lets one keep them; the one let in becomes the host's acquaintance.
-	const std::shared_ptr<const Contemplation> gaze = contemplation();
-	const auto* gates = gaze ? dynamic_cast<const Gates*>(&gaze->place()) : nullptr;
-	if (!gates)
-		throw AdmitOnlyAtGates();
-	if (!gates->keeps(*this))
-		throw KeepGatesByKind();
-	if (gates->abode().dwells(man))
-		throw AlreadyDwells();
-	if (!static_cast<const Witness&>(man).contemplates(*gates))
-		throw NotAtGates();
-
-	gates->admit(Birth<Man>{*this}, man,
-				 spatiality().dwell(gates->abode().id(), man.Soul::id(), matter::Dweller::Kind::Acquaintance));
-}
-
-
-namespace {
-
-
-/// The upper room one stands in, if one does.
-const UpperRoom* standing_in_upper_room(const std::shared_ptr<const Contemplation>& gaze)
-{
-	return gaze ? dynamic_cast<const UpperRoom*>(&gaze->place()) : nullptr;
-}
-
-
-} // namespace
-
-
-void Man::arrange(const Room& room, const matter::Room::Part part) const
-{
-	const UpperRoom* upper_room = standing_in_upper_room(contemplation());
-	if (!upper_room)
-		throw ArrangeOnlyInUpperRoom();
-
-	upper_room->arrange(Birth<Man>{*this}, room, part);
+	abode_->admit(gates, man, spatiality().dwell(abode_->id(), man.Soul::id(), matter::Dweller::Kind::Acquaintance));
 }
 
 
@@ -95,16 +58,6 @@ void Man::arrange(Birth<UpperRoom>, const Room& room, const matter::Room::Part p
 		throw std::logic_error("the room is not of this abode");
 
 	abode_->arrange(Birth<Man>{*this}, spatiality().arrange(room.id(), part));
-}
-
-
-void Man::regard(const Man& dweller, const matter::Dweller::Kind kind) const
-{
-	const UpperRoom* upper_room = standing_in_upper_room(contemplation());
-	if (!upper_room)
-		throw RegardOnlyInUpperRoom();
-
-	upper_room->regard(Birth<Man>{*this}, dweller, kind);
 }
 
 

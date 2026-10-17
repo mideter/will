@@ -178,7 +178,6 @@ v1::NoticeCode code_of(const domain::Refusal& refusal)
 	// The world's refusals are its beings' rules; here, at the border, each is given the
 	// code the wire tells it by.
 	static const std::unordered_map<std::type_index, v1::NoticeCode> codes{
-		{typeid(domain::AdmitOnlyAtGates), v1::NOTICE_ADMIT_ONLY_AT_GATES},
 		{typeid(domain::KeepGatesByKind), v1::NOTICE_KEEP_GATES_BY_KIND},
 		{typeid(domain::AlreadyDwells), v1::NOTICE_ALREADY_DWELLS},
 		{typeid(domain::NotAtGates), v1::NOTICE_NOT_AT_GATES},
@@ -187,12 +186,12 @@ v1::NoticeCode code_of(const domain::Refusal& refusal)
 		{typeid(domain::NoSuchUnborn), v1::NOTICE_NO_SUCH_UNBORN},
 		{typeid(domain::DoesNotDwell), v1::NOTICE_DOES_NOT_DWELL},
 		{typeid(domain::DoesNotEnterRoom), v1::NOTICE_DOES_NOT_ENTER_ROOM},
-		{typeid(domain::RegardOnlyInUpperRoom), v1::NOTICE_REGARD_ONLY_IN_UPPER_ROOM},
-		{typeid(domain::ArrangeOnlyInUpperRoom), v1::NOTICE_ARRANGE_ONLY_IN_UPPER_ROOM},
 		{typeid(domain::RegardNotOneself), v1::NOTICE_REGARD_NOT_ONESELF},
+		{typeid(domain::StandInCell), v1::NOTICE_STAND_IN_CELL},
+		{typeid(domain::StandInUpperRoom), v1::NOTICE_STAND_IN_UPPER_ROOM},
+		{typeid(domain::StandAtGates), v1::NOTICE_STAND_AT_GATES},
 		{typeid(domain::FatherByFleshNeighbour), v1::NOTICE_FATHER_BY_FLESH_NEIGHBOUR},
 		{typeid(domain::FatherBySpiritFriend), v1::NOTICE_FATHER_BY_SPIRIT_FRIEND},
-		{typeid(domain::SayOnlyInWord), v1::NOTICE_SAY_ONLY_IN_WORD},
 		{typeid(domain::CannotSupplicateOneself), v1::NOTICE_CANNOT_SUPPLICATE_ONESELF},
 		{typeid(domain::SupplicateOnlyDweller), v1::NOTICE_SUPPLICATE_ONLY_DWELLER},
 		{typeid(domain::HearOnlyDweller), v1::NOTICE_HEAR_ONLY_DWELLER},

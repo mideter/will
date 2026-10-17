@@ -118,6 +118,9 @@ private:
 	/// which he is the testator.
 	bool writes_here(const domain::Man& man) const;
 
+	/// Where he stands; the world refuses what he would do there, or what is not done there.
+	const domain::Contemplation& gaze_of(const domain::Man& man) const;
+
 	/// The host of the upper room he stands in; himself, if he stands in none.
 	const domain::Man& host_of_upper_room(const domain::Man& man) const;
 

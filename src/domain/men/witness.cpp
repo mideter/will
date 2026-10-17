@@ -65,28 +65,6 @@ bool Witness::contemplates(const Place& place) const
 }
 
 
-std::shared_ptr<const Word> Witness::write(const Saying& saying) const
-{
-	const std::shared_ptr<const Contemplation> gaze = contemplation();
-	if (!gaze)
-		throw std::logic_error("Witness is asleep");
-
-	const auto* cell = dynamic_cast<const Cell*>(&gaze->place());
-	if (!cell)
-		throw SayOnlyInWord();
-
-	return cell->write(*gaze, saying);
-}
-
-
-bool Witness::writes_here() const
-{
-	const std::shared_ptr<const Contemplation> gaze = contemplation();
-	const auto* cell = gaze ? dynamic_cast<const Cell*>(&gaze->place()) : nullptr;
-	return cell && cell->writable();
-}
-
-
 std::shared_ptr<const Letter> Witness::record(const Birth<Cell> cell, const Saying& saying) const
 {
 	if (&cell.parent().abode() != &abode())

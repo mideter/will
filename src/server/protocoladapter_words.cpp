@@ -58,7 +58,7 @@ void ProtocolAdapter::handle_user_chat(const SessionId session_id, const v1::Cha
 	// Where he stands decides what his word becomes, or that the world refuses it.
 	std::shared_ptr<const domain::Word> placed;
 	try {
-		placed = static_cast<const domain::Witness&>(man).write(domain::Saying{chat.body()});
+		placed = gaze->cell().write(*gaze, domain::Saying{chat.body()});
 	} catch (const domain::Refusal& refusal) {
 		refuse(session_id, refusal);
 		return;
@@ -224,7 +224,6 @@ void ProtocolAdapter::handle_accept_supplication(const SessionId session_id,
 void ProtocolAdapter::handle_fulfil(const SessionId session_id, const v1::Fulfil& msg)
 {
 	const domain::Man& self = session_man(session_id);
-	const auto& novice = static_cast<const domain::Novice&>(self);
 
 	const std::shared_ptr<const domain::Contemplation> gaze = world_.contemplation(self.Soul::id());
 	if (!gaze)
@@ -250,7 +249,7 @@ void ProtocolAdapter::handle_fulfil(const SessionId session_id, const v1::Fulfil
 			performed = exercises_of(msg.performed());
 
 		const std::shared_ptr<const domain::Deed> deed
-			= novice.execute(*behest, std::move(report), std::move(performed));
+			= gaze->cell().fulfil(*gaze, *behest, std::move(report), std::move(performed));
 		send_notice(session_id, v1::NOTICE_BEHEST_FULFILLED, {std::to_string(behest->id().value())});
 		tell_placed(deed->tie(), *deed, self);
 	} catch (const std::exception& e) {
@@ -278,8 +277,9 @@ void ProtocolAdapter::handle_train(const SessionId session_id, const v1::Train& 
 	// He wills it in the cell of a tie he stands in, as its host — or the world refuses.
 	std::shared_ptr<const domain::Training> training;
 	try {
-		training = static_cast<const domain::Testator&>(self).train(
-			domain::Saying{msg.title().empty() ? std::string{"Тренировка"} : msg.title()},
+		const domain::Contemplation& gaze = gaze_of(self);
+		training = gaze.cell().train(
+			gaze, domain::Saying{msg.title().empty() ? std::string{"Тренировка"} : msg.title()},
 			exercises_of(msg.exercises()));
 	} catch (const std::invalid_argument&) {
 		refuse(session_id, v1::NOTICE_INVALID_TRAINING);
@@ -342,7 +342,8 @@ void ProtocolAdapter::handle_begin_approach(const SessionId session_id, const v1
 		return;
 
 	try {
-		static_cast<const domain::Novice&>(self).begin(*training, msg.exercise(), msg.approach());
+		const domain::Contemplation& gaze = gaze_of(self);
+		gaze.cell().begin(gaze, *training, msg.exercise(), msg.approach());
 	} catch (const std::exception& e) {
 		refuse(session_id, e);
 		return;
@@ -360,7 +361,8 @@ void ProtocolAdapter::handle_finish_approach(const SessionId session_id, const v
 
 	std::optional<domain::matter::Effort> effort;
 	try {
-		effort = static_cast<const domain::Novice&>(self).finish(*training, domain::Weight{msg.weight_grams()},
+		const domain::Contemplation& gaze = gaze_of(self);
+		effort = gaze.cell().finish(gaze, *training, domain::Weight{msg.weight_grams()},
 																 msg.repetitions());
 	} catch (const std::exception& e) {
 		refuse(session_id, e);

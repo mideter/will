@@ -124,17 +124,17 @@ std::shared_ptr<const Training> Cell::train(const Contemplation& gaze, const Say
 }
 
 
-template<typename Refused>
+template<typename OtherTie, typename NotNovice>
 const Novice& Cell::obeying(const Contemplation& gaze, const Behest& behest) const
 {
 	if (&gaze.place() != this)
 		throw std::logic_error("this cell is not what is contemplated");
 	if (&reflects() != static_cast<const Place*>(&behest.tie()))
-		throw std::logic_error("the behest is not of the tie this cell reflects");
+		throw OtherTie();
 
 	const Novice& novice = behest.tie().novice();
 	if (abode().host().Soul::id() != novice.Soul::id())
-		throw Refused();
+		throw NotNovice();
 	return novice;
 }
 
@@ -142,7 +142,7 @@ const Novice& Cell::obeying(const Contemplation& gaze, const Behest& behest) con
 std::shared_ptr<const Deed> Cell::fulfil(const Contemplation& gaze, const Behest& behest, std::optional<Saying> report,
 										 std::optional<std::vector<Exercise>> performed) const
 {
-	return obeying<OnlyNoviceFulfils>(gaze, behest)
+	return obeying<FulfilOnlyInContemplatedTie, OnlyNoviceFulfils>(gaze, behest)
 		.execute(Birth<Cell>{*this}, behest, std::move(report), std::move(performed));
 }
 
@@ -150,14 +150,14 @@ std::shared_ptr<const Deed> Cell::fulfil(const Contemplation& gaze, const Behest
 void Cell::begin(const Contemplation& gaze, const Training& training, const std::uint32_t exercise,
 				 const std::uint32_t approach) const
 {
-	obeying<OnlyNoviceTrains>(gaze, training).begin(Birth<Cell>{*this}, training, exercise, approach);
+	obeying<TrainOnlyInContemplatedTie, OnlyNoviceTrains>(gaze, training).begin(Birth<Cell>{*this}, training, exercise, approach);
 }
 
 
 matter::Effort Cell::finish(const Contemplation& gaze, const Training& training, const Weight weight,
 							const std::uint32_t repetitions) const
 {
-	return obeying<OnlyNoviceTrains>(gaze, training).finish(Birth<Cell>{*this}, training, weight, repetitions);
+	return obeying<TrainOnlyInContemplatedTie, OnlyNoviceTrains>(gaze, training).finish(Birth<Cell>{*this}, training, weight, repetitions);
 }
 
 
@@ -194,19 +194,18 @@ bool Gates::open() const
 }
 
 
-void Gates::admit(const Birth<Man> keeper, const Man& man, const matter::Dweller& kept) const
+void Gates::admit(const Contemplation& gaze, const Man& man) const
 {
-	const Man& who = keeper.parent();
-	if (!static_cast<const Witness&>(who).contemplates(*this))
-		throw AdmitOnlyAtGates();
-	if (!keeps(who))
+	if (&gaze.place() != this)
+		throw std::logic_error("these gates are not what is contemplated");
+	if (!keeps(gaze.who()))
 		throw KeepGatesByKind();
 	if (abode().dwells(man))
 		throw AlreadyDwells();
 	if (!static_cast<const Witness&>(man).contemplates(*this))
 		throw NotAtGates();
 
-	abode().host().abode().admit(Birth<Gates>{*this}, man, kept);
+	abode().host().admit(Birth<Gates>{*this}, man);
 }
 
 
@@ -221,21 +220,21 @@ std::string UpperRoom::name() const
 }
 
 
-void UpperRoom::regard(const Birth<Man> who, const Man& dweller, const matter::Dweller::Kind kind) const
+void UpperRoom::regard(const Contemplation& gaze, const Man& dweller, const matter::Dweller::Kind kind) const
 {
-	if (!static_cast<const Witness&>(who.parent()).contemplates(*this))
-		throw RegardOnlyInUpperRoom();
-	if (&who.parent() == &dweller)
+	if (&gaze.place() != this)
+		throw std::logic_error("this upper room is not what is contemplated");
+	if (&gaze.who() == &dweller)
 		throw RegardNotOneself();
 
 	abode().host().regard(Birth<UpperRoom>{*this}, dweller, kind);
 }
 
 
-void UpperRoom::arrange(const Birth<Man> who, const Room& room, const matter::Room::Part part) const
+void UpperRoom::arrange(const Contemplation& gaze, const Room& room, const matter::Room::Part part) const
 {
-	if (!static_cast<const Witness&>(who.parent()).contemplates(*this))
-		throw ArrangeOnlyInUpperRoom();
+	if (&gaze.place() != this)
+		throw std::logic_error("this upper room is not what is contemplated");
 
 	abode().host().arrange(Birth<UpperRoom>{*this}, room, part);
 }

@@ -6,11 +6,25 @@
 namespace will::domain {
 
 
-/// What a place refuses.
-class SayOnlyInWord final : public Refusal {
+/// Where one stands: what is done in a room of a kind, is done only standing in it.
+class StandInCell final : public Refusal {
 public:
-	SayOnlyInWord()
-		: Refusal("one writes only in one's own word or in a tie one wills in")
+	StandInCell()
+		: Refusal("one does this only standing in a cell")
+	{}
+};
+
+class StandInUpperRoom final : public Refusal {
+public:
+	StandInUpperRoom()
+		: Refusal("one does this only standing in an upper room")
+	{}
+};
+
+class StandAtGates final : public Refusal {
+public:
+	StandAtGates()
+		: Refusal("one does this only standing at gates")
 	{}
 };
 

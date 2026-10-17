@@ -38,9 +38,6 @@ public:
 
 	std::shared_ptr<const Behest> will(Birth<Cell> cell, const Shepherding& shepherding, const Saying& saying) const;
 
-	/// In the cell of a tie one stands in.
-	std::shared_ptr<const Training> train(const Saying& title, std::vector<Exercise> exercises) const;
-
 	std::shared_ptr<const Training> train(Birth<Cell> cell, const Shepherding& shepherding, const Saying& title,
 										  std::vector<Exercise> exercises) const;
 

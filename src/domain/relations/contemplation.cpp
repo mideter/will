@@ -1,6 +1,8 @@
 #include "contemplation.h"
 
 #include "men/witness.h"
+#include "places/room.h"
+#include "refusals/place.h"
 #include "words/recollection.h"
 
 
@@ -23,6 +25,40 @@ std::vector<std::shared_ptr<const Word>> Contemplation::words() const
 	}
 
 	return shown;
+}
+
+
+const Cell& Contemplation::cell() const
+{
+	const auto* cell = dynamic_cast<const Cell*>(&place_);
+	if (!cell)
+		throw StandInCell();
+	return *cell;
+}
+
+
+const UpperRoom& Contemplation::upper_room() const
+{
+	const auto* upper_room = dynamic_cast<const UpperRoom*>(&place_);
+	if (!upper_room)
+		throw StandInUpperRoom();
+	return *upper_room;
+}
+
+
+const Gates& Contemplation::gates() const
+{
+	const auto* gates = dynamic_cast<const Gates*>(&place_);
+	if (!gates)
+		throw StandAtGates();
+	return *gates;
+}
+
+
+bool Contemplation::writable() const
+{
+	const auto* cell = dynamic_cast<const Cell*>(&place_);
+	return cell && cell->writable();
 }
 
 

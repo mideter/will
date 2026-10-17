@@ -208,7 +208,17 @@ void ProtocolAdapter::send_auth_required(const SessionId session_id)
 
 bool ProtocolAdapter::writes_here(const domain::Man& man) const
 {
-	return static_cast<const domain::Witness&>(man).writes_here();
+	const std::shared_ptr<const domain::Contemplation> gaze = world_.contemplation(man.Soul::id());
+	return gaze && gaze->writable();
+}
+
+
+const domain::Contemplation& ProtocolAdapter::gaze_of(const domain::Man& man) const
+{
+	const std::shared_ptr<const domain::Contemplation> gaze = world_.contemplation(man.Soul::id());
+	if (!gaze)
+		throw std::logic_error("he contemplates nothing");
+	return *gaze;
 }
 
 

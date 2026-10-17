@@ -630,7 +630,7 @@ TEST_CASE("a host admits a dweller, regards him anew, and he sees his abode as h
 		arrange.mutable_arrange()->set_part(will::v1::OUTER);
 		REQUIRE(host.stream->Write(arrange));
 	}
-	CHECK(read_event(*host.stream).protocol_notice().message() == "one arranges rooms only in an upper room");
+	CHECK(read_event(*host.stream).protocol_notice().message() == "one does this only standing in an upper room");
 
 	// In it he sees his dwellers and all his rooms, each in its part.
 	send_turn_to_abode(*host.stream, {}, "Горница");
@@ -1260,9 +1260,9 @@ TEST_CASE("one does not write at the gates nor in the upper room, and the sessio
 		send_chat(adam, "not here");
 		will::v1::ServerEvent told;
 		REQUIRE(adam.Read(&told));
-		// The world refuses it itself: one writes only in one's own word or in a tie one wills in.
-		CHECK(told.protocol_notice().message() == "one writes only in one's own word or in a tie one wills in");
-		CHECK(told.protocol_notice().code() == will::v1::NOTICE_SAY_ONLY_IN_WORD);
+		// The world refuses it itself: one writes only standing in a cell.
+		CHECK(told.protocol_notice().message() == "one does this only standing in a cell");
+		CHECK(told.protocol_notice().code() == will::v1::NOTICE_STAND_IN_CELL);
 	}
 
 	// He is still there: he turns to his word and writes in it.

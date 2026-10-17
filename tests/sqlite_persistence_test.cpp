@@ -122,8 +122,8 @@ TEST_CASE("sqlite persistence survives reopen")
 		static_cast<const Witness&>(man_b).wake();
 		static_cast<const Witness&>(man_a).contemplate(*man_a.abode().cell(man_a.abode()));
 		static_cast<const Witness&>(man_b).contemplate(*man_b.abode().cell(man_b.abode()));
-		static_cast<const Witness&>(man_a).write("from-peer");
-		static_cast<const Witness&>(man_b).write("from-me");
+		{ const auto gaze = world.contemplation(man_a.Soul::id()); gaze->cell().write(*gaze, "from-peer"); }
+		{ const auto gaze = world.contemplation(man_b.Soul::id()); gaze->cell().write(*gaze, "from-me"); }
 
 		const auto& witness_a = static_cast<const Witness&>(man_a);
 		const auto letters = letters_seen_by(world.contemplation(witness_a.Soul::id()));
@@ -238,16 +238,16 @@ TEST_CASE("sqlite keeps a behest and its execution across reopen")
 		novice.wake();
 		novice.contemplate(*novice.abode().cell(novice.obedience(testator)));
 
-		const std::shared_ptr<const Behest> open_held = std::dynamic_pointer_cast<const Behest>(testator.write("fast"));
+		const std::shared_ptr<const Behest> open_held = std::dynamic_pointer_cast<const Behest>(world.contemplation(testator.Soul::id())->cell().write(*world.contemplation(testator.Soul::id()), "fast"));
 		const Behest& open = *open_held;
-		const std::shared_ptr<const Behest> willed_held = std::dynamic_pointer_cast<const Behest>(testator.write("pray"));
+		const std::shared_ptr<const Behest> willed_held = std::dynamic_pointer_cast<const Behest>(world.contemplation(testator.Soul::id())->cell().write(*world.contemplation(testator.Soul::id()), "pray"));
 		const Behest& willed = *willed_held;
 		CHECK(&willed.tie().novice() == &novice);
 		open_id = open.id();
 		done_id = willed.id();
 
-		novice.execute(willed);
-		CHECK_THROWS_AS(novice.execute(willed), std::logic_error);
+		test::execute(world, novice, willed);
+		CHECK_THROWS_AS(test::execute(world, novice, willed), std::logic_error);
 		CHECK(bundle.temporality().executions({*open_id, *done_id}).size() == 1);
 
 		// Behests are placed in the tie, not among the letters of an abode.
@@ -283,9 +283,9 @@ TEST_CASE("sqlite keeps a behest and its execution across reopen")
 		CHECK(deeds.front()->saying().body() == "совершено");
 		novice.wake();
 		novice.contemplate(*novice.abode().cell(novice.obedience(testator)));
-		CHECK_THROWS_AS(novice.execute(done), std::logic_error);
+		CHECK_THROWS_AS(test::execute(world, novice, done), std::logic_error);
 
-		novice.execute(open);
+		test::execute(world, novice, open);
 		CHECK(novice.obedience(testator).deeds(novice).size() == 2);
 	}
 
