@@ -27,7 +27,7 @@ Supplication::Supplication(Birth<Heaven>, matter::Supplication kept)
 {}
 
 
-const Shepherding& Supplication::sign(const Testator& asked) const
+const Shepherding& Supplication::accept(const Testator& asked) const
 {
 	if (asked.Soul::id() != addressee_.Soul::id())
 		throw std::logic_error("supplication is not addressed to this soul");

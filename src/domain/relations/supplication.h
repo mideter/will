@@ -27,7 +27,7 @@ public:
 	const Man& suppliant() const noexcept { return suppliant_; }
 	const Man& addressee() const noexcept { return addressee_; }
 
-	const Shepherding& sign(const Testator& addressee) const;
+	const Shepherding& accept(const Testator& addressee) const;
 	void reject(const Testator& addressee) const;
 
 private:

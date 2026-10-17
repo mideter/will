@@ -28,7 +28,7 @@ namespace will::domain {
 
 const Shepherding& Testator::accept(const Supplication& ask) const
 {
-	return ask.sign(*this);
+	return ask.accept(*this);
 }
 
 
