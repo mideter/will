@@ -113,7 +113,7 @@ std::shared_ptr<const Supplication> Testator::supplication(const Novice& supplia
 
 std::vector<std::shared_ptr<const Supplication>> Testator::supplications() const
 {
-	return Spirit::supplications();
+	return Immanent<Heaven>::horizon().supplications(Soul::id());
 }
 
 
@@ -127,28 +127,7 @@ void Testator::hear(const Birth<Novice> birth) const
 			throw AlreadyTied();
 	}
 
-	hold(std::make_shared<const Supplication>(birth, temporality().ask(suppliant.Soul::id(), Soul::id())));
-}
-
-
-void Testator::hear(Birth<World> birth, matter::Supplication kept) const
-{
-	hold(std::make_shared<const Supplication>(birth, std::move(kept)));
-}
-
-
-void Testator::drop(const Supplication& answered) const
-{
-	Spirit::release(answered);
-}
-
-
-void Testator::hold(std::shared_ptr<const Supplication> supplication) const
-{
-	if (supplication->addressee().Soul::id() != Soul::id())
-		throw std::logic_error("supplication is not addressed to this soul");
-
-	keep(std::move(supplication));
+	entrust(temporality().ask(suppliant.Soul::id(), Soul::id()));
 }
 
 

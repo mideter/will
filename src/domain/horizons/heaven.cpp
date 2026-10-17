@@ -128,20 +128,23 @@ void Heaven::cease(const Soul& soul)
 }
 
 
-void Heaven::keep(std::shared_ptr<const Supplication> supplication)
+std::shared_ptr<const Supplication> Heaven::keep(matter::Supplication kept)
 {
+	auto supplication = std::make_shared<const Supplication>(Birth<Heaven>{*this}, std::move(kept));
+
 	std::lock_guard lock(mutex_);
-	supplications_.push_back(std::move(supplication));
+	supplications_.push_back(supplication);
+	return supplication;
 }
 
 
-void Heaven::release(const Supplication& supplication)
+void Heaven::release(const Supplication& answered)
 {
 	std::shared_ptr<const Supplication> released;
 
 	std::lock_guard lock(mutex_);
 	const auto it = std::find_if(supplications_.begin(), supplications_.end(),
-								 [&](const auto& kept) { return kept.get() == &supplication; });
+								 [&](const auto& kept) { return kept.get() == &answered; });
 	if (it == supplications_.end())
 		return;
 

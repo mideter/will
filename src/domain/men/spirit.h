@@ -1,5 +1,6 @@
 #pragma once
 
+#include "matter/supplication.h"
 #include "matter/training.h"
 
 #include "relations/contemplation.h"
@@ -43,12 +44,8 @@ protected:
 
 	void cease() const;
 
-	/// Oldest first.
-	std::vector<std::shared_ptr<const Supplication>> supplications() const;
-
-	static void keep(std::shared_ptr<const Supplication> supplication);
-
-	static void release(const Supplication& supplication);
+	/// Heaven keeps it until it is answered.
+	static void entrust(matter::Supplication kept);
 
 	std::shared_ptr<const Contemplation> contemplation() const;
 

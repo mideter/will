@@ -22,8 +22,7 @@ class Testator;
 /// them in a tie.
 class Supplication : public Immanent<Heaven> {
 public:
-	Supplication(Birth<Novice>, matter::Supplication kept);
-	Supplication(Birth<World>, matter::Supplication kept);
+	Supplication(Birth<Heaven>, matter::Supplication kept);
 
 	const Man& suppliant() const noexcept { return suppliant_; }
 	const Man& addressee() const noexcept { return addressee_; }
@@ -32,8 +31,6 @@ public:
 	void reject(const Testator& addressee) const;
 
 private:
-	explicit Supplication(matter::Supplication kept);
-
 	const Man& suppliant_;
 	const Man& addressee_;
 };

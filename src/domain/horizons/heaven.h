@@ -1,5 +1,6 @@
 #pragma once
 
+#include "matter/supplication.h"
 #include "relations/contemplation.h"
 #include "identity/soul.h"
 #include "properties/immanent.h"
@@ -41,6 +42,7 @@ public:
 
 protected:
 	friend class Spirit;
+	friend class Supplication;
 	friend class Immanent<Heaven>;
 
 	explicit Heaven(Eternity& eternity);
@@ -50,6 +52,9 @@ protected:
 	Eternity& eternity();
 	const Eternity& eternity() const;
 
+	/// Heaven bears a supplication and keeps it until it is answered.
+	std::shared_ptr<const Supplication> keep(matter::Supplication kept);
+
 private:
 	void present(const Soul& soul);
 
@@ -57,9 +62,7 @@ private:
 
 	void cease(const Soul& soul);
 
-	void keep(std::shared_ptr<const Supplication> supplication);
-
-	void release(const Supplication& supplication);
+	void release(const Supplication& answered);
 
 	static Heaven& the();
 

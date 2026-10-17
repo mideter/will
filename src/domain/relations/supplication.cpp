@@ -21,17 +21,7 @@
 namespace will::domain {
 
 
-Supplication::Supplication(Birth<Novice>, matter::Supplication kept)
-	: Supplication(std::move(kept))
-{}
-
-
-Supplication::Supplication(Birth<World>, matter::Supplication kept)
-	: Supplication(std::move(kept))
-{}
-
-
-Supplication::Supplication(matter::Supplication kept)
+Supplication::Supplication(Birth<Heaven>, matter::Supplication kept)
 	: suppliant_(Man::of(kept.suppliant()))
 	, addressee_(Man::of(kept.addressee()))
 {}
@@ -61,7 +51,8 @@ const Shepherding& Supplication::sign(const Testator& asked) const
 	suppliant.abode().furnish(Birth<Supplication>{*this},
 							  addressee.spatiality().furnish(suppliant.abode().id(), kept.id(), words));
 
-	addressee.drop(*incoming);
+	// Answered, it leaves Heaven.
+	horizon().release(*incoming);
 
 	return shepherded;
 }
@@ -76,7 +67,7 @@ void Supplication::reject(const Testator& asked) const
 	const std::shared_ptr<const Supplication> incoming = addressee.supplication(suppliant_);
 
 	addressee.temporality().answer(suppliant_.Soul::id(), addressee_.Soul::id(), matter::Answer::Form::Rejected);
-	addressee.drop(*incoming);
+	horizon().release(*incoming);
 }
 
 

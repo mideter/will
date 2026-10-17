@@ -174,15 +174,13 @@ void World::awaken()
 	}
 
 	for (const auto& [soul_id, man] : men_) {
-		const Man& addressee = *man;
-
 		for (matter::Supplication kept : temporality().supplications(soul_id)) {
 			if (!lives(kept.suppliant())) {
 				unrecollected("supplication of " + std::to_string(kept.suppliant().value())
 							  + ": the suppliant does not live");
 				continue;
 			}
-			addressee.hear(Birth<World>{*this}, std::move(kept));
+			keep(std::move(kept));
 		}
 	}
 }

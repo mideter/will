@@ -35,22 +35,9 @@ void Spirit::contemplate(const Place& place) const
 }
 
 
-std::vector<std::shared_ptr<const Supplication>> Spirit::supplications() const
+void Spirit::entrust(matter::Supplication kept)
 {
-	const auto& self = static_cast<const Soul&>(*this);
-	return heaven().supplications(self.id());
-}
-
-
-void Spirit::keep(std::shared_ptr<const Supplication> supplication)
-{
-	heaven().keep(std::move(supplication));
-}
-
-
-void Spirit::release(const Supplication& supplication)
-{
-	heaven().release(supplication);
+	heaven().keep(std::move(kept));
 }
 
 

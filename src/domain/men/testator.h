@@ -44,10 +44,7 @@ public:
 	std::shared_ptr<const Supplication> supplication(const Novice& suppliant) const;
 	std::vector<std::shared_ptr<const Supplication>> supplications() const;
 
-	/// Heaven keeps the supplication until it is answered.
 	void hear(Birth<Novice> birth) const;
-
-	void hear(Birth<World> birth, matter::Supplication kept) const;
 
 protected:
 	Testator() {}
@@ -60,8 +57,6 @@ private:
 	const Shepherding& shepherd(const Shepherding& place) const;
 	void release(const Shepherding& place) const;
 
-	void hold(std::shared_ptr<const Supplication> supplication) const;
-	void drop(const Supplication& answered) const;
 
 	mutable std::vector<const Shepherding*> shepherdings_;
 };
