@@ -189,6 +189,7 @@ v1::NoticeCode code_of(const domain::Refusal& refusal)
 		{typeid(domain::DoesNotEnterRoom), v1::NOTICE_DOES_NOT_ENTER_ROOM},
 		{typeid(domain::RegardOnlyInUpperRoom), v1::NOTICE_REGARD_ONLY_IN_UPPER_ROOM},
 		{typeid(domain::ArrangeOnlyInUpperRoom), v1::NOTICE_ARRANGE_ONLY_IN_UPPER_ROOM},
+		{typeid(domain::RegardNotOneself), v1::NOTICE_REGARD_NOT_ONESELF},
 		{typeid(domain::FatherByFleshNeighbour), v1::NOTICE_FATHER_BY_FLESH_NEIGHBOUR},
 		{typeid(domain::FatherBySpiritFriend), v1::NOTICE_FATHER_BY_SPIRIT_FRIEND},
 		{typeid(domain::SayOnlyInWord), v1::NOTICE_SAY_ONLY_IN_WORD},

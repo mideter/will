@@ -4,6 +4,7 @@
 #include "refusals/tie.h"
 #include "refusals/testator.h"
 #include "refusals/place.h"
+#include "refusals/room.h"
 #include "refusals/novice.h"
 #include "refusals/training.h"
 #include <doctest/doctest.h>
@@ -1225,6 +1226,38 @@ TEST_CASE("the host regards his dwellers anew only in his upper room; it shows n
 	CHECK(upper_room.dwells(man));
 	man.contemplate(upper_room);
 	CHECK(world.contemplation(man.Soul::id())->words().empty());
+}
+
+
+TEST_CASE("whoever stands in an upper room regards and arranges there as its host, but does not regard himself")
+{
+	InMemoryCosmos cosmos;
+	World& world = cosmos.life().create().world();
+	const auto& host = static_cast<const Witness&>(born(world, DeviceToken::generate()));
+	const auto& friend_ = static_cast<const Witness&>(born(world, DeviceToken::generate()));
+	const auto& other = static_cast<const Witness&>(born(world, DeviceToken::generate()));
+	const UpperRoom& upper_room = host.abode().upper_room();
+	admit_at_gates(world, host, friend_);
+	admit_at_gates(world, host, other);
+	regard_in_upper_room(world, host, friend_, matter::Dweller::Kind::Friend);
+
+	// The friend, in the host's upper room, regards another anew and sets a room in a part.
+	friend_.wake();
+	friend_.contemplate(upper_room);
+	friend_.regard(other, matter::Dweller::Kind::Neighbour);
+	CHECK(std::dynamic_pointer_cast<const Neighbour>(host.abode().dweller(other)));
+	friend_.arrange(cell_of(host), matter::Room::Part::Outer);
+	CHECK(cell_of(host).part() == matter::Room::Part::Outer);
+
+	// Himself he does not regard.
+	CHECK_THROWS_AS(friend_.regard(friend_, matter::Dweller::Kind::Acquaintance), RegardNotOneself);
+
+	// Nor does a neighbour raise himself, though the upper room stands in the outer part.
+	friend_.arrange(upper_room, matter::Room::Part::Outer);
+	other.wake();
+	other.contemplate(upper_room);
+	CHECK_THROWS_AS(other.regard(other, matter::Dweller::Kind::Friend), RegardNotOneself);
+	CHECK_FALSE(std::dynamic_pointer_cast<const Friend>(host.abode().dweller(other)));
 }
 
 

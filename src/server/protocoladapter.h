@@ -118,6 +118,9 @@ private:
 	/// which he is the testator.
 	bool writes_here(const domain::Man& man) const;
 
+	/// The host of the upper room he stands in; himself, if he stands in none.
+	const domain::Man& host_of_upper_room(const domain::Man& man) const;
+
 	/// A dweller looking at the host's abode sees it anew, as his new kind does.
 	void retell_abode(const domain::Man& host, const domain::Man& dweller);
 

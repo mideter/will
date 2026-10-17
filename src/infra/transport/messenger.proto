@@ -437,6 +437,7 @@ enum NoticeCode {
     NOTICE_FINISH_APPROACH_FIRST = 36;
     NOTICE_NOT_OWN_FATHER = 37;
     NOTICE_NOT_DESCENDANT_AS_FATHER = 38;
+    NOTICE_REGARD_NOT_ONESELF = 39;
 
     // What the server itself refuses.
     // 102–104, 108 and 111 were the server's own copies of the world's rules: the

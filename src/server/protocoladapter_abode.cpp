@@ -168,11 +168,13 @@ void ProtocolAdapter::handle_regard(const SessionId session_id, const v1::Regard
 		return;
 	}
 
+	// He regards in the upper room he stands in, as its host.
+	const domain::Man& host = host_of_upper_room(self);
 	send_notice(session_id, v1::NOTICE_REGARDED, {std::string{man->name().text()}});
-	tell_dwelling(self, *man);
-	retell_abode(self, *man);
-	retell_upper_room(self.abode().upper_room());
-	retell_gates(self.abode().gates());  // his kind may let him keep them now, or no longer
+	tell_dwelling(host, *man);
+	retell_abode(host, *man);
+	retell_upper_room(host.abode().upper_room());
+	retell_gates(host.abode().gates());  // his kind may let him keep them now, or no longer
 }
 
 
@@ -274,7 +276,8 @@ void ProtocolAdapter::tell_view(const SessionId session_id, const domain::Contem
 void ProtocolAdapter::handle_arrange(const SessionId session_id, const v1::Arrange& msg)
 {
 	const domain::Man& self = session_man(session_id);
-	const domain::Room* room = self.abode().room(msg.room());
+	const domain::Man& host = host_of_upper_room(self);
+	const domain::Room* room = host.abode().room(msg.room());
 	if (!room) {
 		refuse(session_id, v1::NOTICE_NO_SUCH_ROOM);
 		return;
@@ -291,10 +294,10 @@ void ProtocolAdapter::handle_arrange(const SessionId session_id, const v1::Arran
 	send_notice(session_id,
 				part == domain::matter::Room::Part::Outer ? v1::NOTICE_ARRANGED_OUTER : v1::NOTICE_ARRANGED_INNER,
 				{msg.room()});
-	send_event(session_id, arranged_rooms_event(self.abode()));
-	for (const std::shared_ptr<const domain::Acquaintance>& dweller : self.abode().dwellers())
-		retell_abode(self, dweller->man());
-	retell_gates(self.abode().gates());  // set in another part, they are kept by other kinds
+	send_event(session_id, arranged_rooms_event(host.abode()));
+	for (const std::shared_ptr<const domain::Acquaintance>& dweller : host.abode().dwellers())
+		retell_abode(host, dweller->man());
+	retell_gates(host.abode().gates());  // set in another part, they are kept by other kinds
 }
 
 

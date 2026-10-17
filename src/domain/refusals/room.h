@@ -45,14 +45,21 @@ public:
 class RegardOnlyInUpperRoom final : public Refusal {
 public:
 	RegardOnlyInUpperRoom()
-		: Refusal("one regards dwellers only in one's upper room")
+		: Refusal("one regards dwellers only in an upper room")
+	{}
+};
+
+class RegardNotOneself final : public Refusal {
+public:
+	RegardNotOneself()
+		: Refusal("one does not regard oneself")
 	{}
 };
 
 class ArrangeOnlyInUpperRoom final : public Refusal {
 public:
 	ArrangeOnlyInUpperRoom()
-		: Refusal("one arranges rooms only in one's upper room")
+		: Refusal("one arranges rooms only in an upper room")
 	{}
 };
 

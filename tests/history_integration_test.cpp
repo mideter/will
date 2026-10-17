@@ -630,7 +630,7 @@ TEST_CASE("a host admits a dweller, regards him anew, and he sees his abode as h
 		arrange.mutable_arrange()->set_part(will::v1::OUTER);
 		REQUIRE(host.stream->Write(arrange));
 	}
-	CHECK(read_event(*host.stream).protocol_notice().message() == "one arranges rooms only in one's upper room");
+	CHECK(read_event(*host.stream).protocol_notice().message() == "one arranges rooms only in an upper room");
 
 	// In it he sees his dwellers and all his rooms, each in its part.
 	send_turn_to_abode(*host.stream, {}, "Горница");

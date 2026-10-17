@@ -66,12 +66,33 @@ void Man::admit(const Man& man) const
 }
 
 
+namespace {
+
+
+/// The upper room one stands in, if one does.
+const UpperRoom* standing_in_upper_room(const std::shared_ptr<const Contemplation>& gaze)
+{
+	return gaze ? dynamic_cast<const UpperRoom*>(&gaze->place()) : nullptr;
+}
+
+
+} // namespace
+
+
 void Man::arrange(const Room& room, const matter::Room::Part part) const
+{
+	const UpperRoom* upper_room = standing_in_upper_room(contemplation());
+	if (!upper_room)
+		throw ArrangeOnlyInUpperRoom();
+
+	upper_room->arrange(Birth<Man>{*this}, room, part);
+}
+
+
+void Man::arrange(Birth<UpperRoom>, const Room& room, const matter::Room::Part part) const
 {
 	if (&room.abode() != abode_.get())
 		throw std::logic_error("the room is not of this abode");
-	if (!static_cast<const Witness&>(*this).contemplates(abode_->upper_room()))
-		throw ArrangeOnlyInUpperRoom();
 
 	abode_->arrange(Birth<Man>{*this}, spatiality().arrange(room.id(), part));
 }
@@ -79,12 +100,20 @@ void Man::arrange(const Room& room, const matter::Room::Part part) const
 
 void Man::regard(const Man& dweller, const matter::Dweller::Kind kind) const
 {
+	const UpperRoom* upper_room = standing_in_upper_room(contemplation());
+	if (!upper_room)
+		throw RegardOnlyInUpperRoom();
+
+	upper_room->regard(Birth<Man>{*this}, dweller, kind);
+}
+
+
+void Man::regard(Birth<UpperRoom>, const Man& dweller, const matter::Dweller::Kind kind) const
+{
 	if (abode_->ancestor(dweller))
 		throw FatherBySpiritFriend();
 	if (!abode_->dweller(dweller))
 		throw DoesNotDwell();
-	if (!static_cast<const Witness&>(*this).contemplates(abode_->upper_room()))
-		throw RegardOnlyInUpperRoom();
 	if (&dweller == father(matter::Fatherhood::Line::Flesh) && kind == matter::Dweller::Kind::Acquaintance)
 		throw FatherByFleshNeighbour();
 

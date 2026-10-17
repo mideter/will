@@ -22,6 +22,7 @@ namespace will::domain {
 
 
 class Abode;
+class Man;
 class Heaven;
 class Behest;
 class Deed;
@@ -119,6 +120,11 @@ public:
 	UpperRoom(Birth<Abode> birth, matter::Room kept);
 
 	std::string name() const override;
+
+	/// Whoever stands here regards as the host, but not himself.
+	void regard(Birth<Man> who, const Man& dweller, matter::Dweller::Kind kind) const;
+
+	void arrange(Birth<Man> who, const Room& room, matter::Room::Part part) const;
 };
 
 

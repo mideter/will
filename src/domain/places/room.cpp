@@ -221,4 +221,24 @@ std::string UpperRoom::name() const
 }
 
 
+void UpperRoom::regard(const Birth<Man> who, const Man& dweller, const matter::Dweller::Kind kind) const
+{
+	if (!static_cast<const Witness&>(who.parent()).contemplates(*this))
+		throw RegardOnlyInUpperRoom();
+	if (&who.parent() == &dweller)
+		throw RegardNotOneself();
+
+	abode().host().regard(Birth<UpperRoom>{*this}, dweller, kind);
+}
+
+
+void UpperRoom::arrange(const Birth<Man> who, const Room& room, const matter::Room::Part part) const
+{
+	if (!static_cast<const Witness&>(who.parent()).contemplates(*this))
+		throw ArrangeOnlyInUpperRoom();
+
+	abode().host().arrange(Birth<UpperRoom>{*this}, room, part);
+}
+
+
 } // namespace will::domain
