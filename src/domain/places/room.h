@@ -6,9 +6,14 @@
 #include "properties/birth.h"
 #include "properties/immanent.h"
 
+#include "matter/effort.h"
 #include "values/exercise.h"
+#include "values/weight.h"
 
 #include <atomic>
+#include <cstdint>
+#include <optional>
+#include <vector>
 #include <memory>
 #include <string>
 
@@ -18,6 +23,9 @@ namespace will::domain {
 
 class Abode;
 class Heaven;
+class Behest;
+class Deed;
+class Novice;
 class Training;
 
 
@@ -67,6 +75,18 @@ public:
 
 	std::shared_ptr<const Training> train(const Contemplation& gaze, const Saying& title,
 										  std::vector<Exercise> exercises) const;
+
+	/// In the novice's cell of a tie, whoever stands there does what the novice does.
+	std::shared_ptr<const Deed> fulfil(const Contemplation& gaze, const Behest& behest, std::optional<Saying> report,
+									  std::optional<std::vector<Exercise>> performed) const;
+	void begin(const Contemplation& gaze, const Training& training, std::uint32_t exercise,
+			   std::uint32_t approach) const;
+	matter::Effort finish(const Contemplation& gaze, const Training& training, Weight weight,
+						  std::uint32_t repetitions) const;
+
+private:
+	template<typename Refused>
+	const Novice& obeying(const Contemplation& gaze, const Behest& behest) const;
 };
 
 

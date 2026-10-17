@@ -7,6 +7,7 @@
 
 #include "words/training.h"
 
+#include "places/room.h"
 #include "places/tie.h"
 #include "relations/contemplation.h"
 #include "men/soul.h"
@@ -70,16 +71,29 @@ std::vector<Exercise> done_of(const Training& training)
 }
 
 
+/// The cell of this tie one stands in, if one does.
+const Cell* standing_in(const std::shared_ptr<const Contemplation>& gaze, const Tie& tie)
+{
+	const auto* cell = gaze ? dynamic_cast<const Cell*>(&gaze->place()) : nullptr;
+	return cell && &cell->reflects() == static_cast<const Place*>(&tie) ? cell : nullptr;
+}
+
+
 } // namespace
 
 
 void Novice::begin(const Training& training, const std::uint32_t exercise, const std::uint32_t approach) const
 {
-	const Tie& tie = training.tie();
-	if (tie.novice().Soul::id() != Soul::id())
-		throw std::logic_error("not the novice of this behest");
-	if (!contemplates(tie))
+	const std::shared_ptr<const Contemplation> gaze = contemplation();
+	const Cell* cell = standing_in(gaze, training.tie());
+	if (!cell)
 		throw TrainOnlyInContemplatedTie();
+	cell->begin(*gaze, training, exercise, approach);
+}
+
+
+void Novice::begin(Birth<Cell>, const Training& training, const std::uint32_t exercise, const std::uint32_t approach) const
+{
 	if (!temporality().executions({training.id()}).empty())
 		throw AlreadyFulfilled();
 	if (exercise >= training.exercises().size())
@@ -110,9 +124,17 @@ void Novice::begin(const Training& training, const std::uint32_t exercise, const
 
 matter::Effort Novice::finish(const Training& training, const Weight weight, const std::uint32_t repetitions) const
 {
-	if (!contemplates(training.tie()))
+	const std::shared_ptr<const Contemplation> gaze = contemplation();
+	const Cell* cell = standing_in(gaze, training.tie());
+	if (!cell)
 		throw TrainOnlyInContemplatedTie();
+	return cell->finish(*gaze, training, weight, repetitions);
+}
 
+
+matter::Effort Novice::finish(Birth<Cell>, const Training& training, const Weight weight,
+							  const std::uint32_t repetitions) const
+{
 	Underway doing{training.id(), 0, 0, Timestamp{0}};
 	{
 		std::lock_guard lock(underway_mutex_);
@@ -142,11 +164,18 @@ std::optional<Novice::Underway> Novice::underway() const
 std::shared_ptr<const Deed> Novice::execute(const Behest& behest, std::optional<Saying> report,
 											 std::optional<std::vector<Exercise>> performed) const
 {
-	const Tie& tie = behest.tie();
-	if (tie.novice().Soul::id() != Soul::id())
-		throw std::logic_error("not the novice of this behest");
-	if (!contemplates(tie))
+	const std::shared_ptr<const Contemplation> gaze = contemplation();
+	const Cell* cell = standing_in(gaze, behest.tie());
+	if (!cell)
 		throw FulfilOnlyInContemplatedTie();
+	return cell->fulfil(*gaze, behest, std::move(report), std::move(performed));
+}
+
+
+std::shared_ptr<const Deed> Novice::execute(Birth<Cell>, const Behest& behest, std::optional<Saying> report,
+											 std::optional<std::vector<Exercise>> performed) const
+{
+	const Tie& tie = behest.tie();
 	if (!temporality().executions({behest.id()}).empty())
 		throw AlreadyFulfilled();
 

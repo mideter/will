@@ -4,11 +4,16 @@
 #include "refusals/place.h"
 #include "refusals/tie.h"
 #include "refusals/testator.h"
+#include "refusals/novice.h"
+#include "refusals/training.h"
 #include "refusals/refusal.h"
 
 #include "horizons/heaven.h"
 #include "horizons/space.h"
 #include "men/man.h"
+#include "men/novice.h"
+#include "words/behest.h"
+#include "words/deed.h"
 #include "men/testator.h"
 #include "men/witness.h"
 #include "places/abode.h"
@@ -116,6 +121,43 @@ std::shared_ptr<const Training> Cell::train(const Contemplation& gaze, const Say
 		throw WillOnlyInContemplatedTie();
 
 	return tie->train(Birth<Cell>{*this}, title, std::move(exercises));
+}
+
+
+template<typename Refused>
+const Novice& Cell::obeying(const Contemplation& gaze, const Behest& behest) const
+{
+	if (&gaze.place() != this)
+		throw std::logic_error("this cell is not what is contemplated");
+	if (&reflects() != static_cast<const Place*>(&behest.tie()))
+		throw std::logic_error("the behest is not of the tie this cell reflects");
+
+	const Novice& novice = behest.tie().novice();
+	if (abode().host().Soul::id() != novice.Soul::id())
+		throw Refused();
+	return novice;
+}
+
+
+std::shared_ptr<const Deed> Cell::fulfil(const Contemplation& gaze, const Behest& behest, std::optional<Saying> report,
+										 std::optional<std::vector<Exercise>> performed) const
+{
+	return obeying<OnlyNoviceFulfils>(gaze, behest)
+		.execute(Birth<Cell>{*this}, behest, std::move(report), std::move(performed));
+}
+
+
+void Cell::begin(const Contemplation& gaze, const Training& training, const std::uint32_t exercise,
+				 const std::uint32_t approach) const
+{
+	obeying<OnlyNoviceTrains>(gaze, training).begin(Birth<Cell>{*this}, training, exercise, approach);
+}
+
+
+matter::Effort Cell::finish(const Contemplation& gaze, const Training& training, const Weight weight,
+							const std::uint32_t repetitions) const
+{
+	return obeying<OnlyNoviceTrains>(gaze, training).finish(Birth<Cell>{*this}, training, weight, repetitions);
 }
 
 

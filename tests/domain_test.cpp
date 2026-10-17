@@ -5,6 +5,7 @@
 #include "refusals/testator.h"
 #include "refusals/place.h"
 #include "refusals/novice.h"
+#include "refusals/training.h"
 #include <doctest/doctest.h>
 
 #include "domain_fakes.h"
@@ -1619,6 +1620,51 @@ TEST_CASE("the novice does a training approach by approach: each begun and finis
 	CHECK(recalled->id() == training_id);
 	REQUIRE(recalled->efforts().size() == 3);
 	CHECK(recalled->efforts()[0].repetitions() == 5);
+}
+
+
+TEST_CASE("in the novice's cell of a tie, whoever stands there does what the novice does, and it is the novice's")
+{
+	InMemoryCosmos cosmos;
+	World& world = cosmos.life().create().world();
+	const auto& novice = static_cast<const Testator&>(born(world, DeviceToken::generate()));
+	const auto& testator = static_cast<const Testator&>(born(world, DeviceToken::generate()));
+	const auto& friend_ = static_cast<const Testator&>(born(world, DeviceToken::generate()));
+	admit_at_gates(world, novice, testator);
+	admit_at_gates(world, testator, novice);
+	novice.supplicate(testator);
+	const Shepherding& shepherding = testator.accept(*testator.supplication(novice));
+	const Obedience& obedience = novice.obedience(testator);
+	admit_at_gates(world, novice, friend_);
+	regard_in_upper_room(world, novice, friend_, matter::Dweller::Kind::Friend);
+
+	testator.wake();
+	testator.contemplate(room_in(testator, shepherding));
+	const std::shared_ptr<const Training> training
+		= testator.train("Среда", {Exercise{"Присед", {Approach{Weight{100'000}, 5}}}});
+
+	// In his own cell the testator does not train nor fulfil: that is the novice's.
+	CHECK_THROWS_AS(testator.begin(*training, 0, 0), OnlyNoviceTrains);
+	CHECK_THROWS_AS(testator.execute(*training), OnlyNoviceFulfils);
+
+	// The friend, in the novice's cell, begins an approach: it is the novice's underway.
+	friend_.wake();
+	friend_.contemplate(room_in(novice, obedience));
+	friend_.begin(*training, 0, 0);
+	CHECK_FALSE(friend_.underway());
+	REQUIRE(novice.underway());
+	CHECK(novice.underway()->training == training->id());
+
+	const matter::Effort effort = friend_.finish(*training, Weight{100'000}, 5);
+	CHECK_FALSE(novice.underway());
+	CHECK(effort.repetitions() == 5);
+	REQUIRE(training->efforts().size() == 1);
+
+	// And he fulfils it: the deed is the novice's.
+	const std::shared_ptr<const Deed> deed = friend_.execute(*training);
+	CHECK(&deed->author() == static_cast<const Soul*>(&novice));
+	REQUIRE(deed->performed().size() == 1);
+	CHECK(novice.abode().owed().empty());
 }
 
 
