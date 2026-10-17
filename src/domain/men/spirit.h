@@ -33,15 +33,11 @@ public:
 protected:
 	Spirit() = default;
 
-	static const Soul& soul(id::Soul id);
-
 	matter::Word utter(const Saying& saying) const;
 
 	Timestamp now() const;
 
 	matter::Training exercise(id::Word word, std::vector<Exercise> exercises) const;
-
-	bool knows(id::Soul soul_id) const;
 
 	void contemplate(const Place& place) const;
 

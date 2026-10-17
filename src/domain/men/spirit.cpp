@@ -9,12 +9,6 @@
 namespace will::domain {
 
 
-const Soul& Spirit::soul(const id::Soul id)
-{
-	return heaven().soul(id);
-}
-
-
 matter::Word Spirit::utter(const Saying& saying) const
 {
 	const auto& self = static_cast<const Soul&>(*this);
@@ -31,12 +25,6 @@ Timestamp Spirit::now() const
 matter::Training Spirit::exercise(const id::Word word, std::vector<Exercise> exercises) const
 {
 	return eternity().train(word, std::move(exercises));
-}
-
-
-bool Spirit::knows(const id::Soul soul_id) const
-{
-	return heaven().knows(soul_id);
 }
 
 

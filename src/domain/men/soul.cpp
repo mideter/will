@@ -18,7 +18,7 @@ bool Soul::operator==(const Soul& other) const noexcept
 
 const Soul& Soul::of(const id::Soul id)
 {
-	return Spirit::soul(id);
+	return horizon().soul(id);
 }
 
 
