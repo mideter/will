@@ -24,27 +24,27 @@ matter::Training Spirit::exercise(const id::Word word, std::vector<Exercise> exe
 void Spirit::contemplate(const Place& place) const
 {
 	const auto& self = static_cast<const Soul&>(*this);
-	heaven().contemplate(self, place);
+	horizon().contemplate(self, place);
 }
 
 
 void Spirit::entrust(matter::Supplication kept)
 {
-	heaven().keep(std::move(kept));
+	horizon().keep(std::move(kept));
 }
 
 
 void Spirit::cease() const
 {
 	const auto& self = static_cast<const Soul&>(*this);
-	heaven().cease(self);
+	horizon().cease(self);
 }
 
 
 std::shared_ptr<const Contemplation> Spirit::contemplation() const
 {
 	const auto& self = static_cast<const Soul&>(*this);
-	return heaven().contemplation(self.id());
+	return horizon().contemplation(self.id());
 }
 
 

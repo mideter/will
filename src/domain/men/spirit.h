@@ -10,7 +10,6 @@
 #include "dimensions/eternity.h"
 #include "properties/immanent.h"
 #include "values/saying.h"
-#include "values/timestamp.h"
 
 #include <memory>
 #include <vector>
@@ -20,6 +19,7 @@ namespace will::domain {
 
 
 class Place;
+class Soul;
 class Supplication;
 
 
@@ -45,9 +45,7 @@ protected:
 	std::shared_ptr<const Contemplation> contemplation() const;
 
 private:
-	static Heaven& heaven() { return Heaven::the(); }
-
-	static Eternity& eternity() { return heaven().eternity(); }
+	static Eternity& eternity() { return horizon().eternity(); }
 };
 
 
