@@ -275,7 +275,7 @@ void ProtocolAdapter::handle_train(const SessionId session_id, const v1::Train& 
 {
 	const domain::Man& self = session_man(session_id);
 
-	// He wills it in the tie he stands in, as its testator — or the world refuses.
+	// He wills it in the cell of a tie he stands in, as its host — or the world refuses.
 	std::shared_ptr<const domain::Training> training;
 	try {
 		training = static_cast<const domain::Testator&>(self).train(

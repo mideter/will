@@ -1,6 +1,4 @@
 #include "training.h"
-#include "refusals/training.h"
-#include "refusals/refusal.h"
 
 #include "men/novice.h"
 
@@ -54,7 +52,7 @@ bool Training::done(const std::uint32_t exercise, const std::uint32_t approach) 
 void Training::exert(const Birth<Novice> birth, matter::Effort kept) const
 {
 	if (birth.parent().Soul::id() != tie().novice().Soul::id())
-		throw OnlyNoviceTrains();
+		throw std::logic_error("only the novice of the tie exerts in its training");
 	if (kept.training() != id())
 		throw std::logic_error("the effort is of another training");
 

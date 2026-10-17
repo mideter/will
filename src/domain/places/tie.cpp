@@ -85,7 +85,7 @@ std::shared_ptr<const Deed> Tie::inscribe(Birth<Novice>, matter::Deed kept) cons
 	if (kept.placement().place() != id())
 		throw std::logic_error("the deed is not placed in this tie");
 	if (kept.word().author() != novice_.Soul::id())
-		throw OnlyNoviceFulfils();
+		throw std::logic_error("only the novice of the tie inscribes a deed");
 
 	auto deed = std::make_shared<const Deed>(Birth<Tie>{*this}, std::move(kept));
 	enter(*recollection(), deed);
@@ -99,7 +99,7 @@ std::shared_ptr<const Behest> Tie::inscribe(Birth<Testator>, matter::Behest kept
 	if (kept.placement().place() != id())
 		throw std::logic_error("the behest is not placed in this tie");
 	if (kept.word().author() != testator_.Soul::id())
-		throw OnlyTestatorWills();
+		throw std::logic_error("only the testator of the tie inscribes a behest");
 
 	std::shared_ptr<const Behest> behest;
 	if (kept.training())
