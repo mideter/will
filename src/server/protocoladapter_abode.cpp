@@ -229,9 +229,8 @@ void ProtocolAdapter::tell_view(const SessionId session_id, const domain::Contem
 	}
 	if (const auto* upper_room = dynamic_cast<const domain::UpperRoom*>(&gaze.place())) {
 		send_event(session_id, dwellers_event(upper_room->abode()));
-		// The host arranges his abode here: he is shown all its rooms, each in its part.
-		if (&upper_room->abode().host() == &listener)
-			send_event(session_id, arranged_rooms_event(upper_room->abode()));
+		// Whoever stands here arranges the abode as its host: he is shown all its rooms, each in its part.
+		send_event(session_id, arranged_rooms_event(upper_room->abode()));
 		v1::ServerEvent end_event;
 		end_event.mutable_history_end();
 		send_event(session_id, end_event);
@@ -443,9 +442,8 @@ void ProtocolAdapter::retell_upper_room(const domain::UpperRoom& upper_room)
 	for (const domain::Soul& soul : world_.contemplating(upper_room)) {
 		const auto& man = static_cast<const domain::Man&>(soul);
 		send_to_vessel(man.Vessel::id(), event);
-		// The host arranges here: a tie bound or let go changes his rooms too.
-		if (&man == &upper_room.abode().host())
-			send_to_vessel(man.Vessel::id(), arranged_rooms_event(upper_room.abode()));
+		// Whoever stands here arranges: a tie bound or let go changes the rooms too.
+		send_to_vessel(man.Vessel::id(), arranged_rooms_event(upper_room.abode()));
 	}
 }
 
