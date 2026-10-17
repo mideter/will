@@ -1,9 +1,7 @@
 #include <atomic>
 #include <chrono>
-#include <cstdlib>
 #include <format>
 #include <iostream>
-#include <memory>
 #include <string>
 #include <thread>
 #include <vector>
@@ -13,7 +11,6 @@
 #include "clientconfigvalidator.h"
 #include "loadclientsconfigparser.h"
 #include "infra/transport/messenger.grpc.pb.h"
-#include "values/device_token.h"
 
 
 namespace {

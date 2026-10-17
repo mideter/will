@@ -15,8 +15,6 @@ class Behest;
 class Deed;
 class Novice;
 class Man;
-class Soul;
-class Testator;
 
 
 /// Obedience (Послушание) — a tie as its novice sees it.

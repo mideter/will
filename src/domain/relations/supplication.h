@@ -4,7 +4,6 @@
 #include "properties/birth.h"
 #include "properties/immanent.h"
 
-#include <memory>
 
 
 namespace will::domain {
@@ -12,8 +11,6 @@ namespace will::domain {
 
 class Heaven;
 class Man;
-class Novice;
-class World;
 class Shepherding;
 class Testator;
 

@@ -11,12 +11,10 @@ namespace will::domain {
 
 
 class Abode;
-class Man;
 class Cell;
 class Place;
 class Room;
 class Letter;
-class Word;
 
 
 /// Witness (Свидетель) — a living man in the waking world: awake, he contemplates one

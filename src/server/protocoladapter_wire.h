@@ -12,10 +12,8 @@
 
 namespace will::domain {
 class Acquaintance;
-class Man;
 class Place;
 class Soul;
-class Tie;
 class Word;
 namespace matter {
 class Effort;

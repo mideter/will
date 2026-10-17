@@ -15,7 +15,6 @@ class Behest;
 class Deed;
 class Novice;
 class Man;
-class Soul;
 class Testator;
 
 

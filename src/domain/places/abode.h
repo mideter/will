@@ -8,7 +8,6 @@
 #include "places/place.h"
 #include "values/abode_name.h"
 
-#include <exception>
 #include <memory>
 #include <string_view>
 #include <functional>
@@ -22,7 +21,6 @@ namespace will::domain {
 
 class Acquaintance;
 class Behest;
-class Contemplation;
 class Letter;
 class Man;
 class Gates;

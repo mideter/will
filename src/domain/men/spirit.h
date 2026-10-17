@@ -7,7 +7,6 @@
 #include "matter/word.h"
 #include "horizons/heaven.h"
 #include "identity/word.h"
-#include "identity/soul.h"
 #include "dimensions/eternity.h"
 #include "properties/immanent.h"
 #include "values/saying.h"
@@ -20,9 +19,7 @@
 namespace will::domain {
 
 
-class Abode;
 class Place;
-class Soul;
 class Supplication;
 
 

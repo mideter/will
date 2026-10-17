@@ -1,6 +1,5 @@
 #include "spirit.h"
 
-#include "places/abode.h"
 #include "men/soul.h"
 
 #include <utility>

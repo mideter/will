@@ -2,7 +2,6 @@
 
 #include "values/exercise.h"
 
-#include "matter/man.h"
 #include "matter/supplication.h"
 #include "properties/birth.h"
 #include "places/shepherding.h"
@@ -11,7 +10,6 @@
 #include "words/behest.h"
 #include "values/saying.h"
 
-#include <functional>
 #include <memory>
 #include <vector>
 
@@ -22,7 +20,6 @@ namespace will::domain {
 class Cell;
 class Novice;
 class Training;
-class Word;
 
 
 class World;

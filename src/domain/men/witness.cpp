@@ -1,10 +1,8 @@
 #include "witness.h"
 #include "men/man.h"
 #include "refusals/room.h"
-#include "refusals/place.h"
 #include "refusals/abode.h"
 #include "places/place.h"
-#include "refusals/refusal.h"
 
 #include "matter/dating.h"
 #include "matter/letter.h"

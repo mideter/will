@@ -1,12 +1,9 @@
 #include "man.h"
-#include "refusals/room.h"
 #include "refusals/abode.h"
 #include "places/abode.h"
-#include "refusals/refusal.h"
 
 #include "dimensions/spatiality.h"
 #include "men/man.h"
-#include "men/witness.h"
 #include "relations/contemplation.h"
 #include "places/room.h"
 #include "values/abode_name.h"

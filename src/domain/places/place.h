@@ -14,7 +14,6 @@ namespace will::domain {
 
 class Cell;
 class Contemplation;
-class Life;
 class Man;
 class Space;
 class Recollection;

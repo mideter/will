@@ -1,7 +1,6 @@
 #include "tie.h"
 #include "places/room.h"
 #include "refusals/tie.h"
-#include "refusals/refusal.h"
 
 #include "words/behest.h"
 #include "words/deed.h"

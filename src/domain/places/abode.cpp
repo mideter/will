@@ -1,12 +1,9 @@
 #include "abode.h"
-#include "refusals/abode.h"
-#include "refusals/refusal.h"
 
 #include "relations/contemplation.h"
 #include "relations/friend.h"
 #include "places/room.h"
 #include "places/tie.h"
-#include "men/novice.h"
 #include "words/behest.h"
 #include "words/deed.h"
 #include "men/man.h"

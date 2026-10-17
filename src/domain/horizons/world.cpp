@@ -1,7 +1,6 @@
 #include "dimensions/eternity.h"
 #include "refusals/world.h"
 #include "refusals/room.h"
-#include "refusals/refusal.h"
 #include "world.h"
 
 #include "places/room.h"
@@ -19,7 +18,6 @@
 #include "men/novice.h"
 #include "men/soul.h"
 #include "men/testator.h"
-#include "men/witness.h"
 #include "dimensions/spatiality.h"
 #include "dimensions/temporality.h"
 #include "values/soul_name.h"

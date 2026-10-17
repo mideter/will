@@ -2,7 +2,6 @@
 #include "men/man.h"
 #include "refusals/tie.h"
 #include "refusals/testator.h"
-#include "refusals/refusal.h"
 
 #include "words/training.h"
 #include "words/letter.h"

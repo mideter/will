@@ -1,6 +1,5 @@
 #include "letter.h"
 
-#include <stdexcept>
 #include <utility>
 
 

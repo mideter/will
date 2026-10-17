@@ -1,7 +1,6 @@
 #include "shepherding.h"
 
 #include "men/man.h"
-#include "men/novice.h"
 
 
 namespace will::domain {

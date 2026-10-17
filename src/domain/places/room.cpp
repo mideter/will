@@ -1,12 +1,10 @@
 #include "room.h"
 #include "refusals/room.h"
 #include "refusals/abode.h"
-#include "refusals/place.h"
 #include "refusals/tie.h"
 #include "refusals/testator.h"
 #include "refusals/novice.h"
 #include "refusals/training.h"
-#include "refusals/refusal.h"
 
 #include "horizons/heaven.h"
 #include "horizons/space.h"

@@ -15,7 +15,6 @@
 namespace will::domain {
 
 
-class Abode;
 class Place;
 class Soul;
 class Eternity;

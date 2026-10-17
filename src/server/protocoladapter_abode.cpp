@@ -3,11 +3,8 @@
 #include "protocoladapter.h"
 #include "protocoladapter_wire.h"
 
-#include "inbound_client_message_handler.h"
-
 #include "words/behest.h"
 #include "words/deed.h"
-#include "words/training.h"
 #include "places/abode.h"
 #include "men/man.h"
 #include "men/novice.h"
@@ -22,13 +19,9 @@
 #include "men/witness.h"
 #include "words/letter.h"
 #include "values/device_token.h"
-#include "refusals/refusal.h"
 
-#include <algorithm>
-#include <cstddef>
 #include <cstdint>
 #include <exception>
-#include <iostream>
 #include <memory>
 #include <mutex>
 #include <optional>

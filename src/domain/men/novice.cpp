@@ -1,7 +1,6 @@
 #include "novice.h"
 #include "refusals/training.h"
 #include "refusals/novice.h"
-#include "refusals/refusal.h"
 
 #include <algorithm>
 

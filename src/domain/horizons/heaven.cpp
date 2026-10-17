@@ -1,6 +1,5 @@
 #include "heaven.h"
 
-#include "places/abode.h"
 #include "men/soul.h"
 #include "men/testator.h"
 #include "relations/supplication.h"

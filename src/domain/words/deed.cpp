@@ -1,7 +1,6 @@
 #include "deed.h"
 
 #include "men/man.h"
-#include "men/novice.h"
 #include "places/place.h"
 #include "places/tie.h"
 

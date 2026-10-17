@@ -1,6 +1,5 @@
 #include "sessionregistry.h"
 
-#include <utility>
 
 
 namespace will {
