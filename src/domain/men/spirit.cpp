@@ -15,12 +15,6 @@ matter::Word Spirit::utter(const Saying& saying) const
 }
 
 
-Timestamp Spirit::now() const
-{
-	return eternity().time().instant();
-}
-
-
 matter::Training Spirit::exercise(const id::Word word, std::vector<Exercise> exercises) const
 {
 	return eternity().train(word, std::move(exercises));

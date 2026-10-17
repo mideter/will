@@ -315,15 +315,15 @@ void ProtocolAdapter::tell_tie(const domain::Tie& tie, const v1::ServerEvent& ev
 }
 
 
-v1::ServerEvent ProtocolAdapter::underway_event(const domain::Tie& tie) const
+v1::ServerEvent ProtocolAdapter::underway_event(const domain::Training& training) const
 {
 	v1::ServerEvent event;
 	auto* told = event.mutable_underway();
-	if (const auto doing = tie.novice().underway()) {
-		told->set_behest_id(doing->training.value());
-		told->set_exercise(doing->exercise);
-		told->set_approach(doing->approach);
-		told->set_begun_at_ns(doing->begun.value());
+	told->set_behest_id(training.id().value());
+	if (const auto doing = training.underway()) {
+		told->set_exercise(doing->exercise());
+		told->set_approach(doing->approach());
+		told->set_begun_at_ns(doing->begun().value());
 		told->set_doing(true);
 	}
 	return event;
@@ -344,7 +344,7 @@ void ProtocolAdapter::handle_begin_approach(const SessionId session_id, const v1
 		refuse(session_id, e);
 		return;
 	}
-	tell_tie(training->tie(), underway_event(training->tie()));
+	tell_tie(training->tie(), underway_event(*training));
 }
 
 
@@ -369,7 +369,7 @@ void ProtocolAdapter::handle_finish_approach(const SessionId session_id, const v
 	exerted.mutable_exerted()->set_behest_id(training->id().value());
 	tell_effort(*effort, *exerted.mutable_exerted()->mutable_effort());
 	tell_tie(training->tie(), exerted);
-	tell_tie(training->tie(), underway_event(training->tie()));
+	tell_tie(training->tie(), underway_event(*training));
 }
 
 

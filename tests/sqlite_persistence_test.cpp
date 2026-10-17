@@ -626,7 +626,7 @@ TEST_CASE("sqlite gives the approaches kept before rest was no rest")
 }
 
 
-TEST_CASE("sqlite keeps the efforts of a training across reopen; an approach is done once")
+TEST_CASE("sqlite keeps the approach underway and the efforts of a training across reopen; an approach is done once")
 {
 	using namespace will;
 	using namespace will::domain;
@@ -639,11 +639,24 @@ TEST_CASE("sqlite keeps the efforts of a training across reopen; an approach is 
 	{
 		SqlitePersistenceBundle bundle(directory);
 		Temporality& time = bundle.temporality();
-		begun = Timestamp{bundle.eternity().time().instant().value() - 40'000'000'000};  // forty seconds ago
-		const matter::Effort first = time.exert(training, 0, 0, Weight{100'000}, 5, begun);
+		begun = time.begin(training, 0, 0).begun();
+		CHECK_THROWS_AS(time.begin(training, 0, 1), std::logic_error);
+	}
+
+	{
+		// The approach underway outlives the reopen; done, it is no longer underway.
+		SqlitePersistenceBundle bundle(directory);
+		Temporality& time = bundle.temporality();
+		const std::vector<matter::Underway> underway = time.underways({training, id::Word{8}});
+		REQUIRE(underway.size() == 1);
+		CHECK(underway[0].approach() == 0);
+		CHECK(underway[0].begun() == begun);
+		const matter::Effort first = time.exert(underway[0], Weight{100'000}, 5);
+		CHECK(first.begun() == begun);
 		CHECK(first.finished() >= first.begun());
-		time.exert(training, 0, 1, Weight{100'000}, 3, begun);
-		CHECK_THROWS_AS(time.exert(training, 0, 0, Weight{100'000}, 5, begun), std::logic_error);
+		CHECK(time.underways({training}).empty());
+		CHECK_THROWS_AS(time.exert(underway[0], Weight{100'000}, 5), std::logic_error);
+		time.exert(time.begin(training, 0, 1), Weight{100'000}, 3);
 	}
 
 	{
@@ -655,7 +668,7 @@ TEST_CASE("sqlite keeps the efforts of a training across reopen; an approach is 
 		CHECK(kept[1].repetitions() == 3);
 		CHECK(kept[1].weight().grams() == 100'000);
 		CHECK(kept[0].begun() == begun);
-		CHECK(kept[0].finished() > kept[0].begun());
+		CHECK(kept[0].finished() >= kept[0].begun());
 	}
 
 	CHECK_THROWS_AS((matter::Effort{training, 0, 0, Weight{0}, 5, Timestamp{10}, Timestamp{9}}), std::invalid_argument);

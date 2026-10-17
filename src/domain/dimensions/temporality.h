@@ -6,6 +6,7 @@
 #include "matter/embodiment.h"
 #include "matter/vessel.h"
 #include "matter/effort.h"
+#include "matter/underway.h"
 #include "matter/execution.h"
 #include "identity/word.h"
 #include "identity/soul.h"
@@ -55,9 +56,16 @@ public:
 	/// Executions in which any of these words is the deed or the fulfilled behest.
 	virtual std::vector<matter::Execution> executions(const std::vector<id::Word>& words) const = 0;
 
-	/// Finished at the present instant. Refuses (std::logic_error) if already done.
-	virtual matter::Effort exert(id::Word training, std::uint32_t exercise, std::uint32_t approach, Weight weight,
-								 std::uint32_t repetitions, Timestamp begun) = 0;
+	/// Begun at the present instant. Refuses (std::logic_error) while another approach of
+	/// the training is underway.
+	virtual matter::Underway begin(id::Word training, std::uint32_t exercise, std::uint32_t approach) = 0;
+
+	/// One at most for each training.
+	virtual std::vector<matter::Underway> underways(const std::vector<id::Word>& trainings) const = 0;
+
+	/// Finished at the present instant: no longer underway, but done. Refuses (std::logic_error)
+	/// if it is not underway or already done.
+	virtual matter::Effort exert(const matter::Underway& doing, Weight weight, std::uint32_t repetitions) = 0;
 
 	/// In the order they were finished.
 	virtual std::vector<matter::Effort> efforts(const std::vector<id::Word>& trainings) const = 0;

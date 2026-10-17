@@ -17,7 +17,6 @@
 
 #include <functional>
 #include <memory>
-#include <mutex>
 #include <optional>
 #include <vector>
 
@@ -43,20 +42,11 @@ public:
 	std::shared_ptr<const Deed> execute(Birth<Cell> cell, const Behest& behest, std::optional<Saying> report,
 										std::optional<std::vector<Exercise>> performed) const;
 
-	struct Underway {
-		id::Word training;
-		std::uint32_t exercise;
-		std::uint32_t approach;
-		Timestamp begun;
-	};
-
 	/// Exercises are done in any order, the approaches of an exercise in order; once
-	/// the willed are done, one beyond them.
+	/// the willed are done, one beyond them; one approach of a training at a time.
 	void begin(Birth<Cell> cell, const Training& training, std::uint32_t exercise, std::uint32_t approach) const;
 
 	matter::Effort finish(Birth<Cell> cell, const Training& training, Weight weight, std::uint32_t repetitions) const;
-
-	std::optional<Underway> underway() const;
 
 	std::vector<std::reference_wrapper<const Obedience>> obediences() const;
 
@@ -73,8 +63,6 @@ private:
 	const Obedience& follow(std::unique_ptr<Obedience> place) const;
 
 	mutable std::vector<std::unique_ptr<Obedience>> obediences_;
-	mutable std::mutex underway_mutex_;
-	mutable std::optional<Underway> underway_;
 };
 
 

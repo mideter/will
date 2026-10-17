@@ -270,16 +270,83 @@ SqliteTemporality::executions(const std::vector<domain::id::Word>& words) const
 }
 
 
-domain::matter::Effort SqliteTemporality::exert(const domain::id::Word training, const std::uint32_t exercise,
-												const std::uint32_t approach, const domain::Weight weight,
-												const std::uint32_t repetitions, const domain::Timestamp begun)
+domain::matter::Underway SqliteTemporality::begin(const domain::id::Word training, const std::uint32_t exercise,
+												  const std::uint32_t approach)
 {
-	const domain::matter::Effort effort{training, exercise, approach, weight, repetitions, begun,
-										eternity_.time().instant()};
+	const domain::matter::Underway doing{training, exercise, approach, eternity_.time().instant()};
 
 	std::lock_guard lock(time_db_.mutex());
 	sqlite3* const db = time_db_.db();
 
+	{
+		SqliteStmt kept(db, "SELECT 1 FROM underways WHERE training_word_id = ?;", "prepare kept underway");
+		kept.bind_i64(1, static_cast<std::int64_t>(training.value()), "bind training");
+		if (kept.step_row("kept underway step"))
+			throw std::logic_error("another approach of the training is underway");
+	}
+
+	SqliteStmt stmt(db,
+					"INSERT INTO underways (training_word_id, exercise_ord, approach_ord, begun_at_ns) "
+					"VALUES (?, ?, ?, ?);",
+					"prepare begin");
+	stmt.bind_i64(1, static_cast<std::int64_t>(training.value()), "bind training");
+	stmt.bind_i64(2, exercise, "bind exercise");
+	stmt.bind_i64(3, approach, "bind approach");
+	stmt.bind_i64(4, doing.begun().value(), "bind begun");
+	stmt.step_done("begin step");
+
+	return doing;
+}
+
+
+std::vector<domain::matter::Underway> SqliteTemporality::underways(const std::vector<domain::id::Word>& trainings) const
+{
+	std::lock_guard lock(time_db_.mutex());
+	sqlite3* const db = time_db_.db();
+
+	std::vector<domain::matter::Underway> rows;
+	for (const domain::id::Word training : trainings) {
+		SqliteStmt stmt(db, "SELECT exercise_ord, approach_ord, begun_at_ns FROM underways WHERE training_word_id = ?;",
+						"prepare underways");
+		stmt.bind_i64(1, static_cast<std::int64_t>(training.value()), "bind training");
+		if (stmt.step_row("underways step")) {
+			rows.push_back(domain::matter::Underway{
+				training,
+				static_cast<std::uint32_t>(stmt.column_i64(0)),
+				static_cast<std::uint32_t>(stmt.column_i64(1)),
+				domain::Timestamp{stmt.column_i64(2)},
+			});
+		}
+	}
+	return rows;
+}
+
+
+domain::matter::Effort SqliteTemporality::exert(const domain::matter::Underway& doing, const domain::Weight weight,
+												const std::uint32_t repetitions)
+{
+	const domain::id::Word training = doing.training();
+	const std::uint32_t exercise = doing.exercise();
+	const std::uint32_t approach = doing.approach();
+	const domain::matter::Effort effort{training, exercise, approach, weight, repetitions, doing.begun(),
+										eternity_.time().instant()};
+
+	std::lock_guard lock(time_db_.mutex());
+	sqlite3* const db = time_db_.db();
+	SqliteTransaction tx(db);
+
+	{
+		SqliteStmt kept(db,
+						"SELECT 1 FROM underways WHERE training_word_id = ? AND exercise_ord = ? AND approach_ord = ? "
+						"AND begun_at_ns = ?;",
+						"prepare kept underway");
+		kept.bind_i64(1, static_cast<std::int64_t>(training.value()), "bind training");
+		kept.bind_i64(2, exercise, "bind exercise");
+		kept.bind_i64(3, approach, "bind approach");
+		kept.bind_i64(4, doing.begun().value(), "bind begun");
+		if (!kept.step_row("kept underway step"))
+			throw std::logic_error("the approach is not underway");
+	}
 	{
 		SqliteStmt kept(db,
 						"SELECT 1 FROM efforts WHERE training_word_id = ? AND exercise_ord = ? AND approach_ord = ?;",
@@ -304,6 +371,11 @@ domain::matter::Effort SqliteTemporality::exert(const domain::id::Word training,
 	stmt.bind_i64(7, effort.finished().value(), "bind finished");
 	stmt.step_done("exert step");
 
+	SqliteStmt done(db, "DELETE FROM underways WHERE training_word_id = ?;", "prepare underway done");
+	done.bind_i64(1, static_cast<std::int64_t>(training.value()), "bind training");
+	done.step_done("underway done step");
+
+	tx.commit();
 	return effort;
 }
 

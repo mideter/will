@@ -33,8 +33,6 @@ protected:
 
 	matter::Word utter(const Saying& saying) const;
 
-	Timestamp now() const;
-
 	matter::Training exercise(id::Word word, std::vector<Exercise> exercises) const;
 
 	void contemplate(const Place& place) const;

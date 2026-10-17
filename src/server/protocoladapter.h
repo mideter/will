@@ -76,7 +76,7 @@ private:
 	void tell_tie(const domain::Tie& tie, const v1::ServerEvent& event);
 
 	/// What the novice of this tie is doing now, as the wire tells it.
-	v1::ServerEvent underway_event(const domain::Tie& tie) const;
+	v1::ServerEvent underway_event(const domain::Training& training) const;
 
 	/// Whether the body of this session awaits its birth.
 	bool awaits_birth(SessionId session_id) const;

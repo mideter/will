@@ -344,9 +344,9 @@ message Dwellers {
 }
 
 
-// The approach of a training the novice is doing now (doing), or that he does
-// none now: told to those who look at the tie when he begins or finishes, and to
-// one entering a room of it.
+// The approach of a training underway now (doing), or that none of it is: told
+// to those who look at the tie when one begins or finishes, and to one entering a
+// room of it, for each training underway. The training is named either way.
 message Underway {
     uint64 behest_id = 1;
     uint32 exercise = 2;

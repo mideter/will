@@ -43,6 +43,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <memory>
+#include <algorithm>
 #include <optional>
 #include <stdexcept>
 #include <utility>
@@ -96,6 +97,7 @@ struct InMemoryShared {
 	std::vector<matter::Answer> answers;
 	std::vector<matter::Execution> executions;
 	std::vector<matter::Effort> efforts;
+	std::vector<matter::Underway> underways;
 };
 
 
@@ -440,15 +442,44 @@ public:
 		return shared_.executions.back();
 	}
 
-	matter::Effort exert(const id::Word training, const std::uint32_t exercise, const std::uint32_t approach,
-						 const Weight weight, const std::uint32_t repetitions, const Timestamp begun) override
+	matter::Underway begin(const id::Word training, const std::uint32_t exercise, const std::uint32_t approach) override
 	{
+		for (const matter::Underway& row : shared_.underways) {
+			if (row.training() == training)
+				throw std::logic_error("another approach of the training is underway");
+		}
+		shared_.underways.emplace_back(training, exercise, approach, eternity_.time().instant());
+		return shared_.underways.back();
+	}
+
+	std::vector<matter::Underway> underways(const std::vector<id::Word>& trainings) const override
+	{
+		std::vector<matter::Underway> out;
+		for (const id::Word training : trainings) {
+			for (const matter::Underway& row : shared_.underways) {
+				if (row.training() == training)
+					out.push_back(row);
+			}
+		}
+		return out;
+	}
+
+	matter::Effort exert(const matter::Underway& doing, const Weight weight, const std::uint32_t repetitions) override
+	{
+		const auto underway = std::find_if(shared_.underways.begin(), shared_.underways.end(), [&](const auto& row) {
+			return row.training() == doing.training() && row.exercise() == doing.exercise()
+				   && row.approach() == doing.approach() && row.begun() == doing.begun();
+		});
+		if (underway == shared_.underways.end())
+			throw std::logic_error("the approach is not underway");
 		for (const matter::Effort& row : shared_.efforts) {
-			if (row.training() == training && row.exercise() == exercise && row.approach() == approach)
+			if (row.training() == doing.training() && row.exercise() == doing.exercise()
+				&& row.approach() == doing.approach())
 				throw std::logic_error("the approach is already done");
 		}
-		shared_.efforts.emplace_back(training, exercise, approach, weight, repetitions, begun,
-									 eternity_.time().instant());
+		shared_.efforts.emplace_back(doing.training(), doing.exercise(), doing.approach(), weight, repetitions,
+									 doing.begun(), eternity_.time().instant());
+		shared_.underways.erase(underway);
 		return shared_.efforts.back();
 	}
 

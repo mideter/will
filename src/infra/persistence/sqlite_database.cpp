@@ -160,6 +160,13 @@ CREATE TABLE IF NOT EXISTS answers (
   answered_at_ns INTEGER NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS underways (
+  training_word_id INTEGER PRIMARY KEY,
+  exercise_ord INTEGER NOT NULL,
+  approach_ord INTEGER NOT NULL,
+  begun_at_ns INTEGER NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS efforts (
   training_word_id INTEGER NOT NULL,
   exercise_ord INTEGER NOT NULL,

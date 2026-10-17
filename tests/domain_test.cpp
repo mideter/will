@@ -1603,14 +1603,14 @@ TEST_CASE("the novice does a training approach by approach: each begun and finis
 		CHECK_THROWS_AS(begin(world, novice, *training, 2, 0), Refusal);
 		CHECK_THROWS_AS(begin(world, novice, *training, 0, 3), Refusal);
 		begin(world, novice, *training, 0, 0);
-		REQUIRE(novice.underway());
-		CHECK(novice.underway()->approach == 0);
+		REQUIRE(training->underway());
+		CHECK(training->underway()->approach() == 0);
 		CHECK_THROWS_AS(begin(world, novice, *training, 1, 0), std::logic_error);
 		CHECK_THROWS_AS(execute(world, novice, *training), std::logic_error);
 
 		cosmos.fake_time().set_instant(Timestamp{cosmos.fake_time().instant().value() + 40'000'000'000});
 		const matter::Effort first = finish(world, novice, *training, Weight{100'000}, 5);
-		CHECK_FALSE(novice.underway());
+		CHECK_FALSE(training->underway());
 		CHECK(first.finished().value() - first.begun().value() == 40'000'000'000);
 		CHECK_THROWS_AS(finish(world, novice, *training, Weight{100'000}, 5), std::logic_error);
 
@@ -1657,6 +1657,61 @@ TEST_CASE("the novice does a training approach by approach: each begun and finis
 }
 
 
+TEST_CASE("an approach underway is the training's, one at a time in each, and outlives the world")
+{
+	InMemoryShared store;
+	const DeviceToken novice_token = DeviceToken::generate();
+	const DeviceToken testator_token = DeviceToken::generate();
+	id::Word monday_id{1};
+	{
+		InMemoryCosmos cosmos(store);
+		World& world = cosmos.life().create().world();
+		const Man& novice = born(world, novice_token);
+		const Man& testator = born(world, testator_token);
+		admit_at_gates(world, novice, testator);
+		admit_at_gates(world, testator, novice);
+		novice.supplicate(testator);
+		const Shepherding& shepherding = testator.accept(*testator.supplication(novice));
+
+		testator.wake();
+		testator.contemplate(room_in(testator, shepherding));
+		const auto monday = train(world, testator, "Понедельник", {Exercise{"Присед", {Approach{Weight{100'000}, 5}}}});
+		const auto tuesday = train(world, testator, "Вторник", {Exercise{"Жим", {Approach{Weight{60'000}, 8}}}});
+		monday_id = monday->id();
+
+		// Each training has its own approach underway, and only one.
+		novice.wake();
+		novice.contemplate(room_in(novice, novice.obedience(testator)));
+		begin(world, novice, *monday, 0, 0);
+		begin(world, novice, *tuesday, 0, 0);
+		CHECK(monday->underway());
+		CHECK(tuesday->underway());
+		CHECK_THROWS_AS(begin(world, novice, *monday, 0, 0), AnotherApproachUnderway);
+		testator.sleep();
+		novice.sleep();
+	}
+
+	// Born anew from matter, the training holds its approach underway, and it is finished.
+	InMemoryCosmos cosmos(store);
+	World& world = cosmos.life().create().world();
+	const Man& testator = born(world, testator_token);
+	const Man& novice = born(world, novice_token);
+	novice.wake();
+	novice.contemplate(room_in(novice, novice.obedience(testator)));
+	std::shared_ptr<const Training> monday;
+	for (const auto& word : world.contemplation(novice.Soul::id())->words()) {
+		if (word->id() == monday_id)
+			monday = std::dynamic_pointer_cast<const Training>(word);
+	}
+	REQUIRE(monday);
+	REQUIRE(monday->underway());
+	CHECK(monday->underway()->approach() == 0);
+	finish(world, novice, *monday, Weight{100'000}, 5);
+	CHECK_FALSE(monday->underway());
+	CHECK(monday->efforts().size() == 1);
+}
+
+
 TEST_CASE("in the novice's cell of a tie, whoever stands there does what the novice does, and it is the novice's")
 {
 	InMemoryCosmos cosmos;
@@ -1681,16 +1736,15 @@ TEST_CASE("in the novice's cell of a tie, whoever stands there does what the nov
 	CHECK_THROWS_AS(begin(world, testator, *training, 0, 0), OnlyNoviceTrains);
 	CHECK_THROWS_AS(execute(world, testator, *training), OnlyNoviceFulfils);
 
-	// The friend, in the novice's cell, begins an approach: it is the novice's underway.
+	// The friend, in the novice's cell, begins an approach of the novice's training.
 	friend_.wake();
 	friend_.contemplate(room_in(novice, obedience));
 	begin(world, friend_, *training, 0, 0);
-	CHECK_FALSE(friend_.underway());
-	REQUIRE(novice.underway());
-	CHECK(novice.underway()->training == training->id());
+	REQUIRE(training->underway());
+	CHECK(training->underway()->training() == training->id());
 
 	const matter::Effort effort = finish(world, friend_, *training, Weight{100'000}, 5);
-	CHECK_FALSE(novice.underway());
+	CHECK_FALSE(training->underway());
 	CHECK(effort.repetitions() == 5);
 	REQUIRE(training->efforts().size() == 1);
 

@@ -92,39 +92,23 @@ void Novice::begin(Birth<Cell>, const Training& training, const std::uint32_t ex
 	if (approach != next)
 		throw ApproachesInOrder();
 
-	std::lock_guard lock(underway_mutex_);
-	if (underway_)
+	if (training.underway())
 		throw AnotherApproachUnderway();
-	underway_ = Underway{training.id(), exercise, approach, now()};
+
+	training.begin(Birth<Novice>{*this}, temporality().begin(training.id(), exercise, approach));
 }
 
 
 matter::Effort Novice::finish(Birth<Cell>, const Training& training, const Weight weight,
 							  const std::uint32_t repetitions) const
 {
-	Underway doing{training.id(), 0, 0, Timestamp{0}};
-	{
-		std::lock_guard lock(underway_mutex_);
-		if (!underway_ || underway_->training != training.id())
-			throw NoApproachUnderway();
-		doing = *underway_;
-	}
+	const std::optional<matter::Underway> doing = training.underway();
+	if (!doing)
+		throw NoApproachUnderway();
 
-	matter::Effort kept
-		= temporality().exert(training.id(), doing.exercise, doing.approach, weight, repetitions, doing.begun);
+	matter::Effort kept = temporality().exert(*doing, weight, repetitions);
 	training.exert(Birth<Novice>{*this}, kept);
-	{
-		std::lock_guard lock(underway_mutex_);
-		underway_.reset();
-	}
 	return kept;
-}
-
-
-std::optional<Novice::Underway> Novice::underway() const
-{
-	std::lock_guard lock(underway_mutex_);
-	return underway_;
 }
 
 
@@ -140,7 +124,7 @@ std::shared_ptr<const Deed> Novice::execute(Birth<Cell>, const Behest& behest, s
 	if (!training && performed)
 		throw PlainBehestWithoutExercises();
 	if (training) {
-		if (const auto doing = underway(); doing && doing->training == training->id())
+		if (training->underway())
 			throw FinishApproachFirst();
 		if (!performed)
 			performed = done_of(*training);

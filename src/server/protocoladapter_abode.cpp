@@ -6,6 +6,7 @@
 #include "words/behest.h"
 #include "words/deed.h"
 #include "places/abode.h"
+#include "words/training.h"
 #include "men/man.h"
 #include "men/novice.h"
 #include "places/obedience.h"
@@ -236,10 +237,11 @@ void ProtocolAdapter::tell_view(const SessionId session_id, const domain::Contem
 	const auto* abode = dynamic_cast<const domain::Abode*>(&gaze.place());
 	if (!abode) {
 		tell_words(session_id, gaze, listener, limit);
-		// In a room of a tie, one is told what its novice is doing now.
-		if (const auto* tie = dynamic_cast<const domain::Tie*>(&gaze.place().source())) {
-			if (tie->novice().underway())
-				send_event(session_id, underway_event(*tie));
+		// In a room of a tie, one is told the approaches underway in its trainings.
+		for (const std::shared_ptr<const domain::Word>& word : gaze.words()) {
+			const auto training = std::dynamic_pointer_cast<const domain::Training>(word);
+			if (training && training->underway())
+				send_event(session_id, underway_event(*training));
 		}
 		return;
 	}
