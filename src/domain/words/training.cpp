@@ -1,5 +1,6 @@
 #include "training.h"
 
+#include "men/man.h"
 #include "men/novice.h"
 
 #include <stdexcept>

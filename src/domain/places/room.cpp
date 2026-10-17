@@ -187,7 +187,7 @@ bool Gates::keeps(const Man& man) const
 bool Gates::open() const
 {
 	for (const Soul& soul : Immanent<Heaven>::horizon().contemplating(*this)) {
-		if (keeps(static_cast<const Man&>(soul)))
+		if (keeps(dynamic_cast<const Man&>(soul)))
 			return true;
 	}
 	return false;
@@ -202,7 +202,7 @@ void Gates::admit(const Contemplation& gaze, const Man& man) const
 		throw KeepGatesByKind();
 	if (abode().dwells(man))
 		throw AlreadyDwells();
-	if (!static_cast<const Witness&>(man).contemplates(*this))
+	if (!man.contemplates(*this))
 		throw NotAtGates();
 
 	abode().host().admit(Birth<Gates>{*this}, man);

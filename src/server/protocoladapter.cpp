@@ -7,6 +7,7 @@
 #include "words/deed.h"
 #include "words/training.h"
 #include "places/abode.h"
+#include "men/man.h"
 #include "men/novice.h"
 #include "places/obedience.h"
 #include "places/shepherding.h"

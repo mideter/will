@@ -7,7 +7,7 @@
 #include "properties/birth.h"
 #include "places/shepherding.h"
 #include "relations/supplication.h"
-#include "men/novice.h"
+#include "men/embodied.h"
 #include "words/behest.h"
 #include "values/saying.h"
 
@@ -20,6 +20,7 @@ namespace will::domain {
 
 
 class Cell;
+class Novice;
 class Training;
 class Word;
 
@@ -29,10 +30,8 @@ class World;
 
 /// Testator (Тренер) — the side of a tie who wills its behests and trainings, and hears
 /// the supplications that would bind one.
-class Testator : public Novice {
+class Testator : public virtual Embodied {
 public:
-	Testator(Birth<World>, matter::Man kept);
-
 	const Shepherding& accept(const Supplication& ask) const;
 	void reject(const Supplication& ask) const;
 
@@ -49,6 +48,9 @@ public:
 	void hear(Birth<Novice> birth) const;
 
 	void hear(Birth<World> birth, matter::Supplication kept) const;
+
+protected:
+	Testator() {}
 
 private:
 	friend class World;

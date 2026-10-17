@@ -16,6 +16,7 @@
 #include "words/letter.h"
 #include "words/behest.h"
 #include "words/deed.h"
+#include "men/man.h"
 #include "men/novice.h"
 #include "places/obedience.h"
 #include "places/shepherding.h"
@@ -71,7 +72,7 @@ TEST_CASE("Letter is born of its abode from matter, with living place and author
 	World& world = creation.world();
 
 	const Man& man = born(world, DeviceToken::generate());
-	const auto& witness = static_cast<const Witness&>(man);
+	const auto& witness = man;
 
 	// Only the abode brings a letter forth.
 	static_assert(!std::is_constructible_v<Letter, matter::Letter>);
@@ -98,7 +99,7 @@ TEST_CASE("matter::Letter rejects parts with different word ids")
 	World& world = creation.world();
 
 	const Man& man = born(world, DeviceToken::generate());
-	const auto& witness = static_cast<const Witness&>(man);
+	const auto& witness = man;
 
 	const matter::Word word{id::Word{1}, man.Soul::id(), "x"};
 	const matter::Placement placement{id::Word{2}, witness.abode().id()};
@@ -113,8 +114,8 @@ TEST_CASE("Behest is a word of will in a living Tie, born of the Tie or of its t
 	Creation& creation = cosmos.life().create();
 	World& world = creation.world();
 
-	const auto& testator = static_cast<const Testator&>(born(world, DeviceToken::generate()));
-	const auto& novice = static_cast<const Novice&>(born(world, DeviceToken::generate()));
+	const auto& testator = born(world, DeviceToken::generate());
+	const auto& novice = born(world, DeviceToken::generate());
 
 	static_assert(!std::is_constructible_v<Behest, matter::Behest>);
 
@@ -150,8 +151,8 @@ TEST_CASE("Deed is the novice's word fulfilling a behest, his report or «сов
 	Creation& creation = cosmos.life().create();
 	World& world = creation.world();
 
-	const auto& testator = static_cast<const Testator&>(born(world, DeviceToken::generate()));
-	const auto& novice = static_cast<const Novice&>(born(world, DeviceToken::generate()));
+	const auto& testator = born(world, DeviceToken::generate());
+	const auto& novice = born(world, DeviceToken::generate());
 
 	static_assert(!std::is_constructible_v<Deed, matter::Deed>);
 

@@ -1,4 +1,5 @@
 #include "testator.h"
+#include "men/man.h"
 #include "refusals/tie.h"
 #include "refusals/testator.h"
 #include "refusals/refusal.h"
@@ -23,11 +24,6 @@
 
 
 namespace will::domain {
-
-
-Testator::Testator(Birth<World>, matter::Man kept)
-	: Novice(std::move(kept))
-{}
 
 
 const Shepherding& Testator::accept(const Supplication& ask) const
@@ -123,7 +119,7 @@ std::vector<std::shared_ptr<const Supplication>> Testator::supplications() const
 
 void Testator::hear(const Birth<Novice> birth) const
 {
-	const Novice& suppliant = birth.parent();
+	const Man& suppliant = man_of(birth.parent());
 	if (!abode().dweller(suppliant))
 		throw HearOnlyDweller();
 	for (const Shepherding* place : shepherdings_) {

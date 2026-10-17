@@ -9,6 +9,7 @@
 #include "words/deed.h"
 #include "words/training.h"
 #include "places/abode.h"
+#include "men/man.h"
 #include "men/novice.h"
 #include "places/obedience.h"
 #include "places/shepherding.h"
@@ -44,7 +45,7 @@ using namespace wire;
 void ProtocolAdapter::handle_turn(const SessionId session_id, const v1::Turn& msg)
 {
 	const domain::Man& self = session_man(session_id);
-	const auto& witness = static_cast<const domain::Witness&>(self);
+	const auto& witness = self;
 
 	const domain::Man* host = &self;
 	if (!msg.abode_of().empty()) {
@@ -244,7 +245,7 @@ void ProtocolAdapter::tell_view(const SessionId session_id, const domain::Contem
 		tell_words(session_id, gaze, listener, limit);
 		// In a room of a tie, one is told what its novice is doing now.
 		if (const auto* tie = dynamic_cast<const domain::Tie*>(&gaze.place().source())) {
-			if (static_cast<const domain::Novice&>(tie->novice()).underway())
+			if (tie->novice().underway())
 				send_event(session_id, underway_event(*tie));
 		}
 		return;
@@ -378,7 +379,7 @@ v1::ServerEvent ProtocolAdapter::threshold_event(const domain::Gates& gates, con
 	// Only those who keep the gates see who waits to be let in: those at them who do not dwell here.
 	if (gates.keeps(listener)) {
 		for (const domain::Soul& soul : world_.contemplating(gates)) {
-			const auto& man = static_cast<const domain::Man&>(soul);
+			const auto& man = dynamic_cast<const domain::Man&>(soul);
 			if (&man != &listener && !gates.abode().dweller(man))
 				threshold->add_waiting(std::string{man.name().text()});
 		}
@@ -394,7 +395,7 @@ v1::ServerEvent ProtocolAdapter::dwellers_event(const domain::Abode& abode) cons
 	// Whether the suppliant awaits the answer of the addressee.
 	const auto asking = [](const domain::Man& suppliant, const domain::Man& addressee) {
 		for (const std::shared_ptr<const domain::Supplication>& pending :
-			 static_cast<const domain::Testator&>(addressee).supplications()) {
+			 addressee.supplications()) {
 			if (pending->suppliant().Soul::id() == suppliant.Soul::id())
 				return true;
 		}
@@ -402,7 +403,7 @@ v1::ServerEvent ProtocolAdapter::dwellers_event(const domain::Abode& abode) cons
 	};
 	// Whether the trainer shepherds the novice in a tie.
 	const auto shepherds = [](const domain::Man& trainer, const domain::Man& novice) {
-		for (const domain::Obedience& tie : static_cast<const domain::Novice&>(novice).obediences()) {
+		for (const domain::Obedience& tie : novice.obediences()) {
 			if (tie.testator().Soul::id() == trainer.Soul::id())
 				return true;
 		}
@@ -430,7 +431,7 @@ void ProtocolAdapter::retell_gates(const domain::Gates& gates, const domain::Sou
 	for (const domain::Soul& soul : world_.contemplating(gates)) {
 		if (&soul == except)
 			continue;
-		const auto& man = static_cast<const domain::Man&>(soul);
+		const auto& man = dynamic_cast<const domain::Man&>(soul);
 		send_to_vessel(man.Vessel::id(), threshold_event(gates, man));
 		// One who now keeps them sees the unborn as well.
 		if (gates.keeps(man))
@@ -443,7 +444,7 @@ void ProtocolAdapter::retell_upper_room(const domain::UpperRoom& upper_room)
 {
 	const v1::ServerEvent event = dwellers_event(upper_room.abode());
 	for (const domain::Soul& soul : world_.contemplating(upper_room)) {
-		const auto& man = static_cast<const domain::Man&>(soul);
+		const auto& man = dynamic_cast<const domain::Man&>(soul);
 		send_to_vessel(man.Vessel::id(), event);
 		// Whoever stands here arranges: a tie bound or let go changes the rooms too.
 		send_to_vessel(man.Vessel::id(), arranged_rooms_event(upper_room.abode()));

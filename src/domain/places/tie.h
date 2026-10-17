@@ -27,8 +27,8 @@ public:
 	Tie(Birth<Novice>, matter::Tie kept);
 	~Tie() override;
 
-	const Testator& testator() const override;
-	const Novice& novice() const override;
+	const Man& testator() const override;
+	const Man& novice() const override;
 
 	std::vector<std::shared_ptr<const Behest>> behests(const Novice& asker) const override;
 	std::vector<std::shared_ptr<const Deed>> deeds(const Novice& asker) const override;

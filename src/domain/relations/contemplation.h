@@ -16,7 +16,7 @@ class Gates;
 class Heaven;
 class Recollection;
 class UpperRoom;
-class Witness;
+class Man;
 class Word;
 
 
@@ -24,7 +24,7 @@ class Word;
 /// live while it is beheld.
 class Contemplation : public Immanent<Heaven> {
 public:
-	const Witness& who() const noexcept { return who_; }
+	const Man& who() const noexcept { return who_; }
 	const Place& place() const noexcept { return place_; }
 
 	/// Those the place shows to who looks, oldest first.
@@ -38,10 +38,10 @@ public:
 	/// Whether what one writes here is taken.
 	bool writable() const;
 
-	Contemplation(Birth<Heaven>, const Witness& who, const Place& place);
+	Contemplation(Birth<Heaven>, const Man& who, const Place& place);
 
 private:
-	const Witness& who_;
+	const Man& who_;
 	const Place& place_;
 	std::shared_ptr<const Recollection> recollection_;
 };

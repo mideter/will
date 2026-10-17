@@ -4,7 +4,7 @@
 #include "men/soul.h"
 #include "men/testator.h"
 #include "relations/supplication.h"
-#include "men/witness.h"
+#include "men/man.h"
 #include "dimensions/eternity.h"
 
 #include <algorithm>
@@ -107,7 +107,7 @@ void Heaven::contemplate(const Soul& soul, const Place& place)
 	// Born and ended outside the lock: a gaze holds the recollection of its
 	// place, which may read the dimensions and ask Heaven for their authors.
 	std::shared_ptr<const Contemplation> gaze =
-		std::make_shared<const Contemplation>(Birth<Heaven>{*this}, static_cast<const Witness&>(soul), place);
+		std::make_shared<const Contemplation>(Birth<Heaven>{*this}, dynamic_cast<const Man&>(soul), place);
 
 	std::lock_guard lock(mutex_);
 	std::swap(contemplations_[soul.id()], gaze);

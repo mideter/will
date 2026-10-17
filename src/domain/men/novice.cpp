@@ -11,6 +11,7 @@
 #include "places/tie.h"
 #include "relations/contemplation.h"
 #include "men/soul.h"
+#include "men/man.h"
 #include "men/testator.h"
 #include "dimensions/spatiality.h"
 #include "matter/word.h"
@@ -24,12 +25,7 @@
 namespace will::domain {
 
 
-Novice::Novice(matter::Man kept)
-	: Witness(std::move(kept))
-{}
-
-
-void Novice::supplicate(const Testator& addressee) const
+void Novice::supplicate(const Man& addressee) const
 {
 	if (addressee.Soul::id() == Soul::id())
 		throw CannotSupplicateOneself();

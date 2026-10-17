@@ -260,7 +260,7 @@ std::vector<std::shared_ptr<const Behest>> Abode::awaited() const
 
 std::vector<std::shared_ptr<const Behest>> Abode::unfulfilled(const bool host_is_novice) const
 {
-	const auto& asker = dynamic_cast<const Novice&>(host_);
+	const Man& asker = host_;
 
 	std::vector<std::shared_ptr<const Behest>> waiting;
 	for (const Room& room : rooms()) {
@@ -310,7 +310,7 @@ std::shared_ptr<const Word> Abode::receive(const Birth<Cell> cell, const Saying&
 		throw std::logic_error("the cell is not of this abode");
 
 	// What is written here is its host's record: a letter.
-	return static_cast<const Witness&>(host_).record(cell, saying);
+	return host_.record(cell, saying);
 }
 
 

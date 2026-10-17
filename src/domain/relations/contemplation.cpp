@@ -1,6 +1,6 @@
 #include "contemplation.h"
 
-#include "men/witness.h"
+#include "men/man.h"
 #include "places/room.h"
 #include "refusals/place.h"
 #include "words/recollection.h"
@@ -9,7 +9,7 @@
 namespace will::domain {
 
 
-Contemplation::Contemplation(Birth<Heaven>, const Witness& who, const Place& place)
+Contemplation::Contemplation(Birth<Heaven>, const Man& who, const Place& place)
 	: who_(who)
 	, place_(place)
 	, recollection_(place.recollection(*this))

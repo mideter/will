@@ -9,6 +9,7 @@
 #include "words/deed.h"
 #include "words/training.h"
 #include "places/abode.h"
+#include "men/man.h"
 #include "men/novice.h"
 #include "places/obedience.h"
 #include "places/shepherding.h"
@@ -78,7 +79,7 @@ void ProtocolAdapter::handle_user_chat(const SessionId session_id, const v1::Cha
 void ProtocolAdapter::tell_placed(const domain::Place& place, const domain::Word& word, const domain::Man& author)
 {
 	for (const domain::Soul& beholder : world_.contemplating(place)) {
-		const auto& man = static_cast<const domain::Man&>(beholder);
+		const auto& man = dynamic_cast<const domain::Man&>(beholder);
 		if (man.Soul::id() == author.Soul::id())
 			continue;
 
@@ -159,8 +160,8 @@ void ProtocolAdapter::handle_supplicate(const SessionId session_id, const v1::Su
 		return;
 
 	const domain::Man& self = session_man(session_id);
-	const auto& novice = static_cast<const domain::Novice&>(self);
-	const auto& testator = static_cast<const domain::Testator&>(*addressee_man);
+	const auto& novice = self;
+	const auto& testator = *addressee_man;
 
 	try {
 		novice.supplicate(testator);
@@ -189,8 +190,8 @@ void ProtocolAdapter::handle_accept_supplication(const SessionId session_id,
 		return;
 
 	const domain::Man& self = session_man(session_id);
-	const auto& testator = static_cast<const domain::Testator&>(self);
-	const auto& novice = static_cast<const domain::Novice&>(*suppliant_man);
+	const auto& testator = self;
+	const auto& novice = *suppliant_man;
 
 	std::optional<domain::id::Place> formed;
 	try {
@@ -260,7 +261,7 @@ void ProtocolAdapter::handle_fulfil(const SessionId session_id, const v1::Fulfil
 
 void ProtocolAdapter::handle_list_supplications(const SessionId session_id)
 {
-	const auto& self = static_cast<const domain::Testator&>(session_man(session_id));
+	const auto& self = session_man(session_id);
 
 	v1::ServerEvent event;
 	auto* list = event.mutable_supplications();
@@ -315,7 +316,7 @@ std::shared_ptr<const domain::Training> ProtocolAdapter::training_in_gaze(const 
 void ProtocolAdapter::tell_tie(const domain::Tie& tie, const v1::ServerEvent& event)
 {
 	for (const domain::Soul& soul : world_.contemplating(tie))
-		send_to_vessel(static_cast<const domain::Man&>(soul).Vessel::id(), event);
+		send_to_vessel(dynamic_cast<const domain::Man&>(soul).Vessel::id(), event);
 }
 
 
@@ -323,7 +324,7 @@ v1::ServerEvent ProtocolAdapter::underway_event(const domain::Tie& tie) const
 {
 	v1::ServerEvent event;
 	auto* told = event.mutable_underway();
-	if (const auto doing = static_cast<const domain::Novice&>(tie.novice()).underway()) {
+	if (const auto doing = tie.novice().underway()) {
 		told->set_behest_id(doing->training.value());
 		told->set_exercise(doing->exercise);
 		told->set_approach(doing->approach);
@@ -383,9 +384,9 @@ void ProtocolAdapter::handle_reject_supplication(const SessionId session_id, con
 	if (!suppliant)
 		return;
 
-	const auto& self = static_cast<const domain::Testator&>(session_man(session_id));
+	const auto& self = session_man(session_id);
 	try {
-		self.reject(*self.supplication(static_cast<const domain::Novice&>(*suppliant)));
+		self.reject(*self.supplication(*suppliant));
 	} catch (const std::exception& e) {
 		refuse(session_id, e);
 		return;

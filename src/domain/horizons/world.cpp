@@ -15,6 +15,7 @@
 #include "matter/soul.h"
 #include "matter/tie.h"
 #include "matter/vessel.h"
+#include "men/man.h"
 #include "men/novice.h"
 #include "men/soul.h"
 #include "men/testator.h"
@@ -47,7 +48,7 @@ World::~World()
 	// Ties are let go while both their sides still live: the testator is told
 	// that his shepherding ends.
 	for (auto& [soul_id, man] : men_)
-		static_cast<const Novice&>(*man).obediences_.clear();
+		man->obediences_.clear();
 }
 
 
@@ -112,10 +113,8 @@ void World::awaken()
 			continue;
 		}
 		ties.insert(kept.id());
-		const auto& novice = static_cast<const Novice&>(Soul::of(kept.novice()));
-		const Obedience& place = novice.follow(std::move(kept));
-		static_cast<const Testator&>(place.testator()).shepherd(
-			dynamic_cast<const Shepherding&>(place));
+		const Obedience& place = Man::of(kept.novice()).follow(std::move(kept));
+		place.testator().shepherd(dynamic_cast<const Shepherding&>(place));
 	}
 
 	// Tie rooms are recalled once the ties live; a tie bound before rooms were
@@ -175,7 +174,7 @@ void World::awaken()
 	}
 
 	for (const auto& [soul_id, man] : men_) {
-		const auto& addressee = static_cast<const Testator&>(*man);
+		const Man& addressee = *man;
 
 		for (matter::Supplication kept : temporality().supplications(soul_id)) {
 			if (!lives(kept.suppliant())) {
@@ -389,7 +388,7 @@ const Man& World::accept(matter::Man kept)
 {
 	const id::Soul soul_id = kept.soul().id();
 	const id::Vessel vessel_id = kept.vessel().id();
-	auto ptr = std::unique_ptr<Man>(std::make_unique<Testator>(Birth<World>{*this}, std::move(kept)));
+	auto ptr = std::make_unique<Man>(Birth<World>{*this}, std::move(kept));
 	Man& live = *ptr;
 
 	std::lock_guard lock(mutex_);

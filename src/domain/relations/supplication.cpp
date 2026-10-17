@@ -8,6 +8,7 @@
 #include "places/obedience.h"
 #include "places/shepherding.h"
 #include "matter/tie.h"
+#include "men/man.h"
 #include "men/novice.h"
 #include "men/soul.h"
 #include "men/testator.h"
@@ -31,18 +32,19 @@ Supplication::Supplication(Birth<World>, matter::Supplication kept)
 
 
 Supplication::Supplication(matter::Supplication kept)
-	: suppliant_(static_cast<const Novice&>(Soul::of(kept.suppliant())))
-	, addressee_(static_cast<const Testator&>(Soul::of(kept.addressee())))
+	: suppliant_(Man::of(kept.suppliant()))
+	, addressee_(Man::of(kept.addressee()))
 {}
 
 
-const Shepherding& Supplication::sign(const Testator& addressee) const
+const Shepherding& Supplication::sign(const Testator& asked) const
 {
-	if (addressee.Soul::id() != addressee_.Soul::id())
+	if (asked.Soul::id() != addressee_.Soul::id())
 		throw std::logic_error("supplication is not addressed to this soul");
 
-	const std::shared_ptr<const Supplication> incoming = addressee.supplication(suppliant_);
-	const Novice& suppliant = suppliant_;
+	const Man& addressee = addressee_;
+	const Man& suppliant = suppliant_;
+	const std::shared_ptr<const Supplication> incoming = addressee.supplication(suppliant);
 	if (!addressee.abode().dweller(suppliant) || !suppliant.abode().dweller(addressee))
 		throw TieOnlyMutualDwellers();
 
@@ -65,11 +67,12 @@ const Shepherding& Supplication::sign(const Testator& addressee) const
 }
 
 
-void Supplication::reject(const Testator& addressee) const
+void Supplication::reject(const Testator& asked) const
 {
-	if (addressee.Soul::id() != addressee_.Soul::id())
+	if (asked.Soul::id() != addressee_.Soul::id())
 		throw std::logic_error("supplication is not addressed to this soul");
 
+	const Man& addressee = addressee_;
 	const std::shared_ptr<const Supplication> incoming = addressee.supplication(suppliant_);
 
 	addressee.temporality().answer(suppliant_.Soul::id(), addressee_.Soul::id(), matter::Answer::Form::Rejected);

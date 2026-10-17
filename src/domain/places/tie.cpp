@@ -10,6 +10,7 @@
 #include "relations/contemplation.h"
 #include "men/soul.h"
 #include "horizons/space.h"
+#include "men/man.h"
 #include "men/testator.h"
 #include "matter/behest.h"
 #include "properties/immanent.h"
@@ -25,8 +26,8 @@ namespace will::domain {
 
 Tie::Tie(Birth<Novice>, matter::Tie kept)
 	: Place(kept.id())
-	, Obedience(Soul::of(kept.testator()))
-	, Shepherding(Soul::of(kept.novice()))
+	, Obedience(Man::of(kept.testator()))
+	, Shepherding(Man::of(kept.novice()))
 {
 	Immanent<Space>::present<Place>();
 }
@@ -38,13 +39,13 @@ Tie::~Tie()
 }
 
 
-const Testator& Tie::testator() const
+const Man& Tie::testator() const
 {
 	return testator_;
 }
 
 
-const Novice& Tie::novice() const
+const Man& Tie::novice() const
 {
 	return novice_;
 }

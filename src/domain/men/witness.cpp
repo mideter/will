@@ -1,4 +1,5 @@
 #include "witness.h"
+#include "men/man.h"
 #include "refusals/room.h"
 #include "refusals/place.h"
 #include "refusals/abode.h"
@@ -23,11 +24,6 @@
 namespace will::domain {
 
 
-Witness::Witness(matter::Man kept)
-	: Man(std::move(kept))
-{}
-
-
 void Witness::wake() const
 {
 	contemplate(abode());
@@ -42,7 +38,7 @@ void Witness::sleep() const
 
 void Witness::contemplate(const Abode& abode) const
 {
-	if (!abode.dwells(*this))
+	if (!abode.dwells(man_of(*this)))
 		throw DoesNotDwell();
 
 	Spirit::contemplate(abode);
@@ -51,7 +47,7 @@ void Witness::contemplate(const Abode& abode) const
 
 void Witness::contemplate(const Room& room) const
 {
-	if (!room.dwells(*this))
+	if (!room.dwells(man_of(*this)))
 		throw DoesNotEnterRoom();
 
 	Spirit::contemplate(room);

@@ -12,7 +12,7 @@
 #include "words/behest.h"
 #include "words/deed.h"
 #include "values/saying.h"
-#include "men/witness.h"
+#include "men/embodied.h"
 #include "identity/word.h"
 
 #include <functional>
@@ -29,14 +29,15 @@ class Cell;
 class Training;
 
 
+class Man;
 class Testator;
 
 
 /// Novice (Послушник) — the side of a tie who fulfils its behests and does its trainings.
-class Novice : public Witness {
+class Novice : public virtual Embodied {
 public:
 	/// Ask the addressee to become one's testator.
-	void supplicate(const Testator& addressee) const;
+	void supplicate(const Man& addressee) const;
 
 	/// Without a report the deed says «совершено».
 	std::shared_ptr<const Deed> execute(Birth<Cell> cell, const Behest& behest, std::optional<Saying> report,
@@ -62,7 +63,7 @@ public:
 	const Obedience& obedience(const Testator& testator) const;
 
 protected:
-	explicit Novice(matter::Man kept);
+	Novice() {}
 
 private:
 	friend class Supplication;

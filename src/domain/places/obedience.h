@@ -14,6 +14,7 @@ namespace will::domain {
 class Behest;
 class Deed;
 class Novice;
+class Man;
 class Soul;
 class Testator;
 
@@ -23,8 +24,8 @@ class Obedience : public virtual Place {
 public:
 	~Obedience() override = default;
 
-	virtual const Testator& testator() const = 0;
-	virtual const Novice& novice() const = 0;
+	virtual const Man& testator() const = 0;
+	virtual const Man& novice() const = 0;
 
 	/// Oldest first.
 	virtual std::vector<std::shared_ptr<const Behest>> behests(const Novice& asker) const = 0;
@@ -35,9 +36,9 @@ public:
 	virtual std::shared_ptr<const Deed> inscribe(Birth<Novice>, matter::Deed kept) const = 0;
 
 protected:
-	explicit Obedience(const Soul& testator);
+	explicit Obedience(const Man& testator);
 
-	const Testator& testator_;
+	const Man& testator_;
 };
 
 

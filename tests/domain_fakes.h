@@ -648,7 +648,7 @@ inline void arrange(World& world, const Man& man, const Room& room, matter::Room
 template<typename Act>
 void looking_at(World& world, const Man& man, const Room& room, Act act)
 {
-	const auto& witness = static_cast<const Witness&>(man);
+	const auto& witness = man;
 	const std::shared_ptr<const Contemplation> before = world.contemplation(man.Soul::id());
 	witness.contemplate(room);
 	act();

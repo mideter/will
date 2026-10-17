@@ -9,6 +9,7 @@
 #include "words/deed.h"
 #include "words/training.h"
 #include "places/abode.h"
+#include "men/man.h"
 #include "men/novice.h"
 #include "places/obedience.h"
 #include "places/shepherding.h"
@@ -57,7 +58,7 @@ void ProtocolAdapter::handle_bind_token(const SessionId session_id, const v1::Bi
 		std::lock_guard lock(presence_mutex_);
 		displaced = registry_.bind_vessel(session_id, body.id());
 		if (man) {
-			static_cast<const domain::Witness&>(*man).wake();
+			man->wake();
 			woken_by_session_.insert_or_assign(session_id.value, body.id());
 		}
 	}
@@ -106,7 +107,7 @@ void ProtocolAdapter::on_session_ended(const SessionId session_id)
 
 	const domain::Man& man = world_.man(world_.vessel(vessel_id));
 	const domain::Gates* left = gates_of_gaze(man);
-	static_cast<const domain::Witness&>(man).sleep();
+	man.sleep();
 	if (left)
 		retell_gates(*left);
 }
@@ -138,7 +139,7 @@ void ProtocolAdapter::handle_bear(const SessionId session_id, const v1::Bear& ms
 	if (const auto child_session = registry_.session_id_for_vessel(child.Vessel::id())) {
 		{
 			std::lock_guard lock(presence_mutex_);
-			static_cast<const domain::Witness&>(child).wake();
+			child.wake();
 			woken_by_session_.insert_or_assign(child_session->value, child.Vessel::id());
 		}
 		v1::ServerEvent event;

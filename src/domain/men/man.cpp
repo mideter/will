@@ -5,6 +5,7 @@
 #include "refusals/refusal.h"
 
 #include "dimensions/spatiality.h"
+#include "men/man.h"
 #include "men/witness.h"
 #include "relations/contemplation.h"
 #include "places/room.h"
@@ -20,9 +21,8 @@
 namespace will::domain {
 
 
-Man::Man(matter::Man kept)
-	: Soul(kept.soul())
-	, Vessel(kept.vessel())
+Man::Man(Birth<World>, matter::Man kept)
+	: Embodied(kept)
 {
 	Immanent<Heaven>::present<Soul>();
 	Immanent<Earth>::present<Vessel>();
@@ -43,6 +43,12 @@ Man::Man(matter::Man kept)
 		abode_->furnish(Birth<Man>{*this},
 						found != rooms.end() ? *found : spatiality().furnish(abode_->id(), abode_->id(), aspect));
 	}
+}
+
+
+const Man& Man::of(const id::Soul id)
+{
+	return dynamic_cast<const Man&>(Soul::of(id));
 }
 
 

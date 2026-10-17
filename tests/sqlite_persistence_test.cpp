@@ -6,6 +6,7 @@
 #include "words/deed.h"
 #include "places/obedience.h"
 #include "words/letter.h"
+#include "men/man.h"
 #include "men/novice.h"
 #include "places/shepherding.h"
 #include "men/testator.h"
@@ -116,16 +117,16 @@ TEST_CASE("sqlite persistence survives reopen")
 		soul_b_id = man_b.Soul::id();
 		name_a = man_a.name();
 		name_b = man_b.name();
-		abode_a_place = static_cast<const Witness&>(man_a).abode().id();
+		abode_a_place = man_a.abode().id();
 
-		static_cast<const Witness&>(man_a).wake();
-		static_cast<const Witness&>(man_b).wake();
-		static_cast<const Witness&>(man_a).contemplate(*man_a.abode().cell(man_a.abode()));
-		static_cast<const Witness&>(man_b).contemplate(*man_b.abode().cell(man_b.abode()));
+		man_a.wake();
+		man_b.wake();
+		man_a.contemplate(*man_a.abode().cell(man_a.abode()));
+		man_b.contemplate(*man_b.abode().cell(man_b.abode()));
 		{ const auto gaze = world.contemplation(man_a.Soul::id()); gaze->cell().write(*gaze, "from-peer"); }
 		{ const auto gaze = world.contemplation(man_b.Soul::id()); gaze->cell().write(*gaze, "from-me"); }
 
-		const auto& witness_a = static_cast<const Witness&>(man_a);
+		const auto& witness_a = man_a;
 		const auto letters = letters_seen_by(world.contemplation(witness_a.Soul::id()));
 		REQUIRE(letters.size() == 1);
 		CHECK(letters[0]->saying().body() == "from-peer");
@@ -136,8 +137,8 @@ TEST_CASE("sqlite persistence survives reopen")
 		const auto placed = bundle.spatiality().placements(witness_a.abode().id(), 10);
 		REQUIRE(placed.size() == 1);
 
-		CHECK(static_cast<const Witness&>(man_a).abode().id() !=
-			  static_cast<const Witness&>(man_b).abode().id());
+		CHECK(man_a.abode().id() !=
+			  man_b.abode().id());
 
 		// One abode per soul: what is kept decides.
 		REQUIRE(bundle.spatiality().abode(man_a.Soul::id()));
@@ -172,13 +173,13 @@ TEST_CASE("sqlite persistence survives reopen")
 		const Man& man_a_reloaded = born(world, token_a);
 		CHECK(man_a_reloaded.Soul::id() == *soul_a_id);
 		CHECK(world.man(world.vessel(man_a_reloaded.Vessel::id())).Soul::id() == *soul_a_id);
-		CHECK(static_cast<const Witness&>(man_a_reloaded).abode().dwells(man_a_reloaded));
-		CHECK(static_cast<const Witness&>(man_a_reloaded).abode().id() == *abode_a_place);
+		CHECK(man_a_reloaded.abode().dwells(man_a_reloaded));
+		CHECK(man_a_reloaded.abode().id() == *abode_a_place);
 
 		// After the World awakens anew everyone is asleep until he comes.
 		CHECK_FALSE(world.contemplation(man_a_reloaded.Soul::id()));
-		static_cast<const Witness&>(man_a_reloaded).wake();
-		static_cast<const Witness&>(man_a_reloaded).contemplate(*man_a_reloaded.abode().cell(man_a_reloaded.abode()));
+		man_a_reloaded.wake();
+		man_a_reloaded.contemplate(*man_a_reloaded.abode().cell(man_a_reloaded.abode()));
 
 		const auto letters = letters_seen_by(world.contemplation(man_a_reloaded.Soul::id()));
 		REQUIRE(letters.size() == 1);
@@ -226,8 +227,8 @@ TEST_CASE("sqlite keeps a behest and its execution across reopen")
 		SqlitePersistenceBundle bundle(directory);
 		World& world = bundle.world();
 
-		const auto& novice = static_cast<const Novice&>(born(world, token_novice));
-		const auto& testator = static_cast<const Testator&>(born(world, token_testator));
+		const auto& novice = born(world, token_novice);
+		const auto& testator = born(world, token_testator);
 
 		admit_at_gates(world, novice, testator);
 		admit_at_gates(world, testator, novice);
@@ -259,8 +260,8 @@ TEST_CASE("sqlite keeps a behest and its execution across reopen")
 		SqlitePersistenceBundle bundle(directory);
 		World& world = bundle.world();
 
-		const auto& novice = static_cast<const Novice&>(born(world, token_novice));
-		const auto& testator = static_cast<const Testator&>(born(world, token_testator));
+		const auto& novice = born(world, token_novice);
+		const auto& testator = born(world, token_testator);
 
 		// The reborn tie shows the same behests to both sides, oldest first.
 		const std::vector<std::shared_ptr<const Behest>> shown = novice.obedience(testator).behests(novice);
@@ -308,9 +309,9 @@ TEST_CASE("sqlite keeps supplications, rejections and ties across reopen")
 		SqlitePersistenceBundle bundle(directory);
 		World& world = bundle.world();
 
-		const auto& a = static_cast<const Testator&>(born(world, token_a));
-		const auto& b = static_cast<const Testator&>(born(world, token_b));
-		const auto& c = static_cast<const Testator&>(born(world, token_c));
+		const auto& a = born(world, token_a);
+		const auto& b = born(world, token_b);
+		const auto& c = born(world, token_c);
 
 		// a asks b twice: rejected, then asked again and left awaiting.
 		admit_at_gates(world, a, b);
@@ -338,9 +339,9 @@ TEST_CASE("sqlite keeps supplications, rejections and ties across reopen")
 		SqlitePersistenceBundle bundle(directory);
 		World& world = bundle.world();
 
-		const auto& a = static_cast<const Testator&>(born(world, token_a));
-		const auto& b = static_cast<const Testator&>(born(world, token_b));
-		const auto& c = static_cast<const Testator&>(born(world, token_c));
+		const auto& a = born(world, token_a);
+		const auto& b = born(world, token_b);
+		const auto& c = born(world, token_c);
 
 		// The awaiting supplication is reborn on the addressee's heap; the accepted
 		// one is answered and stays behind; the tie is living.

@@ -1,13 +1,14 @@
 #include "obedience.h"
 
+#include "men/man.h"
 #include "men/testator.h"
 
 
 namespace will::domain {
 
 
-Obedience::Obedience(const Soul& testator)
-	: testator_(static_cast<const Testator&>(testator))
+Obedience::Obedience(const Man& testator)
+	: testator_(testator)
 {}
 
 

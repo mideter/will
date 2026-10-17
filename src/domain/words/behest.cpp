@@ -2,6 +2,7 @@
 
 #include "places/place.h"
 #include "places/tie.h"
+#include "men/man.h"
 #include "men/testator.h"
 
 #include <stdexcept>

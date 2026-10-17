@@ -1,8 +1,7 @@
 #pragma once
 
-#include "matter/man.h"
-#include "places/abode.h"
-#include "men/man.h"
+#include "men/embodied.h"
+#include "properties/birth.h"
 #include "values/saying.h"
 
 #include <memory>
@@ -11,7 +10,10 @@
 namespace will::domain {
 
 
+class Abode;
+class Man;
 class Cell;
+class Place;
 class Room;
 class Letter;
 class Word;
@@ -19,7 +21,7 @@ class Word;
 
 /// Witness (Свидетель) — a living man in the waking world: awake, he contemplates one
 /// thing, his own abode unless he turns elsewhere; asleep, nothing.
-class Witness : public Man {
+class Witness : public virtual Embodied {
 public:
 	void wake() const;
 
@@ -36,7 +38,7 @@ public:
 	std::shared_ptr<const Letter> record(Birth<Cell> cell, const Saying& saying) const;
 
 protected:
-	explicit Witness(matter::Man kept);
+	Witness() {}
 };
 
 
