@@ -30,7 +30,7 @@ void Witness::wake() const
 
 void Witness::sleep() const
 {
-	cease();
+	repose();
 }
 
 

@@ -59,7 +59,7 @@ private:
 
 	void contemplate(const Soul& soul, const Place& place);
 
-	void cease(const Soul& soul);
+	void repose(const Soul& soul);
 
 	void release(const Supplication& answered);
 

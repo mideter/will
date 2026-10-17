@@ -34,10 +34,10 @@ void Spirit::entrust(matter::Supplication kept)
 }
 
 
-void Spirit::cease() const
+void Spirit::repose() const
 {
 	const auto& self = static_cast<const Soul&>(*this);
-	horizon().cease(self);
+	horizon().repose(self);
 }
 
 

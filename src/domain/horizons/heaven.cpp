@@ -113,7 +113,7 @@ void Heaven::contemplate(const Soul& soul, const Place& place)
 }
 
 
-void Heaven::cease(const Soul& soul)
+void Heaven::repose(const Soul& soul)
 {
 	std::shared_ptr<const Contemplation> ended;
 

@@ -37,7 +37,7 @@ protected:
 
 	void contemplate(const Place& place) const;
 
-	void cease() const;
+	void repose() const;
 
 	/// Heaven keeps it until it is answered.
 	static void entrust(matter::Supplication kept);
