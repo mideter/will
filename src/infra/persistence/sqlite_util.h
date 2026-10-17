@@ -55,14 +55,6 @@ public:
 					 db_, context);
 	}
 
-	/// Step once; returns the raw result code after check_sqlite (ROW / DONE / OK).
-	int step(const char* context)
-	{
-		const int rc = sqlite3_step(stmt_);
-		check_sqlite(rc, db_, context);
-		return rc;
-	}
-
 	/// True on SQLITE_ROW; false on SQLITE_DONE; throws on error.
 	bool step_row(const char* context)
 	{
@@ -95,11 +87,6 @@ public:
 			return {};
 		return {reinterpret_cast<const char*>(text),
 				static_cast<std::size_t>(sqlite3_column_bytes(stmt_, i))};
-	}
-
-	bool column_is_null(const int i) const
-	{
-		return sqlite3_column_type(stmt_, i) == SQLITE_NULL;
 	}
 
 	sqlite3_stmt* get() const { return stmt_; }

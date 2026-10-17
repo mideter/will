@@ -41,10 +41,6 @@ public:
 
 	void enqueue_event(SessionId session_id, const v1::ServerEvent& event);
 
-	void broadcast_except(SessionId except_session_id, const v1::ServerEvent& event);
-
-	void broadcast_except_vessel(domain::id::Vessel except_vessel_id, const v1::ServerEvent& event);
-
 	std::optional<SessionId> session_id_for_vessel(domain::id::Vessel vessel_id) const;
 
 	std::string_view peer_address(SessionId session_id) const;

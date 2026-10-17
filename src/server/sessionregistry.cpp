@@ -96,48 +96,6 @@ void SessionRegistry::enqueue_event(const SessionId session_id, const v1::Server
 }
 
 
-void SessionRegistry::broadcast_except(const SessionId except_session_id, const v1::ServerEvent& event)
-{
-	std::vector<std::shared_ptr<Session>> targets;
-	{
-		std::lock_guard lock(mutex_);
-		targets.reserve(sessions_.size());
-
-		for (const auto& [id, session] : sessions_) {
-			if (id != except_session_id.value)
-				targets.push_back(session);
-		}
-	}
-
-	for (const auto& session : targets) {
-		if (!session->write(event))
-			close_session(session->id());
-	}
-}
-
-
-void SessionRegistry::broadcast_except_vessel(const domain::id::Vessel except_vessel_id,
-											  const v1::ServerEvent& event)
-{
-	std::vector<std::shared_ptr<Session>> targets;
-	{
-		std::lock_guard lock(mutex_);
-		targets.reserve(sessions_.size());
-
-		for (const auto& [id, session] : sessions_) {
-			if (const auto bound = session->vessel_id(); bound && *bound == except_vessel_id)
-				continue;
-			targets.push_back(session);
-		}
-	}
-
-	for (const auto& session : targets) {
-		if (!session->write(event))
-			close_session(session->id());
-	}
-}
-
-
 std::optional<SessionId> SessionRegistry::session_id_for_vessel(const domain::id::Vessel vessel_id) const
 {
 	std::lock_guard lock(mutex_);
