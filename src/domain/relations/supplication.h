@@ -5,7 +5,6 @@
 #include "properties/immanent.h"
 
 
-
 namespace will::domain {
 
 

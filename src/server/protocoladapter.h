@@ -26,7 +26,6 @@ class UpperRoom;
 } // namespace domain
 
 
-
 class InboundClientMessageHandler;
 
 

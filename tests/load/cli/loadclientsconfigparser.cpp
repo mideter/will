@@ -3,7 +3,6 @@
 #include "loadclientscliapp.h"
 
 
-
 namespace will {
 
 

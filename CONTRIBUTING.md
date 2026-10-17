@@ -33,6 +33,7 @@ This document records project conventions so changes stay consistent. When in do
 - **Indentation:** tabs for block indent (display width 4). Continuation lines keep the same tab indent as the enclosing block, then use spaces only for visual alignment under the previous token.
 - **Braces:** opening brace on its own line after the function or control statement (Allman / BSD style).
 - **Line length:** no hard limit in tooling yet; avoid very long lines when a natural break improves readability.
+- **Blank lines:** at most two in a row.
 
 ## Types and safety
 

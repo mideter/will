@@ -1,7 +1,6 @@
 #include "vessel.h"
 
 
-
 namespace will::domain {
 
 
