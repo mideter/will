@@ -71,11 +71,11 @@ void ProtocolAdapter::handle_turn(const SessionId session_id, const v1::Turn& ms
 	turned.mutable_turned()->set_abode_of(msg.abode_of());
 	turned.mutable_turned()->set_room(msg.room());
 	turned.mutable_turned()->set_writable(writes_here(self));
-	if (const auto gaze = world_.contemplation(self.Soul::id()))
+	if (const auto gaze = world_.contemplation(self))
 		turned.mutable_turned()->set_aspect(aspect_of(gaze->place()));
 	send_event(session_id, turned);
 
-	if (const auto gaze = world_.contemplation(self.Soul::id()))
+	if (const auto gaze = world_.contemplation(self))
 		tell_view(session_id, *gaze, self, TurnWords);
 
 	const domain::Gates* entered = gates_of_gaze(self);
@@ -177,7 +177,7 @@ void ProtocolAdapter::handle_regard(const SessionId session_id, const v1::Regard
 
 void ProtocolAdapter::retell_abode(const domain::Man& host, const domain::Man& dweller)
 {
-	const std::shared_ptr<const domain::Contemplation> gaze = world_.contemplation(dweller.Soul::id());
+	const std::shared_ptr<const domain::Contemplation> gaze = world_.contemplation(dweller);
 	if (!gaze)
 		return;
 
@@ -373,8 +373,7 @@ v1::ServerEvent ProtocolAdapter::threshold_event(const domain::Gates& gates, con
 
 	// Only those who keep the gates see who waits to be let in: those at them who do not dwell here.
 	if (gates.keeps(listener)) {
-		for (const domain::Soul& soul : world_.contemplating(gates)) {
-			const auto& man = dynamic_cast<const domain::Man&>(soul);
+		for (const domain::Man& man : world_.contemplating(gates)) {
 			if (&man != &listener && !gates.abode().dweller(man))
 				threshold->add_waiting(std::string{man.name().text()});
 		}
@@ -423,10 +422,9 @@ v1::ServerEvent ProtocolAdapter::dwellers_event(const domain::Abode& abode) cons
 
 void ProtocolAdapter::retell_gates(const domain::Gates& gates, const domain::Soul* except)
 {
-	for (const domain::Soul& soul : world_.contemplating(gates)) {
-		if (&soul == except)
+	for (const domain::Man& man : world_.contemplating(gates)) {
+		if (&man == except)
 			continue;
-		const auto& man = dynamic_cast<const domain::Man&>(soul);
 		send_to_vessel(man.Vessel::id(), threshold_event(gates, man));
 		// One who now keeps them sees the unborn as well.
 		if (gates.keeps(man))
@@ -438,8 +436,7 @@ void ProtocolAdapter::retell_gates(const domain::Gates& gates, const domain::Sou
 void ProtocolAdapter::retell_upper_room(const domain::UpperRoom& upper_room)
 {
 	const v1::ServerEvent event = dwellers_event(upper_room.abode());
-	for (const domain::Soul& soul : world_.contemplating(upper_room)) {
-		const auto& man = dynamic_cast<const domain::Man&>(soul);
+	for (const domain::Man& man : world_.contemplating(upper_room)) {
 		send_to_vessel(man.Vessel::id(), event);
 		// Whoever stands here arranges: a tie bound or let go changes the rooms too.
 		send_to_vessel(man.Vessel::id(), arranged_rooms_event(upper_room.abode()));

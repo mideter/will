@@ -15,6 +15,7 @@
 namespace will::domain {
 
 
+class Man;
 class Place;
 class Soul;
 class Eternity;
@@ -31,13 +32,13 @@ public:
 	const Soul& soul(id::Soul soul_id) const;
 
 	/// On the place itself, or on a room reflecting it.
-	std::vector<std::reference_wrapper<const Soul>> contemplating(const Place& place) const;
+	std::vector<std::reference_wrapper<const Man>> contemplating(const Place& place) const;
 
 	/// Oldest first. Whoever holds one keeps it from fading while he uses it.
 	std::vector<std::shared_ptr<const Supplication>> supplications(id::Soul addressee) const;
 
 	/// Null while asleep. Whoever holds it keeps it from fading while he uses it.
-	std::shared_ptr<const Contemplation> contemplation(id::Soul soul_id) const;
+	std::shared_ptr<const Contemplation> contemplation(const Spirit& eye) const;
 
 protected:
 	friend class Spirit;
@@ -57,9 +58,9 @@ protected:
 private:
 	void present(const Soul& soul);
 
-	void contemplate(const Soul& soul, const Place& place);
+	void contemplate(const Spirit& eye, const Place& place);
 
-	void repose(const Soul& soul);
+	void repose(const Spirit& eye);
 
 	void release(const Supplication& answered);
 
@@ -70,7 +71,7 @@ private:
 	Eternity& eternity_;
 	mutable std::mutex mutex_;
 	std::unordered_map<id::Soul, const Soul*> souls_;
-	std::unordered_map<id::Soul, std::shared_ptr<const Contemplation>> contemplations_;
+	std::unordered_map<const Spirit*, std::shared_ptr<const Contemplation>> contemplations_;
 	std::vector<std::shared_ptr<const Supplication>> supplications_;
 };
 

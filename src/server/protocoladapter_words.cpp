@@ -45,7 +45,7 @@ void ProtocolAdapter::handle_user_chat(const SessionId session_id, const v1::Cha
 
 	const domain::Man& man = world_.man(world_.vessel(*vessel_id));
 
-	const std::shared_ptr<const domain::Contemplation> gaze = world_.contemplation(man.Soul::id());
+	const std::shared_ptr<const domain::Contemplation> gaze = world_.contemplation(man);
 	if (!gaze) {
 		close_with_protocol_error(session_id, "Protocol error: invalid ChatMessage");
 		return;
@@ -73,13 +73,12 @@ void ProtocolAdapter::handle_user_chat(const SessionId session_id, const v1::Cha
 
 void ProtocolAdapter::tell_placed(const domain::Place& place, const domain::Word& word, const domain::Man& author)
 {
-	for (const domain::Soul& beholder : world_.contemplating(place)) {
-		const auto& man = dynamic_cast<const domain::Man&>(beholder);
+	for (const domain::Man& man : world_.contemplating(place)) {
 		if (man.Soul::id() == author.Soul::id())
 			continue;
 
 		// Each sees it as the place he looks at shows it: the place, or a room reflecting it.
-		const std::shared_ptr<const domain::Contemplation> gaze = world_.contemplation(man.Soul::id());
+		const std::shared_ptr<const domain::Contemplation> gaze = world_.contemplation(man);
 		if (gaze && gaze->place().shows(man, word))
 			send_to_vessel(man.Vessel::id(), word_event(word, man.Soul::id()));
 	}
@@ -90,8 +89,8 @@ void ProtocolAdapter::tell_placed(const domain::Place& place, const domain::Word
 		return;
 
 	const domain::Man& other = tie->counterpart(author);
-	for (const domain::Soul& beholder : world_.contemplating(place)) {
-		if (beholder.id() == other.Soul::id())
+	for (const domain::Man& beholder : world_.contemplating(place)) {
+		if (beholder.Soul::id() == other.Soul::id())
 			return;
 	}
 
@@ -138,7 +137,7 @@ void ProtocolAdapter::handle_history_request(const SessionId session_id, const v
 		return;
 	}
 
-	const std::shared_ptr<const domain::Contemplation> gaze = world_.contemplation(man.Soul::id());
+	const std::shared_ptr<const domain::Contemplation> gaze = world_.contemplation(man);
 	if (!gaze) {
 		close_with_protocol_error(session_id, "Protocol error: invalid HistoryRequest");
 		return;
@@ -221,7 +220,7 @@ void ProtocolAdapter::handle_fulfil(const SessionId session_id, const v1::Fulfil
 {
 	const domain::Man& self = session_man(session_id);
 
-	const std::shared_ptr<const domain::Contemplation> gaze = world_.contemplation(self.Soul::id());
+	const std::shared_ptr<const domain::Contemplation> gaze = world_.contemplation(self);
 	if (!gaze)
 		return;
 
@@ -294,7 +293,7 @@ std::shared_ptr<const domain::Training> ProtocolAdapter::training_in_gaze(const 
 																		   const domain::Man& man,
 																		   const std::uint64_t behest_id)
 {
-	const std::shared_ptr<const domain::Contemplation> gaze = world_.contemplation(man.Soul::id());
+	const std::shared_ptr<const domain::Contemplation> gaze = world_.contemplation(man);
 	if (!gaze)
 		return nullptr;
 	for (const std::shared_ptr<const domain::Word>& word : gaze->words()) {
@@ -310,8 +309,8 @@ std::shared_ptr<const domain::Training> ProtocolAdapter::training_in_gaze(const 
 
 void ProtocolAdapter::tell_tie(const domain::Tie& tie, const v1::ServerEvent& event)
 {
-	for (const domain::Soul& soul : world_.contemplating(tie))
-		send_to_vessel(dynamic_cast<const domain::Man&>(soul).Vessel::id(), event);
+	for (const domain::Man& man : world_.contemplating(tie))
+		send_to_vessel(man.Vessel::id(), event);
 }
 
 

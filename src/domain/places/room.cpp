@@ -184,8 +184,8 @@ bool Gates::keeps(const Man& man) const
 
 bool Gates::open() const
 {
-	for (const Soul& soul : Immanent<Heaven>::horizon().contemplating(*this)) {
-		if (keeps(dynamic_cast<const Man&>(soul)))
+	for (const Man& man : Immanent<Heaven>::horizon().contemplating(*this)) {
+		if (keeps(man))
 			return true;
 	}
 	return false;

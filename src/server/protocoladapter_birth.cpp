@@ -176,7 +176,7 @@ void ProtocolAdapter::retell_unborn()
 		const auto* man = dynamic_cast<const domain::Man*>(&world_.vessel(vessel));
 		if (!man)
 			continue;
-		const std::shared_ptr<const domain::Contemplation> gaze = world_.contemplation(man->Soul::id());
+		const std::shared_ptr<const domain::Contemplation> gaze = world_.contemplation(*man);
 		const auto* gates = gaze ? dynamic_cast<const domain::Gates*>(&gaze->place()) : nullptr;
 		if (gates && gates->keeps(*man))
 			send_to_vessel(vessel, event);

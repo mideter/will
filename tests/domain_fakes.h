@@ -591,7 +591,7 @@ private:
 /// Where a man stands; asleep, he does nothing.
 inline const Contemplation& gaze_of(World& world, const Man& man)
 {
-	const std::shared_ptr<const Contemplation> gaze = world.contemplation(man.Soul::id());
+	const std::shared_ptr<const Contemplation> gaze = world.contemplation(man);
 	if (!gaze)
 		throw std::logic_error("he contemplates nothing");
 	return *gaze;
@@ -615,7 +615,7 @@ inline std::shared_ptr<const Behest> will_here(World& world, const Man& man, con
 
 inline bool writes_here(World& world, const Man& man)
 {
-	const std::shared_ptr<const Contemplation> gaze = world.contemplation(man.Soul::id());
+	const std::shared_ptr<const Contemplation> gaze = world.contemplation(man);
 	return gaze && gaze->writable();
 }
 
@@ -679,7 +679,7 @@ template<typename Act>
 void looking_at(World& world, const Man& man, const Room& room, Act act)
 {
 	const auto& witness = man;
-	const std::shared_ptr<const Contemplation> before = world.contemplation(man.Soul::id());
+	const std::shared_ptr<const Contemplation> before = world.contemplation(man);
 	witness.contemplate(room);
 	act();
 	if (!before) {

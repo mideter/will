@@ -23,7 +23,7 @@ class Soul;
 class Supplication;
 
 
-/// Spirit (Дух) — the highest of the soul: it alone utters.
+/// Spirit (Дух) — the highest of the soul, its eye: it alone utters and beholds.
 class Spirit : public Immanent<Heaven> {
 public:
 	virtual ~Spirit() = default;

@@ -195,14 +195,14 @@ void ProtocolAdapter::send_auth_required(const SessionId session_id)
 
 bool ProtocolAdapter::writes_here(const domain::Man& man) const
 {
-	const std::shared_ptr<const domain::Contemplation> gaze = world_.contemplation(man.Soul::id());
+	const std::shared_ptr<const domain::Contemplation> gaze = world_.contemplation(man);
 	return gaze && gaze->writable();
 }
 
 
 const domain::Contemplation& ProtocolAdapter::gaze_of(const domain::Man& man) const
 {
-	const std::shared_ptr<const domain::Contemplation> gaze = world_.contemplation(man.Soul::id());
+	const std::shared_ptr<const domain::Contemplation> gaze = world_.contemplation(man);
 	if (!gaze)
 		throw std::logic_error("he contemplates nothing");
 	return *gaze;
@@ -211,7 +211,7 @@ const domain::Contemplation& ProtocolAdapter::gaze_of(const domain::Man& man) co
 
 const domain::Man& ProtocolAdapter::host_of_upper_room(const domain::Man& man) const
 {
-	const std::shared_ptr<const domain::Contemplation> gaze = world_.contemplation(man.Soul::id());
+	const std::shared_ptr<const domain::Contemplation> gaze = world_.contemplation(man);
 	const auto* upper_room = gaze ? dynamic_cast<const domain::UpperRoom*>(&gaze->place()) : nullptr;
 	return upper_room ? upper_room->abode().host() : man;
 }
@@ -219,7 +219,7 @@ const domain::Man& ProtocolAdapter::host_of_upper_room(const domain::Man& man) c
 
 const domain::Gates* ProtocolAdapter::gates_of_gaze(const domain::Man& man) const
 {
-	const std::shared_ptr<const domain::Contemplation> gaze = world_.contemplation(man.Soul::id());
+	const std::shared_ptr<const domain::Contemplation> gaze = world_.contemplation(man);
 	return gaze ? dynamic_cast<const domain::Gates*>(&gaze->place()) : nullptr;
 }
 

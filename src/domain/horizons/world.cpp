@@ -249,7 +249,7 @@ Timestamp World::now()
 
 const Man& World::bear(const Man& midwife, const Unborn& unborn)
 {
-	const std::shared_ptr<const Contemplation> gaze = contemplation(midwife.Soul::id());
+	const std::shared_ptr<const Contemplation> gaze = contemplation(midwife);
 	const auto* gates = gaze ? dynamic_cast<const Gates*>(&gaze->place()) : nullptr;
 	if (!gates)
 		throw BearOnlyAtGates();

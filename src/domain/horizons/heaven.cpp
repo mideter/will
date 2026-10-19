@@ -74,18 +74,14 @@ const Soul& Heaven::soul(const id::Soul soul_id) const
 }
 
 
-std::vector<std::reference_wrapper<const Soul>> Heaven::contemplating(const Place& place) const
+std::vector<std::reference_wrapper<const Man>> Heaven::contemplating(const Place& place) const
 {
 	std::lock_guard lock(mutex_);
 
-	std::vector<std::reference_wrapper<const Soul>> out;
-	for (const auto& [soul_id, contemplation] : contemplations_) {
-		if (&contemplation->place().source() != &place.source())
-			continue;
-		const auto it = souls_.find(soul_id);
-		if (it == souls_.end() || !it->second)
-			continue;
-		out.emplace_back(*it->second);
+	std::vector<std::reference_wrapper<const Man>> out;
+	for (const auto& [eye, contemplation] : contemplations_) {
+		if (&contemplation->place().source() == &place.source())
+			out.emplace_back(contemplation->who());
 	}
 	return out;
 }
@@ -98,27 +94,27 @@ void Heaven::present(const Soul& soul)
 }
 
 
-void Heaven::contemplate(const Soul& soul, const Place& place)
+void Heaven::contemplate(const Spirit& eye, const Place& place)
 {
-	if (!knows(soul.id()))
+	const Man& man = dynamic_cast<const Man&>(eye);
+	if (!knows(man.Soul::id()))
 		throw std::logic_error("Heaven does not know this soul");
 
 	// Born and ended outside the lock: a gaze holds the recollection of its
 	// place, which may read the dimensions and ask Heaven for their authors.
-	std::shared_ptr<const Contemplation> gaze =
-		std::make_shared<const Contemplation>(Birth<Heaven>{*this}, dynamic_cast<const Man&>(soul), place);
+	std::shared_ptr<const Contemplation> gaze = std::make_shared<const Contemplation>(Birth<Heaven>{*this}, man, place);
 
 	std::lock_guard lock(mutex_);
-	std::swap(contemplations_[soul.id()], gaze);
+	std::swap(contemplations_[&eye], gaze);
 }
 
 
-void Heaven::repose(const Soul& soul)
+void Heaven::repose(const Spirit& eye)
 {
 	std::shared_ptr<const Contemplation> ended;
 
 	std::lock_guard lock(mutex_);
-	const auto it = contemplations_.find(soul.id());
+	const auto it = contemplations_.find(&eye);
 	if (it == contemplations_.end())
 		return;
 
@@ -165,11 +161,11 @@ std::vector<std::shared_ptr<const Supplication>> Heaven::supplications(const id:
 }
 
 
-std::shared_ptr<const Contemplation> Heaven::contemplation(const id::Soul soul_id) const
+std::shared_ptr<const Contemplation> Heaven::contemplation(const Spirit& eye) const
 {
 	std::lock_guard lock(mutex_);
 
-	const auto it = contemplations_.find(soul_id);
+	const auto it = contemplations_.find(&eye);
 	if (it == contemplations_.end())
 		return nullptr;
 
