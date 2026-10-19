@@ -1,6 +1,5 @@
 #pragma once
 
-#include "matter/supplication.h"
 #include "matter/training.h"
 
 #include "relations/contemplation.h"
@@ -20,7 +19,6 @@ namespace will::domain {
 
 class Place;
 class Soul;
-class Supplication;
 
 
 /// Spirit (Дух) — the highest of the soul, its eye: it alone utters and beholds.
@@ -39,8 +37,8 @@ protected:
 
 	void repose() const;
 
-	/// Heaven keeps it until it is answered.
-	static void entrust(matter::Supplication kept);
+	/// One's supplication to him; Heaven keeps it until it is answered.
+	void ask(const Soul& addressee) const;
 
 	std::shared_ptr<const Contemplation> contemplation() const;
 

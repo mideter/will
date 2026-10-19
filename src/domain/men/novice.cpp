@@ -27,7 +27,11 @@ namespace will::domain {
 
 void Novice::supplicate(Birth<UpperRoom>, const Acquaintance& dweller) const
 {
-	dweller.man().hear(Birth<Novice>{*this});
+	const Man& addressee = dweller.man();
+	addressee.hear(Birth<Novice>{*this});
+
+	// One's spirit asks him through Heaven, where he hears it.
+	ask(addressee);
 }
 
 

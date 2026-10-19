@@ -41,6 +41,7 @@ public:
 	std::shared_ptr<const Supplication> supplication(const Novice& suppliant) const;
 	std::vector<std::shared_ptr<const Supplication>> supplications() const;
 
+	/// Whether he may hear the suppliant: he refuses if not.
 	void hear(Birth<Novice> birth) const;
 
 protected:

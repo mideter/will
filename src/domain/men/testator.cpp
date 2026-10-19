@@ -121,12 +121,11 @@ void Testator::hear(const Birth<Novice> birth) const
 	const Man& suppliant = man_of(birth.parent());
 	if (!abode().dweller(suppliant))
 		throw HearOnlyDweller();
+
 	for (const Shepherding* place : shepherdings_) {
 		if (place && place->novice().Soul::id() == suppliant.Soul::id())
 			throw AlreadyTied();
 	}
-
-	entrust(temporality().ask(suppliant.Soul::id(), Soul::id()));
 }
 
 

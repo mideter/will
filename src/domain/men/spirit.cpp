@@ -27,9 +27,9 @@ void Spirit::contemplate(const Place& place) const
 }
 
 
-void Spirit::entrust(matter::Supplication kept)
+void Spirit::ask(const Soul& addressee) const
 {
-	horizon().keep(std::move(kept));
+	horizon().ask(*this, addressee);
 }
 
 

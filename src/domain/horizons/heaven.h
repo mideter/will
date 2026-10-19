@@ -55,6 +55,10 @@ protected:
 	/// Heaven bears a supplication and keeps it until it is answered.
 	std::shared_ptr<const Supplication> keep(matter::Supplication kept);
 
+	/// A spirit asks one to become its testator: the world, where Heaven meets the earth,
+	/// fixes its moment and Heaven keeps it.
+	virtual void ask(const Spirit& suppliant, const Soul& addressee) = 0;
+
 private:
 	void present(const Soul& soul);
 

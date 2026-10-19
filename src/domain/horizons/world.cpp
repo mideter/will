@@ -241,6 +241,13 @@ const Unborn& World::unborn(const id::Vessel id) const
 }
 
 
+void World::ask(const Spirit& suppliant, const Soul& addressee)
+{
+	const Man& man = dynamic_cast<const Man&>(suppliant);
+	keep(temporality().ask(man.Soul::id(), addressee.id()));
+}
+
+
 Timestamp World::now()
 {
 	return eternity().time().instant();

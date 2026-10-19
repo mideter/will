@@ -78,6 +78,8 @@ private:
 	const Unborn& await(matter::Vessel kept);
 	const Man& accept(matter::Man kept);
 
+	void ask(const Spirit& suppliant, const Soul& addressee) override;
+
 	const Man& living_man(id::Soul id) const;
 	bool lives(id::Soul id) const;
 
