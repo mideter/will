@@ -656,6 +656,7 @@ TEST_CASE("a host admits a dweller, regards him anew, and he sees his abode as h
 		REQUIRE(host.stream->Write(arrange));
 	}
 	CHECK(read_event(*host.stream).has_protocol_notice());
+	CHECK(read_event(*host.stream).has_dwellers());  // his upper room is told anew to all in it
 	const will::v1::ServerEvent arranged = read_event(*host.stream);  // all his rooms, each in its part
 	REQUIRE(arranged.rooms().rooms_size() == 3);
 	CHECK(arranged.rooms().rooms(0).name() == "Слово");
@@ -894,9 +895,9 @@ TEST_CASE("an unborn body waits, seen by the keepers of gates; it is born of the
 	CHECK(seen.unborn().marks(0) == enos_mark);
 	send_bear(*seth.stream, enos_mark);
 	const will::v1::ServerEvent not_keeper = read_event(*seth.stream);
-	CHECK(not_keeper.protocol_notice().message() == "one bears only at gates one keeps");
+	CHECK(not_keeper.protocol_notice().message() == "only the host acts here; others but look");
 	// The world's refusal is told by its reason's code, beside its words.
-	CHECK(not_keeper.protocol_notice().code() == will::v1::NOTICE_BEAR_ONLY_AT_KEPT_GATES);
+	CHECK(not_keeper.protocol_notice().code() == will::v1::NOTICE_ONLY_HOST_ACTS);
 
 	// The father by spirit is not yet open: neither choosing him nor the line is done.
 	{
@@ -920,7 +921,7 @@ TEST_CASE("an unborn body waits, seen by the keepers of gates; it is born of the
 }
 
 
-TEST_CASE("a friend keeping the host's gates lets one in, an acquaintance of the host, who is told")
+TEST_CASE("a friend standing in the host's gates lets no one in: only the host keeps them")
 {
 	const std::uint16_t port = static_cast<std::uint16_t>(pick_port() + 4);
 	const std::string directory = "/tmp/will-keeper-test-" + std::to_string(getpid());
@@ -946,28 +947,25 @@ TEST_CASE("a friend keeping the host's gates lets one in, an acquaintance of the
 	read_until(*boris.stream, [](const auto& e) { return e.has_dwelling(); });
 	stand_in(*anna.stream, {}, "Горница");
 	send_regard(*anna.stream, boris_name, will::v1::FRIEND);
-	read_until(*anna.stream, [](const auto& e) { return e.has_dwellers(); });
+	read_until(*anna.stream, [](const auto& e) { return e.has_rooms(); });  // her upper room told anew
 	CHECK(read_until(*boris.stream, [](const auto& e) { return e.has_dwelling(); }).dwelling().kind()
 		  == will::v1::FRIEND);
 
-	// Now Boris keeps her gates: they are open without her, and he sees Viktor waiting.
-	const will::v1::ServerEvent keeping
-		= read_until(*boris.stream, [](const auto& e) { return e.has_threshold() && e.threshold().keeping(); });
-	CHECK(keeping.threshold().open());
+	// A friend, Boris still does not keep her gates: he lets Viktor in no more than before.
 	stand_in(*viktor.stream, anna_name, "Врата");
-	const will::v1::ServerEvent waiting = read_until(
-		*boris.stream, [](const auto& e) { return e.has_threshold() && e.threshold().waiting_size() == 1; });
-	CHECK(waiting.threshold().waiting(0) == viktor_name);
-
-	// He lets Viktor in: Viktor dwells with Anna, and Anna is told who let whom in.
 	send_admit(*boris.stream, viktor_name);
-	CHECK(read_until(*boris.stream, [](const auto& e) { return e.has_protocol_notice(); }).protocol_notice().message()
+	CHECK(read_until(*boris.stream, [](const auto& e) { return e.has_protocol_notice(); }).protocol_notice().code()
+		  == will::v1::NOTICE_ONLY_HOST_ACTS);
+
+	// Anna, standing in her gates, lets Viktor in.
+	stand_in(*anna.stream, {}, "Врата");
+	send_admit(*anna.stream, viktor_name);
+	CHECK(read_until(*anna.stream, [](const auto& e) { return e.has_protocol_notice(); }).protocol_notice().message()
 		  == viktor_name + " admitted as an acquaintance");
 	const will::v1::ServerEvent dwelling = read_until(*viktor.stream, [](const auto& e) { return e.has_dwelling(); });
 	CHECK(dwelling.dwelling().host_name() == anna_name);
 	CHECK(dwelling.dwelling().kind() == will::v1::ACQUAINTANCE);
-	CHECK(read_until(*anna.stream, [](const auto& e) { return e.has_protocol_notice(); }).protocol_notice().message()
-		  == boris_name + " let " + viktor_name + " in as an acquaintance");
+	send_turn_to_abode(*anna.stream, {}, "Горница");
 	const will::v1::ServerEvent upper = read_until(*anna.stream, [](const auto& e) { return e.has_dwellers(); });
 	bool seen = false;
 	for (const will::v1::Dweller& dweller : upper.dwellers().dwellers())

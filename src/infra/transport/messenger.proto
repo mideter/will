@@ -404,11 +404,11 @@ enum NoticeCode {
     reserved 1, 10, 11, 15;
     // 16 and 17 kept one from asking oneself or a stranger: one asks now in one's own upper room, among its dwellers.
     reserved 16, 17;
-    NOTICE_KEEP_GATES_BY_KIND = 2;
+    // 2, 6, 39 and 43 told who besides the host might act in his rooms: only the host acts there now.
+    reserved 2, 6, 39, 43;
     NOTICE_ALREADY_DWELLS = 3;
     NOTICE_NOT_AT_GATES = 4;
     NOTICE_BEAR_ONLY_AT_GATES = 5;
-    NOTICE_BEAR_ONLY_AT_KEPT_GATES = 6;
     NOTICE_NO_SUCH_UNBORN = 7;
     NOTICE_DOES_NOT_DWELL = 8;
     NOTICE_DOES_NOT_ENTER_ROOM = 9;
@@ -435,11 +435,10 @@ enum NoticeCode {
     NOTICE_FINISH_APPROACH_FIRST = 36;
     NOTICE_NOT_OWN_FATHER = 37;
     NOTICE_NOT_DESCENDANT_AS_FATHER = 38;
-    NOTICE_REGARD_NOT_ONESELF = 39;
     NOTICE_STAND_IN_CELL = 40;
     NOTICE_STAND_IN_UPPER_ROOM = 41;
     NOTICE_STAND_AT_GATES = 42;
-    NOTICE_SUPPLICATE_ONLY_IN_OWN_UPPER_ROOM = 43;
+    NOTICE_ONLY_HOST_ACTS = 44;
 
     // What the server itself refuses.
     // 102–104, 108 and 111 were the server's own copies of the world's rules: the
@@ -460,8 +459,9 @@ enum NoticeCode {
     // What was done.
     NOTICE_SUPPLICATION_SENT = 200;
     NOTICE_BEHEST_FULFILLED = 201;        // args: behest id
+    // 203 told the host who let whom in at his gates: only the host lets in now.
+    reserved 203;
     NOTICE_ADMITTED = 202;                // args: who was let in
-    NOTICE_LET_IN = 203;                  // args: who let in, who was let in
     NOTICE_REGARDED = 204;                // args: who
     NOTICE_ARRANGED_OUTER = 205;          // args: room
     NOTICE_ARRANGED_INNER = 206;          // args: room

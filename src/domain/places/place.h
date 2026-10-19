@@ -40,8 +40,8 @@ public:
 	/// All its words to all who dwell in it, unless it says otherwise.
 	virtual bool shows(const Man& who, const Word& word) const;
 
-	/// Asked by a cell of the place it reflects, of the cell's host: whoever stands in the
-	/// cell writes as its host. An abode takes its host's words.
+	/// Asked by a cell of the place it reflects, of the cell's host, who alone writes there.
+	/// An abode takes its host's words.
 	virtual bool takes_words_of(const Man& host) const;
 
 	/// The place has the cell's host do the deed its words are made by: record a letter in

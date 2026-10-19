@@ -46,7 +46,7 @@ public:
 	void admit(Birth<Man> birth, const Man& man, const matter::Dweller& kept);
 	void admit(Birth<World> birth, const Man& man, const matter::Dweller& kept);
 
-	/// Let in at the gates, by whoever keeps them.
+	/// Let in at the gates by the host.
 	void admit(Birth<Gates> birth, const Man& man, const matter::Dweller& kept);
 
 	/// The host's fathers by spirit are not among them: they are unseen.

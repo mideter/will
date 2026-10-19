@@ -116,22 +116,10 @@ void ProtocolAdapter::handle_admit(const SessionId session_id, const v1::Admit& 
 		return;
 	}
 
-	// He becomes an acquaintance of the host of the gates, whoever let him in.
-	const domain::Man& host = gates->abode().host();
 	send_notice(session_id, v1::NOTICE_ADMITTED, {std::string{man->name().text()}});
-	if (&host != &self) {
-		const std::vector<std::string> names{std::string{self.name().text()}, std::string{man->name().text()}};
-		v1::ServerEvent told;
-		auto* notice = told.mutable_protocol_notice();
-		notice->set_message(words_of(v1::NOTICE_LET_IN, names));
-		notice->set_code(v1::NOTICE_LET_IN);
-		for (const std::string& name : names)
-			notice->add_args(name);
-		send_to_vessel(host.Vessel::id(), told);
-	}
-	tell_dwelling(host, *man);
+	tell_dwelling(self, *man);
 	retell_gates(*gates);
-	retell_upper_room(host.abode().upper_room());
+	retell_upper_room(self.abode().upper_room());
 }
 
 
@@ -165,13 +153,10 @@ void ProtocolAdapter::handle_regard(const SessionId session_id, const v1::Regard
 		return;
 	}
 
-	// He regards in the upper room he stands in, as its host.
-	const domain::Man& host = host_of_upper_room(self);
 	send_notice(session_id, v1::NOTICE_REGARDED, {std::string{man->name().text()}});
-	tell_dwelling(host, *man);
-	retell_abode(host, *man);
-	retell_upper_room(host.abode().upper_room());
-	retell_gates(host.abode().gates());  // his kind may let him keep them now, or no longer
+	tell_dwelling(self, *man);
+	retell_abode(self, *man);
+	retell_upper_room(self.abode().upper_room());
 }
 
 
@@ -226,7 +211,8 @@ void ProtocolAdapter::tell_view(const SessionId session_id, const domain::Contem
 	}
 	if (const auto* upper_room = dynamic_cast<const domain::UpperRoom*>(&gaze.place())) {
 		send_event(session_id, dwellers_event(upper_room->abode()));
-		// Whoever stands here arranges the abode as its host: he is shown all its rooms, each in its part.
+		// Whoever stands here sees all the rooms of the abode, each in its part; only the host
+		// arranges them.
 		send_event(session_id, arranged_rooms_event(upper_room->abode()));
 		v1::ServerEvent end_event;
 		end_event.mutable_history_end();
@@ -273,8 +259,7 @@ void ProtocolAdapter::tell_view(const SessionId session_id, const domain::Contem
 void ProtocolAdapter::handle_arrange(const SessionId session_id, const v1::Arrange& msg)
 {
 	const domain::Man& self = session_man(session_id);
-	const domain::Man& host = host_of_upper_room(self);
-	const domain::Room* room = host.abode().room(msg.room());
+	const domain::Room* room = self.abode().room(msg.room());
 	if (!room) {
 		refuse(session_id, v1::NOTICE_NO_SUCH_ROOM);
 		return;
@@ -292,10 +277,10 @@ void ProtocolAdapter::handle_arrange(const SessionId session_id, const v1::Arran
 	send_notice(session_id,
 				part == domain::matter::Room::Part::Outer ? v1::NOTICE_ARRANGED_OUTER : v1::NOTICE_ARRANGED_INNER,
 				{msg.room()});
-	send_event(session_id, arranged_rooms_event(host.abode()));
-	for (const std::shared_ptr<const domain::Acquaintance>& dweller : host.abode().dwellers())
-		retell_abode(host, dweller->man());
-	retell_gates(host.abode().gates());  // set in another part, they are kept by other kinds
+	retell_upper_room(self.abode().upper_room());  // all who stand there see the rooms anew
+	for (const std::shared_ptr<const domain::Acquaintance>& dweller : self.abode().dwellers())
+		retell_abode(self, dweller->man());
+	retell_gates(self.abode().gates());  // set in another part, they are seen by other kinds
 }
 
 
@@ -438,7 +423,7 @@ void ProtocolAdapter::retell_upper_room(const domain::UpperRoom& upper_room)
 	const v1::ServerEvent event = dwellers_event(upper_room.abode());
 	for (const domain::Man& man : world_.contemplating(upper_room)) {
 		send_to_vessel(man.Vessel::id(), event);
-		// Whoever stands here arranges: a tie bound or let go changes the rooms too.
+		// A tie bound or let go changes the rooms too.
 		send_to_vessel(man.Vessel::id(), arranged_rooms_event(upper_room.abode()));
 	}
 }

@@ -62,6 +62,15 @@ bool Room::dwells(const Man& man) const
 }
 
 
+void Room::host_only(const Contemplation& gaze) const
+{
+	if (&gaze.place() != this)
+		throw std::logic_error("this room is not what is contemplated");
+	if (&gaze.who() != &abode().host())
+		throw OnlyHostActs();
+}
+
+
 Cell::Cell(const Birth<Abode> birth, const Place& reflects, matter::Room kept)
 	: Room(birth, reflects, std::move(kept))
 {}
@@ -94,16 +103,15 @@ bool Cell::shows(const Man& who, const Word&) const
 }
 
 
-bool Cell::writable() const
+bool Cell::writable_by(const Man& writer) const
 {
-	return reflects().takes_words_of(abode().host());
+	return &writer == &abode().host() && reflects().takes_words_of(writer);
 }
 
 
 std::shared_ptr<const Word> Cell::write(const Contemplation& gaze, const Saying& saying) const
 {
-	if (&gaze.place() != this)
-		throw std::logic_error("this cell is not what is contemplated");
+	host_only(gaze);
 
 	return reflects().receive(Birth<Cell>{*this}, saying);
 }
@@ -112,8 +120,7 @@ std::shared_ptr<const Word> Cell::write(const Contemplation& gaze, const Saying&
 std::shared_ptr<const Training> Cell::train(const Contemplation& gaze, const Saying& title,
 											std::vector<Exercise> exercises) const
 {
-	if (&gaze.place() != this)
-		throw std::logic_error("this cell is not what is contemplated");
+	host_only(gaze);
 	const auto* tie = dynamic_cast<const Tie*>(&reflects());
 	if (!tie)
 		throw WillOnlyInContemplatedTie();
@@ -125,8 +132,7 @@ std::shared_ptr<const Training> Cell::train(const Contemplation& gaze, const Say
 template<typename OtherTie, typename NotNovice>
 const Novice& Cell::obeying(const Contemplation& gaze, const Behest& behest) const
 {
-	if (&gaze.place() != this)
-		throw std::logic_error("this cell is not what is contemplated");
+	host_only(gaze);
 	if (&reflects() != static_cast<const Place*>(&behest.tie()))
 		throw OtherTie();
 
@@ -178,7 +184,7 @@ bool Gates::dwells(const Man&) const
 
 bool Gates::keeps(const Man& man) const
 {
-	return Room::dwells(man);
+	return &man == &abode().host();
 }
 
 
@@ -194,10 +200,7 @@ bool Gates::open() const
 
 void Gates::admit(const Contemplation& gaze, const Man& man) const
 {
-	if (&gaze.place() != this)
-		throw std::logic_error("these gates are not what is contemplated");
-	if (!keeps(gaze.who()))
-		throw KeepGatesByKind();
+	host_only(gaze);
 	if (abode().dwells(man))
 		throw AlreadyDwells();
 	if (!man.contemplates(*this))
@@ -220,10 +223,7 @@ std::string UpperRoom::name() const
 
 void UpperRoom::regard(const Contemplation& gaze, const Man& dweller, const matter::Dweller::Kind kind) const
 {
-	if (&gaze.place() != this)
-		throw std::logic_error("this upper room is not what is contemplated");
-	if (&gaze.who() == &dweller)
-		throw RegardNotOneself();
+	host_only(gaze);
 
 	abode().host().regard(Birth<UpperRoom>{*this}, dweller, kind);
 }
@@ -231,10 +231,7 @@ void UpperRoom::regard(const Contemplation& gaze, const Man& dweller, const matt
 
 void UpperRoom::supplicate(const Contemplation& gaze, const Man& addressee) const
 {
-	if (&gaze.place() != this)
-		throw std::logic_error("this upper room is not what is contemplated");
-	if (&gaze.who() != &abode().host())
-		throw SupplicateOnlyInOwnUpperRoom();
+	host_only(gaze);
 	const std::shared_ptr<const Acquaintance> dweller = abode().dweller(addressee);
 	if (!dweller)
 		throw DoesNotDwell();
@@ -245,8 +242,7 @@ void UpperRoom::supplicate(const Contemplation& gaze, const Man& addressee) cons
 
 void UpperRoom::arrange(const Contemplation& gaze, const Room& room, const matter::Room::Part part) const
 {
-	if (&gaze.place() != this)
-		throw std::logic_error("this upper room is not what is contemplated");
+	host_only(gaze);
 
 	abode().host().arrange(Birth<UpperRoom>{*this}, room, part);
 }

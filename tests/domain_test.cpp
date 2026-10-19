@@ -917,13 +917,10 @@ TEST_CASE("the host admits a man as an acquaintance and regards him anew")
 	man.contemplate(host.abode());
 	CHECK_THROWS_AS(write(world, man, "not mine"), StandInCell);
 
-	// Entering the host's cell, the friend writes there as the host: the letter is his.
+	// The friend enters the host's cell and sees its words, but only the host writes there.
 	man.contemplate(cell_of(host));
-	CHECK(writes_here(world, man));
-	const auto letter = std::dynamic_pointer_cast<const Letter>(write(world, man, "for the host"));
-	REQUIRE(letter);
-	CHECK(&letter->author() == static_cast<const Soul*>(&host));
-	CHECK(&letter->place() == &host.abode());
+	CHECK_FALSE(writes_here(world, man));
+	CHECK_THROWS_AS(write(world, man, "for the host"), OnlyHostActs);
 }
 
 
@@ -1231,7 +1228,7 @@ TEST_CASE("the host regards his dwellers anew only in his upper room; it shows n
 }
 
 
-TEST_CASE("whoever stands in an upper room regards and arranges there as its host, but does not regard himself")
+TEST_CASE("only the host acts in his upper room: his friend sees his dwellers, but neither regards them nor arranges")
 {
 	InMemoryCosmos cosmos;
 	World& world = cosmos.life().create().world();
@@ -1243,23 +1240,20 @@ TEST_CASE("whoever stands in an upper room regards and arranges there as its hos
 	admit_at_gates(world, host, other);
 	regard_in_upper_room(world, host, friend_, matter::Dweller::Kind::Friend);
 
-	// The friend, in the host's upper room, regards another anew and sets a room in a part.
+	// The friend enters the host's upper room, yet he neither regards anyone nor arranges.
 	friend_.wake();
 	friend_.contemplate(upper_room);
-	regard(world, friend_, other, matter::Dweller::Kind::Neighbour);
+	CHECK_THROWS_AS(regard(world, friend_, other, matter::Dweller::Kind::Neighbour), OnlyHostActs);
+	CHECK_THROWS_AS(regard(world, friend_, friend_, matter::Dweller::Kind::Acquaintance), OnlyHostActs);
+	CHECK_THROWS_AS(arrange(world, friend_, cell_of(host), matter::Room::Part::Outer), OnlyHostActs);
+	CHECK_FALSE(std::dynamic_pointer_cast<const Neighbour>(host.abode().dweller(other)));
+	CHECK(cell_of(host).part() == matter::Room::Part::Inner);
+
+	// The host himself does.
+	regard_in_upper_room(world, host, other, matter::Dweller::Kind::Neighbour);
 	CHECK(std::dynamic_pointer_cast<const Neighbour>(host.abode().dweller(other)));
-	arrange(world, friend_, cell_of(host), matter::Room::Part::Outer);
+	arrange_in_upper_room(world, host, cell_of(host), matter::Room::Part::Outer);
 	CHECK(cell_of(host).part() == matter::Room::Part::Outer);
-
-	// Himself he does not regard.
-	CHECK_THROWS_AS(regard(world, friend_, friend_, matter::Dweller::Kind::Acquaintance), RegardNotOneself);
-
-	// Nor does a neighbour raise himself, though the upper room stands in the outer part.
-	arrange(world, friend_, upper_room, matter::Room::Part::Outer);
-	other.wake();
-	other.contemplate(upper_room);
-	CHECK_THROWS_AS(regard(world, other, other, matter::Dweller::Kind::Friend), RegardNotOneself);
-	CHECK_FALSE(std::dynamic_pointer_cast<const Friend>(host.abode().dweller(other)));
 }
 
 
@@ -1296,7 +1290,7 @@ TEST_CASE("the first man is begotten at once; a body coming after awaits its bir
 }
 
 
-TEST_CASE("one bears at gates one keeps; the child is born of their host, who is ever his neighbour")
+TEST_CASE("the host bears at his gates; the child is born of him, and he is ever his neighbour")
 {
 	InMemoryShared store;
 	const DeviceToken child_token = DeviceToken::generate();
@@ -1326,15 +1320,17 @@ TEST_CASE("one bears at gates one keeps; the child is born of their host, who is
 		admit_at_gates(world, anna, boris);
 		regard_in_upper_room(world, anna, boris, matter::Dweller::Kind::Friend);
 
-		// Many stand at the gates at once: Anna and her friend both keep them.
+		// Many stand at the gates at once, but only Anna keeps them: her friend does not bear.
 		anna.contemplate(gates);
 		boris.contemplate(gates);
 		CHECK(gates.dwells(anna));
 		CHECK(gates.dwells(boris));
-		CHECK(gates.keeps(boris));
+		CHECK(gates.keeps(anna));
+		CHECK_FALSE(gates.keeps(boris));
+		CHECK_THROWS_AS(world.bear(boris, unborn), OnlyHostActs);
 
-		// Boris bears at Anna's gates: the child is born of Anna.
-		const Man& child = world.bear(boris, unborn);
+		// Anna bears at her gates: the child is born of her.
+		const Man& child = world.bear(anna, unborn);
 		CHECK(world.unborn().empty());
 		CHECK(&world.man(world.vessel(child.Vessel::id())) == &child);
 		CHECK(child.father(matter::Fatherhood::Line::Flesh) == static_cast<const Man*>(&anna));
@@ -1431,7 +1427,7 @@ TEST_CASE("a man chooses his father by spirit, an unseen friend of all his spiri
 }
 
 
-TEST_CASE("whoever keeps the gates by his kind opens them and lets in an acquaintance of the host")
+TEST_CASE("only the host keeps his gates: open while he stands in them, he alone lets one in")
 {
 	InMemoryCosmos cosmos;
 	World& world = cosmos.life().create().world();
@@ -1453,32 +1449,27 @@ TEST_CASE("whoever keeps the gates by his kind opens them and lets in an acquain
 	CHECK_FALSE(gates.open());
 	CHECK_THROWS_AS(admit(world, boris, viktor), std::logic_error);
 
-	// A friend, he keeps them: they are open without Anna, and he lets Viktor in —
-	// as Anna's acquaintance, not his.
+	// A friend, he still does not keep them: they are not open without Anna, nor does he let in.
 	regard_in_upper_room(world, anna, boris, matter::Dweller::Kind::Friend);
-	CHECK(gates.keeps(boris));
+	CHECK_FALSE(gates.keeps(boris));
+	CHECK_FALSE(gates.open());
+	CHECK_THROWS_AS(admit(world, boris, viktor), OnlyHostActs);
+
+	// Anna, standing in them, opens them and lets Viktor in as her acquaintance.
+	anna.wake();
+	anna.contemplate(gates);
 	CHECK(gates.open());
-	admit(world, boris, viktor);
+	admit(world, anna, viktor);
 	REQUIRE(anna.abode().dweller(viktor));
 	CHECK_FALSE(std::dynamic_pointer_cast<const Neighbour>(anna.abode().dweller(viktor)));
-	CHECK_FALSE(boris.abode().dwells(viktor));
-	CHECK_THROWS_AS(admit(world, boris, viktor), std::logic_error);
+	CHECK_THROWS_AS(admit(world, anna, viktor), std::logic_error);
 
-	// Away from the gates, one lets no one in.
-	boris.contemplate(boris.abode());
+	// Away from the gates, she lets no one in.
+	anna.contemplate(anna.abode());
 	CHECK_FALSE(gates.open());
 	galina.wake();
 	galina.contemplate(gates);
-	CHECK_THROWS_AS(admit(world, boris, galina), std::logic_error);
-
-	// Set in the outer part, the gates are kept by a neighbour too.
-	looking_at(world, anna, anna.abode().upper_room(), [&] { regard(world, anna, viktor, matter::Dweller::Kind::Neighbour); });
-	arrange_in_upper_room(world, anna, gates, matter::Room::Part::Outer);
-	viktor.contemplate(gates);
-	CHECK(gates.keeps(viktor));
-	admit(world, viktor, galina);
-	CHECK(anna.abode().dweller(galina));
-	CHECK_FALSE(viktor.abode().dwells(galina));
+	CHECK_THROWS_AS(admit(world, anna, galina), std::logic_error);
 }
 
 
@@ -1713,7 +1704,7 @@ TEST_CASE("an approach underway is the training's, one at a time in each, and ou
 }
 
 
-TEST_CASE("in the novice's cell of a tie, whoever stands there does what the novice does, and it is the novice's")
+TEST_CASE("in the novice's cell of a tie only the novice trains and fulfils; his friend there but looks")
 {
 	InMemoryCosmos cosmos;
 	World& world = cosmos.life().create().world();
@@ -1737,22 +1728,20 @@ TEST_CASE("in the novice's cell of a tie, whoever stands there does what the nov
 	CHECK_THROWS_AS(begin(world, testator, *training, 0, 0), OnlyNoviceTrains);
 	CHECK_THROWS_AS(execute(world, testator, *training), OnlyNoviceFulfils);
 
-	// The friend, in the novice's cell, begins an approach of the novice's training.
+	// The friend enters the novice's cell and sees the training, but neither trains nor fulfils.
 	friend_.wake();
 	friend_.contemplate(room_in(novice, obedience));
-	begin(world, friend_, *training, 0, 0);
-	REQUIRE(training->underway());
-	CHECK(training->underway()->training() == training->id());
-
-	const matter::Effort effort = finish(world, friend_, *training, Weight{100'000}, 5);
+	CHECK_THROWS_AS(begin(world, friend_, *training, 0, 0), OnlyHostActs);
+	CHECK_THROWS_AS(execute(world, friend_, *training), OnlyHostActs);
 	CHECK_FALSE(training->underway());
-	CHECK(effort.repetitions() == 5);
-	REQUIRE(training->efforts().size() == 1);
 
-	// And he fulfils it: the deed is the novice's.
-	const std::shared_ptr<const Deed> deed = execute(world, friend_, *training);
+	// The novice himself does.
+	novice.wake();
+	novice.contemplate(room_in(novice, obedience));
+	begin(world, novice, *training, 0, 0);
+	finish(world, novice, *training, Weight{100'000}, 5);
+	const std::shared_ptr<const Deed> deed = execute(world, novice, *training);
 	CHECK(&deed->author() == static_cast<const Soul*>(&novice));
-	REQUIRE(deed->performed().size() == 1);
 	CHECK(novice.abode().owed().empty());
 }
 
@@ -1837,7 +1826,7 @@ TEST_CASE("one asks to be led only in one's own upper room, among its dwellers")
 	// In another's upper room, though one enters it, one does not ask for him.
 	novice.contemplate(testator.abode().upper_room());
 	const Contemplation& there = gaze_of(world, novice);
-	CHECK_THROWS_AS(there.upper_room().supplicate(there, testator), SupplicateOnlyInOwnUpperRoom);
+	CHECK_THROWS_AS(there.upper_room().supplicate(there, testator), OnlyHostActs);
 
 	// In one's own, only one who dwells there is asked.
 	CHECK_THROWS_AS(supplicate(world, novice, stranger), DoesNotDwell);
@@ -1913,17 +1902,14 @@ TEST_CASE("one writes where one stands: a letter in one's word, a behest in a ti
 	testator.contemplate(cell_of(testator));
 	CHECK_THROWS_AS(train(world, testator, Saying{"нет"}, {Exercise{"Жим", {Approach{Weight{0}, 5}}}}), WillOnlyInContemplatedTie);
 
-	// A friend of the testator, entering his cell of the tie, wills there as the testator.
+	// A friend of the testator enters his cell of the tie and sees it, but wills nothing there.
 	const auto& friend_ = born(world, DeviceToken::generate());
 	admit_at_gates(world, testator, friend_);
 	regard_in_upper_room(world, testator, friend_, matter::Dweller::Kind::Friend);
 	friend_.wake();
 	friend_.contemplate(room_in(testator, tie));
-	CHECK(writes_here(world, friend_));
-	const auto willed = will_here(world, friend_, "от друга");
-	REQUIRE(willed);
-	CHECK(&willed->author() == static_cast<const Soul*>(&testator));
-	CHECK(&willed->tie() == &tie);
-	const auto trained = train(world, friend_, Saying{"Тренировка"}, {Exercise{"Жим", {Approach{Weight{0}, 5}}}});
-	CHECK(&trained->author() == static_cast<const Soul*>(&testator));
+	CHECK_FALSE(writes_here(world, friend_));
+	CHECK_THROWS_AS(will_here(world, friend_, "от друга"), OnlyHostActs);
+	CHECK_THROWS_AS(train(world, friend_, Saying{"Тренировка"}, {Exercise{"Жим", {Approach{Weight{0}, 5}}}}),
+					OnlyHostActs);
 }

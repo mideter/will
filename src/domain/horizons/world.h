@@ -45,8 +45,8 @@ public:
 
 	const Unborn& unborn(id::Vessel id) const;
 
-	/// Born of the host of the gates — his father by flesh — whoever bears him: the
-	/// father becomes a neighbour in the child's abode, the child an acquaintance in his.
+	/// Born of the host of the gates, who bears him — his father by flesh: the father
+	/// becomes a neighbour in the child's abode, the child an acquaintance in his.
 	const Man& bear(const Man& midwife, const Unborn& unborn);
 
 	/// The father cannot refuse; the former one is replaced.

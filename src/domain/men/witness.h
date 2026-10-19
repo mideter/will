@@ -32,7 +32,7 @@ public:
 	/// The place itself, or a room reflecting it.
 	bool contemplates(const Place& place) const;
 
-	/// A letter in one's abode, written by whoever stands in its cell.
+	/// A letter in one's abode, written in its cell.
 	std::shared_ptr<const Letter> record(Birth<Cell> cell, const Saying& saying) const;
 
 protected:

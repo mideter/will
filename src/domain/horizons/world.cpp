@@ -261,7 +261,7 @@ const Man& World::bear(const Man& midwife, const Unborn& unborn)
 	if (!gates)
 		throw BearOnlyAtGates();
 	if (!gates->keeps(midwife))
-		throw BearOnlyAtKeptGates();
+		throw OnlyHostActs();
 
 	const Man& father = gates->abode().host();
 	matter::Vessel body{unborn.id(), unborn.token()};

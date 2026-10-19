@@ -58,7 +58,7 @@ const Gates& Contemplation::gates() const
 bool Contemplation::writable() const
 {
 	const auto* cell = dynamic_cast<const Cell*>(&place_);
-	return cell && cell->writable();
+	return cell && cell->writable_by(who_);
 }
 
 

@@ -30,7 +30,7 @@ public:
 
 	Abode& abode() const noexcept override { return *abode_; }
 
-	/// He becomes an acquaintance of the host, whoever lets him in.
+	/// He becomes an acquaintance of the host.
 	void admit(Birth<Gates> gates, const Man& man) const;
 
 	void regard(Birth<UpperRoom> upper_room, const Man& dweller, matter::Dweller::Kind kind) const;

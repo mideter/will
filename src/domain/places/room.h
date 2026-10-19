@@ -48,6 +48,10 @@ public:
 protected:
 	Room(Birth<Abode> birth, const Place& reflects, matter::Room kept);
 
+	/// A friend sees all, yet only the host decides what is his: one acts in a room only
+	/// as its host.
+	void host_only(const Contemplation& gaze) const;
+
 private:
 	const Abode& abode_;
 	const Place& reflects_;
@@ -68,8 +72,8 @@ public:
 
 	bool shows(const Man& who, const Word& word) const override;
 
-	/// Whoever stands here writes as its host, what the place it reflects takes of him.
-	bool writable() const;
+	/// Only its host writes here, what the place it reflects takes of him.
+	bool writable_by(const Man& writer) const;
 
 	/// What the words become, the place it reflects decides.
 	std::shared_ptr<const Word> write(const Contemplation& gaze, const Saying& saying) const;
@@ -77,7 +81,7 @@ public:
 	std::shared_ptr<const Training> train(const Contemplation& gaze, const Saying& title,
 										  std::vector<Exercise> exercises) const;
 
-	/// In the novice's cell of a tie, whoever stands there does what the novice does.
+	/// In the novice's cell of a tie, the novice fulfils and trains.
 	std::shared_ptr<const Deed> fulfil(const Contemplation& gaze, const Behest& behest, std::optional<Saying> report,
 									  std::optional<std::vector<Exercise>> performed) const;
 	void begin(const Contemplation& gaze, const Training& training, std::uint32_t exercise,
@@ -92,8 +96,7 @@ private:
 
 
 /// Gates (Врата) — the threshold of an Abode, through which one comes in, born or to be
-/// born: those who keep them let in an acquaintance of the host and bear a child of
-/// his, whoever does it.
+/// born: its host lets in an acquaintance and bears a child of his here.
 class Gates final : public Room, private Immanent<Heaven> {
 public:
 	Gates(Birth<Abode> birth, matter::Room kept);
@@ -103,13 +106,13 @@ public:
 	/// Anyone may stand at the gates.
 	bool dwells(const Man& man) const override;
 
-	/// The host, or a dweller whose kind enters the part they stand in.
+	/// Only the host keeps them.
 	bool keeps(const Man& man) const;
 
-	/// Open while one who keeps them stands in them.
+	/// Open while the host stands in them.
 	bool open() const;
 
-	/// The one let in becomes the host's acquaintance, whoever keeps the gates.
+	/// The one let in becomes the host's acquaintance.
 	void admit(const Contemplation& gaze, const Man& man) const;
 };
 
@@ -122,7 +125,7 @@ public:
 
 	std::string name() const override;
 
-	/// Whoever stands here regards as the host, but not himself.
+	/// Here alone the host regards his dwellers anew.
 	void regard(const Contemplation& gaze, const Man& dweller, matter::Dweller::Kind kind) const;
 
 	void arrange(const Contemplation& gaze, const Room& room, matter::Room::Part part) const;

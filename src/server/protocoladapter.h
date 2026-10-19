@@ -120,8 +120,6 @@ private:
 	/// Where he stands; the world refuses what he would do there, or what is not done there.
 	const domain::Contemplation& gaze_of(const domain::Man& man) const;
 
-	/// The host of the upper room he stands in; himself, if he stands in none.
-	const domain::Man& host_of_upper_room(const domain::Man& man) const;
 
 	/// A dweller looking at the host's abode sees it anew, as his new kind does.
 	void retell_abode(const domain::Man& host, const domain::Man& dweller);

@@ -138,8 +138,6 @@ std::string words_of(const v1::NoticeCode code, const std::vector<std::string>& 
 		return "behest " + arg(0) + " fulfilled";
 	case v1::NOTICE_ADMITTED:
 		return arg(0) + " admitted as an acquaintance";
-	case v1::NOTICE_LET_IN:
-		return arg(0) + " let " + arg(1) + " in as an acquaintance";
 	case v1::NOTICE_REGARDED:
 		return arg(0) + " regarded anew";
 	case v1::NOTICE_ARRANGED_OUTER:
@@ -163,19 +161,16 @@ v1::NoticeCode code_of(const domain::Refusal& refusal)
 	// The world's refusals are its beings' rules; here, at the border, each is given the
 	// code the wire tells it by.
 	static const std::unordered_map<std::type_index, v1::NoticeCode> codes{
-		{typeid(domain::KeepGatesByKind), v1::NOTICE_KEEP_GATES_BY_KIND},
 		{typeid(domain::AlreadyDwells), v1::NOTICE_ALREADY_DWELLS},
 		{typeid(domain::NotAtGates), v1::NOTICE_NOT_AT_GATES},
 		{typeid(domain::BearOnlyAtGates), v1::NOTICE_BEAR_ONLY_AT_GATES},
-		{typeid(domain::BearOnlyAtKeptGates), v1::NOTICE_BEAR_ONLY_AT_KEPT_GATES},
 		{typeid(domain::NoSuchUnborn), v1::NOTICE_NO_SUCH_UNBORN},
 		{typeid(domain::DoesNotDwell), v1::NOTICE_DOES_NOT_DWELL},
 		{typeid(domain::DoesNotEnterRoom), v1::NOTICE_DOES_NOT_ENTER_ROOM},
-		{typeid(domain::RegardNotOneself), v1::NOTICE_REGARD_NOT_ONESELF},
 		{typeid(domain::StandInCell), v1::NOTICE_STAND_IN_CELL},
 		{typeid(domain::StandInUpperRoom), v1::NOTICE_STAND_IN_UPPER_ROOM},
 		{typeid(domain::StandAtGates), v1::NOTICE_STAND_AT_GATES},
-		{typeid(domain::SupplicateOnlyInOwnUpperRoom), v1::NOTICE_SUPPLICATE_ONLY_IN_OWN_UPPER_ROOM},
+		{typeid(domain::OnlyHostActs), v1::NOTICE_ONLY_HOST_ACTS},
 		{typeid(domain::FatherByFleshNeighbour), v1::NOTICE_FATHER_BY_FLESH_NEIGHBOUR},
 		{typeid(domain::FatherBySpiritFriend), v1::NOTICE_FATHER_BY_SPIRIT_FRIEND},
 		{typeid(domain::HearOnlyDweller), v1::NOTICE_HEAR_ONLY_DWELLER},

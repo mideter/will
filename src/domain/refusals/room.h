@@ -7,10 +7,10 @@ namespace will::domain {
 
 
 /// What the gates, the upper room and a room refuses.
-class KeepGatesByKind final : public Refusal {
+class OnlyHostActs final : public Refusal {
 public:
-	KeepGatesByKind()
-		: Refusal("one keeps the gates only by one's kind")
+	OnlyHostActs()
+		: Refusal("only the host acts here; others but look")
 	{}
 };
 
@@ -25,27 +25,6 @@ class BearOnlyAtGates final : public Refusal {
 public:
 	BearOnlyAtGates()
 		: Refusal("one bears only standing in gates")
-	{}
-};
-
-class BearOnlyAtKeptGates final : public Refusal {
-public:
-	BearOnlyAtKeptGates()
-		: Refusal("one bears only at gates one keeps")
-	{}
-};
-
-class SupplicateOnlyInOwnUpperRoom final : public Refusal {
-public:
-	SupplicateOnlyInOwnUpperRoom()
-		: Refusal("one supplicates only in one's own upper room")
-	{}
-};
-
-class RegardNotOneself final : public Refusal {
-public:
-	RegardNotOneself()
-		: Refusal("one does not regard oneself")
 	{}
 };
 
