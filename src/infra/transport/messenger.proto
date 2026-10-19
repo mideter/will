@@ -402,6 +402,8 @@ enum NoticeCode {
     reserved 14;
     // 1, 10, 11 and 15 told where a deed is done, each its own: one refusal for each kind of room tells it now.
     reserved 1, 10, 11, 15;
+    // 16 and 17 kept one from asking oneself or a stranger: one asks now in one's own upper room, among its dwellers.
+    reserved 16, 17;
     NOTICE_KEEP_GATES_BY_KIND = 2;
     NOTICE_ALREADY_DWELLS = 3;
     NOTICE_NOT_AT_GATES = 4;
@@ -412,8 +414,6 @@ enum NoticeCode {
     NOTICE_DOES_NOT_ENTER_ROOM = 9;
     NOTICE_FATHER_BY_FLESH_NEIGHBOUR = 12;
     NOTICE_FATHER_BY_SPIRIT_FRIEND = 13;
-    NOTICE_CANNOT_SUPPLICATE_ONESELF = 16;
-    NOTICE_SUPPLICATE_ONLY_DWELLER = 17;
     NOTICE_HEAR_ONLY_DWELLER = 18;
     NOTICE_ALREADY_TIED = 19;
     NOTICE_TIE_ONLY_MUTUAL_DWELLERS = 20;
@@ -439,6 +439,7 @@ enum NoticeCode {
     NOTICE_STAND_IN_CELL = 40;
     NOTICE_STAND_IN_UPPER_ROOM = 41;
     NOTICE_STAND_AT_GATES = 42;
+    NOTICE_SUPPLICATE_ONLY_IN_OWN_UPPER_ROOM = 43;
 
     // What the server itself refuses.
     // 102–104, 108 and 111 were the server's own copies of the world's rules: the

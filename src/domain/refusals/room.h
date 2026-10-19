@@ -35,6 +35,13 @@ public:
 	{}
 };
 
+class SupplicateOnlyInOwnUpperRoom final : public Refusal {
+public:
+	SupplicateOnlyInOwnUpperRoom()
+		: Refusal("one supplicates only in one's own upper room")
+	{}
+};
+
 class RegardNotOneself final : public Refusal {
 public:
 	RegardNotOneself()

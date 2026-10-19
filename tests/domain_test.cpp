@@ -5,6 +5,7 @@
 #include "refusals/testator.h"
 #include "refusals/place.h"
 #include "refusals/room.h"
+#include "refusals/abode.h"
 #include "refusals/novice.h"
 #include "refusals/training.h"
 #include <doctest/doctest.h>
@@ -524,7 +525,7 @@ TEST_CASE("the sides of a tie may contemplate it and behold its behests")
 
 	admit_at_gates(world, novice, testator);
 	admit_at_gates(world, testator, novice);
-	novice.supplicate(testator);
+	supplicate(world, novice, testator);
 	const Shepherding& shepherding = testator.accept(*testator.supplication(novice));
 	testator.wake();
 	testator.contemplate(room_in(testator, shepherding));
@@ -572,7 +573,7 @@ TEST_CASE("the words of a tie live while it is contemplated, one for both sides"
 
 	admit_at_gates(world, novice, testator);
 	admit_at_gates(world, testator, novice);
-	novice.supplicate(testator);
+	supplicate(world, novice, testator);
 	const Shepherding& shepherding = testator.accept(*testator.supplication(novice));
 	const Obedience& obedience = novice.obedience(testator);
 
@@ -617,7 +618,7 @@ TEST_CASE("the words of a tie are gone with the last gaze and are born anew from
 
 	admit_at_gates(world, novice, testator);
 	admit_at_gates(world, testator, novice);
-	novice.supplicate(testator);
+	supplicate(world, novice, testator);
 	const Shepherding& shepherding = testator.accept(*testator.supplication(novice));
 
 	testator.wake();
@@ -668,7 +669,7 @@ TEST_CASE("tie is a place for distinct testator and novice")
 	static_assert(!std::is_constructible_v<Tie, matter::Tie>);
 	admit_at_gates(world, novice, testator);
 	admit_at_gates(world, testator, novice);
-	novice.supplicate(testator);
+	supplicate(world, novice, testator);
 	testator.accept(*testator.supplication(novice));
 
 	const Obedience& tie = novice.obedience(testator);
@@ -695,7 +696,7 @@ TEST_CASE("supplicate accept creates tie owned as obedience")
 
 	admit_at_gates(world, novice, testator);
 	admit_at_gates(world, testator, novice);
-	novice.supplicate(testator);
+	supplicate(world, novice, testator);
 	CHECK(testator.supplications().size() == 1);
 	const Supplication& ask = *testator.supplication(novice);
 	CHECK(ask.suppliant().Soul::id() == a.Soul::id());
@@ -708,7 +709,7 @@ TEST_CASE("supplicate accept creates tie owned as obedience")
 	CHECK(world.supplications(a.Soul::id()).empty());
 
 	// Asked again while it awaits answer, the same one stays.
-	CHECK_THROWS_AS(novice.supplicate(testator), std::logic_error);
+	CHECK_THROWS_AS(supplicate(world, novice, testator), std::logic_error);
 	CHECK(testator.supplication(novice).get() == &ask);
 
 	// Answered, Heaven lets it go; whoever still holds it keeps it a while.
@@ -737,7 +738,7 @@ TEST_CASE("supplicate accept creates tie owned as obedience")
 	CHECK(cosmos.temporality().supplications(b.Soul::id()).empty());
 
 	// The pair is tied: the testator does not hear the novice again, and no new bond is kept.
-	CHECK_THROWS_AS(novice.supplicate(testator), std::logic_error);
+	CHECK_THROWS_AS(supplicate(world, novice, testator), std::logic_error);
 	CHECK(cosmos.temporality().supplications(b.Soul::id()).empty());
 	CHECK_THROWS_AS(cosmos.spatiality().bind(b.Soul::id(), a.Soul::id()), std::logic_error);
 	CHECK(cosmos.spatiality().ties().size() == 1);
@@ -758,7 +759,7 @@ TEST_CASE("reject closes pending supplication; wrong party cannot accept")
 
 	admit_at_gates(world, novice, testator);
 	admit_at_gates(world, testator, novice);
-	novice.supplicate(testator);
+	supplicate(world, novice, testator);
 	const Supplication& ask = *testator.supplication(novice);
 	CHECK_THROWS_AS(stranger.accept(ask), std::logic_error);
 
@@ -773,10 +774,10 @@ TEST_CASE("reject closes pending supplication; wrong party cannot accept")
 	CHECK(cosmos.spatiality().ties().empty());
 
 	// A rejected suppliant may ask again; a second supplication while one awaits is refused.
-	novice.supplicate(testator);
+	supplicate(world, novice, testator);
 	CHECK(cosmos.temporality().supplications(b.Soul::id()).size() == 1);
-	CHECK_THROWS_AS(novice.supplicate(testator), std::logic_error);
-	CHECK_THROWS_AS(novice.supplicate(a), Refusal);
+	CHECK_THROWS_AS(supplicate(world, novice, testator), std::logic_error);
+	CHECK_THROWS_AS(supplicate(world, novice, a), Refusal);
 }
 
 
@@ -797,7 +798,7 @@ TEST_CASE("will and execute within obedience")
 
 	admit_at_gates(world, novice, testator);
 	admit_at_gates(world, testator, novice);
-	novice.supplicate(testator);
+	supplicate(world, novice, testator);
 	testator.accept(*testator.supplication(novice));
 	REQUIRE(cosmos.spatiality().ties().size() == 1);
 	const Shepherding& shepherding = testator.shepherding(novice);
@@ -845,7 +846,7 @@ TEST_CASE("a tie shows its behests only to its sides; behests are not letters")
 
 	admit_at_gates(world, novice, testator);
 	admit_at_gates(world, testator, novice);
-	novice.supplicate(testator);
+	supplicate(world, novice, testator);
 	testator.accept(*testator.supplication(novice));
 	testator.wake();
 	CHECK_THROWS_AS(will_here(world, testator, "fast"), std::logic_error);
@@ -1022,7 +1023,7 @@ TEST_CASE("a tie is reflected in the abode of each side: Ведение and По
 		testator_name = std::string{testator.name().text()};
 		admit_at_gates(world, novice, testator);
 		admit_at_gates(world, testator, novice);
-		novice.supplicate(testator);
+		supplicate(world, novice, testator);
 		const Shepherding& shepherding = testator.accept(*testator.supplication(novice));
 
 		const Cell* leading = testator.abode().cell(shepherding);
@@ -1058,7 +1059,7 @@ TEST_CASE("a tie bound before rooms were is given its rooms on awakening")
 		const auto& testator = born(world, testator_token);
 		admit_at_gates(world, novice, testator);
 		admit_at_gates(world, testator, novice);
-		novice.supplicate(testator);
+		supplicate(world, novice, testator);
 		testator.accept(*testator.supplication(novice));
 	}
 	// As kept before tie rooms were: only the standard rooms remain.
@@ -1140,7 +1141,7 @@ TEST_CASE("the abode shows its host what awaits his attention and what he has se
 	const auto& testator = born(world, DeviceToken::generate());
 	admit_at_gates(world, novice, testator);
 	admit_at_gates(world, testator, novice);
-	novice.supplicate(testator);
+	supplicate(world, novice, testator);
 	const Shepherding& shepherding = testator.accept(*testator.supplication(novice));
 	CHECK(novice.abode().owed().empty());
 
@@ -1509,7 +1510,7 @@ TEST_CASE("the testator wills a training of exercises; the novice fulfils it tel
 	const auto& testator = born(world, DeviceToken::generate());
 	admit_at_gates(world, novice, testator);
 	admit_at_gates(world, testator, novice);
-	novice.supplicate(testator);
+	supplicate(world, novice, testator);
 	const Shepherding& shepherding = testator.accept(*testator.supplication(novice));
 	const Obedience& obedience = novice.obedience(testator);
 
@@ -1584,7 +1585,7 @@ TEST_CASE("the novice does a training approach by approach: each begun and finis
 		const auto& testator = born(world, testator_token);
 		admit_at_gates(world, novice, testator);
 		admit_at_gates(world, testator, novice);
-		novice.supplicate(testator);
+		supplicate(world, novice, testator);
 		const Shepherding& shepherding = testator.accept(*testator.supplication(novice));
 		const Obedience& obedience = novice.obedience(testator);
 
@@ -1670,7 +1671,7 @@ TEST_CASE("an approach underway is the training's, one at a time in each, and ou
 		const Man& testator = born(world, testator_token);
 		admit_at_gates(world, novice, testator);
 		admit_at_gates(world, testator, novice);
-		novice.supplicate(testator);
+		supplicate(world, novice, testator);
 		const Shepherding& shepherding = testator.accept(*testator.supplication(novice));
 
 		testator.wake();
@@ -1721,7 +1722,7 @@ TEST_CASE("in the novice's cell of a tie, whoever stands there does what the nov
 	const auto& friend_ = born(world, DeviceToken::generate());
 	admit_at_gates(world, novice, testator);
 	admit_at_gates(world, testator, novice);
-	novice.supplicate(testator);
+	supplicate(world, novice, testator);
 	const Shepherding& shepherding = testator.accept(*testator.supplication(novice));
 	const Obedience& obedience = novice.obedience(testator);
 	admit_at_gates(world, novice, friend_);
@@ -1771,7 +1772,7 @@ TEST_CASE("the world awakens though what is kept disagrees: it passes it over, t
 		const auto& boris = born(world, boris_token);
 		admit_at_gates(world, anna, boris);
 		admit_at_gates(world, boris, anna);
-		boris.supplicate(anna);
+		supplicate(world, boris, anna);
 		anna.accept(*anna.supplication(boris));
 		kept_boris = boris.Soul::id();
 		kept_anna_abode = anna.abode().id();
@@ -1817,6 +1818,34 @@ TEST_CASE("the world awakens though what is kept disagrees: it passes it over, t
 }
 
 
+TEST_CASE("one asks to be led only in one's own upper room, among its dwellers")
+{
+	InMemoryCosmos cosmos;
+	World& world = cosmos.life().create().world();
+	const Man& novice = born(world, DeviceToken::generate());
+	const Man& testator = born(world, DeviceToken::generate());
+	const Man& stranger = born(world, DeviceToken::generate());
+	admit_at_gates(world, novice, testator);
+	admit_at_gates(world, testator, novice);
+	regard_in_upper_room(world, testator, novice, matter::Dweller::Kind::Friend);
+
+	// Not standing in an upper room, one does not ask.
+	novice.wake();
+	const Contemplation& at_home = gaze_of(world, novice);
+	CHECK_THROWS_AS(at_home.upper_room(), StandInUpperRoom);
+
+	// In another's upper room, though one enters it, one does not ask for him.
+	novice.contemplate(testator.abode().upper_room());
+	const Contemplation& there = gaze_of(world, novice);
+	CHECK_THROWS_AS(there.upper_room().supplicate(there, testator), SupplicateOnlyInOwnUpperRoom);
+
+	// In one's own, only one who dwells there is asked.
+	CHECK_THROWS_AS(supplicate(world, novice, stranger), DoesNotDwell);
+	supplicate(world, novice, testator);
+	CHECK(testator.supplication(novice));
+}
+
+
 TEST_CASE("a refusal is of its kind, the rule of the being that keeps it, in its own words")
 {
 	InMemoryCosmos cosmos;
@@ -1824,8 +1853,9 @@ TEST_CASE("a refusal is of its kind, the rule of the being that keeps it, in its
 	const auto& man = born(world, DeviceToken::generate());
 
 
-	// One does not ask oneself; one is not one's own father.
-	CHECK_THROWS_AS(man.supplicate(man), CannotSupplicateOneself);
+	// One asks only among the dwellers of one's abode, and one does not dwell there; one is
+	// not one's own father.
+	CHECK_THROWS_AS(supplicate(world, man, man), DoesNotDwell);
 	CHECK_THROWS_AS(world.choose_father(man, man), NotOwnFather);
 
 	// A refusal is told in words too, and is caught as any logic_error.
@@ -1845,7 +1875,7 @@ TEST_CASE("one writes where one stands: a letter in one's word, a behest in a ti
 	const auto& novice = born(world, DeviceToken::generate());
 	admit_at_gates(world, testator, novice);
 	admit_at_gates(world, novice, testator);
-	novice.supplicate(testator);
+	supplicate(world, novice, testator);
 	const Tie& tie = dynamic_cast<const Tie&>(testator.accept(*testator.supplication(novice)));
 
 

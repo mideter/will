@@ -730,7 +730,8 @@ TEST_CASE("one lists the abodes one dwells in and the supplications awaiting one
 	}
 	CHECK(with_a);
 
-	// b supplicates a; a sees it awaiting and rejects it.
+	// b supplicates a, standing in his upper room; a sees it awaiting and rejects it.
+	stand_in(*b.stream, {}, "Горница");
 	{
 		will::v1::ClientEvent ask;
 		ask.mutable_supplicate()->set_addressee_name(a_name);
@@ -738,6 +739,9 @@ TEST_CASE("one lists the abodes one dwells in and the supplications awaiting one
 	}
 	CHECK(next_past_gates(*b.stream).has_protocol_notice());
 	CHECK(next_past_gates(*a.stream).has_supplication_offer());
+	// His upper room is told anew to him; then he turns to his word.
+	read_until(*b.stream, [](const auto& e) { return e.has_rooms(); });
+	stand_in(*b.stream, {}, "Слово");
 
 	// Each sees, among his dwellers, how the other stands to him: b asked, a is asked.
 	const auto dweller_named = [](SessionStream& stream, const std::string& name) {
@@ -1005,6 +1009,7 @@ TEST_CASE("the testator wills a training over the wire; the novice fulfils it te
 	send_admit(*novice.stream, trainer_name);
 	read_until(*novice.stream, [](const auto& e) { return e.has_protocol_notice(); });
 	read_until(*trainer.stream, [](const auto& e) { return e.has_dwelling(); });
+	stand_in(*novice.stream, {}, "Горница");
 	{
 		will::v1::ClientEvent ask;
 		ask.mutable_supplicate()->set_addressee_name(trainer_name);

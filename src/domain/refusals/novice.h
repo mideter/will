@@ -7,20 +7,6 @@ namespace will::domain {
 
 
 /// What a novice refuses.
-class CannotSupplicateOneself final : public Refusal {
-public:
-	CannotSupplicateOneself()
-		: Refusal("cannot supplicate oneself")
-	{}
-};
-
-class SupplicateOnlyDweller final : public Refusal {
-public:
-	SupplicateOnlyDweller()
-		: Refusal("one supplicates only a dweller of one's abode")
-	{}
-};
-
 class FulfilOnlyInContemplatedTie final : public Refusal {
 public:
 	FulfilOnlyInContemplatedTie()

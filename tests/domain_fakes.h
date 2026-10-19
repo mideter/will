@@ -708,6 +708,16 @@ inline void regard_in_upper_room(World& world, const Man& host, const Man& man, 
 }
 
 
+/// One asks a dweller of his abode to become his testator, standing in his upper room.
+inline void supplicate(World& world, const Man& man, const Man& addressee)
+{
+	looking_at(world, man, man.abode().upper_room(), [&] {
+		const Contemplation& gaze = gaze_of(world, man);
+		gaze.upper_room().supplicate(gaze, addressee);
+	});
+}
+
+
 /// The host sets a room of his abode in a part, standing in his upper room.
 inline void arrange_in_upper_room(World& world, const Man& host, const Room& room, const matter::Room::Part part)
 {

@@ -126,6 +126,9 @@ public:
 	void regard(const Contemplation& gaze, const Man& dweller, matter::Dweller::Kind kind) const;
 
 	void arrange(const Contemplation& gaze, const Room& room, matter::Room::Part part) const;
+
+	/// Only its host asks one of its dwellers to become his testator.
+	void supplicate(const Contemplation& gaze, const Man& addressee) const;
 };
 
 

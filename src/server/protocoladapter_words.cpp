@@ -154,11 +154,9 @@ void ProtocolAdapter::handle_supplicate(const SessionId session_id, const v1::Su
 		return;
 
 	const domain::Man& self = session_man(session_id);
-	const auto& novice = self;
-	const auto& testator = *addressee_man;
-
 	try {
-		novice.supplicate(testator);
+		const domain::Contemplation& gaze = gaze_of(self);
+		gaze.upper_room().supplicate(gaze, *addressee_man);
 	} catch (const std::exception& e) {
 		refuse(session_id, e);
 		return;

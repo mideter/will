@@ -82,6 +82,7 @@ private:
 using will::domain::test::admit_at_gates;
 using will::domain::test::regard_in_upper_room;
 using will::domain::test::born;
+using will::domain::test::supplicate;
 
 } // namespace
 
@@ -232,7 +233,7 @@ TEST_CASE("sqlite keeps a behest and its execution across reopen")
 
 		admit_at_gates(world, novice, testator);
 		admit_at_gates(world, testator, novice);
-		novice.supplicate(testator);
+		supplicate(world, novice, testator);
 		testator.accept(*testator.supplication(novice));
 		testator.wake();
 		testator.contemplate(*testator.abode().cell(testator.shepherding(novice)));
@@ -316,23 +317,23 @@ TEST_CASE("sqlite keeps supplications, rejections and ties across reopen")
 		// a asks b twice: rejected, then asked again and left awaiting.
 		admit_at_gates(world, a, b);
 		admit_at_gates(world, b, a);
-		a.supplicate(b);
-		CHECK_THROWS_AS(a.supplicate(b), std::logic_error);
+		supplicate(world, a, b);
+		CHECK_THROWS_AS(supplicate(world, a, b), std::logic_error);
 		b.reject(*b.supplication(a));
 		CHECK(bundle.temporality().supplications(b.Soul::id()).empty());
 		CHECK_THROWS_AS(bundle.temporality().answer(a.Soul::id(), b.Soul::id(), matter::Answer::Form::Rejected),
 						std::invalid_argument);
-		a.supplicate(b);
+		supplicate(world, a, b);
 
 		// c asks b and is accepted.
 		admit_at_gates(world, c, b);
 		admit_at_gates(world, b, c);
-		c.supplicate(b);
+		supplicate(world, c, b);
 		CHECK(bundle.temporality().supplications(b.Soul::id()).size() == 2);
 		const Shepherding& shepherding = b.accept(*b.supplication(c));
 		CHECK(&shepherding.novice() == &c);
 		CHECK(b.supplications().size() == 1);
-		CHECK_THROWS_AS(c.supplicate(b), std::logic_error);
+		CHECK_THROWS_AS(supplicate(world, c, b), std::logic_error);
 	}
 
 	{

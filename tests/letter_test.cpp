@@ -120,7 +120,7 @@ TEST_CASE("Behest is a word of will in a living Tie, born of the Tie or of its t
 
 	admit_at_gates(world, novice, testator);
 	admit_at_gates(world, testator, novice);
-	novice.supplicate(testator);
+	supplicate(world, novice, testator);
 	const Shepherding& shepherding = testator.accept(*testator.supplication(novice));
 
 	cosmos.fake_time().set_instant(Timestamp{50});
@@ -157,7 +157,7 @@ TEST_CASE("Deed is the novice's word fulfilling a behest, his report or «сов
 
 	admit_at_gates(world, novice, testator);
 	admit_at_gates(world, testator, novice);
-	novice.supplicate(testator);
+	supplicate(world, novice, testator);
 	const Shepherding& shepherding = testator.accept(*testator.supplication(novice));
 	testator.wake();
 	testator.contemplate(room_in(testator, shepherding));

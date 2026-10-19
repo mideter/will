@@ -11,6 +11,7 @@
 #include "relations/contemplation.h"
 #include "men/soul.h"
 #include "men/man.h"
+#include "relations/acquaintance.h"
 #include "men/testator.h"
 #include "dimensions/spatiality.h"
 #include "matter/word.h"
@@ -24,14 +25,9 @@
 namespace will::domain {
 
 
-void Novice::supplicate(const Man& addressee) const
+void Novice::supplicate(Birth<UpperRoom>, const Acquaintance& dweller) const
 {
-	if (addressee.Soul::id() == Soul::id())
-		throw CannotSupplicateOneself();
-	if (!abode().dweller(addressee))
-		throw SupplicateOnlyDweller();
-
-	addressee.hear(Birth<Novice>{*this});
+	dweller.man().hear(Birth<Novice>{*this});
 }
 
 

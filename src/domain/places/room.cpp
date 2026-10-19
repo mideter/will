@@ -229,6 +229,20 @@ void UpperRoom::regard(const Contemplation& gaze, const Man& dweller, const matt
 }
 
 
+void UpperRoom::supplicate(const Contemplation& gaze, const Man& addressee) const
+{
+	if (&gaze.place() != this)
+		throw std::logic_error("this upper room is not what is contemplated");
+	if (&gaze.who() != &abode().host())
+		throw SupplicateOnlyInOwnUpperRoom();
+	const std::shared_ptr<const Acquaintance> dweller = abode().dweller(addressee);
+	if (!dweller)
+		throw DoesNotDwell();
+
+	abode().host().supplicate(Birth<UpperRoom>{*this}, *dweller);
+}
+
+
 void UpperRoom::arrange(const Contemplation& gaze, const Room& room, const matter::Room::Part part) const
 {
 	if (&gaze.place() != this)
