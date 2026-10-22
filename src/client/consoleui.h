@@ -57,8 +57,8 @@ private:
 	void write_mine_line_unlocked(std::string_view body, bool dim, bool acked) const;
 	void note_line_above_prompt_unlocked() const;
 
-	void emit_line(std::string_view line) const;
-	void emit_lines(const std::vector<std::string>& lines) const;
+	void print_above_prompt(std::string_view line) const;
+	void print_above_prompt(const std::vector<std::string>& lines) const;
 
 	std::string hinted(std::string_view colour, std::string_view text, std::string_view hint) const;
 

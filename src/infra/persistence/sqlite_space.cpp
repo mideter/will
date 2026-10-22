@@ -25,7 +25,7 @@ SqliteSpace::SqliteSpace(SqliteDatabase& database)
 	: database_(database)
 {
 	std::lock_guard lock(database_.mutex());
-	seed(read_hwm(database_.db()));
+	resume_from_mark(read_hwm(database_.db()));
 }
 
 

@@ -200,13 +200,13 @@ void ConsoleUi::print_receipt() const
 }
 
 
-void ConsoleUi::emit_line(const std::string_view line) const
+void ConsoleUi::print_above_prompt(const std::string_view line) const
 {
-	emit_lines({std::string{line}});
+	print_above_prompt(std::vector<std::string>{std::string{line}});
 }
 
 
-void ConsoleUi::emit_lines(const std::vector<std::string>& lines) const
+void ConsoleUi::print_above_prompt(const std::vector<std::string>& lines) const
 {
 	std::lock_guard lock(console_mutex());
 
@@ -243,22 +243,22 @@ std::string ConsoleUi::hinted(const std::string_view colour, const std::string_v
 
 void ConsoleUi::print_status(const std::string_view text, const std::string_view hint) const
 {
-	emit_line(hinted({}, text, hint));
+	print_above_prompt(hinted({}, text, hint));
 }
 
 
 void ConsoleUi::print_header(const std::string_view text) const
 {
 	if (color_)
-		emit_line(std::string{AnsiBold} + AnsiCyan + std::string{text} + AnsiReset);
+		print_above_prompt(std::string{AnsiBold} + AnsiCyan + std::string{text} + AnsiReset);
 	else
-		emit_line(text);
+		print_above_prompt(text);
 }
 
 
 void ConsoleUi::print_notice(const std::string_view text, const std::string_view hint) const
 {
-	emit_line(hinted(AnsiYellow, text, hint));
+	print_above_prompt(hinted(AnsiYellow, text, hint));
 }
 
 
@@ -284,7 +284,7 @@ void ConsoleUi::print_list(const std::string_view title, const std::vector<std::
 		}
 		lines.push_back(std::move(line));
 	}
-	emit_lines(lines);
+	print_above_prompt(lines);
 }
 
 
@@ -306,7 +306,7 @@ void ConsoleUi::print_commands(const std::string_view group, const std::string_v
 		if (color_ && (c == '>' || c == ']'))
 			line += AnsiReset;
 	}
-	emit_line(line);
+	print_above_prompt(line);
 }
 
 
@@ -322,13 +322,13 @@ void ConsoleUi::print_error(const std::string_view text) const
 
 void ConsoleUi::print_history_begin() const
 {
-	emit_line(color_ ? std::string{AnsiDim} + "── history ──" + AnsiReset : std::string{"── history ──"});
+	print_above_prompt(color_ ? std::string{AnsiDim} + "── history ──" + AnsiReset : std::string{"── history ──"});
 }
 
 
 void ConsoleUi::print_history_end() const
 {
-	emit_line(color_ ? std::string{AnsiDim} + "── live ──" + AnsiReset : std::string{"── live ──"});
+	print_above_prompt(color_ ? std::string{AnsiDim} + "── live ──" + AnsiReset : std::string{"── live ──"});
 }
 
 

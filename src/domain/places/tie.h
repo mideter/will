@@ -46,7 +46,7 @@ public:
 	std::shared_ptr<const Training> train(Birth<Cell> cell, const Saying& title, std::vector<Exercise> exercises) const;
 
 private:
-	const Testator& willing(Birth<Cell> cell) const;
+	const Testator& testator_of(Birth<Cell> cell) const;
 };
 
 

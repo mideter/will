@@ -45,7 +45,7 @@ id::Place Space::point()
 }
 
 
-void Space::seed(const std::uint64_t value)
+void Space::resume_from_mark(const std::uint64_t value)
 {
 	if (value > high_water_)
 		high_water_ = value;

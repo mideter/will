@@ -15,7 +15,7 @@ class Place;
 
 
 /// The living field of places, given through Eternity as Time is. It marks each point it
-/// gives; a durable space keeps the mark and is seeded from it without marking anew.
+/// gives; a durable space keeps the mark and resumes from it without marking anew.
 class Space : private Immanent<Space> {
 public:
 	Space();
@@ -31,7 +31,7 @@ protected:
 	friend class Place;
 	friend class Immanent<Space>;
 
-	void seed(std::uint64_t value);
+	void resume_from_mark(std::uint64_t value);
 
 	virtual void persist_mark(id::Place id) {}
 

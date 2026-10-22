@@ -132,7 +132,7 @@ bool Tie::takes_words_of(const Man& host) const
 }
 
 
-const Testator& Tie::willing(const Birth<Cell> cell) const
+const Testator& Tie::testator_of(const Birth<Cell> cell) const
 {
 	if (&cell.parent().reflects() != static_cast<const Place*>(this))
 		throw std::logic_error("the cell does not reflect this tie");
@@ -145,14 +145,14 @@ const Testator& Tie::willing(const Birth<Cell> cell) const
 std::shared_ptr<const Word> Tie::receive(const Birth<Cell> cell, const Saying& saying) const
 {
 	// What is written in its testator's cell, he wills: a behest.
-	return willing(cell).will(cell, *this, saying);
+	return testator_of(cell).will(cell, *this, saying);
 }
 
 
 std::shared_ptr<const Training> Tie::train(const Birth<Cell> cell, const Saying& title,
 										   std::vector<Exercise> exercises) const
 {
-	return willing(cell).train(cell, *this, title, std::move(exercises));
+	return testator_of(cell).train(cell, *this, title, std::move(exercises));
 }
 
 
