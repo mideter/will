@@ -14,7 +14,6 @@ namespace will {
 /// Place ids are pointed from Eternity's Space.
 class SqliteSpatiality final : public domain::Spatiality {
 public:
-	/// Opens the space database at this path.
 	SqliteSpatiality(std::string path, domain::Eternity& eternity);
 
 	std::optional<domain::matter::Abode> abode(domain::id::Soul host) const override;

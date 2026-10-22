@@ -14,7 +14,8 @@ namespace will::domain {
 class Place;
 
 
-/// The living field of places, given through Eternity as Time is.
+/// The living field of places, given through Eternity as Time is. It marks each point it
+/// gives; a durable space keeps the mark and is seeded from it without marking anew.
 class Space : private Immanent<Space> {
 public:
 	Space();
@@ -30,10 +31,8 @@ protected:
 	friend class Place;
 	friend class Immanent<Space>;
 
-	/// Without persisting it.
 	void seed(std::uint64_t value);
 
-	/// Durable implementation may keep the mark.
 	virtual void persist_mark(id::Place id) {}
 
 private:

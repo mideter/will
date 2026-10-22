@@ -33,8 +33,12 @@ class Supplication;
 class World;
 
 
-/// A man's own place: its words are seen only through its rooms,
-/// and others dwell in it as its host admits them.
+/// A man's own place: its words are seen only through its rooms, and others dwell in it as
+/// its host lets them in at the gates. Every abode has its gates and its helm; its rooms
+/// keep the order they were furnished in. In it dwell the host, his dwellers and his fathers
+/// by spirit, who are ever friends yet unseen among the dwellers. What it owes and awaits
+/// are the behests not yet fulfilled where its host is the novice or the testator, oldest
+/// first by room.
 class Abode : public Place {
 public:
 	Abode(Birth<Man> birth, matter::Abode kept);
@@ -50,10 +54,8 @@ public:
 	void admit(Birth<Man> birth, const Man& man, const matter::Dweller& kept);
 	void admit(Birth<World> birth, const Man& man, const matter::Dweller& kept);
 
-	/// Let in at the gates by the host.
 	void admit(Birth<Gates> birth, const Man& man, const matter::Dweller& kept);
 
-	/// The host's fathers by spirit are not among them: they are unseen.
 	std::vector<std::shared_ptr<const Acquaintance>> dwellers() const;
 
 	const Room& furnish(Birth<Man> birth, const matter::Room& kept);
@@ -62,25 +64,20 @@ public:
 
 	void arrange(Birth<Man> birth, const matter::Room& kept) const;
 
-	/// In the order they were furnished.
 	std::vector<std::reference_wrapper<const Room>> rooms() const;
 
 	const Cell* cell(const Place& reflects) const;
 	const Cell* cell(std::string_view name) const;
 
-	/// Every abode has them.
 	const Gates& gates() const;
 	const Helm& helm() const;
 
 	const Room* room(std::string_view name) const;
 
-	/// None for the host and for a stranger; a father by spirit of the host is ever a friend.
 	std::shared_ptr<const Acquaintance> dweller(const Man& man) const;
 
-	/// The host, his dwellers and his fathers by spirit.
 	bool dwells(const Man& man) const override;
 
-	/// The abode itself shows no words; they are seen through its rooms.
 	bool shows(const Man& who, const Word& word) const override;
 
 	bool leads_to(const Place& next) const override;
@@ -88,15 +85,12 @@ public:
 
 	std::shared_ptr<const Word> receive(Birth<Cell> cell, const Saying& saying) const override;
 
-	/// Behests not yet fulfilled where the host is the novice, oldest first by room.
 	std::vector<std::shared_ptr<const Behest>> owed() const;
 
-	/// Behests not yet fulfilled where the host is the testator, oldest first by room.
 	std::vector<std::shared_ptr<const Behest>> awaited() const;
 
 	std::shared_ptr<const Letter> inscribe(Birth<Witness>, matter::Letter kept) const;
 
-	/// Whether he is a father by spirit of the host, near or far.
 	bool ancestor(const Man& man) const;
 
 private:

@@ -42,9 +42,10 @@ This document records project conventions so changes stay consistent. When in do
 
 ## Comments
 
-A comment says only what the code cannot say itself; prefer a telling name to a comment.
+A comment says only what the code cannot say itself; the meaning goes into names first.
 
-- **Keep:** what a domain class is, in a line or two above it; a rule or intent the signature does not show (`exercises in any order, approaches of an exercise in order`); cross-thread contracts.
+- **Where:** above a class (in Kotlin, also above a Compose screen) — what it is and its rules; inside a body — one line on why, beside a decision that neither a name nor a test can tell. Never above a method, a function or a field: what a comment there would say goes into the name, into the class's comment as its rule, or into a test.
+- **Keep:** a rule or intent the signatures do not show (`exercises in any order, approaches of an exercise in order`); cross-thread contracts — in the class's comment.
 - **Names:** the Russian name of a domain class and its word in the interface live in `GLOSSARY.md`, not in comments; a new or renamed class is entered there.
 - **Do not write:** retellings of a signature or a name; lists of what a function throws (the refusal classes in `src/domain/refusals/` say it); old or foreign names — a comment is neither compiled nor tested, and a misleading one is worse than none.
 - When a rule changes, check the comment beside it.

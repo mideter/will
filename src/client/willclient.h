@@ -20,15 +20,18 @@
 namespace will {
 
 
+/// The console's one session with the server, authenticated by the device token; the answer
+/// is awaited before BindToken is sent, for it may come at once, and the inbound handler runs
+/// on the reader thread. It speaks in the open, or TLS trusting only the server certificate of
+/// the config. Exercises and approaches are numbered from zero; an unborn body is known by its
+/// mark until it is born and named. History is not asked for with a limit of zero.
 class WillClient {
 public:
 	WillClient();
 	explicit WillClient(ClientConfig config);
 
-	/** Opens a gRPC channel, starts Messenger.Session, and authenticates with the device token. */
 	void connect();
 
-	/** Called from the inbound reader thread. */
 	void set_inbound_handler(std::function<void(const v1::ServerEvent&)> handler);
 	void set_closed_handler(std::function<void()> handler);
 
@@ -36,24 +39,17 @@ public:
 
 	void ask(std::string_view addressee_name) const;
 	void accept(std::string_view suppliant_name) const;
-	/** Turn the gaze to the tie with this soul, or home when the name is empty. */
 
-	/** Fulfil a behest of the contemplated tie, with an optional report. */
 	void fulfil(std::uint64_t behest_id, std::string_view report,
 				const std::vector<v1::Exercise>& performed = {}) const;
 
-	/// Begin an approach (exercise and approach from zero) of a training; finish it.
 	void begin_approach(std::uint64_t behest_id, std::uint32_t exercise, std::uint32_t approach) const;
 	void finish_approach(std::uint64_t behest_id, std::uint32_t weight_grams, std::uint32_t repetitions) const;
 
-	/// Will a training in the tie one looks at as its testator.
 	void train(std::string_view title, const std::vector<v1::Exercise>& exercises) const;
 
-	/// Turn the gaze to the abode of this host one dwells in, or to one's own
-	/// when empty; into this room of it, when given.
 	void visit(std::string_view host_name, std::string_view room = {}) const;
 
-	/// Set a room of one's abode in the outer part, or the inner one.
 	void arrange(std::string_view room, bool outer) const;
 
 	void admit(std::string_view name) const;
@@ -64,12 +60,10 @@ public:
 	void list_supplications() const;
 	void reject(std::string_view suppliant_name) const;
 
-	/// Bear the unborn with this mark, standing in gates one keeps.
 	void bear(std::uint64_t mark) const;
 	void choose_father(std::string_view name) const;
 	void list_lineage() const;
 
-	/** Sends HistoryRequest; returns false when limit is 0. */
 	bool requestHistory(std::uint32_t limit) const;
 
 	void shutdown() const;
@@ -77,19 +71,15 @@ public:
 	const ClientConfig& config() const noexcept;
 	const std::string& own_name() const noexcept { return own_name_; }
 
-	/// The body awaits its birth: the mark it is seen by, while it waits.
 	const std::optional<std::uint64_t>& mark() const noexcept { return mark_; }
 
-	/// The body is born: the man dwelling in it is named.
 	void born(std::string name);
 
 private:
-	/// In the open, or TLS trusting only the server certificate of the config.
 	std::shared_ptr<grpc::ChannelCredentials> credentials() const;
 
 	static domain::DeviceToken load_or_create_device_token(const std::string& path);
 	void authenticate_device(std::string_view device_token);
-	/** Must be called before BindToken is sent: the reply may arrive at once. */
 	std::future<v1::ServerEvent> expect_auth_response();
 	std::shared_ptr<std::promise<v1::ServerEvent>> take_pending_auth();
 	void dispatch_inbound(const v1::ServerEvent& event);

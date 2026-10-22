@@ -26,7 +26,6 @@ void handle_signal(int)
 }
 
 
-/// The whole of a file (a PEM certificate or key). Throws if it cannot be read.
 std::string read_file(const std::string& path)
 {
 	std::ifstream in{path, std::ios::binary};

@@ -34,16 +34,12 @@ private:
 	void open_database();
 	void init_schema();
 
-	/// Rejections kept before answers were (table `rejections`) become answers.
 	void answer_kept_rejections();
 
-	/// Rooms kept before they had an aspect (all windows onto words) get one.
 	void give_rooms_their_aspect();
 
-	/// Birth rooms kept before birth came through the gates are gone.
 	void fold_birth_rooms_into_gates();
 
-	/// Approaches kept before they had a rest are given none.
 	void give_approaches_their_rest();
 
 	std::string db_path_;

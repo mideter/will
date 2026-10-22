@@ -25,9 +25,9 @@ constexpr char AnsiCyan[] = "\033[36m";
 constexpr char CheckMark[] = "✓";
 
 
-/// Columns a UTF-8 text takes: one to a character (the names here are narrow).
 std::size_t width_of(const std::string_view text)
 {
+	// One column to a character: the names here are narrow.
 	std::size_t width = 0;
 	for (const char c : text) {
 		if ((static_cast<unsigned char>(c) & 0xC0) != 0x80)

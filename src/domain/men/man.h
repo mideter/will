@@ -19,18 +19,18 @@ class Helm;
 class World;
 
 
-/// The living man: witness, novice and testator at once.
+/// The living man: witness, novice and testator at once; a role lives only in a man, and
+/// the man of a role is found from it. A soul is a man only while he lives. One he admits
+/// becomes his acquaintance.
 class Man final : public Witness, public Novice, public Testator {
 public:
 	Man(Birth<World>, matter::Man kept);
 	~Man() override;
 
-	/// The one soul by this id, if it is a living man's.
 	static const Man& of(id::Soul id);
 
 	Abode& abode() const noexcept override { return *abode_; }
 
-	/// He becomes an acquaintance of the host.
 	void admit(Birth<Gates> gates, const Man& man) const;
 
 	void regard(Birth<Helm> helm, const Man& dweller, matter::Dweller::Kind kind) const;
@@ -48,7 +48,6 @@ private:
 };
 
 
-/// The man whose role this is: a role lives only in a man.
 inline const Man& man_of(const Witness& role) noexcept { return static_cast<const Man&>(role); }
 inline const Man& man_of(const Novice& role) noexcept { return static_cast<const Man&>(role); }
 inline const Man& man_of(const Testator& role) noexcept { return static_cast<const Man&>(role); }

@@ -102,7 +102,6 @@ bool drain_receipt_ack(SessionStream& stream)
 }
 
 
-/** Wait until stream Read fails (peer cancelled/closed), or timeout. */
 bool wait_for_stream_end(GrpcSession& session, std::chrono::milliseconds timeout)
 {
 	std::atomic<bool> done{false};
@@ -202,7 +201,6 @@ public:
 		pid_ = 0;
 	}
 
-	/// The case has stopped it itself.
 	void forget() noexcept { pid_ = 0; }
 
 private:
@@ -275,7 +273,6 @@ TEST_CASE("second session with same device token displaces the first")
 }
 
 
-/** Wait for the process to exit; false if it is still running after the timeout. */
 bool wait_for_exit(pid_t pid, std::chrono::milliseconds timeout)
 {
 	const auto deadline = std::chrono::steady_clock::now() + timeout;

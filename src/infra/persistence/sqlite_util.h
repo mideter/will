@@ -26,7 +26,8 @@ inline std::uint64_t sqlite_last_insert_id(sqlite3* db)
 }
 
 
-/// RAII SQLite prepared statement.
+/// RAII SQLite prepared statement. A step gives a row or its end, and throws on an error; one
+/// that changes (INSERT, UPDATE, DELETE) expects the end.
 class SqliteStmt {
 public:
 	SqliteStmt(sqlite3* db, const char* sql, const char* context)
@@ -55,7 +56,6 @@ public:
 					 db_, context);
 	}
 
-	/// True on SQLITE_ROW; false on SQLITE_DONE; throws on error.
 	bool step_row(const char* context)
 	{
 		const int rc = sqlite3_step(stmt_);
@@ -65,7 +65,6 @@ public:
 		return false;
 	}
 
-	/// Expect SQLITE_DONE (INSERT / UPDATE / DELETE).
 	void step_done(const char* context)
 	{
 		const int rc = sqlite3_step(stmt_);

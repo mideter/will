@@ -38,8 +38,6 @@ void Novice::supplicate(Birth<Helm>, const Acquaintance& dweller) const
 namespace {
 
 
-/// What was done of a training, by its efforts: the exercises in their willed order,
-/// each with its approaches in theirs; an exercise of which nothing was done is left out.
 std::vector<Exercise> done_of(const Training& training)
 {
 	std::vector<matter::Effort> efforts = training.efforts();

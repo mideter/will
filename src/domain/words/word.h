@@ -12,8 +12,9 @@ class Life;
 class Soul;
 
 
-/// What the spirit utters: a letter, a behest or a deed. It lives in the
-/// recollection of its place, while that is held.
+/// What the spirit utters: a letter, a behest or a deed. It lives in the recollection of its
+/// place, while that is held. Its author is a letter's writer, a behest's testator, a
+/// deed's novice.
 class Word : public Immanent<Life> {
 public:
 	virtual ~Word() = default;
@@ -21,7 +22,6 @@ public:
 	id::Word id() const noexcept { return id_; }
 	const Saying& saying() const noexcept { return saying_; }
 
-	/// A letter's writer, a behest's testator, a deed's novice.
 	virtual const Soul& author() const = 0;
 
 protected:

@@ -23,7 +23,14 @@
 namespace will::domain {
 
 
-/// The one living cosmos, Heaven and Earth; it alone gives men birth.
+/// The one living cosmos, Heaven and Earth; it alone gives men birth. It welcomes a body by
+/// its token: the man in it, or an unborn body awaiting its soul, kept in the order they
+/// came; the first on an empty world is begotten at once. A child is born at the gates of
+/// his father by flesh, its host, who becomes a neighbour in the child's abode and the child
+/// an acquaintance in his. A father by spirit cannot refuse, and replaces the former; his
+/// lineage is his children by spirit, theirs, and so on. Its time is the one words and
+/// efforts are dated by. What was kept but does not agree among the dimensions it passes
+/// over on awakening, never erasing it, and tells it with what was made whole again.
 class World : public Heaven, public Earth {
 public:
 	using Heaven::knows;
@@ -33,19 +40,14 @@ public:
 
 	const Man& man(const Vessel& vessel) const;
 
-	/// The man in this token's body, or an unborn body awaiting its soul; the first
-	/// on an empty world is begotten at once.
 	const Vessel& welcome(const DeviceToken& token);
 
-	/// The same time by which words and efforts are dated.
 	Timestamp now();
 
-	/// In the order they came.
 	std::vector<std::reference_wrapper<const Unborn>> unborn() const;
 
 	const Unborn& unborn(id::Vessel id) const;
 
-	/// The father cannot refuse; the former one is replaced.
 	void choose_father(const Man& child, const Man& father);
 
 	struct Descent {
@@ -53,15 +55,12 @@ public:
 		std::reference_wrapper<const Man> father;
 	};
 
-	/// His children by spirit, theirs, and so on.
 	std::vector<Descent> lineage(const Man& father) const;
 
 	const Man& man(const SoulName& name) const;
 
 	std::vector<std::reference_wrapper<const Man>> hosts_of(const Man& dweller) const;
 
-	/// What was kept but does not agree among the dimensions — passed over on
-	/// awakening, never erased — and what was made whole again.
 	const std::vector<std::string>& unrecollected() const noexcept { return unrecollected_; }
 
 private:
@@ -76,8 +75,6 @@ private:
 
 	void ask(const Spirit& suppliant, const Soul& addressee) override;
 
-	/// The host of the gates is the child's father by flesh: the father becomes a
-	/// neighbour in the child's abode, the child an acquaintance in his.
 	const Man& bear(Birth<Gates> gates, const Unborn& unborn) override;
 
 	const Man& living_man(id::Soul id) const;

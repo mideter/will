@@ -17,7 +17,9 @@ enum class ColorMode : std::uint8_t {
 };
 
 
-/** Client configuration (no invariants; validated by ClientConfigValidator). */
+/// Client configuration (no invariants; validated by ClientConfigValidator). Given the
+/// server's certificate (PEM file), the client speaks only TLS and trusts it alone; without
+/// it, in the open.
 struct ClientConfig {
 	static constexpr int MinPort = 1;
 	static constexpr int MaxPort = 65535;
@@ -36,8 +38,6 @@ struct ClientConfig {
 	bool quiet_receipts = DefaultQuietReceipts;
 	std::uint32_t history_limit = DefaultHistoryLimit;
 	ColorMode color = DefaultColor;
-	/// The server's certificate (PEM file) to trust: given, the client speaks only TLS
-	/// and trusts it alone; empty, it speaks in the open.
 	std::string tls_cert;
 };
 

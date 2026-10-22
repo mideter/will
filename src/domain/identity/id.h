@@ -9,7 +9,7 @@
 namespace will::domain::id {
 
 
-/// Common base for strongly-typed persistent identifiers.
+/// Common base for strongly-typed persistent identifiers; never zero.
 class Id {
 public:
 	constexpr std::uint64_t value() const noexcept { return value_; }
@@ -18,7 +18,6 @@ public:
 	constexpr bool operator==(const Id&) const noexcept = default;
 
 protected:
-	/// Never zero.
 	explicit Id(std::uint64_t value);
 
 private:

@@ -17,20 +17,16 @@ class ConsoleUi;
 class WillClient;
 
 
-/// The rooms last shown, in the order of their numbers, and whose abode they
-/// are of (empty — one's own): `/room <number>` enters them.
+/// The rooms last shown, in the order of their numbers, and whose abode they are of (empty —
+/// one's own): `/room <number>` enters them. They are of the place the gaze turned to last,
+/// or whose rooms were asked for; shown at one's helm, they are one's own, to be arranged.
 class ShownRooms final {
 public:
-	/// The gaze turned to the abode of this host (empty — one's own) and into
-	/// this room of it (empty — the abode itself), or its rooms were asked for:
-	/// the rooms shown next are of it.
 	void turned(std::string abode_of, std::string room = {});
 	void shown(const v1::Rooms& rooms);
 
-	/// The rooms shown are one's own, shown at one's helm to be arranged.
 	bool arranging() const;
 
-	/// The room of this number and its abode; none if there is no such number.
 	std::optional<std::pair<std::string, std::string>> numbered(std::string_view number) const;
 
 private:

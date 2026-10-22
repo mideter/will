@@ -26,8 +26,8 @@ class Helm;
 class World;
 
 
-/// The side of a tie who wills its behests and trainings, and hears
-/// the supplications that would bind one.
+/// The side of a tie who wills its behests and trainings, and hears the supplications that
+/// would bind one, refusing those he may not hear.
 class Testator : public virtual Embodied {
 public:
 	const Shepherding& accept(Birth<Helm> helm, const Supplication& ask) const;
@@ -42,7 +42,6 @@ public:
 	std::shared_ptr<const Supplication> supplication(const Novice& suppliant) const;
 	std::vector<std::shared_ptr<const Supplication>> supplications() const;
 
-	/// Whether he may hear the suppliant: he refuses if not.
 	void hear(Birth<Novice> birth) const;
 
 protected:

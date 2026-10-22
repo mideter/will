@@ -16,15 +16,14 @@ class Place;
 class Word;
 
 
-/// The words of a place called to life from memory while
-/// the gazes hold it: they live all or none.
+/// The words of a place called to life from memory while the gazes hold it: they live all
+/// or none, oldest first.
 class Recollection : public Immanent<Life> {
 public:
 	Recollection(Birth<Life>, const Place& place, std::vector<std::shared_ptr<const Word>> words);
 
 	const Place& place() const noexcept { return place_; }
 
-	/// Oldest first.
 	std::vector<std::shared_ptr<const Word>> words() const;
 
 	void enter(Birth<Place> birth, std::shared_ptr<const Word> word) const;

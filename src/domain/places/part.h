@@ -23,7 +23,6 @@ public:
 
 	const Abode& abode() const noexcept { return abode_; }
 
-	/// The host, and the dwellers whose kind enters it.
 	bool admits(const Man& man) const;
 
 	virtual matter::Room::Part kept() const = 0;

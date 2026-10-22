@@ -10,9 +10,9 @@
 #include <stdexcept>
 
 
-/** Linked only because ReceivingMessageHandler shares a translation unit. */
 const will::ClientConfig& will::WillClient::config() const noexcept
 {
+	// Linked only because ReceivingMessageHandler shares a translation unit.
 	static const ClientConfig config;
 	return config;
 }

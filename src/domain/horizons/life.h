@@ -22,8 +22,9 @@ class Temporality;
 class Word;
 
 
-/// Proceeds from Eternity and brings forth the World in its one Creation;
-/// it recollects the words of a place from memory while the gazes hold them.
+/// Proceeds from Eternity and brings forth the World in its one Creation; it recollects the
+/// words of a place from memory while the gazes hold them, one recollection at a time,
+/// oldest first and at most Spatiality::MaxLetterLimit.
 class Life : private Immanent<Eternity> {
 public:
 	Life();
@@ -31,12 +32,10 @@ public:
 
 	Eternity& eternity() const;
 
-	/// There is one Creation in Life.
 	Creation& create();
 
 	Creation& creation() const;
 
-	/// The one held now, or a new one.
 	static std::shared_ptr<const Recollection> recollection(Birth<Place> birth);
 
 private:
@@ -47,7 +46,6 @@ private:
 
 	std::shared_ptr<const Recollection> recollection(const Place& place) const;
 
-	/// Oldest first, at most Spatiality::MaxLetterLimit.
 	std::vector<std::shared_ptr<const Word>> recall(const Place& place) const;
 
 	static Life* current_;

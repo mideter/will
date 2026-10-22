@@ -14,7 +14,6 @@ namespace will {
 /// Owns the time database; the present is taken from Eternity.
 class SqliteTemporality final : public domain::Temporality {
 public:
-	/// Opens the time database at this path.
 	SqliteTemporality(std::string path, domain::Eternity& eternity);
 
 	domain::matter::Vessel form(domain::DeviceToken token) override;

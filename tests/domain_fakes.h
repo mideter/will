@@ -76,20 +76,17 @@ struct InMemoryShared {
 	std::uint64_t next_vessel_id = 0;
 	std::uint64_t next_word_id = 0;
 
-	// Eternity
 	std::vector<std::pair<id::Soul, SoulName>> souls;
 	std::vector<matter::Word> words;
 	std::vector<matter::Fatherhood> fatherhoods;
 	std::vector<matter::Training> trainings;
 
-	// Spatiality
 	std::vector<std::pair<id::Soul, matter::Abode>> abodes;
 	std::vector<matter::Tie> ties;
 	std::vector<matter::Dweller> dwellers;
 	std::vector<matter::Room> rooms;
 	std::vector<matter::Placement> placements;
 
-	// Temporality
 	std::vector<matter::Vessel> vessels;
 	std::vector<matter::Embodiment> embodiments;
 	std::vector<matter::Dating> datings;
@@ -119,7 +116,6 @@ public:
 
 	std::unique_ptr<Temporality> temporality(Birth<Creation>) override;
 
-	/// The dimensions realised for the present Creation; throw if none.
 	InMemorySpatiality& realised_spatiality() const;
 	InMemoryTemporality& realised_temporality() const;
 
@@ -327,7 +323,6 @@ public:
 		return std::nullopt;
 	}
 
-	/// How many times the words of a place were read from this dimension.
 	std::size_t placement_reads() const noexcept { return placement_reads_; }
 
 	std::vector<matter::Placement> placements(const id::Place place, const std::uint32_t limit) const override
@@ -510,7 +505,6 @@ public:
 	}
 
 private:
-	/// Answered supplications are dropped from those awaiting.
 	std::vector<matter::Supplication>::const_iterator awaiting(const id::Soul suppliant, const id::Soul addressee) const
 	{
 		for (auto it = shared_.supplications.begin(); it != shared_.supplications.end(); ++it) {
@@ -588,7 +582,6 @@ private:
 };
 
 
-/// Where a man stands; asleep, he does nothing.
 inline const Contemplation& gaze_of(World& world, const Man& man)
 {
 	const std::shared_ptr<const Contemplation> gaze = world.contemplation(man);
@@ -598,7 +591,6 @@ inline const Contemplation& gaze_of(World& world, const Man& man)
 }
 
 
-/// What a man writes where he stands.
 inline std::shared_ptr<const Word> write(World& world, const Man& man, const Saying& saying)
 {
 	const Contemplation& gaze = gaze_of(world, man);
@@ -606,7 +598,6 @@ inline std::shared_ptr<const Word> write(World& world, const Man& man, const Say
 }
 
 
-/// What a man writes in the cell of a tie he stands in: a behest.
 inline std::shared_ptr<const Behest> will_here(World& world, const Man& man, const Saying& saying)
 {
 	return std::dynamic_pointer_cast<const Behest>(write(world, man, saying));
@@ -699,8 +690,6 @@ inline void turn(const Man& man, const Place& place)
 }
 
 
-/// Turn a man's gaze to a place the way the world leads: out through the gates of
-/// where he stands, to the gates of the place's abode, and in.
 inline void go(World& world, const Man& man, const Place& place)
 {
 	const std::shared_ptr<const Contemplation> gaze = world.contemplation(man);
@@ -713,7 +702,6 @@ inline void go(World& world, const Man& man, const Place& place)
 }
 
 
-/// Go to a room for an act, then back where the gaze rested (or to sleep).
 template<typename Act>
 void looking_at(World& world, const Man& man, const Room& room, Act act)
 {
@@ -727,7 +715,6 @@ void looking_at(World& world, const Man& man, const Room& room, Act act)
 }
 
 
-/// The host lets a man in: both stand at the host's gates for it.
 inline void admit_at_gates(World& world, const Man& host, const Man& man)
 {
 	looking_at(world, host, host.abode().gates(), [&] {
@@ -736,14 +723,12 @@ inline void admit_at_gates(World& world, const Man& host, const Man& man)
 }
 
 
-/// The host regards a dweller anew, standing at his helm.
 inline void regard_in_helm(World& world, const Man& host, const Man& man, const matter::Dweller::Kind kind)
 {
 	looking_at(world, host, host.abode().helm(), [&] { regard(world, host, man, kind); });
 }
 
 
-/// One asks a dweller of his abode to become his testator, standing at his helm.
 inline void supplicate(World& world, const Man& man, const Man& addressee)
 {
 	looking_at(world, man, man.abode().helm(), [&] {
@@ -773,28 +758,24 @@ inline void reject(World& world, const Man& testator, const Supplication& ask)
 }
 
 
-/// The host sets a room of his abode in a part, standing at his helm.
 inline void arrange_in_helm(World& world, const Man& host, const Cell& cell, const Part& part)
 {
 	looking_at(world, host, host.abode().helm(), [&] { arrange(world, host, cell, part); });
 }
 
 
-/// The cell of a man's abode: the room of his own records, where he writes.
 inline const Cell& cell_of(const Man& man)
 {
 	return *man.abode().cell(man.abode());
 }
 
 
-/// The room of a man's abode reflecting this place (a tie he is a side of).
 inline const Cell& room_in(const Man& man, const Place& reflected)
 {
 	return *man.abode().cell(reflected);
 }
 
 
-/// The letters a gaze beholds (the words of an abode are letters).
 inline std::vector<std::shared_ptr<const Letter>> letters_seen_by(const std::shared_ptr<const Contemplation>& gaze)
 {
 	std::vector<std::shared_ptr<const Letter>> letters;
@@ -806,8 +787,6 @@ inline std::vector<std::shared_ptr<const Letter>> letters_seen_by(const std::sha
 }
 
 
-/// The forefather: the first man of the world, begotten at once by his own
-/// token, that no man of a test is the father of the others.
 inline constexpr std::string_view elder_token = "f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0";
 
 inline const Man& forefather(World& world)
@@ -816,8 +795,6 @@ inline const Man& forefather(World& world)
 }
 
 
-/// The man welcomed by this token; the unborn is born of the forefather,
-/// standing at his gates.
 inline const Man& born(World& world, const DeviceToken& token)
 {
 	const Man& elder = forefather(world);
@@ -838,8 +815,6 @@ inline const Soul& register_soul_with_vessel(World& world, const std::string_vie
 }
 
 
-/// Keep a soul and its vessel before Creation, as if kept by an earlier one; the
-/// forefather is kept with the first, as the first man of that earlier world.
 inline void seed_man(InMemoryCosmos& cosmos, const id::Soul soul_id, const DeviceToken& token, const SoulName name)
 {
 	InMemoryShared& shared = cosmos.shared();

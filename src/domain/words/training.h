@@ -19,8 +19,8 @@ class Novice;
 class Tie;
 
 
-/// A behest that wills exercises; the novice does it approach by
-/// approach and fulfils it by a deed.
+/// A behest that wills exercises; the novice does it approach by approach, one underway at
+/// a time, and fulfils it by a deed. Its efforts come in the order they were finished.
 class Training final : public Behest {
 public:
 	Training(Birth<Tie> birth, matter::Behest kept);
@@ -28,17 +28,14 @@ public:
 
 	const std::vector<Exercise>& exercises() const noexcept { return exercises_; }
 
-	/// In the order they were finished.
 	std::vector<matter::Effort> efforts() const;
 
 	bool done(std::uint32_t exercise, std::uint32_t approach) const;
 
-	/// One at a time.
 	std::optional<matter::Underway> underway() const;
 
 	void begin(Birth<Novice> birth, matter::Underway kept) const;
 
-	/// The approach underway is done.
 	void exert(Birth<Novice> birth, matter::Effort kept) const;
 
 private:

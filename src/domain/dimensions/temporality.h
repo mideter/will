@@ -21,16 +21,18 @@
 namespace will::domain {
 
 
-/// What happens in time: bodies, datings, supplications,
-/// executions, efforts.
+/// What happens in time: bodies, datings, supplications, executions, efforts. One body
+/// per token, one soul per body. Of a pair, one supplication awaits at a time, and only
+/// an awaiting one is answered. A behest is fulfilled once. A training has at most one
+/// approach underway, begun and finished at the present instant; its efforts come in the
+/// order they were finished. What it does not know it passes over; what would break these
+/// it refuses.
 class Temporality {
 public:
 	virtual ~Temporality() = default;
 
-	/// One per token.
 	virtual matter::Vessel form(DeviceToken token) = 0;
 
-	/// One body per soul, one soul per body.
 	virtual matter::Embodiment embody(id::Soul soul, id::Vessel vessel) = 0;
 
 	virtual std::vector<matter::Vessel> vessels() const = 0;
@@ -39,35 +41,24 @@ public:
 
 	virtual matter::Dating date(id::Word id) = 0;
 
-	/// Skips the undated.
 	virtual std::vector<matter::Dating> datings(const std::vector<id::Word>& ids) const = 0;
 
-	/// Refuses (std::logic_error) while an earlier one of the pair awaits its answer.
 	virtual matter::Supplication ask(id::Soul suppliant, id::Soul addressee) = 0;
 
 	virtual std::vector<matter::Supplication> supplications(id::Soul addressee) const = 0;
 
-	/// Throws (std::invalid_argument) if none awaits.
 	virtual matter::Answer answer(id::Soul suppliant, id::Soul addressee, matter::Answer::Form form) = 0;
 
-	/// Refuses (std::logic_error) if the behest is already fulfilled.
 	virtual matter::Execution execute(id::Word deed, id::Word behest) = 0;
 
-	/// Executions in which any of these words is the deed or the fulfilled behest.
 	virtual std::vector<matter::Execution> executions(const std::vector<id::Word>& words) const = 0;
 
-	/// Begun at the present instant. Refuses (std::logic_error) while another approach of
-	/// the training is underway.
 	virtual matter::Underway begin(id::Word training, std::uint32_t exercise, std::uint32_t approach) = 0;
 
-	/// One at most for each training.
 	virtual std::vector<matter::Underway> underways(const std::vector<id::Word>& trainings) const = 0;
 
-	/// Finished at the present instant: no longer underway, but done. Refuses (std::logic_error)
-	/// if it is not underway or already done.
 	virtual matter::Effort exert(const matter::Underway& doing, Weight weight, std::uint32_t repetitions) = 0;
 
-	/// In the order they were finished.
 	virtual std::vector<matter::Effort> efforts(const std::vector<id::Word>& trainings) const = 0;
 };
 

@@ -29,7 +29,15 @@ class Helm;
 class InboundClientMessageHandler;
 
 
-/** Maps client protobuf events to domain communion and enqueues outbound events. */
+/// Maps client protobuf events to domain communion and enqueues outbound events. A session
+/// ended puts its man asleep, unless a newer session of his body took over; waking and
+/// falling asleep are guarded against the two meeting. What came of a request goes into its
+/// Reply if the asker numbered it, else into a notice — by its code, the names apart, and in
+/// the server's own words; the world's Refusal is told by its reason. A word newly placed is
+/// told to those who look at the place, and a short word of it to the other side of a tie
+/// who looks elsewhere. Turning to a place, one is told what one sees there: at an abode
+/// itself, the rooms one may enter and, to its host, what awaits him; elsewhere, the last
+/// TurnWords words. One writes in one's own cell, or in a tie room as its testator.
 class ProtocolAdapter {
 	friend class InboundClientMessageHandler;
 
@@ -38,8 +46,6 @@ public:
 
 	void on_client_event(SessionId session_id, const v1::ClientEvent& event);
 
-	/// The stream of this session is over, for whatever reason. The man whose
-	/// body it served falls asleep, unless a newer session of that body took over.
 	void on_session_ended(SessionId session_id);
 
 	[[nodiscard]] bool is_authenticated(SessionId session_id) const;
@@ -67,40 +73,27 @@ private:
 	void handle_begin_approach(SessionId session_id, const v1::BeginApproach& msg);
 	void handle_finish_approach(SessionId session_id, const v1::FinishApproach& msg);
 
-	/// The training of this id among the words one beholds in the tie one looks at;
-	/// none (and a notice told) if one looks elsewhere or there is none.
 	std::shared_ptr<const domain::Training> training_in_gaze(SessionId session_id, const domain::Man& man,
 															 std::uint64_t behest_id);
 
-	/// Tell everyone looking at this tie.
 	void tell_tie(const domain::Tie& tie, const v1::ServerEvent& event);
 
-	/// What the novice of this tie is doing now, as the wire tells it.
 	v1::ServerEvent underway_event(const domain::Training& training) const;
 
-	/// Whether the body of this session awaits its birth.
 	bool awaits_birth(SessionId session_id) const;
 
-	/// Tell a word newly placed to those who contemplate the place, and a short
-	/// word of it to the other side of a tie who looks elsewhere.
 	void tell_placed(const domain::Place& place, const domain::Word& word, const domain::Man& author);
 
-	/// Tell the last words of what one contemplates, then the end of them.
 	void tell_words(SessionId session_id, const domain::Contemplation& gaze, const domain::Man& listener,
 					std::uint32_t limit);
 
-	/// How many words are told on turning to a place, and at most on asking for history.
 	static constexpr std::uint32_t TurnWords = 50;
 	static constexpr std::uint32_t MaxHistoryWords = 500;
 
 	void send_auth_required(SessionId session_id);
 	void send_event(SessionId session_id, const v1::ServerEvent& event);
-	/// Tell the asker what came of his request: into his Reply if he numbered it, else as
-	/// a notice — by its code and the names in it, and in the server's own words.
-	/// send_notice tells what was done; refuse, why it was not.
 	void send_notice(SessionId session_id, v1::NoticeCode code, std::vector<std::string> args = {});
 	void refuse(SessionId session_id, v1::NoticeCode code, std::vector<std::string> args = {});
-	/// Refuse by what was thrown: the world's Refusal by its reason, else by its words.
 	void refuse(SessionId session_id, const std::exception& thrown);
 	void tell_asker(SessionId session_id, v1::NoticeCode code, std::vector<std::string> args, std::string message,
 					bool refusal);
@@ -110,53 +103,35 @@ private:
 
 	const domain::Man* man_named(SessionId session_id, std::string_view name_text);
 
-	/// Tell a dweller how the host regards him now.
 	void tell_dwelling(const domain::Man& host, const domain::Man& dweller);
 
-	/// Whether this man may write where he looks: his own cell, or a tie room of
-	/// which he is the testator.
 	bool writes_here(const domain::Man& man) const;
 
-	/// Where he stands; the world refuses what he would do there, or what is not done there.
 	const domain::Contemplation& gaze_of(const domain::Man& man) const;
 
 
-	/// A dweller looking at the host's abode sees it anew, as his new kind does.
 	void retell_abode(const domain::Man& host, const domain::Man& dweller);
 
-	/// Tell everyone standing in these gates how they stand now, but one.
 	void retell_gates(const domain::Gates& gates, const domain::Soul* except = nullptr);
 
-	/// Tell everyone at this helm its dwellers.
 	void retell_helm(const domain::Helm& helm);
 
-	/// Tell everyone standing in gates he keeps the unborn.
 	void retell_unborn();
 
-	/// The unborn, by their marks.
 	v1::ServerEvent unborn_event() const;
 
-	/// How these gates stand, told to this man.
 	v1::ServerEvent threshold_event(const domain::Gates& gates, const domain::Man& listener) const;
 
-	/// The dwellers of this abode, with their kind.
 	v1::ServerEvent dwellers_event(const domain::Abode& abode) const;
 
-	/// The gates this man looks at; none elsewhere.
 	const domain::Gates* gates_of_gaze(const domain::Man& man) const;
 
-	/// All the rooms of this abode, each in its part: what its host arranges in
-	/// his helm.
 	v1::ServerEvent arranged_rooms_event(const domain::Abode& abode) const;
 
-	/// Those who ask this man to lead them, awaiting his answer at his helm.
 	v1::ServerEvent supplications_event(const domain::Man& addressee) const;
 
-	/// Tell the rooms of this abode that this man may enter.
 	void tell_rooms(SessionId session_id, const domain::Abode& abode, const domain::Man& listener);
 
-	/// Tell what the gaze sees: at an abode itself, the rooms one may enter and,
-	/// to its host, what awaits him; elsewhere, the words.
 	void tell_view(SessionId session_id, const domain::Contemplation& gaze, const domain::Man& listener,
 				   std::uint32_t limit);
 	const domain::Man& session_man(SessionId session_id);
@@ -164,8 +139,6 @@ private:
 	domain::World& world_;
 	SessionRegistry& registry_;
 
-	/// Guards waking and falling asleep against a session ending while another
-	/// of the same body begins.
 	std::mutex presence_mutex_;
 	std::unordered_map<std::uint64_t, domain::id::Vessel> woken_by_session_;
 

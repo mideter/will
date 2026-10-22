@@ -62,7 +62,6 @@ std::string_view trimmed(std::string_view text)
 }
 
 
-/// Seconds as typed: «90» or «1:30». None if it is not a span.
 std::optional<std::uint32_t> seconds_of(std::string_view text)
 {
 	const auto colon = text.find(':');
@@ -86,8 +85,6 @@ std::optional<std::uint32_t> seconds_of(std::string_view text)
 }
 
 
-/// An approach as typed: «60x10», «62.5x8», «0x8» (one's own weight), with the rest
-/// before it: «1:30/60x10» or «90/60x10». None if it is not one.
 std::optional<v1::Approach> approach_of(std::string_view token)
 {
 	std::uint32_t rest = 0;
@@ -128,7 +125,6 @@ std::optional<v1::Approach> approach_of(std::string_view token)
 }
 
 
-/// Exercises as typed, separated by «|»: a name, then its approaches. None if one has no approach.
 std::optional<std::vector<v1::Exercise>> exercises_of(std::string_view text)
 {
 	std::vector<v1::Exercise> exercises;
@@ -166,7 +162,6 @@ std::optional<std::vector<v1::Exercise>> exercises_of(std::string_view text)
 }
 
 
-/// The commands, a group to a line.
 void print_help(ConsoleUi& ui)
 {
 	ui.print_commands("Rooms", "/rooms [name]  /room <number|name>  /home  /visit <name> [room]");

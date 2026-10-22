@@ -156,7 +156,6 @@ pid_t start_server(const char* server_exe, std::uint16_t port, const std::string
 }
 
 
-/// A self-signed certificate for 127.0.0.1 and its key, for tests only.
 constexpr const char* TestCert = R"pem(-----BEGIN CERTIFICATE-----
 MIIBkDCCATagAwIBAgIULNzGmAlQ3iiu+Er6FQowBIGCr9owCgYIKoZIzj0EAwIw
 FDESMBAGA1UEAwwJd2lsbC10ZXN0MCAXDTI2MTAxMzEwMzYzMFoYDzIxMjYwOTE5
@@ -184,7 +183,6 @@ void write_file(const std::string& path, const char* text)
 }
 
 
-/// Start the server with these arguments after its path.
 pid_t start_server_with(const char* server_exe, const std::vector<std::string>& args)
 {
 	const pid_t pid = fork();
@@ -203,7 +201,6 @@ pid_t start_server_with(const char* server_exe, const std::vector<std::string>& 
 }
 
 
-/// A session over TLS, trusting only this certificate.
 GrpcSession open_tls_session(const std::uint16_t port, const char* cert)
 {
 	GrpcSession session;
@@ -243,7 +240,6 @@ public:
 		pid_ = 0;
 	}
 
-	/// The case has stopped it itself.
 	void forget() noexcept { pid_ = 0; }
 
 private:
@@ -295,8 +291,6 @@ void send_turn_to_abode(SessionStream& stream, const std::string& host, const st
 }
 
 
-/// Turn into a room of an abode (one's own when host is empty), and read what it
-/// shows up to its end.
 void stand_in(SessionStream& stream, const std::string& host, const std::string& room)
 {
 	send_turn_to_abode(stream, host, room);
@@ -311,7 +305,6 @@ void stand_in(SessionStream& stream, const std::string& host, const std::string&
 }
 
 
-/// Out through one's own gates to another's.
 void come_to_gates(SessionStream& stream, const std::string& host)
 {
 	stand_in(stream, {}, "Врата");
@@ -319,14 +312,12 @@ void come_to_gates(SessionStream& stream, const std::string& host)
 }
 
 
-/// Turn into one's own cell, where one writes.
 void enter_cell(SessionStream& stream)
 {
 	stand_in(stream, {}, "Слово");
 }
 
 
-/// The next event that is not a word about the gates.
 will::v1::ServerEvent next_past_gates(SessionStream& stream)
 {
 	will::v1::ServerEvent event;
@@ -383,7 +374,6 @@ void send_bear(SessionStream& stream, const std::uint64_t mark)
 }
 
 
-/// Bind a new body and have the elder bear it; the name of the man born.
 std::string born_named(Elder& elder, SessionStream& stream, const char* device_token)
 {
 	will::v1::ClientEvent event;
@@ -409,7 +399,6 @@ std::string born_named(Elder& elder, SessionStream& stream, const char* device_t
 }
 
 
-/// Read events until one answers the question; fail on reading too many.
 template<typename Question>
 will::v1::ServerEvent read_until(SessionStream& stream, Question question)
 {

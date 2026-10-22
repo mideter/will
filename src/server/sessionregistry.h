@@ -24,7 +24,8 @@ namespace will {
 /**
  * Thread-safe registry of active gRPC sessions.
  * Owns session lifecycle, transport fan-out, and authenticated vessel bindings.
- * Enforces one active session per vessel.
+ * Enforces one active session per vessel: binding a vessel displaces its former session.
+ * A session without transport is registered only for unit tests.
  */
 class SessionRegistry {
 public:
@@ -49,7 +50,6 @@ public:
 
 	std::optional<domain::id::Vessel> vessel_id(SessionId session_id) const;
 
-	/** Binds vessel to session. Returns the displaced session id, if any. */
 	std::optional<SessionId> bind_vessel(SessionId session_id, domain::id::Vessel vessel_id);
 
 	void close_all_sessions();
@@ -58,7 +58,6 @@ public:
 
 	bool at_capacity(std::size_t max_connections) const noexcept;
 
-	/** Registers a session without transport. For unit tests only. */
 	std::shared_ptr<Session> register_test_session();
 
 private:

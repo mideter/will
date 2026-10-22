@@ -20,8 +20,8 @@ class Testator;
 class Training;
 
 
-/// The place a testator and a novice share: Послушание to the one, Ведение
-/// to the other.
+/// The place a testator and a novice share: Послушание to the one, Ведение to the other.
+/// It takes its testator's words, as behests.
 class Tie : public Obedience, public Shepherding {
 public:
 	Tie(Birth<Novice>, matter::Tie kept);
@@ -40,14 +40,12 @@ public:
 
 	const Man& counterpart(const Man& side) const;
 
-	/// A tie takes its testator's words, as behests.
 	bool takes_words_of(const Man& host) const override;
 	std::shared_ptr<const Word> receive(Birth<Cell> cell, const Saying& saying) const override;
 
 	std::shared_ptr<const Training> train(Birth<Cell> cell, const Saying& title, std::vector<Exercise> exercises) const;
 
 private:
-	/// The testator, if the cell is his.
 	const Testator& willing(Birth<Cell> cell) const;
 };
 

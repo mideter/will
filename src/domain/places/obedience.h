@@ -17,7 +17,7 @@ class Novice;
 class Man;
 
 
-/// A tie as its novice sees it.
+/// A tie as its novice sees it; its behests and deeds come oldest first.
 class Obedience : public virtual Place {
 public:
 	~Obedience() override = default;
@@ -25,10 +25,8 @@ public:
 	virtual const Man& testator() const = 0;
 	virtual const Man& novice() const = 0;
 
-	/// Oldest first.
 	virtual std::vector<std::shared_ptr<const Behest>> behests(const Novice& asker) const = 0;
 
-	/// Oldest first.
 	virtual std::vector<std::shared_ptr<const Deed>> deeds(const Novice& asker) const = 0;
 
 	virtual std::shared_ptr<const Deed> inscribe(Birth<Novice>, matter::Deed kept) const = 0;

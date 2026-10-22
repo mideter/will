@@ -17,7 +17,6 @@ namespace will {
 namespace {
 
 
-/// The database of one face in the directory: will.eternity.db, will.space.db, will.time.db.
 std::string face_path(const std::string& directory, const char* face)
 {
 	return (std::filesystem::path{directory} / (std::string{"will."} + face + ".db")).string();

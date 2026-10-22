@@ -10,11 +10,10 @@
 namespace will {
 
 
-/** Owns SQLite Eternity and Life, which holds the Creation of the domain World. */
+/// Owns SQLite Eternity and Life, which holds the Creation of the domain World: will.eternity.db
+/// in its directory, and will.space.db and will.time.db that the Creation opens there.
 class SqlitePersistenceBundle {
 public:
-	/// Opens will.eternity.db in this directory; Creation opens will.space.db and
-	/// will.time.db there.
 	explicit SqlitePersistenceBundle(std::string directory);
 
 	domain::World& world();

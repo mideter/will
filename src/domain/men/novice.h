@@ -34,18 +34,18 @@ class Testator;
 class Helm;
 
 
-/// The side of a tie who fulfils its behests and does its trainings.
+/// The side of a tie who fulfils its behests and does its trainings, and asks to be led.
+/// Without a report his deed says «совершено»; a deed of a training tells what was done,
+/// the exercises in their willed order, those of which nothing was done left out. He does
+/// the exercises in any order, the approaches of an exercise in order, and once the willed
+/// are done, one beyond them; one approach of a training at a time.
 class Novice : public virtual Embodied {
 public:
-	/// Ask the addressee to become one's testator.
 	void supplicate(Birth<Helm> helm, const Acquaintance& dweller) const;
 
-	/// Without a report the deed says «совершено».
 	std::shared_ptr<const Deed> execute(Birth<Cell> cell, const Behest& behest, std::optional<Saying> report,
 										std::optional<std::vector<Exercise>> performed) const;
 
-	/// Exercises are done in any order, the approaches of an exercise in order; once
-	/// the willed are done, one beyond them; one approach of a training at a time.
 	void begin(Birth<Cell> cell, const Training& training, std::uint32_t exercise, std::uint32_t approach) const;
 
 	matter::Effort finish(Birth<Cell> cell, const Training& training, Weight weight, std::uint32_t repetitions) const;

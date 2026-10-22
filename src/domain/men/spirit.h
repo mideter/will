@@ -21,7 +21,8 @@ class Place;
 class Soul;
 
 
-/// The highest of the soul, its eye: it alone utters and beholds.
+/// The highest of the soul, its eye: it alone utters, beholds and asks; Heaven keeps what it
+/// asks until it is answered.
 class Spirit : public Immanent<Heaven> {
 public:
 	virtual ~Spirit() = default;
@@ -37,7 +38,6 @@ protected:
 
 	void repose() const;
 
-	/// One's supplication to him; Heaven keeps it until it is answered.
 	void ask(const Soul& addressee) const;
 
 	std::shared_ptr<const Contemplation> contemplation() const;

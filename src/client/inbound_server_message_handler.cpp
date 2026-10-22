@@ -86,7 +86,6 @@ void print_outstanding(ConsoleUi& ui, const v1::Outstanding& outstanding)
 }
 
 
-/// A weight as one reads it: kilograms, or one's own.
 std::string weight_text(const std::uint32_t grams)
 {
 	if (grams == 0)
@@ -102,7 +101,6 @@ std::string weight_text(const std::uint32_t grams)
 }
 
 
-/// Exercises a row each: the name, then the approaches.
 std::vector<std::vector<std::string>> exercise_rows(const v1::Word& word)
 {
 	std::vector<std::vector<std::string>> rows;
@@ -121,7 +119,6 @@ std::vector<std::vector<std::string>> exercise_rows(const v1::Word& word)
 }
 
 
-/// A span of time as one reads it: «0:42».
 std::string span_text(const std::int64_t nanoseconds)
 {
 	const std::int64_t seconds = nanoseconds / 1'000'000'000;
@@ -129,7 +126,6 @@ std::string span_text(const std::int64_t nanoseconds)
 }
 
 
-/// An effort as one reads it: «1.2 100×5 in 0:42» — exercise and approach from one.
 std::string effort_text(const v1::Effort& effort)
 {
 	return std::to_string(effort.exercise() + 1) + "." + std::to_string(effort.approach() + 1) + " "

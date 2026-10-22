@@ -41,7 +41,6 @@
 namespace {
 
 
-/// The letters a gaze beholds (the words of an abode are letters).
 std::vector<std::shared_ptr<const will::domain::Letter>>
 letters_seen_by(const std::shared_ptr<const will::domain::Contemplation>& gaze)
 {

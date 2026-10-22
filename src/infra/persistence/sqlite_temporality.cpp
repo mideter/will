@@ -13,7 +13,6 @@ namespace will {
 namespace {
 
 
-/// Row id of the supplication of this pair awaiting its answer, if any.
 std::optional<std::int64_t>
 awaiting_supplication(sqlite3* db, const domain::id::Soul suppliant, const domain::id::Soul addressee)
 {
