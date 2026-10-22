@@ -215,8 +215,7 @@ void ProtocolAdapter::tell_view(const SessionId session_id, const domain::Contem
 	}
 	if (const auto* upper_room = dynamic_cast<const domain::UpperRoom*>(&gaze.place())) {
 		send_event(session_id, dwellers_event(upper_room->abode()));
-		// Whoever stands here sees all the rooms of the abode, each in its part; only the host
-		// arranges them.
+		// The host sees here all the rooms of his abode, each in its part.
 		send_event(session_id, arranged_rooms_event(upper_room->abode()));
 		v1::ServerEvent end_event;
 		end_event.mutable_history_end();
@@ -263,8 +262,8 @@ void ProtocolAdapter::tell_view(const SessionId session_id, const domain::Contem
 void ProtocolAdapter::handle_arrange(const SessionId session_id, const v1::Arrange& msg)
 {
 	const domain::Man& self = session_man(session_id);
-	const domain::Room* room = self.abode().room(msg.room());
-	if (!room) {
+	const domain::Cell* cell = self.abode().cell(msg.room());
+	if (!cell) {
 		refuse(session_id, v1::NOTICE_NO_SUCH_ROOM);
 		return;
 	}
@@ -272,7 +271,7 @@ void ProtocolAdapter::handle_arrange(const SessionId session_id, const v1::Arran
 	const auto part = msg.part() == v1::OUTER ? domain::matter::Room::Part::Outer : domain::matter::Room::Part::Inner;
 	try {
 		const domain::Contemplation& gaze = gaze_of(self);
-		gaze.upper_room().arrange(gaze, *room, part);
+		gaze.upper_room().arrange(gaze, *cell, part);
 	} catch (const std::exception& e) {
 		refuse(session_id, e);
 		return;
@@ -281,7 +280,7 @@ void ProtocolAdapter::handle_arrange(const SessionId session_id, const v1::Arran
 	send_notice(session_id,
 				part == domain::matter::Room::Part::Outer ? v1::NOTICE_ARRANGED_OUTER : v1::NOTICE_ARRANGED_INNER,
 				{msg.room()});
-	retell_upper_room(self.abode().upper_room());  // all who stand there see the rooms anew
+	retell_upper_room(self.abode().upper_room());  // the host there sees his rooms anew
 	for (const std::shared_ptr<const domain::Acquaintance>& dweller : self.abode().dwellers())
 		retell_abode(self, dweller->man());
 	retell_gates(self.abode().gates());  // set in another part, they are seen by other kinds

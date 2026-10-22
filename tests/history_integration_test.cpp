@@ -587,7 +587,7 @@ TEST_CASE("a host admits a dweller, regards him anew, and he sees his abode as h
 	CHECK(read_event(*man.stream).has_protocol_notice());
 
 	// Outside his upper room the host may not regard him anew; in it he may. A friend is
-	// shown every room at once: the cell, the gates, the upper room.
+	// shown at once every room but the upper room, the host's alone: the cell and the gates.
 	send_regard(*host.stream, man_name, will::v1::FRIEND);
 	CHECK(read_event(*host.stream).has_protocol_notice());
 	stand_in(*host.stream, {}, "Горница");
@@ -601,7 +601,7 @@ TEST_CASE("a host admits a dweller, regards him anew, and he sees his abode as h
 	CHECK(read_event(*man.stream).dwelling().kind() == will::v1::FRIEND);
 	REQUIRE(read_event(*man.stream).turned().abode_of() == host_name);
 	const will::v1::ServerEvent open = read_event(*man.stream);
-	REQUIRE(open.rooms().rooms_size() == 3);
+	REQUIRE(open.rooms().rooms_size() == 2);
 	CHECK(open.rooms().rooms(0).name() == "Слово");
 	CHECK(read_event(*man.stream).has_history_end());
 

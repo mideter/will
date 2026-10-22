@@ -37,14 +37,12 @@ public:
 	const Abode& abode() const noexcept { return abode_; }
 	const Place& reflects() const noexcept { return reflects_; }
 	matter::Room::Aspect aspect() const noexcept { return aspect_; }
-	matter::Room::Part part() const noexcept { return part_.load(); }
+
+	/// A cell stands where its host sets it; the gates ever without, the upper room ever
+	/// within.
+	virtual matter::Room::Part part() const = 0;
 
 	virtual std::string name() const = 0;
-
-	void arrange(Birth<Abode> birth, const matter::Room& kept) const;
-
-	/// The host, and the dwellers whose kind enters its part.
-	bool dwells(const Man& man) const override;
 
 	bool leads_to(const Place& next) const override;
 	bool within(const Abode& abode) const override;
@@ -52,15 +50,14 @@ public:
 protected:
 	Room(Birth<Abode> birth, const Place& reflects, matter::Room kept);
 
-	/// A friend sees all, yet only the host decides what is his: one acts in a room only
-	/// as its host.
+	/// Others may see, yet only the host decides what is his: one acts in a room only as
+	/// its host.
 	void host_only(const Contemplation& gaze) const;
 
 private:
 	const Abode& abode_;
 	const Place& reflects_;
 	const matter::Room::Aspect aspect_;
-	mutable std::atomic<matter::Room::Part> part_;
 };
 
 
@@ -70,7 +67,14 @@ class Cell final : public Room {
 public:
 	Cell(Birth<Abode> birth, const Place& reflects, matter::Room kept);
 
+	matter::Room::Part part() const override { return part_.load(); }
+
 	std::string name() const override;
+
+	/// The host, and the dwellers whose kind enters its part.
+	bool dwells(const Man& man) const override;
+
+	void arrange(Birth<Abode> birth, const matter::Room& kept) const;
 
 	const Place& source() const override;
 
@@ -96,6 +100,8 @@ public:
 private:
 	template<typename OtherTie, typename NotNovice>
 	const Novice& obeying(const Contemplation& gaze, const Behest& behest) const;
+
+	mutable std::atomic<matter::Room::Part> part_;
 };
 
 
@@ -104,6 +110,8 @@ private:
 class Gates final : public Room, private Immanent<Heaven> {
 public:
 	Gates(Birth<Abode> birth, matter::Room kept);
+
+	matter::Room::Part part() const override { return matter::Room::Part::Outer; }
 
 	std::string name() const override;
 
@@ -130,18 +138,24 @@ public:
 };
 
 
-/// UpperRoom (Горница) — the room of an Abode's dwellers: here alone the host regards
-/// them anew and arranges his rooms.
+/// UpperRoom (Горница) — the host's own room, where no one else enters: here he regards
+/// his dwellers anew, arranges his cells and asks to be led.
 class UpperRoom final : public Room {
 public:
 	UpperRoom(Birth<Abode> birth, matter::Room kept);
 
+	matter::Room::Part part() const override { return matter::Room::Part::Inner; }
+
 	std::string name() const override;
+
+	/// The host alone.
+	bool dwells(const Man& man) const override;
 
 	/// Here alone the host regards his dwellers anew.
 	void regard(const Contemplation& gaze, const Man& dweller, matter::Dweller::Kind kind) const;
 
-	void arrange(const Contemplation& gaze, const Room& room, matter::Room::Part part) const;
+	/// Only cells are set without or within.
+	void arrange(const Contemplation& gaze, const Cell& cell, matter::Room::Part part) const;
 
 	/// Only its host asks one of its dwellers to become his testator.
 	void supplicate(const Contemplation& gaze, const Man& addressee) const;

@@ -35,7 +35,7 @@ public:
 
 	void regard(Birth<UpperRoom> upper_room, const Man& dweller, matter::Dweller::Kind kind) const;
 
-	void arrange(Birth<UpperRoom> upper_room, const Room& room, matter::Room::Part part) const;
+	void arrange(Birth<UpperRoom> upper_room, const Cell& cell, matter::Room::Part part) const;
 
 	const Man* father(matter::Fatherhood::Line line) const noexcept;
 

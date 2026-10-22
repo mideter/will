@@ -62,6 +62,7 @@ public:
 	std::vector<std::reference_wrapper<const Room>> rooms() const;
 
 	const Cell* cell(const Place& reflects) const;
+	const Cell* cell(std::string_view name) const;
 
 	/// Every abode has them.
 	const Gates& gates() const;

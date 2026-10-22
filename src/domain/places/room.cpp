@@ -32,7 +32,6 @@ Room::Room(const Birth<Abode> birth, const Place& reflects, matter::Room kept)
 	, abode_(birth.parent())
 	, reflects_(reflects)
 	, aspect_(kept.aspect())
-	, part_(kept.part())
 {
 	if (kept.abode() != abode_.id())
 		throw std::logic_error("the room is not of this abode");
@@ -40,25 +39,6 @@ Room::Room(const Birth<Abode> birth, const Place& reflects, matter::Room kept)
 		throw std::logic_error("the room reflects another place");
 
 	Immanent<Space>::present<Place>();
-}
-
-
-void Room::arrange(const Birth<Abode> birth, const matter::Room& kept) const
-{
-	if (&birth.parent() != &abode_ || kept.id() != id())
-		throw std::logic_error("only its abode arranges a room");
-
-	part_.store(kept.part());
-}
-
-
-bool Room::dwells(const Man& man) const
-{
-	if (&man == &abode_.host())
-		return true;
-
-	const std::shared_ptr<const Acquaintance> dweller = abode_.dweller(man);
-	return dweller && dweller->enters(part());
 }
 
 
@@ -84,8 +64,28 @@ void Room::host_only(const Contemplation& gaze) const
 
 
 Cell::Cell(const Birth<Abode> birth, const Place& reflects, matter::Room kept)
-	: Room(birth, reflects, std::move(kept))
+	: Room(birth, reflects, kept)
+	, part_(kept.part())
 {}
+
+
+bool Cell::dwells(const Man& man) const
+{
+	if (&man == &abode().host())
+		return true;
+
+	const std::shared_ptr<const Acquaintance> dweller = abode().dweller(man);
+	return dweller && dweller->enters(part());
+}
+
+
+void Cell::arrange(const Birth<Abode> birth, const matter::Room& kept) const
+{
+	if (&birth.parent() != &abode() || kept.id() != id())
+		throw std::logic_error("only its abode arranges a cell");
+
+	part_.store(kept.part());
+}
 
 
 std::string Cell::name() const
@@ -253,6 +253,12 @@ std::string UpperRoom::name() const
 }
 
 
+bool UpperRoom::dwells(const Man& man) const
+{
+	return &man == &abode().host();
+}
+
+
 void UpperRoom::regard(const Contemplation& gaze, const Man& dweller, const matter::Dweller::Kind kind) const
 {
 	host_only(gaze);
@@ -272,11 +278,11 @@ void UpperRoom::supplicate(const Contemplation& gaze, const Man& addressee) cons
 }
 
 
-void UpperRoom::arrange(const Contemplation& gaze, const Room& room, const matter::Room::Part part) const
+void UpperRoom::arrange(const Contemplation& gaze, const Cell& cell, const matter::Room::Part part) const
 {
 	host_only(gaze);
 
-	abode().host().arrange(Birth<UpperRoom>{*this}, room, part);
+	abode().host().arrange(Birth<UpperRoom>{*this}, cell, part);
 }
 
 

@@ -960,7 +960,7 @@ TEST_CASE("a dweller enters the rooms his kind opens: a friend all, a neighbour 
 
 	const auto& host = born(world, DeviceToken::generate());
 	const auto& man = born(world, DeviceToken::generate());
-	const Room& cell = *host.abode().cell(host.abode());
+	const Cell& cell = *host.abode().cell(host.abode());
 
 	host.wake();
 	host.contemplate(cell_of(host));
@@ -1263,14 +1263,15 @@ TEST_CASE("the host regards his dwellers anew only in his upper room; it shows n
 	regard(world, host, man, matter::Dweller::Kind::Friend);
 	CHECK(std::dynamic_pointer_cast<const Friend>(host.abode().dweller(man)));
 
-	// The upper room is a room like any: a friend enters it, and sees no words there.
-	CHECK(upper_room.dwells(man));
-	go(world, man, upper_room);
-	CHECK(world.contemplation(man)->words().empty());
+	// It shows no words, and it is the host's alone: even a friend does not enter it.
+	CHECK(world.contemplation(host)->words().empty());
+	CHECK_FALSE(upper_room.dwells(man));
+	go(world, man, host.abode());
+	CHECK_THROWS_AS(man.contemplate(upper_room), DoesNotEnterRoom);
 }
 
 
-TEST_CASE("only the host acts in his upper room: his friend sees his dwellers, but neither regards them nor arranges")
+TEST_CASE("the upper room is its host's alone: there he regards his dwellers and sets his cells without or within")
 {
 	InMemoryCosmos cosmos;
 	World& world = cosmos.life().create().world();
@@ -1282,16 +1283,20 @@ TEST_CASE("only the host acts in his upper room: his friend sees his dwellers, b
 	admit_at_gates(world, host, other);
 	regard_in_upper_room(world, host, friend_, matter::Dweller::Kind::Friend);
 
-	// The friend enters the host's upper room, yet he neither regards anyone nor arranges.
+	// The friend enters the host's cells, but not his upper room: he regards no one there
+	// and arranges nothing.
 	friend_.wake();
-	go(world, friend_, upper_room);
-	CHECK_THROWS_AS(regard(world, friend_, other, matter::Dweller::Kind::Neighbour), OnlyHostActs);
-	CHECK_THROWS_AS(regard(world, friend_, friend_, matter::Dweller::Kind::Acquaintance), OnlyHostActs);
-	CHECK_THROWS_AS(arrange(world, friend_, cell_of(host), matter::Room::Part::Outer), OnlyHostActs);
-	CHECK_FALSE(std::dynamic_pointer_cast<const Neighbour>(host.abode().dweller(other)));
+	go(world, friend_, cell_of(host));
+	CHECK_THROWS_AS(friend_.contemplate(upper_room), DoesNotEnterRoom);
+	CHECK_THROWS_AS(regard(world, friend_, other, matter::Dweller::Kind::Neighbour), StandInUpperRoom);
+	CHECK_THROWS_AS(arrange(world, friend_, cell_of(host), matter::Room::Part::Outer), StandInUpperRoom);
+
+	// The gates stand ever without, the upper room ever within: only cells are arranged.
+	CHECK(host.abode().gates().part() == matter::Room::Part::Outer);
+	CHECK(upper_room.part() == matter::Room::Part::Inner);
 	CHECK(cell_of(host).part() == matter::Room::Part::Inner);
 
-	// The host himself does.
+	// The host regards and arranges.
 	regard_in_upper_room(world, host, other, matter::Dweller::Kind::Neighbour);
 	CHECK(std::dynamic_pointer_cast<const Neighbour>(host.abode().dweller(other)));
 	arrange_in_upper_room(world, host, cell_of(host), matter::Room::Part::Outer);
@@ -1354,7 +1359,7 @@ TEST_CASE("the host bears at his gates; the child is born of him, and he is ever
 
 		// At Anna's gates Boris only waits: a stranger does not keep them, nor bears.
 		const Gates& gates = anna.abode().gates();
-		CHECK(gates.part() == matter::Room::Part::Inner);
+		CHECK(gates.part() == matter::Room::Part::Outer);
 		go(world, boris, gates);
 		CHECK_FALSE(gates.keeps(boris));
 		CHECK_THROWS_AS(bear(world, boris, unborn), OnlyHostActs);
@@ -1427,10 +1432,10 @@ TEST_CASE("a man chooses his father by spirit, an unseen friend of all his spiri
 		CHECK_THROWS_AS(world.choose_father(elder, grandson), std::logic_error);
 
 		// The father by spirit is a friend in the abodes of all his line, entering every
-		// room, yet unseen among their dwellers and not regarded anew.
+		// cell, yet unseen among their dwellers and not regarded anew.
 		CHECK(std::dynamic_pointer_cast<const Friend>(son.abode().dweller(elder)));
 		CHECK(std::dynamic_pointer_cast<const Friend>(grandson.abode().dweller(elder)));
-		CHECK(grandson.abode().upper_room().dwells(elder));
+		CHECK(cell_of(grandson).dwells(elder));
 		elder.wake();
 		go(world, elder, cell_of(grandson));
 		for (const auto& dweller : son.abode().dwellers())
@@ -1479,7 +1484,7 @@ TEST_CASE("only the host keeps his gates: open while he stands in them, he alone
 	const auto& viktor = born(world, DeviceToken::generate());
 	const auto& galina = born(world, DeviceToken::generate());
 	const Gates& gates = anna.abode().gates();
-	CHECK(gates.part() == matter::Room::Part::Inner);
+	CHECK(gates.part() == matter::Room::Part::Outer);
 
 	// Boris is Anna's acquaintance: standing in her gates, he does not keep them.
 	admit_at_gates(world, anna, boris);
@@ -1865,10 +1870,9 @@ TEST_CASE("one asks to be led only in one's own upper room, among its dwellers")
 	const Contemplation& at_home = gaze_of(world, novice);
 	CHECK_THROWS_AS(at_home.upper_room(), StandInUpperRoom);
 
-	// In another's upper room, though one enters it, one does not ask for him.
-	go(world, novice, testator.abode().upper_room());
-	const Contemplation& there = gaze_of(world, novice);
-	CHECK_THROWS_AS(there.upper_room().supplicate(there, testator), OnlyHostActs);
+	// Another's upper room one does not enter, even as his friend.
+	go(world, novice, testator.abode());
+	CHECK_THROWS_AS(novice.contemplate(testator.abode().upper_room()), DoesNotEnterRoom);
 
 	// In one's own, only one who dwells there is asked.
 	CHECK_THROWS_AS(supplicate(world, novice, stranger), DoesNotDwell);

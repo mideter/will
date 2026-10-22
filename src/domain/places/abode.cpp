@@ -117,12 +117,13 @@ void Abode::arrange(const Birth<Man> birth, const matter::Room& kept) const
 
 	std::lock_guard lock(*mutex_);
 	for (const std::unique_ptr<Room>& room : rooms_) {
-		if (room->id() == kept.id()) {
-			room->arrange(Birth<Abode>{*this}, kept);
+		const auto* cell = dynamic_cast<const Cell*>(room.get());
+		if (cell && cell->id() == kept.id()) {
+			cell->arrange(Birth<Abode>{*this}, kept);
 			return;
 		}
 	}
-	throw std::logic_error("the room is not of this abode");
+	throw std::logic_error("the cell is not of this abode");
 }
 
 
@@ -197,6 +198,18 @@ const UpperRoom& Abode::upper_room() const
 			return *upper_room;
 	}
 	throw std::logic_error("the abode has no upper room");
+}
+
+
+const Cell* Abode::cell(const std::string_view name) const
+{
+	std::lock_guard lock(*mutex_);
+	for (const std::unique_ptr<Room>& room : rooms_) {
+		const auto* cell = dynamic_cast<const Cell*>(room.get());
+		if (cell && cell->name() == name)
+			return cell;
+	}
+	return nullptr;
 }
 
 
