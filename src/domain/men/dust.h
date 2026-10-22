@@ -11,7 +11,7 @@ class Temporality;
 class Spatiality;
 
 
-/// Dust (Прах) — the earthly foundation of the body: through it the body is of Earth.
+/// The earthly foundation of the body: through it the body is of Earth.
 class Dust : public Immanent<Earth> {
 public:
 	Temporality& temporality() const { return earth().temporality(); }

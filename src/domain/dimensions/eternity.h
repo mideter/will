@@ -25,7 +25,7 @@ class Spatiality;
 class Temporality;
 
 
-/// Eternity (Вечность) — what endures: souls, their words, fatherhood. Time and Space
+/// What endures: souls, their words, fatherhood. Time and Space
 /// are reached only from it; it realises Spatiality and Temporality for a Creation.
 class Eternity {
 public:

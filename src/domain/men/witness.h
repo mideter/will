@@ -17,7 +17,7 @@ class Room;
 class Letter;
 
 
-/// Witness (Свидетель) — a living man in the waking world: awake, he contemplates one
+/// A living man in the waking world: awake, he contemplates one
 /// thing, his own abode unless he turns elsewhere, where the place he stands in leads;
 /// asleep, nothing.
 class Witness : public virtual Embodied {

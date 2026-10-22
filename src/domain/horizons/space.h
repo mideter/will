@@ -14,7 +14,7 @@ namespace will::domain {
 class Place;
 
 
-/// Space (Пространство) — the living field of places, given through Eternity as Time is.
+/// The living field of places, given through Eternity as Time is.
 class Space : private Immanent<Space> {
 public:
 	Space();

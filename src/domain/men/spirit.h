@@ -21,7 +21,7 @@ class Place;
 class Soul;
 
 
-/// Spirit (Дух) — the highest of the soul, its eye: it alone utters and beholds.
+/// The highest of the soul, its eye: it alone utters and beholds.
 class Spirit : public Immanent<Heaven> {
 public:
 	virtual ~Spirit() = default;

@@ -22,7 +22,7 @@ class Saying;
 class Word;
 
 
-/// Place (Место) — where a word is fixed: an abode, a tie, a room onto them. A place
+/// Where a word is fixed: an abode, a tie, a room onto them. A place
 /// reaches no dimension itself; Life recollects its words for the gazes upon it.
 class Place : public Immanent<Space> {
 public:

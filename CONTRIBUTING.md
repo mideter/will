@@ -44,7 +44,8 @@ This document records project conventions so changes stay consistent. When in do
 
 A comment says only what the code cannot say itself; prefer a telling name to a comment.
 
-- **Keep:** one `///` line naming a domain class with its Russian name — `/// Novice (Послушник) — …`; a rule or intent the signature does not show (`exercises in any order, approaches of an exercise in order`); cross-thread contracts.
+- **Keep:** what a domain class is, in a line or two above it; a rule or intent the signature does not show (`exercises in any order, approaches of an exercise in order`); cross-thread contracts.
+- **Names:** the Russian name of a domain class and its word in the interface live in `GLOSSARY.md`, not in comments; a new or renamed class is entered there.
 - **Do not write:** retellings of a signature or a name; lists of what a function throws (the refusal classes in `src/domain/refusals/` say it); old or foreign names — a comment is neither compiled nor tested, and a misleading one is worse than none.
 - When a rule changes, check the comment beside it.
 

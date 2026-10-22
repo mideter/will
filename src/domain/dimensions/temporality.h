@@ -21,7 +21,7 @@
 namespace will::domain {
 
 
-/// Temporality (Временность) — what happens in time: bodies, datings, supplications,
+/// What happens in time: bodies, datings, supplications,
 /// executions, efforts.
 class Temporality {
 public:

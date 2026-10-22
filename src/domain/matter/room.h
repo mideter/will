@@ -6,8 +6,8 @@
 namespace will::domain::matter {
 
 
-/// Room (Комната) — the inner part is seen by the host and his friends, the outer one by
-/// his neighbours too.
+/// Its part counts only for a cell: the gates and the helm are ever the cores of
+/// theirs.
 class Room {
 public:
 	enum class Part {

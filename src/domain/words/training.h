@@ -19,7 +19,7 @@ class Novice;
 class Tie;
 
 
-/// Training (Тренировка) — a behest that wills exercises; the novice does it approach by
+/// A behest that wills exercises; the novice does it approach by
 /// approach and fulfils it by a deed.
 class Training final : public Behest {
 public:

@@ -18,7 +18,7 @@ class Man;
 class Testator;
 
 
-/// Shepherding (Ведение) — a tie as its testator sees it.
+/// A tie as its testator sees it.
 class Shepherding : public virtual Place {
 public:
 	~Shepherding() override = default;

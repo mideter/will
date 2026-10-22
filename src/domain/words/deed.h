@@ -15,7 +15,7 @@ namespace will::domain {
 
 
 class Life;
-/// Deed (Дело) — the novice's word fulfilling a behest: his report, or «совершено».
+/// The novice's word fulfilling a behest: his report, or «совершено».
 class Deed : public Word {
 public:
 	Deed(Birth<Tie>, matter::Deed kept);

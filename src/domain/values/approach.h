@@ -8,7 +8,7 @@
 namespace will::domain {
 
 
-/// Approach (Подход) — so many repetitions with this weight, and the rest before it: how
+/// So many repetitions with this weight, and the rest before it: how
 /// rested one comes to it. The first effort of a training comes fully rested.
 class Approach {
 public:

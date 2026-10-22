@@ -6,7 +6,7 @@
 namespace will::domain::matter {
 
 
-/// Answer (Ответ) — to a supplication: accepted, the pair is bound; or rejected.
+/// To a supplication: accepted, the pair is bound; or rejected.
 class Answer {
 public:
 	enum class Form {

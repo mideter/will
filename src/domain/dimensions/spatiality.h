@@ -18,7 +18,7 @@
 namespace will::domain {
 
 
-/// Spatiality (Пространственность) — places and where a word is fixed: abodes,
+/// Places and where a word is fixed: abodes,
 /// dwellers, rooms, ties, placements.
 class Spatiality {
 public:

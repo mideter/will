@@ -6,7 +6,7 @@
 namespace will::domain {
 
 
-/// Friend (Друг) — a neighbour who enters the inner part too.
+/// A neighbour who enters the inner part too.
 class Friend : public Neighbour {
 public:
 	Friend(Birth<Abode> birth, const Man& man);

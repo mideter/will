@@ -20,7 +20,7 @@ class Testator;
 class Training;
 
 
-/// Tie (Узы) — the place a testator and a novice share: Послушание to the one, Ведение
+/// The place a testator and a novice share: Послушание to the one, Ведение
 /// to the other.
 class Tie : public Obedience, public Shepherding {
 public:

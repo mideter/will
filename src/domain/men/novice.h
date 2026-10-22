@@ -34,7 +34,7 @@ class Testator;
 class Helm;
 
 
-/// Novice (Послушник) — the side of a tie who fulfils its behests and does its trainings.
+/// The side of a tie who fulfils its behests and does its trainings.
 class Novice : public virtual Embodied {
 public:
 	/// Ask the addressee to become one's testator.

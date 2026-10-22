@@ -10,7 +10,7 @@
 namespace will::domain::matter {
 
 
-/// Effort (Усилие) — an approach of a training done, at most once. The rest before it
+/// An approach of a training done, at most once. The rest before it
 /// is the time since the effort before it finished.
 class Effort {
 public:

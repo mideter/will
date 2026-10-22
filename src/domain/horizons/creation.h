@@ -16,7 +16,7 @@ namespace will::domain {
 class Life;
 
 
-/// Creation (Творение) — the act of Life: it has Eternity realise the dimensions, brings
+/// The act of Life: it has Eternity realise the dimensions, brings
 /// forth the World and awakens it; their matter outlives it.
 class Creation : public Immanent<Life> {
 public:

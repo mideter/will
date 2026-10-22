@@ -14,7 +14,7 @@ class Shepherding;
 class Testator;
 
 
-/// Supplication (Просьба) — one asks another to become his testator; accepted, it binds
+/// One asks another to become his testator; accepted, it binds
 /// them in a tie.
 class Supplication : public Immanent<Heaven> {
 public:

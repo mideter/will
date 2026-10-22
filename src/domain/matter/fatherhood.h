@@ -6,7 +6,7 @@
 namespace will::domain::matter {
 
 
-/// Fatherhood (Отцовство) — by flesh, the host of the gates one was born at, never
+/// By flesh, the host of the gates one was born at, never
 /// changed; by spirit, the one the child chooses, at most one at a time.
 class Fatherhood {
 public:

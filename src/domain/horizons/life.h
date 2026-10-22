@@ -22,7 +22,7 @@ class Temporality;
 class Word;
 
 
-/// Life (Жизнь) — proceeds from Eternity and brings forth the World in its one Creation;
+/// Proceeds from Eternity and brings forth the World in its one Creation;
 /// it recollects the words of a place from memory while the gazes hold them.
 class Life : private Immanent<Eternity> {
 public:

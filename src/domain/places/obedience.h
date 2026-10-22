@@ -17,7 +17,7 @@ class Novice;
 class Man;
 
 
-/// Obedience (Послушание) — a tie as its novice sees it.
+/// A tie as its novice sees it.
 class Obedience : public virtual Place {
 public:
 	~Obedience() override = default;

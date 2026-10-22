@@ -12,7 +12,7 @@ class Life;
 class Soul;
 
 
-/// Word (Слово) — what the spirit utters: a letter, a behest or a deed. It lives in the
+/// What the spirit utters: a letter, a behest or a deed. It lives in the
 /// recollection of its place, while that is held.
 class Word : public Immanent<Life> {
 public:

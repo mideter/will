@@ -19,7 +19,7 @@ class Helm;
 class World;
 
 
-/// Man (Человек) — the living man: witness, novice and testator at once.
+/// The living man: witness, novice and testator at once.
 class Man final : public Witness, public Novice, public Testator {
 public:
 	Man(Birth<World>, matter::Man kept);

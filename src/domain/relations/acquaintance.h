@@ -14,7 +14,7 @@ class Outer;
 class Space;
 
 
-/// Acquaintance (Знакомый) — every dweller is at least one: he enters neither part
+/// Every dweller is at least one: he enters neither part
 /// and only knows that he dwells there. Regarded anew, he is born anew of the new kind.
 class Acquaintance : public Immanent<Space> {
 public:

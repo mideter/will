@@ -7,7 +7,7 @@
 namespace will::domain::matter {
 
 
-/// Dweller (Обитатель) — one dwelling in another's abode as its host regards him:
+/// One dwelling in another's abode as its host regards him:
 /// знакомый, ближний or друг.
 class Dweller {
 public:

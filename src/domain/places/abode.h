@@ -33,7 +33,7 @@ class Supplication;
 class World;
 
 
-/// Abode (Обитель) — a man's own place: its words are seen only through its rooms,
+/// A man's own place: its words are seen only through its rooms,
 /// and others dwell in it as its host admits them.
 class Abode : public Place {
 public:

@@ -9,7 +9,7 @@
 namespace will::domain::matter {
 
 
-/// Underway (Выполняемое) — an approach begun and not yet finished: an effort without its end.
+/// An approach begun and not yet finished: an effort without its end.
 class Underway {
 public:
 	Underway(id::Word training, std::uint32_t exercise, std::uint32_t approach, Timestamp begun);

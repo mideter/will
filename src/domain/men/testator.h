@@ -26,7 +26,7 @@ class Helm;
 class World;
 
 
-/// Testator (Тренер) — the side of a tie who wills its behests and trainings, and hears
+/// The side of a tie who wills its behests and trainings, and hears
 /// the supplications that would bind one.
 class Testator : public virtual Embodied {
 public:

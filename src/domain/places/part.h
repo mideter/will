@@ -12,7 +12,7 @@ class Acquaintance;
 class Man;
 
 
-/// Part (Часть) — a half of an abode: its kind of dwellers enters the cells set in it. Each
+/// A half of an abode: its kind of dwellers enters the cells set in it. Each
 /// has its core, which is never moved: the outer the gates, the inner the helm.
 class Part {
 public:
@@ -38,7 +38,7 @@ private:
 };
 
 
-/// Outer (Внешняя) — the part of the gates, which neighbours enter.
+/// The part of the gates, which neighbours enter.
 class Outer final : public Part {
 public:
 	explicit Outer(Birth<Abode> birth);
@@ -50,7 +50,7 @@ private:
 };
 
 
-/// Inner (Внутренняя) — the part of the helm, which only friends enter.
+/// The part of the helm, which only friends enter.
 class Inner final : public Part {
 public:
 	explicit Inner(Birth<Abode> birth);

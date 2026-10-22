@@ -23,7 +23,7 @@
 namespace will::domain {
 
 
-/// World (Мир) — the one living cosmos, Heaven and Earth; it alone gives men birth.
+/// The one living cosmos, Heaven and Earth; it alone gives men birth.
 class World : public Heaven, public Earth {
 public:
 	using Heaven::knows;

@@ -15,7 +15,7 @@ class Abode;
 class Life;
 
 
-/// Letter (Письмо) — a word its host wrote in his abode.
+/// A word its host wrote in his abode.
 class Letter : public Word {
 public:
 	Letter(Birth<Abode>, matter::Letter kept);

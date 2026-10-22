@@ -26,7 +26,7 @@ class Unborn;
 class Supplication;
 
 
-/// Heaven (Небо) — the invisible world: the souls, their gazes and the supplications
+/// The invisible world: the souls, their gazes and the supplications
 /// awaiting answer; Eternity is reached from here.
 class Heaven : private Immanent<Heaven> {
 public:

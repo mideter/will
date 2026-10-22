@@ -16,7 +16,7 @@ class Place;
 class Word;
 
 
-/// Recollection (Воспоминание) — the words of a place called to life from memory while
+/// The words of a place called to life from memory while
 /// the gazes hold it: they live all or none.
 class Recollection : public Immanent<Life> {
 public:

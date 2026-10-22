@@ -9,7 +9,7 @@
 namespace will::domain {
 
 
-/// Vessel (тело) — the device through which a soul reaches the world.
+/// The device through which a soul reaches the world.
 class Vessel : public Dust {
 public:
 	virtual ~Vessel() = default;

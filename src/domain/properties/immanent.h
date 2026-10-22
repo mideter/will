@@ -4,7 +4,7 @@
 namespace will::domain {
 
 
-/// Immanent (Имманентное) — presence in the waking world: the living is only brought
+/// Presence in the waking world: the living is only brought
 /// forth and presented, never copied nor handed, as matter may be.
 template<typename Horizon>
 class Immanent {

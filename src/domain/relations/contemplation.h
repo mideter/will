@@ -20,7 +20,7 @@ class Man;
 class Word;
 
 
-/// Contemplation (Созерцание) — the gaze of a spirit, the eye of a soul, one at a time: the words of a place
+/// The gaze of a spirit, the eye of a soul, one at a time: the words of a place
 /// live while it is beheld.
 class Contemplation : public Immanent<Heaven> {
 public:

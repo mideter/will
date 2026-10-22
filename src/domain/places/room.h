@@ -34,7 +34,7 @@ class Training;
 class Unborn;
 
 
-/// Room (Комната) — a window in an Abode onto a place, with no words of its own.
+/// A window in an Abode onto a place, with no words of its own.
 class Room : public Place {
 public:
 	const Abode& abode() const noexcept { return abode_; }
@@ -64,7 +64,7 @@ private:
 };
 
 
-/// Cell (Келья) — the window onto the words of a place: of its abode, «Слово» in the
+/// The window onto the words of a place: of its abode, «Слово» in the
 /// interface; of a tie, «Ведение» or «Послушание».
 class Cell final : public Room {
 public:
@@ -108,7 +108,7 @@ private:
 };
 
 
-/// Gates (Врата) — the threshold of an Abode, through which one comes in, born or to be
+/// The threshold of an Abode, through which one comes in, born or to be
 /// born: its host lets in an acquaintance and bears a child of his here.
 class Gates final : public Room, private Immanent<Heaven> {
 public:
@@ -141,7 +141,7 @@ public:
 };
 
 
-/// Helm (Кормчая) — the host's own room, whence he steers his abode and where no one else
+/// The host's own room, whence he steers his abode and where no one else
 /// enters: here he answers those who ask him and asks himself, regards his dwellers anew and
 /// arranges his cells.
 class Helm final : public Room {

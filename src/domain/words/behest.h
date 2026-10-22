@@ -11,7 +11,7 @@ namespace will::domain {
 
 
 class Life;
-/// Behest (Веление, в интерфейсе «Задание») — the testator's word of will in a tie,
+/// The testator's word of will in a tie,
 /// fulfilled by the novice's deed.
 class Behest : public Word {
 public:
