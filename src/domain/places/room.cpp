@@ -63,28 +63,27 @@ void Room::host_only(const Contemplation& gaze) const
 }
 
 
-Cell::Cell(const Birth<Abode> birth, const Place& reflects, matter::Room kept)
-	: Room(birth, reflects, kept)
-	, part_(kept.part())
-{}
+Cell::Cell(const Birth<Abode> birth, const Place& reflects, const Part& part, matter::Room kept)
+	: Room(birth, reflects, std::move(kept))
+	, part_(&part)
+{
+	if (&part.abode() != &abode())
+		throw std::logic_error("the part is not of this abode");
+}
 
 
 bool Cell::dwells(const Man& man) const
 {
-	if (&man == &abode().host())
-		return true;
-
-	const std::shared_ptr<const Acquaintance> dweller = abode().dweller(man);
-	return dweller && dweller->enters(part());
+	return part().admits(man);
 }
 
 
-void Cell::arrange(const Birth<Abode> birth, const matter::Room& kept) const
+void Cell::arrange(const Birth<Abode> birth, const Part& part) const
 {
-	if (&birth.parent() != &abode() || kept.id() != id())
-		throw std::logic_error("only its abode arranges a cell");
+	if (&birth.parent() != &abode() || &part.abode() != &abode())
+		throw std::logic_error("only its abode arranges a cell, in its own parts");
 
-	part_.store(kept.part());
+	part_.store(&part);
 }
 
 
@@ -188,6 +187,12 @@ std::string Gates::name() const
 }
 
 
+const Part& Gates::part() const
+{
+	return abode().outer();
+}
+
+
 bool Gates::dwells(const Man&) const
 {
 	return true;
@@ -253,6 +258,12 @@ std::string UpperRoom::name() const
 }
 
 
+const Part& UpperRoom::part() const
+{
+	return abode().inner();
+}
+
+
 bool UpperRoom::dwells(const Man& man) const
 {
 	return &man == &abode().host();
@@ -278,7 +289,7 @@ void UpperRoom::supplicate(const Contemplation& gaze, const Man& addressee) cons
 }
 
 
-void UpperRoom::arrange(const Contemplation& gaze, const Cell& cell, const matter::Room::Part part) const
+void UpperRoom::arrange(const Contemplation& gaze, const Cell& cell, const Part& part) const
 {
 	host_only(gaze);
 

@@ -9,7 +9,13 @@ Acquaintance::Acquaintance(Birth<Abode>, const Man& man)
 {}
 
 
-bool Acquaintance::enters(matter::Room::Part) const
+bool Acquaintance::enters(const Outer&) const
+{
+	return false;
+}
+
+
+bool Acquaintance::enters(const Inner&) const
 {
 	return false;
 }

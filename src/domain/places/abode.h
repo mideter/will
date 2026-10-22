@@ -5,6 +5,7 @@
 #include "matter/room.h"
 #include "properties/birth.h"
 #include "matter/letter.h"
+#include "places/part.h"
 #include "places/place.h"
 #include "values/abode_name.h"
 
@@ -40,6 +41,9 @@ public:
 	~Abode() override;
 
 	const AbodeName& name() const noexcept { return name_; }
+
+	const Outer& outer() const noexcept { return outer_; }
+	const Inner& inner() const noexcept { return inner_; }
 
 	const Man& host() const noexcept { return host_; }
 
@@ -100,9 +104,12 @@ private:
 
 	void admit(const Man& man, const matter::Dweller& kept);
 	const Room& furnish(const matter::Room& kept);
+	const Part& part(matter::Room::Part kept) const;
 
 	const Man& host_;
 	AbodeName name_;
+	Outer outer_;
+	Inner inner_;
 	mutable std::unique_ptr<std::mutex> mutex_;
 	std::unordered_map<const Man*, std::shared_ptr<const Acquaintance>> dwellers_;
 	std::vector<std::unique_ptr<Room>> rooms_;

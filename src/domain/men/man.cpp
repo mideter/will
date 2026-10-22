@@ -55,12 +55,12 @@ void Man::admit(const Birth<Gates> gates, const Man& man) const
 }
 
 
-void Man::arrange(Birth<UpperRoom>, const Cell& cell, const matter::Room::Part part) const
+void Man::arrange(Birth<UpperRoom>, const Cell& cell, const Part& part) const
 {
-	if (&cell.abode() != abode_.get())
-		throw std::logic_error("the cell is not of this abode");
+	if (&cell.abode() != abode_.get() || &part.abode() != abode_.get())
+		throw std::logic_error("the cell or the part is not of this abode");
 
-	abode_->arrange(Birth<Man>{*this}, spatiality().arrange(cell.id(), part));
+	abode_->arrange(Birth<Man>{*this}, spatiality().arrange(cell.id(), part.kept()));
 }
 
 

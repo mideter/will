@@ -9,7 +9,7 @@ Friend::Friend(const Birth<Abode> birth, const Man& man)
 {}
 
 
-bool Friend::enters(matter::Room::Part) const
+bool Friend::enters(const Inner&) const
 {
 	return true;
 }

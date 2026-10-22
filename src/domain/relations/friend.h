@@ -6,12 +6,13 @@
 namespace will::domain {
 
 
-/// Friend (Друг) — a neighbour who enters all the rooms.
+/// Friend (Друг) — a neighbour who enters the inner part too.
 class Friend : public Neighbour {
 public:
 	Friend(Birth<Abode> birth, const Man& man);
 
-	bool enters(matter::Room::Part part) const override;
+	using Neighbour::enters;
+	bool enters(const Inner& part) const override;
 };
 
 

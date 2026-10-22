@@ -986,12 +986,12 @@ TEST_CASE("a dweller enters the rooms his kind opens: a friend all, a neighbour 
 	CHECK(letters_seen_by(gaze).size() == 1);
 
 	// Rooms are arranged only in the upper room.
-	CHECK_THROWS_AS(arrange(world, host, cell, matter::Room::Part::Outer), std::logic_error);
-	CHECK(cell.part() == matter::Room::Part::Inner);
+	CHECK_THROWS_AS(arrange(world, host, cell, cell.abode().outer()), std::logic_error);
+	CHECK(&cell.part() == &cell.abode().inner());
 
 	// Set in the outer part, the cell is entered by a neighbour too, but never by an acquaintance.
-	arrange_in_upper_room(world, host, cell, matter::Room::Part::Outer);
-	CHECK(cell.part() == matter::Room::Part::Outer);
+	arrange_in_upper_room(world, host, cell, cell.abode().outer());
+	CHECK(&cell.part() == &cell.abode().outer());
 	regard_in_upper_room(world, host, man, matter::Dweller::Kind::Neighbour);
 	CHECK(cell.dwells(man));
 	CHECK(letters_seen_by(gaze).size() == 1);
@@ -1000,7 +1000,7 @@ TEST_CASE("a dweller enters the rooms his kind opens: a friend all, a neighbour 
 	CHECK(gaze->words().empty());
 
 	// Only the host arranges, and only rooms of his own abode.
-	CHECK_THROWS_AS(arrange(world, man, cell, matter::Room::Part::Inner), std::logic_error);
+	CHECK_THROWS_AS(arrange(world, man, cell, cell.abode().inner()), std::logic_error);
 }
 
 
@@ -1029,7 +1029,7 @@ TEST_CASE("a tie is reflected in the abode of each side: Ведение and По
 		REQUIRE(obeying);
 		CHECK(leading->name() == "Ведение — " + novice_name);
 		CHECK(obeying->name() == "Послушание — " + testator_name);
-		CHECK(leading->part() == matter::Room::Part::Inner);
+		CHECK(&leading->part() == &leading->abode().inner());
 		CHECK(testator.abode().rooms().size() == 4);  // the cell, the gates, the upper room, Ведение
 	}
 
@@ -1085,7 +1085,7 @@ TEST_CASE("every abode has its cell, a room reflecting the abode itself, kept on
 		CHECK(cell.name() == "Слово");
 		CHECK(&cell.reflects() == static_cast<const Place*>(&man.abode()));
 		CHECK(&cell.abode() == &man.abode());
-		CHECK(cell.part() == matter::Room::Part::Inner);
+		CHECK(&cell.part() == &cell.abode().inner());
 		CHECK(man.abode().room("Слово") == &cell);
 		CHECK(man.abode().cell(man.abode()) == &cell);
 		CHECK(cell.dwells(man));
@@ -1251,7 +1251,7 @@ TEST_CASE("the host regards his dwellers anew only in his upper room; it shows n
 	const auto& man = born(world, DeviceToken::generate());
 	const UpperRoom& upper_room = host.abode().upper_room();
 	CHECK(upper_room.name() == "Горница");
-	CHECK(upper_room.part() == matter::Room::Part::Inner);
+	CHECK(&upper_room.part() == &upper_room.abode().inner());
 
 	host.wake();
 	man.wake();
@@ -1289,18 +1289,18 @@ TEST_CASE("the upper room is its host's alone: there he regards his dwellers and
 	go(world, friend_, cell_of(host));
 	CHECK_THROWS_AS(friend_.contemplate(upper_room), DoesNotEnterRoom);
 	CHECK_THROWS_AS(regard(world, friend_, other, matter::Dweller::Kind::Neighbour), StandInUpperRoom);
-	CHECK_THROWS_AS(arrange(world, friend_, cell_of(host), matter::Room::Part::Outer), StandInUpperRoom);
+	CHECK_THROWS_AS(arrange(world, friend_, cell_of(host), host.abode().outer()), StandInUpperRoom);
 
-	// The gates stand ever without, the upper room ever within: only cells are arranged.
-	CHECK(host.abode().gates().part() == matter::Room::Part::Outer);
-	CHECK(upper_room.part() == matter::Room::Part::Inner);
-	CHECK(cell_of(host).part() == matter::Room::Part::Inner);
+	// The gates are the core of the outer part, the upper room of the inner: only cells are moved.
+	CHECK(&host.abode().gates().part() == &host.abode().outer());
+	CHECK(&upper_room.part() == &upper_room.abode().inner());
+	CHECK(&cell_of(host).part() == &host.abode().inner());
 
 	// The host regards and arranges.
 	regard_in_upper_room(world, host, other, matter::Dweller::Kind::Neighbour);
 	CHECK(std::dynamic_pointer_cast<const Neighbour>(host.abode().dweller(other)));
-	arrange_in_upper_room(world, host, cell_of(host), matter::Room::Part::Outer);
-	CHECK(cell_of(host).part() == matter::Room::Part::Outer);
+	arrange_in_upper_room(world, host, cell_of(host), host.abode().outer());
+	CHECK(&cell_of(host).part() == &host.abode().outer());
 }
 
 
@@ -1359,7 +1359,7 @@ TEST_CASE("the host bears at his gates; the child is born of him, and he is ever
 
 		// At Anna's gates Boris only waits: a stranger does not keep them, nor bears.
 		const Gates& gates = anna.abode().gates();
-		CHECK(gates.part() == matter::Room::Part::Outer);
+		CHECK(&gates.part() == &gates.abode().outer());
 		go(world, boris, gates);
 		CHECK_FALSE(gates.keeps(boris));
 		CHECK_THROWS_AS(bear(world, boris, unborn), OnlyHostActs);
@@ -1484,7 +1484,7 @@ TEST_CASE("only the host keeps his gates: open while he stands in them, he alone
 	const auto& viktor = born(world, DeviceToken::generate());
 	const auto& galina = born(world, DeviceToken::generate());
 	const Gates& gates = anna.abode().gates();
-	CHECK(gates.part() == matter::Room::Part::Outer);
+	CHECK(&gates.part() == &gates.abode().outer());
 
 	// Boris is Anna's acquaintance: standing in her gates, he does not keep them.
 	admit_at_gates(world, anna, boris);

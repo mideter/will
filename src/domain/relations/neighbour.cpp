@@ -9,9 +9,9 @@ Neighbour::Neighbour(const Birth<Abode> birth, const Man& man)
 {}
 
 
-bool Neighbour::enters(const matter::Room::Part part) const
+bool Neighbour::enters(const Outer&) const
 {
-	return part == matter::Room::Part::Outer;
+	return true;
 }
 
 

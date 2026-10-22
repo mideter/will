@@ -674,7 +674,7 @@ inline void regard(World& world, const Man& man, const Man& dweller, matter::Dwe
 }
 
 
-inline void arrange(World& world, const Man& man, const Cell& cell, matter::Room::Part part)
+inline void arrange(World& world, const Man& man, const Cell& cell, const Part& part)
 {
 	const Contemplation& gaze = gaze_of(world, man);
 	gaze.upper_room().arrange(gaze, cell, part);
@@ -754,7 +754,7 @@ inline void supplicate(World& world, const Man& man, const Man& addressee)
 
 
 /// The host sets a room of his abode in a part, standing in his upper room.
-inline void arrange_in_upper_room(World& world, const Man& host, const Cell& cell, const matter::Room::Part part)
+inline void arrange_in_upper_room(World& world, const Man& host, const Cell& cell, const Part& part)
 {
 	looking_at(world, host, host.abode().upper_room(), [&] { arrange(world, host, cell, part); });
 }

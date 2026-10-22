@@ -26,6 +26,8 @@ Abode::Abode(const Birth<Man> birth, matter::Abode kept)
 	: Place(kept.id())
 	, host_(birth.parent())
 	, name_(kept.name())
+	, outer_(Birth<Abode>{*this})
+	, inner_(Birth<Abode>{*this})
 	, mutex_(std::make_unique<std::mutex>())
 {
 	Immanent<Space>::present<Abode>();
@@ -119,7 +121,7 @@ void Abode::arrange(const Birth<Man> birth, const matter::Room& kept) const
 	for (const std::unique_ptr<Room>& room : rooms_) {
 		const auto* cell = dynamic_cast<const Cell*>(room.get());
 		if (cell && cell->id() == kept.id()) {
-			cell->arrange(Birth<Abode>{*this}, kept);
+			cell->arrange(Birth<Abode>{*this}, part(kept.part()));
 			return;
 		}
 	}
@@ -142,7 +144,7 @@ const Room& Abode::furnish(const matter::Room& kept)
 
 	switch (kept.aspect()) {
 	case matter::Room::Aspect::Words:
-		rooms_.push_back(std::make_unique<Cell>(Birth<Abode>{*this}, reflects, kept));
+		rooms_.push_back(std::make_unique<Cell>(Birth<Abode>{*this}, reflects, part(kept.part()), kept));
 		break;
 	case matter::Room::Aspect::Threshold:
 		rooms_.push_back(std::make_unique<Gates>(Birth<Abode>{*this}, kept));
@@ -152,6 +154,14 @@ const Room& Abode::furnish(const matter::Room& kept)
 		break;
 	}
 	return *rooms_.back();
+}
+
+
+const Part& Abode::part(const matter::Room::Part kept) const
+{
+	if (kept == matter::Room::Part::Outer)
+		return outer_;
+	return inner_;
 }
 
 

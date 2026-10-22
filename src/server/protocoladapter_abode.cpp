@@ -268,7 +268,8 @@ void ProtocolAdapter::handle_arrange(const SessionId session_id, const v1::Arran
 		return;
 	}
 
-	const auto part = msg.part() == v1::OUTER ? domain::matter::Room::Part::Outer : domain::matter::Room::Part::Inner;
+	const domain::Part& part = msg.part() == v1::OUTER ? static_cast<const domain::Part&>(self.abode().outer())
+														: self.abode().inner();
 	try {
 		const domain::Contemplation& gaze = gaze_of(self);
 		gaze.upper_room().arrange(gaze, *cell, part);
@@ -278,7 +279,7 @@ void ProtocolAdapter::handle_arrange(const SessionId session_id, const v1::Arran
 	}
 
 	send_notice(session_id,
-				part == domain::matter::Room::Part::Outer ? v1::NOTICE_ARRANGED_OUTER : v1::NOTICE_ARRANGED_INNER,
+				&part == &self.abode().outer() ? v1::NOTICE_ARRANGED_OUTER : v1::NOTICE_ARRANGED_INNER,
 				{msg.room()});
 	retell_upper_room(self.abode().upper_room());  // the host there sees his rooms anew
 	for (const std::shared_ptr<const domain::Acquaintance>& dweller : self.abode().dwellers())
@@ -312,7 +313,7 @@ v1::ServerEvent ProtocolAdapter::arranged_rooms_event(const domain::Abode& abode
 	for (const domain::Room& room : abode.rooms()) {
 		auto* told = rooms->add_rooms();
 		told->set_name(room.name());
-		told->set_part(room.part() == domain::matter::Room::Part::Outer ? v1::OUTER : v1::INNER);
+		told->set_part(&room.part() == &abode.outer() ? v1::OUTER : v1::INNER);
 	}
 	return event;
 }
@@ -328,7 +329,7 @@ void ProtocolAdapter::tell_rooms(const SessionId session_id, const domain::Abode
 			continue;
 		auto* told = rooms->add_rooms();
 		told->set_name(room.name());
-		told->set_part(room.part() == domain::matter::Room::Part::Outer ? v1::OUTER : v1::INNER);
+		told->set_part(&room.part() == &abode.outer() ? v1::OUTER : v1::INNER);
 	}
 	send_event(session_id, event);
 }
