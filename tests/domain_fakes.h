@@ -660,6 +660,13 @@ inline void admit(World& world, const Man& keeper, const Man& man)
 }
 
 
+inline const Man& bear(World& world, const Man& midwife, const Unborn& unborn)
+{
+	const Contemplation& gaze = gaze_of(world, midwife);
+	return gaze.gates().bear(gaze, unborn);
+}
+
+
 inline void regard(World& world, const Man& man, const Man& dweller, matter::Dweller::Kind kind)
 {
 	const Contemplation& gaze = gaze_of(world, man);
@@ -800,7 +807,7 @@ inline const Man& born(World& world, const DeviceToken& token)
 
 	const Man* child = nullptr;
 	looking_at(world, elder, elder.abode().gates(),
-			   [&] { child = &world.bear(elder, dynamic_cast<const Unborn&>(body)); });
+			   [&] { child = &bear(world, elder, dynamic_cast<const Unborn&>(body)); });
 	return *child;
 }
 

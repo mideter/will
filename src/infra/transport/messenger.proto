@@ -406,9 +406,10 @@ enum NoticeCode {
     reserved 16, 17;
     // 2, 6, 39 and 43 told who besides the host might act in his rooms: only the host acts there now.
     reserved 2, 6, 39, 43;
+    // 5 told that one bears only at gates: one bears now standing in them, as one does there all else.
+    reserved 5;
     NOTICE_ALREADY_DWELLS = 3;
     NOTICE_NOT_AT_GATES = 4;
-    NOTICE_BEAR_ONLY_AT_GATES = 5;
     NOTICE_NO_SUCH_UNBORN = 7;
     NOTICE_DOES_NOT_DWELL = 8;
     NOTICE_DOES_NOT_ENTER_ROOM = 9;

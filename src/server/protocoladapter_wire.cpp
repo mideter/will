@@ -163,7 +163,6 @@ v1::NoticeCode code_of(const domain::Refusal& refusal)
 	static const std::unordered_map<std::type_index, v1::NoticeCode> codes{
 		{typeid(domain::AlreadyDwells), v1::NOTICE_ALREADY_DWELLS},
 		{typeid(domain::NotAtGates), v1::NOTICE_NOT_AT_GATES},
-		{typeid(domain::BearOnlyAtGates), v1::NOTICE_BEAR_ONLY_AT_GATES},
 		{typeid(domain::NoSuchUnborn), v1::NOTICE_NO_SUCH_UNBORN},
 		{typeid(domain::DoesNotDwell), v1::NOTICE_DOES_NOT_DWELL},
 		{typeid(domain::DoesNotEnterRoom), v1::NOTICE_DOES_NOT_ENTER_ROOM},

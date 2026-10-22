@@ -1346,7 +1346,7 @@ TEST_CASE("the host bears at his gates; the child is born of him, and he is ever
 
 		// Not standing at gates, one does not bear.
 		boris.wake();
-		CHECK_THROWS_AS(world.bear(boris, unborn), std::logic_error);
+		CHECK_THROWS_AS(bear(world, boris, unborn), StandAtGates);
 
 		// There is no birth room: one is born through the gates.
 		CHECK(anna.abode().rooms().size() == 3);
@@ -1357,7 +1357,7 @@ TEST_CASE("the host bears at his gates; the child is born of him, and he is ever
 		CHECK(gates.part() == matter::Room::Part::Inner);
 		go(world, boris, gates);
 		CHECK_FALSE(gates.keeps(boris));
-		CHECK_THROWS_AS(world.bear(boris, unborn), std::logic_error);
+		CHECK_THROWS_AS(bear(world, boris, unborn), OnlyHostActs);
 		go(world, boris, boris.abode());
 		admit_at_gates(world, anna, boris);
 		regard_in_upper_room(world, anna, boris, matter::Dweller::Kind::Friend);
@@ -1369,10 +1369,10 @@ TEST_CASE("the host bears at his gates; the child is born of him, and he is ever
 		CHECK(gates.dwells(boris));
 		CHECK(gates.keeps(anna));
 		CHECK_FALSE(gates.keeps(boris));
-		CHECK_THROWS_AS(world.bear(boris, unborn), OnlyHostActs);
+		CHECK_THROWS_AS(bear(world, boris, unborn), OnlyHostActs);
 
 		// Anna bears at her gates: the child is born of her.
-		const Man& child = world.bear(anna, unborn);
+		const Man& child = bear(world, anna, unborn);
 		CHECK(world.unborn().empty());
 		CHECK(&world.man(world.vessel(child.Vessel::id())) == &child);
 		CHECK(child.father(matter::Fatherhood::Line::Flesh) == static_cast<const Man*>(&anna));

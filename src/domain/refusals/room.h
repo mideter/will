@@ -21,13 +21,6 @@ public:
 	{}
 };
 
-class BearOnlyAtGates final : public Refusal {
-public:
-	BearOnlyAtGates()
-		: Refusal("one bears only standing in gates")
-	{}
-};
-
 class DoesNotEnterRoom final : public Refusal {
 public:
 	DoesNotEnterRoom()

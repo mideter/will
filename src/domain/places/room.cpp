@@ -234,6 +234,14 @@ void Gates::admit(const Contemplation& gaze, const Man& man) const
 }
 
 
+const Man& Gates::bear(const Contemplation& gaze, const Unborn& unborn) const
+{
+	host_only(gaze);
+
+	return Immanent<Heaven>::horizon().bear(Birth<Gates>{*this}, unborn);
+}
+
+
 UpperRoom::UpperRoom(const Birth<Abode> birth, matter::Room kept)
 	: Room(birth, birth.parent(), std::move(kept))
 {}

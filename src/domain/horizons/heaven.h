@@ -3,6 +3,7 @@
 #include "matter/supplication.h"
 #include "relations/contemplation.h"
 #include "identity/soul.h"
+#include "properties/birth.h"
 #include "properties/immanent.h"
 
 #include <functional>
@@ -19,7 +20,9 @@ class Man;
 class Place;
 class Soul;
 class Eternity;
+class Gates;
 class Spirit;
+class Unborn;
 class Supplication;
 
 
@@ -42,6 +45,7 @@ public:
 
 protected:
 	friend class Spirit;
+	friend class Gates;
 	friend class Supplication;
 	friend class Immanent<Heaven>;
 
@@ -58,6 +62,9 @@ protected:
 	/// A spirit asks one to become its testator: the world, where Heaven meets the earth,
 	/// fixes its moment and Heaven keeps it.
 	virtual void ask(const Spirit& suppliant, const Soul& addressee) = 0;
+
+	/// A waiting body is born at the gates, of their host: the world gives it a soul.
+	virtual const Man& bear(Birth<Gates> gates, const Unborn& unborn) = 0;
 
 private:
 	void present(const Soul& soul);

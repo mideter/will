@@ -28,6 +28,7 @@ class Behest;
 class Deed;
 class Novice;
 class Training;
+class Unborn;
 
 
 /// Room (Комната) — a window in an Abode onto a place, with no words of its own.
@@ -123,6 +124,9 @@ public:
 
 	/// The one let in becomes the host's acquaintance.
 	void admit(const Contemplation& gaze, const Man& man) const;
+
+	/// The child is born of the host.
+	const Man& bear(const Contemplation& gaze, const Unborn& unborn) const;
 };
 
 

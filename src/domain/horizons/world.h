@@ -45,10 +45,6 @@ public:
 
 	const Unborn& unborn(id::Vessel id) const;
 
-	/// Born of the host of the gates, who bears him — his father by flesh: the father
-	/// becomes a neighbour in the child's abode, the child an acquaintance in his.
-	const Man& bear(const Man& midwife, const Unborn& unborn);
-
 	/// The father cannot refuse; the former one is replaced.
 	void choose_father(const Man& child, const Man& father);
 
@@ -79,6 +75,10 @@ private:
 	const Man& accept(matter::Man kept);
 
 	void ask(const Spirit& suppliant, const Soul& addressee) override;
+
+	/// The host of the gates is the child's father by flesh: the father becomes a
+	/// neighbour in the child's abode, the child an acquaintance in his.
+	const Man& bear(Birth<Gates> gates, const Unborn& unborn) override;
 
 	const Man& living_man(id::Soul id) const;
 	bool lives(id::Soul id) const;

@@ -110,7 +110,8 @@ void ProtocolAdapter::handle_bear(const SessionId session_id, const v1::Bear& ms
 
 	const domain::Man* born = nullptr;
 	try {
-		born = &world_.bear(midwife, *unborn);
+		const domain::Contemplation& gaze = gaze_of(midwife);
+		born = &gaze.gates().bear(gaze, *unborn);
 	} catch (const std::logic_error& e) {
 		refuse(session_id, e);
 		return;

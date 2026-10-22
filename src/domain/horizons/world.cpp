@@ -1,10 +1,8 @@
 #include "dimensions/eternity.h"
 #include "refusals/world.h"
-#include "refusals/room.h"
 #include "world.h"
 
 #include "places/room.h"
-#include "relations/contemplation.h"
 
 #include "places/obedience.h"
 #include "places/shepherding.h"
@@ -254,16 +252,9 @@ Timestamp World::now()
 }
 
 
-const Man& World::bear(const Man& midwife, const Unborn& unborn)
+const Man& World::bear(const Birth<Gates> gates, const Unborn& unborn)
 {
-	const std::shared_ptr<const Contemplation> gaze = contemplation(midwife);
-	const auto* gates = gaze ? dynamic_cast<const Gates*>(&gaze->place()) : nullptr;
-	if (!gates)
-		throw BearOnlyAtGates();
-	if (!gates->keeps(midwife))
-		throw OnlyHostActs();
-
-	const Man& father = gates->abode().host();
+	const Man& father = gates.parent().abode().host();
 	matter::Vessel body{unborn.id(), unborn.token()};
 	{
 		std::lock_guard lock(mutex_);
