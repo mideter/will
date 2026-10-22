@@ -53,8 +53,7 @@ void print_threshold(ConsoleUi& ui, const v1::Threshold& threshold)
 		ui.print_list("You keep the gates; waiting", rows, "/admit <name>");
 		return;
 	}
-	ui.print_status(threshold.open() ? "The gates are open: one who keeps them is here."
-									 : "The gates are shut: no one who keeps them is here.");
+	ui.print_status(threshold.open() ? "The gates are open: the host is here." : "The gates are shut: the host is not here.");
 }
 
 

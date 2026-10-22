@@ -268,9 +268,8 @@ message Turned {
 }
 
 
-// The gates one stands in: open while one who keeps them stands in them — the
-// host, or a dweller whose kind enters their part. keeping: one keeps them
-// oneself; to those who keep them, who stands at them waiting to be let in.
+// The gates one stands in: open while their host, who alone keeps them, stands in
+// them. keeping: one is their host; to him, who stands at them waiting to be let in.
 message Threshold {
     bool open = 1;
     repeated string waiting = 2;
