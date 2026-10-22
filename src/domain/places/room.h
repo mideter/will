@@ -28,6 +28,8 @@ class Behest;
 class Deed;
 class Novice;
 class Part;
+class Shepherding;
+class Supplication;
 class Training;
 class Unborn;
 
@@ -160,6 +162,10 @@ public:
 
 	/// Only its host asks one of its dwellers to become his testator.
 	void supplicate(const Contemplation& gaze, const Man& addressee) const;
+
+	/// Here the host answers those who ask him.
+	const Shepherding& accept(const Contemplation& gaze, const Supplication& ask) const;
+	void reject(const Contemplation& gaze, const Supplication& ask) const;
 };
 
 

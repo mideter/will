@@ -83,6 +83,8 @@ using will::domain::test::admit_at_gates;
 using will::domain::test::regard_in_upper_room;
 using will::domain::test::born;
 using will::domain::test::supplicate;
+using will::domain::test::accept;
+using will::domain::test::reject;
 
 } // namespace
 
@@ -234,7 +236,7 @@ TEST_CASE("sqlite keeps a behest and its execution across reopen")
 		admit_at_gates(world, novice, testator);
 		admit_at_gates(world, testator, novice);
 		supplicate(world, novice, testator);
-		testator.accept(*testator.supplication(novice));
+		accept(world, testator, *testator.supplication(novice));
 		testator.wake();
 		testator.contemplate(*testator.abode().cell(testator.shepherding(novice)));
 		novice.wake();
@@ -319,7 +321,7 @@ TEST_CASE("sqlite keeps supplications, rejections and ties across reopen")
 		admit_at_gates(world, b, a);
 		supplicate(world, a, b);
 		CHECK_THROWS_AS(supplicate(world, a, b), std::logic_error);
-		b.reject(*b.supplication(a));
+		reject(world, b, *b.supplication(a));
 		CHECK(bundle.temporality().supplications(b.Soul::id()).empty());
 		CHECK_THROWS_AS(bundle.temporality().answer(a.Soul::id(), b.Soul::id(), matter::Answer::Form::Rejected),
 						std::invalid_argument);
@@ -330,7 +332,7 @@ TEST_CASE("sqlite keeps supplications, rejections and ties across reopen")
 		admit_at_gates(world, b, c);
 		supplicate(world, c, b);
 		CHECK(bundle.temporality().supplications(b.Soul::id()).size() == 2);
-		const Shepherding& shepherding = b.accept(*b.supplication(c));
+		const Shepherding& shepherding = accept(world, b, *b.supplication(c));
 		CHECK(&shepherding.novice() == &c);
 		CHECK(b.supplications().size() == 1);
 		CHECK_THROWS_AS(supplicate(world, c, b), std::logic_error);
@@ -352,7 +354,7 @@ TEST_CASE("sqlite keeps supplications, rejections and ties across reopen")
 		CHECK(&b.shepherding(c).novice() == &c);
 		CHECK_THROWS_AS(b.shepherding(a), std::invalid_argument);
 
-		const Shepherding& shepherding = b.accept(*b.supplication(a));
+		const Shepherding& shepherding = accept(world, b, *b.supplication(a));
 		CHECK(&shepherding.novice() == &a);
 		CHECK(b.supplications().empty());
 		CHECK(bundle.spatiality().ties().size() == 2);

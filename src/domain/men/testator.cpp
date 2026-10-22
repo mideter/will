@@ -25,14 +25,20 @@
 namespace will::domain {
 
 
-const Shepherding& Testator::accept(const Supplication& ask) const
+const Shepherding& Testator::accept(const Birth<UpperRoom> upper_room, const Supplication& ask) const
 {
+	if (&upper_room.parent().abode() != &abode())
+		throw std::logic_error("one answers in one's own upper room");
+
 	return ask.accept(*this);
 }
 
 
-void Testator::reject(const Supplication& ask) const
+void Testator::reject(const Birth<UpperRoom> upper_room, const Supplication& ask) const
 {
+	if (&upper_room.parent().abode() != &abode())
+		throw std::logic_error("one answers in one's own upper room");
+
 	ask.reject(*this);
 }
 

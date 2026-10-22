@@ -20,6 +20,7 @@ namespace will::domain {
 class Cell;
 class Novice;
 class Training;
+class UpperRoom;
 
 
 class World;
@@ -29,8 +30,8 @@ class World;
 /// the supplications that would bind one.
 class Testator : public virtual Embodied {
 public:
-	const Shepherding& accept(const Supplication& ask) const;
-	void reject(const Supplication& ask) const;
+	const Shepherding& accept(Birth<UpperRoom> upper_room, const Supplication& ask) const;
+	void reject(Birth<UpperRoom> upper_room, const Supplication& ask) const;
 
 	std::shared_ptr<const Behest> will(Birth<Cell> cell, const Shepherding& shepherding, const Saying& saying) const;
 

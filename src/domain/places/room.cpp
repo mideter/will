@@ -289,6 +289,22 @@ void UpperRoom::supplicate(const Contemplation& gaze, const Man& addressee) cons
 }
 
 
+const Shepherding& UpperRoom::accept(const Contemplation& gaze, const Supplication& ask) const
+{
+	host_only(gaze);
+
+	return abode().host().accept(Birth<UpperRoom>{*this}, ask);
+}
+
+
+void UpperRoom::reject(const Contemplation& gaze, const Supplication& ask) const
+{
+	host_only(gaze);
+
+	abode().host().reject(Birth<UpperRoom>{*this}, ask);
+}
+
+
 void UpperRoom::arrange(const Contemplation& gaze, const Cell& cell, const Part& part) const
 {
 	host_only(gaze);

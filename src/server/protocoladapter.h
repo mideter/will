@@ -149,6 +149,9 @@ private:
 	/// his upper room.
 	v1::ServerEvent arranged_rooms_event(const domain::Abode& abode) const;
 
+	/// Those who ask this man to lead them, awaiting his answer in his upper room.
+	v1::ServerEvent supplications_event(const domain::Man& addressee) const;
+
 	/// Tell the rooms of this abode that this man may enter.
 	void tell_rooms(SessionId session_id, const domain::Abode& abode, const domain::Man& listener);
 

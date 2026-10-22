@@ -598,6 +598,7 @@ TEST_CASE("a host admits a dweller, regards him anew, and he sees his abode as h
 	for (const will::v1::Dweller& dweller : upper_room.dwellers().dwellers())
 		CHECK(dweller.kind() == (dweller.name() == man_name ? will::v1::FRIEND : will::v1::NEIGHBOUR));
 	CHECK(read_event(*host.stream).has_rooms());  // the host in his upper room is told his rooms anew
+	CHECK(read_event(*host.stream).has_supplications());
 	CHECK(read_event(*man.stream).dwelling().kind() == will::v1::FRIEND);
 	REQUIRE(read_event(*man.stream).turned().abode_of() == host_name);
 	const will::v1::ServerEvent open = read_event(*man.stream);
@@ -628,6 +629,7 @@ TEST_CASE("a host admits a dweller, regards him anew, and he sees his abode as h
 	CHECK(read_event(*host.stream).has_protocol_notice());
 	CHECK(read_event(*host.stream).has_dwellers());
 	CHECK(read_event(*host.stream).has_rooms());
+	CHECK(read_event(*host.stream).has_supplications());
 	CHECK(read_event(*man.stream).dwelling().kind() == will::v1::ACQUAINTANCE);
 	REQUIRE(read_event(*man.stream).turned().room() == "Слово");
 	CHECK(read_event(*man.stream).has_history_end());
@@ -649,6 +651,7 @@ TEST_CASE("a host admits a dweller, regards him anew, and he sees his abode as h
 	const will::v1::ServerEvent shown_rooms = read_event(*host.stream);
 	REQUIRE(shown_rooms.rooms().rooms_size() == 3);
 	CHECK(shown_rooms.rooms().rooms(0).part() == will::v1::INNER);
+	CHECK(read_event(*host.stream).has_supplications());
 	CHECK(read_event(*host.stream).has_history_end());
 
 	// The host sets his cell in the outer part; a neighbour, looking at it, sees the words again.
@@ -656,6 +659,7 @@ TEST_CASE("a host admits a dweller, regards him anew, and he sees his abode as h
 	CHECK(read_event(*host.stream).has_protocol_notice());
 	CHECK(read_event(*host.stream).has_dwellers());
 	CHECK(read_event(*host.stream).has_rooms());
+	CHECK(read_event(*host.stream).has_supplications());
 	CHECK(read_event(*man.stream).dwelling().kind() == will::v1::NEIGHBOUR);
 	REQUIRE(read_event(*man.stream).turned().room() == "Слово");
 	CHECK(read_event(*man.stream).has_history_end());
@@ -671,6 +675,7 @@ TEST_CASE("a host admits a dweller, regards him anew, and he sees his abode as h
 	REQUIRE(arranged.rooms().rooms_size() == 3);
 	CHECK(arranged.rooms().rooms(0).name() == "Слово");
 	CHECK(arranged.rooms().rooms(0).part() == will::v1::OUTER);
+	CHECK(read_event(*host.stream).has_supplications());
 	REQUIRE(read_event(*man.stream).turned().room() == "Слово");
 	CHECK(read_event(*man.stream).word().body() == "secret");
 	CHECK(read_event(*man.stream).word().body() == "news");
@@ -751,7 +756,7 @@ TEST_CASE("one lists the abodes one dwells in and the supplications awaiting one
 	CHECK(next_past_gates(*b.stream).has_protocol_notice());
 	CHECK(next_past_gates(*a.stream).has_supplication_offer());
 	// His upper room is told anew to him; then he turns to his word.
-	read_until(*b.stream, [](const auto& e) { return e.has_rooms(); });
+	read_until(*b.stream, [](const auto& e) { return e.has_supplications(); });
 	stand_in(*b.stream, {}, "Слово");
 
 	// Each sees, among his dwellers, how the other stands to him: b asked, a is asked.
@@ -770,21 +775,28 @@ TEST_CASE("one lists the abodes one dwells in and the supplications awaiting one
 	CHECK(dweller_named(*a.stream, b_name).asks());
 	CHECK_FALSE(dweller_named(*a.stream, b_name).asked());
 	CHECK(dweller_named(*b.stream, a_name).asked());
+
+	// Away from his upper room a does not answer; coming home through his gates into it,
+	// he sees who asks him, and rejects him there.
 	{
-		will::v1::ClientEvent list;
-		list.mutable_list_supplications();
-		REQUIRE(a.stream->Write(list));
+		will::v1::ClientEvent reject;
+		reject.mutable_reject_supplication()->set_suppliant_name(b_name);
+		REQUIRE(a.stream->Write(reject));
 	}
-	const will::v1::ServerEvent awaiting = next_past_gates(*a.stream);
-	REQUIRE(awaiting.has_supplications());
+	CHECK(next_past_gates(*a.stream).protocol_notice().code() == will::v1::NOTICE_STAND_IN_UPPER_ROOM);
+	stand_in(*a.stream, {}, "Врата");
+	send_turn_to_abode(*a.stream, {}, "Горница");
+	const will::v1::ServerEvent awaiting = read_until(*a.stream, [](const auto& e) { return e.has_supplications(); });
 	REQUIRE(awaiting.supplications().suppliant_names_size() == 1);
 	CHECK(awaiting.supplications().suppliant_names(0) == b_name);
+	CHECK(read_event(*a.stream).has_history_end());
 	{
 		will::v1::ClientEvent reject;
 		reject.mutable_reject_supplication()->set_suppliant_name(b_name);
 		REQUIRE(a.stream->Write(reject));
 	}
 	CHECK(next_past_gates(*a.stream).has_protocol_notice());
+	CHECK(read_until(*a.stream, [](const auto& e) { return e.has_supplications(); }).supplications().suppliant_names_size() == 0);
 	{
 		will::v1::ClientEvent list;
 		list.mutable_list_supplications();
@@ -958,7 +970,7 @@ TEST_CASE("a friend standing in the host's gates lets no one in: only the host k
 	read_until(*boris.stream, [](const auto& e) { return e.has_dwelling(); });
 	stand_in(*anna.stream, {}, "Горница");
 	send_regard(*anna.stream, boris_name, will::v1::FRIEND);
-	read_until(*anna.stream, [](const auto& e) { return e.has_rooms(); });  // her upper room told anew
+	read_until(*anna.stream, [](const auto& e) { return e.has_supplications(); });  // her upper room told anew
 	CHECK(read_until(*boris.stream, [](const auto& e) { return e.has_dwelling(); }).dwelling().kind()
 		  == will::v1::FRIEND);
 
@@ -1025,6 +1037,8 @@ TEST_CASE("the testator wills a training over the wire; the novice fulfils it te
 		REQUIRE(novice.stream->Write(ask));
 	}
 	read_until(*trainer.stream, [](const auto& e) { return e.has_supplication_offer(); });
+	stand_in(*trainer.stream, {}, "Врата");
+	stand_in(*trainer.stream, {}, "Горница");
 	{
 		will::v1::ClientEvent accept;
 		accept.mutable_accept_supplication()->set_suppliant_name(novice_name);
@@ -1053,8 +1067,7 @@ TEST_CASE("the testator wills a training over the wire; the novice fulfils it te
 		CHECK(seen);
 	}
 
-	// Each enters his room of the tie; the trainer comes home through his gates.
-	stand_in(*trainer.stream, {}, "Врата");
+	// Each enters his room of the tie.
 	send_turn_to_abode(*trainer.stream, {}, "Ведение — " + novice_name);
 	read_until(*trainer.stream, [](const auto& e) { return e.has_history_end(); });
 	send_turn_to_abode(*novice.stream, {}, "Послушание — " + trainer_name);

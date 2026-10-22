@@ -187,7 +187,8 @@ void ProtocolAdapter::handle_accept_supplication(const SessionId session_id,
 
 	std::optional<domain::id::Place> formed;
 	try {
-		formed = testator.accept(*testator.supplication(novice)).id();
+		const domain::Contemplation& gaze = gaze_of(testator);
+		formed = gaze.upper_room().accept(gaze, *testator.supplication(novice)).id();
 	} catch (const std::exception& e) {
 		refuse(session_id, e);
 		return;
@@ -253,13 +254,17 @@ void ProtocolAdapter::handle_fulfil(const SessionId session_id, const v1::Fulfil
 
 void ProtocolAdapter::handle_list_supplications(const SessionId session_id)
 {
-	const auto& self = session_man(session_id);
+	send_event(session_id, supplications_event(session_man(session_id)));
+}
 
+
+v1::ServerEvent ProtocolAdapter::supplications_event(const domain::Man& addressee) const
+{
 	v1::ServerEvent event;
 	auto* list = event.mutable_supplications();
-	for (const std::shared_ptr<const domain::Supplication>& pending : self.supplications())
+	for (const std::shared_ptr<const domain::Supplication>& pending : addressee.supplications())
 		list->add_suppliant_names(std::string{pending->suppliant().name().text()});
-	send_event(session_id, event);
+	return event;
 }
 
 
@@ -378,7 +383,8 @@ void ProtocolAdapter::handle_reject_supplication(const SessionId session_id, con
 
 	const auto& self = session_man(session_id);
 	try {
-		self.reject(*self.supplication(*suppliant));
+		const domain::Contemplation& gaze = gaze_of(self);
+		gaze.upper_room().reject(gaze, *self.supplication(*suppliant));
 	} catch (const std::exception& e) {
 		refuse(session_id, e);
 		return;

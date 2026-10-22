@@ -753,6 +753,26 @@ inline void supplicate(World& world, const Man& man, const Man& addressee)
 }
 
 
+inline const Shepherding& accept(World& world, const Man& testator, const Supplication& ask)
+{
+	const Shepherding* accepted = nullptr;
+	looking_at(world, testator, testator.abode().upper_room(), [&] {
+		const Contemplation& gaze = gaze_of(world, testator);
+		accepted = &gaze.upper_room().accept(gaze, ask);
+	});
+	return *accepted;
+}
+
+
+inline void reject(World& world, const Man& testator, const Supplication& ask)
+{
+	looking_at(world, testator, testator.abode().upper_room(), [&] {
+		const Contemplation& gaze = gaze_of(world, testator);
+		gaze.upper_room().reject(gaze, ask);
+	});
+}
+
+
 /// The host sets a room of his abode in a part, standing in his upper room.
 inline void arrange_in_upper_room(World& world, const Man& host, const Cell& cell, const Part& part)
 {

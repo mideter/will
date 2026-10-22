@@ -526,7 +526,7 @@ TEST_CASE("the sides of a tie may contemplate it and behold its behests")
 	admit_at_gates(world, novice, testator);
 	admit_at_gates(world, testator, novice);
 	supplicate(world, novice, testator);
-	const Shepherding& shepherding = testator.accept(*testator.supplication(novice));
+	const Shepherding& shepherding = accept(world, testator, *testator.supplication(novice));
 	testator.wake();
 	testator.contemplate(room_in(testator, shepherding));
 	const std::shared_ptr<const Behest> willed_held = will_here(world, testator, "fast");
@@ -574,7 +574,7 @@ TEST_CASE("the words of a tie live while it is contemplated, one for both sides"
 	admit_at_gates(world, novice, testator);
 	admit_at_gates(world, testator, novice);
 	supplicate(world, novice, testator);
-	const Shepherding& shepherding = testator.accept(*testator.supplication(novice));
+	const Shepherding& shepherding = accept(world, testator, *testator.supplication(novice));
 	const Obedience& obedience = novice.obedience(testator);
 
 	// Both sides turn to the tie: the testator's gaze births its words, the novice's shares them.
@@ -619,7 +619,7 @@ TEST_CASE("the words of a tie are gone with the last gaze and are born anew from
 	admit_at_gates(world, novice, testator);
 	admit_at_gates(world, testator, novice);
 	supplicate(world, novice, testator);
-	const Shepherding& shepherding = testator.accept(*testator.supplication(novice));
+	const Shepherding& shepherding = accept(world, testator, *testator.supplication(novice));
 
 	testator.wake();
 	testator.contemplate(room_in(testator, shepherding));
@@ -670,7 +670,7 @@ TEST_CASE("tie is a place for distinct testator and novice")
 	admit_at_gates(world, novice, testator);
 	admit_at_gates(world, testator, novice);
 	supplicate(world, novice, testator);
-	testator.accept(*testator.supplication(novice));
+	accept(world, testator, *testator.supplication(novice));
 
 	const Obedience& tie = novice.obedience(testator);
 	CHECK(tie.id() == cosmos.spatiality().ties().front().id());
@@ -715,7 +715,7 @@ TEST_CASE("supplicate accept creates tie owned as obedience")
 	// Answered, Heaven lets it go; whoever still holds it keeps it a while.
 	const std::shared_ptr<const Supplication> held = testator.supplication(novice);
 	const std::weak_ptr<const Supplication> watched = held;
-	const Shepherding& shepherding = testator.accept(ask);
+	const Shepherding& shepherding = accept(world, testator, ask);
 	CHECK(testator.supplications().empty());
 	CHECK(world.supplications(b.Soul::id()).empty());
 	CHECK_FALSE(watched.expired());
@@ -761,9 +761,15 @@ TEST_CASE("reject closes pending supplication; wrong party cannot accept")
 	admit_at_gates(world, testator, novice);
 	supplicate(world, novice, testator);
 	const Supplication& ask = *testator.supplication(novice);
-	CHECK_THROWS_AS(stranger.accept(ask), std::logic_error);
+	CHECK_THROWS_AS(accept(world, stranger, ask), std::logic_error);
 
-	testator.reject(ask);
+	// One answers only standing in one's upper room.
+	testator.wake();
+	const Contemplation& at_home = gaze_of(world, testator);
+	CHECK_THROWS_AS(at_home.upper_room().reject(at_home, ask), StandInUpperRoom);
+	testator.sleep();
+
+	reject(world, testator, ask);
 	CHECK(testator.supplications().empty());
 	CHECK(cosmos.temporality().supplications(b.Soul::id()).empty());
 	CHECK_THROWS_AS(testator.supplication(novice), Refusal);
@@ -799,7 +805,7 @@ TEST_CASE("will and execute within obedience")
 	admit_at_gates(world, novice, testator);
 	admit_at_gates(world, testator, novice);
 	supplicate(world, novice, testator);
-	testator.accept(*testator.supplication(novice));
+	accept(world, testator, *testator.supplication(novice));
 	REQUIRE(cosmos.spatiality().ties().size() == 1);
 	const Shepherding& shepherding = testator.shepherding(novice);
 	testator.wake();
@@ -847,7 +853,7 @@ TEST_CASE("a tie shows its behests only to its sides; behests are not letters")
 	admit_at_gates(world, novice, testator);
 	admit_at_gates(world, testator, novice);
 	supplicate(world, novice, testator);
-	testator.accept(*testator.supplication(novice));
+	accept(world, testator, *testator.supplication(novice));
 	testator.wake();
 	CHECK_THROWS_AS(will_here(world, testator, "fast"), std::logic_error);
 	testator.contemplate(room_in(testator, testator.shepherding(novice)));
@@ -1021,7 +1027,7 @@ TEST_CASE("a tie is reflected in the abode of each side: Ведение and По
 		admit_at_gates(world, novice, testator);
 		admit_at_gates(world, testator, novice);
 		supplicate(world, novice, testator);
-		const Shepherding& shepherding = testator.accept(*testator.supplication(novice));
+		const Shepherding& shepherding = accept(world, testator, *testator.supplication(novice));
 
 		const Cell* leading = testator.abode().cell(shepherding);
 		const Cell* obeying = novice.abode().cell(shepherding);
@@ -1057,7 +1063,7 @@ TEST_CASE("a tie bound before rooms were is given its rooms on awakening")
 		admit_at_gates(world, novice, testator);
 		admit_at_gates(world, testator, novice);
 		supplicate(world, novice, testator);
-		testator.accept(*testator.supplication(novice));
+		accept(world, testator, *testator.supplication(novice));
 	}
 	// As kept before tie rooms were: only the standard rooms remain.
 	std::erase_if(store.rooms, [](const matter::Room& room) { return room.reflects() != room.abode(); });
@@ -1139,7 +1145,7 @@ TEST_CASE("the abode shows its host what awaits his attention and what he has se
 	admit_at_gates(world, novice, testator);
 	admit_at_gates(world, testator, novice);
 	supplicate(world, novice, testator);
-	const Shepherding& shepherding = testator.accept(*testator.supplication(novice));
+	const Shepherding& shepherding = accept(world, testator, *testator.supplication(novice));
 	CHECK(novice.abode().owed().empty());
 
 	// The testator wills through his room Ведение, as through the tie itself.
@@ -1549,7 +1555,7 @@ TEST_CASE("the testator wills a training of exercises; the novice fulfils it tel
 	admit_at_gates(world, novice, testator);
 	admit_at_gates(world, testator, novice);
 	supplicate(world, novice, testator);
-	const Shepherding& shepherding = testator.accept(*testator.supplication(novice));
+	const Shepherding& shepherding = accept(world, testator, *testator.supplication(novice));
 	const Obedience& obedience = novice.obedience(testator);
 
 	const std::vector<Exercise> willed{
@@ -1624,7 +1630,7 @@ TEST_CASE("the novice does a training approach by approach: each begun and finis
 		admit_at_gates(world, novice, testator);
 		admit_at_gates(world, testator, novice);
 		supplicate(world, novice, testator);
-		const Shepherding& shepherding = testator.accept(*testator.supplication(novice));
+		const Shepherding& shepherding = accept(world, testator, *testator.supplication(novice));
 		const Obedience& obedience = novice.obedience(testator);
 
 		testator.wake();
@@ -1710,7 +1716,7 @@ TEST_CASE("an approach underway is the training's, one at a time in each, and ou
 		admit_at_gates(world, novice, testator);
 		admit_at_gates(world, testator, novice);
 		supplicate(world, novice, testator);
-		const Shepherding& shepherding = testator.accept(*testator.supplication(novice));
+		const Shepherding& shepherding = accept(world, testator, *testator.supplication(novice));
 
 		testator.wake();
 		testator.contemplate(room_in(testator, shepherding));
@@ -1761,7 +1767,7 @@ TEST_CASE("in the novice's cell of a tie only the novice trains and fulfils; his
 	admit_at_gates(world, novice, testator);
 	admit_at_gates(world, testator, novice);
 	supplicate(world, novice, testator);
-	const Shepherding& shepherding = testator.accept(*testator.supplication(novice));
+	const Shepherding& shepherding = accept(world, testator, *testator.supplication(novice));
 	const Obedience& obedience = novice.obedience(testator);
 	admit_at_gates(world, novice, friend_);
 	regard_in_upper_room(world, novice, friend_, matter::Dweller::Kind::Friend);
@@ -1809,7 +1815,7 @@ TEST_CASE("the world awakens though what is kept disagrees: it passes it over, t
 		admit_at_gates(world, anna, boris);
 		admit_at_gates(world, boris, anna);
 		supplicate(world, boris, anna);
-		anna.accept(*anna.supplication(boris));
+		accept(world, anna, *anna.supplication(boris));
 		kept_boris = boris.Soul::id();
 		kept_anna_abode = anna.abode().id();
 		kept_elder = forefather(world).Soul::id();
@@ -1911,7 +1917,7 @@ TEST_CASE("one writes where one stands: a letter in one's word, a behest in a ti
 	admit_at_gates(world, testator, novice);
 	admit_at_gates(world, novice, testator);
 	supplicate(world, novice, testator);
-	const Tie& tie = dynamic_cast<const Tie&>(testator.accept(*testator.supplication(novice)));
+	const Tie& tie = dynamic_cast<const Tie&>(accept(world, testator, *testator.supplication(novice)));
 
 
 	// In one's own word: a letter, written by oneself.
