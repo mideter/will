@@ -12,6 +12,7 @@
 namespace will::domain {
 
 
+class Abode;
 class Cell;
 class Contemplation;
 class Man;
@@ -39,6 +40,13 @@ public:
 
 	/// All its words to all who dwell in it, unless it says otherwise.
 	virtual bool shows(const Man& who, const Word& word) const;
+
+	/// From here one turns only where the place leads: anywhere within an abode, and out
+	/// of it or into another only through gates.
+	virtual bool leads_to(const Place& next) const;
+
+	/// Inside the abode, beyond its gates.
+	virtual bool within(const Abode& abode) const;
 
 	/// Asked by a cell of the place it reflects, of the cell's host, who alone writes there.
 	/// An abode takes its host's words.

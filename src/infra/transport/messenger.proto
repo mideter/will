@@ -439,6 +439,7 @@ enum NoticeCode {
     NOTICE_STAND_IN_UPPER_ROOM = 41;
     NOTICE_STAND_AT_GATES = 42;
     NOTICE_ONLY_HOST_ACTS = 44;
+    NOTICE_PASS_THROUGH_GATES = 45;
 
     // What the server itself refuses.
     // 102–104, 108 and 111 were the server's own copies of the world's rules: the

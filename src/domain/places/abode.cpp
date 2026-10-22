@@ -301,6 +301,18 @@ bool Abode::dwells(const Man& man) const
 }
 
 
+bool Abode::leads_to(const Place& next) const
+{
+	return next.within(*this) || &next == &gates();
+}
+
+
+bool Abode::within(const Abode& abode) const
+{
+	return &abode == this;
+}
+
+
 std::shared_ptr<const Word> Abode::receive(const Birth<Cell> cell, const Saying& saying) const
 {
 	if (&cell.parent().abode() != this)

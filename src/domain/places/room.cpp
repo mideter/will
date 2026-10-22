@@ -62,6 +62,18 @@ bool Room::dwells(const Man& man) const
 }
 
 
+bool Room::leads_to(const Place& next) const
+{
+	return abode_.leads_to(next);
+}
+
+
+bool Room::within(const Abode& abode) const
+{
+	return &abode == &abode_;
+}
+
+
 void Room::host_only(const Contemplation& gaze) const
 {
 	if (&gaze.place() != this)
@@ -179,6 +191,18 @@ std::string Gates::name() const
 bool Gates::dwells(const Man&) const
 {
 	return true;
+}
+
+
+bool Gates::leads_to(const Place& next) const
+{
+	return next.within(abode()) || dynamic_cast<const Gates*>(&next);
+}
+
+
+bool Gates::within(const Abode&) const
+{
+	return false;
 }
 
 

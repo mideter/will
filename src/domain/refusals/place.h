@@ -28,5 +28,13 @@ public:
 	{}
 };
 
+/// Where one goes: out of an abode and into another only through gates.
+class PassThroughGates final : public Refusal {
+public:
+	PassThroughGates()
+		: Refusal("one goes there only through gates")
+	{}
+};
+
 
 } // namespace will::domain

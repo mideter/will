@@ -2,6 +2,7 @@
 #include "men/man.h"
 #include "refusals/room.h"
 #include "refusals/abode.h"
+#include "refusals/place.h"
 #include "places/place.h"
 
 #include "matter/dating.h"
@@ -24,7 +25,7 @@ namespace will::domain {
 
 void Witness::wake() const
 {
-	contemplate(abode());
+	Spirit::contemplate(abode());
 }
 
 
@@ -39,6 +40,7 @@ void Witness::contemplate(const Abode& abode) const
 	if (!abode.dwells(man_of(*this)))
 		throw DoesNotDwell();
 
+	pass(abode);
 	Spirit::contemplate(abode);
 }
 
@@ -48,7 +50,18 @@ void Witness::contemplate(const Room& room) const
 	if (!room.dwells(man_of(*this)))
 		throw DoesNotEnterRoom();
 
+	pass(room);
 	Spirit::contemplate(room);
+}
+
+
+void Witness::pass(const Place& next) const
+{
+	// Asleep, one is at home: waking, one sees one's own abode.
+	const std::shared_ptr<const Contemplation> gaze = contemplation();
+	const Place& here = gaze ? gaze->place() : abode();
+	if (!here.leads_to(next))
+		throw PassThroughGates();
 }
 
 

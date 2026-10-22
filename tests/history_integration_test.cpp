@@ -311,6 +311,14 @@ void stand_in(SessionStream& stream, const std::string& host, const std::string&
 }
 
 
+/// Out through one's own gates to another's.
+void come_to_gates(SessionStream& stream, const std::string& host)
+{
+	stand_in(stream, {}, "Врата");
+	stand_in(stream, host, "Врата");
+}
+
+
 /// Turn into one's own cell, where one writes.
 void enter_cell(SessionStream& stream)
 {
@@ -527,7 +535,9 @@ TEST_CASE("a host admits a dweller, regards him anew, and he sees his abode as h
 	send_turn_to_abode(*man.stream, host_name);
 	CHECK(read_event(*man.stream).has_protocol_notice());
 
-	// He comes to the gates: they are shut, the host is not there and cannot let him in.
+	// Out through his own gates he comes to the host's: they are shut, the host is not
+	// there and cannot let him in.
+	stand_in(*man.stream, {}, "Врата");
 	send_turn_to_abode(*man.stream, host_name, "Врата");
 	const will::v1::ServerEvent at_gates = read_event(*man.stream);
 	CHECK(at_gates.turned().aspect() == will::v1::THRESHOLD);
@@ -705,12 +715,12 @@ TEST_CASE("one lists the abodes one dwells in and the supplications awaiting one
 
 	// They let each other in, each standing in his gates with the other at them.
 	stand_in(*a.stream, {}, "Врата");
-	stand_in(*b.stream, a_name, "Врата");
+	come_to_gates(*b.stream, a_name);
 	send_admit(*a.stream, b_name);
 	CHECK(next_past_gates(*a.stream).has_protocol_notice());
 	CHECK(next_past_gates(*b.stream).has_dwelling());
 	stand_in(*b.stream, {}, "Врата");
-	stand_in(*a.stream, b_name, "Врата");
+	come_to_gates(*a.stream, b_name);
 	send_admit(*b.stream, a_name);
 	CHECK(next_past_gates(*b.stream).has_protocol_notice());
 	CHECK(next_past_gates(*a.stream).has_dwelling());
@@ -877,6 +887,7 @@ TEST_CASE("an unborn body waits, seen by the keepers of gates; it is born of the
 
 	// Many stand at the gates at once. Seth comes to Adam's gates beside him: he only
 	// waits there, does not keep them, and is not shown the unborn.
+	stand_in(*seth.stream, {}, "Врата");
 	send_turn_to_abode(*seth.stream, elder.name, "Врата");
 	CHECK(read_event(*seth.stream).turned().aspect() == will::v1::THRESHOLD);
 	CHECK_FALSE(read_event(*seth.stream).threshold().keeping());
@@ -941,7 +952,7 @@ TEST_CASE("a friend standing in the host's gates lets no one in: only the host k
 
 	// Anna lets Boris in and regards him as a friend; she stays in her upper room.
 	stand_in(*anna.stream, {}, "Врата");
-	stand_in(*boris.stream, anna_name, "Врата");
+	come_to_gates(*boris.stream, anna_name);
 	send_admit(*anna.stream, boris_name);
 	read_until(*anna.stream, [](const auto& e) { return e.has_protocol_notice(); });
 	read_until(*boris.stream, [](const auto& e) { return e.has_dwelling(); });
@@ -952,7 +963,7 @@ TEST_CASE("a friend standing in the host's gates lets no one in: only the host k
 		  == will::v1::FRIEND);
 
 	// A friend, Boris still does not keep her gates: he lets Viktor in no more than before.
-	stand_in(*viktor.stream, anna_name, "Врата");
+	come_to_gates(*viktor.stream, anna_name);
 	send_admit(*boris.stream, viktor_name);
 	CHECK(read_until(*boris.stream, [](const auto& e) { return e.has_protocol_notice(); }).protocol_notice().code()
 		  == will::v1::NOTICE_ONLY_HOST_ACTS);
@@ -998,12 +1009,12 @@ TEST_CASE("the testator wills a training over the wire; the novice fulfils it te
 
 	// They let each other in, and the novice asks the trainer, who accepts.
 	stand_in(*trainer.stream, {}, "Врата");
-	stand_in(*novice.stream, trainer_name, "Врата");
+	come_to_gates(*novice.stream, trainer_name);
 	send_admit(*trainer.stream, novice_name);
 	read_until(*trainer.stream, [](const auto& e) { return e.has_protocol_notice(); });
 	read_until(*novice.stream, [](const auto& e) { return e.has_dwelling(); });
 	stand_in(*novice.stream, {}, "Врата");
-	stand_in(*trainer.stream, novice_name, "Врата");
+	come_to_gates(*trainer.stream, novice_name);
 	send_admit(*novice.stream, trainer_name);
 	read_until(*novice.stream, [](const auto& e) { return e.has_protocol_notice(); });
 	read_until(*trainer.stream, [](const auto& e) { return e.has_dwelling(); });
@@ -1042,7 +1053,8 @@ TEST_CASE("the testator wills a training over the wire; the novice fulfils it te
 		CHECK(seen);
 	}
 
-	// Each enters his room of the tie.
+	// Each enters his room of the tie; the trainer comes home through his gates.
+	stand_in(*trainer.stream, {}, "Врата");
 	send_turn_to_abode(*trainer.stream, {}, "Ведение — " + novice_name);
 	read_until(*trainer.stream, [](const auto& e) { return e.has_history_end(); });
 	send_turn_to_abode(*novice.stream, {}, "Послушание — " + trainer_name);
@@ -1211,6 +1223,7 @@ TEST_CASE("one who does not read does not hold up one who writes")
 	};
 
 	// Adam lets Boris in at his gates and makes him a friend: Boris may look at Adam's word.
+	turn_to(*boris.stream, {}, "Врата");
 	turn_to(*boris.stream, elder.name, "Врата");
 	turn_to(adam, {}, "Врата");
 	send_admit(adam, boris_name);

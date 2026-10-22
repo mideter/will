@@ -674,21 +674,49 @@ inline void arrange(World& world, const Man& man, const Room& room, matter::Room
 }
 
 
-/// Turn a man's gaze to a room for an act, then back where it rested (or to sleep).
+inline const Abode& abode_of(const Place& place)
+{
+	if (const auto* abode = dynamic_cast<const Abode*>(&place))
+		return *abode;
+	return dynamic_cast<const Room&>(place).abode();
+}
+
+
+inline void turn(const Man& man, const Place& place)
+{
+	const auto& witness = man;
+	if (const auto* abode = dynamic_cast<const Abode*>(&place))
+		witness.contemplate(*abode);
+	else
+		witness.contemplate(dynamic_cast<const Room&>(place));
+}
+
+
+/// Turn a man's gaze to a place the way the world leads: out through the gates of
+/// where he stands, to the gates of the place's abode, and in.
+inline void go(World& world, const Man& man, const Place& place)
+{
+	const std::shared_ptr<const Contemplation> gaze = world.contemplation(man);
+	const Place& here = gaze ? gaze->place() : man.abode();
+	if (!here.leads_to(place)) {
+		turn(man, abode_of(here).gates());
+		turn(man, abode_of(place).gates());
+	}
+	turn(man, place);
+}
+
+
+/// Go to a room for an act, then back where the gaze rested (or to sleep).
 template<typename Act>
 void looking_at(World& world, const Man& man, const Room& room, Act act)
 {
-	const auto& witness = man;
 	const std::shared_ptr<const Contemplation> before = world.contemplation(man);
-	witness.contemplate(room);
+	go(world, man, room);
 	act();
-	if (!before) {
-		witness.sleep();
-	} else if (const auto* abode = dynamic_cast<const Abode*>(&before->place())) {
-		witness.contemplate(*abode);
-	} else {
-		witness.contemplate(dynamic_cast<const Room&>(before->place()));
-	}
+	if (before)
+		go(world, man, before->place());
+	else
+		man.sleep();
 }
 
 

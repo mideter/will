@@ -45,6 +45,9 @@ public:
 	/// The host, and the dwellers whose kind enters its part.
 	bool dwells(const Man& man) const override;
 
+	bool leads_to(const Place& next) const override;
+	bool within(const Abode& abode) const override;
+
 protected:
 	Room(Birth<Abode> birth, const Place& reflects, matter::Room kept);
 
@@ -105,6 +108,12 @@ public:
 
 	/// Anyone may stand at the gates.
 	bool dwells(const Man& man) const override;
+
+	/// Into the abode, or on to other gates.
+	bool leads_to(const Place& next) const override;
+
+	/// The threshold is not inside.
+	bool within(const Abode& abode) const override;
 
 	/// Only the host keeps them.
 	bool keeps(const Man& man) const;

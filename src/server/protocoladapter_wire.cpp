@@ -171,6 +171,7 @@ v1::NoticeCode code_of(const domain::Refusal& refusal)
 		{typeid(domain::StandInUpperRoom), v1::NOTICE_STAND_IN_UPPER_ROOM},
 		{typeid(domain::StandAtGates), v1::NOTICE_STAND_AT_GATES},
 		{typeid(domain::OnlyHostActs), v1::NOTICE_ONLY_HOST_ACTS},
+		{typeid(domain::PassThroughGates), v1::NOTICE_PASS_THROUGH_GATES},
 		{typeid(domain::FatherByFleshNeighbour), v1::NOTICE_FATHER_BY_FLESH_NEIGHBOUR},
 		{typeid(domain::FatherBySpiritFriend), v1::NOTICE_FATHER_BY_SPIRIT_FRIEND},
 		{typeid(domain::HearOnlyDweller), v1::NOTICE_HEAR_ONLY_DWELLER},

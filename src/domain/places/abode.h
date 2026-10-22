@@ -78,6 +78,9 @@ public:
 	/// The abode itself shows no words; they are seen through its rooms.
 	bool shows(const Man& who, const Word& word) const override;
 
+	bool leads_to(const Place& next) const override;
+	bool within(const Abode& abode) const override;
+
 	std::shared_ptr<const Word> receive(Birth<Cell> cell, const Saying& saying) const override;
 
 	/// Behests not yet fulfilled where the host is the novice, oldest first by room.

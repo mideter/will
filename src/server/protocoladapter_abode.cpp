@@ -17,6 +17,7 @@
 #include "relations/friend.h"
 #include "relations/contemplation.h"
 #include "relations/supplication.h"
+#include "refusals/place.h"
 #include "men/witness.h"
 #include "words/letter.h"
 #include "values/device_token.h"
@@ -62,6 +63,9 @@ void ProtocolAdapter::handle_turn(const SessionId session_id, const v1::Turn& ms
 			}
 			witness.contemplate(*room);
 		}
+	} catch (const domain::PassThroughGates& e) {
+		refuse(session_id, e);
+		return;
 	} catch (const std::logic_error&) {
 		refuse(session_id, msg.room().empty() ? v1::NOTICE_YOU_DO_NOT_DWELL : v1::NOTICE_YOU_DO_NOT_ENTER);
 		return;

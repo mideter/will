@@ -42,6 +42,18 @@ bool Place::shows(const Man&, const Word&) const
 }
 
 
+bool Place::leads_to(const Place&) const
+{
+	return false;
+}
+
+
+bool Place::within(const Abode&) const
+{
+	return false;
+}
+
+
 std::shared_ptr<const Recollection> Place::recollection(const Contemplation& gaze) const
 {
 	if (&gaze.place().source() != &source())
