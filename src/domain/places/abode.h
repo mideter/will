@@ -25,7 +25,7 @@ class Behest;
 class Letter;
 class Man;
 class Gates;
-class UpperRoom;
+class Helm;
 class Witness;
 class Cell;
 class Room;
@@ -70,7 +70,7 @@ public:
 
 	/// Every abode has them.
 	const Gates& gates() const;
-	const UpperRoom& upper_room() const;
+	const Helm& helm() const;
 
 	const Room* room(std::string_view name) const;
 

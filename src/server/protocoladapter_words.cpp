@@ -156,7 +156,7 @@ void ProtocolAdapter::handle_supplicate(const SessionId session_id, const v1::Su
 	const domain::Man& self = session_man(session_id);
 	try {
 		const domain::Contemplation& gaze = gaze_of(self);
-		gaze.upper_room().supplicate(gaze, *addressee_man);
+		gaze.helm().supplicate(gaze, *addressee_man);
 	} catch (const std::exception& e) {
 		refuse(session_id, e);
 		return;
@@ -168,9 +168,9 @@ void ProtocolAdapter::handle_supplicate(const SessionId session_id, const v1::Su
 	offer.mutable_supplication_offer()->set_suppliant_name(std::string{self.name().text()});
 	send_to_vessel(addressee_man->Vessel::id(), offer);
 
-	// In either upper room the two now stand otherwise to each other.
-	retell_upper_room(self.abode().upper_room());
-	retell_upper_room(addressee_man->abode().upper_room());
+	// At either helm the two now stand otherwise to each other.
+	retell_helm(self.abode().helm());
+	retell_helm(addressee_man->abode().helm());
 }
 
 
@@ -188,7 +188,7 @@ void ProtocolAdapter::handle_accept_supplication(const SessionId session_id,
 	std::optional<domain::id::Place> formed;
 	try {
 		const domain::Contemplation& gaze = gaze_of(testator);
-		formed = gaze.upper_room().accept(gaze, *testator.supplication(novice)).id();
+		formed = gaze.helm().accept(gaze, *testator.supplication(novice)).id();
 	} catch (const std::exception& e) {
 		refuse(session_id, e);
 		return;
@@ -210,8 +210,8 @@ void ProtocolAdapter::handle_accept_supplication(const SessionId session_id,
 	formed_n->set_as_novice(true);
 	send_to_vessel(suppliant_man->Vessel::id(), to_novice);
 
-	retell_upper_room(self.abode().upper_room());
-	retell_upper_room(suppliant_man->abode().upper_room());
+	retell_helm(self.abode().helm());
+	retell_helm(suppliant_man->abode().helm());
 }
 
 
@@ -384,7 +384,7 @@ void ProtocolAdapter::handle_reject_supplication(const SessionId session_id, con
 	const auto& self = session_man(session_id);
 	try {
 		const domain::Contemplation& gaze = gaze_of(self);
-		gaze.upper_room().reject(gaze, *self.supplication(*suppliant));
+		gaze.helm().reject(gaze, *self.supplication(*suppliant));
 	} catch (const std::exception& e) {
 		refuse(session_id, e);
 		return;
@@ -392,8 +392,8 @@ void ProtocolAdapter::handle_reject_supplication(const SessionId session_id, con
 
 	send_notice(session_id, v1::NOTICE_SUPPLICATION_REJECTED, {msg.suppliant_name()});
 
-	retell_upper_room(self.abode().upper_room());
-	retell_upper_room(suppliant->abode().upper_room());
+	retell_helm(self.abode().helm());
+	retell_helm(suppliant->abode().helm());
 }
 
 

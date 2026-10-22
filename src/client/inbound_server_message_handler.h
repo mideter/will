@@ -27,7 +27,7 @@ public:
 	void turned(std::string abode_of, std::string room = {});
 	void shown(const v1::Rooms& rooms);
 
-	/// The rooms shown are one's own, shown in one's upper room to be arranged.
+	/// The rooms shown are one's own, shown at one's helm to be arranged.
 	bool arranging() const;
 
 	/// The room of this number and its abode; none if there is no such number.

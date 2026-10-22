@@ -31,14 +31,14 @@ class Training;
 
 class Man;
 class Testator;
-class UpperRoom;
+class Helm;
 
 
 /// Novice (Послушник) — the side of a tie who fulfils its behests and does its trainings.
 class Novice : public virtual Embodied {
 public:
 	/// Ask the addressee to become one's testator.
-	void supplicate(Birth<UpperRoom> upper_room, const Acquaintance& dweller) const;
+	void supplicate(Birth<Helm> helm, const Acquaintance& dweller) const;
 
 	/// Without a report the deed says «совершено».
 	std::shared_ptr<const Deed> execute(Birth<Cell> cell, const Behest& behest, std::optional<Saying> report,

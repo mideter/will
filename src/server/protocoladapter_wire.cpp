@@ -167,7 +167,7 @@ v1::NoticeCode code_of(const domain::Refusal& refusal)
 		{typeid(domain::DoesNotDwell), v1::NOTICE_DOES_NOT_DWELL},
 		{typeid(domain::DoesNotEnterRoom), v1::NOTICE_DOES_NOT_ENTER_ROOM},
 		{typeid(domain::StandInCell), v1::NOTICE_STAND_IN_CELL},
-		{typeid(domain::StandInUpperRoom), v1::NOTICE_STAND_IN_UPPER_ROOM},
+		{typeid(domain::StandAtHelm), v1::NOTICE_STAND_AT_HELM},
 		{typeid(domain::StandAtGates), v1::NOTICE_STAND_AT_GATES},
 		{typeid(domain::OnlyHostActs), v1::NOTICE_ONLY_HOST_ACTS},
 		{typeid(domain::PassThroughGates), v1::NOTICE_PASS_THROUGH_GATES},

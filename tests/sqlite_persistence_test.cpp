@@ -80,7 +80,7 @@ private:
 
 
 using will::domain::test::admit_at_gates;
-using will::domain::test::regard_in_upper_room;
+using will::domain::test::regard_in_helm;
 using will::domain::test::born;
 using will::domain::test::supplicate;
 using will::domain::test::accept;
@@ -416,7 +416,7 @@ TEST_CASE("sqlite keeps the dwellers of an abode and their kind across reopen")
 		const Man& host = born(world, token_host);
 		const Man& man = born(world, token_man);
 		admit_at_gates(world, host, man);
-		regard_in_upper_room(world, host, man, matter::Dweller::Kind::Friend);
+		regard_in_helm(world, host, man, matter::Dweller::Kind::Friend);
 	}
 
 	{
@@ -431,11 +431,11 @@ TEST_CASE("sqlite keeps the dwellers of an abode and their kind across reopen")
 		CHECK(std::dynamic_pointer_cast<const Neighbour>(host.abode().dweller(*host.father(matter::Fatherhood::Line::Flesh))));
 
 		// Each abode keeps its standard rooms across reopen: the cell, the gates,
-		// the upper room.
+		// the helm.
 		REQUIRE(host.abode().rooms().size() == 3);
 		CHECK(host.abode().rooms()[0].get().name() == "Слово");
 		CHECK(host.abode().rooms()[1].get().name() == "Врата");
-		CHECK(host.abode().rooms()[2].get().name() == "Горница");
+		CHECK(host.abode().rooms()[2].get().name() == "Кормчая");
 		CHECK(bundle.spatiality().rooms(host.abode().id()).size() == 3);
 	}
 
@@ -485,7 +485,7 @@ TEST_CASE("sqlite lets the birth rooms kept before go: one is born through the g
 	const std::string directory = "/tmp/will-sqlite-birth-room-test-" + std::to_string(getpid());
 	const ScratchDirectory scratch{directory};
 
-	// A space database as it was kept before: the cell, the gates, the upper room, the birth room.
+	// A space database as it was kept before: the cell, the gates, the helm, the birth room.
 	{
 		sqlite3* db = nullptr;
 		REQUIRE(sqlite3_open((directory + "/will.space.db").c_str(), &db) == SQLITE_OK);

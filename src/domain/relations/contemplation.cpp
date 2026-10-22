@@ -37,12 +37,12 @@ const Cell& Contemplation::cell() const
 }
 
 
-const UpperRoom& Contemplation::upper_room() const
+const Helm& Contemplation::helm() const
 {
-	const auto* upper_room = dynamic_cast<const UpperRoom*>(&place_);
-	if (!upper_room)
-		throw StandInUpperRoom();
-	return *upper_room;
+	const auto* helm = dynamic_cast<const Helm*>(&place_);
+	if (!helm)
+		throw StandAtHelm();
+	return *helm;
 }
 
 

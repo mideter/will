@@ -172,8 +172,8 @@ void print_help(ConsoleUi& ui)
 	ui.print_commands("Rooms", "/rooms [name]  /room <number|name>  /home  /visit <name> [room]");
 	ui.print_commands("Gates", "/gates [name]  /admit <name>  (out and in only through gates: yours, then theirs)");
 	ui.print_commands("Dwellers", "/dwellers  /regard <name> acquaintance|neighbour|friend  /dwellings");
-	ui.print_commands("Arranging", "/arrange inner|outer <number|room>  (in the upper room, as /regard)");
-	ui.print_commands("Obedience", "/ask <name>  /accept <name>  /reject <name> (in the upper room)  /supplications  /done <number> [report]");
+	ui.print_commands("Arranging", "/arrange inner|outer <number|room>  (at the helm, as /regard)");
+	ui.print_commands("Obedience", "/ask <name>  /accept <name>  /reject <name> (at the helm)  /supplications  /done <number> [report]");
 	ui.print_commands("Training", "/train [title] | <exercise> 60x10 1:30/70x8 2:00/80x6 | …  (1:30/ — rest before)");
 	ui.print_commands("", "/begin <training> <exercise> <approach>  /finish <training> 60x10  /done <training> [report]");
 	ui.print_commands("Birth", "/birth (your gates: the unborn)  /bear <mark>");

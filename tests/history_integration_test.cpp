@@ -470,7 +470,7 @@ TEST_CASE("history request returns letters of the witness abode with is_mine")
 	CHECK(viewer_rooms.rooms().rooms(0).name() == "Слово");
 	CHECK(viewer_rooms.rooms().rooms(0).part() == will::v1::INNER);
 	CHECK(viewer_rooms.rooms().rooms(1).name() == "Врата");
-	CHECK(viewer_rooms.rooms().rooms(2).name() == "Горница");
+	CHECK(viewer_rooms.rooms().rooms(2).name() == "Кормчая");
 	will::v1::ServerEvent viewer_outstanding;
 	REQUIRE(viewer.stream->Read(&viewer_outstanding));
 	CHECK(viewer_outstanding.has_outstanding());
@@ -586,18 +586,18 @@ TEST_CASE("a host admits a dweller, regards him anew, and he sees his abode as h
 	send_turn_to_abode(*man.stream, host_name, "Слово");
 	CHECK(read_event(*man.stream).has_protocol_notice());
 
-	// Outside his upper room the host may not regard him anew; in it he may. A friend is
-	// shown at once every room but the upper room, the host's alone: the cell and the gates.
+	// Away from his helm the host may not regard him anew; at it he may. A friend is
+	// shown at once every room but the helm, the host's alone: the cell and the gates.
 	send_regard(*host.stream, man_name, will::v1::FRIEND);
 	CHECK(read_event(*host.stream).has_protocol_notice());
-	stand_in(*host.stream, {}, "Горница");
+	stand_in(*host.stream, {}, "Кормчая");
 	send_regard(*host.stream, man_name, will::v1::FRIEND);
 	CHECK(read_event(*host.stream).has_protocol_notice());
-	const will::v1::ServerEvent upper_room = read_event(*host.stream);
-	REQUIRE(upper_room.dwellers().dwellers_size() == 2);  // and the elder, his father by flesh
-	for (const will::v1::Dweller& dweller : upper_room.dwellers().dwellers())
+	const will::v1::ServerEvent helm = read_event(*host.stream);
+	REQUIRE(helm.dwellers().dwellers_size() == 2);  // and the elder, his father by flesh
+	for (const will::v1::Dweller& dweller : helm.dwellers().dwellers())
 		CHECK(dweller.kind() == (dweller.name() == man_name ? will::v1::FRIEND : will::v1::NEIGHBOUR));
-	CHECK(read_event(*host.stream).has_rooms());  // the host in his upper room is told his rooms anew
+	CHECK(read_event(*host.stream).has_rooms());  // the host at his helm is told his rooms anew
 	CHECK(read_event(*host.stream).has_supplications());
 	CHECK(read_event(*man.stream).dwelling().kind() == will::v1::FRIEND);
 	REQUIRE(read_event(*man.stream).turned().abode_of() == host_name);
@@ -624,7 +624,7 @@ TEST_CASE("a host admits a dweller, regards him anew, and he sees his abode as h
 	CHECK(live.word().body() == "news");
 
 	// Regarded as an acquaintance again, he sees the abode anew at once: no words.
-	stand_in(*host.stream, {}, "Горница");
+	stand_in(*host.stream, {}, "Кормчая");
 	send_regard(*host.stream, man_name, will::v1::ACQUAINTANCE);
 	CHECK(read_event(*host.stream).has_protocol_notice());
 	CHECK(read_event(*host.stream).has_dwellers());
@@ -634,7 +634,7 @@ TEST_CASE("a host admits a dweller, regards him anew, and he sees his abode as h
 	REQUIRE(read_event(*man.stream).turned().room() == "Слово");
 	CHECK(read_event(*man.stream).has_history_end());
 
-	// Away from his upper room the host does not arrange his rooms.
+	// Away from his helm the host does not arrange his rooms.
 	stand_in(*host.stream, {}, {});
 	{
 		will::v1::ClientEvent arrange;
@@ -642,10 +642,10 @@ TEST_CASE("a host admits a dweller, regards him anew, and he sees his abode as h
 		arrange.mutable_arrange()->set_part(will::v1::OUTER);
 		REQUIRE(host.stream->Write(arrange));
 	}
-	CHECK(read_event(*host.stream).protocol_notice().message() == "one does this only standing in an upper room");
+	CHECK(read_event(*host.stream).protocol_notice().message() == "one does this only standing at a helm");
 
 	// In it he sees his dwellers and all his rooms, each in its part.
-	send_turn_to_abode(*host.stream, {}, "Горница");
+	send_turn_to_abode(*host.stream, {}, "Кормчая");
 	CHECK(read_event(*host.stream).has_turned());
 	CHECK(read_event(*host.stream).has_dwellers());
 	const will::v1::ServerEvent shown_rooms = read_event(*host.stream);
@@ -670,7 +670,7 @@ TEST_CASE("a host admits a dweller, regards him anew, and he sees his abode as h
 		REQUIRE(host.stream->Write(arrange));
 	}
 	CHECK(read_event(*host.stream).has_protocol_notice());
-	CHECK(read_event(*host.stream).has_dwellers());  // his upper room is told anew to all in it
+	CHECK(read_event(*host.stream).has_dwellers());  // his helm is told anew to all at it
 	const will::v1::ServerEvent arranged = read_event(*host.stream);  // all his rooms, each in its part
 	REQUIRE(arranged.rooms().rooms_size() == 3);
 	CHECK(arranged.rooms().rooms(0).name() == "Слово");
@@ -746,8 +746,8 @@ TEST_CASE("one lists the abodes one dwells in and the supplications awaiting one
 	}
 	CHECK(with_a);
 
-	// b supplicates a, standing in his upper room; a sees it awaiting and rejects it.
-	stand_in(*b.stream, {}, "Горница");
+	// b supplicates a, standing at his helm; a sees it awaiting and rejects it.
+	stand_in(*b.stream, {}, "Кормчая");
 	{
 		will::v1::ClientEvent ask;
 		ask.mutable_supplicate()->set_addressee_name(a_name);
@@ -755,7 +755,7 @@ TEST_CASE("one lists the abodes one dwells in and the supplications awaiting one
 	}
 	CHECK(next_past_gates(*b.stream).has_protocol_notice());
 	CHECK(next_past_gates(*a.stream).has_supplication_offer());
-	// His upper room is told anew to him; then he turns to his word.
+	// His helm is told anew to him; then he turns to his word.
 	read_until(*b.stream, [](const auto& e) { return e.has_supplications(); });
 	stand_in(*b.stream, {}, "Слово");
 
@@ -776,16 +776,16 @@ TEST_CASE("one lists the abodes one dwells in and the supplications awaiting one
 	CHECK_FALSE(dweller_named(*a.stream, b_name).asked());
 	CHECK(dweller_named(*b.stream, a_name).asked());
 
-	// Away from his upper room a does not answer; coming home through his gates into it,
+	// Away from his helm a does not answer; coming home through his gates to it,
 	// he sees who asks him, and rejects him there.
 	{
 		will::v1::ClientEvent reject;
 		reject.mutable_reject_supplication()->set_suppliant_name(b_name);
 		REQUIRE(a.stream->Write(reject));
 	}
-	CHECK(next_past_gates(*a.stream).protocol_notice().code() == will::v1::NOTICE_STAND_IN_UPPER_ROOM);
+	CHECK(next_past_gates(*a.stream).protocol_notice().code() == will::v1::NOTICE_STAND_AT_HELM);
 	stand_in(*a.stream, {}, "Врата");
-	send_turn_to_abode(*a.stream, {}, "Горница");
+	send_turn_to_abode(*a.stream, {}, "Кормчая");
 	const will::v1::ServerEvent awaiting = read_until(*a.stream, [](const auto& e) { return e.has_supplications(); });
 	REQUIRE(awaiting.supplications().suppliant_names_size() == 1);
 	CHECK(awaiting.supplications().suppliant_names(0) == b_name);
@@ -962,15 +962,15 @@ TEST_CASE("a friend standing in the host's gates lets no one in: only the host k
 	const std::string boris_name = born_named(elder, *boris.stream, ViewerToken);
 	const std::string viktor_name = born_named(elder, *viktor.stream, "33333333333333333333333333333333");
 
-	// Anna lets Boris in and regards him as a friend; she stays in her upper room.
+	// Anna lets Boris in and regards him as a friend; she stays at her helm.
 	stand_in(*anna.stream, {}, "Врата");
 	come_to_gates(*boris.stream, anna_name);
 	send_admit(*anna.stream, boris_name);
 	read_until(*anna.stream, [](const auto& e) { return e.has_protocol_notice(); });
 	read_until(*boris.stream, [](const auto& e) { return e.has_dwelling(); });
-	stand_in(*anna.stream, {}, "Горница");
+	stand_in(*anna.stream, {}, "Кормчая");
 	send_regard(*anna.stream, boris_name, will::v1::FRIEND);
-	read_until(*anna.stream, [](const auto& e) { return e.has_supplications(); });  // her upper room told anew
+	read_until(*anna.stream, [](const auto& e) { return e.has_supplications(); });  // her helm told anew
 	CHECK(read_until(*boris.stream, [](const auto& e) { return e.has_dwelling(); }).dwelling().kind()
 		  == will::v1::FRIEND);
 
@@ -988,7 +988,7 @@ TEST_CASE("a friend standing in the host's gates lets no one in: only the host k
 	const will::v1::ServerEvent dwelling = read_until(*viktor.stream, [](const auto& e) { return e.has_dwelling(); });
 	CHECK(dwelling.dwelling().host_name() == anna_name);
 	CHECK(dwelling.dwelling().kind() == will::v1::ACQUAINTANCE);
-	send_turn_to_abode(*anna.stream, {}, "Горница");
+	send_turn_to_abode(*anna.stream, {}, "Кормчая");
 	const will::v1::ServerEvent upper = read_until(*anna.stream, [](const auto& e) { return e.has_dwellers(); });
 	bool seen = false;
 	for (const will::v1::Dweller& dweller : upper.dwellers().dwellers())
@@ -1030,7 +1030,7 @@ TEST_CASE("the testator wills a training over the wire; the novice fulfils it te
 	send_admit(*novice.stream, trainer_name);
 	read_until(*novice.stream, [](const auto& e) { return e.has_protocol_notice(); });
 	read_until(*trainer.stream, [](const auto& e) { return e.has_dwelling(); });
-	stand_in(*novice.stream, {}, "Горница");
+	stand_in(*novice.stream, {}, "Кормчая");
 	{
 		will::v1::ClientEvent ask;
 		ask.mutable_supplicate()->set_addressee_name(trainer_name);
@@ -1038,7 +1038,7 @@ TEST_CASE("the testator wills a training over the wire; the novice fulfils it te
 	}
 	read_until(*trainer.stream, [](const auto& e) { return e.has_supplication_offer(); });
 	stand_in(*trainer.stream, {}, "Врата");
-	stand_in(*trainer.stream, {}, "Горница");
+	stand_in(*trainer.stream, {}, "Кормчая");
 	{
 		will::v1::ClientEvent accept;
 		accept.mutable_accept_supplication()->set_suppliant_name(novice_name);
@@ -1241,7 +1241,7 @@ TEST_CASE("one who does not read does not hold up one who writes")
 	turn_to(adam, {}, "Врата");
 	send_admit(adam, boris_name);
 	read_until(adam, [](const auto& e) { return e.has_protocol_notice(); });
-	turn_to(adam, {}, "Горница");
+	turn_to(adam, {}, "Кормчая");
 	send_regard(adam, boris_name, will::v1::FRIEND);
 	read_until(adam, [](const auto& e) { return e.has_protocol_notice(); });
 	turn_to(*boris.stream, elder.name, "Слово");
@@ -1271,7 +1271,7 @@ TEST_CASE("one who does not read does not hold up one who writes")
 }
 
 
-TEST_CASE("one does not write at the gates nor in the upper room, and the session lives on")
+TEST_CASE("one does not write at the gates nor at the helm, and the session lives on")
 {
 	const std::uint16_t port = static_cast<std::uint16_t>(pick_port() + 8);
 	const std::string directory = "/tmp/will-no-writing-test-" + std::to_string(getpid());
@@ -1284,7 +1284,7 @@ TEST_CASE("one does not write at the gates nor in the upper room, and the sessio
 	Elder elder = first_man(port);
 	SessionStream& adam = *elder.session.stream;
 
-	for (const char* room : {"Врата", "Горница"}) {
+	for (const char* room : {"Врата", "Кормчая"}) {
 		stand_in(adam, {}, room);
 		send_chat(adam, "not here");
 		will::v1::ServerEvent told;

@@ -1,5 +1,5 @@
 /// The protocol adapter, its part of the abode: turning, what each place shows, the
-/// rooms, the gates and the upper room, the dwellers let in, regarded and told.
+/// rooms, the gates and the helm, the dwellers let in, regarded and told.
 #include "protocoladapter.h"
 #include "protocoladapter_wire.h"
 
@@ -123,7 +123,7 @@ void ProtocolAdapter::handle_admit(const SessionId session_id, const v1::Admit& 
 	send_notice(session_id, v1::NOTICE_ADMITTED, {std::string{man->name().text()}});
 	tell_dwelling(self, *man);
 	retell_gates(*gates);
-	retell_upper_room(self.abode().upper_room());
+	retell_helm(self.abode().helm());
 }
 
 
@@ -151,7 +151,7 @@ void ProtocolAdapter::handle_regard(const SessionId session_id, const v1::Regard
 	const domain::Man& self = session_man(session_id);
 	try {
 		const domain::Contemplation& gaze = gaze_of(self);
-		gaze.upper_room().regard(gaze, *man, kind);
+		gaze.helm().regard(gaze, *man, kind);
 	} catch (const std::exception& e) {
 		refuse(session_id, e);
 		return;
@@ -160,7 +160,7 @@ void ProtocolAdapter::handle_regard(const SessionId session_id, const v1::Regard
 	send_notice(session_id, v1::NOTICE_REGARDED, {std::string{man->name().text()}});
 	tell_dwelling(self, *man);
 	retell_abode(self, *man);
-	retell_upper_room(self.abode().upper_room());
+	retell_helm(self.abode().helm());
 }
 
 
@@ -213,11 +213,11 @@ void ProtocolAdapter::tell_view(const SessionId session_id, const domain::Contem
 		send_event(session_id, end_event);
 		return;
 	}
-	if (const auto* upper_room = dynamic_cast<const domain::UpperRoom*>(&gaze.place())) {
-		send_event(session_id, dwellers_event(upper_room->abode()));
+	if (const auto* helm = dynamic_cast<const domain::Helm*>(&gaze.place())) {
+		send_event(session_id, dwellers_event(helm->abode()));
 		// The host sees here all the rooms of his abode, each in its part, and who asks him.
-		send_event(session_id, arranged_rooms_event(upper_room->abode()));
-		send_event(session_id, supplications_event(upper_room->abode().host()));
+		send_event(session_id, arranged_rooms_event(helm->abode()));
+		send_event(session_id, supplications_event(helm->abode().host()));
 		v1::ServerEvent end_event;
 		end_event.mutable_history_end();
 		send_event(session_id, end_event);
@@ -273,7 +273,7 @@ void ProtocolAdapter::handle_arrange(const SessionId session_id, const v1::Arran
 														: self.abode().inner();
 	try {
 		const domain::Contemplation& gaze = gaze_of(self);
-		gaze.upper_room().arrange(gaze, *cell, part);
+		gaze.helm().arrange(gaze, *cell, part);
 	} catch (const std::exception& e) {
 		refuse(session_id, e);
 		return;
@@ -282,7 +282,7 @@ void ProtocolAdapter::handle_arrange(const SessionId session_id, const v1::Arran
 	send_notice(session_id,
 				&part == &self.abode().outer() ? v1::NOTICE_ARRANGED_OUTER : v1::NOTICE_ARRANGED_INNER,
 				{msg.room()});
-	retell_upper_room(self.abode().upper_room());  // the host there sees his rooms anew
+	retell_helm(self.abode().helm());  // the host there sees his rooms anew
 	for (const std::shared_ptr<const domain::Acquaintance>& dweller : self.abode().dwellers())
 		retell_abode(self, dweller->man());
 	retell_gates(self.abode().gates());  // set in another part, they are seen by other kinds
@@ -425,14 +425,14 @@ void ProtocolAdapter::retell_gates(const domain::Gates& gates, const domain::Sou
 }
 
 
-void ProtocolAdapter::retell_upper_room(const domain::UpperRoom& upper_room)
+void ProtocolAdapter::retell_helm(const domain::Helm& helm)
 {
-	const v1::ServerEvent event = dwellers_event(upper_room.abode());
-	for (const domain::Man& man : world_.contemplating(upper_room)) {
+	const v1::ServerEvent event = dwellers_event(helm.abode());
+	for (const domain::Man& man : world_.contemplating(helm)) {
 		send_to_vessel(man.Vessel::id(), event);
 		// A tie bound or let go changes the rooms too.
-		send_to_vessel(man.Vessel::id(), arranged_rooms_event(upper_room.abode()));
-		send_to_vessel(man.Vessel::id(), supplications_event(upper_room.abode().host()));
+		send_to_vessel(man.Vessel::id(), arranged_rooms_event(helm.abode()));
+		send_to_vessel(man.Vessel::id(), supplications_event(helm.abode().host()));
 	}
 }
 

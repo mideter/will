@@ -246,7 +246,7 @@ message TieFormed {
 
 // What a room reflects: the words of a place, the threshold of the abode (the
 // gates, through which one comes in, born or to be born), or its dwellers (the
-// upper room).
+// helm).
 enum RoomAspect {
     WORDS = 0;
     THRESHOLD = 1;
@@ -278,7 +278,7 @@ message Threshold {
 
 
 // aspect: only a cell (WORDS) is moved from part to part; the gates are the core of
-// the outer part, the upper room of the inner.
+// the outer part, the helm of the inner.
 message Room {
     string name = 1;
     RoomPart part = 2;
@@ -404,7 +404,7 @@ enum NoticeCode {
     reserved 14;
     // 1, 10, 11 and 15 told where a deed is done, each its own: one refusal for each kind of room tells it now.
     reserved 1, 10, 11, 15;
-    // 16 and 17 kept one from asking oneself or a stranger: one asks now in one's own upper room, among its dwellers.
+    // 16 and 17 kept one from asking oneself or a stranger: one asks now at one's own helm, among its dwellers.
     reserved 16, 17;
     // 2, 6, 39 and 43 told who besides the host might act in his rooms: only the host acts there now.
     reserved 2, 6, 39, 43;
@@ -439,7 +439,7 @@ enum NoticeCode {
     NOTICE_NOT_OWN_FATHER = 37;
     NOTICE_NOT_DESCENDANT_AS_FATHER = 38;
     NOTICE_STAND_IN_CELL = 40;
-    NOTICE_STAND_IN_UPPER_ROOM = 41;
+    NOTICE_STAND_AT_HELM = 41;
     NOTICE_STAND_AT_GATES = 42;
     NOTICE_ONLY_HOST_ACTS = 44;
     NOTICE_PASS_THROUGH_GATES = 45;

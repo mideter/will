@@ -670,14 +670,14 @@ inline const Man& bear(World& world, const Man& midwife, const Unborn& unborn)
 inline void regard(World& world, const Man& man, const Man& dweller, matter::Dweller::Kind kind)
 {
 	const Contemplation& gaze = gaze_of(world, man);
-	gaze.upper_room().regard(gaze, dweller, kind);
+	gaze.helm().regard(gaze, dweller, kind);
 }
 
 
 inline void arrange(World& world, const Man& man, const Cell& cell, const Part& part)
 {
 	const Contemplation& gaze = gaze_of(world, man);
-	gaze.upper_room().arrange(gaze, cell, part);
+	gaze.helm().arrange(gaze, cell, part);
 }
 
 
@@ -736,19 +736,19 @@ inline void admit_at_gates(World& world, const Man& host, const Man& man)
 }
 
 
-/// The host regards a dweller anew, standing in his upper room.
-inline void regard_in_upper_room(World& world, const Man& host, const Man& man, const matter::Dweller::Kind kind)
+/// The host regards a dweller anew, standing at his helm.
+inline void regard_in_helm(World& world, const Man& host, const Man& man, const matter::Dweller::Kind kind)
 {
-	looking_at(world, host, host.abode().upper_room(), [&] { regard(world, host, man, kind); });
+	looking_at(world, host, host.abode().helm(), [&] { regard(world, host, man, kind); });
 }
 
 
-/// One asks a dweller of his abode to become his testator, standing in his upper room.
+/// One asks a dweller of his abode to become his testator, standing at his helm.
 inline void supplicate(World& world, const Man& man, const Man& addressee)
 {
-	looking_at(world, man, man.abode().upper_room(), [&] {
+	looking_at(world, man, man.abode().helm(), [&] {
 		const Contemplation& gaze = gaze_of(world, man);
-		gaze.upper_room().supplicate(gaze, addressee);
+		gaze.helm().supplicate(gaze, addressee);
 	});
 }
 
@@ -756,9 +756,9 @@ inline void supplicate(World& world, const Man& man, const Man& addressee)
 inline const Shepherding& accept(World& world, const Man& testator, const Supplication& ask)
 {
 	const Shepherding* accepted = nullptr;
-	looking_at(world, testator, testator.abode().upper_room(), [&] {
+	looking_at(world, testator, testator.abode().helm(), [&] {
 		const Contemplation& gaze = gaze_of(world, testator);
-		accepted = &gaze.upper_room().accept(gaze, ask);
+		accepted = &gaze.helm().accept(gaze, ask);
 	});
 	return *accepted;
 }
@@ -766,17 +766,17 @@ inline const Shepherding& accept(World& world, const Man& testator, const Suppli
 
 inline void reject(World& world, const Man& testator, const Supplication& ask)
 {
-	looking_at(world, testator, testator.abode().upper_room(), [&] {
+	looking_at(world, testator, testator.abode().helm(), [&] {
 		const Contemplation& gaze = gaze_of(world, testator);
-		gaze.upper_room().reject(gaze, ask);
+		gaze.helm().reject(gaze, ask);
 	});
 }
 
 
-/// The host sets a room of his abode in a part, standing in his upper room.
-inline void arrange_in_upper_room(World& world, const Man& host, const Cell& cell, const Part& part)
+/// The host sets a room of his abode in a part, standing at his helm.
+inline void arrange_in_helm(World& world, const Man& host, const Cell& cell, const Part& part)
 {
-	looking_at(world, host, host.abode().upper_room(), [&] { arrange(world, host, cell, part); });
+	looking_at(world, host, host.abode().helm(), [&] { arrange(world, host, cell, part); });
 }
 
 

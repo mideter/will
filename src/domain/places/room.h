@@ -41,7 +41,7 @@ public:
 	const Place& reflects() const noexcept { return reflects_; }
 	matter::Room::Aspect aspect() const noexcept { return aspect_; }
 
-	/// A cell stands where its host sets it; the gates and the upper room are the cores of
+	/// A cell stands where its host sets it; the gates and the helm are the cores of
 	/// theirs.
 	virtual const Part& part() const = 0;
 
@@ -141,11 +141,12 @@ public:
 };
 
 
-/// UpperRoom (Горница) — the host's own room, where no one else enters: here he regards
-/// his dwellers anew, arranges his cells and asks to be led.
-class UpperRoom final : public Room {
+/// Helm (Кормчая) — the host's own room, whence he steers his abode and where no one else
+/// enters: here he answers those who ask him and asks himself, regards his dwellers anew and
+/// arranges his cells.
+class Helm final : public Room {
 public:
-	UpperRoom(Birth<Abode> birth, matter::Room kept);
+	Helm(Birth<Abode> birth, matter::Room kept);
 
 	const Part& part() const override;
 

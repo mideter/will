@@ -25,19 +25,19 @@
 namespace will::domain {
 
 
-const Shepherding& Testator::accept(const Birth<UpperRoom> upper_room, const Supplication& ask) const
+const Shepherding& Testator::accept(const Birth<Helm> helm, const Supplication& ask) const
 {
-	if (&upper_room.parent().abode() != &abode())
-		throw std::logic_error("one answers in one's own upper room");
+	if (&helm.parent().abode() != &abode())
+		throw std::logic_error("one answers at one's own helm");
 
 	return ask.accept(*this);
 }
 
 
-void Testator::reject(const Birth<UpperRoom> upper_room, const Supplication& ask) const
+void Testator::reject(const Birth<Helm> helm, const Supplication& ask) const
 {
-	if (&upper_room.parent().abode() != &abode())
-		throw std::logic_error("one answers in one's own upper room");
+	if (&helm.parent().abode() != &abode())
+		throw std::logic_error("one answers at one's own helm");
 
 	ask.reject(*this);
 }

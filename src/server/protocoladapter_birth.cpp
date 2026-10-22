@@ -135,7 +135,7 @@ void ProtocolAdapter::handle_bear(const SessionId session_id, const v1::Bear& ms
 	send_notice(session_id, v1::NOTICE_BORN, {std::string{child.name().text()}});
 	tell_dwelling(father, child);
 	tell_dwelling(child, father);
-	retell_upper_room(father.abode().upper_room());
+	retell_helm(father.abode().helm());
 	retell_unborn();
 }
 

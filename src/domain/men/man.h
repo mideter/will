@@ -15,7 +15,7 @@ namespace will::domain {
 
 
 class Gates;
-class UpperRoom;
+class Helm;
 class World;
 
 
@@ -33,9 +33,9 @@ public:
 	/// He becomes an acquaintance of the host.
 	void admit(Birth<Gates> gates, const Man& man) const;
 
-	void regard(Birth<UpperRoom> upper_room, const Man& dweller, matter::Dweller::Kind kind) const;
+	void regard(Birth<Helm> helm, const Man& dweller, matter::Dweller::Kind kind) const;
 
-	void arrange(Birth<UpperRoom> upper_room, const Cell& cell, const Part& part) const;
+	void arrange(Birth<Helm> helm, const Cell& cell, const Part& part) const;
 
 	const Man* father(matter::Fatherhood::Line line) const noexcept;
 

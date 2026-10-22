@@ -14,10 +14,10 @@ public:
 	{}
 };
 
-class StandInUpperRoom final : public Refusal {
+class StandAtHelm final : public Refusal {
 public:
-	StandInUpperRoom()
-		: Refusal("one does this only standing in an upper room")
+	StandAtHelm()
+		: Refusal("one does this only standing at a helm")
 	{}
 };
 

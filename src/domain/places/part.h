@@ -13,7 +13,7 @@ class Man;
 
 
 /// Part (Часть) — a half of an abode: its kind of dwellers enters the cells set in it. Each
-/// has its core, which is never moved: the outer the gates, the inner the upper room.
+/// has its core, which is never moved: the outer the gates, the inner the helm.
 class Part {
 public:
 	virtual ~Part() = default;
@@ -50,7 +50,7 @@ private:
 };
 
 
-/// Inner (Внутренняя) — the part of the upper room, which only friends enter.
+/// Inner (Внутренняя) — the part of the helm, which only friends enter.
 class Inner final : public Part {
 public:
 	explicit Inner(Birth<Abode> birth);

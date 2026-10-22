@@ -247,69 +247,69 @@ const Man& Gates::bear(const Contemplation& gaze, const Unborn& unborn) const
 }
 
 
-UpperRoom::UpperRoom(const Birth<Abode> birth, matter::Room kept)
+Helm::Helm(const Birth<Abode> birth, matter::Room kept)
 	: Room(birth, birth.parent(), std::move(kept))
 {}
 
 
-std::string UpperRoom::name() const
+std::string Helm::name() const
 {
-	return "Горница";
+	return "Кормчая";
 }
 
 
-const Part& UpperRoom::part() const
+const Part& Helm::part() const
 {
 	return abode().inner();
 }
 
 
-bool UpperRoom::dwells(const Man& man) const
+bool Helm::dwells(const Man& man) const
 {
 	return &man == &abode().host();
 }
 
 
-void UpperRoom::regard(const Contemplation& gaze, const Man& dweller, const matter::Dweller::Kind kind) const
+void Helm::regard(const Contemplation& gaze, const Man& dweller, const matter::Dweller::Kind kind) const
 {
 	host_only(gaze);
 
-	abode().host().regard(Birth<UpperRoom>{*this}, dweller, kind);
+	abode().host().regard(Birth<Helm>{*this}, dweller, kind);
 }
 
 
-void UpperRoom::supplicate(const Contemplation& gaze, const Man& addressee) const
+void Helm::supplicate(const Contemplation& gaze, const Man& addressee) const
 {
 	host_only(gaze);
 	const std::shared_ptr<const Acquaintance> dweller = abode().dweller(addressee);
 	if (!dweller)
 		throw DoesNotDwell();
 
-	abode().host().supplicate(Birth<UpperRoom>{*this}, *dweller);
+	abode().host().supplicate(Birth<Helm>{*this}, *dweller);
 }
 
 
-const Shepherding& UpperRoom::accept(const Contemplation& gaze, const Supplication& ask) const
+const Shepherding& Helm::accept(const Contemplation& gaze, const Supplication& ask) const
 {
 	host_only(gaze);
 
-	return abode().host().accept(Birth<UpperRoom>{*this}, ask);
+	return abode().host().accept(Birth<Helm>{*this}, ask);
 }
 
 
-void UpperRoom::reject(const Contemplation& gaze, const Supplication& ask) const
+void Helm::reject(const Contemplation& gaze, const Supplication& ask) const
 {
 	host_only(gaze);
 
-	abode().host().reject(Birth<UpperRoom>{*this}, ask);
+	abode().host().reject(Birth<Helm>{*this}, ask);
 }
 
 
-void UpperRoom::arrange(const Contemplation& gaze, const Cell& cell, const Part& part) const
+void Helm::arrange(const Contemplation& gaze, const Cell& cell, const Part& part) const
 {
 	host_only(gaze);
 
-	abode().host().arrange(Birth<UpperRoom>{*this}, cell, part);
+	abode().host().arrange(Birth<Helm>{*this}, cell, part);
 }
 
 

@@ -191,7 +191,7 @@ void ShownRooms::turned(std::string abode_of, std::string room)
 bool ShownRooms::arranging() const
 {
 	std::lock_guard lock(mutex_);
-	return looking_at_.empty() && room_ == "Горница";
+	return looking_at_.empty() && room_ == "Кормчая";
 }
 
 

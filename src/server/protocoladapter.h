@@ -22,7 +22,7 @@ namespace domain {
 class Tie;
 class Training;
 class Gates;
-class UpperRoom;
+class Helm;
 } // namespace domain
 
 
@@ -127,8 +127,8 @@ private:
 	/// Tell everyone standing in these gates how they stand now, but one.
 	void retell_gates(const domain::Gates& gates, const domain::Soul* except = nullptr);
 
-	/// Tell everyone in this upper room its dwellers.
-	void retell_upper_room(const domain::UpperRoom& upper_room);
+	/// Tell everyone at this helm its dwellers.
+	void retell_helm(const domain::Helm& helm);
 
 	/// Tell everyone standing in gates he keeps the unborn.
 	void retell_unborn();
@@ -146,10 +146,10 @@ private:
 	const domain::Gates* gates_of_gaze(const domain::Man& man) const;
 
 	/// All the rooms of this abode, each in its part: what its host arranges in
-	/// his upper room.
+	/// his helm.
 	v1::ServerEvent arranged_rooms_event(const domain::Abode& abode) const;
 
-	/// Those who ask this man to lead them, awaiting his answer in his upper room.
+	/// Those who ask this man to lead them, awaiting his answer at his helm.
 	v1::ServerEvent supplications_event(const domain::Man& addressee) const;
 
 	/// Tell the rooms of this abode that this man may enter.

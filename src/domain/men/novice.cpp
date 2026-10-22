@@ -25,7 +25,7 @@
 namespace will::domain {
 
 
-void Novice::supplicate(Birth<UpperRoom>, const Acquaintance& dweller) const
+void Novice::supplicate(Birth<Helm>, const Acquaintance& dweller) const
 {
 	const Man& addressee = dweller.man();
 	addressee.hear(Birth<Novice>{*this});

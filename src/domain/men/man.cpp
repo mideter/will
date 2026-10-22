@@ -30,7 +30,7 @@ Man::Man(Birth<World>, matter::Man kept)
 
 	abode_ = std::make_unique<Abode>(Birth<Man>{*this}, std::move(*own));
 
-	// The standard rooms: Слово, Врата, Горница.
+	// The standard rooms: Слово, Врата, Кормчая.
 	std::vector<matter::Room> rooms = spatiality().rooms(abode_->id());
 	for (const matter::Room::Aspect aspect :
 		 {matter::Room::Aspect::Words, matter::Room::Aspect::Threshold, matter::Room::Aspect::Dwellers}) {
@@ -55,7 +55,7 @@ void Man::admit(const Birth<Gates> gates, const Man& man) const
 }
 
 
-void Man::arrange(Birth<UpperRoom>, const Cell& cell, const Part& part) const
+void Man::arrange(Birth<Helm>, const Cell& cell, const Part& part) const
 {
 	if (&cell.abode() != abode_.get() || &part.abode() != abode_.get())
 		throw std::logic_error("the cell or the part is not of this abode");
@@ -64,7 +64,7 @@ void Man::arrange(Birth<UpperRoom>, const Cell& cell, const Part& part) const
 }
 
 
-void Man::regard(Birth<UpperRoom>, const Man& dweller, const matter::Dweller::Kind kind) const
+void Man::regard(Birth<Helm>, const Man& dweller, const matter::Dweller::Kind kind) const
 {
 	if (abode_->ancestor(dweller))
 		throw FatherBySpiritFriend();

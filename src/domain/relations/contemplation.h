@@ -15,7 +15,7 @@ class Cell;
 class Gates;
 class Heaven;
 class Recollection;
-class UpperRoom;
+class Helm;
 class Man;
 class Word;
 
@@ -32,7 +32,7 @@ public:
 
 	/// The room one stands in, of the kind one would act in.
 	const Cell& cell() const;
-	const UpperRoom& upper_room() const;
+	const Helm& helm() const;
 	const Gates& gates() const;
 
 	/// Whether what one writes here is taken.
