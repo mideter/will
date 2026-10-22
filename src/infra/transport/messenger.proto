@@ -277,9 +277,12 @@ message Threshold {
 }
 
 
+// aspect: only a cell (WORDS) is moved from part to part; the gates are the core of
+// the outer part, the upper room of the inner.
 message Room {
     string name = 1;
     RoomPart part = 2;
+    RoomAspect aspect = 3;
 }
 
 

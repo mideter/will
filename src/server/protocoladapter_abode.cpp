@@ -315,6 +315,7 @@ v1::ServerEvent ProtocolAdapter::arranged_rooms_event(const domain::Abode& abode
 		auto* told = rooms->add_rooms();
 		told->set_name(room.name());
 		told->set_part(&room.part() == &abode.outer() ? v1::OUTER : v1::INNER);
+		told->set_aspect(aspect_of(room));
 	}
 	return event;
 }
@@ -331,6 +332,7 @@ void ProtocolAdapter::tell_rooms(const SessionId session_id, const domain::Abode
 		auto* told = rooms->add_rooms();
 		told->set_name(room.name());
 		told->set_part(&room.part() == &abode.outer() ? v1::OUTER : v1::INNER);
+		told->set_aspect(aspect_of(room));
 	}
 	send_event(session_id, event);
 }
