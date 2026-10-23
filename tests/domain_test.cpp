@@ -1,5 +1,7 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include <latch>
 #include <optional>
+#include <thread>
 #include "refusals/world.h"
 #include "refusals/tie.h"
 #include "refusals/testator.h"
@@ -1340,6 +1342,33 @@ TEST_CASE("the helm is its host's alone: there he regards his dwellers and sets 
 	CHECK(std::dynamic_pointer_cast<const Neighbour>(host.abode().dweller(other)));
 	arrange_in_helm(world, host, cell_of(host), host.abode().outer());
 	CHECK(&cell_of(host).part() == &host.abode().outer());
+}
+
+
+TEST_CASE("of two bodies coming at once to an empty world, one is the first and the other awaits")
+{
+	for (int round = 0; round < 200; ++round) {
+		InMemoryCosmos cosmos;
+		World& world = cosmos.life().create().world();
+		const DeviceToken adam_token = DeviceToken::generate();
+		const DeviceToken eve_token = DeviceToken::generate();
+
+		std::latch together{2};
+		const Vessel* adam = nullptr;
+		const Vessel* eve = nullptr;
+		std::thread coming([&] {
+			together.arrive_and_wait();
+			adam = &world.welcome(adam_token);
+		});
+		together.arrive_and_wait();
+		eve = &world.welcome(eve_token);
+		coming.join();
+
+		const bool adam_first = dynamic_cast<const Man*>(adam) != nullptr;
+		const bool eve_first = dynamic_cast<const Man*>(eve) != nullptr;
+		REQUIRE(adam_first != eve_first);
+		REQUIRE(world.unborn().size() == 1);
+	}
 }
 
 

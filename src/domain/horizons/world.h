@@ -23,9 +23,9 @@
 namespace will::domain {
 
 
-/// The one living cosmos, Heaven and Earth; it alone gives men birth. It welcomes a body by
-/// its token: the man in it, or an unborn body awaiting its soul, kept in the order they
-/// came; the first on an empty world is begotten at once. A child is born at the gates of
+/// The one living cosmos, Heaven and Earth; it alone gives men birth. It welcomes bodies one
+/// at a time, each by its token: the man in it, or an unborn body awaiting its soul, kept in
+/// the order they came; the first on an empty world is begotten at once. A child is born at the gates of
 /// his father by flesh, its host, who becomes a neighbour in the child's abode and the child
 /// an acquaintance in his. A father by spirit cannot refuse, and replaces the former; his
 /// lineage is his children by spirit, theirs, and so on. Its time is the one words and
@@ -81,6 +81,7 @@ private:
 	bool lives(id::Soul id) const;
 
 	mutable std::mutex mutex_;
+	std::mutex welcoming_;
 	std::unordered_map<id::Soul, std::unique_ptr<Man>> men_;
 	std::unordered_map<id::Vessel, id::Soul> soul_id_by_vessel_;
 	std::vector<std::unique_ptr<Unborn>> unborn_;

@@ -200,6 +200,9 @@ const Man& World::man(const Vessel& vessel) const
 
 const Vessel& World::welcome(const DeviceToken& token)
 {
+	// Two coming at once to an empty world were else both the first.
+	std::lock_guard one_at_a_time(welcoming_);
+
 	if (const auto vessel_id = id_of(token))
 		return vessel(*vessel_id);
 
