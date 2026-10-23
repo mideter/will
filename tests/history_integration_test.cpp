@@ -1150,12 +1150,23 @@ TEST_CASE("the testator wills a training over the wire; the novice fulfils it te
 			const will::v1::ServerEvent overview
 				= read_until(*novice.stream, [](const auto& e) { return e.has_outstanding(); });
 			REQUIRE(overview.outstanding().owed_size() == 1);
+			CHECK(overview.outstanding().owed(0).counterpart() == trainer_name);
 			CHECK(overview.outstanding().owed(0).underway().behest_id() == id);
 			CHECK(overview.outstanding().owed(0).underway().doing());
 			CHECK(overview.outstanding().owed(0).underway().approach() == 0);
 			read_until(*novice.stream, [](const auto& e) { return e.has_history_end(); });
 			send_turn_to_abode(*novice.stream, {}, overview.outstanding().owed(0).room());
 			read_until(*novice.stream, [](const auto& e) { return e.has_history_end(); });
+
+			// And the trainer, looking at his, sees it among what he set, with whom he set it for.
+			send_turn_to_abode(*trainer.stream, {}, {});
+			const will::v1::ServerEvent set
+				= read_until(*trainer.stream, [](const auto& e) { return e.has_outstanding(); });
+			REQUIRE(set.outstanding().awaited_size() == 1);
+			CHECK(set.outstanding().awaited(0).counterpart() == novice_name);
+			read_until(*trainer.stream, [](const auto& e) { return e.has_history_end(); });
+			send_turn_to_abode(*trainer.stream, {}, set.outstanding().awaited(0).room());
+			read_until(*trainer.stream, [](const auto& e) { return e.has_history_end(); });
 		}
 
 		// The second approach is ended first and told after: it finished when it ended.

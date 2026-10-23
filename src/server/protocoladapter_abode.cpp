@@ -247,6 +247,7 @@ void ProtocolAdapter::tell_view(const SessionId session_id, const domain::Contem
 				v1::OutstandingBehest* told = add();
 				if (const domain::Cell* cell = abode->cell(behest->tie()))
 					told->set_room(cell->name());
+				told->set_counterpart(std::string{behest->tie().counterpart(listener).name().text()});
 				*told->mutable_behest() = word_event(*behest, listener.Soul::id()).word();
 				const auto training = std::dynamic_pointer_cast<const domain::Training>(behest);
 				if (training && training->underway())

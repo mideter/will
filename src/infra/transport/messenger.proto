@@ -330,6 +330,7 @@ message OutstandingBehest {
     string room = 1;
     Word behest = 2;
     Underway underway = 3;  // a training's approach underway, if one is
+    string counterpart = 4;  // the other of the tie: the testator to the novice, the novice to the testator
 }
 
 
