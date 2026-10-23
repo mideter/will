@@ -247,6 +247,9 @@ void ProtocolAdapter::tell_view(const SessionId session_id, const domain::Contem
 				if (const domain::Cell* cell = abode->cell(behest->tie()))
 					told->set_room(cell->name());
 				*told->mutable_behest() = word_event(*behest, listener.Soul::id()).word();
+				const auto training = std::dynamic_pointer_cast<const domain::Training>(behest);
+				if (training && training->underway())
+					*told->mutable_underway() = underway_event(*training).underway();
 			}
 		};
 		tell(abode->owed(), [&] { return outstanding->add_owed(); });

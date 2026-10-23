@@ -1133,6 +1133,21 @@ TEST_CASE("the testator wills a training over the wire; the novice fulfils it te
 		CHECK(underway.underway().behest_id() == id);
 		CHECK(underway.underway().approach() == approach);
 
+		// Looking at his abode, the novice sees among what awaits him the approach underway.
+		if (approach == 0) {
+			read_until(*novice.stream, [](const auto& e) { return e.has_underway() && e.underway().doing(); });
+			send_turn_to_abode(*novice.stream, {}, {});
+			const will::v1::ServerEvent overview
+				= read_until(*novice.stream, [](const auto& e) { return e.has_outstanding(); });
+			REQUIRE(overview.outstanding().owed_size() == 1);
+			CHECK(overview.outstanding().owed(0).underway().behest_id() == id);
+			CHECK(overview.outstanding().owed(0).underway().doing());
+			CHECK(overview.outstanding().owed(0).underway().approach() == 0);
+			read_until(*novice.stream, [](const auto& e) { return e.has_history_end(); });
+			send_turn_to_abode(*novice.stream, {}, overview.outstanding().owed(0).room());
+			read_until(*novice.stream, [](const auto& e) { return e.has_history_end(); });
+		}
+
 		// The second approach is ended first and told after: it finished when it ended.
 		std::int64_t ended_at = 0;
 		if (approach == 1) {

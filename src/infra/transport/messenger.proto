@@ -329,6 +329,7 @@ message Rooms {
 message OutstandingBehest {
     string room = 1;
     Word behest = 2;
+    Underway underway = 3;  // a training's approach underway, if one is
 }
 
 
