@@ -431,11 +431,13 @@ message Lineage {
 
 
 // A new word was placed in a tie one is a side of, while one looks elsewhere;
-// room is the room of one's abode reflecting that tie.
+// room is the room of one's abode reflecting that tie; word is the word itself:
+// a behest or training set, or a deed done.
 message Stirred {
     reserved 1;
     string author_name = 2;
     string room = 3;
+    Word word = 4;
 }
 
 

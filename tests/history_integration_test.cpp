@@ -1258,6 +1258,12 @@ TEST_CASE("the testator wills a training over the wire; the novice fulfils it te
 	CHECK(unseen.outstanding().unreviewed(0).behest().id() == id);
 	CHECK(unseen.outstanding().unreviewed(0).counterpart() == novice_name);
 	CHECK(unseen.outstanding().unreviewed(0).room() == shepherding_room);
+	// And he hears of it in a word: the deed itself, done in his room of the tie.
+	const will::v1::ServerEvent stirred = read_until(*trainer.stream, [](const auto& e) { return e.has_stirred(); });
+	CHECK(stirred.stirred().author_name() == novice_name);
+	CHECK(stirred.stirred().room() == shepherding_room);
+	CHECK(stirred.stirred().word().kind() == will::v1::Word::DEED);
+	CHECK(stirred.stirred().word().behest_id() == id);
 	send_turn_to_abode(*trainer.stream, {}, shepherding_room);
 	const will::v1::ServerEvent done
 		= read_until(*trainer.stream, [](const auto& e) { return e.has_word() && e.word().kind() == will::v1::Word::DEED; });
