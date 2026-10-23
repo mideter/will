@@ -226,6 +226,11 @@ message EndApproach {
 }
 
 
+// The client's heartbeat: numbered, it is answered by its Reply, and the client knows it is
+// heard; it changes nothing. The unborn beat too.
+message Heartbeat {}
+
+
 // Finish the approach underway with the weight and repetitions done: it finished when it
 // ended, or now if it was not ended before.
 message FinishApproach {
@@ -558,6 +563,7 @@ message ClientEvent {
         FinishApproach finish_approach = 21;
         SayRemark say_remark = 22;
         EndApproach end_approach = 23;
+        Heartbeat heartbeat = 24;
     }
     // Numbered, the event is answered by one Reply with this number; zero, as before,
     // by notices.

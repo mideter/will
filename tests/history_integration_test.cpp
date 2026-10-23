@@ -863,6 +863,17 @@ TEST_CASE("an unborn body waits, seen by the keepers of gates; it is born of the
 	const std::uint64_t mark = welcomed.auth_ok().mark();
 	send_turn_to_abode(*seth.stream, {}, "Слово");
 	CHECK(read_event(*seth.stream).protocol_notice().message() == "one awaits one's birth");
+	// Awaiting, his heart beats and is heard.
+	{
+		will::v1::ClientEvent beat;
+		beat.mutable_heartbeat();
+		beat.set_request_id(1);
+		REQUIRE(seth.stream->Write(beat));
+	}
+	const will::v1::ServerEvent heard = read_event(*seth.stream);
+	REQUIRE(heard.has_reply());
+	CHECK(heard.reply().granted());
+	CHECK(heard.reply().notice().empty());
 
 	// Adam sees him awaiting at once, and bears him.
 	const will::v1::ServerEvent awaiting = read_event(adam);
@@ -1240,6 +1251,19 @@ TEST_CASE("a numbered request is answered once, by its number: granted or refuse
 	// Unnumbered, as before: a notice.
 	send_turn_to_abode(adam, {}, "Нет такой");
 	CHECK(read_event(adam).protocol_notice().message() == "no such room");
+
+	// A heartbeat is answered by its number alone, granted.
+	{
+		will::v1::ClientEvent beat;
+		beat.mutable_heartbeat();
+		beat.set_request_id(9);
+		REQUIRE(adam.Write(beat));
+	}
+	const will::v1::ServerEvent heard = read_event(adam);
+	REQUIRE(heard.has_reply());
+	CHECK(heard.reply().request_id() == 9);
+	CHECK(heard.reply().granted());
+	CHECK(heard.reply().notice().empty());
 
 	elder.session.context->TryCancel();
 	server.stop();

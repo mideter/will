@@ -25,9 +25,9 @@ void InboundClientMessageHandler::on(const v1::ClientEvent& event)
 
 void InboundClientMessageHandler::on_bound_event(const v1::ClientEvent& event)
 {
-	// An unborn body only waits.
-	if (event.event_case() != v1::ClientEvent::kBindToken && event.event_case() != v1::ClientEvent::EVENT_NOT_SET
-		&& adapter_.awaits_birth(session_id_)) {
+	// An unborn body only waits, its heart beating.
+	if (event.event_case() != v1::ClientEvent::kBindToken && event.event_case() != v1::ClientEvent::kHeartbeat
+		&& event.event_case() != v1::ClientEvent::EVENT_NOT_SET && adapter_.awaits_birth(session_id_)) {
 		adapter_.refuse(session_id_, v1::NOTICE_AWAITS_BIRTH);
 		return;
 	}
@@ -102,6 +102,8 @@ void InboundClientMessageHandler::on_bound_event(const v1::ClientEvent& event)
 	case v1::ClientEvent::kEndApproach:
 		adapter_.handle_end_approach(session_id_, event.end_approach());
 		return;
+	case v1::ClientEvent::kHeartbeat:
+		return;  // heard: its number is answered, and nothing else is done
 	case v1::ClientEvent::EVENT_NOT_SET:
 		break;
 	}
@@ -138,6 +140,7 @@ void InboundClientMessageHandler::on_unbound_event(const v1::ClientEvent& event)
 	case v1::ClientEvent::kFinishApproach:
 	case v1::ClientEvent::kSayRemark:
 	case v1::ClientEvent::kEndApproach:
+	case v1::ClientEvent::kHeartbeat:
 		adapter_.send_auth_required(session_id_);
 		return;
 	case v1::ClientEvent::EVENT_NOT_SET:
