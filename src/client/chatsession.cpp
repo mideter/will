@@ -211,6 +211,13 @@ bool handle_slash_command(WillClient& client, ConsoleUi& ui, ShownRooms& rooms, 
 		return true;
 	}
 	if (cmd == "home") {
+		// Home by the world's path: out through the gates of the abode one is in, then in through one's own.
+		const auto [abode, room] = rooms.standing();
+		if (!abode.empty()) {
+			if (room != "Врата")
+				client.visit(abode, "Врата");
+			client.visit({}, "Врата");
+		}
 		client.visit({});
 		return true;
 	}
@@ -378,7 +385,7 @@ bool handle_slash_command(WillClient& client, ConsoleUi& ui, ShownRooms& rooms, 
 	}
 	if (cmd == "rooms") {
 		// The rooms shown next are of this abode: number them for it.
-		rooms.turned(std::string{args});
+		rooms.listing(std::string{args});
 		client.list_rooms(args);
 		return true;
 	}

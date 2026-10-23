@@ -101,14 +101,15 @@ std::string weight_text(const std::uint32_t grams)
 }
 
 
-std::vector<std::vector<std::string>> exercise_rows(const v1::Word& word)
+std::vector<std::vector<std::string>> exercise_rows(const v1::Word& word, const bool willed = true)
 {
 	std::vector<std::vector<std::string>> rows;
 	for (const v1::Exercise& exercise : word.exercises()) {
 		std::string approaches;
 		for (const v1::Approach& go : exercise.approaches()) {
 			approaches += approaches.empty() ? "" : "  ";
-			if (go.rest_seconds() != 0)
+			// Rest is willed before an approach; what was done is told by the training itself.
+			if (willed && go.rest_seconds() != 0)
 				approaches += std::to_string(go.rest_seconds() / 60) + ":" + (go.rest_seconds() % 60 < 10 ? "0" : "")
 							  + std::to_string(go.rest_seconds() % 60) + "/";
 			approaches += weight_text(go.weight_grams()) + "×" + std::to_string(go.repetitions());
@@ -161,7 +162,7 @@ void print_word(ConsoleUi& ui, const v1::Word& word, const bool dim)
 		if (!word.exercises().empty()) {
 			ui.print_list("Deed " + number + " by " + word.name() + " fulfils #" + std::to_string(word.behest_id())
 							  + ": " + word.body(),
-						  exercise_rows(word));
+						  exercise_rows(word, false));
 			return;
 		}
 		ui.print_status("Deed " + number + " by " + word.name() + " fulfils #"
@@ -183,8 +184,24 @@ void print_word(ConsoleUi& ui, const v1::Word& word, const bool dim)
 void ShownRooms::turned(std::string abode_of, std::string room)
 {
 	std::lock_guard lock(mutex_);
+	standing_ = {abode_of, room};
 	looking_at_ = std::move(abode_of);
 	room_ = std::move(room);
+}
+
+
+void ShownRooms::listing(std::string abode_of)
+{
+	std::lock_guard lock(mutex_);
+	looking_at_ = std::move(abode_of);
+	room_.clear();
+}
+
+
+std::pair<std::string, std::string> ShownRooms::standing() const
+{
+	std::lock_guard lock(mutex_);
+	return standing_;
 }
 
 
@@ -369,7 +386,8 @@ void ReceivingMessageHandler::on(const v1::ServerEvent& event)
 								 + ": training #" + std::to_string(event.underway().behest_id()) + ", exercise "
 								 + std::to_string(event.underway().exercise() + 1) + ", approach "
 								 + std::to_string(event.underway().approach() + 1),
-							 "/finish " + std::to_string(event.underway().behest_id()) + " <weight>x<repetitions>");
+							 "the novice tells it: /finish " + std::to_string(event.underway().behest_id())
+								 + " <weight>x<repetitions>");
 		return;
 	case v1::ServerEvent::kExerted:
 		ui_.print_notice("Done in training #" + std::to_string(event.exerted().behest_id()) + ": "

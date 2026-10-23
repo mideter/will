@@ -19,11 +19,15 @@ class WillClient;
 
 /// The rooms last shown, in the order of their numbers, and whose abode they are of (empty —
 /// one's own): `/room <number>` enters them. They are of the place the gaze turned to last,
-/// or whose rooms were asked for; shown at one's helm, they are one's own, to be arranged.
+/// or whose rooms were asked for; shown at one's helm, they are one's own, to be arranged. It
+/// knows too where one stands, as the server last turned one: `/home` goes from there.
 class ShownRooms final {
 public:
 	void turned(std::string abode_of, std::string room = {});
+	void listing(std::string abode_of);
 	void shown(const v1::Rooms& rooms);
+
+	std::pair<std::string, std::string> standing() const;
 
 	bool arranging() const;
 
@@ -33,6 +37,7 @@ private:
 	mutable std::mutex mutex_;
 	std::string looking_at_;
 	std::string room_;
+	std::pair<std::string, std::string> standing_;
 	std::string abode_of_;
 	std::vector<std::string> names_;
 };
