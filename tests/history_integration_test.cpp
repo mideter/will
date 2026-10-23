@@ -1250,15 +1250,14 @@ TEST_CASE("the testator wills a training over the wire; the novice fulfils it te
 			  .message()
 			  .ends_with(" fulfilled"));
 
-	// Not seen by the trainer, it awaits his review, with whose it is; seen in his room, it awaits no more.
-	send_turn_to_abode(*trainer.stream, {}, {});
+	// Looking at his abode, the trainer is told it anew: not seen by him, the deed awaits his review,
+	// with whose it is; seen in his room, it awaits no more.
 	const will::v1::ServerEvent unseen = read_until(*trainer.stream, [](const auto& e) { return e.has_outstanding(); });
 	CHECK(unseen.outstanding().awaited_size() == 0);
 	REQUIRE(unseen.outstanding().unreviewed_size() == 1);
 	CHECK(unseen.outstanding().unreviewed(0).behest().id() == id);
 	CHECK(unseen.outstanding().unreviewed(0).counterpart() == novice_name);
 	CHECK(unseen.outstanding().unreviewed(0).room() == shepherding_room);
-	read_until(*trainer.stream, [](const auto& e) { return e.has_history_end(); });
 	send_turn_to_abode(*trainer.stream, {}, shepherding_room);
 	const will::v1::ServerEvent done
 		= read_until(*trainer.stream, [](const auto& e) { return e.has_word() && e.word().kind() == will::v1::Word::DEED; });

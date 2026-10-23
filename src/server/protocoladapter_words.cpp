@@ -87,6 +87,7 @@ void ProtocolAdapter::tell_placed(const domain::Place& place, const domain::Word
 	const auto* tie = dynamic_cast<const domain::Tie*>(&place);
 	if (!tie)
 		return;
+	tell_overview(*tie);
 
 	const domain::Man& other = tie->counterpart(author);
 	for (const domain::Man& beholder : world_.contemplating(place)) {
@@ -349,6 +350,7 @@ void ProtocolAdapter::handle_begin_approach(const SessionId session_id, const v1
 		return;
 	}
 	tell_tie(training->tie(), underway_event(*training));
+	tell_overview(training->tie());
 }
 
 
@@ -368,6 +370,7 @@ void ProtocolAdapter::handle_end_approach(const SessionId session_id, const v1::
 	}
 
 	tell_tie(training->tie(), underway_event(*training));
+	tell_overview(training->tie());
 }
 
 
@@ -393,6 +396,7 @@ void ProtocolAdapter::handle_finish_approach(const SessionId session_id, const v
 	tell_effort(*effort, *exerted.mutable_exerted()->mutable_effort());
 	tell_tie(training->tie(), exerted);
 	tell_tie(training->tie(), underway_event(*training));
+	tell_overview(training->tie());
 }
 
 

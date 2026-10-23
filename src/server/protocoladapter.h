@@ -19,6 +19,7 @@ namespace will {
 
 
 namespace domain {
+class Abode;
 class Tie;
 class Training;
 class Gates;
@@ -81,6 +82,9 @@ private:
 	void tell_tie(const domain::Tie& tie, const v1::ServerEvent& event);
 
 	v1::ServerEvent underway_event(const domain::Training& training) const;
+
+	v1::ServerEvent outstanding_event(const domain::Abode& abode) const;
+	void tell_overview(const domain::Tie& tie);
 
 	bool awaits_birth(SessionId session_id) const;
 

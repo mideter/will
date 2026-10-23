@@ -239,26 +239,8 @@ void ProtocolAdapter::tell_view(const SessionId session_id, const domain::Contem
 
 	tell_rooms(session_id, *abode, listener);
 
-	if (&abode->host() == &listener) {
-		v1::ServerEvent outstanding_event;
-		auto* outstanding = outstanding_event.mutable_outstanding();
-		const auto tell = [&](const std::vector<std::shared_ptr<const domain::Behest>>& behests, auto&& add) {
-			for (const std::shared_ptr<const domain::Behest>& behest : behests) {
-				v1::OutstandingBehest* told = add();
-				if (const domain::Cell* cell = abode->cell(behest->tie()))
-					told->set_room(cell->name());
-				told->set_counterpart(std::string{behest->tie().counterpart(listener).name().text()});
-				*told->mutable_behest() = word_event(*behest, listener.Soul::id()).word();
-				const auto training = std::dynamic_pointer_cast<const domain::Training>(behest);
-				if (training && training->underway())
-					*told->mutable_underway() = underway_event(*training).underway();
-			}
-		};
-		tell(abode->owed(), [&] { return outstanding->add_owed(); });
-		tell(abode->awaited(), [&] { return outstanding->add_awaited(); });
-		tell(abode->unreviewed(), [&] { return outstanding->add_unreviewed(); });
-		send_event(session_id, outstanding_event);
-	}
+	if (&abode->host() == &listener)
+		send_event(session_id, outstanding_event(*abode));
 
 	v1::ServerEvent end_event;
 	end_event.mutable_history_end();
@@ -439,6 +421,40 @@ void ProtocolAdapter::retell_helm(const domain::Helm& helm)
 		// A tie bound or let go changes the rooms too.
 		send_to_vessel(man.Vessel::id(), arranged_rooms_event(helm.abode()));
 		send_to_vessel(man.Vessel::id(), supplications_event(helm.abode().host()));
+	}
+}
+
+v1::ServerEvent ProtocolAdapter::outstanding_event(const domain::Abode& abode) const
+{
+	const domain::Man& host = abode.host();
+	v1::ServerEvent event;
+	auto* outstanding = event.mutable_outstanding();
+	const auto tell = [&](const std::vector<std::shared_ptr<const domain::Behest>>& behests, auto&& add) {
+		for (const std::shared_ptr<const domain::Behest>& behest : behests) {
+			v1::OutstandingBehest* told = add();
+			if (const domain::Cell* cell = abode.cell(behest->tie()))
+				told->set_room(cell->name());
+			told->set_counterpart(std::string{behest->tie().counterpart(host).name().text()});
+			*told->mutable_behest() = word_event(*behest, host.Soul::id()).word();
+			const auto training = std::dynamic_pointer_cast<const domain::Training>(behest);
+			if (training && training->underway())
+				*told->mutable_underway() = underway_event(*training).underway();
+		}
+	};
+	tell(abode.owed(), [&] { return outstanding->add_owed(); });
+	tell(abode.awaited(), [&] { return outstanding->add_awaited(); });
+	tell(abode.unreviewed(), [&] { return outstanding->add_unreviewed(); });
+	return event;
+}
+
+
+void ProtocolAdapter::tell_overview(const domain::Tie& tie)
+{
+	// A side looking at his own abode sees there what is outstanding: as the tie changes, anew.
+	for (const domain::Man* side : {&tie.testator(), &tie.novice()}) {
+		const std::shared_ptr<const domain::Contemplation> gaze = world_.contemplation(*side);
+		if (gaze && &gaze->place() == static_cast<const domain::Place*>(&side->abode()))
+			send_to_vessel(side->Vessel::id(), outstanding_event(side->abode()));
 	}
 }
 
