@@ -110,6 +110,23 @@ matter::Effort Novice::finish(Birth<Cell>, const Training& training, const Weigh
 }
 
 
+matter::Remark Novice::remark(Birth<Cell>, const Training& training, const std::uint32_t exercise,
+							  const Saying& saying) const
+{
+	if (!temporality().executions({training.id()}).empty())
+		throw AlreadyFulfilled();
+	if (exercise >= training.exercises().size())
+		throw NoSuchExercise();
+
+	matter::Word uttered = utter(saying);
+	matter::Remarked on = Spirit::remark(uttered.id(), training.id(), exercise);
+	matter::Dating dated = temporality().date(uttered.id());
+	matter::Remark kept{std::move(uttered), on, std::move(dated)};
+	training.remark(Birth<Novice>{*this}, kept);
+	return kept;
+}
+
+
 std::shared_ptr<const Deed> Novice::execute(Birth<Cell>, const Behest& behest, std::optional<Saying> report,
 											 std::optional<std::vector<Exercise>> performed) const
 {

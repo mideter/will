@@ -75,6 +75,14 @@ void tell_effort(const domain::matter::Effort& effort, v1::Effort& told)
 }
 
 
+void tell_remark(const domain::matter::Remark& remark, v1::Remark& told)
+{
+	told.set_exercise(remark.exercise());
+	told.set_body(remark.word().saying().body());
+	told.set_said_at_ns(remark.dating().created_at().value());
+}
+
+
 v1::ServerEvent word_event(const domain::Word& word, const domain::id::Soul listener)
 {
 	const domain::Soul& author = word.author();
@@ -92,6 +100,8 @@ v1::ServerEvent word_event(const domain::Word& word, const domain::id::Soul list
 			tell_exercises(training->exercises(), *told->mutable_exercises());
 			for (const domain::matter::Effort& effort : training->efforts())
 				tell_effort(effort, *told->add_efforts());
+			for (const domain::matter::Remark& remark : training->remarks())
+				tell_remark(remark, *told->add_remarks());
 		}
 	} else if (const auto* deed = dynamic_cast<const domain::Deed*>(&word)) {
 		told->set_kind(v1::Word::DEED);

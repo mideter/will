@@ -34,6 +34,8 @@ protected:
 
 	matter::Training utter(id::Word word, std::vector<Exercise> exercises) const;
 
+	matter::Remarked remark(id::Word remark, id::Word training, std::uint32_t exercise) const;
+
 	void contemplate(const Place& place) const;
 
 	void repose() const;

@@ -8,13 +8,14 @@ namespace will::domain::matter {
 
 
 Behest::Behest(Word word, Placement placement, Dating dating, std::optional<Training> training,
-			   std::vector<Effort> efforts, std::optional<Underway> underway)
+			   std::vector<Effort> efforts, std::optional<Underway> underway, std::vector<Remark> remarks)
 	: word_(std::move(word))
 	, placement_(std::move(placement))
 	, dating_(std::move(dating))
 	, training_(std::move(training))
 	, efforts_(std::move(efforts))
 	, underway_(std::move(underway))
+	, remarks_(std::move(remarks))
 {
 	if (word_.id() != placement_.id() || word_.id() != dating_.id())
 		throw std::invalid_argument("behest parts must share the word id");
@@ -26,6 +27,10 @@ Behest::Behest(Word word, Placement placement, Dating dating, std::optional<Trai
 	}
 	if (underway_ && (!training_ || underway_->training() != word_.id()))
 		throw std::invalid_argument("the approach underway is of the training of this behest");
+	for (const Remark& remark : remarks_) {
+		if (!training_ || remark.training() != word_.id())
+			throw std::invalid_argument("remarks are on the training of this behest");
+	}
 }
 
 

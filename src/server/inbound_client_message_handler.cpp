@@ -96,6 +96,9 @@ void InboundClientMessageHandler::on_bound_event(const v1::ClientEvent& event)
 	case v1::ClientEvent::kFinishApproach:
 		adapter_.handle_finish_approach(session_id_, event.finish_approach());
 		return;
+	case v1::ClientEvent::kSayRemark:
+		adapter_.handle_say_remark(session_id_, event.say_remark());
+		return;
 	case v1::ClientEvent::EVENT_NOT_SET:
 		break;
 	}
@@ -130,6 +133,7 @@ void InboundClientMessageHandler::on_unbound_event(const v1::ClientEvent& event)
 	case v1::ClientEvent::kTrain:
 	case v1::ClientEvent::kBeginApproach:
 	case v1::ClientEvent::kFinishApproach:
+	case v1::ClientEvent::kSayRemark:
 		adapter_.send_auth_required(session_id_);
 		return;
 	case v1::ClientEvent::EVENT_NOT_SET:

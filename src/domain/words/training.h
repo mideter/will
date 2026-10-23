@@ -20,7 +20,8 @@ class Tie;
 
 
 /// A behest that wills exercises; the novice does it approach by approach, one underway at
-/// a time, and fulfils it by a deed. Its efforts come in the order they were finished.
+/// a time, and fulfils it by a deed. Its efforts come in the order they were finished, his
+/// remarks on its exercises in the order they were said.
 class Training final : public Behest {
 public:
 	Training(Birth<Tie> birth, matter::Behest kept);
@@ -38,6 +39,10 @@ public:
 
 	void exert(Birth<Novice> birth, matter::Effort kept) const;
 
+	std::vector<matter::Remark> remarks() const;
+
+	void remark(Birth<Novice> birth, matter::Remark kept) const;
+
 private:
 	static std::vector<Exercise> exercises_of(const matter::Behest& kept);
 
@@ -45,6 +50,7 @@ private:
 	mutable std::unique_ptr<std::mutex> mutex_ = std::make_unique<std::mutex>();
 	mutable std::vector<matter::Effort> efforts_;
 	mutable std::optional<matter::Underway> underway_;
+	mutable std::vector<matter::Remark> remarks_;
 };
 
 

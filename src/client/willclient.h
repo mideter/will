@@ -45,6 +45,7 @@ public:
 
 	void begin_approach(std::uint64_t behest_id, std::uint32_t exercise, std::uint32_t approach) const;
 	void finish_approach(std::uint64_t behest_id, std::uint32_t weight_grams, std::uint32_t repetitions) const;
+	void say_remark(std::uint64_t behest_id, std::uint32_t exercise, std::string_view body) const;
 
 	void train(std::string_view title, const std::vector<v1::Exercise>& exercises) const;
 

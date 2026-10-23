@@ -45,6 +45,7 @@ bool is_post_auth_server_event(const v1::ServerEvent& event) noexcept
 	case v1::ServerEvent::kLineage:
 	case v1::ServerEvent::kUnderway:
 	case v1::ServerEvent::kExerted:
+	case v1::ServerEvent::kRemarked:
 		return true;
 	default:
 		return false;
@@ -170,7 +171,7 @@ void print_help(ConsoleUi& ui)
 	ui.print_commands("Arranging", "/arrange inner|outer <number|room>  (at the helm, as /regard)");
 	ui.print_commands("Obedience", "/ask <name>  /accept <name>  /reject <name> (at the helm)  /supplications  /done <number> [report]");
 	ui.print_commands("Training", "/train [title] | <exercise> 60x10 1:30/70x8 2:00/80x6 | …  (1:30/ — rest before)");
-	ui.print_commands("", "/begin <training> <exercise> <approach>  /finish <training> 60x10  /done <training> [report]");
+	ui.print_commands("", "/begin <training> <exercise> <approach>  /finish <training> 60x10  /remark <training> <exercise> <text>  /done <training> [report]");
 	ui.print_commands("Birth", "/birth (your gates: the unborn)  /bear <mark>");
 	ui.print_status("Type text in a room to write there.", "Ctrl+D to exit");
 }
@@ -260,6 +261,22 @@ bool handle_slash_command(WillClient& client, ConsoleUi& ui, ShownRooms& rooms, 
 								   approach->repetitions());
 		} catch (const std::exception&) {
 			ui.print_notice("usage: /finish <training> <weight>x<repetitions>");
+		}
+		return true;
+	}
+	if (cmd == "remark") {
+		const auto first = args.find(' ');
+		const auto second = first == std::string_view::npos ? std::string_view::npos : args.find(' ', first + 1);
+		if (second == std::string_view::npos) {
+			ui.print_notice("usage: /remark <training> <exercise> <text>");
+			return true;
+		}
+		try {
+			client.say_remark(std::stoull(std::string{args.substr(0, first)}),
+							  static_cast<std::uint32_t>(std::stoul(std::string{args.substr(first + 1, second - first - 1)}) - 1),
+							  trimmed(args.substr(second + 1)));
+		} catch (const std::exception&) {
+			ui.print_notice("usage: /remark <training> <exercise> <text>");
 		}
 		return true;
 	}

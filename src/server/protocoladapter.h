@@ -72,6 +72,7 @@ private:
 	void handle_train(SessionId session_id, const v1::Train& msg);
 	void handle_begin_approach(SessionId session_id, const v1::BeginApproach& msg);
 	void handle_finish_approach(SessionId session_id, const v1::FinishApproach& msg);
+	void handle_say_remark(SessionId session_id, const v1::SayRemark& msg);
 
 	std::shared_ptr<const domain::Training> training_in_gaze(SessionId session_id, const domain::Man& man,
 															 std::uint64_t behest_id);

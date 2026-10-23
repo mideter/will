@@ -150,6 +150,8 @@ void print_word(ConsoleUi& ui, const v1::Word& word, const bool dim)
 					done += "  " + effort_text(effort);
 				ui.print_status(done);
 			}
+			for (const v1::Remark& remark : word.remarks())
+				ui.print_status("Remark on " + std::to_string(remark.exercise() + 1) + ": " + remark.body());
 			return;
 		}
 		ui.print_status("Behest " + number + " from " + word.name() + ": " + word.body(),
@@ -371,6 +373,10 @@ void ReceivingMessageHandler::on(const v1::ServerEvent& event)
 	case v1::ServerEvent::kExerted:
 		ui_.print_notice("Done in training #" + std::to_string(event.exerted().behest_id()) + ": "
 						 + effort_text(event.exerted().effort()));
+		return;
+	case v1::ServerEvent::kRemarked:
+		ui_.print_notice("Remark in training #" + std::to_string(event.remarked().behest_id()) + " on exercise "
+						 + std::to_string(event.remarked().remark().exercise() + 1) + ": " + event.remarked().remark().body());
 		return;
 	case v1::ServerEvent::kStirred:
 		ui_.print_notice("New word from " + event.stirred().author_name() + " in " + event.stirred().room(),

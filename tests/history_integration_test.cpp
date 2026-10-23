@@ -1133,6 +1133,26 @@ TEST_CASE("the testator wills a training over the wire; the novice fulfils it te
 			  == "the approach is already done");
 	}
 
+	// He remarks on the exercise: the trainer is told at once, and the training keeps it.
+	{
+		will::v1::ClientEvent say;
+		say.mutable_say_remark()->set_behest_id(id);
+		say.mutable_say_remark()->set_exercise(0);
+		say.mutable_say_remark()->set_body("Последний тяжело");
+		REQUIRE(novice.stream->Write(say));
+		const will::v1::ServerEvent remarked = read_until(*trainer.stream, [](const auto& e) { return e.has_remarked(); });
+		CHECK(remarked.remarked().behest_id() == id);
+		CHECK(remarked.remarked().remark().exercise() == 0);
+		CHECK(remarked.remarked().remark().body() == "Последний тяжело");
+		CHECK(remarked.remarked().remark().said_at_ns() > 0);
+		read_until(*novice.stream, [](const auto& e) { return e.has_remarked(); });
+
+		say.mutable_say_remark()->set_exercise(5);
+		REQUIRE(novice.stream->Write(say));
+		CHECK(read_until(*novice.stream, [](const auto& e) { return e.has_protocol_notice(); }).protocol_notice().code()
+			  == will::v1::NOTICE_NO_SUCH_EXERCISE);
+	}
+
 	// He finishes the training: the deed tells what was done.
 	will::v1::ClientEvent fulfil;
 	fulfil.mutable_fulfil()->set_behest_id(id);

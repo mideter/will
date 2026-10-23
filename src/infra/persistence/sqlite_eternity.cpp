@@ -288,4 +288,37 @@ std::vector<domain::matter::Training> SqliteEternity::trainings(const std::vecto
 }
 
 
+domain::matter::Remarked SqliteEternity::remark(const domain::id::Word remark, const domain::id::Word training,
+												const std::uint32_t exercise)
+{
+	domain::matter::Remarked kept{remark, training, exercise};
+
+	std::lock_guard lock(database_.mutex());
+	SqliteStmt stmt(database_.db(), "INSERT INTO remarks (word_id, training_word_id, exercise_ord) VALUES (?, ?, ?);",
+					"prepare remark");
+	stmt.bind_i64(1, static_cast<std::int64_t>(remark.value()), "bind word");
+	stmt.bind_i64(2, static_cast<std::int64_t>(training.value()), "bind training");
+	stmt.bind_i64(3, static_cast<std::int64_t>(exercise), "bind exercise");
+	stmt.step_done("remark step");
+	return kept;
+}
+
+
+std::vector<domain::matter::Remarked> SqliteEternity::remarked(const std::vector<domain::id::Word>& trainings) const
+{
+	std::lock_guard lock(database_.mutex());
+	std::vector<domain::matter::Remarked> out;
+	for (const domain::id::Word training : trainings) {
+		SqliteStmt stmt(database_.db(),
+						"SELECT word_id, exercise_ord FROM remarks WHERE training_word_id = ? ORDER BY word_id;",
+						"prepare remarked");
+		stmt.bind_i64(1, static_cast<std::int64_t>(training.value()), "bind training");
+		while (stmt.step_row("remarked step"))
+			out.emplace_back(domain::id::Word{static_cast<std::uint64_t>(stmt.column_i64(0))}, training,
+							 static_cast<std::uint32_t>(stmt.column_i64(1)));
+	}
+	return out;
+}
+
+
 } // namespace will

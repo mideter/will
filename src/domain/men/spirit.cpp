@@ -21,6 +21,12 @@ matter::Training Spirit::utter(const id::Word word, std::vector<Exercise> exerci
 }
 
 
+matter::Remarked Spirit::remark(const id::Word remark, const id::Word training, const std::uint32_t exercise) const
+{
+	return eternity().remark(remark, training, exercise);
+}
+
+
 void Spirit::contemplate(const Place& place) const
 {
 	horizon().contemplate(*this, place);

@@ -80,6 +80,15 @@ message Effort {
 }
 
 
+// A remark of the novice on an exercise of a training (by place, from zero), said
+// when (nanoseconds since the epoch).
+message Remark {
+    uint32 exercise = 1;
+    string body = 2;
+    int64 said_at_ns = 3;
+}
+
+
 // A word in the place the client contemplates — told in history or as it is placed.
 // A behest that is a training carries the exercises it wills; a deed fulfilling
 // one, the exercises done.
@@ -98,6 +107,7 @@ message Word {
     uint64 behest_id = 6; // the behest a deed fulfils
     repeated Exercise exercises = 7;
     repeated Effort efforts = 8;  // a training: the approaches done so far
+    repeated Remark remarks = 9;  // a training: the novice's remarks on its exercises
 }
 
 
@@ -198,6 +208,14 @@ message BeginApproach {
     uint64 behest_id = 1;
     uint32 exercise = 2;
     uint32 approach = 3;
+}
+
+
+// Say a remark on an exercise of a training not yet fulfilled.
+message SayRemark {
+    uint64 behest_id = 1;
+    uint32 exercise = 2;
+    string body = 3;
 }
 
 
@@ -357,6 +375,13 @@ message Underway {
     uint32 approach = 3;
     int64 begun_at_ns = 4;
     bool doing = 5;
+}
+
+
+// The novice remarked on an exercise of a training: told to those who look at the tie.
+message Remarked {
+    uint64 behest_id = 1;
+    Remark remark = 2;
 }
 
 
@@ -520,6 +545,7 @@ message ClientEvent {
         Train train = 19;
         BeginApproach begin_approach = 20;
         FinishApproach finish_approach = 21;
+        SayRemark say_remark = 22;
     }
     // Numbered, the event is answered by one Reply with this number; zero, as before,
     // by notices.
@@ -551,5 +577,6 @@ message ServerEvent {
         Underway underway = 21;
         Exerted exerted = 22;
         Reply reply = 23;
+        Remarked remarked = 24;
     }
 }

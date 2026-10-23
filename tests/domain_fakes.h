@@ -80,6 +80,7 @@ struct InMemoryShared {
 	std::vector<matter::Word> words;
 	std::vector<matter::Fatherhood> fatherhoods;
 	std::vector<matter::Training> trainings;
+	std::vector<matter::Remarked> remarks;
 
 	std::vector<std::pair<id::Soul, matter::Abode>> abodes;
 	std::vector<matter::Tie> ties;
@@ -168,6 +169,28 @@ public:
 		for (const id::Word id : ids) {
 			for (const matter::Training& row : shared_.trainings) {
 				if (row.id() == id)
+					out.push_back(row);
+			}
+		}
+		return out;
+	}
+
+	matter::Remarked remark(const id::Word remark, const id::Word training, const std::uint32_t exercise) override
+	{
+		for (const matter::Remarked& row : shared_.remarks) {
+			if (row.id() == remark)
+				throw std::logic_error("the word is already a remark");
+		}
+		shared_.remarks.emplace_back(remark, training, exercise);
+		return shared_.remarks.back();
+	}
+
+	std::vector<matter::Remarked> remarked(const std::vector<id::Word>& trainings) const override
+	{
+		std::vector<matter::Remarked> out;
+		for (const id::Word training : trainings) {
+			for (const matter::Remarked& row : shared_.remarks) {
+				if (row.training() == training)
 					out.push_back(row);
 			}
 		}
@@ -641,6 +664,14 @@ inline matter::Effort finish(World& world, const Man& man, const Training& train
 {
 	const Contemplation& gaze = gaze_of(world, man);
 	return gaze.cell().finish(gaze, training, weight, repetitions);
+}
+
+
+inline matter::Remark remark(World& world, const Man& man, const Training& training, std::uint32_t exercise,
+							 const Saying& saying)
+{
+	const Contemplation& gaze = gaze_of(world, man);
+	return gaze.cell().remark(gaze, training, exercise, saying);
 }
 
 

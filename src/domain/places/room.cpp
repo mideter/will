@@ -176,6 +176,13 @@ matter::Effort Cell::finish(const Contemplation& gaze, const Training& training,
 }
 
 
+matter::Remark Cell::remark(const Contemplation& gaze, const Training& training, const std::uint32_t exercise,
+							const Saying& saying) const
+{
+	return obeying<TrainOnlyInContemplatedTie, OnlyNoviceTrains>(gaze, training).remark(Birth<Cell>{*this}, training, exercise, saying);
+}
+
+
 Gates::Gates(const Birth<Abode> birth, matter::Room kept)
 	: Room(birth, birth.parent(), std::move(kept))
 {}

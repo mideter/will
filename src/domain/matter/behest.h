@@ -5,6 +5,7 @@
 #include "matter/effort.h"
 #include "matter/underway.h"
 #include "matter/placement.h"
+#include "matter/remark.h"
 #include "matter/training.h"
 #include "matter/word.h"
 
@@ -19,7 +20,8 @@ namespace will::domain::matter {
 class Behest {
 public:
 	Behest(Word word, Placement placement, Dating dating, std::optional<Training> training = std::nullopt,
-		   std::vector<Effort> efforts = {}, std::optional<Underway> underway = std::nullopt);
+		   std::vector<Effort> efforts = {}, std::optional<Underway> underway = std::nullopt,
+		   std::vector<Remark> remarks = {});
 
 	id::Word id() const noexcept { return word_.id(); }
 	const Word& word() const noexcept { return word_; }
@@ -32,6 +34,8 @@ public:
 
 	const std::optional<Underway>& underway() const noexcept { return underway_; }
 
+	const std::vector<Remark>& remarks() const noexcept { return remarks_; }
+
 private:
 	Word word_;
 	Placement placement_;
@@ -39,6 +43,7 @@ private:
 	std::optional<Training> training_;
 	std::vector<Effort> efforts_;
 	std::optional<Underway> underway_;
+	std::vector<Remark> remarks_;
 };
 
 

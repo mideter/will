@@ -33,6 +33,8 @@ public:
 	std::vector<domain::matter::Word> words(const std::vector<domain::id::Word>& ids) const override;
 	domain::matter::Training utter(domain::id::Word word, std::vector<domain::Exercise> exercises) override;
 	std::vector<domain::matter::Training> trainings(const std::vector<domain::id::Word>& ids) const override;
+	domain::matter::Remarked remark(domain::id::Word remark, domain::id::Word training, std::uint32_t exercise) override;
+	std::vector<domain::matter::Remarked> remarked(const std::vector<domain::id::Word>& trainings) const override;
 
 private:
 	std::string directory_;

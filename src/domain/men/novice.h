@@ -38,7 +38,8 @@ class Helm;
 /// Without a report his deed says «совершено»; a deed of a training tells what was done,
 /// the exercises in their willed order, those of which nothing was done left out. He does
 /// the exercises in any order, the approaches of an exercise in order, and once the willed
-/// are done, one beyond them; one approach of a training at a time.
+/// are done, one beyond them; one approach of a training at a time. Until the training is
+/// fulfilled he may say remarks on its exercises, as many as he will.
 class Novice : public virtual Embodied {
 public:
 	void supplicate(Birth<Helm> helm, const Acquaintance& dweller) const;
@@ -49,6 +50,8 @@ public:
 	void begin(Birth<Cell> cell, const Training& training, std::uint32_t exercise, std::uint32_t approach) const;
 
 	matter::Effort finish(Birth<Cell> cell, const Training& training, Weight weight, std::uint32_t repetitions) const;
+
+	matter::Remark remark(Birth<Cell> cell, const Training& training, std::uint32_t exercise, const Saying& saying) const;
 
 	std::vector<std::reference_wrapper<const Obedience>> obediences() const;
 

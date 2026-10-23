@@ -375,6 +375,29 @@ void ProtocolAdapter::handle_finish_approach(const SessionId session_id, const v
 }
 
 
+void ProtocolAdapter::handle_say_remark(const SessionId session_id, const v1::SayRemark& msg)
+{
+	const domain::Man& self = session_man(session_id);
+	const std::shared_ptr<const domain::Training> training = training_in_gaze(session_id, self, msg.behest_id());
+	if (!training)
+		return;
+
+	std::optional<domain::matter::Remark> said;
+	try {
+		const domain::Contemplation& gaze = gaze_of(self);
+		said = gaze.cell().remark(gaze, *training, msg.exercise(), domain::Saying{msg.body()});
+	} catch (const std::exception& e) {
+		refuse(session_id, e);
+		return;
+	}
+
+	v1::ServerEvent remarked;
+	remarked.mutable_remarked()->set_behest_id(training->id().value());
+	tell_remark(*said, *remarked.mutable_remarked()->mutable_remark());
+	tell_tie(training->tie(), remarked);
+}
+
+
 void ProtocolAdapter::handle_reject_supplication(const SessionId session_id, const v1::RejectSupplication& msg)
 {
 	const domain::Man* suppliant = man_named(session_id, msg.suppliant_name());

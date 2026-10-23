@@ -81,6 +81,12 @@ CREATE TABLE IF NOT EXISTS approaches (
   PRIMARY KEY (word_id, exercise_ord, ord)
 );
 
+CREATE TABLE IF NOT EXISTS remarks (
+  word_id INTEGER PRIMARY KEY,
+  training_word_id INTEGER NOT NULL,
+  exercise_ord INTEGER NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS place_hwm (
   id INTEGER PRIMARY KEY CHECK (id = 1),
   value INTEGER NOT NULL

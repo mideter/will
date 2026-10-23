@@ -599,6 +599,34 @@ TEST_CASE("sqlite keeps the exercises of a word across reopen, each approach wit
 }
 
 
+TEST_CASE("sqlite keeps the remarks on the exercises of a training across reopen; a word is a remark once")
+{
+	using namespace will;
+	using namespace will::domain;
+
+	const std::string directory = "/tmp/will-sqlite-remarks-test-" + std::to_string(getpid());
+	const ScratchDirectory scratch{directory};
+
+	const id::Word training{7}, other{8}, knee{9}, passed{10};
+	{
+		SqlitePersistenceBundle bundle(directory);
+		Eternity& eternity = bundle.eternity();
+		eternity.remark(knee, training, 0);
+		eternity.remark(passed, training, 1);
+		CHECK_THROWS(eternity.remark(knee, training, 1));
+	}
+
+	SqlitePersistenceBundle bundle(directory);
+	const std::vector<matter::Remarked> kept = bundle.eternity().remarked({other, training});
+	REQUIRE(kept.size() == 2);
+	CHECK(kept[0].id() == knee);
+	CHECK(kept[0].exercise() == 0);
+	CHECK(kept[1].id() == passed);
+	CHECK(kept[1].training() == training);
+	CHECK(kept[1].exercise() == 1);
+}
+
+
 TEST_CASE("sqlite gives the approaches kept before rest was no rest, and the exercises kept before instructions none")
 {
 	using namespace will;

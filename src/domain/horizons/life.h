@@ -1,6 +1,8 @@
 #pragma once
 
 #include "identity/place.h"
+#include "identity/word.h"
+#include "matter/remark.h"
 #include "properties/birth.h"
 #include "properties/immanent.h"
 
@@ -47,6 +49,8 @@ private:
 	std::shared_ptr<const Recollection> recollection(const Place& place) const;
 
 	std::vector<std::shared_ptr<const Word>> recall(const Place& place) const;
+
+	std::unordered_map<id::Word, std::vector<matter::Remark>> remarks_on(const std::vector<id::Word>& trainings) const;
 
 	static Life* current_;
 

@@ -23,6 +23,7 @@ Training::Training(const Birth<Tie> birth, matter::Behest kept)
 	, exercises_(exercises_of(kept))
 	, efforts_(kept.efforts())
 	, underway_(kept.underway())
+	, remarks_(kept.remarks())
 {}
 
 
@@ -31,6 +32,7 @@ Training::Training(const Birth<Life> birth, matter::Behest kept)
 	, exercises_(exercises_of(kept))
 	, efforts_(kept.efforts())
 	, underway_(kept.underway())
+	, remarks_(kept.remarks())
 {}
 
 
@@ -83,6 +85,25 @@ void Training::exert(const Birth<Novice> birth, matter::Effort kept) const
 	std::lock_guard lock(*mutex_);
 	efforts_.push_back(std::move(kept));
 	underway_.reset();
+}
+
+
+std::vector<matter::Remark> Training::remarks() const
+{
+	std::lock_guard lock(*mutex_);
+	return remarks_;
+}
+
+
+void Training::remark(const Birth<Novice> birth, matter::Remark kept) const
+{
+	if (birth.parent().Soul::id() != tie().novice().Soul::id())
+		throw std::logic_error("only the novice of the tie remarks in its training");
+	if (kept.training() != id())
+		throw std::logic_error("the remark is on another training");
+
+	std::lock_guard lock(*mutex_);
+	remarks_.push_back(std::move(kept));
 }
 
 

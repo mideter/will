@@ -7,6 +7,7 @@
 #include "properties/immanent.h"
 
 #include "matter/effort.h"
+#include "matter/remark.h"
 #include "values/exercise.h"
 #include "values/weight.h"
 
@@ -65,7 +66,7 @@ private:
 /// The window onto the words of a place: of its abode, «Слово» in the interface; of a tie,
 /// «Ведение» or «Послушание». Whom its part admits enter it. Only its host writes here, and
 /// the place it reflects decides what his words become; in the novice's cell of a tie, the
-/// novice fulfils and trains.
+/// novice fulfils, trains and remarks on the exercises.
 class Cell final : public Room {
 public:
 	Cell(Birth<Abode> birth, const Place& reflects, const Part& part, matter::Room kept);
@@ -95,6 +96,8 @@ public:
 			   std::uint32_t approach) const;
 	matter::Effort finish(const Contemplation& gaze, const Training& training, Weight weight,
 						  std::uint32_t repetitions) const;
+	matter::Remark remark(const Contemplation& gaze, const Training& training, std::uint32_t exercise,
+						  const Saying& saying) const;
 
 private:
 	template<typename OtherTie, typename NotNovice>

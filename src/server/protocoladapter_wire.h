@@ -17,6 +17,7 @@ class Soul;
 class Word;
 namespace matter {
 class Effort;
+class Remark;
 }
 } // namespace will::domain
 
@@ -35,6 +36,9 @@ std::vector<domain::Exercise> exercises_of(const google::protobuf::RepeatedPtrFi
 
 
 void tell_effort(const domain::matter::Effort& effort, v1::Effort& told);
+
+
+void tell_remark(const domain::matter::Remark& remark, v1::Remark& told);
 
 
 v1::ServerEvent word_event(const domain::Word& word, const domain::id::Soul listener);

@@ -1799,6 +1799,75 @@ TEST_CASE("in the novice's cell of a tie only the novice trains and fulfils; his
 }
 
 
+TEST_CASE("the novice remarks on the exercises of a training as often as he will until he fulfils it; the remarks outlive Life")
+{
+	InMemoryCosmos cosmos;
+	World& world = cosmos.life().create().world();
+	const auto& novice = born(world, DeviceToken::generate());
+	const auto& testator = born(world, DeviceToken::generate());
+	const auto& friend_ = born(world, DeviceToken::generate());
+	admit_at_gates(world, novice, testator);
+	admit_at_gates(world, testator, novice);
+	supplicate(world, novice, testator);
+	const Shepherding& shepherding = accept(world, testator, *testator.supplication(novice));
+	const Obedience& obedience = novice.obedience(testator);
+	admit_at_gates(world, novice, friend_);
+	regard_in_helm(world, novice, friend_, matter::Dweller::Kind::Friend);
+
+	testator.wake();
+	testator.contemplate(room_in(testator, shepherding));
+	std::shared_ptr<const Training> training = train(
+		world, testator, "Среда",
+		{Exercise{"Присед", {Approach{Weight{100'000}, 5}}, "Спина прямая"}, Exercise{"Жим", {Approach{Weight{60'000}, 8}}}});
+	CHECK(training->exercises()[0].instruction() == "Спина прямая");
+
+	// Neither the testator nor the novice's friend remarks; only the novice, in his cell.
+	CHECK_THROWS_AS(remark(world, testator, *training, 0, "нет"), OnlyNoviceTrains);
+	friend_.wake();
+	go(world, friend_, room_in(novice, obedience));
+	CHECK_THROWS_AS(remark(world, friend_, *training, 0, "нет"), OnlyHostActs);
+
+	// Before any approach, and on one exercise again and again, in the order said.
+	novice.wake();
+	novice.contemplate(room_in(novice, obedience));
+	const matter::Remark first = remark(world, novice, *training, 0, "Колено ноет");
+	CHECK(first.word().author() == novice.Soul::id());
+	begin(world, novice, *training, 0, 0);
+	finish(world, novice, *training, Weight{100'000}, 5);
+	remark(world, novice, *training, 0, "Прошло");
+	remark(world, novice, *training, 1, "Не успел");
+	CHECK_THROWS_AS(remark(world, novice, *training, 2, "нет"), NoSuchExercise);
+	REQUIRE(training->remarks().size() == 3);
+	CHECK(training->remarks()[1].word().saying().body() == "Прошло");
+	CHECK(training->remarks()[2].exercise() == 1);
+
+	// The remarks are no words of the tie: it shows the training alone.
+	CHECK(world.contemplation(novice)->words().size() == 1);
+
+	// Fulfilled, the training takes no more.
+	execute(world, novice, *training);
+	CHECK_THROWS_AS(remark(world, novice, *training, 0, "поздно"), AlreadyFulfilled);
+
+	// The last gazes leave; born anew from matter, the training has its remarks in their order.
+	const id::Word id = training->id();
+	training.reset();
+	testator.sleep();
+	novice.sleep();
+	friend_.sleep();
+	testator.wake();
+	testator.contemplate(room_in(testator, shepherding));
+	std::shared_ptr<const Training> reborn;
+	for (const auto& word : world.contemplation(testator)->words()) {
+		if (word->id() == id)
+			reborn = std::dynamic_pointer_cast<const Training>(word);
+	}
+	REQUIRE(reborn);
+	REQUIRE(reborn->remarks().size() == 3);
+	CHECK(reborn->remarks()[0].word().saying().body() == "Колено ноет");
+	CHECK(reborn->remarks()[2].exercise() == 1);
+}
+
+
 TEST_CASE("the world awakens though what is kept disagrees: it passes it over, tells it, and makes fatherhood whole")
 {
 	InMemoryShared store;
