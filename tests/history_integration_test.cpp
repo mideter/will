@@ -1281,6 +1281,13 @@ TEST_CASE("a numbered request is answered once, by its number: granted or refuse
 	send_turn_to_abode(adam, {}, "Нет такой");
 	CHECK(read_event(adam).protocol_notice().message() == "no such room");
 
+	// Naming his own abode, he is told it unnamed: it is his own.
+	send_turn_to_abode(adam, elder.name, "Врата");
+	const will::v1::ServerEvent own_gates = read_event(adam);
+	CHECK(own_gates.turned().abode_of().empty());
+	CHECK(own_gates.turned().room() == "Врата");
+	read_until(adam, [](const auto& e) { return e.has_history_end(); });
+
 	// A heartbeat is answered by its number alone, granted.
 	{
 		will::v1::ClientEvent beat;

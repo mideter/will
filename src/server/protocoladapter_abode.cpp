@@ -72,7 +72,8 @@ void ProtocolAdapter::handle_turn(const SessionId session_id, const v1::Turn& ms
 	}
 
 	v1::ServerEvent turned;
-	turned.mutable_turned()->set_abode_of(msg.abode_of());
+	// One's own abode is told unnamed, even when one names it.
+	turned.mutable_turned()->set_abode_of(host == &self ? std::string{} : msg.abode_of());
 	turned.mutable_turned()->set_room(msg.room());
 	turned.mutable_turned()->set_writable(writes_here(self));
 	if (const auto gaze = world_.contemplation(self))
