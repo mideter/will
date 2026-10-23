@@ -19,8 +19,9 @@ class Letter;
 
 /// A living man in the waking world: awake, he contemplates one thing, his own abode unless
 /// he turns elsewhere, where the place he stands in leads; asleep, nothing. A tie he sees
-/// only through the room reflecting it. He records a letter in his abode, written in its
-/// cell.
+/// only through the room reflecting it. Standing in a room he no longer enters, as its abode
+/// changes, he withdraws into the abode itself. He records a letter in his abode, written in
+/// its cell.
 class Witness : public virtual Embodied {
 public:
 	void wake() const;
@@ -31,6 +32,8 @@ public:
 	void contemplate(const Room& room) const;
 
 	bool contemplates(const Place& place) const;
+
+	void withdraw(Birth<Abode> abode) const;
 
 	std::shared_ptr<const Letter> record(Birth<Cell> cell, const Saying& saying) const;
 

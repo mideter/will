@@ -14,6 +14,7 @@
 #include "horizons/space.h"
 #include "properties/immanent.h"
 
+#include <algorithm>
 #include <stdexcept>
 #include <unordered_set>
 #include <utility>
@@ -43,6 +44,7 @@ void Abode::admit(const Birth<Man> birth, const Man& man, const matter::Dweller&
 		throw std::logic_error("only the host admits into his abode");
 
 	admit(man, kept);
+	man.withdraw(Birth<Abode>{*this});
 }
 
 
@@ -117,15 +119,19 @@ void Abode::arrange(const Birth<Man> birth, const matter::Room& kept) const
 	if (&birth.parent() != &host_)
 		throw std::logic_error("only the host arranges his abode");
 
-	std::lock_guard lock(*mutex_);
-	for (const std::unique_ptr<Room>& room : rooms_) {
-		const auto* cell = dynamic_cast<const Cell*>(room.get());
-		if (cell && cell->id() == kept.id()) {
-			cell->arrange(Birth<Abode>{*this}, part(kept.part()));
-			return;
-		}
+	{
+		std::lock_guard lock(*mutex_);
+		const auto found = std::find_if(rooms_.begin(), rooms_.end(), [&](const std::unique_ptr<Room>& room) {
+			const auto* cell = dynamic_cast<const Cell*>(room.get());
+			return cell && cell->id() == kept.id();
+		});
+		if (found == rooms_.end())
+			throw std::logic_error("the cell is not of this abode");
+		static_cast<const Cell&>(**found).arrange(Birth<Abode>{*this}, part(kept.part()));
 	}
-	throw std::logic_error("the cell is not of this abode");
+	// Those standing in it whom its new part does not let in withdraw.
+	for (const std::shared_ptr<const Acquaintance>& dweller : dwellers())
+		dweller->man().withdraw(Birth<Abode>{*this});
 }
 
 

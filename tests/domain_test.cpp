@@ -1277,6 +1277,39 @@ TEST_CASE("the host regards his dwellers anew only at his helm; it shows no word
 }
 
 
+TEST_CASE("one standing in a room he no longer enters withdraws into the abode, regarded anew or the room moved")
+{
+	InMemoryCosmos cosmos;
+	World& world = cosmos.life().create().world();
+	const auto& host = born(world, DeviceToken::generate());
+	const auto& man = born(world, DeviceToken::generate());
+	const Cell& cell = cell_of(host);
+	admit_at_gates(world, host, man);
+	regard_in_helm(world, host, man, matter::Dweller::Kind::Friend);
+	man.wake();
+	go(world, man, cell);
+
+	// Regarded a neighbour, he no longer enters the inner cell: he stands in the abode itself.
+	regard_in_helm(world, host, man, matter::Dweller::Kind::Neighbour);
+	CHECK(&world.contemplation(man)->place() == static_cast<const Place*>(&host.abode()));
+
+	// Set in the outer part, the cell lets him in; regarded anew there, he stays.
+	arrange_in_helm(world, host, cell, host.abode().outer());
+	go(world, man, cell);
+	regard_in_helm(world, host, man, matter::Dweller::Kind::Friend);
+	CHECK(&world.contemplation(man)->place() == static_cast<const Place*>(&cell));
+
+	// Moved within again, the cell keeps the friend and lets the neighbour go.
+	arrange_in_helm(world, host, cell, host.abode().inner());
+	CHECK(&world.contemplation(man)->place() == static_cast<const Place*>(&cell));
+	arrange_in_helm(world, host, cell, host.abode().outer());
+	regard_in_helm(world, host, man, matter::Dweller::Kind::Neighbour);
+	CHECK(&world.contemplation(man)->place() == static_cast<const Place*>(&cell));
+	arrange_in_helm(world, host, cell, host.abode().inner());
+	CHECK(&world.contemplation(man)->place() == static_cast<const Place*>(&host.abode()));
+}
+
+
 TEST_CASE("the helm is its host's alone: there he regards his dwellers and sets his cells without or within")
 {
 	InMemoryCosmos cosmos;

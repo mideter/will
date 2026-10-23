@@ -612,7 +612,8 @@ TEST_CASE("a host admits a dweller, regards him anew, and he sees his abode as h
 	REQUIRE(live.has_word());
 	CHECK(live.word().body() == "news");
 
-	// Regarded as an acquaintance again, he sees the abode anew at once: no words.
+	// Regarded as an acquaintance again, he no longer enters the cell: at once he withdraws
+	// into the abode, and sees no room of it but the gates.
 	stand_in(*host.stream, {}, "Кормчая");
 	send_regard(*host.stream, man_name, will::v1::ACQUAINTANCE);
 	CHECK(read_event(*host.stream).has_protocol_notice());
@@ -620,7 +621,12 @@ TEST_CASE("a host admits a dweller, regards him anew, and he sees his abode as h
 	CHECK(read_event(*host.stream).has_rooms());
 	CHECK(read_event(*host.stream).has_supplications());
 	CHECK(read_event(*man.stream).dwelling().kind() == will::v1::ACQUAINTANCE);
-	REQUIRE(read_event(*man.stream).turned().room() == "Слово");
+	const will::v1::ServerEvent withdrawn = read_event(*man.stream);
+	REQUIRE(withdrawn.turned().abode_of() == host_name);
+	CHECK(withdrawn.turned().room().empty());
+	const will::v1::ServerEvent gates_only = read_event(*man.stream);
+	REQUIRE(gates_only.rooms().rooms_size() == 1);
+	CHECK(gates_only.rooms().rooms(0).name() == "Врата");
 	CHECK(read_event(*man.stream).has_history_end());
 
 	// Away from his helm the host does not arrange his rooms.
@@ -643,14 +649,16 @@ TEST_CASE("a host admits a dweller, regards him anew, and he sees his abode as h
 	CHECK(read_event(*host.stream).has_supplications());
 	CHECK(read_event(*host.stream).has_history_end());
 
-	// The host sets his cell in the outer part; a neighbour, looking at it, sees the words again.
+	// The host sets his cell in the outer part; a neighbour, in the abode, sees it there, enters
+	// and sees the words again.
 	send_regard(*host.stream, man_name, will::v1::NEIGHBOUR);
 	CHECK(read_event(*host.stream).has_protocol_notice());
 	CHECK(read_event(*host.stream).has_dwellers());
 	CHECK(read_event(*host.stream).has_rooms());
 	CHECK(read_event(*host.stream).has_supplications());
 	CHECK(read_event(*man.stream).dwelling().kind() == will::v1::NEIGHBOUR);
-	REQUIRE(read_event(*man.stream).turned().room() == "Слово");
+	REQUIRE(read_event(*man.stream).turned().room().empty());
+	CHECK(read_event(*man.stream).rooms().rooms_size() == 1);  // the gates alone
 	CHECK(read_event(*man.stream).has_history_end());
 	{
 		will::v1::ClientEvent arrange;
@@ -665,7 +673,13 @@ TEST_CASE("a host admits a dweller, regards him anew, and he sees his abode as h
 	CHECK(arranged.rooms().rooms(0).name() == "Слово");
 	CHECK(arranged.rooms().rooms(0).part() == will::v1::OUTER);
 	CHECK(read_event(*host.stream).has_supplications());
-	REQUIRE(read_event(*man.stream).turned().room() == "Слово");
+	REQUIRE(read_event(*man.stream).turned().room().empty());
+	const will::v1::ServerEvent opened = read_event(*man.stream);
+	REQUIRE(opened.rooms().rooms_size() == 2);
+	CHECK(opened.rooms().rooms(0).name() == "Слово");
+	CHECK(read_event(*man.stream).has_history_end());
+	send_turn_to_abode(*man.stream, host_name, "Слово");
+	CHECK(read_event(*man.stream).turned().room() == "Слово");
 	CHECK(read_event(*man.stream).word().body() == "secret");
 	CHECK(read_event(*man.stream).word().body() == "news");
 	CHECK(read_event(*man.stream).has_history_end());

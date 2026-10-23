@@ -72,6 +72,17 @@ bool Witness::contemplates(const Place& place) const
 }
 
 
+void Witness::withdraw(const Birth<Abode> abode) const
+{
+	const std::shared_ptr<const Contemplation> gaze = contemplation();
+	const auto* room = gaze ? dynamic_cast<const Room*>(&gaze->place()) : nullptr;
+	if (!room || &room->abode() != &abode.parent() || room->dwells(man_of(*this)))
+		return;
+
+	Spirit::contemplate(abode.parent());
+}
+
+
 std::shared_ptr<const Letter> Witness::record(const Birth<Cell> cell, const Saying& saying) const
 {
 	if (&cell.parent().abode() != &abode())
