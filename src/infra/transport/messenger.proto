@@ -516,6 +516,7 @@ enum NoticeCode {
     NOTICE_TRAINING_WILLED = 207;         // args: training id
     NOTICE_BORN = 208;                    // args: who was born
     NOTICE_SUPPLICATION_REJECTED = 209;   // args: whose
+    NOTICE_SUPPLICATION_DECLINED = 210;   // to the suppliant; args: who declined it
 }
 
 

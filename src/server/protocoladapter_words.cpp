@@ -436,6 +436,14 @@ void ProtocolAdapter::handle_reject_supplication(const SessionId session_id, con
 
 	send_notice(session_id, v1::NOTICE_SUPPLICATION_REJECTED, {msg.suppliant_name()});
 
+	// As the accepted are told of their tie, the rejected are told of the refusal.
+	v1::ServerEvent declined;
+	auto* notice = declined.mutable_protocol_notice();
+	notice->set_code(v1::NOTICE_SUPPLICATION_DECLINED);
+	notice->add_args(std::string{self.name().text()});
+	notice->set_message(words_of(v1::NOTICE_SUPPLICATION_DECLINED, {std::string{self.name().text()}}));
+	send_to_vessel(suppliant->Vessel::id(), declined);
+
 	retell_helm(self.abode().helm());
 	retell_helm(suppliant->abode().helm());
 }

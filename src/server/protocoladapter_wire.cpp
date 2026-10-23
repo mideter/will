@@ -162,6 +162,8 @@ std::string words_of(const v1::NoticeCode code, const std::vector<std::string>& 
 		return arg(0) + " born";
 	case v1::NOTICE_SUPPLICATION_REJECTED:
 		return "supplication of " + arg(0) + " rejected";
+	case v1::NOTICE_SUPPLICATION_DECLINED:
+		return arg(0) + " declined your supplication";
 	default:
 		return "refused";
 	}

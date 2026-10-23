@@ -807,6 +807,12 @@ TEST_CASE("one lists the abodes one dwells in and the supplications awaiting one
 	}
 	CHECK(next_past_gates(*a.stream).supplications().suppliant_names_size() == 0);
 	CHECK_FALSE(dweller_named(*a.stream, b_name).asks());
+	// The suppliant is told he was declined, and by whom.
+	const will::v1::ServerEvent declined = read_until(*b.stream, [](const auto& e) {
+		return e.protocol_notice().code() == will::v1::NOTICE_SUPPLICATION_DECLINED;
+	});
+	REQUIRE(declined.protocol_notice().args_size() == 1);
+	CHECK(declined.protocol_notice().args(0) == a_name);
 	CHECK_FALSE(dweller_named(*b.stream, a_name).asked());
 
 	// b asks for rooms without moving his gaze: his own three; in a's abode, as an acquaintance, only the gates.
