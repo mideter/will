@@ -41,6 +41,7 @@ private:
 	void fold_birth_rooms_into_gates();
 
 	void give_approaches_their_rest();
+	void give_exercises_their_instruction();
 
 	std::string db_path_;
 	SqliteFace face_;

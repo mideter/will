@@ -67,6 +67,7 @@ CREATE TABLE IF NOT EXISTS exercises (
   word_id INTEGER NOT NULL,
   ord INTEGER NOT NULL,
   name TEXT NOT NULL,
+  instruction TEXT NOT NULL DEFAULT '',
   PRIMARY KEY (word_id, ord)
 );
 
@@ -191,8 +192,10 @@ CREATE TABLE IF NOT EXISTS executions (
 
 	check_sqlite(sqlite3_exec(db_, sql, nullptr, nullptr, nullptr), db_, "init_schema");
 
-	if (face_ == SqliteFace::Eternity)
+	if (face_ == SqliteFace::Eternity) {
 		give_approaches_their_rest();
+		give_exercises_their_instruction();
+	}
 	if (face_ == SqliteFace::Temporality)
 		answer_kept_rejections();
 	if (face_ == SqliteFace::Spatiality) {
@@ -221,6 +224,28 @@ void SqliteDatabase::give_approaches_their_rest()
 	check_sqlite(sqlite3_exec(db_, "ALTER TABLE approaches ADD COLUMN rest_seconds INTEGER NOT NULL DEFAULT 0;",
 							  nullptr, nullptr, nullptr),
 				 db_, "give approaches their rest");
+}
+
+
+void SqliteDatabase::give_exercises_their_instruction()
+{
+	bool has_instruction = false;
+	sqlite3_stmt* raw = nullptr;
+	check_sqlite(sqlite3_prepare_v2(db_, "PRAGMA table_info(exercises);", -1, &raw, nullptr), db_,
+				 "prepare exercises columns");
+	while (sqlite3_step(raw) == SQLITE_ROW) {
+		const auto* column = reinterpret_cast<const char*>(sqlite3_column_text(raw, 1));
+		if (column && std::string_view{column} == "instruction")
+			has_instruction = true;
+	}
+	sqlite3_finalize(raw);
+	if (has_instruction)
+		return;
+
+	// Exercises kept before the testator could instruct were willed without a word.
+	check_sqlite(sqlite3_exec(db_, "ALTER TABLE exercises ADD COLUMN instruction TEXT NOT NULL DEFAULT '';",
+							  nullptr, nullptr, nullptr),
+				 db_, "give exercises their instruction");
 }
 
 

@@ -208,10 +208,12 @@ domain::matter::Training SqliteEternity::utter(const domain::id::Word word, std:
 
 	std::int64_t exercise_ord = 0;
 	for (const domain::Exercise& exercise : kept.exercises()) {
-		SqliteStmt stmt(db, "INSERT INTO exercises (word_id, ord, name) VALUES (?, ?, ?);", "prepare exercise");
+		SqliteStmt stmt(db, "INSERT INTO exercises (word_id, ord, name, instruction) VALUES (?, ?, ?, ?);",
+						"prepare exercise");
 		stmt.bind_i64(1, static_cast<std::int64_t>(word.value()), "bind word");
 		stmt.bind_i64(2, exercise_ord, "bind ord");
 		stmt.bind_text(3, exercise.name(), "bind name");
+		stmt.bind_text(4, exercise.instruction(), "bind instruction");
 		stmt.step_done("exercise step");
 
 		std::int64_t approach_ord = 0;
@@ -244,11 +246,15 @@ std::vector<domain::matter::Training> SqliteEternity::trainings(const std::vecto
 	std::vector<domain::matter::Training> out;
 	for (const domain::id::Word word : ids) {
 		std::vector<std::string> names;
+		std::vector<std::string> instructions;
 		{
-			SqliteStmt stmt(db, "SELECT name FROM exercises WHERE word_id = ? ORDER BY ord;", "prepare exercises");
+			SqliteStmt stmt(db, "SELECT name, instruction FROM exercises WHERE word_id = ? ORDER BY ord;",
+							"prepare exercises");
 			stmt.bind_i64(1, static_cast<std::int64_t>(word.value()), "bind word");
-			while (stmt.step_row("exercises step"))
+			while (stmt.step_row("exercises step")) {
 				names.emplace_back(stmt.column_text(0));
+				instructions.emplace_back(stmt.column_text(1));
+			}
 		}
 		if (names.empty())
 			continue;
@@ -275,7 +281,7 @@ std::vector<domain::matter::Training> SqliteEternity::trainings(const std::vecto
 		std::vector<domain::Exercise> exercises;
 		exercises.reserve(names.size());
 		for (std::size_t i = 0; i < names.size(); ++i)
-			exercises.emplace_back(std::move(names[i]), std::move(approaches[i]));
+			exercises.emplace_back(std::move(names[i]), std::move(approaches[i]), std::move(instructions[i]));
 		out.emplace_back(word, std::move(exercises));
 	}
 	return out;

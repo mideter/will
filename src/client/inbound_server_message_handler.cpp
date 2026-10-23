@@ -114,6 +114,8 @@ std::vector<std::vector<std::string>> exercise_rows(const v1::Word& word)
 			approaches += weight_text(go.weight_grams()) + "×" + std::to_string(go.repetitions());
 		}
 		rows.push_back({exercise.name(), approaches});
+		if (!exercise.instruction().empty())
+			rows.push_back({"", "« " + exercise.instruction() + " »"});
 	}
 	return rows;
 }

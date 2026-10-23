@@ -572,7 +572,8 @@ TEST_CASE("sqlite keeps the exercises of a word across reopen, each approach wit
 		SqlitePersistenceBundle bundle(directory);
 		Eternity& eternity = bundle.eternity();
 		eternity.utter(willed, {
-			Exercise{"Жим лёжа", {Approach{Weight{60'000}, 10, 90}, Approach{Weight{70'000}, 8, 120}, Approach{Weight{62'500}, 6}}},
+			Exercise{"Жим лёжа", {Approach{Weight{60'000}, 10, 90}, Approach{Weight{70'000}, 8, 120}, Approach{Weight{62'500}, 6}},
+					 "Лопатки сведены"},
 			Exercise{"Подтягивания", {Approach{Weight{0}, 8}}},
 		});
 		CHECK_THROWS_AS(eternity.utter(willed, {Exercise{"Присед", {Approach{Weight{100'000}, 5}}}}), std::logic_error);
@@ -586,6 +587,8 @@ TEST_CASE("sqlite keeps the exercises of a word across reopen, each approach wit
 		REQUIRE(kept[0].exercises().size() == 2);
 		const Exercise& press = kept[0].exercises()[0];
 		CHECK(press.name() == "Жим лёжа");
+		CHECK(press.instruction() == "Лопатки сведены");
+		CHECK(kept[0].exercises()[1].instruction().empty());
 		REQUIRE(press.approaches().size() == 3);
 		CHECK(press.approaches()[1] == Approach{Weight{70'000}, 8, 120});
 		CHECK(press.approaches()[0].rest_seconds() == 90);
@@ -596,7 +599,7 @@ TEST_CASE("sqlite keeps the exercises of a word across reopen, each approach wit
 }
 
 
-TEST_CASE("sqlite gives the approaches kept before rest was no rest")
+TEST_CASE("sqlite gives the approaches kept before rest was no rest, and the exercises kept before instructions none")
 {
 	using namespace will;
 	using namespace will::domain;
@@ -625,6 +628,7 @@ TEST_CASE("sqlite gives the approaches kept before rest was no rest")
 	const std::vector<matter::Training> kept = bundle.eternity().trainings({id::Word{5}});
 	REQUIRE(kept.size() == 1);
 	CHECK(kept[0].exercises()[0].approaches()[0] == Approach{Weight{100'000}, 5, 0});
+	CHECK(kept[0].exercises()[0].instruction().empty());
 }
 
 

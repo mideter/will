@@ -1068,6 +1068,7 @@ TEST_CASE("the testator wills a training over the wire; the novice fulfils it te
 	{
 		will::v1::Exercise* press = train.mutable_train()->add_exercises();
 		press->set_name("Жим лёжа");
+		press->set_instruction("Лопатки сведены");
 		for (const auto [grams, reps] : {std::pair{60'000u, 10u}, {70'000u, 8u}}) {
 			will::v1::Approach* go = press->add_approaches();
 			go->set_weight_grams(grams);
@@ -1090,6 +1091,7 @@ TEST_CASE("the testator wills a training over the wire; the novice fulfils it te
 	CHECK(willed.word().body() == "Понедельник");
 	REQUIRE(willed.word().exercises_size() == 1);
 	CHECK(willed.word().exercises(0).name() == "Жим лёжа");
+	CHECK(willed.word().exercises(0).instruction() == "Лопатки сведены");
 	REQUIRE(willed.word().exercises(0).approaches_size() == 2);
 	CHECK(willed.word().exercises(0).approaches(1).weight_grams() == 70'000);
 

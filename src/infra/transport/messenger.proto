@@ -58,10 +58,12 @@ message Approach {
 }
 
 
-// An exercise, named freely, done in approaches.
+// An exercise, named freely, done in approaches; the testator's instruction for it, if he
+// gave one.
 message Exercise {
     string name = 1;
     repeated Approach approaches = 2;
+    string instruction = 3;
 }
 
 
