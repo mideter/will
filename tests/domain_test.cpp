@@ -1909,10 +1909,14 @@ TEST_CASE("an approach ends when the novice says so, and what was done in it is 
 	CHECK(done.finished() == Timestamp{130});
 	CHECK_FALSE(training->underway());
 
-	// Not ended apart, an approach finishes when it is told.
+	// Not ended apart, an approach finishes when it is told; told how it went, it keeps that.
 	begin(world, novice, *training, 0, 1);
 	cosmos.shared().time.set_instant(Timestamp{250});
-	CHECK(finish(world, novice, *training, Weight{100'000}, 5).finished() == Timestamp{250});
+	const matter::Effort hard = finish(world, novice, *training, Weight{100'000}, 5, Strain{2});
+	CHECK(hard.finished() == Timestamp{250});
+	CHECK(hard.strain() == Strain{2});
+	CHECK(done.strain() == Strain{});
+	CHECK_THROWS_AS(Strain{3}, std::invalid_argument);
 }
 
 

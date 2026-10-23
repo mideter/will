@@ -72,6 +72,7 @@ void tell_effort(const domain::matter::Effort& effort, v1::Effort& told)
 	told.set_repetitions(effort.repetitions());
 	told.set_begun_at_ns(effort.begun().value());
 	told.set_finished_at_ns(effort.finished().value());
+	told.set_strain(effort.strain().marks());
 }
 
 

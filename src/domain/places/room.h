@@ -96,7 +96,7 @@ public:
 			   std::uint32_t approach) const;
 	void end(const Contemplation& gaze, const Training& training) const;
 	matter::Effort finish(const Contemplation& gaze, const Training& training, Weight weight,
-						  std::uint32_t repetitions) const;
+						  std::uint32_t repetitions, Strain strain) const;
 	matter::Remark remark(const Contemplation& gaze, const Training& training, std::uint32_t exercise,
 						  const Saying& saying) const;
 

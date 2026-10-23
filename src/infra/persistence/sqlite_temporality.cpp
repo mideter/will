@@ -348,7 +348,7 @@ domain::matter::Underway SqliteTemporality::end(const domain::matter::Underway& 
 
 
 domain::matter::Effort SqliteTemporality::exert(const domain::matter::Underway& doing, const domain::Weight weight,
-												const std::uint32_t repetitions)
+												const std::uint32_t repetitions, const domain::Strain strain)
 {
 	const domain::id::Word training = doing.training();
 	const std::uint32_t exercise = doing.exercise();
@@ -374,7 +374,7 @@ domain::matter::Effort SqliteTemporality::exert(const domain::matter::Underway& 
 			ended = domain::Timestamp{kept.column_i64(0)};
 	}
 	const domain::matter::Effort effort{training, exercise, approach, weight, repetitions, doing.begun(),
-										ended.value_or(eternity_.time().instant())};
+										ended.value_or(eternity_.time().instant()), strain};
 	{
 		SqliteStmt kept(db,
 						"SELECT 1 FROM efforts WHERE training_word_id = ? AND exercise_ord = ? AND approach_ord = ?;",
@@ -388,7 +388,7 @@ domain::matter::Effort SqliteTemporality::exert(const domain::matter::Underway& 
 
 	SqliteStmt stmt(db,
 					"INSERT INTO efforts (training_word_id, exercise_ord, approach_ord, weight_grams, repetitions, "
-					"begun_at_ns, finished_at_ns) VALUES (?, ?, ?, ?, ?, ?, ?);",
+					"begun_at_ns, finished_at_ns, strain_marks) VALUES (?, ?, ?, ?, ?, ?, ?, ?);",
 					"prepare exert");
 	stmt.bind_i64(1, static_cast<std::int64_t>(training.value()), "bind training");
 	stmt.bind_i64(2, exercise, "bind exercise");
@@ -397,6 +397,7 @@ domain::matter::Effort SqliteTemporality::exert(const domain::matter::Underway& 
 	stmt.bind_i64(5, repetitions, "bind repetitions");
 	stmt.bind_i64(6, effort.begun().value(), "bind begun");
 	stmt.bind_i64(7, effort.finished().value(), "bind finished");
+	stmt.bind_i64(8, effort.strain().marks(), "bind strain");
 	stmt.step_done("exert step");
 
 	SqliteStmt done(db, "DELETE FROM underways WHERE training_word_id = ?;", "prepare underway done");
@@ -416,8 +417,8 @@ std::vector<domain::matter::Effort> SqliteTemporality::efforts(const std::vector
 	std::vector<domain::matter::Effort> rows;
 	for (const domain::id::Word training : trainings) {
 		SqliteStmt stmt(db,
-						"SELECT exercise_ord, approach_ord, weight_grams, repetitions, begun_at_ns, finished_at_ns "
-						"FROM efforts WHERE training_word_id = ? ORDER BY finished_at_ns;",
+						"SELECT exercise_ord, approach_ord, weight_grams, repetitions, begun_at_ns, finished_at_ns, "
+						"strain_marks FROM efforts WHERE training_word_id = ? ORDER BY finished_at_ns;",
 						"prepare efforts");
 		stmt.bind_i64(1, static_cast<std::int64_t>(training.value()), "bind training");
 		while (stmt.step_row("efforts step")) {
@@ -429,6 +430,7 @@ std::vector<domain::matter::Effort> SqliteTemporality::efforts(const std::vector
 				static_cast<std::uint32_t>(stmt.column_i64(3)),
 				domain::Timestamp{stmt.column_i64(4)},
 				domain::Timestamp{stmt.column_i64(5)},
+				domain::Strain{static_cast<std::uint32_t>(stmt.column_i64(6))},
 			});
 		}
 	}

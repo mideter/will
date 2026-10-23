@@ -496,7 +496,8 @@ public:
 		throw std::logic_error("the approach is not underway");
 	}
 
-	matter::Effort exert(const matter::Underway& doing, const Weight weight, const std::uint32_t repetitions) override
+	matter::Effort exert(const matter::Underway& doing, const Weight weight, const std::uint32_t repetitions,
+						 const Strain strain) override
 	{
 		const auto underway = std::find_if(shared_.underways.begin(), shared_.underways.end(), [&](const auto& row) {
 			return row.training() == doing.training() && row.exercise() == doing.exercise()
@@ -510,7 +511,7 @@ public:
 				throw std::logic_error("the approach is already done");
 		}
 		shared_.efforts.emplace_back(doing.training(), doing.exercise(), doing.approach(), weight, repetitions,
-									 doing.begun(), underway->ended().value_or(eternity_.time().instant()));
+									 doing.begun(), underway->ended().value_or(eternity_.time().instant()), strain);
 		shared_.underways.erase(underway);
 		return shared_.efforts.back();
 	}
@@ -681,10 +682,10 @@ inline void end(World& world, const Man& man, const Training& training)
 
 
 inline matter::Effort finish(World& world, const Man& man, const Training& training, Weight weight,
-							 std::uint32_t repetitions)
+							 std::uint32_t repetitions, Strain strain = Strain{})
 {
 	const Contemplation& gaze = gaze_of(world, man);
-	return gaze.cell().finish(gaze, training, weight, repetitions);
+	return gaze.cell().finish(gaze, training, weight, repetitions, strain);
 }
 
 

@@ -1131,6 +1131,7 @@ TEST_CASE("the testator wills a training over the wire; the novice fulfils it te
 		finish.mutable_finish_approach()->set_behest_id(id);
 		finish.mutable_finish_approach()->set_weight_grams(70'000);
 		finish.mutable_finish_approach()->set_repetitions(reps);
+		finish.mutable_finish_approach()->set_strain(approach);
 		REQUIRE(novice.stream->Write(finish));
 		const will::v1::ServerEvent exerted = read_until(*trainer.stream, [](const auto& e) { return e.has_exerted(); });
 		CHECK(exerted.exerted().behest_id() == id);
@@ -1139,6 +1140,7 @@ TEST_CASE("the testator wills a training over the wire; the novice fulfils it te
 		CHECK(exerted.exerted().effort().finished_at_ns() >= exerted.exerted().effort().begun_at_ns());
 		if (ended_at != 0)
 			CHECK(exerted.exerted().effort().finished_at_ns() == ended_at);
+		CHECK(exerted.exerted().effort().strain() == approach);
 		CHECK(read_until(*novice.stream, [](const auto& e) { return e.has_exerted(); }).exerted().effort().approach()
 			  == approach);
 	}

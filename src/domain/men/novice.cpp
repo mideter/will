@@ -112,13 +112,13 @@ void Novice::end(Birth<Cell>, const Training& training) const
 
 
 matter::Effort Novice::finish(Birth<Cell>, const Training& training, const Weight weight,
-							  const std::uint32_t repetitions) const
+							  const std::uint32_t repetitions, const Strain strain) const
 {
 	const std::optional<matter::Underway> doing = training.underway();
 	if (!doing)
 		throw NoApproachUnderway();
 
-	matter::Effort kept = temporality().exert(*doing, weight, repetitions);
+	matter::Effort kept = temporality().exert(*doing, weight, repetitions, strain);
 	training.exert(Birth<Novice>{*this}, kept);
 	return kept;
 }

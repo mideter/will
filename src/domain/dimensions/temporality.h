@@ -60,7 +60,8 @@ public:
 
 	virtual matter::Underway end(const matter::Underway& doing) = 0;
 
-	virtual matter::Effort exert(const matter::Underway& doing, Weight weight, std::uint32_t repetitions) = 0;
+	virtual matter::Effort exert(const matter::Underway& doing, Weight weight, std::uint32_t repetitions,
+								 Strain strain) = 0;
 
 	virtual std::vector<matter::Effort> efforts(const std::vector<id::Word>& trainings) const = 0;
 };

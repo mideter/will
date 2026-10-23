@@ -183,6 +183,7 @@ CREATE TABLE IF NOT EXISTS efforts (
   repetitions INTEGER NOT NULL,
   begun_at_ns INTEGER NOT NULL,
   finished_at_ns INTEGER NOT NULL,
+  strain_marks INTEGER NOT NULL DEFAULT 0,
   PRIMARY KEY (training_word_id, exercise_ord, approach_ord)
 );
 
@@ -206,6 +207,7 @@ CREATE TABLE IF NOT EXISTS executions (
 	if (face_ == SqliteFace::Temporality) {
 		answer_kept_rejections();
 		give_underways_their_end();
+		give_efforts_their_strain();
 	}
 	if (face_ == SqliteFace::Spatiality) {
 		give_rooms_their_aspect();
@@ -276,6 +278,28 @@ void SqliteDatabase::give_underways_their_end()
 	// Approaches begun before they could end apart from being told have not ended yet.
 	check_sqlite(sqlite3_exec(db_, "ALTER TABLE underways ADD COLUMN ended_at_ns INTEGER;", nullptr, nullptr, nullptr),
 				 db_, "give underways their end");
+}
+
+
+void SqliteDatabase::give_efforts_their_strain()
+{
+	bool has_strain = false;
+	sqlite3_stmt* raw = nullptr;
+	check_sqlite(sqlite3_prepare_v2(db_, "PRAGMA table_info(efforts);", -1, &raw, nullptr), db_,
+				 "prepare efforts columns");
+	while (sqlite3_step(raw) == SQLITE_ROW) {
+		const auto* column = reinterpret_cast<const char*>(sqlite3_column_text(raw, 1));
+		if (column && std::string_view{column} == "strain_marks")
+			has_strain = true;
+	}
+	sqlite3_finalize(raw);
+	if (has_strain)
+		return;
+
+	// Approaches done before their strain was told went as they should.
+	check_sqlite(sqlite3_exec(db_, "ALTER TABLE efforts ADD COLUMN strain_marks INTEGER NOT NULL DEFAULT 0;", nullptr,
+							  nullptr, nullptr),
+				 db_, "give efforts their strain");
 }
 
 

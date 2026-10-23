@@ -36,6 +36,7 @@ private:
 
 	void answer_kept_rejections();
 	void give_underways_their_end();
+	void give_efforts_their_strain();
 
 	void give_rooms_their_aspect();
 

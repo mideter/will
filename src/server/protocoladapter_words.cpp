@@ -381,8 +381,8 @@ void ProtocolAdapter::handle_finish_approach(const SessionId session_id, const v
 	std::optional<domain::matter::Effort> effort;
 	try {
 		const domain::Contemplation& gaze = gaze_of(self);
-		effort = gaze.cell().finish(gaze, *training, domain::Weight{msg.weight_grams()},
-																 msg.repetitions());
+		effort = gaze.cell().finish(gaze, *training, domain::Weight{msg.weight_grams()}, msg.repetitions(),
+									domain::Strain{msg.strain()});
 	} catch (const std::exception& e) {
 		refuse(session_id, e);
 		return;

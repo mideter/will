@@ -660,7 +660,7 @@ TEST_CASE("sqlite gives the approaches kept before rest was no rest, and the exe
 }
 
 
-TEST_CASE("sqlite gives the approaches begun before they could end apart no end")
+TEST_CASE("sqlite gives the approaches begun before they could end apart no end, and those done before strain none")
 {
 	using namespace will;
 	using namespace will::domain;
@@ -675,7 +675,12 @@ TEST_CASE("sqlite gives the approaches begun before they could end apart no end"
 		REQUIRE(sqlite3_exec(db,
 							 "CREATE TABLE underways (training_word_id INTEGER PRIMARY KEY, exercise_ord INTEGER NOT NULL, "
 							 "approach_ord INTEGER NOT NULL, begun_at_ns INTEGER NOT NULL);"
-							 "INSERT INTO underways VALUES (7, 0, 0, 100);",
+							 "INSERT INTO underways VALUES (7, 0, 0, 100);"
+							 "CREATE TABLE efforts (training_word_id INTEGER NOT NULL, exercise_ord INTEGER NOT NULL, "
+							 "approach_ord INTEGER NOT NULL, weight_grams INTEGER NOT NULL, repetitions INTEGER NOT NULL, "
+							 "begun_at_ns INTEGER NOT NULL, finished_at_ns INTEGER NOT NULL, "
+							 "PRIMARY KEY (training_word_id, exercise_ord, approach_ord));"
+							 "INSERT INTO efforts VALUES (8, 0, 0, 100000, 5, 10, 40);",
 							 nullptr, nullptr, nullptr)
 				== SQLITE_OK);
 		sqlite3_close(db);
@@ -686,6 +691,9 @@ TEST_CASE("sqlite gives the approaches begun before they could end apart no end"
 	REQUIRE(kept.size() == 1);
 	CHECK(kept[0].begun() == Timestamp{100});
 	CHECK_FALSE(kept[0].ended());
+	const std::vector<matter::Effort> done = bundle.temporality().efforts({id::Word{8}});
+	REQUIRE(done.size() == 1);
+	CHECK(done[0].strain() == Strain{});
 }
 
 
@@ -714,12 +722,12 @@ TEST_CASE("sqlite keeps the approach underway and the efforts of a training acro
 		REQUIRE(underway.size() == 1);
 		CHECK(underway[0].approach() == 0);
 		CHECK(underway[0].begun() == begun);
-		const matter::Effort first = time.exert(underway[0], Weight{100'000}, 5);
+		const matter::Effort first = time.exert(underway[0], Weight{100'000}, 5, Strain{});
 		CHECK(first.begun() == begun);
 		CHECK(first.finished() >= first.begun());
 		CHECK(time.underways({training}).empty());
-		CHECK_THROWS_AS(time.exert(underway[0], Weight{100'000}, 5), std::logic_error);
-		time.exert(time.begin(training, 0, 1), Weight{100'000}, 3);
+		CHECK_THROWS_AS(time.exert(underway[0], Weight{100'000}, 5, Strain{}), std::logic_error);
+		time.exert(time.begin(training, 0, 1), Weight{100'000}, 3, Strain{2});
 	}
 
 	{
@@ -729,6 +737,8 @@ TEST_CASE("sqlite keeps the approach underway and the efforts of a training acro
 		CHECK(kept[0].approach() == 0);
 		CHECK(kept[1].approach() == 1);
 		CHECK(kept[1].repetitions() == 3);
+		CHECK(kept[1].strain() == Strain{2});
+		CHECK(kept[0].strain() == Strain{});
 		CHECK(kept[1].weight().grams() == 100'000);
 		CHECK(kept[0].begun() == begun);
 		CHECK(kept[0].finished() >= kept[0].begun());
@@ -750,7 +760,7 @@ TEST_CASE("sqlite keeps the approach underway and the efforts of a training acro
 		REQUIRE(underway.size() == 1);
 		REQUIRE(underway[0].ended());
 		CHECK(*underway[0].ended() == ended);
-		CHECK(time.exert(underway[0], Weight{100'000}, 4).finished() == ended);
+		CHECK(time.exert(underway[0], Weight{100'000}, 4, Strain{1}).finished() == ended);
 	}
 
 	CHECK_THROWS_AS((matter::Effort{training, 0, 0, Weight{0}, 5, Timestamp{10}, Timestamp{9}}), std::invalid_argument);

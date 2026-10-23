@@ -132,7 +132,7 @@ std::string effort_text(const v1::Effort& effort)
 {
 	return std::to_string(effort.exercise() + 1) + "." + std::to_string(effort.approach() + 1) + " "
 		   + weight_text(effort.weight_grams()) + "×" + std::to_string(effort.repetitions()) + " in "
-		   + span_text(effort.finished_at_ns() - effort.begun_at_ns());
+		   + span_text(effort.finished_at_ns() - effort.begun_at_ns()) + std::string(effort.strain(), '!');
 }
 
 

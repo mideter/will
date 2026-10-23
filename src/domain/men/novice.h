@@ -52,7 +52,8 @@ public:
 
 	void end(Birth<Cell> cell, const Training& training) const;
 
-	matter::Effort finish(Birth<Cell> cell, const Training& training, Weight weight, std::uint32_t repetitions) const;
+	matter::Effort finish(Birth<Cell> cell, const Training& training, Weight weight, std::uint32_t repetitions,
+						  Strain strain) const;
 
 	matter::Remark remark(Birth<Cell> cell, const Training& training, std::uint32_t exercise, const Saying& saying) const;
 

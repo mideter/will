@@ -171,7 +171,7 @@ void print_help(ConsoleUi& ui)
 	ui.print_commands("Arranging", "/arrange inner|outer <number|room>  (at the helm, as /regard)");
 	ui.print_commands("Obedience", "/ask <name>  /accept <name>  /reject <name> (at the helm)  /supplications  /done <number> [report]");
 	ui.print_commands("Training", "/train [title] | <exercise> 60x10 1:30/70x8 2:00/80x6 | …  (1:30/ — rest before)");
-	ui.print_commands("", "/begin <training> <exercise> <approach>  /end <training>  /finish <training> 60x10  /remark <training> <exercise> <text>  /done <training> [report]");
+	ui.print_commands("", "/begin <training> <exercise> <approach>  /end <training>  /finish <training> 60x10 [!|!!]  /remark <training> <exercise> <text>  /done <training> [report]");
 	ui.print_commands("Birth", "/birth (your gates: the unborn)  /bear <mark>");
 	ui.print_status("Type text in a room to write there.", "Ctrl+D to exit");
 }
@@ -251,16 +251,22 @@ bool handle_slash_command(WillClient& client, ConsoleUi& ui, ShownRooms& rooms, 
 	}
 	if (cmd == "finish") {
 		const auto sp = args.find(' ');
-		const auto approach = sp == std::string_view::npos ? std::nullopt : approach_of(trimmed(args.substr(sp + 1)));
+		std::string_view done = sp == std::string_view::npos ? std::string_view{} : trimmed(args.substr(sp + 1));
+		std::uint32_t strain = 0;
+		while (!done.empty() && done.back() == '!') {
+			++strain;
+			done = trimmed(done.substr(0, done.size() - 1));
+		}
+		const auto approach = done.empty() ? std::nullopt : approach_of(done);
 		if (!approach) {
-			ui.print_notice("usage: /finish <training> <weight>x<repetitions>");
+			ui.print_notice("usage: /finish <training> <weight>x<repetitions> [!|!!]");
 			return true;
 		}
 		try {
 			client.finish_approach(std::stoull(std::string{args.substr(0, sp)}), approach->weight_grams(),
-								   approach->repetitions());
+								   approach->repetitions(), strain);
 		} catch (const std::exception&) {
-			ui.print_notice("usage: /finish <training> <weight>x<repetitions>");
+			ui.print_notice("usage: /finish <training> <weight>x<repetitions> [!|!!]");
 		}
 		return true;
 	}

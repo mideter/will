@@ -176,9 +176,9 @@ void Cell::end(const Contemplation& gaze, const Training& training) const
 
 
 matter::Effort Cell::finish(const Contemplation& gaze, const Training& training, const Weight weight,
-							const std::uint32_t repetitions) const
+							const std::uint32_t repetitions, const Strain strain) const
 {
-	return obeying<TrainOnlyInContemplatedTie, OnlyNoviceTrains>(gaze, training).finish(Birth<Cell>{*this}, training, weight, repetitions);
+	return obeying<TrainOnlyInContemplatedTie, OnlyNoviceTrains>(gaze, training).finish(Birth<Cell>{*this}, training, weight, repetitions, strain);
 }
 
 

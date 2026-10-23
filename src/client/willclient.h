@@ -44,7 +44,8 @@ public:
 				const std::vector<v1::Exercise>& performed = {}) const;
 
 	void begin_approach(std::uint64_t behest_id, std::uint32_t exercise, std::uint32_t approach) const;
-	void finish_approach(std::uint64_t behest_id, std::uint32_t weight_grams, std::uint32_t repetitions) const;
+	void finish_approach(std::uint64_t behest_id, std::uint32_t weight_grams, std::uint32_t repetitions,
+						 std::uint32_t strain = 0) const;
 	void say_remark(std::uint64_t behest_id, std::uint32_t exercise, std::string_view body) const;
 	void end_approach(std::uint64_t behest_id) const;
 

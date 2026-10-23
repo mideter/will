@@ -35,7 +35,7 @@ public:
 	std::vector<domain::matter::Underway> underways(const std::vector<domain::id::Word>& trainings) const override;
 	domain::matter::Underway end(const domain::matter::Underway& doing) override;
 	domain::matter::Effort exert(const domain::matter::Underway& doing, domain::Weight weight,
-								 std::uint32_t repetitions) override;
+								 std::uint32_t repetitions, domain::Strain strain) override;
 	std::vector<domain::matter::Effort> efforts(const std::vector<domain::id::Word>& trainings) const override;
 
 private:

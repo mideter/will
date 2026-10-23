@@ -323,7 +323,7 @@ void WillClient::begin_approach(const std::uint64_t behest_id, const std::uint32
 
 
 void WillClient::finish_approach(const std::uint64_t behest_id, const std::uint32_t weight_grams,
-								 const std::uint32_t repetitions) const
+								 const std::uint32_t repetitions, const std::uint32_t strain) const
 {
 	if (!authenticated_)
 		throw std::logic_error("WillClient: not authenticated");
@@ -333,6 +333,7 @@ void WillClient::finish_approach(const std::uint64_t behest_id, const std::uint3
 	msg->set_behest_id(behest_id);
 	msg->set_weight_grams(weight_grams);
 	msg->set_repetitions(repetitions);
+	msg->set_strain(strain);
 	if (!write_event(event))
 		throw std::runtime_error("Will protocol: failed to send FinishApproach");
 }
