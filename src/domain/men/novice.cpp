@@ -73,6 +73,11 @@ void Novice::begin(Birth<Cell>, const Training& training, const std::uint32_t ex
 		throw AlreadyFulfilled();
 	if (exercise >= training.exercises().size())
 		throw NoSuchExercise();
+	if (const std::optional<matter::Underway> doing = training.underway()) {
+		if (doing->ended())
+			throw TellWhatWasDone();
+		throw AnotherApproachUnderway();
+	}
 
 	const auto willed = static_cast<std::uint32_t>(training.exercises()[exercise].approaches().size());
 	std::uint32_t count = willed;
@@ -90,10 +95,19 @@ void Novice::begin(Birth<Cell>, const Training& training, const std::uint32_t ex
 	if (approach != next)
 		throw ApproachesInOrder();
 
-	if (training.underway())
-		throw AnotherApproachUnderway();
-
 	training.begin(Birth<Novice>{*this}, temporality().begin(training.id(), exercise, approach));
+}
+
+
+void Novice::end(Birth<Cell>, const Training& training) const
+{
+	const std::optional<matter::Underway> doing = training.underway();
+	if (!doing)
+		throw NoApproachUnderway();
+	if (doing->ended())
+		throw TellWhatWasDone();
+
+	training.end(Birth<Novice>{*this}, temporality().end(*doing));
 }
 
 
@@ -139,8 +153,11 @@ std::shared_ptr<const Deed> Novice::execute(Birth<Cell>, const Behest& behest, s
 	if (!training && performed)
 		throw PlainBehestWithoutExercises();
 	if (training) {
-		if (training->underway())
+		if (const std::optional<matter::Underway> doing = training->underway()) {
+			if (doing->ended())
+				throw TellWhatWasDone();
 			throw FinishApproachFirst();
+		}
 		if (!performed)
 			performed = done_of(*training);
 	}

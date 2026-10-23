@@ -327,6 +327,8 @@ v1::ServerEvent ProtocolAdapter::underway_event(const domain::Training& training
 		told->set_approach(doing->approach());
 		told->set_begun_at_ns(doing->begun().value());
 		told->set_doing(true);
+		if (doing->ended())
+			told->set_ended_at_ns(doing->ended()->value());
 	}
 	return event;
 }
@@ -346,6 +348,25 @@ void ProtocolAdapter::handle_begin_approach(const SessionId session_id, const v1
 		refuse(session_id, e);
 		return;
 	}
+	tell_tie(training->tie(), underway_event(*training));
+}
+
+
+void ProtocolAdapter::handle_end_approach(const SessionId session_id, const v1::EndApproach& msg)
+{
+	const domain::Man& self = session_man(session_id);
+	const std::shared_ptr<const domain::Training> training = training_in_gaze(session_id, self, msg.behest_id());
+	if (!training)
+		return;
+
+	try {
+		const domain::Contemplation& gaze = gaze_of(self);
+		gaze.cell().end(gaze, *training);
+	} catch (const std::exception& e) {
+		refuse(session_id, e);
+		return;
+	}
+
 	tell_tie(training->tie(), underway_event(*training));
 }
 

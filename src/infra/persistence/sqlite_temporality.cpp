@@ -305,7 +305,9 @@ std::vector<domain::matter::Underway> SqliteTemporality::underways(const std::ve
 
 	std::vector<domain::matter::Underway> rows;
 	for (const domain::id::Word training : trainings) {
-		SqliteStmt stmt(db, "SELECT exercise_ord, approach_ord, begun_at_ns FROM underways WHERE training_word_id = ?;",
+		SqliteStmt stmt(db,
+						"SELECT exercise_ord, approach_ord, begun_at_ns, ended_at_ns FROM underways "
+						"WHERE training_word_id = ?;",
 						"prepare underways");
 		stmt.bind_i64(1, static_cast<std::int64_t>(training.value()), "bind training");
 		if (stmt.step_row("underways step")) {
@@ -314,10 +316,34 @@ std::vector<domain::matter::Underway> SqliteTemporality::underways(const std::ve
 				static_cast<std::uint32_t>(stmt.column_i64(0)),
 				static_cast<std::uint32_t>(stmt.column_i64(1)),
 				domain::Timestamp{stmt.column_i64(2)},
+				stmt.column_is_null(3) ? std::nullopt : std::optional{domain::Timestamp{stmt.column_i64(3)}},
 			});
 		}
 	}
 	return rows;
+}
+
+
+domain::matter::Underway SqliteTemporality::end(const domain::matter::Underway& doing)
+{
+	const domain::matter::Underway ended{doing.training(), doing.exercise(), doing.approach(), doing.begun(),
+										 eternity_.time().instant()};
+
+	std::lock_guard lock(time_db_.mutex());
+	sqlite3* const db = time_db_.db();
+	SqliteStmt stmt(db,
+					"UPDATE underways SET ended_at_ns = ? WHERE training_word_id = ? AND exercise_ord = ? "
+					"AND approach_ord = ? AND begun_at_ns = ? AND ended_at_ns IS NULL;",
+					"prepare end");
+	stmt.bind_i64(1, ended.ended()->value(), "bind ended");
+	stmt.bind_i64(2, static_cast<std::int64_t>(doing.training().value()), "bind training");
+	stmt.bind_i64(3, doing.exercise(), "bind exercise");
+	stmt.bind_i64(4, doing.approach(), "bind approach");
+	stmt.bind_i64(5, doing.begun().value(), "bind begun");
+	stmt.step_done("end step");
+	if (sqlite3_changes(db) != 1)
+		throw std::logic_error("the approach is not underway, or has ended already");
+	return ended;
 }
 
 
@@ -327,17 +353,16 @@ domain::matter::Effort SqliteTemporality::exert(const domain::matter::Underway& 
 	const domain::id::Word training = doing.training();
 	const std::uint32_t exercise = doing.exercise();
 	const std::uint32_t approach = doing.approach();
-	const domain::matter::Effort effort{training, exercise, approach, weight, repetitions, doing.begun(),
-										eternity_.time().instant()};
 
 	std::lock_guard lock(time_db_.mutex());
 	sqlite3* const db = time_db_.db();
 	SqliteTransaction tx(db);
 
+	std::optional<domain::Timestamp> ended;
 	{
 		SqliteStmt kept(db,
-						"SELECT 1 FROM underways WHERE training_word_id = ? AND exercise_ord = ? AND approach_ord = ? "
-						"AND begun_at_ns = ?;",
+						"SELECT ended_at_ns FROM underways WHERE training_word_id = ? AND exercise_ord = ? "
+						"AND approach_ord = ? AND begun_at_ns = ?;",
 						"prepare kept underway");
 		kept.bind_i64(1, static_cast<std::int64_t>(training.value()), "bind training");
 		kept.bind_i64(2, exercise, "bind exercise");
@@ -345,7 +370,11 @@ domain::matter::Effort SqliteTemporality::exert(const domain::matter::Underway& 
 		kept.bind_i64(4, doing.begun().value(), "bind begun");
 		if (!kept.step_row("kept underway step"))
 			throw std::logic_error("the approach is not underway");
+		if (!kept.column_is_null(0))
+			ended = domain::Timestamp{kept.column_i64(0)};
 	}
+	const domain::matter::Effort effort{training, exercise, approach, weight, repetitions, doing.begun(),
+										ended.value_or(eternity_.time().instant())};
 	{
 		SqliteStmt kept(db,
 						"SELECT 1 FROM efforts WHERE training_word_id = ? AND exercise_ord = ? AND approach_ord = ?;",

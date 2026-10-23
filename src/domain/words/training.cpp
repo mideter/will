@@ -75,6 +75,19 @@ void Training::begin(const Birth<Novice> birth, matter::Underway kept) const
 }
 
 
+void Training::end(const Birth<Novice> birth, matter::Underway kept) const
+{
+	if (birth.parent().Soul::id() != tie().novice().Soul::id())
+		throw std::logic_error("only the novice of the tie ends an approach of its training");
+
+	std::lock_guard lock(*mutex_);
+	if (!underway_ || underway_->exercise() != kept.exercise() || underway_->approach() != kept.approach()
+		|| underway_->begun() != kept.begun() || !kept.ended())
+		throw std::logic_error("the approach ended is not the one underway");
+	underway_ = std::move(kept);
+}
+
+
 void Training::exert(const Birth<Novice> birth, matter::Effort kept) const
 {
 	if (birth.parent().Soul::id() != tie().novice().Soul::id())

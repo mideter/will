@@ -353,6 +353,18 @@ void WillClient::say_remark(const std::uint64_t behest_id, const std::uint32_t e
 }
 
 
+void WillClient::end_approach(const std::uint64_t behest_id) const
+{
+	if (!authenticated_)
+		throw std::logic_error("WillClient: not authenticated");
+
+	v1::ClientEvent event;
+	event.mutable_end_approach()->set_behest_id(behest_id);
+	if (!write_event(event))
+		throw std::runtime_error("Will protocol: failed to send EndApproach");
+}
+
+
 void WillClient::train(const std::string_view title, const std::vector<v1::Exercise>& exercises) const
 {
 	if (!authenticated_)

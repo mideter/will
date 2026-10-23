@@ -171,7 +171,8 @@ CREATE TABLE IF NOT EXISTS underways (
   training_word_id INTEGER PRIMARY KEY,
   exercise_ord INTEGER NOT NULL,
   approach_ord INTEGER NOT NULL,
-  begun_at_ns INTEGER NOT NULL
+  begun_at_ns INTEGER NOT NULL,
+  ended_at_ns INTEGER
 );
 
 CREATE TABLE IF NOT EXISTS efforts (
@@ -202,8 +203,10 @@ CREATE TABLE IF NOT EXISTS executions (
 		give_approaches_their_rest();
 		give_exercises_their_instruction();
 	}
-	if (face_ == SqliteFace::Temporality)
+	if (face_ == SqliteFace::Temporality) {
 		answer_kept_rejections();
+		give_underways_their_end();
+	}
 	if (face_ == SqliteFace::Spatiality) {
 		give_rooms_their_aspect();
 		fold_birth_rooms_into_gates();
@@ -252,6 +255,27 @@ void SqliteDatabase::give_exercises_their_instruction()
 	check_sqlite(sqlite3_exec(db_, "ALTER TABLE exercises ADD COLUMN instruction TEXT NOT NULL DEFAULT '';",
 							  nullptr, nullptr, nullptr),
 				 db_, "give exercises their instruction");
+}
+
+
+void SqliteDatabase::give_underways_their_end()
+{
+	bool has_end = false;
+	sqlite3_stmt* raw = nullptr;
+	check_sqlite(sqlite3_prepare_v2(db_, "PRAGMA table_info(underways);", -1, &raw, nullptr), db_,
+				 "prepare underways columns");
+	while (sqlite3_step(raw) == SQLITE_ROW) {
+		const auto* column = reinterpret_cast<const char*>(sqlite3_column_text(raw, 1));
+		if (column && std::string_view{column} == "ended_at_ns")
+			has_end = true;
+	}
+	sqlite3_finalize(raw);
+	if (has_end)
+		return;
+
+	// Approaches begun before they could end apart from being told have not ended yet.
+	check_sqlite(sqlite3_exec(db_, "ALTER TABLE underways ADD COLUMN ended_at_ns INTEGER;", nullptr, nullptr, nullptr),
+				 db_, "give underways their end");
 }
 
 

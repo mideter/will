@@ -20,7 +20,7 @@ class Tie;
 
 
 /// A behest that wills exercises; the novice does it approach by approach, one underway at
-/// a time, and fulfils it by a deed. Its efforts come in the order they were finished, his
+/// a time — ended, it waits to be told what was done — and fulfils it by a deed. Its efforts come in the order they were finished, his
 /// remarks on its exercises in the order they were said.
 class Training final : public Behest {
 public:
@@ -36,6 +36,8 @@ public:
 	std::optional<matter::Underway> underway() const;
 
 	void begin(Birth<Novice> birth, matter::Underway kept) const;
+
+	void end(Birth<Novice> birth, matter::Underway kept) const;
 
 	void exert(Birth<Novice> birth, matter::Effort kept) const;
 

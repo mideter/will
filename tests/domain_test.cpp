@@ -1868,6 +1868,54 @@ TEST_CASE("the novice remarks on the exercises of a training as often as he will
 }
 
 
+TEST_CASE("an approach ends when the novice says so, and what was done in it is told after; until told, no other begins")
+{
+	InMemoryCosmos cosmos;
+	World& world = cosmos.life().create().world();
+	const auto& novice = born(world, DeviceToken::generate());
+	const auto& testator = born(world, DeviceToken::generate());
+	admit_at_gates(world, novice, testator);
+	admit_at_gates(world, testator, novice);
+	supplicate(world, novice, testator);
+	const Shepherding& shepherding = accept(world, testator, *testator.supplication(novice));
+
+	testator.wake();
+	testator.contemplate(room_in(testator, shepherding));
+	const std::shared_ptr<const Training> training
+		= train(world, testator, "Среда", {Exercise{"Присед", {Approach{Weight{100'000}, 5}, Approach{Weight{100'000}, 5}}}});
+
+	novice.wake();
+	novice.contemplate(room_in(novice, novice.obedience(testator)));
+	CHECK_THROWS_AS(end(world, novice, *training), NoApproachUnderway);
+
+	cosmos.shared().time.set_instant(Timestamp{100});
+	begin(world, novice, *training, 0, 0);
+	cosmos.shared().time.set_instant(Timestamp{130});
+	end(world, novice, *training);
+	REQUIRE(training->underway());
+	REQUIRE(training->underway()->ended());
+	CHECK(*training->underway()->ended() == Timestamp{130});
+
+	// Ended, the approach waits to be told: it ends once, and no other begins, nor is the
+	// training fulfilled.
+	CHECK_THROWS_AS(end(world, novice, *training), TellWhatWasDone);
+	CHECK_THROWS_AS(begin(world, novice, *training, 0, 1), TellWhatWasDone);
+	CHECK_THROWS_AS(execute(world, novice, *training), TellWhatWasDone);
+
+	// Told later, the effort finished when the approach ended, not when it was told.
+	cosmos.shared().time.set_instant(Timestamp{190});
+	const matter::Effort done = finish(world, novice, *training, Weight{100'000}, 5);
+	CHECK(done.begun() == Timestamp{100});
+	CHECK(done.finished() == Timestamp{130});
+	CHECK_FALSE(training->underway());
+
+	// Not ended apart, an approach finishes when it is told.
+	begin(world, novice, *training, 0, 1);
+	cosmos.shared().time.set_instant(Timestamp{250});
+	CHECK(finish(world, novice, *training, Weight{100'000}, 5).finished() == Timestamp{250});
+}
+
+
 TEST_CASE("the world awakens though what is kept disagrees: it passes it over, tells it, and makes fatherhood whole")
 {
 	InMemoryShared store;

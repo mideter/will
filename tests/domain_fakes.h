@@ -482,6 +482,20 @@ public:
 		return out;
 	}
 
+	matter::Underway end(const matter::Underway& doing) override
+	{
+		for (matter::Underway& row : shared_.underways) {
+			if (row.training() == doing.training() && row.exercise() == doing.exercise()
+				&& row.approach() == doing.approach() && row.begun() == doing.begun()) {
+				if (row.ended())
+					throw std::logic_error("the approach has already ended");
+				row = matter::Underway{row.training(), row.exercise(), row.approach(), row.begun(), eternity_.time().instant()};
+				return row;
+			}
+		}
+		throw std::logic_error("the approach is not underway");
+	}
+
 	matter::Effort exert(const matter::Underway& doing, const Weight weight, const std::uint32_t repetitions) override
 	{
 		const auto underway = std::find_if(shared_.underways.begin(), shared_.underways.end(), [&](const auto& row) {
@@ -496,7 +510,7 @@ public:
 				throw std::logic_error("the approach is already done");
 		}
 		shared_.efforts.emplace_back(doing.training(), doing.exercise(), doing.approach(), weight, repetitions,
-									 doing.begun(), eternity_.time().instant());
+									 doing.begun(), underway->ended().value_or(eternity_.time().instant()));
 		shared_.underways.erase(underway);
 		return shared_.efforts.back();
 	}
@@ -656,6 +670,13 @@ inline void begin(World& world, const Man& man, const Training& training, std::u
 {
 	const Contemplation& gaze = gaze_of(world, man);
 	gaze.cell().begin(gaze, training, exercise, approach);
+}
+
+
+inline void end(World& world, const Man& man, const Training& training)
+{
+	const Contemplation& gaze = gaze_of(world, man);
+	gaze.cell().end(gaze, training);
 }
 
 

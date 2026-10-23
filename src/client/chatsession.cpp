@@ -171,7 +171,7 @@ void print_help(ConsoleUi& ui)
 	ui.print_commands("Arranging", "/arrange inner|outer <number|room>  (at the helm, as /regard)");
 	ui.print_commands("Obedience", "/ask <name>  /accept <name>  /reject <name> (at the helm)  /supplications  /done <number> [report]");
 	ui.print_commands("Training", "/train [title] | <exercise> 60x10 1:30/70x8 2:00/80x6 | …  (1:30/ — rest before)");
-	ui.print_commands("", "/begin <training> <exercise> <approach>  /finish <training> 60x10  /remark <training> <exercise> <text>  /done <training> [report]");
+	ui.print_commands("", "/begin <training> <exercise> <approach>  /end <training>  /finish <training> 60x10  /remark <training> <exercise> <text>  /done <training> [report]");
 	ui.print_commands("Birth", "/birth (your gates: the unborn)  /bear <mark>");
 	ui.print_status("Type text in a room to write there.", "Ctrl+D to exit");
 }
@@ -261,6 +261,14 @@ bool handle_slash_command(WillClient& client, ConsoleUi& ui, ShownRooms& rooms, 
 								   approach->repetitions());
 		} catch (const std::exception&) {
 			ui.print_notice("usage: /finish <training> <weight>x<repetitions>");
+		}
+		return true;
+	}
+	if (cmd == "end") {
+		try {
+			client.end_approach(std::stoull(std::string{args}));
+		} catch (const std::exception&) {
+			ui.print_notice("usage: /end <training>");
 		}
 		return true;
 	}

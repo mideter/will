@@ -94,6 +94,7 @@ public:
 									  std::optional<std::vector<Exercise>> performed) const;
 	void begin(const Contemplation& gaze, const Training& training, std::uint32_t exercise,
 			   std::uint32_t approach) const;
+	void end(const Contemplation& gaze, const Training& training) const;
 	matter::Effort finish(const Contemplation& gaze, const Training& training, Weight weight,
 						  std::uint32_t repetitions) const;
 	matter::Remark remark(const Contemplation& gaze, const Training& training, std::uint32_t exercise,

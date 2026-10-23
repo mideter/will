@@ -33,6 +33,7 @@ public:
 	std::vector<domain::matter::Execution> executions(const std::vector<domain::id::Word>& words) const override;
 	domain::matter::Underway begin(domain::id::Word training, std::uint32_t exercise, std::uint32_t approach) override;
 	std::vector<domain::matter::Underway> underways(const std::vector<domain::id::Word>& trainings) const override;
+	domain::matter::Underway end(const domain::matter::Underway& doing) override;
 	domain::matter::Effort exert(const domain::matter::Underway& doing, domain::Weight weight,
 								 std::uint32_t repetitions) override;
 	std::vector<domain::matter::Effort> efforts(const std::vector<domain::id::Word>& trainings) const override;

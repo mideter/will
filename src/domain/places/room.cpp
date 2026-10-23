@@ -169,6 +169,12 @@ void Cell::begin(const Contemplation& gaze, const Training& training, const std:
 }
 
 
+void Cell::end(const Contemplation& gaze, const Training& training) const
+{
+	obeying<TrainOnlyInContemplatedTie, OnlyNoviceTrains>(gaze, training).end(Birth<Cell>{*this}, training);
+}
+
+
 matter::Effort Cell::finish(const Contemplation& gaze, const Training& training, const Weight weight,
 							const std::uint32_t repetitions) const
 {

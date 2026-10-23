@@ -79,6 +79,11 @@ public:
 		return sqlite3_column_int64(stmt_, i);
 	}
 
+	bool column_is_null(const int i) const
+	{
+		return sqlite3_column_type(stmt_, i) == SQLITE_NULL;
+	}
+
 	std::string_view column_text(const int i) const
 	{
 		const unsigned char* const text = sqlite3_column_text(stmt_, i);

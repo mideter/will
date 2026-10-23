@@ -219,7 +219,14 @@ message SayRemark {
 }
 
 
-// Finish the approach underway with the weight and repetitions done.
+// End the approach underway now; what was done in it is told after, by FinishApproach.
+message EndApproach {
+    uint64 behest_id = 1;
+}
+
+
+// Finish the approach underway with the weight and repetitions done: it finished when it
+// ended, or now if it was not ended before.
 message FinishApproach {
     uint64 behest_id = 1;
     uint32 weight_grams = 2;
@@ -375,6 +382,7 @@ message Underway {
     uint32 approach = 3;
     int64 begun_at_ns = 4;
     bool doing = 5;
+    int64 ended_at_ns = 6;  // ended, and what was done in it not yet told; zero while it goes on
 }
 
 
@@ -470,6 +478,7 @@ enum NoticeCode {
     NOTICE_STAND_AT_GATES = 42;
     NOTICE_ONLY_HOST_ACTS = 44;
     NOTICE_PASS_THROUGH_GATES = 45;
+    NOTICE_TELL_WHAT_WAS_DONE = 46;
 
     // What the server itself refuses.
     // 102–104, 108 and 111 were the server's own copies of the world's rules: the
@@ -546,6 +555,7 @@ message ClientEvent {
         BeginApproach begin_approach = 20;
         FinishApproach finish_approach = 21;
         SayRemark say_remark = 22;
+        EndApproach end_approach = 23;
     }
     // Numbered, the event is answered by one Reply with this number; zero, as before,
     // by notices.

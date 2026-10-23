@@ -63,6 +63,13 @@ public:
 	{}
 };
 
+class TellWhatWasDone final : public Refusal {
+public:
+	TellWhatWasDone()
+		: Refusal("tell first what was done in the approach")
+	{}
+};
+
 class FinishApproachFirst final : public Refusal {
 public:
 	FinishApproachFirst()

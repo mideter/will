@@ -203,6 +203,7 @@ v1::NoticeCode code_of(const domain::Refusal& refusal)
 		{typeid(domain::AnotherApproachUnderway), v1::NOTICE_ANOTHER_APPROACH_UNDERWAY},
 		{typeid(domain::NoApproachUnderway), v1::NOTICE_NO_APPROACH_UNDERWAY},
 		{typeid(domain::FinishApproachFirst), v1::NOTICE_FINISH_APPROACH_FIRST},
+		{typeid(domain::TellWhatWasDone), v1::NOTICE_TELL_WHAT_WAS_DONE},
 		{typeid(domain::NotOwnFather), v1::NOTICE_NOT_OWN_FATHER},
 		{typeid(domain::NotDescendantAsFather), v1::NOTICE_NOT_DESCENDANT_AS_FATHER},
 	};

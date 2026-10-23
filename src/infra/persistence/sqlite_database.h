@@ -35,6 +35,7 @@ private:
 	void init_schema();
 
 	void answer_kept_rejections();
+	void give_underways_their_end();
 
 	void give_rooms_their_aspect();
 

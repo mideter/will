@@ -660,6 +660,35 @@ TEST_CASE("sqlite gives the approaches kept before rest was no rest, and the exe
 }
 
 
+TEST_CASE("sqlite gives the approaches begun before they could end apart no end")
+{
+	using namespace will;
+	using namespace will::domain;
+
+	const std::string directory = "/tmp/will-sqlite-underway-end-test-" + std::to_string(getpid());
+	const ScratchDirectory scratch{directory};
+
+	// As kept before an approach could end apart from being told.
+	{
+		sqlite3* db = nullptr;
+		REQUIRE(sqlite3_open((directory + "/will.time.db").c_str(), &db) == SQLITE_OK);
+		REQUIRE(sqlite3_exec(db,
+							 "CREATE TABLE underways (training_word_id INTEGER PRIMARY KEY, exercise_ord INTEGER NOT NULL, "
+							 "approach_ord INTEGER NOT NULL, begun_at_ns INTEGER NOT NULL);"
+							 "INSERT INTO underways VALUES (7, 0, 0, 100);",
+							 nullptr, nullptr, nullptr)
+				== SQLITE_OK);
+		sqlite3_close(db);
+	}
+
+	SqlitePersistenceBundle bundle(directory);
+	const std::vector<matter::Underway> kept = bundle.temporality().underways({id::Word{7}});
+	REQUIRE(kept.size() == 1);
+	CHECK(kept[0].begun() == Timestamp{100});
+	CHECK_FALSE(kept[0].ended());
+}
+
+
 TEST_CASE("sqlite keeps the approach underway and the efforts of a training across reopen; an approach is done once")
 {
 	using namespace will;
@@ -703,6 +732,25 @@ TEST_CASE("sqlite keeps the approach underway and the efforts of a training acro
 		CHECK(kept[1].weight().grams() == 100'000);
 		CHECK(kept[0].begun() == begun);
 		CHECK(kept[0].finished() >= kept[0].begun());
+	}
+
+	// An approach ended apart outlives the reopen ended; told, it finished when it ended.
+	Timestamp ended{0};
+	{
+		SqlitePersistenceBundle bundle(directory);
+		Temporality& time = bundle.temporality();
+		const matter::Underway doing = time.begin(training, 0, 2);
+		ended = *time.end(doing).ended();
+		CHECK_THROWS_AS(time.end(doing), std::logic_error);
+	}
+	{
+		SqlitePersistenceBundle bundle(directory);
+		Temporality& time = bundle.temporality();
+		const std::vector<matter::Underway> underway = time.underways({training});
+		REQUIRE(underway.size() == 1);
+		REQUIRE(underway[0].ended());
+		CHECK(*underway[0].ended() == ended);
+		CHECK(time.exert(underway[0], Weight{100'000}, 4).finished() == ended);
 	}
 
 	CHECK_THROWS_AS((matter::Effort{training, 0, 0, Weight{0}, 5, Timestamp{10}, Timestamp{9}}), std::invalid_argument);

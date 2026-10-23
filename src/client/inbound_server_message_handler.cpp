@@ -365,7 +365,8 @@ void ReceivingMessageHandler::on(const v1::ServerEvent& event)
 	}
 	case v1::ServerEvent::kUnderway:
 		if (event.underway().doing())
-			ui_.print_notice("Underway: training #" + std::to_string(event.underway().behest_id()) + ", exercise "
+			ui_.print_notice(std::string{event.underway().ended_at_ns() != 0 ? "Ended, tell what was done" : "Underway"}
+								 + ": training #" + std::to_string(event.underway().behest_id()) + ", exercise "
 								 + std::to_string(event.underway().exercise() + 1) + ", approach "
 								 + std::to_string(event.underway().approach() + 1),
 							 "/finish " + std::to_string(event.underway().behest_id()) + " <weight>x<repetitions>");

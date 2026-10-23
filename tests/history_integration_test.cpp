@@ -1108,6 +1108,25 @@ TEST_CASE("the testator wills a training over the wire; the novice fulfils it te
 		CHECK(underway.underway().behest_id() == id);
 		CHECK(underway.underway().approach() == approach);
 
+		// The second approach is ended first and told after: it finished when it ended.
+		std::int64_t ended_at = 0;
+		if (approach == 1) {
+			will::v1::ClientEvent end;
+			end.mutable_end_approach()->set_behest_id(id);
+			REQUIRE(novice.stream->Write(end));
+			const will::v1::ServerEvent ended
+				= read_until(*trainer.stream, [](const auto& e) { return e.has_underway() && e.underway().ended_at_ns() != 0; });
+			ended_at = ended.underway().ended_at_ns();
+			CHECK(ended_at >= ended.underway().begun_at_ns());
+			read_until(*novice.stream, [](const auto& e) { return e.has_underway() && e.underway().ended_at_ns() != 0; });
+
+			will::v1::ClientEvent again;
+			again.mutable_end_approach()->set_behest_id(id);
+			REQUIRE(novice.stream->Write(again));
+			CHECK(read_until(*novice.stream, [](const auto& e) { return e.has_protocol_notice(); }).protocol_notice().code()
+				  == will::v1::NOTICE_TELL_WHAT_WAS_DONE);
+		}
+
 		will::v1::ClientEvent finish;
 		finish.mutable_finish_approach()->set_behest_id(id);
 		finish.mutable_finish_approach()->set_weight_grams(70'000);
@@ -1118,6 +1137,8 @@ TEST_CASE("the testator wills a training over the wire; the novice fulfils it te
 		CHECK(exerted.exerted().effort().approach() == approach);
 		CHECK(exerted.exerted().effort().repetitions() == reps);
 		CHECK(exerted.exerted().effort().finished_at_ns() >= exerted.exerted().effort().begun_at_ns());
+		if (ended_at != 0)
+			CHECK(exerted.exerted().effort().finished_at_ns() == ended_at);
 		CHECK(read_until(*novice.stream, [](const auto& e) { return e.has_exerted(); }).exerted().effort().approach()
 			  == approach);
 	}
