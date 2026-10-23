@@ -21,13 +21,15 @@ class Cell;
 class Novice;
 class Training;
 class Helm;
+class Witness;
 
 
 class World;
 
 
 /// The side of a tie who wills its behests and trainings, and hears the supplications that
-/// would bind one, refusing those he may not hear.
+/// would bind one, refusing those he may not hear. Seeing his tie, as he looks at it or as it
+/// is fulfilled before his eyes, he reviews its deeds.
 class Testator : public virtual Embodied {
 public:
 	const Shepherding& accept(Birth<Helm> helm, const Supplication& ask) const;
@@ -37,6 +39,9 @@ public:
 
 	std::shared_ptr<const Training> train(Birth<Cell> cell, const Shepherding& shepherding, const Saying& title,
 										  std::vector<Exercise> exercises) const;
+
+	void review(Birth<Witness> witness, const Shepherding& shepherding) const;
+	void review(Birth<Novice> novice, const Shepherding& shepherding) const;
 
 	const Shepherding& shepherding(const Novice& novice) const;
 	std::shared_ptr<const Supplication> supplication(const Novice& suppliant) const;
@@ -53,6 +58,7 @@ private:
 	friend class Tie;
 
 	const Shepherding& shepherd(const Shepherding& place) const;
+	void review(const Shepherding& shepherding) const;
 	void release(const Shepherding& place) const;
 
 

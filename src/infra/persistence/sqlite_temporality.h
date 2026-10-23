@@ -10,7 +10,7 @@
 namespace will {
 
 
-/// SQLite Temporality — vessels, embodiments, datings, supplications, executions in time.
+/// SQLite Temporality — vessels, embodiments, datings, supplications, executions, reviews in time.
 /// Owns the time database; the present is taken from Eternity.
 class SqliteTemporality final : public domain::Temporality {
 public:
@@ -31,6 +31,8 @@ public:
 
 	domain::matter::Execution execute(domain::id::Word deed, domain::id::Word behest) override;
 	std::vector<domain::matter::Execution> executions(const std::vector<domain::id::Word>& words) const override;
+	domain::matter::Review review(domain::id::Word deed) override;
+	std::vector<domain::matter::Review> reviews(const std::vector<domain::id::Word>& deeds) const override;
 	domain::matter::Underway begin(domain::id::Word training, std::uint32_t exercise, std::uint32_t approach) override;
 	std::vector<domain::matter::Underway> underways(const std::vector<domain::id::Word>& trainings) const override;
 	domain::matter::Underway end(const domain::matter::Underway& doing) override;

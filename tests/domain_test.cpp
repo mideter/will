@@ -1173,6 +1173,46 @@ TEST_CASE("the abode shows its host what awaits his attention and what he has se
 }
 
 
+TEST_CASE("the testator reviews the deeds of his tie by seeing them, as he looks at it or as they are done")
+{
+	InMemoryCosmos cosmos;
+	World& world = cosmos.life().create().world();
+	const auto& novice = born(world, DeviceToken::generate());
+	const auto& testator = born(world, DeviceToken::generate());
+	admit_at_gates(world, novice, testator);
+	admit_at_gates(world, testator, novice);
+	supplicate(world, novice, testator);
+	const Shepherding& shepherding = accept(world, testator, *testator.supplication(novice));
+
+	testator.wake();
+	testator.contemplate(*testator.abode().cell(shepherding));
+	const std::shared_ptr<const Behest> fast = will_here(world, testator, "fast");
+	const std::shared_ptr<const Behest> pray = will_here(world, testator, "pray");
+
+	// Done before his eyes, a deed is seen at once.
+	novice.wake();
+	novice.contemplate(*novice.abode().cell(shepherding));
+	execute(world, novice, *fast);
+	CHECK(testator.abode().unreviewed().empty());
+
+	// Done while he looks elsewhere, it waits for him; the novice seeing it does not review it.
+	testator.contemplate(testator.abode());
+	execute(world, novice, *pray);
+	REQUIRE(testator.abode().unreviewed().size() == 1);
+	CHECK(testator.abode().unreviewed()[0]->id() == pray->id());
+	CHECK(novice.abode().unreviewed().empty());
+	novice.contemplate(novice.abode());
+	novice.contemplate(*novice.abode().cell(shepherding));
+	CHECK(testator.abode().unreviewed().size() == 1);
+
+	// Looking at his tie again, he sees all that was done there.
+	testator.contemplate(*testator.abode().cell(shepherding));
+	CHECK(testator.abode().unreviewed().empty());
+	testator.contemplate(testator.abode());
+	CHECK(testator.abode().unreviewed().empty());
+}
+
+
 TEST_CASE("one comes into another's abode through its gates, let in by its host standing there")
 {
 	InMemoryCosmos cosmos;

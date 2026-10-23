@@ -191,6 +191,11 @@ CREATE TABLE IF NOT EXISTS executions (
   deed_word_id INTEGER PRIMARY KEY,
   behest_word_id INTEGER NOT NULL UNIQUE
 );
+
+CREATE TABLE IF NOT EXISTS reviews (
+  deed_word_id INTEGER PRIMARY KEY,
+  reviewed_at_ns INTEGER NOT NULL
+);
 )sql";
 		break;
 	}

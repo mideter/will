@@ -83,6 +83,7 @@ void print_outstanding(ConsoleUi& ui, const v1::Outstanding& outstanding)
 	};
 	print(outstanding.owed(), "Awaits your attention", "/room <name>");
 	print(outstanding.awaited(), "Set for others", "");
+	print(outstanding.unreviewed(), "Done, not yet seen", "/room <name>");
 }
 
 

@@ -84,6 +84,7 @@ An interface word is given only where it differs from the Russian name.
 | Усилие | `matter::Effort` | сделанный подход |
 | Выполняемое | `matter::Underway` | идущий подход |
 | Исполнение | `matter::Execution` | |
+| Проверка | `matter::Review` | проверить — Тренер увидел Дело |
 | Воплощение | `matter::Embodiment` | |
 
 ## Properties

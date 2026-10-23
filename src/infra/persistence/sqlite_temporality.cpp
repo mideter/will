@@ -269,6 +269,44 @@ SqliteTemporality::executions(const std::vector<domain::id::Word>& words) const
 }
 
 
+domain::matter::Review SqliteTemporality::review(const domain::id::Word deed)
+{
+	const domain::matter::Review review{deed, eternity_.time().instant()};
+
+	std::lock_guard lock(time_db_.mutex());
+	sqlite3* const db = time_db_.db();
+
+	{
+		SqliteStmt kept(db, "SELECT 1 FROM reviews WHERE deed_word_id = ?;", "prepare kept review");
+		kept.bind_i64(1, static_cast<std::int64_t>(deed.value()), "bind deed_word_id");
+		if (kept.step_row("kept review step"))
+			throw std::logic_error("deed is already reviewed");
+	}
+
+	SqliteStmt stmt(db, "INSERT INTO reviews (deed_word_id, reviewed_at_ns) VALUES (?, ?);", "prepare review");
+	stmt.bind_i64(1, static_cast<std::int64_t>(deed.value()), "bind deed_word_id");
+	stmt.bind_i64(2, review.at().value(), "bind reviewed_at");
+	stmt.step_done("review step");
+
+	return review;
+}
+
+
+std::vector<domain::matter::Review> SqliteTemporality::reviews(const std::vector<domain::id::Word>& deeds) const
+{
+	std::vector<domain::matter::Review> out;
+	std::lock_guard lock(time_db_.mutex());
+	sqlite3* const db = time_db_.db();
+	for (const domain::id::Word deed : deeds) {
+		SqliteStmt stmt(db, "SELECT reviewed_at_ns FROM reviews WHERE deed_word_id = ?;", "prepare reviews");
+		stmt.bind_i64(1, static_cast<std::int64_t>(deed.value()), "bind deed_word_id");
+		if (stmt.step_row("reviews step"))
+			out.emplace_back(deed, domain::Timestamp{stmt.column_i64(0)});
+	}
+	return out;
+}
+
+
 domain::matter::Underway SqliteTemporality::begin(const domain::id::Word training, const std::uint32_t exercise,
 												  const std::uint32_t approach)
 {

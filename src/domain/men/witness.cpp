@@ -9,6 +9,7 @@
 #include "matter/letter.h"
 #include "matter/placement.h"
 #include "places/room.h"
+#include "places/shepherding.h"
 #include "words/letter.h"
 #include "matter/word.h"
 #include "places/abode.h"
@@ -52,6 +53,11 @@ void Witness::contemplate(const Room& room) const
 
 	pass(room);
 	Spirit::contemplate(room);
+
+	// The testator looking at his tie sees what was done in it.
+	const auto* shepherding = dynamic_cast<const Shepherding*>(&room.source());
+	if (shepherding && shepherding->testator().Soul::id() == man_of(*this).Soul::id())
+		man_of(*this).review(Birth<Witness>{*this}, *shepherding);
 }
 
 

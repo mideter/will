@@ -41,6 +41,7 @@ Deed::Deed(matter::Deed kept)
 	, behest_(kept.execution().behest())
 	, performed_(kept.performed() ? kept.performed()->exercises() : std::vector<Exercise>{})
 	, created_at_(kept.dating().created_at())
+	, review_(kept.review())
 {
 	if (kept.word().author() != tie_.novice().Soul::id())
 		throw std::invalid_argument("deed must be uttered by the novice of its tie");
@@ -50,6 +51,27 @@ Deed::Deed(matter::Deed kept)
 const Soul& Deed::author() const
 {
 	return tie_.novice();
+}
+
+
+std::optional<matter::Review> Deed::review() const
+{
+	std::lock_guard lock(*mutex_);
+	return review_;
+}
+
+
+void Deed::review(const Birth<Testator> birth, matter::Review kept) const
+{
+	if (birth.parent().Soul::id() != tie_.testator().Soul::id())
+		throw std::logic_error("only the testator of the tie reviews its deed");
+	if (kept.id() != id())
+		throw std::logic_error("the review is of another deed");
+
+	std::lock_guard lock(*mutex_);
+	if (review_)
+		throw std::logic_error("the deed is already reviewed");
+	review_ = std::move(kept);
 }
 
 

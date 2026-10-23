@@ -1237,7 +1237,11 @@ TEST_CASE("the testator wills a training over the wire; the novice fulfils it te
 			  == will::v1::NOTICE_NO_SUCH_EXERCISE);
 	}
 
-	// He finishes the training: the deed tells what was done.
+	// He finishes the training while the trainer looks at his abode.
+	send_turn_to_abode(*trainer.stream, {}, {});
+	const std::string shepherding_room
+		= read_until(*trainer.stream, [](const auto& e) { return e.has_outstanding(); }).outstanding().awaited(0).room();
+	read_until(*trainer.stream, [](const auto& e) { return e.has_history_end(); });
 	will::v1::ClientEvent fulfil;
 	fulfil.mutable_fulfil()->set_behest_id(id);
 	REQUIRE(novice.stream->Write(fulfil));
@@ -1245,12 +1249,27 @@ TEST_CASE("the testator wills a training over the wire; the novice fulfils it te
 			  .protocol_notice()
 			  .message()
 			  .ends_with(" fulfilled"));
+
+	// Not seen by the trainer, it awaits his review, with whose it is; seen in his room, it awaits no more.
+	send_turn_to_abode(*trainer.stream, {}, {});
+	const will::v1::ServerEvent unseen = read_until(*trainer.stream, [](const auto& e) { return e.has_outstanding(); });
+	CHECK(unseen.outstanding().awaited_size() == 0);
+	REQUIRE(unseen.outstanding().unreviewed_size() == 1);
+	CHECK(unseen.outstanding().unreviewed(0).behest().id() == id);
+	CHECK(unseen.outstanding().unreviewed(0).counterpart() == novice_name);
+	CHECK(unseen.outstanding().unreviewed(0).room() == shepherding_room);
+	read_until(*trainer.stream, [](const auto& e) { return e.has_history_end(); });
+	send_turn_to_abode(*trainer.stream, {}, shepherding_room);
 	const will::v1::ServerEvent done
 		= read_until(*trainer.stream, [](const auto& e) { return e.has_word() && e.word().kind() == will::v1::Word::DEED; });
 	CHECK(done.word().behest_id() == id);
 	REQUIRE(done.word().exercises_size() == 1);
 	REQUIRE(done.word().exercises(0).approaches_size() == 2);
 	CHECK(done.word().exercises(0).approaches(1).repetitions() == 6);
+	read_until(*trainer.stream, [](const auto& e) { return e.has_history_end(); });
+	send_turn_to_abode(*trainer.stream, {}, {});
+	CHECK(read_until(*trainer.stream, [](const auto& e) { return e.has_outstanding(); }).outstanding().unreviewed_size()
+		  == 0);
 
 	trainer.context->TryCancel();
 	novice.context->TryCancel();

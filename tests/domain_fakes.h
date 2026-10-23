@@ -4,6 +4,7 @@
 #include "matter/abode.h"
 #include "matter/supplication.h"
 #include "matter/execution.h"
+#include "matter/review.h"
 #include "matter/placement.h"
 #include "matter/tie.h"
 #include "places/obedience.h"
@@ -94,6 +95,7 @@ struct InMemoryShared {
 	std::vector<matter::Supplication> supplications;  // awaiting their answer
 	std::vector<matter::Answer> answers;
 	std::vector<matter::Execution> executions;
+	std::vector<matter::Review> reviews;
 	std::vector<matter::Effort> efforts;
 	std::vector<matter::Underway> underways;
 };
@@ -538,6 +540,26 @@ public:
 					break;
 				}
 			}
+		}
+		return out;
+	}
+
+	matter::Review review(const id::Word deed) override
+	{
+		for (const matter::Review& row : shared_.reviews) {
+			if (row.id() == deed)
+				throw std::logic_error("deed is already reviewed");
+		}
+		shared_.reviews.emplace_back(deed, eternity_.time().instant());
+		return shared_.reviews.back();
+	}
+
+	std::vector<matter::Review> reviews(const std::vector<id::Word>& deeds) const override
+	{
+		std::vector<matter::Review> out;
+		for (const matter::Review& row : shared_.reviews) {
+			if (std::find(deeds.begin(), deeds.end(), row.id()) != deeds.end())
+				out.push_back(row);
 		}
 		return out;
 	}

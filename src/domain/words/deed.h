@@ -8,6 +8,9 @@
 #include "values/exercise.h"
 #include "values/timestamp.h"
 
+#include <memory>
+#include <mutex>
+#include <optional>
 #include <vector>
 
 
@@ -15,7 +18,9 @@ namespace will::domain {
 
 
 class Life;
-/// The novice's word fulfilling a behest: his report, or «совершено».
+class Testator;
+/// The novice's word fulfilling a behest: his report, or «совершено». Its testator reviews it
+/// once, seeing it.
 class Deed : public Word {
 public:
 	Deed(Birth<Tie>, matter::Deed kept);
@@ -29,6 +34,9 @@ public:
 	const std::vector<Exercise>& performed() const noexcept { return performed_; }
 	Timestamp created_at() const noexcept { return created_at_; }
 
+	std::optional<matter::Review> review() const;
+	void review(Birth<Testator> birth, matter::Review kept) const;
+
 private:
 	explicit Deed(matter::Deed kept);
 
@@ -36,6 +44,8 @@ private:
 	id::Word behest_;
 	std::vector<Exercise> performed_;
 	Timestamp created_at_;
+	mutable std::unique_ptr<std::mutex> mutex_ = std::make_unique<std::mutex>();
+	mutable std::optional<matter::Review> review_;
 };
 
 

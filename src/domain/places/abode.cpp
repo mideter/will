@@ -16,6 +16,7 @@
 
 #include <algorithm>
 #include <stdexcept>
+#include <unordered_map>
 #include <unordered_set>
 #include <utility>
 
@@ -300,6 +301,30 @@ std::vector<std::shared_ptr<const Behest>> Abode::unfulfilled(const bool host_is
 		for (std::shared_ptr<const Behest>& behest : tie->behests(asker)) {
 			if (!fulfilled.contains(behest->id()))
 				waiting.push_back(std::move(behest));
+		}
+	}
+	return waiting;
+}
+
+
+std::vector<std::shared_ptr<const Behest>> Abode::unreviewed() const
+{
+	const Man& asker = host_;
+
+	std::vector<std::shared_ptr<const Behest>> waiting;
+	for (const Room& room : rooms()) {
+		const auto* tie = dynamic_cast<const Tie*>(&room.reflects());
+		if (!tie || tie->testator().Soul::id() != host_.Soul::id())
+			continue;
+
+		std::unordered_map<id::Word, std::shared_ptr<const Behest>> behests;
+		for (std::shared_ptr<const Behest>& behest : tie->behests(asker))
+			behests.emplace(behest->id(), std::move(behest));
+		for (const std::shared_ptr<const Deed>& deed : tie->deeds(asker)) {
+			if (deed->review())
+				continue;
+			if (const auto b = behests.find(deed->behest()); b != behests.end())
+				waiting.push_back(b->second);
 		}
 	}
 	return waiting;

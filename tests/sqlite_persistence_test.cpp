@@ -212,7 +212,7 @@ TEST_CASE("sqlite persistence survives reopen")
 }
 
 
-TEST_CASE("sqlite keeps a behest and its execution across reopen")
+TEST_CASE("sqlite keeps a behest, its execution and its review across reopen")
 {
 	using namespace will;
 	using namespace will::domain;
@@ -252,6 +252,11 @@ TEST_CASE("sqlite keeps a behest and its execution across reopen")
 		test::execute(world, novice, willed);
 		CHECK_THROWS_AS(test::execute(world, novice, willed), std::logic_error);
 		CHECK(bundle.temporality().executions({*open_id, *done_id}).size() == 1);
+		// Done before the testator's eyes, the deed is reviewed at once, and once.
+		CHECK(testator.abode().unreviewed().empty());
+		const id::Word deed_id = novice.obedience(testator).deeds(novice).front()->id();
+		REQUIRE(bundle.temporality().reviews({deed_id}).size() == 1);
+		CHECK_THROWS_AS(bundle.temporality().review(deed_id), std::logic_error);
 
 		// Behests are placed in the tie, not among the letters of an abode.
 		novice.wake();
@@ -284,12 +289,16 @@ TEST_CASE("sqlite keeps a behest and its execution across reopen")
 		REQUIRE(deeds.size() == 1);
 		CHECK(deeds.front()->behest() == *done_id);
 		CHECK(deeds.front()->saying().body() == "совершено");
+		CHECK(deeds.front()->review());
 		novice.wake();
 		novice.contemplate(*novice.abode().cell(novice.obedience(testator)));
 		CHECK_THROWS_AS(test::execute(world, novice, done), std::logic_error);
 
 		test::execute(world, novice, open);
 		CHECK(novice.obedience(testator).deeds(novice).size() == 2);
+		// Done while the testator sleeps, it awaits his review.
+		REQUIRE(testator.abode().unreviewed().size() == 1);
+		CHECK(testator.abode().unreviewed()[0]->id() == *open_id);
 	}
 
 }

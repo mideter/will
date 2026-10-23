@@ -172,9 +172,15 @@ std::shared_ptr<const Deed> Novice::execute(Birth<Cell>, const Behest& behest, s
 	matter::Dating dated = temporality().date(uttered.id());
 	matter::Execution executed = temporality().execute(uttered.id(), behest.id());
 
-	return tie.inscribe(
+	std::shared_ptr<const Deed> deed = tie.inscribe(
 		Birth<Novice>{*this},
 		matter::Deed{std::move(uttered), std::move(placed), std::move(dated), std::move(executed), std::move(done)});
+
+	// Fulfilled before the eyes of the testator, it is seen at once.
+	if (tie.testator().contemplates(tie))
+		tie.testator().review(Birth<Novice>{*this}, tie);
+
+	return deed;
 }
 
 

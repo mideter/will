@@ -4,6 +4,7 @@
 #include "matter/dating.h"
 #include "matter/execution.h"
 #include "matter/placement.h"
+#include "matter/review.h"
 #include "matter/training.h"
 #include "matter/word.h"
 
@@ -17,7 +18,7 @@ namespace will::domain::matter {
 class Deed {
 public:
 	Deed(Word word, Placement placement, Dating dating, Execution execution,
-		 std::optional<Training> performed = std::nullopt);
+		 std::optional<Training> performed = std::nullopt, std::optional<Review> review = std::nullopt);
 
 	id::Word id() const noexcept { return word_.id(); }
 	const Word& word() const noexcept { return word_; }
@@ -26,6 +27,7 @@ public:
 	const Execution& execution() const noexcept { return execution_; }
 
 	const std::optional<Training>& performed() const noexcept { return performed_; }
+	const std::optional<Review>& review() const noexcept { return review_; }
 
 private:
 	Word word_;
@@ -33,6 +35,7 @@ private:
 	Dating dating_;
 	Execution execution_;
 	std::optional<Training> performed_;
+	std::optional<Review> review_;
 };
 
 

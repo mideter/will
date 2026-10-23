@@ -336,10 +336,12 @@ message OutstandingBehest {
 
 // What is not yet fulfilled in the rooms of the host's ties: what awaits his
 // attention, where he is the novice; what he has set for others, where he is
-// the testator.
+// the testator. And what is fulfilled where he is the testator, its deed not yet
+// seen by him: what he has to review.
 message Outstanding {
     repeated OutstandingBehest owed = 1;
     repeated OutstandingBehest awaited = 2;
+    repeated OutstandingBehest unreviewed = 3;
 }
 
 

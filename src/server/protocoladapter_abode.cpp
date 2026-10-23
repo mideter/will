@@ -256,6 +256,7 @@ void ProtocolAdapter::tell_view(const SessionId session_id, const domain::Contem
 		};
 		tell(abode->owed(), [&] { return outstanding->add_owed(); });
 		tell(abode->awaited(), [&] { return outstanding->add_awaited(); });
+		tell(abode->unreviewed(), [&] { return outstanding->add_unreviewed(); });
 		send_event(session_id, outstanding_event);
 	}
 

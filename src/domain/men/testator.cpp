@@ -3,6 +3,7 @@
 #include "refusals/tie.h"
 #include "refusals/testator.h"
 
+#include "words/deed.h"
 #include "words/training.h"
 #include "words/letter.h"
 #include "places/abode.h"
@@ -68,6 +69,30 @@ std::shared_ptr<const Training> Testator::train(Birth<Cell>, const Shepherding& 
 	return std::static_pointer_cast<const Training>(shepherding.inscribe(
 		Birth<Testator>{*this},
 		matter::Behest{std::move(uttered), std::move(placed), std::move(dated), std::move(trained)}));
+}
+
+
+void Testator::review(Birth<Witness>, const Shepherding& shepherding) const
+{
+	review(shepherding);
+}
+
+
+void Testator::review(Birth<Novice>, const Shepherding& shepherding) const
+{
+	review(shepherding);
+}
+
+
+void Testator::review(const Shepherding& shepherding) const
+{
+	if (shepherding.testator().Soul::id() != man_of(*this).Soul::id())
+		throw std::logic_error("one reviews the deeds of one's own ties only");
+
+	for (const std::shared_ptr<const Deed>& deed : shepherding.deeds(man_of(*this))) {
+		if (!deed->review())
+			deed->review(Birth<Testator>{*this}, temporality().review(deed->id()));
+	}
 }
 
 

@@ -167,10 +167,13 @@ std::vector<std::shared_ptr<const Word>> Life::recall(const Place& place) const
 	for (matter::Word& row : eternity().words(ids))
 		uttered.emplace(row.id(), std::move(row));
 
-	// A word of a tie that fulfils a behest is a deed; the others there are behests.
+	// A word of a tie that fulfils a behest is a deed, reviewed or not yet; the others there are behests.
 	std::unordered_map<id::Word, matter::Execution> executions;
 	for (matter::Execution& row : temporality().executions(ids))
 		executions.emplace(row.id(), std::move(row));
+	std::unordered_map<id::Word, matter::Review> reviewed;
+	for (matter::Review& row : temporality().reviews(ids))
+		reviewed.emplace(row.id(), std::move(row));
 
 	const bool in_tie = dynamic_cast<const Tie*>(&place) != nullptr;
 
@@ -208,10 +211,13 @@ std::vector<std::shared_ptr<const Word>> Life::recall(const Place& place) const
 			words.push_back(std::make_shared<const Letter>(
 				Birth<Life>{*this}, matter::Letter{std::move(u->second), std::move(placement), std::move(dating)}));
 		} else if (const auto e = executions.find(dating.id()); e != executions.end()) {
+			std::optional<matter::Review> review;
+			if (const auto r = reviewed.find(dating.id()); r != reviewed.end())
+				review = std::move(r->second);
 			words.push_back(std::make_shared<const Deed>(
 				Birth<Life>{*this},
 				matter::Deed{std::move(u->second), std::move(placement), std::move(dating), std::move(e->second),
-							 training_of(dating.id())}));
+							 training_of(dating.id()), std::move(review)}));
 		} else {
 			std::optional<matter::Training> training = training_of(dating.id());
 			std::vector<matter::Effort> efforts;
