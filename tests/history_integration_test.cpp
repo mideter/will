@@ -21,6 +21,7 @@
 #include <memory>
 #include <string>
 #include <system_error>
+#include <optional>
 #include <thread>
 #include <tuple>
 #include <utility>
@@ -72,7 +73,10 @@ GrpcSession open_session(const std::uint16_t port)
 {
 	GrpcSession session;
 	const std::string target = "127.0.0.1:" + std::to_string(port);
-	session.channel = grpc::CreateChannel(target, grpc::InsecureChannelCredentials());
+	// Each session its own connection, as each phone has: one left from a server gone is not shared.
+	grpc::ChannelArguments own;
+	own.SetInt(GRPC_ARG_USE_LOCAL_SUBCHANNEL_POOL, 1);
+	session.channel = grpc::CreateCustomChannel(target, grpc::InsecureChannelCredentials(), own);
 	session.stub = will::v1::Messenger::NewStub(session.channel);
 	// A test that waits for a word the server never sends fails instead of hanging.
 	session.context->set_deadline(std::chrono::system_clock::now() + std::chrono::seconds(20));
@@ -1309,6 +1313,124 @@ TEST_CASE("a numbered request is answered once, by its number: granted or refuse
 
 	elder.session.context->TryCancel();
 	server.stop();
+}
+
+
+TEST_CASE("a training goes on across a restart of the server: the approach underway outlives it, begun when it was")
+{
+	const std::uint16_t port = static_cast<std::uint16_t>(pick_port() + 11);
+	const std::string directory = "/tmp/will-restart-training-test-" + std::to_string(getpid());
+	const ScratchDirectory scratch{directory};
+
+	std::optional<RunningServer> server{std::in_place, start_server(g_server_exe, port, directory)};
+	REQUIRE(server->pid() > 0);
+	wait_for_server(port);
+
+	// The elder trains his child: the child, dwelling in his abode, asks him at her helm; he accepts at his.
+	Elder elder = first_man(port);
+	GrpcSession child = open_session(port);
+	const std::string child_name = born_named(elder, *child.stream, SenderToken);
+	const auto look = [](SessionStream& stream, const std::string& room) {
+		send_turn_to_abode(stream, {}, room);
+		read_until(stream, [](const auto& e) { return e.has_history_end(); });
+	};
+	look(*child.stream, "Кормчая");
+	{
+		will::v1::ClientEvent ask;
+		ask.mutable_supplicate()->set_addressee_name(elder.name);
+		REQUIRE(child.stream->Write(ask));
+	}
+	read_until(*elder.session.stream, [](const auto& e) { return e.has_supplication_offer(); });
+	look(*elder.session.stream, "Кормчая");
+	{
+		will::v1::ClientEvent accept;
+		accept.mutable_accept_supplication()->set_suppliant_name(child_name);
+		REQUIRE(elder.session.stream->Write(accept));
+	}
+	read_until(*elder.session.stream, [](const auto& e) { return e.has_tie_formed(); });
+	read_until(*child.stream, [](const auto& e) { return e.has_tie_formed(); });
+	const std::string shepherding = "Ведение — " + child_name;
+	const std::string obedience = "Послушание — " + elder.name;
+	look(*elder.session.stream, shepherding);
+	look(*child.stream, obedience);
+
+	// He wills a training of two approaches; she begins the first.
+	{
+		will::v1::ClientEvent train;
+		train.mutable_train()->set_title("Среда");
+		will::v1::Exercise* squat = train.mutable_train()->add_exercises();
+		squat->set_name("Присед");
+		for (int i = 0; i < 2; ++i) {
+			will::v1::Approach* go = squat->add_approaches();
+			go->set_weight_grams(40'000);
+			go->set_repetitions(5);
+		}
+		REQUIRE(elder.session.stream->Write(train));
+	}
+	const std::uint64_t id = read_until(*child.stream, [](const auto& e) { return e.has_word(); }).word().id();
+	const auto begin = [&](SessionStream& stream, const std::uint32_t approach) {
+		will::v1::ClientEvent go;
+		go.mutable_begin_approach()->set_behest_id(id);
+		go.mutable_begin_approach()->set_approach(approach);
+		REQUIRE(stream.Write(go));
+	};
+	begin(*child.stream, 0);
+	const std::int64_t begun
+		= read_until(*child.stream, [](const auto& e) { return e.has_underway() && e.underway().doing(); }).underway().begun_at_ns();
+
+	// The server goes down in the middle of the approach and comes up again on the same database.
+	elder.session.context->TryCancel();
+	child.context->TryCancel();
+	server.reset();
+	server.emplace(start_server(g_server_exe, port, directory));
+	REQUIRE(server->pid() > 0);
+	wait_for_server(port);
+
+	GrpcSession trainer = open_session(port);
+	GrpcSession novice = open_session(port);
+	CHECK(bind_named(*trainer.stream, ElderToken) == elder.name);
+	CHECK(bind_named(*novice.stream, SenderToken) == child_name);
+
+	// Waking at home, she sees in what awaits her the approach still going, begun when it was begun.
+	send_history_request(*novice.stream, 10);
+	const will::v1::ServerEvent overview = read_until(*novice.stream, [](const auto& e) { return e.has_outstanding(); });
+	REQUIRE(overview.outstanding().owed_size() == 1);
+	CHECK(overview.outstanding().owed(0).underway().doing());
+	CHECK(overview.outstanding().owed(0).underway().begun_at_ns() == begun);
+	read_until(*novice.stream, [](const auto& e) { return e.has_history_end(); });
+
+	// Back in the room of the tie, she tells the approach: it lasted from its true beginning.
+	look(*trainer.stream, shepherding);
+	look(*novice.stream, obedience);
+	const auto finish = [&](const std::uint32_t reps) {
+		will::v1::ClientEvent done;
+		done.mutable_finish_approach()->set_behest_id(id);
+		done.mutable_finish_approach()->set_weight_grams(40'000);
+		done.mutable_finish_approach()->set_repetitions(reps);
+		REQUIRE(novice.stream->Write(done));
+		return read_until(*trainer.stream, [](const auto& e) { return e.has_exerted(); }).exerted().effort();
+	};
+	const will::v1::Effort first = finish(5);
+	CHECK(first.approach() == 0);
+	CHECK(first.begun_at_ns() == begun);
+	CHECK(first.finished_at_ns() > begun);
+
+	// The training goes on as if nothing had happened: the second approach, and the deed.
+	begin(*novice.stream, 1);
+	CHECK(finish(4).approach() == 1);
+	{
+		will::v1::ClientEvent fulfil;
+		fulfil.mutable_fulfil()->set_behest_id(id);
+		REQUIRE(novice.stream->Write(fulfil));
+	}
+	const will::v1::ServerEvent deed = read_until(*trainer.stream, [](const auto& e) {
+		return e.has_word() && e.word().kind() == will::v1::Word::DEED;
+	});
+	CHECK(deed.word().behest_id() == id);
+
+	trainer.context->TryCancel();
+	novice.context->TryCancel();
+	server->stop();
 }
 
 
