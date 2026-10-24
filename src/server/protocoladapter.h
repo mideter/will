@@ -85,6 +85,7 @@ private:
 
 	v1::ServerEvent outstanding_event(const domain::Abode& abode) const;
 	void tell_overview(const domain::Tie& tie);
+	void tell_overview(const domain::Man& host);
 
 	bool awaits_birth(SessionId session_id) const;
 
@@ -127,6 +128,8 @@ private:
 	v1::ServerEvent unborn_event() const;
 
 	v1::ServerEvent threshold_event(const domain::Gates& gates, const domain::Man& listener) const;
+
+	std::vector<const domain::Man*> waiting_at(const domain::Gates& gates) const;
 
 	v1::ServerEvent dwellers_event(const domain::Abode& abode) const;
 

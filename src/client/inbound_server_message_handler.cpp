@@ -84,6 +84,8 @@ void print_outstanding(ConsoleUi& ui, const v1::Outstanding& outstanding)
 	print(outstanding.owed(), "Awaits your attention", "/room <name>");
 	print(outstanding.awaited(), "Set for others", "");
 	print(outstanding.unreviewed(), "Done, not yet seen", "/room <name>");
+	if (outstanding.waiting() > 0)
+		ui.print_status("Waiting at your gates: " + std::to_string(outstanding.waiting()) + " — /room Врата");
 }
 
 

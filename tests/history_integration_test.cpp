@@ -528,10 +528,17 @@ TEST_CASE("a host admits a dweller, regards him anew, and he sees his abode as h
 	send_turn_to_abode(*man.stream, host_name);
 	CHECK(read_event(*man.stream).has_protocol_notice());
 
+	// The host looks at his abode: no one waits at his gates.
+	send_turn_to_abode(*host.stream, {});
+	CHECK(read_until(*host.stream, [](const auto& e) { return e.has_outstanding(); }).outstanding().waiting() == 0);
+	CHECK(read_event(*host.stream).has_history_end());
+
 	// Out through his own gates he comes to the host's: they are shut, the host is not
-	// there and cannot let him in.
+	// there and cannot let him in; the host, looking at his abode, sees that one waits there.
 	stand_in(*man.stream, {}, "Врата");
 	send_turn_to_abode(*man.stream, host_name, "Врата");
+	const will::v1::ServerEvent waits = read_event(*host.stream);
+	CHECK(waits.outstanding().waiting() == 1);
 	const will::v1::ServerEvent at_gates = read_event(*man.stream);
 	CHECK(at_gates.turned().aspect() == will::v1::THRESHOLD);
 	const will::v1::ServerEvent shut = read_event(*man.stream);

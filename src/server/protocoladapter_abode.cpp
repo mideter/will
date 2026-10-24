@@ -87,7 +87,7 @@ void ProtocolAdapter::handle_turn(const SessionId session_id, const v1::Turn& ms
 
 	const domain::Gates* entered = gates_of_gaze(self);
 	if (left && left != entered)
-		retell_gates(*left);
+		retell_gates(*left, &self);
 	if (entered)
 		retell_gates(*entered, &self);
 }
@@ -356,14 +356,24 @@ v1::ServerEvent ProtocolAdapter::threshold_event(const domain::Gates& gates, con
 	threshold->set_open(gates.open());
 	threshold->set_keeping(gates.keeps(listener));
 
-	// Only those who keep the gates see who waits to be let in: those at them who do not dwell here.
+	// Only those who keep the gates see who waits to be let in.
 	if (gates.keeps(listener)) {
-		for (const domain::Man& man : world_.contemplating(gates)) {
-			if (&man != &listener && !gates.abode().dweller(man))
-				threshold->add_waiting(std::string{man.name().text()});
-		}
+		for (const domain::Man* man : waiting_at(gates))
+			threshold->add_waiting(std::string{man->name().text()});
 	}
 	return event;
+}
+
+
+std::vector<const domain::Man*> ProtocolAdapter::waiting_at(const domain::Gates& gates) const
+{
+	// Those at the gates who do not dwell here wait to be let in.
+	std::vector<const domain::Man*> waiting;
+	for (const domain::Man& man : world_.contemplating(gates)) {
+		if (&man != &gates.abode().host() && !gates.abode().dweller(man))
+			waiting.push_back(&man);
+	}
+	return waiting;
 }
 
 
@@ -415,6 +425,10 @@ void ProtocolAdapter::retell_gates(const domain::Gates& gates, const domain::Sou
 		if (gates.keeps(man))
 			send_to_vessel(man.Vessel::id(), unborn_event());
 	}
+	// The host looking at his abode sees who waits at its gates there too; one who moves
+	// himself is told his view anew as he turns.
+	if (&gates.abode().host() != except)
+		tell_overview(gates.abode().host());
 }
 
 
@@ -449,6 +463,7 @@ v1::ServerEvent ProtocolAdapter::outstanding_event(const domain::Abode& abode) c
 	tell(abode.owed(), [&] { return outstanding->add_owed(); });
 	tell(abode.awaited(), [&] { return outstanding->add_awaited(); });
 	tell(abode.unreviewed(), [&] { return outstanding->add_unreviewed(); });
+	outstanding->set_waiting(static_cast<std::uint32_t>(waiting_at(abode.gates()).size()));
 	return event;
 }
 
@@ -456,11 +471,16 @@ v1::ServerEvent ProtocolAdapter::outstanding_event(const domain::Abode& abode) c
 void ProtocolAdapter::tell_overview(const domain::Tie& tie)
 {
 	// A side looking at his own abode sees there what is outstanding: as the tie changes, anew.
-	for (const domain::Man* side : {&tie.testator(), &tie.novice()}) {
-		const std::shared_ptr<const domain::Contemplation> gaze = world_.contemplation(*side);
-		if (gaze && &gaze->place() == static_cast<const domain::Place*>(&side->abode()))
-			send_to_vessel(side->Vessel::id(), outstanding_event(side->abode()));
-	}
+	for (const domain::Man* side : {&tie.testator(), &tie.novice()})
+		tell_overview(*side);
+}
+
+
+void ProtocolAdapter::tell_overview(const domain::Man& host)
+{
+	const std::shared_ptr<const domain::Contemplation> gaze = world_.contemplation(host);
+	if (gaze && &gaze->place() == static_cast<const domain::Place*>(&host.abode()))
+		send_to_vessel(host.Vessel::id(), outstanding_event(host.abode()));
 }
 
 
