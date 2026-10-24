@@ -8,6 +8,8 @@
 #include "refusals/novice.h"
 #include "refusals/abode.h"
 #include "places/place.h"
+#include "places/tie.h"
+#include "men/man.h"
 
 #include "words/behest.h"
 #include "words/deed.h"
@@ -228,6 +230,17 @@ v1::RoomAspect aspect_of(const domain::Place& place)
 	default:
 		return v1::WORDS;
 	}
+}
+
+
+std::string testator_of(const domain::Place& place)
+{
+	// A room of a tie whose novice is its host: there the host is taught, and its testator teaches.
+	const auto* room = dynamic_cast<const domain::Room*>(&place);
+	const auto* tie = room ? dynamic_cast<const domain::Tie*>(&room->reflects()) : nullptr;
+	if (!tie || tie->novice().Soul::id() != room->abode().host().Soul::id())
+		return {};
+	return std::string{tie->testator().name().text()};
 }
 
 

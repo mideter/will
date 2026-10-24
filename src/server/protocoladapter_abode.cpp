@@ -76,8 +76,10 @@ void ProtocolAdapter::handle_turn(const SessionId session_id, const v1::Turn& ms
 	turned.mutable_turned()->set_abode_of(host == &self ? std::string{} : msg.abode_of());
 	turned.mutable_turned()->set_room(msg.room());
 	turned.mutable_turned()->set_writable(writes_here(self));
-	if (const auto gaze = world_.contemplation(self))
+	if (const auto gaze = world_.contemplation(self)) {
 		turned.mutable_turned()->set_aspect(aspect_of(gaze->place()));
+		turned.mutable_turned()->set_testator(testator_of(gaze->place()));
+	}
 	send_event(session_id, turned);
 
 	if (const auto gaze = world_.contemplation(self))
@@ -188,6 +190,7 @@ void ProtocolAdapter::retell_abode(const domain::Man& host, const domain::Man& d
 		turned.mutable_turned()->set_room(room->name());
 	turned.mutable_turned()->set_writable(writes_here(dweller));
 	turned.mutable_turned()->set_aspect(aspect_of(gaze->place()));
+	turned.mutable_turned()->set_testator(testator_of(gaze->place()));
 	send_event(*sid, turned);
 	tell_view(*sid, *gaze, dweller, TurnWords);
 }
@@ -304,6 +307,7 @@ v1::ServerEvent ProtocolAdapter::arranged_rooms_event(const domain::Abode& abode
 		told->set_name(room.name());
 		told->set_part(&room.part() == &abode.outer() ? v1::OUTER : v1::INNER);
 		told->set_aspect(aspect_of(room));
+		told->set_testator(testator_of(room));
 	}
 	return event;
 }
@@ -321,6 +325,7 @@ void ProtocolAdapter::tell_rooms(const SessionId session_id, const domain::Abode
 		told->set_name(room.name());
 		told->set_part(&room.part() == &abode.outer() ? v1::OUTER : v1::INNER);
 		told->set_aspect(aspect_of(room));
+		told->set_testator(testator_of(room));
 	}
 	send_event(session_id, event);
 }

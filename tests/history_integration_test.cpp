@@ -1155,7 +1155,10 @@ TEST_CASE("the testator wills a training over the wire; the novice fulfils it te
 			CHECK(overview.outstanding().owed(0).underway().doing());
 			CHECK(overview.outstanding().owed(0).underway().approach() == 0);
 			read_until(*novice.stream, [](const auto& e) { return e.has_history_end(); });
-			send_turn_to_abode(*novice.stream, {}, overview.outstanding().owed(0).room());
+			// The room of the tie tells the novice whose it is: the trainer teaches there; the trainer's does not.
+			const std::string obedience = overview.outstanding().owed(0).room();
+			send_turn_to_abode(*novice.stream, {}, obedience);
+			CHECK(read_until(*novice.stream, [](const auto& e) { return e.has_turned(); }).turned().testator() == trainer_name);
 			read_until(*novice.stream, [](const auto& e) { return e.has_history_end(); });
 
 			// And the trainer, looking at his, sees it among what he set, with whom he set it for.
@@ -1166,6 +1169,7 @@ TEST_CASE("the testator wills a training over the wire; the novice fulfils it te
 			CHECK(set.outstanding().awaited(0).counterpart() == novice_name);
 			read_until(*trainer.stream, [](const auto& e) { return e.has_history_end(); });
 			send_turn_to_abode(*trainer.stream, {}, set.outstanding().awaited(0).room());
+			CHECK(read_until(*trainer.stream, [](const auto& e) { return e.has_turned(); }).turned().testator().empty());
 			read_until(*trainer.stream, [](const auto& e) { return e.has_history_end(); });
 		}
 

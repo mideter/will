@@ -53,6 +53,9 @@ v1::NoticeCode code_of(const domain::Refusal& refusal);
 v1::RoomAspect aspect_of(const domain::Place& place);
 
 
+std::string testator_of(const domain::Place& place);
+
+
 v1::DwellerKind kind_of(const domain::Acquaintance& dweller);
 
 
