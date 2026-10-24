@@ -34,17 +34,6 @@ private:
 	void open_database();
 	void init_schema();
 
-	void answer_kept_rejections();
-	void give_underways_their_end();
-	void give_efforts_their_strain();
-
-	void give_rooms_their_aspect();
-
-	void fold_birth_rooms_into_gates();
-
-	void give_approaches_their_rest();
-	void give_exercises_their_instruction();
-
 	std::string db_path_;
 	SqliteFace face_;
 	sqlite3* db_ = nullptr;

@@ -113,24 +113,12 @@ void World::awaken()
 		place.testator().shepherd(dynamic_cast<const Shepherding&>(place));
 	}
 
-	// Tie rooms are recalled once the ties live; a tie bound before rooms were
-	// is given its rooms now.
+	// Tie rooms are recalled once the ties live.
 	for (const auto& [soul_id, man] : men_) {
 		Abode& abode = man->abode();
 		for (const matter::Room& kept : spatiality().rooms(abode.id())) {
 			if (kept.reflects() != abode.id() && ties.contains(kept.reflects()))
 				abode.furnish(Birth<World>{*this}, kept);
-		}
-	}
-	for (const matter::Tie& kept : spatiality().ties()) {
-		if (!ties.contains(kept.id()))
-			continue;
-		const Place& tie = Place::of(kept.id());
-		for (const id::Soul side : {kept.testator(), kept.novice()}) {
-			Abode& abode = living_man(side).abode();
-			if (!abode.cell(tie))
-				abode.furnish(Birth<World>{*this},
-							  spatiality().furnish(abode.id(), kept.id(), matter::Room::Aspect::Words));
 		}
 	}
 

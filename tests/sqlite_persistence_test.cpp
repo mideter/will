@@ -371,42 +371,6 @@ TEST_CASE("sqlite keeps supplications, rejections and ties across reopen")
 }
 
 
-TEST_CASE("sqlite answers the rejections kept before answers were")
-{
-	using namespace will;
-	using namespace will::domain;
-
-	const std::string directory = "/tmp/will-sqlite-rejections-test-" + std::to_string(getpid());
-	const ScratchDirectory scratch{directory};
-
-	// A time database as it was kept before: a rejected supplication of the pair 1 → 2.
-	{
-		sqlite3* db = nullptr;
-		REQUIRE(sqlite3_open((directory + "/will.time.db").c_str(), &db) == SQLITE_OK);
-		REQUIRE(sqlite3_exec(db,
-							 "CREATE TABLE supplications (id INTEGER PRIMARY KEY AUTOINCREMENT, "
-							 "suppliant_soul_id INTEGER NOT NULL, addressee_soul_id INTEGER NOT NULL, "
-							 "asked_at_ns INTEGER NOT NULL);"
-							 "CREATE TABLE rejections (supplication_id INTEGER PRIMARY KEY, rejected_at_ns INTEGER NOT NULL);"
-							 "INSERT INTO supplications (suppliant_soul_id, addressee_soul_id, asked_at_ns) VALUES (1, 2, 5);"
-							 "INSERT INTO rejections (supplication_id, rejected_at_ns) VALUES (1, 6);",
-							 nullptr, nullptr, nullptr)
-				== SQLITE_OK);
-		sqlite3_close(db);
-	}
-
-	{
-		SqlitePersistenceBundle bundle(directory);
-
-		// The rejection became an answer: nothing awaits, and the pair may ask again.
-		CHECK(bundle.temporality().supplications(id::Soul{2}).empty());
-		bundle.temporality().ask(id::Soul{1}, id::Soul{2});
-		CHECK(bundle.temporality().supplications(id::Soul{2}).size() == 1);
-	}
-
-}
-
-
 TEST_CASE("sqlite keeps the dwellers of an abode and their kind across reopen")
 {
 	using namespace will;
@@ -447,74 +411,6 @@ TEST_CASE("sqlite keeps the dwellers of an abode and their kind across reopen")
 		CHECK(bundle.spatiality().rooms(host.abode().id()).size() == 3);
 	}
 
-}
-
-
-TEST_CASE("sqlite gives the rooms kept before aspects were the aspect of words")
-{
-	using namespace will;
-
-	const std::string directory = "/tmp/will-sqlite-room-aspect-test-" + std::to_string(getpid());
-	const ScratchDirectory scratch{directory};
-
-	// A space database as it was kept before: a room without an aspect.
-	{
-		sqlite3* db = nullptr;
-		REQUIRE(sqlite3_open((directory + "/will.space.db").c_str(), &db) == SQLITE_OK);
-		REQUIRE(sqlite3_exec(db,
-							 "CREATE TABLE rooms (id INTEGER PRIMARY KEY, abode_id INTEGER NOT NULL, "
-							 "place_id INTEGER NOT NULL, part INTEGER NOT NULL, UNIQUE (abode_id, place_id));"
-							 "INSERT INTO rooms (id, abode_id, place_id, part) VALUES (7, 3, 3, 1);",
-							 nullptr, nullptr, nullptr)
-				== SQLITE_OK);
-		sqlite3_close(db);
-	}
-
-	{
-		SqlitePersistenceBundle bundle(directory);
-		const auto rooms = bundle.spatiality().rooms(domain::id::Place{3});
-		REQUIRE(rooms.size() == 1);
-		CHECK(rooms.front().id() == domain::id::Place{7});
-		CHECK(rooms.front().aspect() == domain::matter::Room::Aspect::Words);
-		CHECK(rooms.front().part() == domain::matter::Room::Part::Outer);
-
-		// Another aspect of the same place may now be kept beside it.
-		bundle.spatiality().furnish(domain::id::Place{3}, domain::id::Place{3}, domain::matter::Room::Aspect::Threshold);
-		CHECK(bundle.spatiality().rooms(domain::id::Place{3}).size() == 2);
-	}
-
-}
-
-
-TEST_CASE("sqlite lets the birth rooms kept before go: one is born through the gates")
-{
-	using namespace will;
-
-	const std::string directory = "/tmp/will-sqlite-birth-room-test-" + std::to_string(getpid());
-	const ScratchDirectory scratch{directory};
-
-	// A space database as it was kept before: the cell, the gates, the helm, the birth room.
-	{
-		sqlite3* db = nullptr;
-		REQUIRE(sqlite3_open((directory + "/will.space.db").c_str(), &db) == SQLITE_OK);
-		REQUIRE(sqlite3_exec(db,
-							 "CREATE TABLE rooms (id INTEGER PRIMARY KEY, abode_id INTEGER NOT NULL, "
-							 "place_id INTEGER NOT NULL, aspect INTEGER NOT NULL DEFAULT 0, part INTEGER NOT NULL, "
-							 "UNIQUE (abode_id, place_id, aspect));"
-							 "INSERT INTO rooms (id, abode_id, place_id, aspect, part) VALUES "
-							 "(7, 3, 3, 0, 0), (8, 3, 3, 1, 1), (9, 3, 3, 2, 0), (10, 3, 3, 3, 0);",
-							 nullptr, nullptr, nullptr)
-				== SQLITE_OK);
-		sqlite3_close(db);
-	}
-
-	SqlitePersistenceBundle bundle(directory);
-	const auto rooms = bundle.spatiality().rooms(domain::id::Place{3});
-	REQUIRE(rooms.size() == 3);
-	CHECK(rooms[0].aspect() == domain::matter::Room::Aspect::Words);
-	CHECK(rooms[1].aspect() == domain::matter::Room::Aspect::Threshold);
-	CHECK(rooms[1].part() == domain::matter::Room::Part::Outer);
-	CHECK(rooms[2].aspect() == domain::matter::Room::Aspect::Dwellers);
 }
 
 
@@ -633,76 +529,6 @@ TEST_CASE("sqlite keeps the remarks on the exercises of a training across reopen
 	CHECK(kept[1].id() == passed);
 	CHECK(kept[1].training() == training);
 	CHECK(kept[1].exercise() == 1);
-}
-
-
-TEST_CASE("sqlite gives the approaches kept before rest was no rest, and the exercises kept before instructions none")
-{
-	using namespace will;
-	using namespace will::domain;
-
-	const std::string directory = "/tmp/will-sqlite-rest-test-" + std::to_string(getpid());
-	const ScratchDirectory scratch{directory};
-
-	// As kept before approaches had a rest.
-	{
-		sqlite3* db = nullptr;
-		REQUIRE(sqlite3_open((directory + "/will.eternity.db").c_str(), &db) == SQLITE_OK);
-		REQUIRE(sqlite3_exec(db,
-							 "CREATE TABLE exercises (word_id INTEGER NOT NULL, ord INTEGER NOT NULL, name TEXT NOT NULL, "
-							 "PRIMARY KEY (word_id, ord));"
-							 "CREATE TABLE approaches (word_id INTEGER NOT NULL, exercise_ord INTEGER NOT NULL, "
-							 "ord INTEGER NOT NULL, weight_grams INTEGER NOT NULL, repetitions INTEGER NOT NULL, "
-							 "PRIMARY KEY (word_id, exercise_ord, ord));"
-							 "INSERT INTO exercises VALUES (5, 0, 'Присед');"
-							 "INSERT INTO approaches VALUES (5, 0, 0, 100000, 5);",
-							 nullptr, nullptr, nullptr)
-				== SQLITE_OK);
-		sqlite3_close(db);
-	}
-
-	SqlitePersistenceBundle bundle(directory);
-	const std::vector<matter::Training> kept = bundle.eternity().trainings({id::Word{5}});
-	REQUIRE(kept.size() == 1);
-	CHECK(kept[0].exercises()[0].approaches()[0] == Approach{Weight{100'000}, 5, 0});
-	CHECK(kept[0].exercises()[0].instruction().empty());
-}
-
-
-TEST_CASE("sqlite gives the approaches begun before they could end apart no end, and those done before strain none")
-{
-	using namespace will;
-	using namespace will::domain;
-
-	const std::string directory = "/tmp/will-sqlite-underway-end-test-" + std::to_string(getpid());
-	const ScratchDirectory scratch{directory};
-
-	// As kept before an approach could end apart from being told.
-	{
-		sqlite3* db = nullptr;
-		REQUIRE(sqlite3_open((directory + "/will.time.db").c_str(), &db) == SQLITE_OK);
-		REQUIRE(sqlite3_exec(db,
-							 "CREATE TABLE underways (training_word_id INTEGER PRIMARY KEY, exercise_ord INTEGER NOT NULL, "
-							 "approach_ord INTEGER NOT NULL, begun_at_ns INTEGER NOT NULL);"
-							 "INSERT INTO underways VALUES (7, 0, 0, 100);"
-							 "CREATE TABLE efforts (training_word_id INTEGER NOT NULL, exercise_ord INTEGER NOT NULL, "
-							 "approach_ord INTEGER NOT NULL, weight_grams INTEGER NOT NULL, repetitions INTEGER NOT NULL, "
-							 "begun_at_ns INTEGER NOT NULL, finished_at_ns INTEGER NOT NULL, "
-							 "PRIMARY KEY (training_word_id, exercise_ord, approach_ord));"
-							 "INSERT INTO efforts VALUES (8, 0, 0, 100000, 5, 10, 40);",
-							 nullptr, nullptr, nullptr)
-				== SQLITE_OK);
-		sqlite3_close(db);
-	}
-
-	SqlitePersistenceBundle bundle(directory);
-	const std::vector<matter::Underway> kept = bundle.temporality().underways({id::Word{7}});
-	REQUIRE(kept.size() == 1);
-	CHECK(kept[0].begun() == Timestamp{100});
-	CHECK_FALSE(kept[0].ended());
-	const std::vector<matter::Effort> done = bundle.temporality().efforts({id::Word{8}});
-	REQUIRE(done.size() == 1);
-	CHECK(done[0].strain() == Strain{});
 }
 
 

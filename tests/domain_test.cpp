@@ -1052,33 +1052,6 @@ TEST_CASE("a tie is reflected in the abode of each side: Ведение and По
 }
 
 
-TEST_CASE("a tie bound before rooms were is given its rooms on awakening")
-{
-	InMemoryShared store;
-	const DeviceToken novice_token = DeviceToken::generate();
-	const DeviceToken testator_token = DeviceToken::generate();
-	{
-		InMemoryCosmos cosmos(store);
-		World& world = cosmos.life().create().world();
-		const auto& novice = born(world, novice_token);
-		const auto& testator = born(world, testator_token);
-		admit_at_gates(world, novice, testator);
-		admit_at_gates(world, testator, novice);
-		supplicate(world, novice, testator);
-		accept(world, testator, *testator.supplication(novice));
-	}
-	// As kept before tie rooms were: only the standard rooms remain.
-	std::erase_if(store.rooms, [](const matter::Room& room) { return room.reflects() != room.abode(); });
-	REQUIRE(store.rooms.size() == 9);
-
-	InMemoryCosmos cosmos(store);
-	World& world = cosmos.life().create().world();
-	const auto& novice = born(world, novice_token);
-	CHECK(novice.abode().rooms().size() == 4);
-	CHECK(store.rooms.size() == 11);
-}
-
-
 TEST_CASE("every abode has its cell, a room reflecting the abode itself, kept once")
 {
 	InMemoryShared store;
