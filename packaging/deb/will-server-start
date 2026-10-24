@@ -1,10 +1,11 @@
 #!/bin/sh
 set -eu
 
-# With a certificate and its key in /etc/will-server/tls the server listens with TLS
-# too (port 17771), beside the open port 7770 that old clients still use.
+# Only TLS: the server speaks with no one in the open. Without a certificate and its key
+# in /etc/will-server/tls it does not start; README.Debian tells how to make them.
 TLS=/etc/will-server/tls
-if [ -r "$TLS/server.crt" ] && [ -r "$TLS/server.key" ]; then
-	exec /usr/bin/will-server --db-path /var/lib/will-server --tls-cert "$TLS/server.crt" --tls-key "$TLS/server.key"
+if [ ! -r "$TLS/server.crt" ] || [ ! -r "$TLS/server.key" ]; then
+	echo "No certificate in $TLS: make server.crt and server.key there (see /usr/share/doc/will-server/README.Debian)" >&2
+	exit 1
 fi
-exec /usr/bin/will-server --db-path /var/lib/will-server
+exec /usr/bin/will-server --db-path /var/lib/will-server --tls-cert "$TLS/server.crt" --tls-key "$TLS/server.key" --no-plain

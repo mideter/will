@@ -1,7 +1,8 @@
 will-server for Debian
 ----------------------
 
-The server listens on gRPC port 7770 by default (override with --port).
+The server speaks only with TLS, on port 17771: it does not start until its
+certificate and key lie in /etc/will-server/tls (see TLS below).
 
 After installation the systemd unit `will-server.service` is enabled.
 Logs: journalctl -u will-server -f
@@ -22,9 +23,9 @@ waits until someone who may let in at the gates (Врата) bears it there.
 TLS
 ---
 
-The server speaks with TLS on port 17771 once a certificate and its key lie in
-/etc/will-server/tls; the open port 7770 stays for clients not yet renewed.
-Make them on this server, that the key never leaves it:
+The server speaks with TLS on port 17771, and only so, once a certificate and its
+key lie in /etc/will-server/tls; until then it does not start. Make them on this
+server, that the key never leaves it:
 
   cd /etc/will-server/tls
   sudo openssl req -x509 -newkey ec -pkeyopt ec_paramgen_curve:P-256 -nodes \
@@ -35,8 +36,8 @@ Make them on this server, that the key never leaves it:
   sudo systemctl restart will-server
 
 The certificate (server.crt) is public: it is built into the clients, which trust
-it alone. Open port 17771 in the firewall. Flags: --tls-cert, --tls-key, --tls-port,
-and --no-plain to stop listening in the open.
+it alone. Open port 17771 in the firewall. Flags: --tls-cert, --tls-key, --tls-port;
+the service starts the server with --no-plain, so nothing listens in the open.
 
 Scaling (single process)
 ------------------------
