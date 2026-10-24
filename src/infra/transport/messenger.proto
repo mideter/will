@@ -77,7 +77,7 @@ message Effort {
     uint32 repetitions = 4;
     int64 begun_at_ns = 5;
     int64 finished_at_ns = 6;
-    uint32 strain = 7;  // how it went, in marks: none as it should, one with effort, two hard
+    uint32 strain = 7;  // how it went, in marks: none as it should, one hard, two at the limit
 }
 
 
