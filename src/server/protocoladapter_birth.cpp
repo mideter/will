@@ -128,6 +128,7 @@ void ProtocolAdapter::handle_bear(const SessionId session_id, const v1::Bear& ms
 		}
 		v1::ServerEvent event;
 		event.mutable_auth_ok()->set_name(std::string{child.name().text()});
+		event.mutable_auth_ok()->set_father(std::string{father.name().text()});
 		event.mutable_auth_ok()->set_server_time_ns(world_.now().value());
 		send_event(*child_session, event);
 	}

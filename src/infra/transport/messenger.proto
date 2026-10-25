@@ -31,7 +31,8 @@ message AuthRequired {}
 
 
 // The body is welcomed: the man dwelling in it by his name, or, unborn, the
-// mark of the body by which the keepers of gates see it.
+// mark of the body by which the keepers of gates see it. Told to the body as it
+// is born, it names the father by flesh, who gave the name; never else.
 message AuthOk {
     string name = 1;
     bool unborn = 2;
@@ -39,6 +40,7 @@ message AuthOk {
     // The server's present instant (nanoseconds since the epoch), the same by
     // which it dates words and efforts: the client sets its clock by it at once.
     int64 server_time_ns = 4;
+    string father = 5;
 }
 
 

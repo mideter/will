@@ -274,6 +274,7 @@ std::string bind_named(SessionStream& stream, const char* device_token)
 	will::v1::ServerEvent response;
 	REQUIRE(stream.Read(&response));
 	REQUIRE(response.has_auth_ok());
+	CHECK(response.auth_ok().father().empty());  // the father is told only as one is born
 	return response.auth_ok().name();
 }
 
@@ -386,6 +387,7 @@ std::string born_named(Elder& elder, SessionStream& stream, const char* device_t
 	const will::v1::ServerEvent welcomed = read_event(stream);
 	REQUIRE(welcomed.has_auth_ok());
 	REQUIRE(welcomed.auth_ok().unborn());
+	CHECK(welcomed.auth_ok().father().empty());
 
 	SessionStream& midwife = *elder.session.stream;
 	stand_in(midwife, {}, "Врата");
@@ -919,6 +921,7 @@ TEST_CASE("an unborn body waits, seen by the keepers of gates; it is born of the
 	const will::v1::ServerEvent born = read_event(*seth.stream);
 	REQUIRE(born.has_auth_ok());
 	const std::string seth_name = born.auth_ok().name();
+	CHECK(born.auth_ok().father() == elder.name);  // told who gave the name, as he is born
 	CHECK(born_notice == seth_name + " born");
 	// What was done is told by its code, the name in it apart.
 	CHECK(born_told.protocol_notice().code() == will::v1::NOTICE_BORN);
