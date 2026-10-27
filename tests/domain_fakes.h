@@ -38,7 +38,6 @@
 #include "dimensions/spatiality.h"
 #include "dimensions/temporality.h"
 #include "horizons/time.h"
-#include "values/abode_name.h"
 #include "values/device_token.h"
 #include "values/soul_name.h"
 #include "values/timestamp.h"
@@ -259,14 +258,14 @@ public:
 		return std::nullopt;
 	}
 
-	matter::Abode abide(const id::Soul host, AbodeName name) override
+	matter::Abode abide(const id::Soul host) override
 	{
 		if (abode(host))
 			throw std::logic_error("soul already keeps an abode");
 
 		const id::Place id = eternity_.space().point();
 		const id::Place gates = eternity_.space().point();
-		const matter::Abode kept{id, std::move(name), gates, eternity_.space().point()};
+		const matter::Abode kept{id, gates, eternity_.space().point()};
 		shared_.abodes.emplace_back(host, kept);
 		return kept;
 	}

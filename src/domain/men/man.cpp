@@ -6,7 +6,6 @@
 #include "men/man.h"
 #include "relations/contemplation.h"
 #include "places/room.h"
-#include "values/abode_name.h"
 
 #include <optional>
 #include <vector>
@@ -26,7 +25,7 @@ Man::Man(Birth<World>, matter::Man kept)
 
 	std::optional<matter::Abode> own = spatiality().abode(Soul::id());
 	if (!own)
-		own = spatiality().abide(Soul::id(), AbodeName{std::string{Soul::name().text()}});
+		own = spatiality().abide(Soul::id());
 
 	abode_ = std::make_unique<Abode>(Birth<Man>{*this}, std::move(*own));
 

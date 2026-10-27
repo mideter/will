@@ -7,7 +7,6 @@
 #include "matter/letter.h"
 #include "places/part.h"
 #include "places/place.h"
-#include "values/abode_name.h"
 
 #include <memory>
 #include <functional>
@@ -36,8 +35,6 @@ class Abode : public Place {
 public:
 	Abode(Birth<Man> birth, matter::Abode kept);
 	~Abode() override;
-
-	const AbodeName& name() const noexcept { return name_; }
 
 	const Outer& outer() const noexcept { return outer_; }
 	const Inner& inner() const noexcept { return inner_; }
@@ -71,7 +68,6 @@ public:
 
 private:
 	const Man& host_;
-	AbodeName name_;
 	Outer outer_;
 	Inner inner_;
 	mutable std::unique_ptr<std::mutex> mutex_;

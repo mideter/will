@@ -24,7 +24,6 @@ namespace will::domain {
 Abode::Abode(const Birth<Man> birth, matter::Abode kept)
 	: Place(kept.id())
 	, host_(birth.parent())
-	, name_(kept.name())
 	, outer_(Birth<Abode>{*this}, kept.gates())
 	, inner_(Birth<Abode>{*this}, kept.helm())
 	, mutex_(std::make_unique<std::mutex>())

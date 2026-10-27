@@ -17,7 +17,7 @@ public:
 	SqliteSpatiality(std::string path, domain::Eternity& eternity);
 
 	std::optional<domain::matter::Abode> abode(domain::id::Soul host) const override;
-	domain::matter::Abode abide(domain::id::Soul host, domain::AbodeName name) override;
+	domain::matter::Abode abide(domain::id::Soul host) override;
 	domain::matter::Dweller dwell(domain::id::Place abode, domain::id::Soul soul,
 								  domain::matter::Dweller::Kind kind) override;
 	std::vector<domain::matter::Dweller> dwellers() const override;

@@ -2,7 +2,6 @@
 
 #include "horizons/space.h"
 #include "sqlite_util.h"
-#include "values/abode_name.h"
 
 #include <optional>
 #include <stdexcept>
@@ -18,7 +17,7 @@ namespace {
 std::optional<domain::matter::Abode> kept_abode(sqlite3* db, const domain::id::Soul host)
 {
 	SqliteStmt stmt(db,
-					"SELECT a.id, a.name, a.gates_id, a.helm_id FROM abodes a "
+					"SELECT a.id, a.gates_id, a.helm_id FROM abodes a "
 					"INNER JOIN abode_souls s ON s.abode_id = a.id "
 					"WHERE s.soul_id = ? ORDER BY a.id LIMIT 1;",
 					"prepare abode");
@@ -27,14 +26,9 @@ std::optional<domain::matter::Abode> kept_abode(sqlite3* db, const domain::id::S
 	if (!stmt.step_row("abode step"))
 		return std::nullopt;
 
-	const domain::id::Place id{static_cast<std::uint64_t>(stmt.column_i64(0))};
-	const std::string_view name_text = stmt.column_text(1);
-	if (name_text.empty())
-		throw std::runtime_error("abode: missing name in database");
-
-	return domain::matter::Abode{id, domain::AbodeName{name_text},
-								 domain::id::Place{static_cast<std::uint64_t>(stmt.column_i64(2))},
-								 domain::id::Place{static_cast<std::uint64_t>(stmt.column_i64(3))}};
+	return domain::matter::Abode{domain::id::Place{static_cast<std::uint64_t>(stmt.column_i64(0))},
+								 domain::id::Place{static_cast<std::uint64_t>(stmt.column_i64(1))},
+								 domain::id::Place{static_cast<std::uint64_t>(stmt.column_i64(2))}};
 }
 
 
@@ -54,7 +48,7 @@ std::optional<domain::matter::Abode> SqliteSpatiality::abode(const domain::id::S
 }
 
 
-domain::matter::Abode SqliteSpatiality::abide(const domain::id::Soul host, domain::AbodeName name)
+domain::matter::Abode SqliteSpatiality::abide(const domain::id::Soul host)
 {
 	std::lock_guard lock(database_.mutex());
 	sqlite3* const db = database_.db();
@@ -67,12 +61,10 @@ domain::matter::Abode SqliteSpatiality::abide(const domain::id::Soul host, domai
 	const domain::id::Place gates = eternity_.space().point();
 	const domain::id::Place helm = eternity_.space().point();
 
-	SqliteStmt abode_stmt(db, "INSERT INTO abodes (id, name, gates_id, helm_id) VALUES (?, ?, ?, ?);",
-						  "prepare abide");
+	SqliteStmt abode_stmt(db, "INSERT INTO abodes (id, gates_id, helm_id) VALUES (?, ?, ?);", "prepare abide");
 	abode_stmt.bind_i64(1, static_cast<std::int64_t>(id.value()), "bind abode id");
-	abode_stmt.bind_text(2, name.text(), "bind abode name");
-	abode_stmt.bind_i64(3, static_cast<std::int64_t>(gates.value()), "bind gates id");
-	abode_stmt.bind_i64(4, static_cast<std::int64_t>(helm.value()), "bind helm id");
+	abode_stmt.bind_i64(2, static_cast<std::int64_t>(gates.value()), "bind gates id");
+	abode_stmt.bind_i64(3, static_cast<std::int64_t>(helm.value()), "bind helm id");
 	abode_stmt.step_done("abide step");
 
 	SqliteStmt soul_stmt(db, "INSERT INTO abode_souls (abode_id, soul_id) VALUES (?, ?);",
@@ -83,7 +75,7 @@ domain::matter::Abode SqliteSpatiality::abide(const domain::id::Soul host, domai
 
 	tx.commit();
 
-	return domain::matter::Abode{id, std::move(name), gates, helm};
+	return domain::matter::Abode{id, gates, helm};
 }
 
 

@@ -8,7 +8,6 @@
 #include "identity/word.h"
 #include "identity/place.h"
 #include "identity/soul.h"
-#include "values/abode_name.h"
 
 #include <cstdint>
 #include <optional>
@@ -29,7 +28,7 @@ public:
 
 	virtual std::optional<matter::Abode> abode(id::Soul host) const = 0;
 
-	virtual matter::Abode abide(id::Soul host, AbodeName name) = 0;
+	virtual matter::Abode abide(id::Soul host) = 0;
 
 	virtual matter::Dweller dwell(id::Place abode, id::Soul soul, matter::Dweller::Kind kind) = 0;
 

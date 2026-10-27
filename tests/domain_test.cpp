@@ -55,7 +55,6 @@
 #include "men/novice.h"
 #include "men/testator.h"
 #include "men/witness.h"
-#include "values/abode_name.h"
 #include "values/device_token.h"
 #include "values/timestamp.h"
 #include "values/soul_name.h"
