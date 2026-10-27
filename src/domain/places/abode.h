@@ -10,7 +10,6 @@
 #include "values/abode_name.h"
 
 #include <memory>
-#include <string_view>
 #include <functional>
 #include <mutex>
 #include <unordered_map>
@@ -64,7 +63,6 @@ public:
 	std::vector<std::reference_wrapper<const Room>> rooms() const;
 
 	const Room* room(const Place& reflects) const;
-	const Room* room(std::string_view name) const;
 
 	void host_only(const Contemplation& gaze, const Place& here) const;
 

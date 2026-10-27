@@ -5,7 +5,6 @@
 #include "properties/immanent.h"
 
 #include <functional>
-#include <string>
 #include <vector>
 
 
@@ -31,8 +30,6 @@ public:
 
 	const Abode& abode() const noexcept;
 	const Outer& part() const noexcept { return outer_; }
-
-	std::string name() const;
 
 	bool dwells(const Man& man) const override;
 

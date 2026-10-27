@@ -4,7 +4,6 @@
 #include "places/place.h"
 #include "properties/birth.h"
 
-#include <string>
 
 
 namespace will::domain {
@@ -29,8 +28,6 @@ public:
 
 	const Abode& abode() const noexcept;
 	const Inner& part() const noexcept { return inner_; }
-
-	std::string name() const;
 
 	bool dwells(const Man& man) const override;
 

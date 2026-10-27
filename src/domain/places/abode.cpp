@@ -180,17 +180,6 @@ const Room* Abode::room(const Place& reflects) const
 }
 
 
-const Room* Abode::room(const std::string_view name) const
-{
-	std::lock_guard lock(*mutex_);
-	for (const std::unique_ptr<Room>& room : rooms_) {
-		if (room->name() == name)
-			return room.get();
-	}
-	return nullptr;
-}
-
-
 void Abode::host_only(const Contemplation& gaze, const Place& here) const
 {
 	if (&gaze.place() != &here)

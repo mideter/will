@@ -1035,15 +1035,11 @@ TEST_CASE("a tie is reflected in the abode of each side: Ведение and По
 	InMemoryShared store;
 	const DeviceToken novice_token = DeviceToken::generate();
 	const DeviceToken testator_token = DeviceToken::generate();
-	std::string novice_name;
-	std::string testator_name;
 	{
 		InMemoryCosmos cosmos(store);
 		World& world = cosmos.life().create().world();
 		const auto& novice = born(world, novice_token);
 		const auto& testator = born(world, testator_token);
-		novice_name = std::string{novice.name().text()};
-		testator_name = std::string{testator.name().text()};
 		admit_at_gates(world, novice, testator);
 		admit_at_gates(world, testator, novice);
 		supplicate(world, novice, testator);
@@ -1053,8 +1049,8 @@ TEST_CASE("a tie is reflected in the abode of each side: Ведение and По
 		const Room* obeying = novice.abode().room(shepherding);
 		REQUIRE(leading);
 		REQUIRE(obeying);
-		CHECK(leading->name() == "Ведение — " + novice_name);
-		CHECK(obeying->name() == "Послушание — " + testator_name);
+		CHECK(&leading->reflects() == static_cast<const Place*>(&shepherding));
+		CHECK(&obeying->reflects() == static_cast<const Place*>(&shepherding));
 		CHECK(&leading->part() == &leading->abode().inner());
 		CHECK(testator.abode().rooms().size() == 2);  // Слово and Ведение
 	}
@@ -1064,8 +1060,8 @@ TEST_CASE("a tie is reflected in the abode of each side: Ведение and По
 	World& world = cosmos.life().create().world();
 	const auto& novice = born(world, novice_token);
 	const auto& testator = born(world, testator_token);
-	CHECK(testator.abode().room("Ведение — " + novice_name));
-	CHECK(novice.abode().room("Послушание — " + testator_name));
+	CHECK(testator.abode().room(testator.shepherding(novice)));
+	CHECK(novice.abode().room(novice.obedience(testator)));
 	CHECK(store.rooms.size() == 5);  // the own room of each of three abodes (the forefather's too), two tie rooms
 }
 
@@ -1081,11 +1077,9 @@ TEST_CASE("every abode has its room, reflecting the abode itself, kept once")
 
 		REQUIRE(man.abode().rooms().size() == 1);
 		const Room& room = man.abode().rooms().front();
-		CHECK(room.name() == "Слово");
 		CHECK(&room.reflects() == static_cast<const Place*>(&man.abode()));
 		CHECK(&room.abode() == &man.abode());
 		CHECK(&room.part() == &room.abode().inner());
-		CHECK(man.abode().room("Слово") == &room);
 		CHECK(man.abode().room(man.abode()) == &room);
 		CHECK(room.dwells(man));
 		CHECK_THROWS_AS(cosmos.spatiality().furnish(man.abode().id(), man.abode().id()),
@@ -1237,7 +1231,6 @@ TEST_CASE("one comes into another's abode through its gates, knocking, let in by
 	const auto& man = born(world, DeviceToken::generate());
 	const auto& passer = born(world, DeviceToken::generate());
 	const Gates& gates = host.abode().outer().gates();
-	CHECK(gates.name() == "Врата");
 
 	// A stranger may not look at the abode itself, but anyone may stand at its gates.
 	man.wake();
@@ -1345,7 +1338,6 @@ TEST_CASE("the host regards his dwellers anew only at his helm; it shows no word
 	const auto& host = born(world, DeviceToken::generate());
 	const auto& man = born(world, DeviceToken::generate());
 	const Helm& helm = host.abode().inner().helm();
-	CHECK(helm.name() == "Кормчая");
 	CHECK(&helm.part() == &helm.abode().inner());
 
 	host.wake();
@@ -1510,7 +1502,6 @@ TEST_CASE("the host bears at his gates; the child is born of him, and he is ever
 
 		// There is no birth room: one is born through the gates.
 		CHECK(anna.abode().rooms().size() == 1);
-		CHECK_FALSE(anna.abode().room("Родильная"));
 
 		// At Anna's gates Boris only waits: a stranger does not keep them, nor bears.
 		const Gates& gates = anna.abode().outer().gates();

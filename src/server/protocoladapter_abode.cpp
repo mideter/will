@@ -63,7 +63,7 @@ void ProtocolAdapter::handle_turn(const SessionId session_id, const v1::Turn& ms
 			witness.contemplate(msg.edge() == v1::OUTER ? static_cast<const domain::Part&>(abode.outer())
 														: abode.inner());
 		} else if (!msg.room().empty()) {
-			const domain::Room* room = abode.room(msg.room());
+			const domain::Room* room = room_named(abode, msg.room());
 			if (!room) {
 				refuse(session_id, v1::NOTICE_NO_SUCH_ROOM);
 				return;
@@ -271,7 +271,7 @@ void ProtocolAdapter::tell_view(const SessionId session_id, const domain::Contem
 void ProtocolAdapter::handle_arrange(const SessionId session_id, const v1::Arrange& msg)
 {
 	const domain::Man& self = session_man(session_id);
-	const domain::Room* room = self.abode().room(msg.room());
+	const domain::Room* room = room_named(self.abode(), msg.room());
 	if (!room) {
 		refuse(session_id, v1::NOTICE_NO_SUCH_ROOM);
 		return;
@@ -451,7 +451,7 @@ v1::ServerEvent ProtocolAdapter::outstanding_event(const domain::Abode& abode) c
 		for (const std::shared_ptr<const domain::Behest>& behest : behests) {
 			v1::OutstandingBehest* told = add();
 			if (const domain::Room* room = abode.room(behest->tie()))
-				told->set_room(room->name());
+				told->set_room(name_of(*room));
 			told->set_counterpart(std::string{behest->tie().counterpart(host).name().text()});
 			*told->mutable_behest() = word_event(*behest, host.Soul::id()).word();
 			const auto training = std::dynamic_pointer_cast<const domain::Training>(behest);

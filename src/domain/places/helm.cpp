@@ -26,12 +26,6 @@ const Abode& Helm::abode() const noexcept
 }
 
 
-std::string Helm::name() const
-{
-	return "Кормчая";
-}
-
-
 bool Helm::dwells(const Man& man) const
 {
 	return &man == &abode().host();

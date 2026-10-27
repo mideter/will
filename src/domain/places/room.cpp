@@ -68,21 +68,6 @@ void Room::arrange(const Birth<Abode> birth, const Part& part) const
 }
 
 
-std::string Room::name() const
-{
-	if (&reflects() == static_cast<const Place*>(&abode()))
-		return "Слово";
-
-	if (const auto* tie = dynamic_cast<const Tie*>(&reflects())) {
-		if (tie->testator().Soul::id() == abode_.host().Soul::id())
-			return "Ведение — " + std::string{tie->novice().name().text()};
-		return "Послушание — " + std::string{tie->testator().name().text()};
-	}
-
-	throw std::logic_error("a room reflects its abode or a tie");
-}
-
-
 std::shared_ptr<const Recollection> Room::recollection(Birth<Contemplation>) const
 {
 	return reflects_.recollection(Birth<Room>{*this});

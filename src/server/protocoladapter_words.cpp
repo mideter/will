@@ -122,7 +122,7 @@ void ProtocolAdapter::tell_placed(const domain::Place& place, const domain::Word
 
 	v1::ServerEvent event;
 	auto* stirred = event.mutable_stirred();
-	stirred->set_room(room->name());
+	stirred->set_room(name_of(*room));
 	stirred->set_author_name(std::string{author.name().text()});
 	*stirred->mutable_word() = word_event(word, other.Soul::id()).word();
 	send_to_vessel(other.Vessel::id(), event);

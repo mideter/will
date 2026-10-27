@@ -248,7 +248,31 @@ const domain::Abode* abode_of(const domain::Place& place)
 std::string room_of(const domain::Place& place)
 {
 	const auto* room = dynamic_cast<const domain::Room*>(&place);
-	return room ? room->name() : std::string{};
+	return room ? name_of(*room) : std::string{};
+}
+
+
+std::string name_of(const domain::Room& room)
+{
+	// The wire knows a room by the name it is shown by: Слово of one's abode, and of a tie
+	// Ведение or Послушание with the other side's name.
+	if (&room.reflects() == static_cast<const domain::Place*>(&room.abode()))
+		return "Слово";
+
+	const auto& tie = dynamic_cast<const domain::Tie&>(room.reflects());
+	if (tie.testator().Soul::id() == room.abode().host().Soul::id())
+		return "Ведение — " + std::string{tie.novice().name().text()};
+	return "Послушание — " + std::string{tie.testator().name().text()};
+}
+
+
+const domain::Room* room_named(const domain::Abode& abode, const std::string_view name)
+{
+	for (const domain::Room& room : abode.rooms()) {
+		if (name_of(room) == name)
+			return &room;
+	}
+	return nullptr;
 }
 
 
@@ -263,7 +287,7 @@ void tell_standing(v1::Turned& turned, const domain::Place& place)
 
 void tell_room(v1::Room& told, const domain::Room& room)
 {
-	told.set_name(room.name());
+	told.set_name(name_of(room));
 	told.set_part(&room.part() == &room.abode().outer() ? v1::OUTER : v1::INNER);
 	told.set_testator(testator_of(room));
 }

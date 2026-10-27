@@ -8,6 +8,7 @@
 
 #include <optional>
 #include <string>
+#include <string_view>
 #include <vector>
 
 
@@ -60,6 +61,12 @@ const domain::Abode* abode_of(const domain::Place& place);
 
 
 std::string room_of(const domain::Place& place);
+
+
+std::string name_of(const domain::Room& room);
+
+
+const domain::Room* room_named(const domain::Abode& abode, std::string_view name);
 
 
 std::string testator_of(const domain::Place& place);

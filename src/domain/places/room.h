@@ -12,7 +12,6 @@
 #include <cstdint>
 #include <memory>
 #include <optional>
-#include <string>
 #include <vector>
 
 
@@ -44,8 +43,6 @@ public:
 	const Abode& abode() const noexcept { return abode_; }
 	const Place& reflects() const noexcept { return reflects_; }
 	const Part& part() const { return *part_.load(); }
-
-	std::string name() const;
 
 	bool dwells(const Man& man) const override;
 

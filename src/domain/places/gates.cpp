@@ -31,12 +31,6 @@ const Abode& Gates::abode() const noexcept
 }
 
 
-std::string Gates::name() const
-{
-	return "Врата";
-}
-
-
 bool Gates::dwells(const Man&) const
 {
 	return true;
