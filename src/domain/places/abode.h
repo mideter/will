@@ -74,8 +74,6 @@ public:
 
 	std::shared_ptr<const Letter> inscribe(Birth<Witness>, matter::Letter kept) const;
 
-	bool ancestor(const Man& man) const;
-
 private:
 	void admit(const Man& man, const matter::Dweller& kept);
 

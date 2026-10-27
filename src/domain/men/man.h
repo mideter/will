@@ -21,7 +21,8 @@ class World;
 
 /// The living man: witness, novice and testator at once; a role lives only in a man, and
 /// the man of a role is found from it. A soul is a man only while he lives. One he admits
-/// becomes his acquaintance.
+/// becomes his acquaintance. He descends from each father up his line, by flesh or by
+/// spirit.
 class Man final : public Witness, public Novice, public Testator {
 public:
 	Man(Birth<World>, matter::Man kept);
@@ -38,6 +39,8 @@ public:
 	void arrange(Birth<Helm> helm, const Room& room, const Part& part) const;
 
 	const Man* father(matter::Fatherhood::Line line) const noexcept;
+
+	bool descends_from(const Man& ancestor, matter::Fatherhood::Line line) const noexcept;
 
 	void descend(Birth<World> birth, const Man& father, const matter::Fatherhood& kept) const;
 

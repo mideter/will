@@ -64,7 +64,7 @@ void Man::arrange(Birth<Helm>, const Room& room, const Part& part) const
 
 void Man::regard(Birth<Helm>, const Man& dweller, const matter::Dweller::Kind kind) const
 {
-	if (abode_->ancestor(dweller))
+	if (descends_from(dweller, matter::Fatherhood::Line::Spirit))
 		throw FatherBySpiritFriend();
 	if (!abode_->dweller(dweller))
 		throw DoesNotDwell();
@@ -87,6 +87,19 @@ const Man* Man::father(const matter::Fatherhood::Line line) const noexcept
 		return father_by_spirit_.load();
 	}
 	return nullptr;
+}
+
+
+bool Man::descends_from(const Man& ancestor, const matter::Fatherhood::Line line) const noexcept
+{
+	// The line is walked no further than there are steps in it: a choice that
+	// would close it into a ring is refused, yet a broken one would not hang here.
+	std::size_t steps = 0;
+	for (const Man* up = father(line); up && steps < 4096; up = up->father(line), ++steps) {
+		if (up == &ancestor)
+			return true;
+	}
+	return false;
 }
 
 
