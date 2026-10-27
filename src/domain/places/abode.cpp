@@ -300,7 +300,7 @@ bool Abode::dwells(const Man& man) const
 }
 
 
-bool Abode::leads_to(const Place& next) const
+bool Abode::leads_to(const Man&, const Place& next) const
 {
 	return next.within(*this) || &next == &outer_.gates();
 }

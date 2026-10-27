@@ -75,7 +75,7 @@ public:
 
 	bool dwells(const Man& man) const override;
 
-	bool leads_to(const Place& next) const override;
+	bool leads_to(const Man& who, const Place& next) const override;
 	bool within(const Abode& abode) const override;
 
 	std::shared_ptr<const Word> receive(Birth<Room> room, const Saying& saying) const override;

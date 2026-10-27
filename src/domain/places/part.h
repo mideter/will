@@ -28,6 +28,8 @@ public:
 
 	bool admits(const Man& man) const;
 
+	virtual const Place& edge() const = 0;
+
 	virtual matter::Room::Part kept() const = 0;
 
 protected:
@@ -47,6 +49,8 @@ public:
 
 	const Gates& gates() const noexcept { return gates_; }
 
+	const Place& edge() const override { return gates_; }
+
 	matter::Room::Part kept() const override;
 
 private:
@@ -62,6 +66,8 @@ public:
 	Inner(Birth<Abode> birth, id::Place helm);
 
 	const Helm& helm() const noexcept { return helm_; }
+
+	const Place& edge() const override { return helm_; }
 
 	matter::Room::Part kept() const override;
 

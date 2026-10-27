@@ -1242,12 +1242,13 @@ TEST_CASE("one comes into another's abode through its gates, knocking, let in by
 	// A stranger may not look at the abode itself, but anyone may stand at its gates.
 	man.wake();
 	go(world, man, gates);
-	CHECK_THROWS_AS(man.contemplate(host.abode()), DoesNotDwell);
+	man.contemplate(host.abode());
+	CHECK(man.contemplates(gates));  // not dwelling there, he comes only to the gates
 	CHECK_THROWS_AS(gaze_of(world, man).room(), StandInRoom);
 
 	// Standing there he does not wait: only one who knocks is seen, and let in.
 	host.wake();
-	host.contemplate(gates);
+	host.contemplate(gates.part());
 	CHECK(gates.knocking().empty());
 	CHECK_THROWS_AS(admit(world, host, man), DoesNotKnock);
 	CHECK_THROWS_AS(knock(world, host), AlreadyDwells);
@@ -1263,7 +1264,7 @@ TEST_CASE("one comes into another's abode through its gates, knocking, let in by
 	CHECK_THROWS_AS(admit(world, host, man), std::logic_error);
 
 	// Standing in his gates, he opens them and lets in the one who knocks.
-	host.contemplate(gates);
+	host.contemplate(gates.part());
 	CHECK(gates.open());
 	admit(world, host, man);
 	CHECK(host.abode().dweller(man));
@@ -1284,7 +1285,7 @@ TEST_CASE("one comes into another's abode through its gates, knocking, let in by
 }
 
 
-TEST_CASE("one leaves one's abode and enters another only through gates, and goes from gates to gates")
+TEST_CASE("one goes to another only from one's own gates: into his abode, dwelling there, else to his gates")
 {
 	InMemoryCosmos cosmos;
 	World& world = cosmos.life().create().world();
@@ -1294,28 +1295,39 @@ TEST_CASE("one leaves one's abode and enters another only through gates, and goe
 	admit_at_gates(world, anna, boris);
 	regard_in_helm(world, anna, boris, matter::Dweller::Kind::Friend);
 
-	// Within one's abode one goes anywhere, but not straight into another's.
+	// Within one's abode one goes anywhere, but not straight to another's.
 	boris.wake();
-	boris.contemplate(boris.abode().inner().helm());
+	boris.contemplate(boris.abode().inner());
 	boris.contemplate(room_of(boris));
 	CHECK_THROWS_AS(boris.contemplate(anna.abode()), PassThroughGates);
 	CHECK_THROWS_AS(boris.contemplate(room_of(anna)), PassThroughGates);
-	CHECK_THROWS_AS(boris.contemplate(anna.abode().outer().gates()), PassThroughGates);
+	CHECK_THROWS_AS(boris.contemplate(anna.abode().outer()), PassThroughGates);
 
-	// Out through one's own gates, on to hers, and in.
-	boris.contemplate(boris.abode().outer().gates());
-	CHECK_THROWS_AS(boris.contemplate(room_of(anna)), PassThroughGates);
-	boris.contemplate(anna.abode().outer().gates());
-	boris.contemplate(room_of(anna));
+	// From his own gates, visiting her, he comes into her abode, where he dwells.
+	boris.contemplate(boris.abode().outer());
 	boris.contemplate(anna.abode());
+	CHECK(boris.contemplates(anna.abode()));
+	boris.contemplate(room_of(anna));
 
-	// Inside hers one does not reach one's own, nor other gates; home is back the same way.
+	// Inside hers one reaches neither one's own abode nor any gates but hers.
 	CHECK_THROWS_AS(boris.contemplate(boris.abode()), PassThroughGates);
-	CHECK_THROWS_AS(boris.contemplate(boris.abode().outer().gates()), PassThroughGates);
-	CHECK_THROWS_AS(boris.contemplate(viktor.abode().outer().gates()), PassThroughGates);
-	boris.contemplate(anna.abode().outer().gates());
-	boris.contemplate(viktor.abode().outer().gates());
-	boris.contemplate(boris.abode().outer().gates());
+	CHECK_THROWS_AS(boris.contemplate(boris.abode().outer()), PassThroughGates);
+	CHECK_THROWS_AS(boris.contemplate(viktor.abode()), PassThroughGates);
+
+	// From her gates only in again, or back to his own: not on to another.
+	boris.contemplate(anna.abode().outer());
+	CHECK_THROWS_AS(boris.contemplate(viktor.abode()), PassThroughGates);
+	CHECK_THROWS_AS(boris.contemplate(viktor.abode().outer()), PassThroughGates);
+	CHECK_THROWS_AS(boris.contemplate(boris.abode()), PassThroughGates);
+	boris.contemplate(boris.abode().outer());
+
+	// Visiting one he does not dwell with, he comes only to his gates, and goes back from there.
+	boris.contemplate(viktor.abode());
+	CHECK(boris.contemplates(viktor.abode().outer().gates()));
+	boris.contemplate(viktor.abode());
+	CHECK(boris.contemplates(viktor.abode().outer().gates()));
+	CHECK_THROWS_AS(boris.contemplate(anna.abode()), PassThroughGates);
+	boris.contemplate(boris.abode().outer());
 	boris.contemplate(boris.abode());
 
 	// Waking, one is at home, wherever one fell asleep.
@@ -1342,7 +1354,7 @@ TEST_CASE("the host regards his dwellers anew only at his helm; it shows no word
 
 	// Elsewhere he may not regard him anew; at his helm he may.
 	CHECK_THROWS_AS(regard(world, host, man, matter::Dweller::Kind::Friend), std::logic_error);
-	host.contemplate(helm);
+	host.contemplate(helm.part());
 	regard(world, host, man, matter::Dweller::Kind::Friend);
 	CHECK(std::dynamic_pointer_cast<const Friend>(host.abode().dweller(man)));
 
@@ -1350,7 +1362,7 @@ TEST_CASE("the host regards his dwellers anew only at his helm; it shows no word
 	CHECK_THROWS_AS(gaze_of(world, host).room(), StandInRoom);
 	CHECK_FALSE(helm.dwells(man));
 	go(world, man, host.abode());
-	CHECK_THROWS_AS(man.contemplate(helm), DoesNotEnterRoom);
+	CHECK_THROWS_AS(man.contemplate(helm.part()), DoesNotEnterRoom);
 }
 
 
@@ -1403,7 +1415,7 @@ TEST_CASE("the helm is its host's alone: there he regards his dwellers and sets 
 	// and arranges nothing.
 	friend_.wake();
 	go(world, friend_, room_of(host));
-	CHECK_THROWS_AS(friend_.contemplate(helm), DoesNotEnterRoom);
+	CHECK_THROWS_AS(friend_.contemplate(helm.part()), DoesNotEnterRoom);
 	CHECK_THROWS_AS(regard(world, friend_, other, matter::Dweller::Kind::Neighbour), StandAtHelm);
 	CHECK_THROWS_AS(arrange(world, friend_, room_of(host), host.abode().outer()), StandAtHelm);
 
@@ -1511,7 +1523,7 @@ TEST_CASE("the host bears at his gates; the child is born of him, and he is ever
 		regard_in_helm(world, anna, boris, matter::Dweller::Kind::Friend);
 
 		// Many stand at the gates at once, but only Anna keeps them: her friend does not bear.
-		anna.contemplate(gates);
+		anna.contemplate(gates.part());
 		go(world, boris, gates);
 		CHECK(gates.dwells(anna));
 		CHECK(gates.dwells(boris));
@@ -1648,7 +1660,7 @@ TEST_CASE("only the host keeps his gates: open while he stands in them, he alone
 
 	// Anna, standing in them, opens them and lets Viktor in as her acquaintance.
 	anna.wake();
-	anna.contemplate(gates);
+	anna.contemplate(gates.part());
 	CHECK(gates.open());
 	admit(world, anna, viktor);
 	REQUIRE(anna.abode().dweller(viktor));
@@ -2138,7 +2150,7 @@ TEST_CASE("one asks to be led only at one's own helm, among its dwellers")
 
 	// Another's helm one does not enter, even as his friend.
 	go(world, novice, testator.abode());
-	CHECK_THROWS_AS(novice.contemplate(testator.abode().inner().helm()), DoesNotEnterRoom);
+	CHECK_THROWS_AS(novice.contemplate(testator.abode().inner()), DoesNotEnterRoom);
 
 	// In one's own, only one who dwells there is asked.
 	CHECK_THROWS_AS(supplicate(world, novice, stranger), DoesNotDwell);
@@ -2188,10 +2200,10 @@ TEST_CASE("one writes where one stands: a letter in one's word, a behest in a ti
 	CHECK(&letter->author() == static_cast<const Soul*>(&testator));
 
 	// At the gates and at the helm no one writes: they show no words.
-	testator.contemplate(testator.abode().outer().gates());
+	testator.contemplate(testator.abode().outer());
 	CHECK_FALSE(writes_here(world, testator));
 	CHECK_THROWS_AS(write(world, testator, Saying{"нет"}), StandInRoom);
-	testator.contemplate(testator.abode().inner().helm());
+	testator.contemplate(testator.abode().inner());
 	CHECK_FALSE(writes_here(world, testator));
 	CHECK_THROWS_AS(write(world, testator, Saying{"нет"}), StandInRoom);
 

@@ -49,7 +49,7 @@ public:
 
 	bool dwells(const Man& man) const override;
 
-	bool leads_to(const Place& next) const override;
+	bool leads_to(const Man& who, const Place& next) const override;
 
 	bool within(const Abode& abode) const override;
 

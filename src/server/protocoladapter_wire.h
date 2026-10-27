@@ -6,6 +6,7 @@
 #include "values/exercise.h"
 #include "refusals/refusal.h"
 
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -14,6 +15,7 @@ namespace will::domain {
 class Abode;
 class Acquaintance;
 class Place;
+class Room;
 class Soul;
 class Word;
 namespace matter {
@@ -51,7 +53,7 @@ std::string words_of(const v1::NoticeCode code, const std::vector<std::string>& 
 v1::NoticeCode code_of(const domain::Refusal& refusal);
 
 
-v1::RoomAspect aspect_of(const domain::Place& place);
+std::optional<v1::RoomPart> edge_of(const domain::Place& place);
 
 
 const domain::Abode* abode_of(const domain::Place& place);
@@ -61,6 +63,12 @@ std::string room_of(const domain::Place& place);
 
 
 std::string testator_of(const domain::Place& place);
+
+
+void tell_standing(v1::Turned& turned, const domain::Place& place);
+
+
+void tell_room(v1::Room& told, const domain::Room& room);
 
 
 v1::DwellerKind kind_of(const domain::Acquaintance& dweller);

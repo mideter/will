@@ -21,10 +21,10 @@ class Unborn;
 
 
 /// The threshold of an Abode, the outer edge of its outer part and not inside it: anyone may
-/// stand here, and from here one goes into the abode or on to other gates. One who does not
-/// dwell behind them may knock, once while he stands here. Only the host keeps them, and
-/// they are open while he stands in them: he lets in one who knocks as his acquaintance,
-/// and bears a child of his here.
+/// stand here. From his own gates one goes anywhere; from another's, only in or back to his
+/// own. One who does not dwell behind them may knock, once while he stands here. Only the
+/// host keeps them, and they are open while he stands in them: he lets in one who knocks as
+/// his acquaintance, and bears a child of his here.
 class Gates final : public Place, private Immanent<Heaven> {
 public:
 	Gates(Birth<Outer> birth, id::Place id);
@@ -36,7 +36,7 @@ public:
 
 	bool dwells(const Man& man) const override;
 
-	bool leads_to(const Place& next) const override;
+	bool leads_to(const Man& who, const Place& next) const override;
 
 	bool within(const Abode& abode) const override;
 

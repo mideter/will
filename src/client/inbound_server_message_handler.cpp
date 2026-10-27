@@ -87,7 +87,7 @@ void print_outstanding(ConsoleUi& ui, const v1::Outstanding& outstanding)
 	print(outstanding.awaited(), "Set for others", "");
 	print(outstanding.unreviewed(), "Done, not yet seen", "/room <name>");
 	if (outstanding.waiting() > 0)
-		ui.print_status("Waiting at your gates: " + std::to_string(outstanding.waiting()) + " — /room Врата");
+		ui.print_status("Waiting at your gates: " + std::to_string(outstanding.waiting()) + " — /gates");
 }
 
 
@@ -311,9 +311,13 @@ void ReceivingMessageHandler::on(const v1::ServerEvent& event)
 	}
 	case v1::ServerEvent::kTurned: {
 		const auto& turned = event.turned();
-		rooms_.turned(turned.abode_of(), turned.room());
+		// The gates and the helm are told as edges, named here as one knows them.
+		const std::string room = !turned.has_edge()			? turned.room()
+								 : turned.edge() == v1::OUTER ? std::string{"Врата"}
+															  : std::string{"Кормчая"};
+		rooms_.turned(turned.abode_of(), room);
 		const std::string abode = turned.abode_of().empty() ? "home" : "abode of " + turned.abode_of();
-		ui_.print_header("── " + abode + (turned.room().empty() ? "" : " · " + turned.room()) + " ──");
+		ui_.print_header("── " + abode + (room.empty() ? "" : " · " + room) + " ──");
 		return;
 	}
 	case v1::ServerEvent::kRooms:

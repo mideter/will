@@ -166,7 +166,7 @@ std::optional<std::vector<v1::Exercise>> exercises_of(std::string_view text)
 void print_help(ConsoleUi& ui)
 {
 	ui.print_commands("Rooms", "/rooms [name]  /room <number|name>  /home  /visit <name> [room]");
-	ui.print_commands("Gates", "/gates [name]  /knock  /admit <name>  (out and in only through gates: yours, then theirs)");
+	ui.print_commands("Gates", "/gates [name]  /helm  /knock  /admit <name>  (to others only from your gates: /visit <name>)");
 	ui.print_commands("Dwellers", "/dwellers  /regard <name> acquaintance|neighbour|friend  /dwellings");
 	ui.print_commands("Arranging", "/arrange inner|outer <number|room>  (at the helm, as /regard)");
 	ui.print_commands("Obedience", "/ask <name>  /accept <name>  /reject <name> (at the helm)  /supplications  /done <number> [report]");
@@ -215,8 +215,8 @@ bool handle_slash_command(WillClient& client, ConsoleUi& ui, ShownRooms& rooms, 
 		const auto [abode, room] = rooms.standing();
 		if (!abode.empty()) {
 			if (room != "Врата")
-				client.visit(abode, "Врата");
-			client.visit({}, "Врата");
+				client.stand_at_edge(abode, true);
+			client.stand_at_edge({}, true);
 		}
 		client.visit({});
 		return true;
@@ -384,7 +384,11 @@ bool handle_slash_command(WillClient& client, ConsoleUi& ui, ShownRooms& rooms, 
 		return true;
 	}
 	if (cmd == "gates") {
-		client.visit(args, "Врата");
+		client.stand_at_edge(args, true);
+		return true;
+	}
+	if (cmd == "helm") {
+		client.stand_at_edge({}, false);
 		return true;
 	}
 	if (cmd == "rooms") {
@@ -413,7 +417,7 @@ bool handle_slash_command(WillClient& client, ConsoleUi& ui, ShownRooms& rooms, 
 	}
 	if (cmd == "birth") {
 		// The unborn are seen at one's own gates.
-		client.visit({}, "Врата");
+		client.stand_at_edge({}, true);
 		return true;
 	}
 	if (cmd == "reject") {

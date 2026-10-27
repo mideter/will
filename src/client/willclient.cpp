@@ -394,6 +394,19 @@ void WillClient::visit(const std::string_view host_name, const std::string_view 
 }
 
 
+void WillClient::stand_at_edge(const std::string_view host_name, const bool outer) const
+{
+	if (!authenticated_)
+		throw std::logic_error("WillClient: not authenticated");
+
+	v1::ClientEvent event;
+	event.mutable_turn()->set_abode_of(std::string{host_name});
+	event.mutable_turn()->set_edge(outer ? v1::OUTER : v1::INNER);
+	if (!write_event(event))
+		throw std::runtime_error("Will protocol: failed to send Turn");
+}
+
+
 void WillClient::arrange(const std::string_view room, const bool outer) const
 {
 	if (!authenticated_)

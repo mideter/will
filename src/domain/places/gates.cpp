@@ -43,9 +43,12 @@ bool Gates::dwells(const Man&) const
 }
 
 
-bool Gates::leads_to(const Place& next) const
+bool Gates::leads_to(const Man& who, const Place& next) const
 {
-	return next.within(abode()) || dynamic_cast<const Gates*>(&next);
+	// From one's own gates one goes anywhere; from another's, only in, or back to one's own.
+	if (keeps(who))
+		return true;
+	return next.within(abode()) || &next == &who.abode().outer().gates();
 }
 
 

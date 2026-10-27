@@ -30,7 +30,7 @@ const Place& Place::of(const id::Place id)
 }
 
 
-bool Place::leads_to(const Place&) const
+bool Place::leads_to(const Man&, const Place&) const
 {
 	return false;
 }

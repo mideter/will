@@ -42,26 +42,6 @@ namespace will {
 using namespace wire;
 
 
-namespace {
-
-
-// The places of an abode the wire tells as its rooms, outermost first: its gates, its rooms,
-// its helm.
-template<typename Tell>
-void each_room(const domain::Abode& abode, Tell tell)
-{
-	const domain::Gates& gates = abode.outer().gates();
-	tell(gates, gates.name(), gates.part());
-	for (const domain::Room& room : abode.rooms())
-		tell(room, room.name(), room.part());
-	const domain::Helm& helm = abode.inner().helm();
-	tell(helm, helm.name(), helm.part());
-}
-
-
-} // namespace
-
-
 void ProtocolAdapter::handle_turn(const SessionId session_id, const v1::Turn& msg)
 {
 	const domain::Man& self = session_man(session_id);
@@ -77,36 +57,36 @@ void ProtocolAdapter::handle_turn(const SessionId session_id, const v1::Turn& ms
 	// Those in the gates he leaves, and in those he enters, see him go and come.
 	const domain::Gates* left = gates_of_gaze(self);
 
+	const domain::Abode& abode = host->abode();
 	try {
-		if (msg.room().empty()) {
-			witness.contemplate(host->abode());
-		} else if (msg.room() == host->abode().outer().gates().name()) {
-			witness.contemplate(host->abode().outer().gates());
-		} else if (msg.room() == host->abode().inner().helm().name()) {
-			witness.contemplate(host->abode().inner().helm());
-		} else if (const domain::Room* room = host->abode().room(msg.room())) {
+		if (msg.has_edge()) {
+			witness.contemplate(msg.edge() == v1::OUTER ? static_cast<const domain::Part&>(abode.outer())
+														: abode.inner());
+		} else if (!msg.room().empty()) {
+			const domain::Room* room = abode.room(msg.room());
+			if (!room) {
+				refuse(session_id, v1::NOTICE_NO_SUCH_ROOM);
+				return;
+			}
 			witness.contemplate(*room);
 		} else {
-			refuse(session_id, v1::NOTICE_NO_SUCH_ROOM);
-			return;
+			witness.contemplate(abode);
 		}
 	} catch (const domain::PassThroughGates& e) {
 		refuse(session_id, e);
 		return;
 	} catch (const std::logic_error&) {
-		refuse(session_id, msg.room().empty() ? v1::NOTICE_YOU_DO_NOT_DWELL : v1::NOTICE_YOU_DO_NOT_ENTER);
+		refuse(session_id, msg.room().empty() && !msg.has_edge() ? v1::NOTICE_YOU_DO_NOT_DWELL
+																  : v1::NOTICE_YOU_DO_NOT_ENTER);
 		return;
 	}
 
 	v1::ServerEvent turned;
 	// One's own abode is told unnamed, even when one names it.
 	turned.mutable_turned()->set_abode_of(host == &self ? std::string{} : msg.abode_of());
-	turned.mutable_turned()->set_room(msg.room());
 	turned.mutable_turned()->set_writable(writes_here(self));
-	if (const auto gaze = world_.contemplation(self)) {
-		turned.mutable_turned()->set_aspect(aspect_of(gaze->place()));
-		turned.mutable_turned()->set_testator(testator_of(gaze->place()));
-	}
+	if (const auto gaze = world_.contemplation(self))
+		tell_standing(*turned.mutable_turned(), gaze->place());
 	send_event(session_id, turned);
 
 	if (const auto gaze = world_.contemplation(self))
@@ -226,10 +206,8 @@ void ProtocolAdapter::retell_abode(const domain::Man& host, const domain::Man& d
 
 	v1::ServerEvent turned;
 	turned.mutable_turned()->set_abode_of(std::string{host.name().text()});
-	turned.mutable_turned()->set_room(room_of(gaze->place()));
 	turned.mutable_turned()->set_writable(writes_here(dweller));
-	turned.mutable_turned()->set_aspect(aspect_of(gaze->place()));
-	turned.mutable_turned()->set_testator(testator_of(gaze->place()));
+	tell_standing(*turned.mutable_turned(), gaze->place());
 	send_event(*sid, turned);
 	tell_view(*sid, *gaze, dweller, TurnWords);
 }
@@ -341,13 +319,8 @@ v1::ServerEvent ProtocolAdapter::arranged_rooms_event(const domain::Abode& abode
 {
 	v1::ServerEvent event;
 	auto* rooms = event.mutable_rooms();
-	each_room(abode, [&](const domain::Place& room, const std::string& name, const domain::Part& part) {
-		auto* told = rooms->add_rooms();
-		told->set_name(name);
-		told->set_part(&part == &abode.outer() ? v1::OUTER : v1::INNER);
-		told->set_aspect(aspect_of(room));
-		told->set_testator(testator_of(room));
-	});
+	for (const domain::Room& room : abode.rooms())
+		tell_room(*rooms->add_rooms(), room);
 	return event;
 }
 
@@ -357,15 +330,10 @@ void ProtocolAdapter::tell_rooms(const SessionId session_id, const domain::Abode
 {
 	v1::ServerEvent event;
 	auto* rooms = event.mutable_rooms();
-	each_room(abode, [&](const domain::Place& room, const std::string& name, const domain::Part& part) {
-		if (!room.dwells(listener))
-			return;
-		auto* told = rooms->add_rooms();
-		told->set_name(name);
-		told->set_part(&part == &abode.outer() ? v1::OUTER : v1::INNER);
-		told->set_aspect(aspect_of(room));
-		told->set_testator(testator_of(room));
-	});
+	for (const domain::Room& room : abode.rooms()) {
+		if (room.dwells(listener))
+			tell_room(*rooms->add_rooms(), room);
+	}
 	send_event(session_id, event);
 }
 

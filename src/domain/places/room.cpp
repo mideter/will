@@ -47,9 +47,9 @@ bool Room::dwells(const Man& man) const
 }
 
 
-bool Room::leads_to(const Place& next) const
+bool Room::leads_to(const Man& who, const Place& next) const
 {
-	return abode_.leads_to(next);
+	return abode_.leads_to(who, next);
 }
 
 

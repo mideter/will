@@ -127,17 +127,21 @@ message AcceptSupplication {
 }
 
 
-// Turn the gaze to an abode — the abode of this host one dwells in, or one's
-// own when abode_of is empty — and, when room is given, into that room of it.
-// A tie is seen through the room reflecting it.
+// Turn the gaze to an abode — of this host, or one's own when abode_of is empty: into
+// this room of it, when room is given; to the edge of this part of it, when edge is
+// given; else to the abode itself. Turning to another's abode itself, one comes into it
+// if one dwells there, else to its gates; one turns to another's only from one's own
+// gates. A tie is seen through the room reflecting it.
 message Turn {
     reserved 1;
     string abode_of = 2;
     string room = 3;
+    optional RoomPart edge = 4;
 }
 
 
-// The part of an abode a room stands in.
+// The part of an abode a room stands in. Each has its edge: the outer its gates, the
+// inner its helm.
 enum RoomPart {
     INNER = 0; // its friends enter
     OUTER = 1; // its neighbours enter too
@@ -284,28 +288,18 @@ message TieFormed {
 }
 
 
-// What a room reflects: the words of a place, the threshold of the abode (the
-// gates, through which one comes in, born or to be born), or its dwellers (the
-// helm).
-enum RoomAspect {
-    WORDS = 0;
-    THRESHOLD = 1;
-    DWELLERS = 2;
-    reserved 3;  // the birth room: one is born through the gates now
-    reserved "BIRTH";
-}
-
-
-// The gaze now rests on an abode (of this host, or one's own when empty) — in
-// this room of it, when room is given. writable: one may write here (one's own
-// cell; a tie room of which one is the testator).
+// The gaze now rests on an abode (of this host, or one's own when empty) — in this
+// room of it, when room is given; at the edge of this part of it, when edge is given.
+// writable: one may write here (one's own room; a tie room of which one is the testator).
 message Turned {
-    reserved 1;
+    // 5 told the aspect of the room: the gates and the helm are no rooms now, but edges.
+    reserved 1, 5;
+    reserved "aspect";
     string abode_of = 2;
     string room = 3;
     bool writable = 4;
-    RoomAspect aspect = 5;
     string testator = 6;  // as Room.testator, of the room one turned to
+    optional RoomPart edge = 7;
 }
 
 
@@ -320,12 +314,12 @@ message Threshold {
 }
 
 
-// aspect: only a cell (WORDS) is moved from part to part; the gates are the core of
-// the outer part, the helm of the inner.
 message Room {
+    // 3 told the aspect of the room: the gates and the helm are no rooms now, but edges.
+    reserved 3;
+    reserved "aspect";
     string name = 1;
     RoomPart part = 2;
-    RoomAspect aspect = 3;
     string testator = 4;  // the room reflects a tie whose novice is the host: its testator
 }
 
@@ -498,7 +492,7 @@ enum NoticeCode {
     NOTICE_FINISH_APPROACH_FIRST = 36;
     NOTICE_NOT_OWN_FATHER = 37;
     NOTICE_NOT_DESCENDANT_AS_FATHER = 38;
-    NOTICE_STAND_IN_CELL = 40;
+    NOTICE_STAND_IN_ROOM = 40;
     NOTICE_STAND_AT_HELM = 41;
     NOTICE_STAND_AT_GATES = 42;
     NOTICE_ONLY_HOST_ACTS = 44;

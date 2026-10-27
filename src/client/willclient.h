@@ -52,6 +52,7 @@ public:
 	void train(std::string_view title, const std::vector<v1::Exercise>& exercises) const;
 
 	void visit(std::string_view host_name, std::string_view room = {}) const;
+	void stand_at_edge(std::string_view host_name, bool outer) const;
 
 	void arrange(std::string_view room, bool outer) const;
 

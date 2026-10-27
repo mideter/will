@@ -1,7 +1,6 @@
 #include "witness.h"
 #include "men/man.h"
 #include "refusals/room.h"
-#include "refusals/abode.h"
 #include "refusals/place.h"
 #include "places/place.h"
 
@@ -9,8 +8,7 @@
 #include "matter/letter.h"
 #include "matter/placement.h"
 #include "places/room.h"
-#include "places/gates.h"
-#include "places/helm.h"
+#include "places/part.h"
 #include "places/shepherding.h"
 #include "words/letter.h"
 #include "matter/word.h"
@@ -40,8 +38,10 @@ void Witness::sleep() const
 
 void Witness::contemplate(const Abode& abode) const
 {
-	if (!abode.dwells(man_of(*this)))
-		throw DoesNotDwell();
+	if (!abode.dwells(man_of(*this))) {
+		contemplate(abode.outer());
+		return;
+	}
 
 	pass(abode);
 	Spirit::contemplate(abode);
@@ -59,15 +59,9 @@ void Witness::contemplate(const Room& room) const
 }
 
 
-void Witness::contemplate(const Gates& gates) const
+void Witness::contemplate(const Part& part) const
 {
-	enter(gates);
-}
-
-
-void Witness::contemplate(const Helm& helm) const
-{
-	enter(helm);
+	enter(part.edge());
 }
 
 
@@ -86,7 +80,7 @@ void Witness::pass(const Place& next) const
 	// Asleep, one is at home: waking, one sees one's own abode.
 	const std::shared_ptr<const Contemplation> gaze = contemplation();
 	const Place& here = gaze ? gaze->place() : abode();
-	if (!here.leads_to(next))
+	if (&here != &next && !here.leads_to(man_of(*this), next))
 		throw PassThroughGates();
 }
 

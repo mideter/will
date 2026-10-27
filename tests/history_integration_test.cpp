@@ -289,9 +289,15 @@ will::v1::ServerEvent read_event(SessionStream& stream)
 
 void send_turn_to_abode(SessionStream& stream, const std::string& host, const std::string& room = {})
 {
+	// The gates and the helm are named here as one knows them, and told the server as edges.
 	will::v1::ClientEvent event;
 	event.mutable_turn()->set_abode_of(host);
-	event.mutable_turn()->set_room(room);
+	if (room == "Врата")
+		event.mutable_turn()->set_edge(will::v1::OUTER);
+	else if (room == "Кормчая")
+		event.mutable_turn()->set_edge(will::v1::INNER);
+	else
+		event.mutable_turn()->set_room(room);
 	REQUIRE(stream.Write(event));
 }
 
@@ -321,7 +327,7 @@ void send_knock(SessionStream& stream)
 void knock_at_gates(SessionStream& stream, const std::string& host)
 {
 	stand_in(stream, {}, "Врата");
-	stand_in(stream, host, "Врата");
+	stand_in(stream, host, {});  // a stranger visiting comes to the gates
 	send_knock(stream);
 	REQUIRE(read_event(stream).threshold().knocking());
 }
@@ -471,11 +477,9 @@ TEST_CASE("history request returns letters of the witness abode with is_mine")
 	will::v1::ServerEvent viewer_rooms;
 	REQUIRE(viewer.stream->Read(&viewer_rooms));
 	REQUIRE(viewer_rooms.has_rooms());
-	REQUIRE(viewer_rooms.rooms().rooms_size() == 3);
-	CHECK(viewer_rooms.rooms().rooms(0).name() == "Врата");  // outermost first
-	CHECK(viewer_rooms.rooms().rooms(1).name() == "Слово");
-	CHECK(viewer_rooms.rooms().rooms(1).part() == will::v1::INNER);
-	CHECK(viewer_rooms.rooms().rooms(2).name() == "Кормчая");
+	REQUIRE(viewer_rooms.rooms().rooms_size() == 1);  // the gates and the helm are edges, not rooms
+	CHECK(viewer_rooms.rooms().rooms(0).name() == "Слово");
+	CHECK(viewer_rooms.rooms().rooms(0).part() == will::v1::INNER);
 	will::v1::ServerEvent viewer_outstanding;
 	REQUIRE(viewer.stream->Read(&viewer_outstanding));
 	CHECK(viewer_outstanding.has_outstanding());
@@ -536,22 +540,24 @@ TEST_CASE("a host admits a dweller, regards him anew, and he sees his abode as h
 	REQUIRE(man.stream);
 	const std::string man_name = born_named(elder, *man.stream, ViewerToken);
 
-	// A stranger cannot turn to the abode.
+	// One goes to another only from one's own gates.
 	send_turn_to_abode(*man.stream, host_name);
-	CHECK(read_event(*man.stream).has_protocol_notice());
+	CHECK(read_event(*man.stream).protocol_notice().code() == will::v1::NOTICE_PASS_THROUGH_GATES);
 
 	// The host looks at his abode: no one waits at his gates.
 	send_turn_to_abode(*host.stream, {});
 	CHECK(read_until(*host.stream, [](const auto& e) { return e.has_outstanding(); }).outstanding().waiting() == 0);
 	CHECK(read_event(*host.stream).has_history_end());
 
-	// Out through his own gates he comes to the host's: they are shut. Standing there, he
-	// does not wait yet: the host, looking at his abode, sees no one waiting.
+	// From his own gates, visiting the host by name, a stranger comes only to the host's: they
+	// are shut. Standing there, he does not wait yet: the host, looking at his abode, sees no
+	// one waiting.
 	stand_in(*man.stream, {}, "Врата");
-	send_turn_to_abode(*man.stream, host_name, "Врата");
+	send_turn_to_abode(*man.stream, host_name);
 	CHECK(read_event(*host.stream).outstanding().waiting() == 0);
 	const will::v1::ServerEvent at_gates = read_event(*man.stream);
-	CHECK(at_gates.turned().aspect() == will::v1::THRESHOLD);
+	CHECK(at_gates.turned().abode_of() == host_name);
+	CHECK(at_gates.turned().edge() == will::v1::OUTER);
 	const will::v1::ServerEvent shut = read_event(*man.stream);
 	REQUIRE(shut.has_threshold());
 	CHECK_FALSE(shut.threshold().open());
@@ -597,8 +603,7 @@ TEST_CASE("a host admits a dweller, regards him anew, and he sees his abode as h
 	REQUIRE(turned.has_turned());
 	CHECK(turned.turned().abode_of() == host_name);
 	const will::v1::ServerEvent shown = read_event(*man.stream);
-	REQUIRE(shown.rooms().rooms_size() == 1);  // only the gates, open to anyone
-	CHECK(shown.rooms().rooms(0).name() == "Врата");
+	CHECK(shown.rooms().rooms().empty());  // an acquaintance enters no room
 	CHECK(read_event(*man.stream).has_history_end());
 
 	// He may look, but not write there, nor enter the inner room.
@@ -623,8 +628,8 @@ TEST_CASE("a host admits a dweller, regards him anew, and he sees his abode as h
 	CHECK(read_event(*man.stream).dwelling().kind() == will::v1::FRIEND);
 	REQUIRE(read_event(*man.stream).turned().abode_of() == host_name);
 	const will::v1::ServerEvent open = read_event(*man.stream);
-	REQUIRE(open.rooms().rooms_size() == 2);
-	CHECK(open.rooms().rooms(1).name() == "Слово");
+	REQUIRE(open.rooms().rooms_size() == 1);
+	CHECK(open.rooms().rooms(0).name() == "Слово");
 	CHECK(read_event(*man.stream).has_history_end());
 
 	// Entering the room, he sees the words.
@@ -657,8 +662,7 @@ TEST_CASE("a host admits a dweller, regards him anew, and he sees his abode as h
 	REQUIRE(withdrawn.turned().abode_of() == host_name);
 	CHECK(withdrawn.turned().room().empty());
 	const will::v1::ServerEvent gates_only = read_event(*man.stream);
-	REQUIRE(gates_only.rooms().rooms_size() == 1);
-	CHECK(gates_only.rooms().rooms(0).name() == "Врата");
+	CHECK(gates_only.rooms().rooms().empty());
 	CHECK(read_event(*man.stream).has_history_end());
 
 	// Away from his helm the host does not arrange his rooms.
@@ -676,8 +680,8 @@ TEST_CASE("a host admits a dweller, regards him anew, and he sees his abode as h
 	CHECK(read_event(*host.stream).has_turned());
 	CHECK(read_event(*host.stream).has_dwellers());
 	const will::v1::ServerEvent shown_rooms = read_event(*host.stream);
-	REQUIRE(shown_rooms.rooms().rooms_size() == 3);
-	CHECK(shown_rooms.rooms().rooms(1).part() == will::v1::INNER);
+	REQUIRE(shown_rooms.rooms().rooms_size() == 1);
+	CHECK(shown_rooms.rooms().rooms(0).part() == will::v1::INNER);
 	CHECK(read_event(*host.stream).has_supplications());
 	CHECK(read_event(*host.stream).has_history_end());
 
@@ -690,7 +694,7 @@ TEST_CASE("a host admits a dweller, regards him anew, and he sees his abode as h
 	CHECK(read_event(*host.stream).has_supplications());
 	CHECK(read_event(*man.stream).dwelling().kind() == will::v1::NEIGHBOUR);
 	REQUIRE(read_event(*man.stream).turned().room().empty());
-	CHECK(read_event(*man.stream).rooms().rooms_size() == 1);  // the gates alone
+	CHECK(read_event(*man.stream).rooms().rooms().empty());  // the room stands within
 	CHECK(read_event(*man.stream).has_history_end());
 	{
 		will::v1::ClientEvent arrange;
@@ -701,14 +705,14 @@ TEST_CASE("a host admits a dweller, regards him anew, and he sees his abode as h
 	CHECK(read_event(*host.stream).has_protocol_notice());
 	CHECK(read_event(*host.stream).has_dwellers());  // his helm is told anew to all at it
 	const will::v1::ServerEvent arranged = read_event(*host.stream);  // all his rooms, each in its part
-	REQUIRE(arranged.rooms().rooms_size() == 3);
-	CHECK(arranged.rooms().rooms(1).name() == "Слово");
-	CHECK(arranged.rooms().rooms(1).part() == will::v1::OUTER);
+	REQUIRE(arranged.rooms().rooms_size() == 1);
+	CHECK(arranged.rooms().rooms(0).name() == "Слово");
+	CHECK(arranged.rooms().rooms(0).part() == will::v1::OUTER);
 	CHECK(read_event(*host.stream).has_supplications());
 	REQUIRE(read_event(*man.stream).turned().room().empty());
 	const will::v1::ServerEvent opened = read_event(*man.stream);
-	REQUIRE(opened.rooms().rooms_size() == 2);
-	CHECK(opened.rooms().rooms(1).name() == "Слово");
+	REQUIRE(opened.rooms().rooms_size() == 1);
+	CHECK(opened.rooms().rooms(0).name() == "Слово");
 	CHECK(read_event(*man.stream).has_history_end());
 	send_turn_to_abode(*man.stream, host_name, "Слово");
 	CHECK(read_event(*man.stream).turned().room() == "Слово");
@@ -855,16 +859,15 @@ TEST_CASE("one lists the abodes one dwells in and the supplications awaiting one
 	}
 	const will::v1::ServerEvent own_rooms = next_past_gates(*b.stream);
 	REQUIRE(own_rooms.has_rooms());
-	REQUIRE(own_rooms.rooms().rooms_size() == 3);
-	CHECK(own_rooms.rooms().rooms(1).name() == "Слово");
+	REQUIRE(own_rooms.rooms().rooms_size() == 1);
+	CHECK(own_rooms.rooms().rooms(0).name() == "Слово");
 	{
 		will::v1::ClientEvent list;
 		list.mutable_list_rooms()->set_abode_of(a_name);
 		REQUIRE(b.stream->Write(list));
 	}
 	const will::v1::ServerEvent their_rooms = next_past_gates(*b.stream);
-	REQUIRE(their_rooms.rooms().rooms_size() == 1);
-	CHECK(their_rooms.rooms().rooms(0).name() == "Врата");
+	CHECK(their_rooms.rooms().rooms().empty());
 
 	a.context->TryCancel();
 	b.context->TryCancel();
@@ -889,7 +892,7 @@ TEST_CASE("an unborn body waits, seen by the keepers of gates; it is born of the
 
 	// Standing at his gates, he keeps them and sees no one awaiting birth.
 	send_turn_to_abode(adam, {}, "Врата");
-	CHECK(read_event(adam).turned().aspect() == will::v1::THRESHOLD);
+	CHECK(read_event(adam).turned().edge() == will::v1::OUTER);
 	CHECK(read_event(adam).threshold().keeping());
 	CHECK(read_event(adam).unborn().marks_size() == 0);
 	CHECK(read_event(adam).has_history_end());
@@ -954,7 +957,7 @@ TEST_CASE("an unborn body waits, seen by the keepers of gates; it is born of the
 	// waits there, does not keep them, and is not shown the unborn.
 	stand_in(*seth.stream, {}, "Врата");
 	send_turn_to_abode(*seth.stream, elder.name, "Врата");
-	CHECK(read_event(*seth.stream).turned().aspect() == will::v1::THRESHOLD);
+	CHECK(read_event(*seth.stream).turned().edge() == will::v1::OUTER);
 	CHECK_FALSE(read_event(*seth.stream).threshold().keeping());
 	CHECK(read_event(*seth.stream).has_history_end());
 
@@ -1363,7 +1366,7 @@ TEST_CASE("a numbered request is answered once, by its number: granted or refuse
 	send_turn_to_abode(adam, elder.name, "Врата");
 	const will::v1::ServerEvent own_gates = read_event(adam);
 	CHECK(own_gates.turned().abode_of().empty());
-	CHECK(own_gates.turned().room() == "Врата");
+	CHECK(own_gates.turned().edge() == will::v1::OUTER);
 	read_until(adam, [](const auto& e) { return e.has_history_end(); });
 
 	// A heartbeat is answered by its number alone, granted.
@@ -1582,7 +1585,7 @@ TEST_CASE("one does not write at the gates nor at the helm, and the session live
 		REQUIRE(adam.Read(&told));
 		// The world refuses it itself: one writes only standing in a room.
 		CHECK(told.protocol_notice().message() == "one does this only standing in a room");
-		CHECK(told.protocol_notice().code() == will::v1::NOTICE_STAND_IN_CELL);
+		CHECK(told.protocol_notice().code() == will::v1::NOTICE_STAND_IN_ROOM);
 	}
 
 	// He is still there: he turns to his word and writes in it.

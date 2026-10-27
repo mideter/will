@@ -38,9 +38,9 @@ bool Helm::dwells(const Man& man) const
 }
 
 
-bool Helm::leads_to(const Place& next) const
+bool Helm::leads_to(const Man& who, const Place& next) const
 {
-	return abode().leads_to(next);
+	return abode().leads_to(who, next);
 }
 
 

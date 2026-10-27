@@ -775,9 +775,9 @@ inline void turn(const Man& man, const Place& place)
 	if (const auto* abode = dynamic_cast<const Abode*>(&place))
 		witness.contemplate(*abode);
 	else if (const auto* gates = dynamic_cast<const Gates*>(&place))
-		witness.contemplate(*gates);
+		witness.contemplate(gates->part());
 	else if (const auto* helm = dynamic_cast<const Helm*>(&place))
-		witness.contemplate(*helm);
+		witness.contemplate(helm->part());
 	else
 		witness.contemplate(dynamic_cast<const Room&>(place));
 }
@@ -786,10 +786,11 @@ inline void turn(const Man& man, const Place& place)
 inline void go(World& world, const Man& man, const Place& place)
 {
 	const std::shared_ptr<const Contemplation> gaze = world.contemplation(man);
+	// Out through the gates of where one is, then from one's own gates anywhere.
 	const Place& here = gaze ? gaze->place() : man.abode();
-	if (!here.leads_to(place)) {
+	if (&here != &place && !here.leads_to(man, place)) {
 		turn(man, abode_of(here).outer().gates());
-		turn(man, abode_of(place).outer().gates());
+		turn(man, man.abode().outer().gates());
 	}
 	turn(man, place);
 }
