@@ -89,7 +89,11 @@ void Testator::review(const Shepherding& shepherding) const
 	if (shepherding.testator().Soul::id() != man_of(*this).Soul::id())
 		throw std::logic_error("one reviews the deeds of one's own ties only");
 
-	for (const std::shared_ptr<const Deed>& deed : shepherding.deeds(man_of(*this))) {
+	const std::shared_ptr<const Contemplation> gaze = contemplation();
+	if (!gaze)
+		throw std::logic_error("one reviews the deeds of a tie only looking at it");
+
+	for (const std::shared_ptr<const Deed>& deed : shepherding.deeds(*gaze)) {
 		if (!deed->review())
 			deed->review(Birth<Testator>{*this}, temporality().review(deed->id()));
 	}

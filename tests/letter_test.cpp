@@ -133,7 +133,7 @@ TEST_CASE("Behest is a word of will in a living Tie, born of the Tie or of its t
 	CHECK(behest.saying().body() == "do this");
 	CHECK(behest.created_at() == Timestamp{50});
 
-	const auto shown = novice.obedience(testator).behests(novice);
+	const auto shown = shepherding.behests(gaze_of(world, testator));
 	REQUIRE(shown.size() == 1);
 	CHECK(shown.front()->id() == behest.id());
 
@@ -173,14 +173,14 @@ TEST_CASE("Deed is the novice's word fulfilling a behest, his report or «сов
 
 	cosmos.fake_time().set_instant(Timestamp{70});
 	const std::shared_ptr<const Deed> silent = execute(world, novice, fast);
-	CHECK(silent->behest() == fast.id());
+	CHECK(silent->behest().id() == fast.id());
 	CHECK(silent->saying().body() == "совершено");
 	CHECK(&silent->tie().novice() == &novice);
 	CHECK(silent->created_at() == Timestamp{70});
 	CHECK(silent->id() != fast.id());
 
 	const std::shared_ptr<const Deed> reported = execute(world, novice, pray, Saying{"prayed till dawn"});
-	CHECK(reported->behest() == pray.id());
+	CHECK(reported->behest().id() == pray.id());
 	CHECK(reported->saying().body() == "prayed till dawn");
 
 	// A behest is fulfilled once; the behest itself does not change.
@@ -188,11 +188,11 @@ TEST_CASE("Deed is the novice's word fulfilling a behest, his report or «сов
 	CHECK(fast.saying().body() == "fast");
 
 	// The tie shows its behests and, apart, the deeds that fulfil them.
-	CHECK(novice.obedience(testator).behests(novice).size() == 2);
-	const auto deeds = shepherding.deeds(testator);
+	CHECK(novice.obedience(testator).behests(gaze_of(world, novice)).size() == 2);
+	const auto deeds = shepherding.deeds(gaze_of(world, testator));
 	REQUIRE(deeds.size() == 2);
-	CHECK(deeds[0]->behest() == fast.id());
-	CHECK(deeds[1]->behest() == pray.id());
+	CHECK(deeds[0]->behest().id() == fast.id());
+	CHECK(deeds[1]->behest().id() == pray.id());
 
 	// The parts of a deed share its word id; the execution names another word.
 	const matter::Word word{id::Word{90}, novice.Soul::id(), "x"};

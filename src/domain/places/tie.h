@@ -12,6 +12,7 @@
 namespace will::domain {
 
 
+class Abode;
 class Behest;
 class Cell;
 class Deed;
@@ -30,10 +31,12 @@ public:
 	const Man& testator() const override;
 	const Man& novice() const override;
 
-	std::vector<std::shared_ptr<const Behest>> behests(const Novice& asker) const override;
-	std::vector<std::shared_ptr<const Deed>> deeds(const Novice& asker) const override;
+	std::vector<std::shared_ptr<const Behest>> behests(const Contemplation& gaze) const override;
+	std::vector<std::shared_ptr<const Deed>> deeds(const Contemplation& gaze) const override;
 
-	std::shared_ptr<const Deed> inscribe(Birth<Novice>, matter::Deed kept) const override;
+	std::vector<std::shared_ptr<const Behest>> behests(Birth<Abode> abode) const;
+
+	std::shared_ptr<const Deed> inscribe(Birth<Novice>, const Behest& behest, matter::Deed kept) const override;
 	std::shared_ptr<const Behest> inscribe(Birth<Testator>, matter::Behest kept) const override;
 
 	bool dwells(const Man& man) const override;

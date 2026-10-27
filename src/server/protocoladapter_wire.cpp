@@ -108,7 +108,7 @@ v1::ServerEvent word_event(const domain::Word& word, const domain::id::Soul list
 		}
 	} else if (const auto* deed = dynamic_cast<const domain::Deed*>(&word)) {
 		told->set_kind(v1::Word::DEED);
-		told->set_behest_id(deed->behest().value());
+		told->set_behest_id(deed->behest().id().value());
 		tell_exercises(deed->performed(), *told->mutable_exercises());
 	} else {
 		told->set_kind(v1::Word::LETTER);

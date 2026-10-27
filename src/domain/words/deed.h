@@ -4,6 +4,7 @@
 #include "matter/deed.h"
 #include "properties/birth.h"
 #include "places/tie.h"
+#include "words/behest.h"
 #include "words/word.h"
 #include "values/exercise.h"
 #include "values/timestamp.h"
@@ -19,15 +20,15 @@ namespace will::domain {
 
 class Life;
 class Testator;
-/// The novice's word fulfilling a behest: his report, or «совершено». Its testator reviews it
-/// once, seeing it.
+/// The novice's word fulfilling a behest: his report, or «совершено». It lives with the behest it
+/// fulfils, which knows it. Its testator reviews it once, seeing it.
 class Deed : public Word {
 public:
-	Deed(Birth<Tie>, matter::Deed kept);
-	Deed(Birth<Life>, matter::Deed kept);
+	Deed(Birth<Tie>, const Behest& behest, matter::Deed kept);
+	Deed(Birth<Life>, const Behest& behest, matter::Deed kept);
 
-	const Tie& tie() const noexcept { return tie_; }
-	id::Word behest() const noexcept { return behest_; }
+	const Behest& behest() const noexcept { return behest_; }
+	const Tie& tie() const noexcept { return behest_.tie(); }
 
 	const Soul& author() const override;
 
@@ -38,10 +39,9 @@ public:
 	void review(Birth<Testator> birth, matter::Review kept) const;
 
 private:
-	explicit Deed(matter::Deed kept);
+	Deed(const Behest& behest, matter::Deed kept);
 
-	const Tie& tie_;
-	id::Word behest_;
+	const Behest& behest_;
 	std::vector<Exercise> performed_;
 	Timestamp created_at_;
 	mutable std::unique_ptr<std::mutex> mutex_ = std::make_unique<std::mutex>();

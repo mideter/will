@@ -1,5 +1,6 @@
 #include "behest.h"
 
+#include "words/deed.h"
 #include "places/place.h"
 #include "places/tie.h"
 #include "men/man.h"
@@ -48,6 +49,37 @@ Behest::Behest(matter::Behest kept)
 const Soul& Behest::author() const
 {
 	return tie_.testator();
+}
+
+
+std::shared_ptr<const Deed> Behest::deed() const
+{
+	std::lock_guard lock(*mutex_);
+	return deed_;
+}
+
+
+void Behest::deed(Birth<Tie>, std::shared_ptr<const Deed> deed) const
+{
+	fulfil(std::move(deed));
+}
+
+
+void Behest::deed(Birth<Life>, std::shared_ptr<const Deed> deed) const
+{
+	fulfil(std::move(deed));
+}
+
+
+void Behest::fulfil(std::shared_ptr<const Deed> deed) const
+{
+	if (!deed || &deed->behest() != this)
+		throw std::logic_error("the deed fulfils another behest");
+
+	std::lock_guard lock(*mutex_);
+	if (deed_)
+		throw std::logic_error("the behest is already fulfilled");
+	deed_ = std::move(deed);
 }
 
 

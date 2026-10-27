@@ -69,7 +69,7 @@ std::vector<Exercise> done_of(const Training& training)
 
 void Novice::begin(Birth<Cell>, const Training& training, const std::uint32_t exercise, const std::uint32_t approach) const
 {
-	if (!temporality().executions({training.id()}).empty())
+	if (training.deed())
 		throw AlreadyFulfilled();
 	if (exercise >= training.exercises().size())
 		throw NoSuchExercise();
@@ -127,7 +127,7 @@ matter::Effort Novice::finish(Birth<Cell>, const Training& training, const Weigh
 matter::Remark Novice::remark(Birth<Cell>, const Training& training, const std::uint32_t exercise,
 							  const Saying& saying) const
 {
-	if (!temporality().executions({training.id()}).empty())
+	if (training.deed())
 		throw AlreadyFulfilled();
 	if (exercise >= training.exercises().size())
 		throw NoSuchExercise();
@@ -145,7 +145,7 @@ std::shared_ptr<const Deed> Novice::execute(Birth<Cell>, const Behest& behest, s
 											 std::optional<std::vector<Exercise>> performed) const
 {
 	const Tie& tie = behest.tie();
-	if (!temporality().executions({behest.id()}).empty())
+	if (behest.deed())
 		throw AlreadyFulfilled();
 
 	// A training is fulfilled with what was done: its efforts, unless told otherwise.
@@ -173,7 +173,7 @@ std::shared_ptr<const Deed> Novice::execute(Birth<Cell>, const Behest& behest, s
 	matter::Execution executed = temporality().execute(uttered.id(), behest.id());
 
 	std::shared_ptr<const Deed> deed = tie.inscribe(
-		Birth<Novice>{*this},
+		Birth<Novice>{*this}, behest,
 		matter::Deed{std::move(uttered), std::move(placed), std::move(dated), std::move(executed), std::move(done)});
 
 	// Fulfilled before the eyes of the testator, it is seen at once.

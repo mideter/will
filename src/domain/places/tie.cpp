@@ -1,4 +1,5 @@
 #include "tie.h"
+#include "places/abode.h"
 #include "places/room.h"
 #include "refusals/tie.h"
 
@@ -50,44 +51,64 @@ const Man& Tie::novice() const
 }
 
 
-std::vector<std::shared_ptr<const Behest>> Tie::behests(const Novice& asker) const
+namespace {
+
+
+template<typename Kind>
+std::vector<std::shared_ptr<const Kind>> of_kind(const std::vector<std::shared_ptr<const Word>>& words)
 {
-	if (asker.Soul::id() != novice_.Soul::id() && asker.Soul::id() != testator_.Soul::id())
-		throw std::logic_error("not a side of this tie");
-
-	std::vector<std::shared_ptr<const Behest>> shown;
-	for (const std::shared_ptr<const Word>& word : recollection()->words()) {
-		if (auto behest = std::dynamic_pointer_cast<const Behest>(word))
-			shown.push_back(std::move(behest));
+	std::vector<std::shared_ptr<const Kind>> shown;
+	for (const std::shared_ptr<const Word>& word : words) {
+		if (auto kind = std::dynamic_pointer_cast<const Kind>(word))
+			shown.push_back(std::move(kind));
 	}
-
 	return shown;
 }
 
 
-std::vector<std::shared_ptr<const Deed>> Tie::deeds(const Novice& asker) const
+} // namespace
+
+
+std::vector<std::shared_ptr<const Behest>> Tie::behests(const Contemplation& gaze) const
 {
-	if (asker.Soul::id() != novice_.Soul::id() && asker.Soul::id() != testator_.Soul::id())
-		throw std::logic_error("not a side of this tie");
+	if (&gaze.place().source() != static_cast<const Place*>(this))
+		throw std::logic_error("these words are not what is contemplated");
 
-	std::vector<std::shared_ptr<const Deed>> shown;
-	for (const std::shared_ptr<const Word>& word : recollection()->words()) {
-		if (auto deed = std::dynamic_pointer_cast<const Deed>(word))
-			shown.push_back(std::move(deed));
-	}
-
-	return shown;
+	return of_kind<Behest>(gaze.words());
 }
 
 
-std::shared_ptr<const Deed> Tie::inscribe(Birth<Novice>, matter::Deed kept) const
+std::vector<std::shared_ptr<const Deed>> Tie::deeds(const Contemplation& gaze) const
 {
+	if (&gaze.place().source() != static_cast<const Place*>(this))
+		throw std::logic_error("these words are not what is contemplated");
+
+	return of_kind<Deed>(gaze.words());
+}
+
+
+std::vector<std::shared_ptr<const Behest>> Tie::behests(const Birth<Abode> abode) const
+{
+	if (!dwells(abode.parent().host()))
+		throw std::logic_error("the abode is not of a side of this tie");
+
+	// Unbeheld, only behests are given: a behest holds its deed, while a deed knows its
+	// behest only while a gaze holds them both.
+	return of_kind<Behest>(recollection()->words());
+}
+
+
+std::shared_ptr<const Deed> Tie::inscribe(Birth<Novice>, const Behest& behest, matter::Deed kept) const
+{
+	if (&behest.tie() != this)
+		throw std::logic_error("the behest is not of this tie");
 	if (kept.placement().place() != id())
 		throw std::logic_error("the deed is not placed in this tie");
 	if (kept.word().author() != novice_.Soul::id())
 		throw std::logic_error("only the novice of the tie inscribes a deed");
 
-	auto deed = std::make_shared<const Deed>(Birth<Tie>{*this}, std::move(kept));
+	auto deed = std::make_shared<const Deed>(Birth<Tie>{*this}, behest, std::move(kept));
+	behest.deed(Birth<Tie>{*this}, deed);
 	enter(*recollection(), deed);
 
 	return deed;

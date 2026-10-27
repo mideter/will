@@ -83,6 +83,7 @@ using will::domain::test::regard_in_helm;
 using will::domain::test::born;
 using will::domain::test::supplicate;
 using will::domain::test::accept;
+using will::domain::test::gaze_of;
 using will::domain::test::reject;
 
 } // namespace
@@ -254,7 +255,7 @@ TEST_CASE("sqlite keeps a behest, its execution and its review across reopen")
 		CHECK(bundle.temporality().executions({*open_id, *done_id}).size() == 1);
 		// Done before the testator's eyes, the deed is reviewed at once, and once.
 		CHECK(testator.abode().unreviewed().empty());
-		const id::Word deed_id = novice.obedience(testator).deeds(novice).front()->id();
+		const id::Word deed_id = novice.obedience(testator).deeds(gaze_of(world, novice)).front()->id();
 		REQUIRE(bundle.temporality().reviews({deed_id}).size() == 1);
 		CHECK_THROWS_AS(bundle.temporality().review(deed_id), std::logic_error);
 
@@ -270,8 +271,11 @@ TEST_CASE("sqlite keeps a behest, its execution and its review across reopen")
 		const auto& novice = born(world, token_novice);
 		const auto& testator = born(world, token_testator);
 
-		// The reborn tie shows the same behests to both sides, oldest first.
-		const std::vector<std::shared_ptr<const Behest>> shown = novice.obedience(testator).behests(novice);
+		// The reborn tie shows the same behests to both sides, oldest first; the novice acts
+		// on them as he beholds them, standing in his cell of the tie.
+		novice.wake();
+		novice.contemplate(*novice.abode().cell(novice.obedience(testator)));
+		const std::vector<std::shared_ptr<const Behest>> shown = novice.obedience(testator).behests(gaze_of(world, novice));
 		REQUIRE(shown.size() == 2);
 		const Behest& open = *shown[0];
 		const Behest& done = *shown[1];
@@ -282,20 +286,20 @@ TEST_CASE("sqlite keeps a behest, its execution and its review across reopen")
 
 		CHECK(done.id() == *done_id);
 		CHECK(done.saying().body() == "pray");
-		CHECK(testator.shepherding(novice).behests(testator).size() == 2);
+		CHECK(testator.shepherding(novice).behests(gaze_of(world, novice)).size() == 2);
 
 		// The deed fulfilling «pray» was kept, and is born again with it.
-		const auto deeds = novice.obedience(testator).deeds(novice);
+		const auto deeds = novice.obedience(testator).deeds(gaze_of(world, novice));
 		REQUIRE(deeds.size() == 1);
-		CHECK(deeds.front()->behest() == *done_id);
+		CHECK(deeds.front()->behest().id() == *done_id);
 		CHECK(deeds.front()->saying().body() == "совершено");
 		CHECK(deeds.front()->review());
-		novice.wake();
-		novice.contemplate(*novice.abode().cell(novice.obedience(testator)));
+		CHECK(done.deed() == deeds.front());
+		CHECK_FALSE(open.deed());
 		CHECK_THROWS_AS(test::execute(world, novice, done), std::logic_error);
 
 		test::execute(world, novice, open);
-		CHECK(novice.obedience(testator).deeds(novice).size() == 2);
+		CHECK(novice.obedience(testator).deeds(gaze_of(world, novice)).size() == 2);
 		// Done while the testator sleeps, it awaits his review.
 		REQUIRE(testator.abode().unreviewed().size() == 1);
 		CHECK(testator.abode().unreviewed()[0]->id() == *open_id);

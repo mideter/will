@@ -602,9 +602,9 @@ TEST_CASE("the words of a tie live while it is contemplated, one for both sides"
 	CHECK(testator_gaze->words()[1] == deed);
 	CHECK(novice_gaze->words()[1] == deed);
 
-	// Asked by a side, the tie gives the very same living words.
-	CHECK(shepherding.behests(testator).front() == behest);
-	CHECK(obedience.deeds(novice).front() == deed);
+	// Asked through a gaze on it, the tie gives the very same living words.
+	CHECK(shepherding.behests(*testator_gaze).front() == behest);
+	CHECK(obedience.deeds(*novice_gaze).front() == deed);
 
 }
 
@@ -653,7 +653,7 @@ TEST_CASE("the words of a tie are gone with the last gaze and are born anew from
 	REQUIRE(behest);
 	REQUIRE(deed);
 	CHECK(behest->id() == behest_id);
-	CHECK(deed->behest() == behest_id);
+	CHECK(deed->behest().id() == behest_id);
 	CHECK(deed->saying().body() == "fasted");
 }
 
@@ -818,12 +818,12 @@ TEST_CASE("will and execute within obedience")
 	CHECK(&behest.tie().testator() == &testator);
 	CHECK(&behest.tie().novice() == &novice);
 
-	// The tie shows its behests to either side, through the one who asks.
+	// The tie shows its behests through a gaze on it, whichever face it is asked by.
 	const Obedience& obedience = novice.obedience(testator);
-	REQUIRE(obedience.behests(novice).size() == 1);
-	REQUIRE(shepherding.behests(testator).size() == 1);
-	CHECK(shepherding.behests(testator).front()->id() == behest.id());
-	CHECK(obedience.deeds(novice).empty());
+	REQUIRE(obedience.behests(gaze_of(world, testator)).size() == 1);
+	REQUIRE(shepherding.behests(gaze_of(world, testator)).size() == 1);
+	CHECK(shepherding.behests(gaze_of(world, testator)).front()->id() == behest.id());
+	CHECK(obedience.deeds(gaze_of(world, testator)).empty());
 	CHECK_THROWS_AS(execute(world, testator, behest), std::logic_error);
 
 	// One fulfils a behest only while contemplating its tie.
@@ -831,14 +831,28 @@ TEST_CASE("will and execute within obedience")
 	novice.wake();
 	novice.contemplate(room_in(novice, obedience));
 	const std::shared_ptr<const Deed> deed = execute(world, novice, behest);
-	CHECK(deed->behest() == behest.id());
-	REQUIRE(shepherding.deeds(testator).size() == 1);
-	CHECK(shepherding.deeds(testator).front()->id() == deed->id());
+	CHECK(&deed->behest() == &behest);
+	CHECK(behest.deed() == deed);
+	REQUIRE(shepherding.deeds(gaze_of(world, testator)).size() == 1);
+	CHECK(shepherding.deeds(gaze_of(world, testator)).front()->id() == deed->id());
 
-	// What is kept decides: a behest is fulfilled once, whatever snapshot one holds.
-	CHECK_THROWS_AS(execute(world, novice, *obedience.behests(novice).front()), std::logic_error);
+	// The behest knows its deed: it is fulfilled once.
+	CHECK_THROWS_AS(execute(world, novice, *obedience.behests(gaze_of(world, novice)).front()), std::logic_error);
 	CHECK_THROWS_AS(execute(world, novice, behest), std::logic_error);
 	CHECK(cosmos.temporality().executions({behest.id()}).size() == 1);
+
+	// No one beholds the tie: looked at anew, it recollects the behest knowing its deed.
+	novice.sleep();
+	testator.sleep();
+	novice.wake();
+	novice.contemplate(room_in(novice, obedience));
+	const std::shared_ptr<const Behest> recollected = obedience.behests(gaze_of(world, novice)).front();
+	CHECK(recollected.get() != &behest);
+	REQUIRE(recollected->deed());
+	CHECK(recollected->deed()->id() == deed->id());
+	CHECK(&recollected->deed()->behest() == recollected.get());
+	CHECK(novice.abode().owed().empty());
+	CHECK(testator.abode().awaited().empty());
 }
 
 
@@ -866,7 +880,8 @@ TEST_CASE("a tie shows its behests only to its sides; behests are not letters")
 	testator.wake();
 
 	const Obedience& obedience = novice.obedience(testator);
-	CHECK_THROWS_AS(obedience.behests(stranger), std::logic_error);
+	stranger.wake();
+	CHECK_THROWS_AS(obedience.behests(gaze_of(world, stranger)), std::logic_error);
 	CHECK(novice.obediences().size() == 1);
 	CHECK(&novice.obediences().front().get() == &obedience);
 	CHECK(stranger.obediences().empty());
@@ -879,8 +894,9 @@ TEST_CASE("a tie shows its behests only to its sides; behests are not letters")
 	novice.contemplate(cell_of(novice));
 	write(world, novice, "hello");
 	REQUIRE(letters_seen_by(world.contemplation(novice)).size() == 1);
-	REQUIRE(obedience.behests(novice).size() == 1);
-	CHECK(obedience.behests(novice).front()->id() == behest.id());
+	novice.contemplate(room_in(novice, obedience));
+	REQUIRE(obedience.behests(gaze_of(world, novice)).size() == 1);
+	CHECK(obedience.behests(gaze_of(world, novice)).front()->id() == behest.id());
 }
 
 
@@ -1673,8 +1689,8 @@ TEST_CASE("the testator wills a training of exercises; the novice fulfils it tel
 	CHECK(monday->exercises() == willed);
 
 	// A training is a behest: the novice sees it, and it awaits him.
-	REQUIRE(obedience.behests(novice).size() == 2);
-	CHECK(std::dynamic_pointer_cast<const Training>(obedience.behests(novice).front()));
+	REQUIRE(obedience.behests(gaze_of(world, testator)).size() == 2);
+	CHECK(std::dynamic_pointer_cast<const Training>(obedience.behests(gaze_of(world, testator)).front()));
 	CHECK(novice.abode().owed().size() == 2);
 
 	// Fulfilled with nothing done, the deed tells no exercises; or with what he has done.
@@ -1760,7 +1776,7 @@ TEST_CASE("the novice does a training approach by approach: each begun and finis
 
 		// The training holds the effort: the testator, looking at the tie, sees it.
 		REQUIRE(training->efforts().size() == 1);
-		const auto seen = std::dynamic_pointer_cast<const Training>(shepherding.behests(testator).front());
+		const auto seen = std::dynamic_pointer_cast<const Training>(shepherding.behests(gaze_of(world, testator)).front());
 		REQUIRE(seen);
 		CHECK(seen->efforts().size() == 1);
 

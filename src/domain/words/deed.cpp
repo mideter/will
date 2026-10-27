@@ -9,48 +9,37 @@
 
 
 namespace will::domain {
-namespace {
 
 
-const Tie& living_tie(const id::Place id)
-{
-	const auto* const tie = dynamic_cast<const Tie*>(&Place::of(id));
-	if (!tie)
-		throw std::invalid_argument("deed must be placed in a tie");
-
-	return *tie;
-}
-
-
-} // namespace
-
-
-Deed::Deed(Birth<Tie>, matter::Deed kept)
-	: Deed(std::move(kept))
+Deed::Deed(Birth<Tie>, const Behest& behest, matter::Deed kept)
+	: Deed(behest, std::move(kept))
 {}
 
 
-Deed::Deed(Birth<Life>, matter::Deed kept)
-	: Deed(std::move(kept))
+Deed::Deed(Birth<Life>, const Behest& behest, matter::Deed kept)
+	: Deed(behest, std::move(kept))
 {}
 
 
-Deed::Deed(matter::Deed kept)
+Deed::Deed(const Behest& behest, matter::Deed kept)
 	: Word(kept.id(), kept.word().saying())
-	, tie_(living_tie(kept.placement().place()))
-	, behest_(kept.execution().behest())
+	, behest_(behest)
 	, performed_(kept.performed() ? kept.performed()->exercises() : std::vector<Exercise>{})
 	, created_at_(kept.dating().created_at())
 	, review_(kept.review())
 {
-	if (kept.word().author() != tie_.novice().Soul::id())
+	if (kept.execution().behest() != behest_.id())
+		throw std::invalid_argument("deed must fulfil the behest it is born with");
+	if (kept.placement().place() != tie().id())
+		throw std::invalid_argument("deed must be placed in the tie of its behest");
+	if (kept.word().author() != tie().novice().Soul::id())
 		throw std::invalid_argument("deed must be uttered by the novice of its tie");
 }
 
 
 const Soul& Deed::author() const
 {
-	return tie_.novice();
+	return tie().novice();
 }
 
 
@@ -63,7 +52,7 @@ std::optional<matter::Review> Deed::review() const
 
 void Deed::review(const Birth<Testator> birth, matter::Review kept) const
 {
-	if (birth.parent().Soul::id() != tie_.testator().Soul::id())
+	if (birth.parent().Soul::id() != tie().testator().Soul::id())
 		throw std::logic_error("only the testator of the tie reviews its deed");
 	if (kept.id() != id())
 		throw std::logic_error("the review is of another deed");

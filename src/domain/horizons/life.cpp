@@ -199,6 +199,8 @@ std::vector<std::shared_ptr<const Word>> Life::recall(const Place& place) const
 		return std::move(t->second);
 	};
 
+	// A behest is dated before the deed that fulfils it, so it lives by the time its deed is born.
+	std::unordered_map<id::Word, std::shared_ptr<const Behest>> behests;
 	std::vector<std::shared_ptr<const Word>> words;
 	words.reserve(dated.size());
 	for (matter::Dating& dating : dated) {
@@ -211,13 +213,18 @@ std::vector<std::shared_ptr<const Word>> Life::recall(const Place& place) const
 			words.push_back(std::make_shared<const Letter>(
 				Birth<Life>{*this}, matter::Letter{std::move(u->second), std::move(placement), std::move(dating)}));
 		} else if (const auto e = executions.find(dating.id()); e != executions.end()) {
+			const auto b = behests.find(e->second.behest());
+			if (b == behests.end())
+				continue;
 			std::optional<matter::Review> review;
 			if (const auto r = reviewed.find(dating.id()); r != reviewed.end())
 				review = std::move(r->second);
-			words.push_back(std::make_shared<const Deed>(
-				Birth<Life>{*this},
+			auto deed = std::make_shared<const Deed>(
+				Birth<Life>{*this}, *b->second,
 				matter::Deed{std::move(u->second), std::move(placement), std::move(dating), std::move(e->second),
-							 training_of(dating.id()), std::move(review)}));
+							 training_of(dating.id()), std::move(review)});
+			b->second->deed(Birth<Life>{*this}, deed);
+			words.push_back(std::move(deed));
 		} else {
 			std::optional<matter::Training> training = training_of(dating.id());
 			std::vector<matter::Effort> efforts;
@@ -233,10 +240,13 @@ std::vector<std::shared_ptr<const Word>> Life::recall(const Place& place) const
 			}
 			matter::Behest kept{std::move(u->second), std::move(placement), std::move(dating), std::move(training),
 								std::move(efforts), std::move(doing), std::move(remarks)};
+			std::shared_ptr<const Behest> behest;
 			if (kept.training())
-				words.push_back(std::make_shared<const Training>(Birth<Life>{*this}, std::move(kept)));
+				behest = std::make_shared<const Training>(Birth<Life>{*this}, std::move(kept));
 			else
-				words.push_back(std::make_shared<const Behest>(Birth<Life>{*this}, std::move(kept)));
+				behest = std::make_shared<const Behest>(Birth<Life>{*this}, std::move(kept));
+			behests.emplace(behest->id(), behest);
+			words.push_back(std::move(behest));
 		}
 	}
 
