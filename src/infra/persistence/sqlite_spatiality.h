@@ -29,8 +29,7 @@ public:
 	std::vector<domain::matter::Tie> ties() const override;
 	domain::matter::Placement place(domain::id::Word id, domain::id::Place place) override;
 	std::optional<domain::matter::Placement> placement(domain::id::Word id) const override;
-	std::vector<domain::matter::Placement> placements(domain::id::Place place,
-											  std::uint32_t limit) const override;
+	std::vector<domain::matter::Placement> placements(domain::id::Place place) const override;
 
 private:
 	mutable SqliteDatabase database_;

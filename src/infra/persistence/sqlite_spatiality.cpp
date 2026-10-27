@@ -288,21 +288,18 @@ std::optional<domain::matter::Placement> SqliteSpatiality::placement(const domai
 }
 
 
-std::vector<domain::matter::Placement> SqliteSpatiality::placements(const domain::id::Place place,
-															const std::uint32_t limit) const
+std::vector<domain::matter::Placement> SqliteSpatiality::placements(const domain::id::Place place) const
 {
 	std::lock_guard lock(database_.mutex());
 
 	sqlite3* const db = database_.db();
 	SqliteStmt stmt(db,
 					"SELECT word_id, place_id FROM placements "
-					"WHERE place_id = ? ORDER BY word_id DESC LIMIT ?;",
+					"WHERE place_id = ?;",
 					"prepare placements");
 	stmt.bind_i64(1, static_cast<std::int64_t>(place.value()), "bind place_id");
-	stmt.bind_i64(2, static_cast<std::int64_t>(limit), "bind limit");
 
 	std::vector<domain::matter::Placement> rows;
-	rows.reserve(limit);
 	while (stmt.step_row("placements step")) {
 		rows.push_back(domain::matter::Placement{
 			domain::id::Word{static_cast<std::uint64_t>(stmt.column_i64(0))},

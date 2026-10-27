@@ -350,7 +350,7 @@ public:
 
 	std::size_t placement_reads() const noexcept { return placement_reads_; }
 
-	std::vector<matter::Placement> placements(const id::Place place, const std::uint32_t limit) const override
+	std::vector<matter::Placement> placements(const id::Place place) const override
 	{
 		++placement_reads_;
 
@@ -359,9 +359,7 @@ public:
 			if (row.place() == place)
 				matching.push_back(row);
 		}
-		if (limit >= matching.size())
-			return matching;
-		return std::vector<matter::Placement>(matching.end() - static_cast<std::ptrdiff_t>(limit), matching.end());
+		return matching;
 	}
 
 private:

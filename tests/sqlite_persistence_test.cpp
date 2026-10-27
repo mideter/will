@@ -136,7 +136,7 @@ TEST_CASE("sqlite persistence survives reopen")
 		CHECK(world.soul(letters[0]->author().id()).name() == *name_a);
 
 		// man_b spoke in his own abode; check via spatiality/eternity on place_a only has man_a
-		const auto placed = bundle.spatiality().placements(witness_a.abode().id(), 10);
+		const auto placed = bundle.spatiality().placements(witness_a.abode().id());
 		REQUIRE(placed.size() == 1);
 
 		CHECK(man_a.abode().id() !=

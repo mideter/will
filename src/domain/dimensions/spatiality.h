@@ -21,12 +21,10 @@ namespace will::domain {
 /// Places and where a word is fixed: abodes, dwellers, rooms, ties, placements. A host
 /// keeps one abode. A dweller's kind kept anew replaces the former one. An abode has one
 /// room for each aspect of each place it reflects, furnished in the inner part. A pair is
-/// bound once. Placements come newest first, up to the limit. What would break these it
-/// refuses; an unknown room it does not arrange.
+/// bound once. A place's placements come all. What would break these it refuses; an unknown
+/// room it does not arrange.
 class Spatiality {
 public:
-	static constexpr std::uint32_t MaxLetterLimit = 1000;
-
 	virtual ~Spatiality() = default;
 
 	virtual std::optional<matter::Abode> abode(id::Soul host) const = 0;
@@ -51,7 +49,7 @@ public:
 
 	virtual std::optional<matter::Placement> placement(id::Word id) const = 0;
 
-	virtual std::vector<matter::Placement> placements(id::Place place, std::uint32_t limit) const = 0;
+	virtual std::vector<matter::Placement> placements(id::Place place) const = 0;
 };
 
 

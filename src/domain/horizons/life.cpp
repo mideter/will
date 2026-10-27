@@ -149,7 +149,7 @@ std::unordered_map<id::Word, std::vector<matter::Remark>> Life::remarks_on(const
 
 std::vector<std::shared_ptr<const Word>> Life::recall(const Place& place) const
 {
-	const std::vector<matter::Placement> placed = spatiality().placements(place.id(), Spatiality::MaxLetterLimit);
+	const std::vector<matter::Placement> placed = spatiality().placements(place.id());
 
 	std::vector<id::Word> ids;
 	ids.reserve(placed.size());

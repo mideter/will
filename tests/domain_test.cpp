@@ -200,7 +200,7 @@ TEST_CASE("man say persists via temporality")
 	witness.contemplate(cell_of(witness));
 	write(world, author, "hello");
 
-	const auto placed = cosmos.spatiality().placements(witness.abode().id(), 10);
+	const auto placed = cosmos.spatiality().placements(witness.abode().id());
 	REQUIRE(placed.size() == 1);
 	const auto dated = cosmos.temporality().datings({placed[0].id()});
 	REQUIRE(dated.size() == 1);
@@ -400,7 +400,7 @@ TEST_CASE("letters of an abode are gone with the last gaze and are born anew fro
 	// The last gaze is let go: the living letter is gone, its matter stays kept.
 	held.reset();
 	CHECK(watched.expired());
-	CHECK(cosmos.spatiality().placements(host.abode().id(), 10).size() == 1);
+	CHECK(cosmos.spatiality().placements(host.abode().id()).size() == 1);
 	const std::size_t reads = cosmos.spatiality().placement_reads();
 
 	// A new gaze births the letters anew from the dimensions.
@@ -1143,6 +1143,30 @@ TEST_CASE("the abode shows its host what awaits his attention and what he has se
 	REQUIRE(novice.abode().owed().size() == 1);
 	CHECK(novice.abode().owed()[0]->id() == pray->id());
 	CHECK(testator.abode().awaited().size() == 1);
+}
+
+
+TEST_CASE("a place recollects all its words: the oldest behest is owed however much was said after it")
+{
+	InMemoryCosmos cosmos;
+	World& world = cosmos.life().create().world();
+	const auto& novice = born(world, DeviceToken::generate());
+	const auto& testator = born(world, DeviceToken::generate());
+	admit_at_gates(world, novice, testator);
+	admit_at_gates(world, testator, novice);
+	supplicate(world, novice, testator);
+	const Shepherding& shepherding = accept(world, testator, *testator.supplication(novice));
+
+	testator.wake();
+	testator.contemplate(*testator.abode().cell(shepherding));
+	const std::shared_ptr<const Behest> oldest = will_here(world, testator, "oldest");
+	for (int i = 0; i < 1000; ++i)
+		(void)will_here(world, testator, "again");
+	testator.sleep();
+
+	const auto owed = novice.abode().owed();
+	REQUIRE(owed.size() == 1001);
+	CHECK(owed.front()->id() == oldest->id());
 }
 
 
