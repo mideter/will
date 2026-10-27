@@ -1226,7 +1226,7 @@ TEST_CASE("the testator reviews the deeds of his tie by seeing them, as he looks
 }
 
 
-TEST_CASE("one comes into another's abode through its gates, let in by its host standing there")
+TEST_CASE("one comes into another's abode through its gates, knocking, let in by its host standing there")
 {
 	InMemoryCosmos cosmos;
 	World& world = cosmos.life().create().world();
@@ -1242,22 +1242,41 @@ TEST_CASE("one comes into another's abode through its gates, let in by its host 
 	CHECK_THROWS_AS(man.contemplate(host.abode()), DoesNotDwell);
 	CHECK(world.contemplation(man)->words().empty());
 
-	// The host is elsewhere: the gates are shut, and he lets no one in.
+	// Standing there he does not wait: only one who knocks is seen, and let in.
 	host.wake();
+	host.contemplate(gates);
+	CHECK(gates.knocking().empty());
+	CHECK_THROWS_AS(admit(world, host, man), DoesNotKnock);
+	CHECK_THROWS_AS(knock(world, host), AlreadyDwells);
+
+	// He knocks once; the host is elsewhere: the gates are shut, and he lets no one in.
+	go(world, host, host.abode());
+	knock(world, man);
+	CHECK_THROWS_AS(knock(world, man), AlreadyKnocks);
+	CHECK(man.contemplates(gates));
+	REQUIRE(gates.knocking().size() == 1);
+	CHECK(&gates.knocking().front().get() == &man);
 	CHECK_FALSE(gates.open());
 	CHECK_THROWS_AS(admit(world, host, man), std::logic_error);
 
-	// Standing in his gates, he opens them and lets in the one who stands there.
+	// Standing in his gates, he opens them and lets in the one who knocks.
 	host.contemplate(gates);
 	CHECK(gates.open());
 	admit(world, host, man);
 	CHECK(host.abode().dweller(man));
+	CHECK(gates.knocking().empty());
+	CHECK_THROWS_AS(knock(world, man), AlreadyDwells);
 
-	// One who has left the gates can no longer be let in.
+	// A knock fades as one turns away, even back to the same gates.
 	passer.wake();
 	go(world, passer, gates);
+	knock(world, passer);
+	go(world, passer, gates);
+	CHECK(gates.knocking().empty());
+	knock(world, passer);
 	go(world, passer, passer.abode());
-	CHECK_THROWS_AS(admit(world, host, passer), std::logic_error);
+	CHECK(gates.knocking().empty());
+	CHECK_THROWS_AS(admit(world, host, passer), DoesNotKnock);
 	CHECK_FALSE(host.abode().dweller(passer));
 }
 
@@ -1613,6 +1632,7 @@ TEST_CASE("only the host keeps his gates: open while he stands in them, he alone
 	viktor.wake();
 	go(world, boris, gates);
 	go(world, viktor, gates);
+	knock(world, viktor);
 	CHECK_FALSE(gates.keeps(boris));
 	CHECK_FALSE(gates.open());
 	CHECK_THROWS_AS(admit(world, boris, viktor), std::logic_error);
@@ -1637,6 +1657,7 @@ TEST_CASE("only the host keeps his gates: open while he stands in them, he alone
 	CHECK_FALSE(gates.open());
 	galina.wake();
 	go(world, galina, gates);
+	knock(world, galina);
 	CHECK_THROWS_AS(admit(world, anna, galina), std::logic_error);
 }
 

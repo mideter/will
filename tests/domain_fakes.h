@@ -724,6 +724,13 @@ inline void admit(World& world, const Man& keeper, const Man& man)
 }
 
 
+inline void knock(World& world, const Man& man)
+{
+	const Contemplation& gaze = gaze_of(world, man);
+	gaze.gates().knock(gaze);
+}
+
+
 inline const Man& bear(World& world, const Man& midwife, const Unborn& unborn)
 {
 	const Contemplation& gaze = gaze_of(world, midwife);
@@ -791,7 +798,10 @@ void looking_at(World& world, const Man& man, const Room& room, Act act)
 inline void admit_at_gates(World& world, const Man& host, const Man& man)
 {
 	looking_at(world, host, host.abode().gates(), [&] {
-		looking_at(world, man, host.abode().gates(), [&] { admit(world, host, man); });
+		looking_at(world, man, host.abode().gates(), [&] {
+			knock(world, man);
+			admit(world, host, man);
+		});
 	});
 }
 

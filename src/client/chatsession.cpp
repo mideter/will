@@ -166,7 +166,7 @@ std::optional<std::vector<v1::Exercise>> exercises_of(std::string_view text)
 void print_help(ConsoleUi& ui)
 {
 	ui.print_commands("Rooms", "/rooms [name]  /room <number|name>  /home  /visit <name> [room]");
-	ui.print_commands("Gates", "/gates [name]  /admit <name>  (out and in only through gates: yours, then theirs)");
+	ui.print_commands("Gates", "/gates [name]  /knock  /admit <name>  (out and in only through gates: yours, then theirs)");
 	ui.print_commands("Dwellers", "/dwellers  /regard <name> acquaintance|neighbour|friend  /dwellings");
 	ui.print_commands("Arranging", "/arrange inner|outer <number|room>  (at the helm, as /regard)");
 	ui.print_commands("Obedience", "/ask <name>  /accept <name>  /reject <name> (at the helm)  /supplications  /done <number> [report]");
@@ -355,6 +355,10 @@ bool handle_slash_command(WillClient& client, ConsoleUi& ui, ShownRooms& rooms, 
 			return true;
 		}
 		client.admit(args);
+		return true;
+	}
+	if (cmd == "knock") {
+		client.knock();
 		return true;
 	}
 	if (cmd == "regard") {

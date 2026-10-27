@@ -180,10 +180,14 @@ enum DwellerKind {
 }
 
 
-// Admit this soul into one's abode as an acquaintance.
+// Admit this soul, who knocks at one's gates, into one's abode as an acquaintance.
 message Admit {
     string name = 1;
 }
+
+
+// Knock at the gates one stands at, not dwelling behind them: once, while one stands there.
+message Knock {}
 
 
 // Regard this dweller of one's abode as of this kind.
@@ -306,11 +310,13 @@ message Turned {
 
 
 // The gates one stands in: open while their host, who alone keeps them, stands in
-// them. keeping: one is their host; to him, who stands at them waiting to be let in.
+// them. keeping: one is their host; to him, who knocks at them waiting to be let in.
+// knocking: one knocks at them oneself.
 message Threshold {
     bool open = 1;
     repeated string waiting = 2;
     bool keeping = 3;
+    bool knocking = 4;
 }
 
 
@@ -341,7 +347,7 @@ message OutstandingBehest {
 // What is not yet fulfilled in the rooms of the host's ties: what awaits his
 // attention, where he is the novice; what he has set for others, where he is
 // the testator. And what is fulfilled where he is the testator, its deed not yet
-// seen by him: what he has to review. And how many stand at his gates waiting to
+// seen by him: what he has to review. And how many knock at his gates waiting to
 // be let in: unknown to him, they are not named here.
 message Outstanding {
     repeated OutstandingBehest owed = 1;
@@ -465,7 +471,7 @@ enum NoticeCode {
     // 5 told that one bears only at gates: one bears now standing in them, as one does there all else.
     reserved 5;
     NOTICE_ALREADY_DWELLS = 3;
-    NOTICE_NOT_AT_GATES = 4;
+    NOTICE_DOES_NOT_KNOCK = 4;
     NOTICE_NO_SUCH_UNBORN = 7;
     NOTICE_DOES_NOT_DWELL = 8;
     NOTICE_DOES_NOT_ENTER_ROOM = 9;
@@ -498,6 +504,7 @@ enum NoticeCode {
     NOTICE_ONLY_HOST_ACTS = 44;
     NOTICE_PASS_THROUGH_GATES = 45;
     NOTICE_TELL_WHAT_WAS_DONE = 46;
+    NOTICE_ALREADY_KNOCKS = 47;
 
     // What the server itself refuses.
     // 102–104, 108 and 111 were the server's own copies of the world's rules: the
@@ -577,6 +584,7 @@ message ClientEvent {
         SayRemark say_remark = 22;
         EndApproach end_approach = 23;
         Heartbeat heartbeat = 24;
+        Knock knock = 25;
     }
     // Numbered, the event is answered by one Reply with this number; zero, as before,
     // by notices.

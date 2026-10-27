@@ -57,6 +57,9 @@ void InboundClientMessageHandler::on_bound_event(const v1::ClientEvent& event)
 	case v1::ClientEvent::kAdmit:
 		adapter_.handle_admit(session_id_, event.admit());
 		return;
+	case v1::ClientEvent::kKnock:
+		adapter_.handle_knock(session_id_);
+		return;
 	case v1::ClientEvent::kRegard:
 		adapter_.handle_regard(session_id_, event.regard());
 		return;
@@ -125,6 +128,7 @@ void InboundClientMessageHandler::on_unbound_event(const v1::ClientEvent& event)
 	case v1::ClientEvent::kTurn:
 	case v1::ClientEvent::kFulfil:
 	case v1::ClientEvent::kAdmit:
+	case v1::ClientEvent::kKnock:
 	case v1::ClientEvent::kRegard:
 	case v1::ClientEvent::kListDwellers:
 	case v1::ClientEvent::kArrange:

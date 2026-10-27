@@ -54,6 +54,8 @@ void print_threshold(ConsoleUi& ui, const v1::Threshold& threshold)
 		return;
 	}
 	ui.print_status(threshold.open() ? "The gates are open: the host is here." : "The gates are shut: the host is not here.");
+	if (threshold.knocking())
+		ui.print_status("You knock.");
 }
 
 

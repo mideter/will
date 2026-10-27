@@ -63,6 +63,7 @@ An interface word is given only where it differs from the Russian name.
 | Ближний | `Neighbour` | |
 | Друг | `Friend` | |
 | Созерцание | `Contemplation` | — (where one stands) |
+| Стук | `Knock` | Стук |
 | Просьба | `Supplication` | |
 | Ответ | `matter::Answer` | Принять / Отклонить |
 | Отцовство | `matter::Fatherhood` | отец по плоти, отец по духу |

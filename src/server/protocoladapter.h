@@ -60,6 +60,7 @@ private:
 	void handle_turn(SessionId session_id, const v1::Turn& msg);
 	void handle_fulfil(SessionId session_id, const v1::Fulfil& msg);
 	void handle_admit(SessionId session_id, const v1::Admit& msg);
+	void handle_knock(SessionId session_id);
 	void handle_regard(SessionId session_id, const v1::Regard& msg);
 	void handle_list_dwellers(SessionId session_id);
 	void handle_arrange(SessionId session_id, const v1::Arrange& msg);
@@ -128,8 +129,6 @@ private:
 	v1::ServerEvent unborn_event() const;
 
 	v1::ServerEvent threshold_event(const domain::Gates& gates, const domain::Man& listener) const;
-
-	std::vector<const domain::Man*> waiting_at(const domain::Gates& gates) const;
 
 	v1::ServerEvent dwellers_event(const domain::Abode& abode) const;
 

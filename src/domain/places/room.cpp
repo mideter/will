@@ -18,8 +18,10 @@
 #include "places/tie.h"
 #include "relations/acquaintance.h"
 #include "relations/contemplation.h"
+#include "relations/knock.h"
 #include "words/training.h"
 
+#include <algorithm>
 #include <stdexcept>
 #include <utility>
 
@@ -240,13 +242,39 @@ bool Gates::open() const
 }
 
 
+void Gates::knock(const Contemplation& gaze) const
+{
+	if (&gaze.place() != this)
+		throw std::logic_error("these gates are not what is contemplated");
+	if (abode().dwells(gaze.who()))
+		throw AlreadyDwells();
+	if (dynamic_cast<const Knock*>(&gaze))
+		throw AlreadyKnocks();
+
+	Immanent<Heaven>::horizon().knock(Birth<Gates>{*this}, gaze);
+}
+
+
+std::vector<std::reference_wrapper<const Man>> Gates::knocking() const
+{
+	// One let in while he knocks waits no longer.
+	std::vector<std::reference_wrapper<const Man>> waiting;
+	for (const Man& man : Immanent<Heaven>::horizon().knocking(*this)) {
+		if (!abode().dwells(man))
+			waiting.emplace_back(man);
+	}
+	return waiting;
+}
+
+
 void Gates::admit(const Contemplation& gaze, const Man& man) const
 {
 	host_only(gaze);
 	if (abode().dwells(man))
 		throw AlreadyDwells();
-	if (!man.contemplates(*this))
-		throw NotAtGates();
+	const auto waiting = knocking();
+	if (std::ranges::none_of(waiting, [&](const Man& knocker) { return &knocker == &man; }))
+		throw DoesNotKnock();
 
 	abode().host().admit(Birth<Gates>{*this}, man);
 }

@@ -22,8 +22,10 @@
 #include "words/letter.h"
 #include "values/device_token.h"
 
+#include <algorithm>
 #include <cstdint>
 #include <exception>
+#include <functional>
 #include <memory>
 #include <mutex>
 #include <optional>
@@ -127,6 +129,22 @@ void ProtocolAdapter::handle_admit(const SessionId session_id, const v1::Admit& 
 	tell_dwelling(self, *man);
 	retell_gates(*gates);
 	retell_helm(self.abode().helm());
+}
+
+
+void ProtocolAdapter::handle_knock(const SessionId session_id)
+{
+	const domain::Man& self = session_man(session_id);
+	const domain::Gates* gates = gates_of_gaze(self);
+	try {
+		const domain::Contemplation& gaze = gaze_of(self);
+		gaze.gates().knock(gaze);
+	} catch (const std::exception& e) {
+		refuse(session_id, e);
+		return;
+	}
+
+	retell_gates(*gates);
 }
 
 
@@ -356,24 +374,16 @@ v1::ServerEvent ProtocolAdapter::threshold_event(const domain::Gates& gates, con
 	threshold->set_open(gates.open());
 	threshold->set_keeping(gates.keeps(listener));
 
+	const std::vector<std::reference_wrapper<const domain::Man>> knocking = gates.knocking();
+	threshold->set_knocking(
+		std::ranges::any_of(knocking, [&](const domain::Man& man) { return &man == &listener; }));
+
 	// Only those who keep the gates see who waits to be let in.
 	if (gates.keeps(listener)) {
-		for (const domain::Man* man : waiting_at(gates))
-			threshold->add_waiting(std::string{man->name().text()});
+		for (const domain::Man& man : knocking)
+			threshold->add_waiting(std::string{man.name().text()});
 	}
 	return event;
-}
-
-
-std::vector<const domain::Man*> ProtocolAdapter::waiting_at(const domain::Gates& gates) const
-{
-	// Those at the gates who do not dwell here wait to be let in.
-	std::vector<const domain::Man*> waiting;
-	for (const domain::Man& man : world_.contemplating(gates)) {
-		if (&man != &gates.abode().host() && !gates.abode().dweller(man))
-			waiting.push_back(&man);
-	}
-	return waiting;
 }
 
 
@@ -463,7 +473,7 @@ v1::ServerEvent ProtocolAdapter::outstanding_event(const domain::Abode& abode) c
 	tell(abode.owed(), [&] { return outstanding->add_owed(); });
 	tell(abode.awaited(), [&] { return outstanding->add_awaited(); });
 	tell(abode.unreviewed(), [&] { return outstanding->add_unreviewed(); });
-	outstanding->set_waiting(static_cast<std::uint32_t>(waiting_at(abode.gates()).size()));
+	outstanding->set_waiting(static_cast<std::uint32_t>(abode.gates().knocking().size()));
 	return event;
 }
 

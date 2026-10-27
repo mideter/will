@@ -56,6 +56,7 @@ public:
 	void arrange(std::string_view room, bool outer) const;
 
 	void admit(std::string_view name) const;
+	void knock() const;
 	void regard(std::string_view name, v1::DwellerKind kind) const;
 	void list_dwellers() const;
 	void list_dwellings() const;

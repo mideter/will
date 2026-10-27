@@ -23,9 +23,11 @@ class Word;
 /// The gaze of a spirit, the eye of a soul, one at a time: the words of a place live while
 /// it is beheld, and it shows them to who looks, oldest first. It gives the room one stands
 /// in as the kind one would act in, or refuses; what one writes is taken only in a cell
-/// whose host one is.
+/// whose host one is. At gates one does not dwell behind, it may knock.
 class Contemplation : public Immanent<Heaven> {
 public:
+	virtual ~Contemplation() = default;
+
 	const Man& who() const noexcept { return who_; }
 	const Place& place() const noexcept { return place_; }
 

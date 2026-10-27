@@ -4,6 +4,8 @@
 #include "men/testator.h"
 #include "relations/supplication.h"
 #include "men/man.h"
+#include "places/room.h"
+#include "relations/knock.h"
 #include "dimensions/eternity.h"
 
 #include <algorithm>
@@ -106,6 +108,32 @@ void Heaven::contemplate(const Spirit& eye, const Place& place)
 
 	std::lock_guard lock(mutex_);
 	std::swap(contemplations_[&eye], gaze);
+}
+
+
+void Heaven::knock(const Birth<Gates> gates, const Contemplation& gaze)
+{
+	std::shared_ptr<const Contemplation> knock = std::make_shared<const Knock>(Birth<Heaven>{*this}, gaze.who(), gates.parent());
+
+	std::lock_guard lock(mutex_);
+	const auto it = contemplations_.find(&static_cast<const Spirit&>(gaze.who()));
+	if (it == contemplations_.end() || it->second.get() != &gaze)
+		throw std::logic_error("this gaze has turned away");
+
+	std::swap(it->second, knock);
+}
+
+
+std::vector<std::reference_wrapper<const Man>> Heaven::knocking(const Gates& gates) const
+{
+	std::lock_guard lock(mutex_);
+
+	std::vector<std::reference_wrapper<const Man>> out;
+	for (const auto& [eye, contemplation] : contemplations_) {
+		if (&contemplation->place() == static_cast<const Place*>(&gates) && dynamic_cast<const Knock*>(contemplation.get()))
+			out.emplace_back(contemplation->who());
+	}
+	return out;
 }
 
 

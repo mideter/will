@@ -419,6 +419,18 @@ void WillClient::admit(const std::string_view name) const
 }
 
 
+void WillClient::knock() const
+{
+	if (!authenticated_)
+		throw std::logic_error("WillClient: not authenticated");
+
+	v1::ClientEvent event;
+	event.mutable_knock();
+	if (!write_event(event))
+		throw std::runtime_error("Will protocol: failed to send Knock");
+}
+
+
 void WillClient::regard(const std::string_view name, const v1::DwellerKind kind) const
 {
 	if (!authenticated_)

@@ -14,10 +14,17 @@ public:
 	{}
 };
 
-class NotAtGates final : public Refusal {
+class DoesNotKnock final : public Refusal {
 public:
-	NotAtGates()
-		: Refusal("he does not stand at the gates")
+	DoesNotKnock()
+		: Refusal("he does not knock at the gates")
+	{}
+};
+
+class AlreadyKnocks final : public Refusal {
+public:
+	AlreadyKnocks()
+		: Refusal("one already knocks at these gates")
 	{}
 };
 
