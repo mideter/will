@@ -29,7 +29,9 @@ class World;
 
 /// The side of a tie who wills its behests and trainings, and hears the supplications that
 /// would bind one, refusing those he may not hear. Seeing his tie, as he looks at it or as it
-/// is fulfilled before his eyes, he reviews its deeds.
+/// is fulfilled before his eyes, he reviews its deeds. What he awaits are the behests of his
+/// ties not yet fulfilled; what he has to review, those fulfilled whose deeds he has not yet
+/// seen; each oldest first by tie.
 class Testator : public virtual Embodied {
 public:
 	const Shepherding& accept(Birth<Helm> helm, const Supplication& ask) const;
@@ -44,6 +46,9 @@ public:
 	void review(Birth<Novice> novice, const Shepherding& shepherding) const;
 
 	const Shepherding& shepherding(const Novice& novice) const;
+
+	std::vector<std::shared_ptr<const Behest>> awaited() const;
+	std::vector<std::shared_ptr<const Behest>> unreviewed() const;
 	std::shared_ptr<const Supplication> supplication(const Novice& suppliant) const;
 	std::vector<std::shared_ptr<const Supplication>> supplications() const;
 

@@ -28,6 +28,7 @@ public:
 	virtual const Man& novice() const = 0;
 
 	virtual std::vector<std::shared_ptr<const Behest>> behests(const Contemplation& gaze) const = 0;
+	virtual std::vector<std::shared_ptr<const Behest>> behests(Birth<Testator> testator) const = 0;
 
 	virtual std::shared_ptr<const Behest> inscribe(Birth<Testator>, matter::Behest kept) const = 0;
 

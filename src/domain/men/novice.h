@@ -40,7 +40,8 @@ class Helm;
 /// the exercises in any order, the approaches of an exercise in order, and once the willed
 /// are done, one beyond them; one approach of a training at a time. He ends an approach, and
 /// then tells what was done in it; until he tells, he begins no other. Until the training is
-/// fulfilled he may say remarks on its exercises, as many as he will.
+/// fulfilled he may say remarks on its exercises, as many as he will. What he owes are the
+/// behests of his ties not yet fulfilled, oldest first by tie.
 class Novice : public virtual Embodied {
 public:
 	void supplicate(Birth<Helm> helm, const Acquaintance& dweller) const;
@@ -60,6 +61,8 @@ public:
 	std::vector<std::reference_wrapper<const Obedience>> obediences() const;
 
 	const Obedience& obedience(const Testator& testator) const;
+
+	std::vector<std::shared_ptr<const Behest>> owed() const;
 
 protected:
 	Novice() {}

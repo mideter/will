@@ -851,8 +851,8 @@ TEST_CASE("will and execute within obedience")
 	REQUIRE(recollected->deed());
 	CHECK(recollected->deed()->id() == deed->id());
 	CHECK(&recollected->deed()->behest() == recollected.get());
-	CHECK(novice.abode().owed().empty());
-	CHECK(testator.abode().awaited().empty());
+	CHECK(novice.owed().empty());
+	CHECK(testator.awaited().empty());
 }
 
 
@@ -1140,7 +1140,7 @@ TEST_CASE("the abode shows its host what awaits his attention and what he has se
 	admit_at_gates(world, testator, novice);
 	supplicate(world, novice, testator);
 	const Shepherding& shepherding = accept(world, testator, *testator.supplication(novice));
-	CHECK(novice.abode().owed().empty());
+	CHECK(novice.owed().empty());
 
 	// The testator wills through his room Ведение, as through the tie itself.
 	testator.wake();
@@ -1148,20 +1148,20 @@ TEST_CASE("the abode shows its host what awaits his attention and what he has se
 	const std::shared_ptr<const Behest> fast = will_here(world, testator, "fast");
 	const std::shared_ptr<const Behest> pray = will_here(world, testator, "pray");
 
-	REQUIRE(novice.abode().owed().size() == 2);
-	CHECK(novice.abode().owed()[0]->id() == fast->id());
+	REQUIRE(novice.owed().size() == 2);
+	CHECK(novice.owed()[0]->id() == fast->id());
 	// The testator does not owe what he has set: it is set for the novice.
-	CHECK(testator.abode().owed().empty());
-	REQUIRE(testator.abode().awaited().size() == 2);
-	CHECK(novice.abode().awaited().empty());
+	CHECK(testator.owed().empty());
+	REQUIRE(testator.awaited().size() == 2);
+	CHECK(novice.awaited().empty());
 
 	// Fulfilled through the room Послушание, a behest no longer awaits.
 	novice.wake();
 	novice.contemplate(*novice.abode().room(shepherding));
 	execute(world, novice, *fast);
-	REQUIRE(novice.abode().owed().size() == 1);
-	CHECK(novice.abode().owed()[0]->id() == pray->id());
-	CHECK(testator.abode().awaited().size() == 1);
+	REQUIRE(novice.owed().size() == 1);
+	CHECK(novice.owed()[0]->id() == pray->id());
+	CHECK(testator.awaited().size() == 1);
 }
 
 
@@ -1183,7 +1183,7 @@ TEST_CASE("a place recollects all its words: the oldest behest is owed however m
 		(void)will_here(world, testator, "again");
 	testator.sleep();
 
-	const auto owed = novice.abode().owed();
+	const auto owed = novice.owed();
 	REQUIRE(owed.size() == 1001);
 	CHECK(owed.front()->id() == oldest->id());
 }
@@ -1209,23 +1209,23 @@ TEST_CASE("the testator reviews the deeds of his tie by seeing them, as he looks
 	novice.wake();
 	novice.contemplate(*novice.abode().room(shepherding));
 	execute(world, novice, *fast);
-	CHECK(testator.abode().unreviewed().empty());
+	CHECK(testator.unreviewed().empty());
 
 	// Done while he looks elsewhere, it waits for him; the novice seeing it does not review it.
 	testator.contemplate(testator.abode());
 	execute(world, novice, *pray);
-	REQUIRE(testator.abode().unreviewed().size() == 1);
-	CHECK(testator.abode().unreviewed()[0]->id() == pray->id());
-	CHECK(novice.abode().unreviewed().empty());
+	REQUIRE(testator.unreviewed().size() == 1);
+	CHECK(testator.unreviewed()[0]->id() == pray->id());
+	CHECK(novice.unreviewed().empty());
 	novice.contemplate(novice.abode());
 	novice.contemplate(*novice.abode().room(shepherding));
-	CHECK(testator.abode().unreviewed().size() == 1);
+	CHECK(testator.unreviewed().size() == 1);
 
 	// Looking at his tie again, he sees all that was done there.
 	testator.contemplate(*testator.abode().room(shepherding));
-	CHECK(testator.abode().unreviewed().empty());
+	CHECK(testator.unreviewed().empty());
 	testator.contemplate(testator.abode());
-	CHECK(testator.abode().unreviewed().empty());
+	CHECK(testator.unreviewed().empty());
 }
 
 
@@ -1727,7 +1727,7 @@ TEST_CASE("the testator wills a training of exercises; the novice fulfils it tel
 	// A training is a behest: the novice sees it, and it awaits him.
 	REQUIRE(obedience.behests(gaze_of(world, testator)).size() == 2);
 	CHECK(std::dynamic_pointer_cast<const Training>(obedience.behests(gaze_of(world, testator)).front()));
-	CHECK(novice.abode().owed().size() == 2);
+	CHECK(novice.owed().size() == 2);
 
 	// Fulfilled with nothing done, the deed tells no exercises; or with what he has done.
 	novice.wake();
@@ -1741,7 +1741,7 @@ TEST_CASE("the testator wills a training of exercises; the novice fulfils it tel
 	const std::shared_ptr<const Deed> told = execute(world, novice, *monday, Saying{"тяжело"}, done);
 	CHECK(told->performed() == done);
 	CHECK(told->saying().body() == "тяжело");
-	CHECK(novice.abode().owed().empty());
+	CHECK(novice.owed().empty());
 
 	// A plain behest is fulfilled without exercises.
 	testator.contemplate(room_in(testator, shepherding));
@@ -1946,7 +1946,7 @@ TEST_CASE("in the novice's room of a tie only the novice trains and fulfils; his
 	finish(world, novice, *training, Weight{100'000}, 5);
 	const std::shared_ptr<const Deed> deed = execute(world, novice, *training);
 	CHECK(&deed->author() == static_cast<const Soul*>(&novice));
-	CHECK(novice.abode().owed().empty());
+	CHECK(novice.owed().empty());
 }
 
 

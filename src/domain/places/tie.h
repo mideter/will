@@ -34,7 +34,8 @@ public:
 	std::vector<std::shared_ptr<const Behest>> behests(const Contemplation& gaze) const override;
 	std::vector<std::shared_ptr<const Deed>> deeds(const Contemplation& gaze) const override;
 
-	std::vector<std::shared_ptr<const Behest>> behests(Birth<Abode> abode) const;
+	std::vector<std::shared_ptr<const Behest>> behests(Birth<Novice> novice) const override;
+	std::vector<std::shared_ptr<const Behest>> behests(Birth<Testator> testator) const override;
 
 	std::shared_ptr<const Deed> inscribe(Birth<Novice>, const Behest& behest, matter::Deed kept) const override;
 	std::shared_ptr<const Behest> inscribe(Birth<Testator>, matter::Behest kept) const override;
@@ -50,6 +51,7 @@ public:
 
 private:
 	std::vector<std::shared_ptr<const Word>> words(const Contemplation& gaze) const;
+	std::vector<std::shared_ptr<const Behest>> unbeheld() const;
 
 	const Testator& testator_of(Birth<Room> room) const;
 };

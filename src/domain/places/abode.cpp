@@ -4,9 +4,6 @@
 #include "relations/friend.h"
 #include "places/room.h"
 #include "refusals/room.h"
-#include "places/tie.h"
-#include "words/behest.h"
-#include "words/deed.h"
 #include "men/man.h"
 #include "men/witness.h"
 #include "words/letter.h"
@@ -226,53 +223,6 @@ std::shared_ptr<const Acquaintance> Abode::dweller(const Man& man) const
 		return nullptr;
 
 	return it->second;
-}
-
-
-std::vector<std::shared_ptr<const Behest>> Abode::owed() const
-{
-	return unfulfilled(true);
-}
-
-
-std::vector<std::shared_ptr<const Behest>> Abode::awaited() const
-{
-	return unfulfilled(false);
-}
-
-
-std::vector<std::shared_ptr<const Behest>> Abode::unfulfilled(const bool host_is_novice) const
-{
-	std::vector<std::shared_ptr<const Behest>> waiting;
-	for (const Room& room : rooms()) {
-		const auto* tie = dynamic_cast<const Tie*>(&room.reflects());
-		if (!tie || (tie->novice().Soul::id() == host_.Soul::id()) != host_is_novice)
-			continue;
-
-		for (std::shared_ptr<const Behest>& behest : tie->behests(Birth<Abode>{*this})) {
-			if (!behest->deed())
-				waiting.push_back(std::move(behest));
-		}
-	}
-	return waiting;
-}
-
-
-std::vector<std::shared_ptr<const Behest>> Abode::unreviewed() const
-{
-	std::vector<std::shared_ptr<const Behest>> waiting;
-	for (const Room& room : rooms()) {
-		const auto* tie = dynamic_cast<const Tie*>(&room.reflects());
-		if (!tie || tie->testator().Soul::id() != host_.Soul::id())
-			continue;
-
-		for (std::shared_ptr<const Behest>& behest : tie->behests(Birth<Abode>{*this})) {
-			const std::shared_ptr<const Deed> deed = behest->deed();
-			if (deed && !deed->review())
-				waiting.push_back(std::move(behest));
-		}
-	}
-	return waiting;
 }
 
 

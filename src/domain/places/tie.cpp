@@ -91,11 +91,26 @@ std::vector<std::shared_ptr<const Word>> Tie::words(const Contemplation& gaze) c
 }
 
 
-std::vector<std::shared_ptr<const Behest>> Tie::behests(const Birth<Abode> abode) const
+std::vector<std::shared_ptr<const Behest>> Tie::behests(const Birth<Novice> novice) const
 {
-	if (!dwells(abode.parent().host()))
-		throw std::logic_error("the abode is not of a side of this tie");
+	if (novice.parent().Soul::id() != novice_.Soul::id())
+		throw std::logic_error("not the novice of this tie");
 
+	return unbeheld();
+}
+
+
+std::vector<std::shared_ptr<const Behest>> Tie::behests(const Birth<Testator> testator) const
+{
+	if (testator.parent().Soul::id() != testator_.Soul::id())
+		throw std::logic_error("not the testator of this tie");
+
+	return unbeheld();
+}
+
+
+std::vector<std::shared_ptr<const Behest>> Tie::unbeheld() const
+{
 	// Unbeheld, only behests are given: a behest holds its deed, while a deed knows its
 	// behest only while a gaze holds them both.
 	return of_kind<Behest>(recollection()->words());

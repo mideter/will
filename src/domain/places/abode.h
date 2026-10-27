@@ -21,7 +21,6 @@ namespace will::domain {
 
 
 class Acquaintance;
-class Behest;
 class Room;
 class Contemplation;
 class Letter;
@@ -36,9 +35,7 @@ class World;
 /// its rooms, and others dwell in it as its host lets them in at the gates. Only its host
 /// acts in the places within it; its rooms keep the order they were furnished in. In it
 /// dwell the host, his dwellers and his fathers by spirit, who are ever friends yet unseen
-/// among the dwellers. What it owes and awaits are the behests not yet fulfilled where its
-/// host is the novice or the testator; what it has to review, the behests fulfilled where he
-/// is the testator, whose deeds he has not yet seen; each oldest first by room.
+/// among the dwellers.
 class Abode : public Place {
 public:
 	Abode(Birth<Man> birth, matter::Abode kept);
@@ -80,19 +77,11 @@ public:
 
 	std::shared_ptr<const Word> receive(Birth<Room> room, const Saying& saying) const override;
 
-	std::vector<std::shared_ptr<const Behest>> owed() const;
-
-	std::vector<std::shared_ptr<const Behest>> awaited() const;
-
-	std::vector<std::shared_ptr<const Behest>> unreviewed() const;
-
 	std::shared_ptr<const Letter> inscribe(Birth<Witness>, matter::Letter kept) const;
 
 	bool ancestor(const Man& man) const;
 
 private:
-	std::vector<std::shared_ptr<const Behest>> unfulfilled(bool host_is_novice) const;
-
 	void admit(const Man& man, const matter::Dweller& kept);
 	const Room& furnish(const matter::Room& kept);
 	const Part& part(matter::Room::Part kept) const;

@@ -112,6 +112,33 @@ const Shepherding& Testator::shepherding(const Novice& novice) const
 }
 
 
+std::vector<std::shared_ptr<const Behest>> Testator::awaited() const
+{
+	std::vector<std::shared_ptr<const Behest>> waiting;
+	for (const Shepherding* place : shepherdings_) {
+		for (std::shared_ptr<const Behest>& behest : place->behests(Birth<Testator>{*this})) {
+			if (!behest->deed())
+				waiting.push_back(std::move(behest));
+		}
+	}
+	return waiting;
+}
+
+
+std::vector<std::shared_ptr<const Behest>> Testator::unreviewed() const
+{
+	std::vector<std::shared_ptr<const Behest>> waiting;
+	for (const Shepherding* place : shepherdings_) {
+		for (std::shared_ptr<const Behest>& behest : place->behests(Birth<Testator>{*this})) {
+			const std::shared_ptr<const Deed> deed = behest->deed();
+			if (deed && !deed->review())
+				waiting.push_back(std::move(behest));
+		}
+	}
+	return waiting;
+}
+
+
 const Shepherding& Testator::shepherd(const Shepherding& place) const
 {
 	if (place.testator().Soul::id() != Soul::id())

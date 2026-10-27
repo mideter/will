@@ -254,7 +254,7 @@ TEST_CASE("sqlite keeps a behest, its execution and its review across reopen")
 		CHECK_THROWS_AS(test::execute(world, novice, willed), std::logic_error);
 		CHECK(bundle.temporality().executions({*open_id, *done_id}).size() == 1);
 		// Done before the testator's eyes, the deed is reviewed at once, and once.
-		CHECK(testator.abode().unreviewed().empty());
+		CHECK(testator.unreviewed().empty());
 		const id::Word deed_id = novice.obedience(testator).deeds(gaze_of(world, novice)).front()->id();
 		REQUIRE(bundle.temporality().reviews({deed_id}).size() == 1);
 		CHECK_THROWS_AS(bundle.temporality().review(deed_id), std::logic_error);
@@ -301,8 +301,8 @@ TEST_CASE("sqlite keeps a behest, its execution and its review across reopen")
 		test::execute(world, novice, open);
 		CHECK(novice.obedience(testator).deeds(gaze_of(world, novice)).size() == 2);
 		// Done while the testator sleeps, it awaits his review.
-		REQUIRE(testator.abode().unreviewed().size() == 1);
-		CHECK(testator.abode().unreviewed()[0]->id() == *open_id);
+		REQUIRE(testator.unreviewed().size() == 1);
+		CHECK(testator.unreviewed()[0]->id() == *open_id);
 	}
 
 }

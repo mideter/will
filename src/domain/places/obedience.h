@@ -27,6 +27,7 @@ public:
 	virtual const Man& novice() const = 0;
 
 	virtual std::vector<std::shared_ptr<const Behest>> behests(const Contemplation& gaze) const = 0;
+	virtual std::vector<std::shared_ptr<const Behest>> behests(Birth<Novice> novice) const = 0;
 
 	virtual std::vector<std::shared_ptr<const Deed>> deeds(const Contemplation& gaze) const = 0;
 

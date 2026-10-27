@@ -459,9 +459,9 @@ v1::ServerEvent ProtocolAdapter::outstanding_event(const domain::Abode& abode) c
 				*told->mutable_underway() = underway_event(*training).underway();
 		}
 	};
-	tell(abode.owed(), [&] { return outstanding->add_owed(); });
-	tell(abode.awaited(), [&] { return outstanding->add_awaited(); });
-	tell(abode.unreviewed(), [&] { return outstanding->add_unreviewed(); });
+	tell(host.owed(), [&] { return outstanding->add_owed(); });
+	tell(host.awaited(), [&] { return outstanding->add_awaited(); });
+	tell(host.unreviewed(), [&] { return outstanding->add_unreviewed(); });
 	outstanding->set_waiting(static_cast<std::uint32_t>(abode.outer().gates().knocking().size()));
 	return event;
 }

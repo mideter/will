@@ -209,6 +209,19 @@ const Obedience& Novice::obedience(const Testator& testator) const
 }
 
 
+std::vector<std::shared_ptr<const Behest>> Novice::owed() const
+{
+	std::vector<std::shared_ptr<const Behest>> waiting;
+	for (const auto& place : obediences_) {
+		for (std::shared_ptr<const Behest>& behest : place->behests(Birth<Novice>{*this})) {
+			if (!behest->deed())
+				waiting.push_back(std::move(behest));
+		}
+	}
+	return waiting;
+}
+
+
 const Obedience& Novice::follow(matter::Tie kept) const
 {
 	if (kept.novice() != Soul::id())
