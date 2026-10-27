@@ -17,7 +17,6 @@ public:
 	id::Soul id() const noexcept { return id_; }
 	const SoulName& name() const noexcept { return name_; }
 
-	bool operator==(const Soul& other) const noexcept;
 
 protected:
 	explicit Soul(matter::Soul kept);

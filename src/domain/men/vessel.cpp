@@ -10,10 +10,4 @@ Vessel::Vessel(matter::Vessel kept)
 {}
 
 
-bool Vessel::operator==(const Vessel& other) const noexcept
-{
-	return id_ == other.id_ && token_ == other.token_;
-}
-
-
 } // namespace will::domain
