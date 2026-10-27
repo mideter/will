@@ -20,9 +20,10 @@ class World;
 
 
 /// The living man: witness, novice and testator at once; a role lives only in a man, and
-/// the man of a role is found from it. A soul is a man only while he lives. One he admits
-/// becomes his acquaintance. He descends from each father up his line, by flesh or by
-/// spirit.
+/// the man of a role is found from it. A soul is a man only while he lives. He alone brings
+/// one to dwell in his abode: he lets one in at his gates as an acquaintance, regards his
+/// dwellers anew at his helm, receives those the world gives him by birth, and recalls the
+/// kept. He descends from each father up his line, by flesh or by spirit.
 class Man final : public Witness, public Novice, public Testator {
 public:
 	Man(Birth<World>, matter::Man kept);
@@ -35,6 +36,10 @@ public:
 	void admit(Birth<Gates> gates, const Man& man) const;
 
 	void regard(Birth<Helm> helm, const Man& dweller, matter::Dweller::Kind kind) const;
+
+	void receive(Birth<World> world, const Man& man, matter::Dweller::Kind kind) const;
+
+	void recall(Birth<World> world, const matter::Dweller& kept) const;
 
 	void arrange(Birth<Helm> helm, const Room& room, const Part& part) const;
 

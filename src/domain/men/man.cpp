@@ -49,7 +49,23 @@ const Man& Man::of(const id::Soul id)
 
 void Man::admit(const Birth<Gates> gates, const Man& man) const
 {
-	abode_->admit(gates, man, spatiality().dwell(abode_->id(), man.Soul::id(), matter::Dweller::Kind::Acquaintance));
+	if (&gates.parent().abode() != abode_.get())
+		throw std::logic_error("one is let in only at the gates of one's own abode");
+
+	abode_->admit(Birth<Man>{*this},
+				  spatiality().dwell(abode_->id(), man.Soul::id(), matter::Dweller::Kind::Acquaintance));
+}
+
+
+void Man::receive(Birth<World>, const Man& man, const matter::Dweller::Kind kind) const
+{
+	abode_->admit(Birth<Man>{*this}, spatiality().dwell(abode_->id(), man.Soul::id(), kind));
+}
+
+
+void Man::recall(Birth<World>, const matter::Dweller& kept) const
+{
+	abode_->admit(Birth<Man>{*this}, kept);
 }
 
 
@@ -71,7 +87,7 @@ void Man::regard(Birth<Helm>, const Man& dweller, const matter::Dweller::Kind ki
 	if (&dweller == father(matter::Fatherhood::Line::Flesh) && kind == matter::Dweller::Kind::Acquaintance)
 		throw FatherByFleshNeighbour();
 
-	abode_->admit(Birth<Man>{*this}, dweller, spatiality().dwell(abode_->id(), dweller.Soul::id(), kind));
+	abode_->admit(Birth<Man>{*this}, spatiality().dwell(abode_->id(), dweller.Soul::id(), kind));
 }
 
 

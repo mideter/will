@@ -132,7 +132,7 @@ void World::awaken()
 						  + std::to_string(kept.abode().value()) + ": he or the host does not live");
 			continue;
 		}
-		host->second->abode().admit(Birth<World>{*this}, living_man(kept.soul()), kept);
+		host->second->recall(Birth<World>{*this}, kept);
 	}
 
 	// The father by flesh ever dwells in his child's abode as a neighbour at least, the
@@ -142,16 +142,12 @@ void World::awaken()
 		const Man& father = living_man(kept.father());
 		const Man& child = living_man(kept.child());
 		if (!child.abode().dwells(father)) {
-			child.abode().admit(Birth<World>{*this}, father,
-								spatiality().dwell(child.abode().id(), father.Soul::id(),
-												   matter::Dweller::Kind::Neighbour));
+			child.receive(Birth<World>{*this}, father, matter::Dweller::Kind::Neighbour);
 			unrecollected("father " + std::to_string(father.Soul::id().value()) + " made a neighbour of his child "
 						  + std::to_string(child.Soul::id().value()) + " again");
 		}
 		if (!father.abode().dwells(child)) {
-			father.abode().admit(Birth<World>{*this}, child,
-								 spatiality().dwell(father.abode().id(), child.Soul::id(),
-													matter::Dweller::Kind::Acquaintance));
+			father.receive(Birth<World>{*this}, child, matter::Dweller::Kind::Acquaintance);
 			unrecollected("child " + std::to_string(child.Soul::id().value()) + " made an acquaintance of his father "
 						  + std::to_string(father.Soul::id().value()) + " again");
 		}
@@ -267,12 +263,9 @@ const Man& World::bear(const Birth<Gates> gates, const Unborn& unborn)
 	}
 
 	child.descend(Birth<World>{*this}, father, fatherhood);
-	child.abode().admit(Birth<World>{*this}, father,
-						spatiality().dwell(child.abode().id(), father.Soul::id(), matter::Dweller::Kind::Neighbour));
+	child.receive(Birth<World>{*this}, father, matter::Dweller::Kind::Neighbour);
 	if (!father.abode().dwells(child))
-		father.abode().admit(Birth<World>{*this}, child,
-							 spatiality().dwell(father.abode().id(), child.Soul::id(),
-												matter::Dweller::Kind::Acquaintance));
+		father.receive(Birth<World>{*this}, child, matter::Dweller::Kind::Acquaintance);
 	return child;
 }
 

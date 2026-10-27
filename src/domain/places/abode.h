@@ -24,16 +24,14 @@ class Room;
 class Contemplation;
 class Letter;
 class Man;
-class Gates;
 class Witness;
-class World;
 
 
-/// A man's own place, of two parts, the outer and the inner: its words are seen only through
-/// its rooms, and others dwell in it as its host lets them in at the gates. Only its host
-/// acts in the places within it; its rooms come by its parts, the outer first, each in the
-/// order they came into it. In it dwell the host, his dwellers and his fathers by spirit, who
-/// are ever friends yet unseen among the dwellers.
+/// A man's own place, of two parts, the outer and the inner: its words are seen only
+/// through its rooms, and others dwell in it as its host brings them, each born anew of his
+/// kind. Only its host acts in the places within it; its rooms come by its parts, the outer
+/// first, each in the order they came into it. In it dwell the host, his dwellers and his
+/// fathers by spirit, who are ever friends yet unseen among the dwellers.
 class Abode : public Place {
 public:
 	Abode(Birth<Man> birth, matter::Abode kept);
@@ -46,10 +44,7 @@ public:
 
 	const Man& host() const noexcept { return host_; }
 
-	void admit(Birth<Man> birth, const Man& man, const matter::Dweller& kept);
-	void admit(Birth<World> birth, const Man& man, const matter::Dweller& kept);
-
-	void admit(Birth<Gates> birth, const Man& man, const matter::Dweller& kept);
+	void admit(Birth<Man> host, const matter::Dweller& kept);
 
 	std::vector<std::shared_ptr<const Acquaintance>> dwellers() const;
 
@@ -75,8 +70,6 @@ public:
 	std::shared_ptr<const Letter> inscribe(Birth<Witness>, matter::Letter kept) const;
 
 private:
-	void admit(const Man& man, const matter::Dweller& kept);
-
 	const Man& host_;
 	AbodeName name_;
 	Outer outer_;

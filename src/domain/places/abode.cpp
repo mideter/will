@@ -36,41 +36,16 @@ Abode::Abode(const Birth<Man> birth, matter::Abode kept)
 Abode::~Abode() = default;
 
 
-void Abode::admit(const Birth<Man> birth, const Man& man, const matter::Dweller& kept)
+void Abode::admit(const Birth<Man> host, const matter::Dweller& kept)
 {
-	if (&birth.parent() != &host_)
-		throw std::logic_error("only the host admits into his abode");
-
-	admit(man, kept);
-	man.withdraw(Birth<Abode>{*this});
-}
-
-
-void Abode::admit(Birth<World>, const Man& man, const matter::Dweller& kept)
-{
-	admit(man, kept);
-}
-
-
-void Abode::admit(const Birth<Gates> birth, const Man& man, const matter::Dweller& kept)
-{
-	if (&birth.parent().abode() != this)
-		throw std::logic_error("one is let in only at the gates of this abode");
-	if (kept.kind() != matter::Dweller::Kind::Acquaintance)
-		throw std::logic_error("one let in at the gates is an acquaintance");
-
-	admit(man, kept);
-}
-
-
-void Abode::admit(const Man& man, const matter::Dweller& kept)
-{
+	if (&host.parent() != &host_)
+		throw std::logic_error("only the host brings one to dwell in his abode");
 	if (kept.abode() != id())
 		throw std::logic_error("the dweller is not of this abode");
-	if (kept.soul() != man.Soul::id())
-		throw std::logic_error("the dweller matter is of another soul");
-	if (&man == &host_)
+	if (kept.soul() == host_.Soul::id())
 		throw std::logic_error("the host is not a dweller of his own abode");
+
+	const Man& man = Man::of(kept.soul());
 
 	// Regarded anew, the dweller is born anew of his new kind.
 	std::shared_ptr<const Acquaintance> born;
@@ -85,9 +60,13 @@ void Abode::admit(const Man& man, const matter::Dweller& kept)
 		born = std::make_shared<const Friend>(Birth<Abode>{*this}, man);
 		break;
 	}
+	{
+		std::lock_guard lock(*mutex_);
+		dwellers_.insert_or_assign(&man, std::move(born));
+	}
 
-	std::lock_guard lock(*mutex_);
-	dwellers_.insert_or_assign(&man, std::move(born));
+	// Of a kind his part no longer lets in, he withdraws from the room he stands in.
+	man.withdraw(Birth<Abode>{*this});
 }
 
 
