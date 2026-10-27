@@ -4,7 +4,6 @@
 #include "horizons/space.h"
 #include "men/man.h"
 #include "places/abode.h"
-#include "places/part.h"
 #include "relations/acquaintance.h"
 #include "relations/contemplation.h"
 
@@ -12,23 +11,11 @@
 namespace will::domain {
 
 
-Helm::Helm(const Birth<Inner> birth, const id::Place id)
+Helm::Helm(const Birth<Abode> birth, const id::Place id)
 	: Place(id)
-	, inner_(birth.parent())
+	, abode_(birth.parent())
 {
 	Immanent<Space>::present<Place>();
-}
-
-
-const Abode& Helm::abode() const noexcept
-{
-	return inner_.abode();
-}
-
-
-bool Helm::dwells(const Man& man) const
-{
-	return &man == &abode().host();
 }
 
 
@@ -38,9 +25,9 @@ bool Helm::leads_to(const Man& who, const Place& next) const
 }
 
 
-bool Helm::within(const Abode& abode) const
+bool Helm::within(const OuterAbode& abode) const
 {
-	return &abode == &this->abode();
+	return &abode == &abode_;
 }
 
 
@@ -79,11 +66,11 @@ void Helm::reject(const Contemplation& gaze, const Supplication& ask) const
 }
 
 
-void Helm::arrange(const Contemplation& gaze, const Room& room, const Part& part) const
+void Helm::arrange(const Contemplation& gaze, const Room& room, const matter::Room::Part to) const
 {
 	abode().host_only(gaze, *this);
 
-	abode().host().arrange(Birth<Helm>{*this}, room, part);
+	abode().host().arrange(Birth<Helm>{*this}, room, to);
 }
 
 

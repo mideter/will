@@ -113,12 +113,12 @@ void World::awaken()
 		place.testator().shepherd(dynamic_cast<const Shepherding&>(place));
 	}
 
-	// Tie rooms are recalled, each into its part, once the ties live.
+	// Tie rooms are recalled, each where it is kept, once the ties live.
 	for (const auto& [soul_id, man] : men_) {
 		const Abode& abode = man->abode();
 		for (const matter::Room& kept : spatiality().rooms(abode.id())) {
 			if (kept.reflects() != abode.id() && ties.contains(kept.reflects()))
-				abode.part(kept.part()).recall(Birth<World>{*this}, kept);
+				abode.recall(Birth<World>{*this}, kept);
 		}
 	}
 

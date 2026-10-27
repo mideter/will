@@ -8,7 +8,8 @@
 #include "matter/letter.h"
 #include "matter/placement.h"
 #include "places/room.h"
-#include "places/part.h"
+#include "places/gates.h"
+#include "places/helm.h"
 #include "places/shepherding.h"
 #include "words/letter.h"
 #include "matter/word.h"
@@ -39,17 +40,19 @@ void Witness::sleep() const
 void Witness::contemplate(const Abode& abode) const
 {
 	if (!abode.dwells(man_of(*this))) {
-		contemplate(abode.outer());
+		contemplate(abode.gates());
 		return;
 	}
 
-	pass(abode);
-	Spirit::contemplate(abode);
+	enter(abode);
 }
 
 
 void Witness::contemplate(const Room& room) const
 {
+	if (!room.abode().shows(man_of(*this), room))
+		throw DoesNotEnterRoom();
+
 	enter(room);
 
 	// The testator looking at his tie sees what was done in it.
@@ -59,17 +62,23 @@ void Witness::contemplate(const Room& room) const
 }
 
 
-void Witness::contemplate(const Part& part) const
+void Witness::contemplate(const Gates& gates) const
 {
-	enter(part.edge());
+	enter(gates);
+}
+
+
+void Witness::contemplate(const Helm& helm) const
+{
+	if (&helm.abode().host() != &man_of(*this))
+		throw DoesNotEnterRoom();
+
+	enter(helm);
 }
 
 
 void Witness::enter(const Place& place) const
 {
-	if (!place.dwells(man_of(*this)))
-		throw DoesNotEnterRoom();
-
 	pass(place);
 	Spirit::contemplate(place);
 }
@@ -92,14 +101,14 @@ bool Witness::contemplates(const Place& place) const
 }
 
 
-void Witness::withdraw(const Birth<Abode> abode) const
+void Witness::withdraw(const Birth<OuterAbode> abode) const
 {
 	const std::shared_ptr<const Contemplation> gaze = contemplation();
 	const auto* room = gaze ? dynamic_cast<const Room*>(&gaze->place()) : nullptr;
-	if (!room || &room->abode() != &abode.parent() || room->dwells(man_of(*this)))
+	if (!room || &room->abode() != &abode.parent() || abode.parent().shows(man_of(*this), *room))
 		return;
 
-	Spirit::contemplate(abode.parent());
+	Spirit::contemplate(room->abode());
 }
 
 

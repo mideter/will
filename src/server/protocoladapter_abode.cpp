@@ -16,7 +16,7 @@
 #include "places/room.h"
 #include "places/gates.h"
 #include "places/helm.h"
-#include "places/part.h"
+#include "places/outer_abode.h"
 #include "relations/friend.h"
 #include "relations/contemplation.h"
 #include "relations/supplication.h"
@@ -60,8 +60,10 @@ void ProtocolAdapter::handle_turn(const SessionId session_id, const v1::Turn& ms
 	const domain::Abode& abode = host->abode();
 	try {
 		if (msg.has_edge()) {
-			witness.contemplate(msg.edge() == v1::OUTER ? static_cast<const domain::Part&>(abode.outer())
-														: abode.inner());
+			if (msg.edge() == v1::OUTER)
+				witness.contemplate(abode.gates());
+			else
+				witness.contemplate(abode.helm());
 		} else if (!msg.room().empty()) {
 			const domain::Room* room = room_named(abode, msg.room());
 			if (!room) {
@@ -133,7 +135,7 @@ void ProtocolAdapter::handle_admit(const SessionId session_id, const v1::Admit& 
 	send_notice(session_id, v1::NOTICE_ADMITTED, {std::string{man->name().text()}});
 	tell_dwelling(self, *man);
 	retell_gates(*gates);
-	retell_helm(self.abode().inner().helm());
+	retell_helm(self.abode().helm());
 }
 
 
@@ -186,7 +188,7 @@ void ProtocolAdapter::handle_regard(const SessionId session_id, const v1::Regard
 	send_notice(session_id, v1::NOTICE_REGARDED, {std::string{man->name().text()}});
 	tell_dwelling(self, *man);
 	retell_abode(self, *man);
-	retell_helm(self.abode().inner().helm());
+	retell_helm(self.abode().helm());
 }
 
 
@@ -236,7 +238,7 @@ void ProtocolAdapter::tell_view(const SessionId session_id, const domain::Contem
 	}
 	if (const auto* helm = dynamic_cast<const domain::Helm*>(&gaze.place())) {
 		send_event(session_id, dwellers_event(helm->abode()));
-		// The host sees here all the rooms of his abode, each in its part, and who asks him.
+		// The host sees here all the rooms of his abode, outward and inward, and who asks him.
 		send_event(session_id, arranged_rooms_event(helm->abode()));
 		send_event(session_id, supplications_event(helm->abode().host()));
 		v1::ServerEvent end_event;
@@ -277,23 +279,23 @@ void ProtocolAdapter::handle_arrange(const SessionId session_id, const v1::Arran
 		return;
 	}
 
-	const domain::Part& part = msg.part() == v1::OUTER ? static_cast<const domain::Part&>(self.abode().outer())
-														: self.abode().inner();
+	const domain::matter::Room::Part to = msg.part() == v1::OUTER ? domain::matter::Room::Part::Outer
+																   : domain::matter::Room::Part::Inner;
 	try {
 		const domain::Contemplation& gaze = gaze_of(self);
-		gaze.helm().arrange(gaze, *room, part);
+		gaze.helm().arrange(gaze, *room, to);
 	} catch (const std::exception& e) {
 		refuse(session_id, e);
 		return;
 	}
 
 	send_notice(session_id,
-				&part == &self.abode().outer() ? v1::NOTICE_ARRANGED_OUTER : v1::NOTICE_ARRANGED_INNER,
+				msg.part() == v1::OUTER ? v1::NOTICE_ARRANGED_OUTER : v1::NOTICE_ARRANGED_INNER,
 				{msg.room()});
-	retell_helm(self.abode().inner().helm());  // the host there sees his rooms anew
+	retell_helm(self.abode().helm());  // the host there sees his rooms anew
 	for (const std::shared_ptr<const domain::Acquaintance>& dweller : self.abode().dwellers())
 		retell_abode(self, dweller->man());
-	retell_gates(self.abode().outer().gates());  // set in another part, they are seen by other kinds
+	retell_gates(self.abode().gates());  // set on the other side, they are seen by other kinds
 }
 
 
@@ -331,7 +333,7 @@ void ProtocolAdapter::tell_rooms(const SessionId session_id, const domain::Abode
 	v1::ServerEvent event;
 	auto* rooms = event.mutable_rooms();
 	for (const domain::Room& room : abode.rooms()) {
-		if (room.dwells(listener))
+		if (abode.shows(listener, room))
 			tell_room(*rooms->add_rooms(), room);
 	}
 	send_event(session_id, event);
@@ -462,7 +464,7 @@ v1::ServerEvent ProtocolAdapter::outstanding_event(const domain::Abode& abode) c
 	tell(host.owed(), [&] { return outstanding->add_owed(); });
 	tell(host.awaited(), [&] { return outstanding->add_awaited(); });
 	tell(host.unreviewed(), [&] { return outstanding->add_unreviewed(); });
-	outstanding->set_waiting(static_cast<std::uint32_t>(abode.outer().gates().knocking().size()));
+	outstanding->set_waiting(static_cast<std::uint32_t>(abode.gates().knocking().size()));
 	return event;
 }
 

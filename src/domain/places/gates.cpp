@@ -5,8 +5,7 @@
 #include "horizons/heaven.h"
 #include "horizons/space.h"
 #include "men/man.h"
-#include "places/abode.h"
-#include "places/part.h"
+#include "places/outer_abode.h"
 #include "relations/contemplation.h"
 #include "relations/knock.h"
 
@@ -17,23 +16,11 @@
 namespace will::domain {
 
 
-Gates::Gates(const Birth<Outer> birth, const id::Place id)
+Gates::Gates(const Birth<OuterAbode> birth, const id::Place id)
 	: Place(id)
-	, outer_(birth.parent())
+	, abode_(birth.parent())
 {
 	Immanent<Space>::present<Place>();
-}
-
-
-const Abode& Gates::abode() const noexcept
-{
-	return outer_.abode();
-}
-
-
-bool Gates::dwells(const Man&) const
-{
-	return true;
 }
 
 
@@ -42,11 +29,11 @@ bool Gates::leads_to(const Man& who, const Place& next) const
 	// From one's own gates one goes anywhere; from another's, only in, or back to one's own.
 	if (keeps(who))
 		return true;
-	return next.within(abode()) || &next == &who.abode().outer().gates();
+	return next.within(abode_) || &next == &who.abode().gates();
 }
 
 
-bool Gates::within(const Abode&) const
+bool Gates::within(const OuterAbode&) const
 {
 	return false;
 }

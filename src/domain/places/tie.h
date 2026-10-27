@@ -40,8 +40,6 @@ public:
 	std::shared_ptr<const Deed> inscribe(Birth<Novice>, const Behest& behest, matter::Deed kept) const override;
 	std::shared_ptr<const Behest> inscribe(Birth<Testator>, matter::Behest kept) const override;
 
-	bool dwells(const Man& man) const override;
-
 	const Man& counterpart(const Man& side) const;
 
 	bool takes_words_of(const Man& host) const override;

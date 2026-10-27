@@ -34,9 +34,9 @@ Man::Man(Birth<World>, matter::Man kept)
 	const std::vector<matter::Room> rooms = spatiality().rooms(abode_->id());
 	const auto word = std::ranges::find_if(rooms, [&](const matter::Room& room) { return room.reflects() == abode_->id(); });
 	if (word != rooms.end())
-		abode_->part(word->part()).recall(Birth<Man>{*this}, *word);
+		abode_->recall(Birth<Man>{*this}, *word);
 	else
-		abode_->inner().furnish(Birth<Man>{*this}, spatiality().furnish(abode_->id(), abode_->id()));
+		abode_->furnish(Birth<Man>{*this}, spatiality().furnish(abode_->id(), abode_->id()));
 }
 
 
@@ -68,12 +68,12 @@ void Man::recall(Birth<World>, const matter::Dweller& kept) const
 }
 
 
-void Man::arrange(Birth<Helm>, const Room& room, const Part& part) const
+void Man::arrange(Birth<Helm>, const Room& room, const matter::Room::Part to) const
 {
-	if (&room.abode() != abode_.get() || &part.abode() != abode_.get())
-		throw std::logic_error("the room or the part is not of this abode");
+	if (&room.abode() != abode_.get())
+		throw std::logic_error("the room is not of this abode");
 
-	abode_->arrange(Birth<Man>{*this}, spatiality().arrange(room.id(), part.kept()));
+	abode_->arrange(Birth<Man>{*this}, spatiality().arrange(room.id(), to));
 }
 
 

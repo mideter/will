@@ -16,7 +16,7 @@
 #include "places/room.h"
 #include "places/gates.h"
 #include "places/helm.h"
-#include "places/part.h"
+#include "places/outer_abode.h"
 #include "relations/contemplation.h"
 #include "relations/supplication.h"
 #include "words/letter.h"
@@ -104,7 +104,7 @@ void ProtocolAdapter::tell_placed(const domain::Place& place, const domain::Word
 	// Each looking into a room onto the place sees it, if the room still admits him.
 	for (const domain::Room& room : rooms_onto(place)) {
 		for (const domain::Man& man : world_.contemplating(room)) {
-			if (man.Soul::id() != author.Soul::id() && room.dwells(man))
+			if (man.Soul::id() != author.Soul::id() && room.abode().shows(man, room))
 				send_to_vessel(man.Vessel::id(), word_event(word, man.Soul::id()));
 		}
 	}
@@ -192,8 +192,8 @@ void ProtocolAdapter::handle_supplicate(const SessionId session_id, const v1::Su
 	send_to_vessel(addressee_man->Vessel::id(), offer);
 
 	// At either helm the two now stand otherwise to each other.
-	retell_helm(self.abode().inner().helm());
-	retell_helm(addressee_man->abode().inner().helm());
+	retell_helm(self.abode().helm());
+	retell_helm(addressee_man->abode().helm());
 }
 
 
@@ -233,8 +233,8 @@ void ProtocolAdapter::handle_accept_supplication(const SessionId session_id,
 	formed_n->set_as_novice(true);
 	send_to_vessel(suppliant_man->Vessel::id(), to_novice);
 
-	retell_helm(self.abode().inner().helm());
-	retell_helm(suppliant_man->abode().inner().helm());
+	retell_helm(self.abode().helm());
+	retell_helm(suppliant_man->abode().helm());
 }
 
 
@@ -482,8 +482,8 @@ void ProtocolAdapter::handle_reject_supplication(const SessionId session_id, con
 	notice->set_message(words_of(v1::NOTICE_SUPPLICATION_DECLINED, {std::string{self.name().text()}}));
 	send_to_vessel(suppliant->Vessel::id(), declined);
 
-	retell_helm(self.abode().inner().helm());
-	retell_helm(suppliant->abode().inner().helm());
+	retell_helm(self.abode().helm());
+	retell_helm(suppliant->abode().helm());
 }
 
 

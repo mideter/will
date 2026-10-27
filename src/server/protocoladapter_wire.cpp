@@ -18,7 +18,7 @@
 #include "places/room.h"
 #include "places/gates.h"
 #include "places/helm.h"
-#include "places/part.h"
+#include "places/outer_abode.h"
 #include "relations/friend.h"
 #include "relations/contemplation.h"
 #include "words/letter.h"
@@ -231,7 +231,7 @@ std::optional<v1::RoomPart> edge_of(const domain::Place& place)
 }
 
 
-const domain::Abode* abode_of(const domain::Place& place)
+const domain::OuterAbode* abode_of(const domain::Place& place)
 {
 	if (const auto* abode = dynamic_cast<const domain::Abode*>(&place))
 		return abode;
@@ -288,7 +288,7 @@ void tell_standing(v1::Turned& turned, const domain::Place& place)
 void tell_room(v1::Room& told, const domain::Room& room)
 {
 	told.set_name(name_of(room));
-	told.set_part(&room.part() == &room.abode().outer() ? v1::OUTER : v1::INNER);
+	told.set_part(room.abode().inward(room) ? v1::INNER : v1::OUTER);
 	told.set_testator(testator_of(room));
 }
 

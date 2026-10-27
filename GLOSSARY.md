@@ -45,9 +45,8 @@ An interface word is given only where it differs from the Russian name.
 | Комната | `Room` | Слово (of one's abode), «Ведение — имя», «Послушание — имя» (of a tie) |
 | Врата | `Gates` | |
 | Кормчая | `Helm` | |
-| Часть | `Part` | |
-| Внешняя (часть) | `Outer` | внешняя часть |
-| Внутренняя (часть) | `Inner` | внутренняя часть |
+| Внешнее (Обители) | `OuterAbode` | внешняя часть |
+| Внутреннее (Обители) | `Abode` — сама Обитель, наследует Внешнее | внутренняя часть |
 | Узы | `Tie` | |
 | Ведение | `Shepherding` | |
 | Послушание | `Obedience` | |

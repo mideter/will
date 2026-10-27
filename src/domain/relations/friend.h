@@ -6,13 +6,13 @@
 namespace will::domain {
 
 
-/// A neighbour who enters the inner part too.
+/// A neighbour who sees the whole abode, its rooms set inward too.
 class Friend : public Neighbour {
 public:
-	Friend(Birth<Abode> birth, const Man& man);
+	Friend(Birth<OuterAbode> birth, const Man& man);
 
-	using Neighbour::enters;
-	bool enters(const Inner& part) const override;
+	using Neighbour::sees;
+	bool sees(const Abode& abode) const override;
 };
 
 

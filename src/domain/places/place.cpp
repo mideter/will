@@ -36,7 +36,7 @@ bool Place::leads_to(const Man&, const Place&) const
 }
 
 
-bool Place::within(const Abode&) const
+bool Place::within(const OuterAbode&) const
 {
 	return false;
 }

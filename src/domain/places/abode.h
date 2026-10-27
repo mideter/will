@@ -1,77 +1,69 @@
 #pragma once
 
 #include "matter/abode.h"
-#include "matter/dweller.h"
-#include "matter/room.h"
-#include "properties/birth.h"
 #include "matter/letter.h"
-#include "places/part.h"
-#include "places/place.h"
+#include "matter/room.h"
+#include "places/helm.h"
+#include "places/outer_abode.h"
+#include "properties/birth.h"
 
-#include <memory>
 #include <functional>
-#include <mutex>
-#include <unordered_map>
+#include <memory>
 #include <vector>
 
 
 namespace will::domain {
 
 
-class Acquaintance;
-class Room;
-class Contemplation;
 class Letter;
 class Man;
+class Room;
+class Supplication;
 class Witness;
+class World;
 
 
-/// A man's own place, of two parts, the outer and the inner: its words are seen only
-/// through its rooms, and others dwell in it as its host brings them, each born anew of his
-/// kind. Only its host acts in the places within it; its rooms come by its parts, the outer
-/// first, each in the order they came into it. In it dwell the host, his dwellers and his
-/// fathers by spirit, who are ever friends yet unseen among the dwellers.
-class Abode : public Place {
+/// A man's own place: its outer, and within it the rooms set inward and the helm, which
+/// only friends see. Its words are seen only through its rooms, and a dweller sees a room as
+/// deep as his kind reaches; the host sees all. A new room is furnished inward: its own by
+/// the host as the abode is born, one of a tie as the tie is bound. A kept room is recalled
+/// where it is kept: its own by the host, one of a tie by the world once the tie lives. A
+/// room moved goes whole from one side to the other; one place is reflected by one room. Its
+/// rooms come outward first, each in the order they came.
+class Abode final : public OuterAbode {
 public:
 	Abode(Birth<Man> birth, matter::Abode kept);
 	~Abode() override;
 
-	const Outer& outer() const noexcept { return outer_; }
-	const Inner& inner() const noexcept { return inner_; }
+	const Helm& helm() const noexcept { return helm_; }
 
-	const Man& host() const noexcept { return host_; }
-
-	void admit(Birth<Man> host, const matter::Dweller& kept);
-
-	std::vector<std::shared_ptr<const Acquaintance>> dwellers() const;
-
-	const Part& part(matter::Room::Part kept) const;
-
-	void arrange(Birth<Man> birth, const matter::Room& kept) const;
+	std::vector<std::reference_wrapper<const Room>> inner_rooms() const;
 
 	std::vector<std::reference_wrapper<const Room>> rooms() const;
 
 	const Room* room(const Place& reflects) const;
 
-	void host_only(const Contemplation& gaze, const Place& here) const;
+	bool inward(const Room& room) const;
 
-	std::shared_ptr<const Acquaintance> dweller(const Man& man) const;
+	bool shows(const Man& man, const Room& room) const override;
 
-	bool dwells(const Man& man) const override;
+	const Room& furnish(Birth<Man> host, const matter::Room& kept) const;
+	const Room& furnish(Birth<Supplication> supplication, const matter::Room& kept) const;
 
-	bool leads_to(const Man& who, const Place& next) const override;
-	bool within(const Abode& abode) const override;
+	void recall(Birth<Man> host, const matter::Room& kept) const;
+	void recall(Birth<World> world, const matter::Room& kept) const;
+
+	void arrange(Birth<Man> host, const matter::Room& kept) const;
 
 	std::shared_ptr<const Word> receive(Birth<Room> room, const Saying& saying) const override;
 
 	std::shared_ptr<const Letter> inscribe(Birth<Witness>, matter::Letter kept) const;
 
 private:
-	const Man& host_;
-	Outer outer_;
-	Inner inner_;
-	mutable std::unique_ptr<std::mutex> mutex_;
-	std::unordered_map<const Man*, std::shared_ptr<const Acquaintance>> dwellers_;
+	const Room& lay(const matter::Room& kept) const;
+
+	Helm helm_;
+	mutable std::vector<std::unique_ptr<Room>> inner_rooms_;
 };
 
 

@@ -16,7 +16,7 @@
 #include "places/room.h"
 #include "places/gates.h"
 #include "places/helm.h"
-#include "places/part.h"
+#include "places/outer_abode.h"
 #include "men/witness.h"
 #include "words/recollection.h"
 #include "relations/contemplation.h"
@@ -749,14 +749,14 @@ inline void regard(World& world, const Man& man, const Man& dweller, matter::Dwe
 }
 
 
-inline void arrange(World& world, const Man& man, const Room& room, const Part& part)
+inline void arrange(World& world, const Man& man, const Room& room, const matter::Room::Part to)
 {
 	const Contemplation& gaze = gaze_of(world, man);
-	gaze.helm().arrange(gaze, room, part);
+	gaze.helm().arrange(gaze, room, to);
 }
 
 
-inline const Abode& abode_of(const Place& place)
+inline const OuterAbode& abode_of(const Place& place)
 {
 	if (const auto* abode = dynamic_cast<const Abode*>(&place))
 		return *abode;
@@ -774,9 +774,9 @@ inline void turn(const Man& man, const Place& place)
 	if (const auto* abode = dynamic_cast<const Abode*>(&place))
 		witness.contemplate(*abode);
 	else if (const auto* gates = dynamic_cast<const Gates*>(&place))
-		witness.contemplate(gates->part());
+		witness.contemplate(*gates);
 	else if (const auto* helm = dynamic_cast<const Helm*>(&place))
-		witness.contemplate(helm->part());
+		witness.contemplate(*helm);
 	else
 		witness.contemplate(dynamic_cast<const Room&>(place));
 }
@@ -788,8 +788,8 @@ inline void go(World& world, const Man& man, const Place& place)
 	// Out through the gates of where one is, then from one's own gates anywhere.
 	const Place& here = gaze ? gaze->place() : man.abode();
 	if (&here != &place && !here.leads_to(man, place)) {
-		turn(man, abode_of(here).outer().gates());
-		turn(man, man.abode().outer().gates());
+		turn(man, abode_of(here).gates());
+		turn(man, man.abode().gates());
 	}
 	turn(man, place);
 }
@@ -810,8 +810,8 @@ void looking_at(World& world, const Man& man, const Place& room, Act act)
 
 inline void admit_at_gates(World& world, const Man& host, const Man& man)
 {
-	looking_at(world, host, host.abode().outer().gates(), [&] {
-		looking_at(world, man, host.abode().outer().gates(), [&] {
+	looking_at(world, host, host.abode().gates(), [&] {
+		looking_at(world, man, host.abode().gates(), [&] {
 			knock(world, man);
 			admit(world, host, man);
 		});
@@ -821,13 +821,13 @@ inline void admit_at_gates(World& world, const Man& host, const Man& man)
 
 inline void regard_in_helm(World& world, const Man& host, const Man& man, const matter::Dweller::Kind kind)
 {
-	looking_at(world, host, host.abode().inner().helm(), [&] { regard(world, host, man, kind); });
+	looking_at(world, host, host.abode().helm(), [&] { regard(world, host, man, kind); });
 }
 
 
 inline void supplicate(World& world, const Man& man, const Man& addressee)
 {
-	looking_at(world, man, man.abode().inner().helm(), [&] {
+	looking_at(world, man, man.abode().helm(), [&] {
 		const Contemplation& gaze = gaze_of(world, man);
 		gaze.helm().supplicate(gaze, addressee);
 	});
@@ -837,7 +837,7 @@ inline void supplicate(World& world, const Man& man, const Man& addressee)
 inline const Shepherding& accept(World& world, const Man& testator, const Supplication& ask)
 {
 	const Shepherding* accepted = nullptr;
-	looking_at(world, testator, testator.abode().inner().helm(), [&] {
+	looking_at(world, testator, testator.abode().helm(), [&] {
 		const Contemplation& gaze = gaze_of(world, testator);
 		accepted = &gaze.helm().accept(gaze, ask);
 	});
@@ -847,16 +847,16 @@ inline const Shepherding& accept(World& world, const Man& testator, const Suppli
 
 inline void reject(World& world, const Man& testator, const Supplication& ask)
 {
-	looking_at(world, testator, testator.abode().inner().helm(), [&] {
+	looking_at(world, testator, testator.abode().helm(), [&] {
 		const Contemplation& gaze = gaze_of(world, testator);
 		gaze.helm().reject(gaze, ask);
 	});
 }
 
 
-inline void arrange_in_helm(World& world, const Man& host, const Room& room, const Part& part)
+inline void arrange_in_helm(World& world, const Man& host, const Room& room, const matter::Room::Part to)
 {
-	looking_at(world, host, host.abode().inner().helm(), [&] { arrange(world, host, room, part); });
+	looking_at(world, host, host.abode().helm(), [&] { arrange(world, host, room, to); });
 }
 
 
@@ -905,7 +905,7 @@ inline const Man& born(World& world, const DeviceToken& token)
 		return *man;
 
 	const Man* child = nullptr;
-	looking_at(world, elder, elder.abode().outer().gates(),
+	looking_at(world, elder, elder.abode().gates(),
 			   [&] { child = &bear(world, elder, dynamic_cast<const Unborn&>(body)); });
 	return *child;
 }

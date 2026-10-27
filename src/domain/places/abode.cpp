@@ -1,20 +1,15 @@
 #include "abode.h"
 
-#include "relations/contemplation.h"
-#include "relations/friend.h"
-#include "places/room.h"
-#include "refusals/room.h"
 #include "men/man.h"
-#include "men/witness.h"
+#include "places/room.h"
+#include "relations/acquaintance.h"
 #include "words/letter.h"
 #include "words/recollection.h"
-#include "matter/letter.h"
 #include "horizons/space.h"
 #include "properties/immanent.h"
 
 #include <algorithm>
 #include <stdexcept>
-#include <unordered_map>
 #include <utility>
 
 
@@ -22,11 +17,8 @@ namespace will::domain {
 
 
 Abode::Abode(const Birth<Man> birth, matter::Abode kept)
-	: Place(kept.id())
-	, host_(birth.parent())
-	, outer_(Birth<Abode>{*this}, kept.gates())
-	, inner_(Birth<Abode>{*this}, kept.helm())
-	, mutex_(std::make_unique<std::mutex>())
+	: OuterAbode(birth, kept)
+	, helm_(Birth<Abode>{*this}, kept.helm())
 {
 	Immanent<Space>::present<Abode>();
 }
@@ -35,72 +27,22 @@ Abode::Abode(const Birth<Man> birth, matter::Abode kept)
 Abode::~Abode() = default;
 
 
-void Abode::admit(const Birth<Man> host, const matter::Dweller& kept)
+std::vector<std::reference_wrapper<const Room>> Abode::inner_rooms() const
 {
-	if (&host.parent() != &host_)
-		throw std::logic_error("only the host brings one to dwell in his abode");
-	if (kept.abode() != id())
-		throw std::logic_error("the dweller is not of this abode");
-	if (kept.soul() == host_.Soul::id())
-		throw std::logic_error("the host is not a dweller of his own abode");
+	std::lock_guard lock(rooms_mutex_);
 
-	const Man& man = Man::of(kept.soul());
-
-	// Regarded anew, the dweller is born anew of his new kind.
-	std::shared_ptr<const Acquaintance> born;
-	switch (kept.kind()) {
-	case matter::Dweller::Kind::Acquaintance:
-		born = std::make_shared<const Acquaintance>(Birth<Abode>{*this}, man);
-		break;
-	case matter::Dweller::Kind::Neighbour:
-		born = std::make_shared<const Neighbour>(Birth<Abode>{*this}, man);
-		break;
-	case matter::Dweller::Kind::Friend:
-		born = std::make_shared<const Friend>(Birth<Abode>{*this}, man);
-		break;
-	}
-	{
-		std::lock_guard lock(*mutex_);
-		dwellers_.insert_or_assign(&man, std::move(born));
-	}
-
-	// Of a kind his part no longer lets in, he withdraws from the room he stands in.
-	man.withdraw(Birth<Abode>{*this});
-}
-
-
-void Abode::arrange(const Birth<Man> birth, const matter::Room& kept) const
-{
-	if (&birth.parent() != &host_)
-		throw std::logic_error("only the host arranges his abode");
-
-	const std::vector<std::reference_wrapper<const Room>> all = rooms();
-	const auto found = std::ranges::find_if(all, [&](const Room& room) { return room.id() == kept.id(); });
-	if (found == all.end())
-		throw std::logic_error("the room is not of this abode");
-	const Room& room = *found;
-	const Part& to = part(kept.part());
-	if (&room.part() != &to)
-		room.part().give(Birth<Abode>{*this}, room, to);
-
-	// Those standing in it whom its new part does not let in withdraw.
-	for (const std::shared_ptr<const Acquaintance>& dweller : dwellers())
-		dweller->man().withdraw(Birth<Abode>{*this});
-}
-
-
-const Part& Abode::part(const matter::Room::Part kept) const
-{
-	if (kept == matter::Room::Part::Outer)
-		return outer_;
-	return inner_;
+	std::vector<std::reference_wrapper<const Room>> out;
+	out.reserve(inner_rooms_.size());
+	for (const std::unique_ptr<Room>& room : inner_rooms_)
+		out.emplace_back(*room);
+	return out;
 }
 
 
 std::vector<std::reference_wrapper<const Room>> Abode::rooms() const
 {
-	std::vector<std::reference_wrapper<const Room>> out = outer_.rooms();
-	const std::vector<std::reference_wrapper<const Room>> inner = inner_.rooms();
+	std::vector<std::reference_wrapper<const Room>> out = outer_rooms();
+	const std::vector<std::reference_wrapper<const Room>> inner = inner_rooms();
 	out.insert(out.end(), inner.begin(), inner.end());
 	return out;
 }
@@ -116,60 +58,99 @@ const Room* Abode::room(const Place& reflects) const
 }
 
 
-void Abode::host_only(const Contemplation& gaze, const Place& here) const
+bool Abode::inward(const Room& room) const
 {
-	if (&gaze.place() != &here)
-		throw std::logic_error("this place is not what is contemplated");
-	if (&gaze.who() != &host_)
-		throw OnlyHostActs();
+	std::lock_guard lock(rooms_mutex_);
+	return std::ranges::any_of(inner_rooms_, [&](const std::unique_ptr<Room>& held) { return held.get() == &room; });
 }
 
 
-std::vector<std::shared_ptr<const Acquaintance>> Abode::dwellers() const
+bool Abode::shows(const Man& man, const Room& room) const
 {
-	std::lock_guard lock(*mutex_);
-
-	std::vector<std::shared_ptr<const Acquaintance>> out;
-	out.reserve(dwellers_.size());
-	for (const auto& [man, dweller] : dwellers_)
-		out.push_back(dweller);
-	return out;
-}
-
-
-std::shared_ptr<const Acquaintance> Abode::dweller(const Man& man) const
-{
-	if (host_.descends_from(man, matter::Fatherhood::Line::Spirit))
-		return std::make_shared<const Friend>(Birth<Abode>{*this}, man);
-
-	std::lock_guard lock(*mutex_);
-	const auto it = dwellers_.find(&man);
-	if (it == dwellers_.end())
-		return nullptr;
-
-	return it->second;
-}
-
-
-bool Abode::dwells(const Man& man) const
-{
-	if (&man == &host_ || host_.descends_from(man, matter::Fatherhood::Line::Spirit))
+	if (&man == &host())
 		return true;
 
-	std::lock_guard lock(*mutex_);
-	return dwellers_.contains(&man);
+	const std::shared_ptr<const Acquaintance> seer = dweller(man);
+	if (!seer)
+		return false;
+
+	const OuterAbode& outer = *this;
+	return inward(room) ? seer->sees(*this) : seer->sees(outer);
 }
 
 
-bool Abode::leads_to(const Man&, const Place& next) const
+const Room& Abode::furnish(const Birth<Man> host, const matter::Room& kept) const
 {
-	return next.within(*this) || &next == &outer_.gates();
+	if (&host.parent() != &this->host())
+		throw std::logic_error("only the host furnishes his abode");
+	if (kept.part() != matter::Room::Part::Inner)
+		throw std::logic_error("a new room is furnished inward");
+
+	return lay(kept);
 }
 
 
-bool Abode::within(const Abode& abode) const
+const Room& Abode::furnish(Birth<Supplication>, const matter::Room& kept) const
 {
-	return &abode == this;
+	if (kept.part() != matter::Room::Part::Inner)
+		throw std::logic_error("a new room is furnished inward");
+
+	return lay(kept);
+}
+
+
+void Abode::recall(const Birth<Man> host, const matter::Room& kept) const
+{
+	if (&host.parent() != &this->host())
+		throw std::logic_error("only the host recalls his own room");
+
+	lay(kept);
+}
+
+
+void Abode::recall(Birth<World>, const matter::Room& kept) const
+{
+	lay(kept);
+}
+
+
+const Room& Abode::lay(const matter::Room& kept) const
+{
+	if (kept.abode() != id())
+		throw std::logic_error("the room is not of this abode");
+
+	const Place& reflects = kept.reflects() == id() ? static_cast<const Place&>(*this) : Place::of(kept.reflects());
+	if (room(reflects))
+		throw std::logic_error("the abode already has a room reflecting this place");
+
+	auto born = std::make_unique<Room>(Birth<Abode>{*this}, reflects, kept);
+	std::lock_guard lock(rooms_mutex_);
+	auto& into = kept.part() == matter::Room::Part::Inner ? inner_rooms_ : outer_rooms_;
+	into.push_back(std::move(born));
+	return *into.back();
+}
+
+
+void Abode::arrange(const Birth<Man> host, const matter::Room& kept) const
+{
+	if (&host.parent() != &this->host())
+		throw std::logic_error("only the host arranges his abode");
+
+	{
+		std::lock_guard lock(rooms_mutex_);
+		auto& to = kept.part() == matter::Room::Part::Inner ? inner_rooms_ : outer_rooms_;
+		auto& from = &to == &inner_rooms_ ? outer_rooms_ : inner_rooms_;
+		const auto found = std::ranges::find_if(from, [&](const std::unique_ptr<Room>& held) { return held->id() == kept.id(); });
+		if (found != from.end()) {
+			to.push_back(std::move(*found));
+			from.erase(found);
+		} else if (std::ranges::none_of(to, [&](const std::unique_ptr<Room>& held) { return held->id() == kept.id(); })) {
+			throw std::logic_error("the room is not of this abode");
+		}
+	}
+
+	// Those standing in it whom their kind no longer lets see it withdraw.
+	withdraw_dwellers();
 }
 
 
@@ -179,7 +160,7 @@ std::shared_ptr<const Word> Abode::receive(const Birth<Room> room, const Saying&
 		throw std::logic_error("the room is not of this abode");
 
 	// What is written here is its host's record: a letter.
-	return host_.record(room, saying);
+	return host().record(room, saying);
 }
 
 
@@ -187,7 +168,7 @@ std::shared_ptr<const Letter> Abode::inscribe(Birth<Witness>, matter::Letter kep
 {
 	if (kept.placement().place() != id())
 		throw std::logic_error("the letter is not placed in this abode");
-	if (kept.word().author() != host_.Soul::id())
+	if (kept.word().author() != host().Soul::id())
 		throw std::logic_error("only the host inscribes a letter");
 
 	auto letter = std::make_shared<const Letter>(Birth<Abode>{*this}, std::move(kept));

@@ -152,12 +152,6 @@ std::shared_ptr<const Behest> Tie::inscribe(Birth<Testator>, matter::Behest kept
 }
 
 
-bool Tie::dwells(const Man& man) const
-{
-	return man.Soul::id() == testator_.Soul::id() || man.Soul::id() == novice_.Soul::id();
-}
-
-
 const Man& Tie::counterpart(const Man& side) const
 {
 	if (testator().Soul::id() == side.Soul::id())

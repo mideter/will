@@ -8,7 +8,7 @@
 #include "places/room.h"
 #include "places/gates.h"
 #include "places/helm.h"
-#include "places/part.h"
+#include "places/outer_abode.h"
 #include "relations/contemplation.h"
 #include "words/letter.h"
 #include "values/device_token.h"

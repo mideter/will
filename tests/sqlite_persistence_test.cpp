@@ -409,8 +409,8 @@ TEST_CASE("sqlite keeps the dwellers of an abode and their kind across reopen")
 		REQUIRE(host.abode().rooms().size() == 1);
 		CHECK(&host.abode().rooms()[0].get().reflects() == static_cast<const Place*>(&host.abode()));
 		CHECK(bundle.spatiality().rooms(host.abode().id()).size() == 1);
-		CHECK(host.abode().outer().gates().id() == bundle.spatiality().abode(host.Soul::id())->gates());
-		CHECK(host.abode().inner().helm().id() == bundle.spatiality().abode(host.Soul::id())->helm());
+		CHECK(host.abode().gates().id() == bundle.spatiality().abode(host.Soul::id())->gates());
+		CHECK(host.abode().helm().id() == bundle.spatiality().abode(host.Soul::id())->helm());
 	}
 
 }

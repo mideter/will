@@ -14,6 +14,7 @@
 
 namespace will::domain {
 class Abode;
+class OuterAbode;
 class Acquaintance;
 class Place;
 class Room;
@@ -57,7 +58,7 @@ v1::NoticeCode code_of(const domain::Refusal& refusal);
 std::optional<v1::RoomPart> edge_of(const domain::Place& place);
 
 
-const domain::Abode* abode_of(const domain::Place& place);
+const domain::OuterAbode* abode_of(const domain::Place& place);
 
 
 std::string room_of(const domain::Place& place);

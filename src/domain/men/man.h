@@ -41,7 +41,7 @@ public:
 
 	void recall(Birth<World> world, const matter::Dweller& kept) const;
 
-	void arrange(Birth<Helm> helm, const Room& room, const Part& part) const;
+	void arrange(Birth<Helm> helm, const Room& room, matter::Room::Part to) const;
 
 	const Man* father(matter::Fatherhood::Line line) const noexcept;
 

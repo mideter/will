@@ -12,7 +12,7 @@
 namespace will::domain {
 
 
-class Abode;
+class OuterAbode;
 class Room;
 class Man;
 class Space;
@@ -23,8 +23,8 @@ class Word;
 
 /// Where one may stand: an abode, its rooms, its gates and its helm; and where a word is
 /// fixed: an abode, a tie. A place reaches no dimension itself; Life recollects its words
-/// for the rooms reflecting it, one recollection while a room onto it is beheld. Only one
-/// who dwells in a place may contemplate it. From here one turns only where the place leads
+/// for the rooms reflecting it, one recollection while a room onto it is beheld. Who may
+/// stand in it, the witness says. From here one turns only where the place leads
 /// him: anywhere within an abode, out of it only through its gates, and to another only from
 /// one's own gates. A room asks the place it reflects whether it takes its host's words, and
 /// has him do the deed they are made by: an abode takes a letter, a tie a behest. The roles
@@ -37,11 +37,9 @@ public:
 
 	id::Place id() const noexcept { return id_; }
 
-	virtual bool dwells(const Man& man) const = 0;
-
 	virtual bool leads_to(const Man& who, const Place& next) const;
 
-	virtual bool within(const Abode& abode) const;
+	virtual bool within(const OuterAbode& abode) const;
 
 	virtual bool takes_words_of(const Man& host) const;
 

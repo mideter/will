@@ -4,12 +4,12 @@
 namespace will::domain {
 
 
-Friend::Friend(const Birth<Abode> birth, const Man& man)
+Friend::Friend(const Birth<OuterAbode> birth, const Man& man)
 	: Neighbour(birth, man)
 {}
 
 
-bool Friend::enters(const Inner&) const
+bool Friend::sees(const Abode&) const
 {
 	return true;
 }

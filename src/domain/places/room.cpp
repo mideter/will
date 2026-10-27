@@ -11,7 +11,6 @@
 #include "words/deed.h"
 #include "men/testator.h"
 #include "places/abode.h"
-#include "places/part.h"
 #include "places/tie.h"
 #include "relations/contemplation.h"
 #include "words/recollection.h"
@@ -24,9 +23,9 @@
 namespace will::domain {
 
 
-Room::Room(const Birth<Part> birth, const Place& reflects, matter::Room kept)
+Room::Room(const Birth<Abode> birth, const Place& reflects, matter::Room kept)
 	: Place(kept.id())
-	, abode_(birth.parent().abode())
+	, abode_(birth.parent())
 	, reflects_(reflects)
 {
 	if (kept.abode() != abode_.id())
@@ -38,28 +37,13 @@ Room::Room(const Birth<Part> birth, const Place& reflects, matter::Room kept)
 }
 
 
-const Part& Room::part() const
-{
-	// A room is in the part that holds it.
-	if (abode_.outer().holds(*this))
-		return abode_.outer();
-	return abode_.inner();
-}
-
-
-bool Room::dwells(const Man& man) const
-{
-	return part().admits(man);
-}
-
-
 bool Room::leads_to(const Man& who, const Place& next) const
 {
 	return abode_.leads_to(who, next);
 }
 
 
-bool Room::within(const Abode& abode) const
+bool Room::within(const OuterAbode& abode) const
 {
 	return &abode == &abode_;
 }
@@ -75,8 +59,8 @@ std::vector<std::shared_ptr<const Word>> Room::words(const Contemplation& gaze) 
 {
 	if (&gaze.place() != this)
 		throw std::logic_error("this room is not what is contemplated");
-	// One whose part no longer admits him, not yet withdrawn, sees nothing here.
-	if (!dwells(gaze.who()))
+	// One his abode no longer shows the room to, not yet withdrawn, sees nothing here.
+	if (!abode_.shows(gaze.who(), *this))
 		return {};
 
 	return reflects_.recollection(Birth<Room>{*this})->words();
