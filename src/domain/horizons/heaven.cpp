@@ -4,7 +4,7 @@
 #include "men/testator.h"
 #include "relations/supplication.h"
 #include "men/man.h"
-#include "places/room.h"
+#include "places/gates.h"
 #include "relations/knock.h"
 #include "dimensions/eternity.h"
 
@@ -82,7 +82,7 @@ std::vector<std::reference_wrapper<const Man>> Heaven::contemplating(const Place
 
 	std::vector<std::reference_wrapper<const Man>> out;
 	for (const auto& [eye, contemplation] : contemplations_) {
-		if (&contemplation->place().source() == &place.source())
+		if (&contemplation->place() == &place)
 			out.emplace_back(contemplation->who());
 	}
 	return out;

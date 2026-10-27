@@ -9,6 +9,8 @@
 #include "matter/letter.h"
 #include "matter/placement.h"
 #include "places/room.h"
+#include "places/gates.h"
+#include "places/helm.h"
 #include "places/shepherding.h"
 #include "words/letter.h"
 #include "matter/word.h"
@@ -48,16 +50,34 @@ void Witness::contemplate(const Abode& abode) const
 
 void Witness::contemplate(const Room& room) const
 {
-	if (!room.dwells(man_of(*this)))
-		throw DoesNotEnterRoom();
-
-	pass(room);
-	Spirit::contemplate(room);
+	enter(room);
 
 	// The testator looking at his tie sees what was done in it.
-	const auto* shepherding = dynamic_cast<const Shepherding*>(&room.source());
+	const auto* shepherding = dynamic_cast<const Shepherding*>(&room.reflects());
 	if (shepherding && shepherding->testator().Soul::id() == man_of(*this).Soul::id())
 		man_of(*this).review(Birth<Witness>{*this}, *shepherding);
+}
+
+
+void Witness::contemplate(const Gates& gates) const
+{
+	enter(gates);
+}
+
+
+void Witness::contemplate(const Helm& helm) const
+{
+	enter(helm);
+}
+
+
+void Witness::enter(const Place& place) const
+{
+	if (!place.dwells(man_of(*this)))
+		throw DoesNotEnterRoom();
+
+	pass(place);
+	Spirit::contemplate(place);
 }
 
 
@@ -74,7 +94,7 @@ void Witness::pass(const Place& next) const
 bool Witness::contemplates(const Place& place) const
 {
 	const std::shared_ptr<const Contemplation> gaze = contemplation();
-	return gaze && &gaze->place().source() == &place.source();
+	return gaze && &gaze->place() == &place;
 }
 
 
@@ -89,10 +109,10 @@ void Witness::withdraw(const Birth<Abode> abode) const
 }
 
 
-std::shared_ptr<const Letter> Witness::record(const Birth<Cell> cell, const Saying& saying) const
+std::shared_ptr<const Letter> Witness::record(const Birth<Room> room, const Saying& saying) const
 {
-	if (&cell.parent().abode() != &abode())
-		throw std::logic_error("the cell is not of this abode");
+	if (&room.parent().abode() != &abode())
+		throw std::logic_error("the room is not of this abode");
 
 	const Abode& place = abode();
 	matter::Word uttered = utter(saying);

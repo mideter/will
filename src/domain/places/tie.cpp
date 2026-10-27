@@ -71,19 +71,23 @@ std::vector<std::shared_ptr<const Kind>> of_kind(const std::vector<std::shared_p
 
 std::vector<std::shared_ptr<const Behest>> Tie::behests(const Contemplation& gaze) const
 {
-	if (&gaze.place().source() != static_cast<const Place*>(this))
-		throw std::logic_error("these words are not what is contemplated");
-
-	return of_kind<Behest>(gaze.words());
+	return of_kind<Behest>(words(gaze));
 }
 
 
 std::vector<std::shared_ptr<const Deed>> Tie::deeds(const Contemplation& gaze) const
 {
-	if (&gaze.place().source() != static_cast<const Place*>(this))
+	return of_kind<Deed>(words(gaze));
+}
+
+
+std::vector<std::shared_ptr<const Word>> Tie::words(const Contemplation& gaze) const
+{
+	const Room& room = gaze.room();
+	if (&room.reflects() != static_cast<const Place*>(this))
 		throw std::logic_error("these words are not what is contemplated");
 
-	return of_kind<Deed>(gaze.words());
+	return room.words(gaze);
 }
 
 
@@ -153,27 +157,27 @@ bool Tie::takes_words_of(const Man& host) const
 }
 
 
-const Testator& Tie::testator_of(const Birth<Cell> cell) const
+const Testator& Tie::testator_of(const Birth<Room> room) const
 {
-	if (&cell.parent().reflects() != static_cast<const Place*>(this))
-		throw std::logic_error("the cell does not reflect this tie");
-	if (!takes_words_of(cell.parent().abode().host()))
+	if (&room.parent().reflects() != static_cast<const Place*>(this))
+		throw std::logic_error("the room does not reflect this tie");
+	if (!takes_words_of(room.parent().abode().host()))
 		throw OnlyTestatorWills();
 	return testator_;
 }
 
 
-std::shared_ptr<const Word> Tie::receive(const Birth<Cell> cell, const Saying& saying) const
+std::shared_ptr<const Word> Tie::receive(const Birth<Room> room, const Saying& saying) const
 {
-	// What is written in its testator's cell, he wills: a behest.
-	return testator_of(cell).will(cell, *this, saying);
+	// What is written in its testator's room, he wills: a behest.
+	return testator_of(room).will(room, *this, saying);
 }
 
 
-std::shared_ptr<const Training> Tie::train(const Birth<Cell> cell, const Saying& title,
+std::shared_ptr<const Training> Tie::train(const Birth<Room> room, const Saying& title,
 										   std::vector<Exercise> exercises) const
 {
-	return testator_of(cell).train(cell, *this, title, std::move(exercises));
+	return testator_of(room).train(room, *this, title, std::move(exercises));
 }
 
 

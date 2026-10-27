@@ -13,8 +13,7 @@ namespace will::domain {
 
 
 class Abode;
-class Cell;
-class Contemplation;
+class Room;
 class Man;
 class Space;
 class Recollection;
@@ -22,14 +21,14 @@ class Saying;
 class Word;
 
 
-/// Where a word is fixed: an abode, a tie, a room onto them. A place reaches no dimension
-/// itself; Life recollects its words for the gazes upon it, one recollection while it is
-/// beheld. Only one who dwells in a place may contemplate it, and it shows all its words to
-/// all who dwell in it unless it says otherwise. From here one turns only where the place
-/// leads: anywhere within an abode, and out of it or into another only through gates. A
-/// cell asks the place it reflects whether it takes its host's words, and has him do the
-/// deed they are made by: an abode takes a letter, a tie a behest. The roles of a tie share
-/// it as a virtual base, given its id by the living Tie.
+/// Where one may stand: an abode, its rooms, its gates and its helm; and where a word is
+/// fixed: an abode, a tie. A place reaches no dimension itself; Life recollects its words
+/// for the rooms reflecting it, one recollection while a room onto it is beheld. Only one
+/// who dwells in a place may contemplate it. From here one turns only where the place leads:
+/// anywhere within an abode, and out of it or into another only through gates. A room asks
+/// the place it reflects whether it takes its host's words, and has him do the deed they are
+/// made by: an abode takes a letter, a tie a behest. The roles of a tie share it as a
+/// virtual base, given its id by the living Tie.
 class Place : public Immanent<Space> {
 public:
 	virtual ~Place() = default;
@@ -40,19 +39,15 @@ public:
 
 	virtual bool dwells(const Man& man) const = 0;
 
-	virtual const Place& source() const;
-
-	virtual bool shows(const Man& who, const Word& word) const;
-
 	virtual bool leads_to(const Place& next) const;
 
 	virtual bool within(const Abode& abode) const;
 
 	virtual bool takes_words_of(const Man& host) const;
 
-	virtual std::shared_ptr<const Word> receive(Birth<Cell> cell, const Saying& saying) const;
+	virtual std::shared_ptr<const Word> receive(Birth<Room> room, const Saying& saying) const;
 
-	std::shared_ptr<const Recollection> recollection(const Contemplation& gaze) const;
+	std::shared_ptr<const Recollection> recollection(Birth<Room> room) const;
 
 protected:
 	std::shared_ptr<const Recollection> recollection() const;

@@ -24,8 +24,9 @@ bool Part::admits(const Man& man) const
 }
 
 
-Outer::Outer(const Birth<Abode> birth)
+Outer::Outer(const Birth<Abode> birth, const id::Place gates)
 	: Part(birth)
+	, gates_(Birth<Outer>{*this}, gates)
 {}
 
 
@@ -41,8 +42,9 @@ bool Outer::lets_in(const Acquaintance& dweller) const
 }
 
 
-Inner::Inner(const Birth<Abode> birth)
+Inner::Inner(const Birth<Abode> birth, const id::Place helm)
 	: Part(birth)
+	, helm_(Birth<Inner>{*this}, helm)
 {}
 
 

@@ -3,6 +3,7 @@
 #include "relations/contemplation.h"
 #include "relations/friend.h"
 #include "places/room.h"
+#include "refusals/room.h"
 #include "places/tie.h"
 #include "words/behest.h"
 #include "words/deed.h"
@@ -27,8 +28,8 @@ Abode::Abode(const Birth<Man> birth, matter::Abode kept)
 	: Place(kept.id())
 	, host_(birth.parent())
 	, name_(kept.name())
-	, outer_(Birth<Abode>{*this})
-	, inner_(Birth<Abode>{*this})
+	, outer_(Birth<Abode>{*this}, kept.gates())
+	, inner_(Birth<Abode>{*this}, kept.helm())
 	, mutex_(std::make_unique<std::mutex>())
 {
 	Immanent<Space>::present<Abode>();
@@ -121,13 +122,11 @@ void Abode::arrange(const Birth<Man> birth, const matter::Room& kept) const
 
 	{
 		std::lock_guard lock(*mutex_);
-		const auto found = std::find_if(rooms_.begin(), rooms_.end(), [&](const std::unique_ptr<Room>& room) {
-			const auto* cell = dynamic_cast<const Cell*>(room.get());
-			return cell && cell->id() == kept.id();
-		});
+		const auto found = std::find_if(rooms_.begin(), rooms_.end(),
+										[&](const std::unique_ptr<Room>& room) { return room->id() == kept.id(); });
 		if (found == rooms_.end())
-			throw std::logic_error("the cell is not of this abode");
-		static_cast<const Cell&>(**found).arrange(Birth<Abode>{*this}, part(kept.part()));
+			throw std::logic_error("the room is not of this abode");
+		(*found)->arrange(Birth<Abode>{*this}, part(kept.part()));
 	}
 	// Those standing in it whom its new part does not let in withdraw.
 	for (const std::shared_ptr<const Acquaintance>& dweller : dwellers())
@@ -144,21 +143,11 @@ const Room& Abode::furnish(const matter::Room& kept)
 
 	std::lock_guard lock(*mutex_);
 	for (const std::unique_ptr<Room>& room : rooms_) {
-		if (&room->reflects() == &reflects && room->aspect() == kept.aspect())
+		if (&room->reflects() == &reflects)
 			throw std::logic_error("the abode already has a room reflecting this place");
 	}
 
-	switch (kept.aspect()) {
-	case matter::Room::Aspect::Words:
-		rooms_.push_back(std::make_unique<Cell>(Birth<Abode>{*this}, reflects, part(kept.part()), kept));
-		break;
-	case matter::Room::Aspect::Threshold:
-		rooms_.push_back(std::make_unique<Gates>(Birth<Abode>{*this}, kept));
-		break;
-	case matter::Room::Aspect::Dwellers:
-		rooms_.push_back(std::make_unique<Helm>(Birth<Abode>{*this}, kept));
-		break;
-	}
+	rooms_.push_back(std::make_unique<Room>(Birth<Abode>{*this}, reflects, part(kept.part()), kept));
 	return *rooms_.back();
 }
 
@@ -183,47 +172,12 @@ std::vector<std::reference_wrapper<const Room>> Abode::rooms() const
 }
 
 
-const Cell* Abode::cell(const Place& reflects) const
+const Room* Abode::room(const Place& reflects) const
 {
 	std::lock_guard lock(*mutex_);
 	for (const std::unique_ptr<Room>& room : rooms_) {
-		const auto* cell = dynamic_cast<const Cell*>(room.get());
-		if (cell && &cell->reflects() == &reflects)
-			return cell;
-	}
-	return nullptr;
-}
-
-
-const Gates& Abode::gates() const
-{
-	std::lock_guard lock(*mutex_);
-	for (const std::unique_ptr<Room>& room : rooms_) {
-		if (const auto* gates = dynamic_cast<const Gates*>(room.get()))
-			return *gates;
-	}
-	throw std::logic_error("the abode has no gates");
-}
-
-
-const Helm& Abode::helm() const
-{
-	std::lock_guard lock(*mutex_);
-	for (const std::unique_ptr<Room>& room : rooms_) {
-		if (const auto* helm = dynamic_cast<const Helm*>(room.get()))
-			return *helm;
-	}
-	throw std::logic_error("the abode has no helm");
-}
-
-
-const Cell* Abode::cell(const std::string_view name) const
-{
-	std::lock_guard lock(*mutex_);
-	for (const std::unique_ptr<Room>& room : rooms_) {
-		const auto* cell = dynamic_cast<const Cell*>(room.get());
-		if (cell && cell->name() == name)
-			return cell;
+		if (&room->reflects() == &reflects)
+			return room.get();
 	}
 	return nullptr;
 }
@@ -237,6 +191,15 @@ const Room* Abode::room(const std::string_view name) const
 			return room.get();
 	}
 	return nullptr;
+}
+
+
+void Abode::host_only(const Contemplation& gaze, const Place& here) const
+{
+	if (&gaze.place() != &here)
+		throw std::logic_error("this place is not what is contemplated");
+	if (&gaze.who() != &host_)
+		throw OnlyHostActs();
 }
 
 
@@ -263,12 +226,6 @@ std::shared_ptr<const Acquaintance> Abode::dweller(const Man& man) const
 		return nullptr;
 
 	return it->second;
-}
-
-
-bool Abode::shows(const Man&, const Word&) const
-{
-	return false;
 }
 
 
@@ -345,7 +302,7 @@ bool Abode::dwells(const Man& man) const
 
 bool Abode::leads_to(const Place& next) const
 {
-	return next.within(*this) || &next == &gates();
+	return next.within(*this) || &next == &outer_.gates();
 }
 
 
@@ -355,13 +312,13 @@ bool Abode::within(const Abode& abode) const
 }
 
 
-std::shared_ptr<const Word> Abode::receive(const Birth<Cell> cell, const Saying& saying) const
+std::shared_ptr<const Word> Abode::receive(const Birth<Room> room, const Saying& saying) const
 {
-	if (&cell.parent().abode() != this)
-		throw std::logic_error("the cell is not of this abode");
+	if (&room.parent().abode() != this)
+		throw std::logic_error("the room is not of this abode");
 
 	// What is written here is its host's record: a letter.
-	return host_.record(cell, saying);
+	return host_.record(room, saying);
 }
 
 

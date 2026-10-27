@@ -2,7 +2,7 @@
 #include "refusals/world.h"
 #include "world.h"
 
-#include "places/room.h"
+#include "places/gates.h"
 
 #include "places/obedience.h"
 #include "places/shepherding.h"

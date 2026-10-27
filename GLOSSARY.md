@@ -42,8 +42,7 @@ An interface word is given only where it differs from the Russian name.
 |---|---|---|
 | Место | `Place` | |
 | Обитель | `Abode` | |
-| Комната | `Room` | |
-| Келья | `Cell` | Слово (of one's abode), «Ведение — имя», «Послушание — имя» (of a tie) |
+| Комната | `Room` | Слово (of one's abode), «Ведение — имя», «Послушание — имя» (of a tie) |
 | Врата | `Gates` | |
 | Кормчая | `Helm` | |
 | Часть | `Part` | |

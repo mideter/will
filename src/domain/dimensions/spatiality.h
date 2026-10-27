@@ -19,10 +19,10 @@ namespace will::domain {
 
 
 /// Places and where a word is fixed: abodes, dwellers, rooms, ties, placements. A host
-/// keeps one abode. A dweller's kind kept anew replaces the former one. An abode has one
-/// room for each aspect of each place it reflects, furnished in the inner part. A pair is
-/// bound once. A place's placements come all. What would break these it refuses; an unknown
-/// room it does not arrange.
+/// keeps one abode, its gates and its helm marked with it. A dweller's kind kept anew
+/// replaces the former one. An abode has one room for each place it reflects, furnished in
+/// the inner part. A pair is bound once. A place's placements come all. What would break
+/// these it refuses; an unknown room it does not arrange.
 class Spatiality {
 public:
 	virtual ~Spatiality() = default;
@@ -35,7 +35,7 @@ public:
 
 	virtual std::vector<matter::Dweller> dwellers() const = 0;
 
-	virtual matter::Room furnish(id::Place abode, id::Place reflects, matter::Room::Aspect aspect) = 0;
+	virtual matter::Room furnish(id::Place abode, id::Place reflects) = 0;
 
 	virtual matter::Room arrange(id::Place room, matter::Room::Part part) = 0;
 

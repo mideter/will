@@ -7,6 +7,7 @@
 #include "words/training.h"
 
 #include "places/room.h"
+#include "places/helm.h"
 #include "places/tie.h"
 #include "relations/contemplation.h"
 #include "men/soul.h"
@@ -67,7 +68,7 @@ std::vector<Exercise> done_of(const Training& training)
 } // namespace
 
 
-void Novice::begin(Birth<Cell>, const Training& training, const std::uint32_t exercise, const std::uint32_t approach) const
+void Novice::begin(Birth<Room>, const Training& training, const std::uint32_t exercise, const std::uint32_t approach) const
 {
 	if (training.deed())
 		throw AlreadyFulfilled();
@@ -99,7 +100,7 @@ void Novice::begin(Birth<Cell>, const Training& training, const std::uint32_t ex
 }
 
 
-void Novice::end(Birth<Cell>, const Training& training) const
+void Novice::end(Birth<Room>, const Training& training) const
 {
 	const std::optional<matter::Underway> doing = training.underway();
 	if (!doing)
@@ -111,7 +112,7 @@ void Novice::end(Birth<Cell>, const Training& training) const
 }
 
 
-matter::Effort Novice::finish(Birth<Cell>, const Training& training, const Weight weight,
+matter::Effort Novice::finish(Birth<Room>, const Training& training, const Weight weight,
 							  const std::uint32_t repetitions, const Strain strain) const
 {
 	const std::optional<matter::Underway> doing = training.underway();
@@ -124,7 +125,7 @@ matter::Effort Novice::finish(Birth<Cell>, const Training& training, const Weigh
 }
 
 
-matter::Remark Novice::remark(Birth<Cell>, const Training& training, const std::uint32_t exercise,
+matter::Remark Novice::remark(Birth<Room>, const Training& training, const std::uint32_t exercise,
 							  const Saying& saying) const
 {
 	if (training.deed())
@@ -141,7 +142,7 @@ matter::Remark Novice::remark(Birth<Cell>, const Training& training, const std::
 }
 
 
-std::shared_ptr<const Deed> Novice::execute(Birth<Cell>, const Behest& behest, std::optional<Saying> report,
+std::shared_ptr<const Deed> Novice::execute(Birth<Room>, const Behest& behest, std::optional<Saying> report,
 											 std::optional<std::vector<Exercise>> performed) const
 {
 	const Tie& tie = behest.tie();
@@ -176,8 +177,9 @@ std::shared_ptr<const Deed> Novice::execute(Birth<Cell>, const Behest& behest, s
 		Birth<Novice>{*this}, behest,
 		matter::Deed{std::move(uttered), std::move(placed), std::move(dated), std::move(executed), std::move(done)});
 
-	// Fulfilled before the eyes of the testator, it is seen at once.
-	if (tie.testator().contemplates(tie))
+	// Fulfilled before the eyes of the testator, looking into his room of the tie, it is seen at once.
+	const Room* seen = tie.testator().abode().room(tie);
+	if (seen && tie.testator().contemplates(*seen))
 		tie.testator().review(Birth<Novice>{*this}, tie);
 
 	return deed;

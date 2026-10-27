@@ -16,6 +16,9 @@
 #include "words/training.h"
 #include "places/abode.h"
 #include "places/room.h"
+#include "places/gates.h"
+#include "places/helm.h"
+#include "places/part.h"
 #include "relations/friend.h"
 #include "relations/contemplation.h"
 #include "words/letter.h"
@@ -183,7 +186,7 @@ v1::NoticeCode code_of(const domain::Refusal& refusal)
 		{typeid(domain::NoSuchUnborn), v1::NOTICE_NO_SUCH_UNBORN},
 		{typeid(domain::DoesNotDwell), v1::NOTICE_DOES_NOT_DWELL},
 		{typeid(domain::DoesNotEnterRoom), v1::NOTICE_DOES_NOT_ENTER_ROOM},
-		{typeid(domain::StandInCell), v1::NOTICE_STAND_IN_CELL},
+		{typeid(domain::StandInRoom), v1::NOTICE_STAND_IN_CELL},
 		{typeid(domain::StandAtHelm), v1::NOTICE_STAND_AT_HELM},
 		{typeid(domain::StandAtGates), v1::NOTICE_STAND_AT_GATES},
 		{typeid(domain::OnlyHostActs), v1::NOTICE_ONLY_HOST_ACTS},
@@ -220,17 +223,38 @@ v1::NoticeCode code_of(const domain::Refusal& refusal)
 
 v1::RoomAspect aspect_of(const domain::Place& place)
 {
-	const auto* room = dynamic_cast<const domain::Room*>(&place);
-	if (!room)
-		return v1::WORDS;
-	switch (room->aspect()) {
-	case domain::matter::Room::Aspect::Threshold:
+	if (dynamic_cast<const domain::Gates*>(&place))
 		return v1::THRESHOLD;
-	case domain::matter::Room::Aspect::Dwellers:
+	if (dynamic_cast<const domain::Helm*>(&place))
 		return v1::DWELLERS;
-	default:
-		return v1::WORDS;
-	}
+	return v1::WORDS;
+}
+
+
+const domain::Abode* abode_of(const domain::Place& place)
+{
+	if (const auto* abode = dynamic_cast<const domain::Abode*>(&place))
+		return abode;
+	if (const auto* room = dynamic_cast<const domain::Room*>(&place))
+		return &room->abode();
+	if (const auto* gates = dynamic_cast<const domain::Gates*>(&place))
+		return &gates->abode();
+	if (const auto* helm = dynamic_cast<const domain::Helm*>(&place))
+		return &helm->abode();
+	return nullptr;
+}
+
+
+std::string room_of(const domain::Place& place)
+{
+	// The wire still names the gates and the helm among the rooms.
+	if (const auto* room = dynamic_cast<const domain::Room*>(&place))
+		return room->name();
+	if (const auto* gates = dynamic_cast<const domain::Gates*>(&place))
+		return gates->name();
+	if (const auto* helm = dynamic_cast<const domain::Helm*>(&place))
+		return helm->name();
+	return {};
 }
 
 

@@ -38,7 +38,7 @@ class InboundClientMessageHandler;
 /// told to those who look at the place, and a short word of it to the other side of a tie
 /// who looks elsewhere. Turning to a place, one is told what one sees there: at an abode
 /// itself, the rooms one may enter and, to its host, what awaits him; elsewhere, the last
-/// TurnWords words. One writes in one's own cell, or in a tie room as its testator.
+/// TurnWords words. One writes in one's own room, or in a tie room as its testator.
 class ProtocolAdapter {
 	friend class InboundClientMessageHandler;
 

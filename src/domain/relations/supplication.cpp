@@ -44,11 +44,8 @@ const Shepherding& Supplication::accept(const Testator& asked) const
 	const Shepherding& shepherded = addressee.shepherd(dynamic_cast<const Shepherding&>(place));
 
 	// The tie is reflected in the abode of each side: Ведение and Послушание.
-	constexpr auto words = matter::Room::Aspect::Words;
-	addressee.abode().furnish(Birth<Supplication>{*this},
-							  addressee.spatiality().furnish(addressee.abode().id(), kept.id(), words));
-	suppliant.abode().furnish(Birth<Supplication>{*this},
-							  addressee.spatiality().furnish(suppliant.abode().id(), kept.id(), words));
+	addressee.abode().furnish(Birth<Supplication>{*this}, addressee.spatiality().furnish(addressee.abode().id(), kept.id()));
+	suppliant.abode().furnish(Birth<Supplication>{*this}, addressee.spatiality().furnish(suppliant.abode().id(), kept.id()));
 
 	// Answered, it leaves Heaven.
 	horizon().release(*incoming);

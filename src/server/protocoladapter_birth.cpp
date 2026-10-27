@@ -6,6 +6,9 @@
 #include "places/abode.h"
 #include "men/man.h"
 #include "places/room.h"
+#include "places/gates.h"
+#include "places/helm.h"
+#include "places/part.h"
 #include "relations/contemplation.h"
 #include "men/witness.h"
 #include "words/letter.h"
@@ -136,7 +139,7 @@ void ProtocolAdapter::handle_bear(const SessionId session_id, const v1::Bear& ms
 	send_notice(session_id, v1::NOTICE_BORN, {std::string{child.name().text()}});
 	tell_dwelling(father, child);
 	tell_dwelling(child, father);
-	retell_helm(father.abode().helm());
+	retell_helm(father.abode().inner().helm());
 	retell_unborn();
 }
 

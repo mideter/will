@@ -250,7 +250,7 @@ TEST_CASE("second session with same device token displaces the first")
 
 	REQUIRE(wait_for_stream_end(first, std::chrono::seconds(2)));
 
-	// One writes in one's cell.
+	// One writes in one's room.
 	{
 		will::v1::ClientEvent turn;
 		turn.mutable_turn()->set_room("Слово");

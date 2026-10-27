@@ -25,7 +25,7 @@ namespace will::domain {
 
 
 class Acquaintance;
-class Cell;
+class Room;
 class Training;
 
 
@@ -45,17 +45,17 @@ class Novice : public virtual Embodied {
 public:
 	void supplicate(Birth<Helm> helm, const Acquaintance& dweller) const;
 
-	std::shared_ptr<const Deed> execute(Birth<Cell> cell, const Behest& behest, std::optional<Saying> report,
+	std::shared_ptr<const Deed> execute(Birth<Room> room, const Behest& behest, std::optional<Saying> report,
 										std::optional<std::vector<Exercise>> performed) const;
 
-	void begin(Birth<Cell> cell, const Training& training, std::uint32_t exercise, std::uint32_t approach) const;
+	void begin(Birth<Room> room, const Training& training, std::uint32_t exercise, std::uint32_t approach) const;
 
-	void end(Birth<Cell> cell, const Training& training) const;
+	void end(Birth<Room> room, const Training& training) const;
 
-	matter::Effort finish(Birth<Cell> cell, const Training& training, Weight weight, std::uint32_t repetitions,
+	matter::Effort finish(Birth<Room> room, const Training& training, Weight weight, std::uint32_t repetitions,
 						  Strain strain) const;
 
-	matter::Remark remark(Birth<Cell> cell, const Training& training, std::uint32_t exercise, const Saying& saying) const;
+	matter::Remark remark(Birth<Room> room, const Training& training, std::uint32_t exercise, const Saying& saying) const;
 
 	std::vector<std::reference_wrapper<const Obedience>> obediences() const;
 

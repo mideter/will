@@ -35,7 +35,7 @@ public:
 
 	void regard(Birth<Helm> helm, const Man& dweller, matter::Dweller::Kind kind) const;
 
-	void arrange(Birth<Helm> helm, const Cell& cell, const Part& part) const;
+	void arrange(Birth<Helm> helm, const Room& room, const Part& part) const;
 
 	const Man* father(matter::Fatherhood::Line line) const noexcept;
 

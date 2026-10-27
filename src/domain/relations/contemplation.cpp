@@ -2,6 +2,8 @@
 
 #include "men/man.h"
 #include "places/room.h"
+#include "places/gates.h"
+#include "places/helm.h"
 #include "refusals/place.h"
 #include "words/recollection.h"
 
@@ -12,28 +14,19 @@ namespace will::domain {
 Contemplation::Contemplation(Birth<Heaven>, const Man& who, const Place& place)
 	: who_(who)
 	, place_(place)
-	, recollection_(place.recollection(*this))
-{}
-
-
-std::vector<std::shared_ptr<const Word>> Contemplation::words() const
 {
-	std::vector<std::shared_ptr<const Word>> shown;
-	for (std::shared_ptr<const Word>& word : recollection_->words()) {
-		if (place_.shows(who_, *word))
-			shown.push_back(std::move(word));
-	}
-
-	return shown;
+	// Only through a room are words seen: beholding it keeps them living.
+	if (const auto* room = dynamic_cast<const Room*>(&place))
+		recollection_ = room->recollection(Birth<Contemplation>{*this});
 }
 
 
-const Cell& Contemplation::cell() const
+const Room& Contemplation::room() const
 {
-	const auto* cell = dynamic_cast<const Cell*>(&place_);
-	if (!cell)
-		throw StandInCell();
-	return *cell;
+	const auto* room = dynamic_cast<const Room*>(&place_);
+	if (!room)
+		throw StandInRoom();
+	return *room;
 }
 
 
@@ -57,8 +50,8 @@ const Gates& Contemplation::gates() const
 
 bool Contemplation::writable() const
 {
-	const auto* cell = dynamic_cast<const Cell*>(&place_);
-	return cell && cell->writable_by(who_);
+	const auto* room = dynamic_cast<const Room*>(&place_);
+	return room && room->writable_by(who_);
 }
 
 

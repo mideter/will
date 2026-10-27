@@ -1,87 +1,63 @@
 #pragma once
 
-#include "matter/dweller.h"
 #include "matter/room.h"
-#include "places/place.h"
-#include "properties/birth.h"
-#include "properties/immanent.h"
-
 #include "matter/effort.h"
 #include "matter/remark.h"
+#include "places/place.h"
+#include "properties/birth.h"
 #include "values/exercise.h"
 #include "values/weight.h"
 
 #include <atomic>
 #include <cstdint>
-#include <optional>
-#include <vector>
 #include <memory>
+#include <optional>
 #include <string>
+#include <vector>
 
 
 namespace will::domain {
 
 
 class Abode;
-class Man;
-class Heaven;
 class Behest;
+class Contemplation;
 class Deed;
+class Man;
 class Novice;
 class Part;
-class Shepherding;
-class Supplication;
+class Recollection;
 class Training;
-class Unborn;
+class Word;
 
 
-/// A window in an Abode onto a place, with no words of its own. It stands in a part of the
-/// abode: a cell where its host sets it, the gates and the helm as the cores of theirs.
-/// Others may look in, but one acts in a room only as its host.
-class Room : public Place {
+/// The window of an Abode onto the words of a place: of its abode, «Слово» in the interface;
+/// of a tie, «Ведение» or «Послушание». It has no words of its own: it shows those of the
+/// place it reflects to whom its part admits, and a gaze into it keeps them living. Its host
+/// sets it in a part. Only he writes here, and the place it reflects decides what his words
+/// become; in the novice's room of a tie, the novice fulfils, trains and remarks on the
+/// exercises.
+class Room final : public Place {
 public:
+	Room(Birth<Abode> birth, const Place& reflects, const Part& part, matter::Room kept);
+
 	const Abode& abode() const noexcept { return abode_; }
 	const Place& reflects() const noexcept { return reflects_; }
-	matter::Room::Aspect aspect() const noexcept { return aspect_; }
+	const Part& part() const { return *part_.load(); }
 
-	virtual const Part& part() const = 0;
-
-	virtual std::string name() const = 0;
-
-	bool leads_to(const Place& next) const override;
-	bool within(const Abode& abode) const override;
-
-protected:
-	Room(Birth<Abode> birth, const Place& reflects, matter::Room kept);
-
-	void host_only(const Contemplation& gaze) const;
-
-private:
-	const Abode& abode_;
-	const Place& reflects_;
-	const matter::Room::Aspect aspect_;
-};
-
-
-/// The window onto the words of a place: of its abode, «Слово» in the interface; of a tie,
-/// «Ведение» or «Послушание». Whom its part admits enter it. Only its host writes here, and
-/// the place it reflects decides what his words become; in the novice's cell of a tie, the
-/// novice fulfils, trains and remarks on the exercises.
-class Cell final : public Room {
-public:
-	Cell(Birth<Abode> birth, const Place& reflects, const Part& part, matter::Room kept);
-
-	const Part& part() const override { return *part_.load(); }
-
-	std::string name() const override;
+	std::string name() const;
 
 	bool dwells(const Man& man) const override;
 
+	bool leads_to(const Place& next) const override;
+
+	bool within(const Abode& abode) const override;
+
 	void arrange(Birth<Abode> birth, const Part& part) const;
 
-	const Place& source() const override;
+	std::shared_ptr<const Recollection> recollection(Birth<Contemplation> gaze) const;
 
-	bool shows(const Man& who, const Word& word) const override;
+	std::vector<std::shared_ptr<const Word>> words(const Contemplation& gaze) const;
 
 	bool writable_by(const Man& writer) const;
 
@@ -104,64 +80,9 @@ private:
 	template<typename OtherTie, typename NotNovice>
 	const Novice& obeying(const Contemplation& gaze, const Behest& behest) const;
 
+	const Abode& abode_;
+	const Place& reflects_;
 	mutable std::atomic<const Part*> part_;
-};
-
-
-/// The threshold of an Abode, the core of its outer part and not inside it: anyone may
-/// stand here, and from here one goes into the abode or on to other gates. One who does not
-/// dwell behind them may knock, once while he stands here. Only the host keeps them, and
-/// they are open while he stands in them: he lets in one who knocks as his acquaintance,
-/// and bears a child of his here.
-class Gates final : public Room, private Immanent<Heaven> {
-public:
-	Gates(Birth<Abode> birth, matter::Room kept);
-
-	const Part& part() const override;
-
-	std::string name() const override;
-
-	bool dwells(const Man& man) const override;
-
-	bool leads_to(const Place& next) const override;
-
-	bool within(const Abode& abode) const override;
-
-	bool keeps(const Man& man) const;
-
-	bool open() const;
-
-	void knock(const Contemplation& gaze) const;
-
-	std::vector<std::reference_wrapper<const Man>> knocking() const;
-
-	void admit(const Contemplation& gaze, const Man& man) const;
-
-	const Man& bear(const Contemplation& gaze, const Unborn& unborn) const;
-};
-
-
-/// The host's own room, the core of the inner part, whence he steers his abode; no one else
-/// enters. Here alone he answers those who ask him and asks himself, regards his dwellers
-/// anew and moves his cells from part to part.
-class Helm final : public Room {
-public:
-	Helm(Birth<Abode> birth, matter::Room kept);
-
-	const Part& part() const override;
-
-	std::string name() const override;
-
-	bool dwells(const Man& man) const override;
-
-	void regard(const Contemplation& gaze, const Man& dweller, matter::Dweller::Kind kind) const;
-
-	void arrange(const Contemplation& gaze, const Cell& cell, const Part& part) const;
-
-	void supplicate(const Contemplation& gaze, const Man& addressee) const;
-
-	const Shepherding& accept(const Contemplation& gaze, const Supplication& ask) const;
-	void reject(const Contemplation& gaze, const Supplication& ask) const;
 };
 
 

@@ -30,16 +30,11 @@ Man::Man(Birth<World>, matter::Man kept)
 
 	abode_ = std::make_unique<Abode>(Birth<Man>{*this}, std::move(*own));
 
-	// The standard rooms: Слово, Врата, Кормчая.
-	std::vector<matter::Room> rooms = spatiality().rooms(abode_->id());
-	for (const matter::Room::Aspect aspect :
-		 {matter::Room::Aspect::Words, matter::Room::Aspect::Threshold, matter::Room::Aspect::Dwellers}) {
-		const auto found = std::find_if(rooms.begin(), rooms.end(), [&](const matter::Room& room) {
-			return room.reflects() == abode_->id() && room.aspect() == aspect;
-		});
-		abode_->furnish(Birth<Man>{*this},
-						found != rooms.end() ? *found : spatiality().furnish(abode_->id(), abode_->id(), aspect));
-	}
+	// Its own room, Слово; the gates and the helm are born with it.
+	const std::vector<matter::Room> rooms = spatiality().rooms(abode_->id());
+	const auto found = std::find_if(rooms.begin(), rooms.end(),
+									[&](const matter::Room& room) { return room.reflects() == abode_->id(); });
+	abode_->furnish(Birth<Man>{*this}, found != rooms.end() ? *found : spatiality().furnish(abode_->id(), abode_->id()));
 }
 
 
@@ -55,12 +50,12 @@ void Man::admit(const Birth<Gates> gates, const Man& man) const
 }
 
 
-void Man::arrange(Birth<Helm>, const Cell& cell, const Part& part) const
+void Man::arrange(Birth<Helm>, const Room& room, const Part& part) const
 {
-	if (&cell.abode() != abode_.get() || &part.abode() != abode_.get())
-		throw std::logic_error("the cell or the part is not of this abode");
+	if (&room.abode() != abode_.get() || &part.abode() != abode_.get())
+		throw std::logic_error("the room or the part is not of this abode");
 
-	abode_->arrange(Birth<Man>{*this}, spatiality().arrange(cell.id(), part.kept()));
+	abode_->arrange(Birth<Man>{*this}, spatiality().arrange(room.id(), part.kept()));
 }
 
 

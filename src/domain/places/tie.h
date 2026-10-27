@@ -14,7 +14,7 @@ namespace will::domain {
 
 class Abode;
 class Behest;
-class Cell;
+class Room;
 class Deed;
 class Novice;
 class Testator;
@@ -44,12 +44,14 @@ public:
 	const Man& counterpart(const Man& side) const;
 
 	bool takes_words_of(const Man& host) const override;
-	std::shared_ptr<const Word> receive(Birth<Cell> cell, const Saying& saying) const override;
+	std::shared_ptr<const Word> receive(Birth<Room> room, const Saying& saying) const override;
 
-	std::shared_ptr<const Training> train(Birth<Cell> cell, const Saying& title, std::vector<Exercise> exercises) const;
+	std::shared_ptr<const Training> train(Birth<Room> room, const Saying& title, std::vector<Exercise> exercises) const;
 
 private:
-	const Testator& testator_of(Birth<Cell> cell) const;
+	std::vector<std::shared_ptr<const Word>> words(const Contemplation& gaze) const;
+
+	const Testator& testator_of(Birth<Room> room) const;
 };
 
 

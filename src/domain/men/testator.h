@@ -17,7 +17,7 @@
 namespace will::domain {
 
 
-class Cell;
+class Room;
 class Novice;
 class Training;
 class Helm;
@@ -35,9 +35,9 @@ public:
 	const Shepherding& accept(Birth<Helm> helm, const Supplication& ask) const;
 	void reject(Birth<Helm> helm, const Supplication& ask) const;
 
-	std::shared_ptr<const Behest> will(Birth<Cell> cell, const Shepherding& shepherding, const Saying& saying) const;
+	std::shared_ptr<const Behest> will(Birth<Room> room, const Shepherding& shepherding, const Saying& saying) const;
 
-	std::shared_ptr<const Training> train(Birth<Cell> cell, const Shepherding& shepherding, const Saying& title,
+	std::shared_ptr<const Training> train(Birth<Room> room, const Shepherding& shepherding, const Saying& title,
 										  std::vector<Exercise> exercises) const;
 
 	void review(Birth<Witness> witness, const Shepherding& shepherding) const;

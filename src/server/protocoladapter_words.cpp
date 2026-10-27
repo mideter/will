@@ -14,6 +14,9 @@
 #include "men/testator.h"
 #include "places/tie.h"
 #include "places/room.h"
+#include "places/gates.h"
+#include "places/helm.h"
+#include "places/part.h"
 #include "relations/contemplation.h"
 #include "relations/supplication.h"
 #include "words/letter.h"
@@ -24,6 +27,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <exception>
+#include <functional>
 #include <memory>
 #include <mutex>
 #include <optional>
@@ -35,6 +39,30 @@ namespace will {
 
 
 using namespace wire;
+
+
+namespace {
+
+
+// The rooms through which the words of a place are seen: of an abode, its own; of a tie,
+// the room of each side.
+std::vector<std::reference_wrapper<const domain::Room>> rooms_onto(const domain::Place& place)
+{
+	std::vector<std::reference_wrapper<const domain::Room>> rooms;
+	if (const auto* abode = dynamic_cast<const domain::Abode*>(&place)) {
+		if (const domain::Room* own = abode->room(*abode))
+			rooms.emplace_back(*own);
+	} else if (const auto* tie = dynamic_cast<const domain::Tie*>(&place)) {
+		for (const domain::Man* side : {&tie->testator(), &tie->novice()}) {
+			if (const domain::Room* room = side->abode().room(*tie))
+				rooms.emplace_back(*room);
+		}
+	}
+	return rooms;
+}
+
+
+} // namespace
 
 
 void ProtocolAdapter::handle_user_chat(const SessionId session_id, const v1::ChatMessage& chat)
@@ -54,7 +82,7 @@ void ProtocolAdapter::handle_user_chat(const SessionId session_id, const v1::Cha
 	// Where he stands decides what his word becomes, or that the world refuses it.
 	std::shared_ptr<const domain::Word> placed;
 	try {
-		placed = gaze->cell().write(*gaze, domain::Saying{chat.body()});
+		placed = gaze->room().write(*gaze, domain::Saying{chat.body()});
 	} catch (const domain::Refusal& refusal) {
 		refuse(session_id, refusal);
 		return;
@@ -67,20 +95,18 @@ void ProtocolAdapter::handle_user_chat(const SessionId session_id, const v1::Cha
 	*ack.mutable_receipt_ack()->mutable_word() = word_event(*placed, man.Soul::id()).word();
 	send_event(session_id, ack);
 
-	tell_placed(gaze->place().source(), *placed, man);
+	tell_placed(gaze->room().reflects(), *placed, man);
 }
 
 
 void ProtocolAdapter::tell_placed(const domain::Place& place, const domain::Word& word, const domain::Man& author)
 {
-	for (const domain::Man& man : world_.contemplating(place)) {
-		if (man.Soul::id() == author.Soul::id())
-			continue;
-
-		// Each sees it as the place he looks at shows it: the place, or a room reflecting it.
-		const std::shared_ptr<const domain::Contemplation> gaze = world_.contemplation(man);
-		if (gaze && gaze->place().shows(man, word))
-			send_to_vessel(man.Vessel::id(), word_event(word, man.Soul::id()));
+	// Each looking into a room onto the place sees it, if the room still admits him.
+	for (const domain::Room& room : rooms_onto(place)) {
+		for (const domain::Man& man : world_.contemplating(room)) {
+			if (man.Soul::id() != author.Soul::id() && room.dwells(man))
+				send_to_vessel(man.Vessel::id(), word_event(word, man.Soul::id()));
+		}
 	}
 
 	// The other side of a tie, looking elsewhere, hears a short word of it.
@@ -90,18 +116,13 @@ void ProtocolAdapter::tell_placed(const domain::Place& place, const domain::Word
 	tell_overview(*tie);
 
 	const domain::Man& other = tie->counterpart(author);
-	for (const domain::Man& beholder : world_.contemplating(place)) {
-		if (beholder.Soul::id() == other.Soul::id())
-			return;
-	}
-
-	const domain::Cell* cell = other.abode().cell(*tie);
-	if (!cell)
+	const domain::Room* room = other.abode().room(*tie);
+	if (!room || other.contemplates(*room))
 		return;
 
 	v1::ServerEvent event;
 	auto* stirred = event.mutable_stirred();
-	stirred->set_room(cell->name());
+	stirred->set_room(room->name());
 	stirred->set_author_name(std::string{author.name().text()});
 	*stirred->mutable_word() = word_event(word, other.Soul::id()).word();
 	send_to_vessel(other.Vessel::id(), event);
@@ -111,7 +132,7 @@ void ProtocolAdapter::tell_placed(const domain::Place& place, const domain::Word
 void ProtocolAdapter::tell_words(const SessionId session_id, const domain::Contemplation& gaze,
 								 const domain::Man& listener, const std::uint32_t limit)
 {
-	const std::vector<std::shared_ptr<const domain::Word>> words = gaze.words();
+	const std::vector<std::shared_ptr<const domain::Word>> words = gaze.room().words(gaze);
 
 	// How many words to send is the client's wish, not the place's concern — within what
 	// a session may hold untold at once (Session::MaxPending), lest the asker be closed.
@@ -171,8 +192,8 @@ void ProtocolAdapter::handle_supplicate(const SessionId session_id, const v1::Su
 	send_to_vessel(addressee_man->Vessel::id(), offer);
 
 	// At either helm the two now stand otherwise to each other.
-	retell_helm(self.abode().helm());
-	retell_helm(addressee_man->abode().helm());
+	retell_helm(self.abode().inner().helm());
+	retell_helm(addressee_man->abode().inner().helm());
 }
 
 
@@ -212,8 +233,8 @@ void ProtocolAdapter::handle_accept_supplication(const SessionId session_id,
 	formed_n->set_as_novice(true);
 	send_to_vessel(suppliant_man->Vessel::id(), to_novice);
 
-	retell_helm(self.abode().helm());
-	retell_helm(suppliant_man->abode().helm());
+	retell_helm(self.abode().inner().helm());
+	retell_helm(suppliant_man->abode().inner().helm());
 }
 
 
@@ -227,9 +248,14 @@ void ProtocolAdapter::handle_fulfil(const SessionId session_id, const v1::Fulfil
 
 	// The number a client names is matched here, at the border, among the words he beholds.
 	std::shared_ptr<const domain::Behest> behest;
-	for (const std::shared_ptr<const domain::Word>& word : gaze->words()) {
-		if (word->id().value() == msg.behest_id())
-			behest = std::dynamic_pointer_cast<const domain::Behest>(word);
+	try {
+		for (const std::shared_ptr<const domain::Word>& word : gaze->room().words(*gaze)) {
+			if (word->id().value() == msg.behest_id())
+				behest = std::dynamic_pointer_cast<const domain::Behest>(word);
+		}
+	} catch (const std::exception& e) {
+		refuse(session_id, e);
+		return;
 	}
 	if (!behest) {
 		refuse(session_id, v1::NOTICE_UNKNOWN_BEHEST);
@@ -245,7 +271,7 @@ void ProtocolAdapter::handle_fulfil(const SessionId session_id, const v1::Fulfil
 			performed = exercises_of(msg.performed());
 
 		const std::shared_ptr<const domain::Deed> deed
-			= gaze->cell().fulfil(*gaze, *behest, std::move(report), std::move(performed));
+			= gaze->room().fulfil(*gaze, *behest, std::move(report), std::move(performed));
 		send_notice(session_id, v1::NOTICE_BEHEST_FULFILLED, {std::to_string(behest->id().value())});
 		tell_placed(deed->tie(), *deed, self);
 	} catch (const std::exception& e) {
@@ -274,11 +300,11 @@ void ProtocolAdapter::handle_train(const SessionId session_id, const v1::Train& 
 {
 	const domain::Man& self = session_man(session_id);
 
-	// He wills it in the cell of a tie he stands in, as its host — or the world refuses.
+	// He wills it in the room of a tie he stands in, as its host — or the world refuses.
 	std::shared_ptr<const domain::Training> training;
 	try {
 		const domain::Contemplation& gaze = gaze_of(self);
-		training = gaze.cell().train(
+		training = gaze.room().train(
 			gaze, domain::Saying{msg.title().empty() ? std::string{"Тренировка"} : msg.title()},
 			exercises_of(msg.exercises()));
 	} catch (const std::invalid_argument&) {
@@ -301,11 +327,16 @@ std::shared_ptr<const domain::Training> ProtocolAdapter::training_in_gaze(const 
 	const std::shared_ptr<const domain::Contemplation> gaze = world_.contemplation(man);
 	if (!gaze)
 		return nullptr;
-	for (const std::shared_ptr<const domain::Word>& word : gaze->words()) {
-		if (word->id().value() == behest_id) {
-			if (auto training = std::dynamic_pointer_cast<const domain::Training>(word))
-				return training;
+	try {
+		for (const std::shared_ptr<const domain::Word>& word : gaze->room().words(*gaze)) {
+			if (word->id().value() == behest_id) {
+				if (auto training = std::dynamic_pointer_cast<const domain::Training>(word))
+					return training;
+			}
 		}
+	} catch (const std::exception& e) {
+		refuse(session_id, e);
+		return nullptr;
 	}
 	refuse(session_id, v1::NOTICE_UNKNOWN_TRAINING);
 	return nullptr;
@@ -314,8 +345,10 @@ std::shared_ptr<const domain::Training> ProtocolAdapter::training_in_gaze(const 
 
 void ProtocolAdapter::tell_tie(const domain::Tie& tie, const v1::ServerEvent& event)
 {
-	for (const domain::Man& man : world_.contemplating(tie))
-		send_to_vessel(man.Vessel::id(), event);
+	for (const domain::Room& room : rooms_onto(tie)) {
+		for (const domain::Man& man : world_.contemplating(room))
+			send_to_vessel(man.Vessel::id(), event);
+	}
 }
 
 
@@ -345,7 +378,7 @@ void ProtocolAdapter::handle_begin_approach(const SessionId session_id, const v1
 
 	try {
 		const domain::Contemplation& gaze = gaze_of(self);
-		gaze.cell().begin(gaze, *training, msg.exercise(), msg.approach());
+		gaze.room().begin(gaze, *training, msg.exercise(), msg.approach());
 	} catch (const std::exception& e) {
 		refuse(session_id, e);
 		return;
@@ -364,7 +397,7 @@ void ProtocolAdapter::handle_end_approach(const SessionId session_id, const v1::
 
 	try {
 		const domain::Contemplation& gaze = gaze_of(self);
-		gaze.cell().end(gaze, *training);
+		gaze.room().end(gaze, *training);
 	} catch (const std::exception& e) {
 		refuse(session_id, e);
 		return;
@@ -385,7 +418,7 @@ void ProtocolAdapter::handle_finish_approach(const SessionId session_id, const v
 	std::optional<domain::matter::Effort> effort;
 	try {
 		const domain::Contemplation& gaze = gaze_of(self);
-		effort = gaze.cell().finish(gaze, *training, domain::Weight{msg.weight_grams()}, msg.repetitions(),
+		effort = gaze.room().finish(gaze, *training, domain::Weight{msg.weight_grams()}, msg.repetitions(),
 									domain::Strain{msg.strain()});
 	} catch (const std::exception& e) {
 		refuse(session_id, e);
@@ -411,7 +444,7 @@ void ProtocolAdapter::handle_say_remark(const SessionId session_id, const v1::Sa
 	std::optional<domain::matter::Remark> said;
 	try {
 		const domain::Contemplation& gaze = gaze_of(self);
-		said = gaze.cell().remark(gaze, *training, msg.exercise(), domain::Saying{msg.body()});
+		said = gaze.room().remark(gaze, *training, msg.exercise(), domain::Saying{msg.body()});
 	} catch (const std::exception& e) {
 		refuse(session_id, e);
 		return;
@@ -449,8 +482,8 @@ void ProtocolAdapter::handle_reject_supplication(const SessionId session_id, con
 	notice->set_message(words_of(v1::NOTICE_SUPPLICATION_DECLINED, {std::string{self.name().text()}}));
 	send_to_vessel(suppliant->Vessel::id(), declined);
 
-	retell_helm(self.abode().helm());
-	retell_helm(suppliant->abode().helm());
+	retell_helm(self.abode().inner().helm());
+	retell_helm(suppliant->abode().inner().helm());
 }
 
 

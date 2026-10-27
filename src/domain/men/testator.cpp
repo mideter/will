@@ -8,6 +8,7 @@
 #include "words/letter.h"
 #include "places/abode.h"
 #include "places/room.h"
+#include "places/helm.h"
 #include "places/tie.h"
 
 #include "matter/dating.h"
@@ -44,7 +45,7 @@ void Testator::reject(const Birth<Helm> helm, const Supplication& ask) const
 }
 
 
-std::shared_ptr<const Behest> Testator::will(Birth<Cell>, const Shepherding& shepherding, const Saying& saying) const
+std::shared_ptr<const Behest> Testator::will(Birth<Room>, const Shepherding& shepherding, const Saying& saying) const
 {
 	matter::Word uttered = utter(saying);
 	matter::Placement placed = spatiality().place(uttered.id(), shepherding.id());
@@ -55,7 +56,7 @@ std::shared_ptr<const Behest> Testator::will(Birth<Cell>, const Shepherding& she
 }
 
 
-std::shared_ptr<const Training> Testator::train(Birth<Cell>, const Shepherding& shepherding, const Saying& title,
+std::shared_ptr<const Training> Testator::train(Birth<Room>, const Shepherding& shepherding, const Saying& title,
 												std::vector<Exercise> exercises) const
 {
 	if (exercises.empty())

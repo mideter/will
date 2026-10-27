@@ -96,7 +96,9 @@ INSERT OR IGNORE INTO place_hwm (id, value) VALUES (1, 0);
 		sql = R"sql(
 CREATE TABLE IF NOT EXISTS abodes (
   id INTEGER PRIMARY KEY,
-  name TEXT NOT NULL
+  name TEXT NOT NULL,
+  gates_id INTEGER NOT NULL,
+  helm_id INTEGER NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS abode_souls (
@@ -116,9 +118,8 @@ CREATE TABLE IF NOT EXISTS rooms (
   id INTEGER PRIMARY KEY,
   abode_id INTEGER NOT NULL,
   place_id INTEGER NOT NULL,
-  aspect INTEGER NOT NULL DEFAULT 0,
   part INTEGER NOT NULL,
-  UNIQUE (abode_id, place_id, aspect)
+  UNIQUE (abode_id, place_id)
 );
 
 CREATE TABLE IF NOT EXISTS placements (

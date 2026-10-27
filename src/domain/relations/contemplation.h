@@ -11,7 +11,7 @@
 namespace will::domain {
 
 
-class Cell;
+class Room;
 class Gates;
 class Heaven;
 class Recollection;
@@ -20,10 +20,10 @@ class Man;
 class Word;
 
 
-/// The gaze of a spirit, the eye of a soul, one at a time: the words of a place live while
-/// it is beheld, and it shows them to who looks, oldest first. It gives the room one stands
-/// in as the kind one would act in, or refuses; what one writes is taken only in a cell
-/// whose host one is. At gates one does not dwell behind, it may knock.
+/// The gaze of a spirit, the eye of a soul, one at a time: the words a room shows live while
+/// it is beheld. It gives the place one stands in as the kind one would act in, or refuses;
+/// what one writes is taken only in a room whose host one is. At gates one does not dwell
+/// behind, it may knock.
 class Contemplation : public Immanent<Heaven> {
 public:
 	virtual ~Contemplation() = default;
@@ -31,9 +31,7 @@ public:
 	const Man& who() const noexcept { return who_; }
 	const Place& place() const noexcept { return place_; }
 
-	std::vector<std::shared_ptr<const Word>> words() const;
-
-	const Cell& cell() const;
+	const Room& room() const;
 	const Helm& helm() const;
 	const Gates& gates() const;
 

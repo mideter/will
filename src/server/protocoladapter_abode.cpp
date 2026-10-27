@@ -14,6 +14,9 @@
 #include "men/testator.h"
 #include "places/tie.h"
 #include "places/room.h"
+#include "places/gates.h"
+#include "places/helm.h"
+#include "places/part.h"
 #include "relations/friend.h"
 #include "relations/contemplation.h"
 #include "relations/supplication.h"
@@ -39,6 +42,26 @@ namespace will {
 using namespace wire;
 
 
+namespace {
+
+
+// The places of an abode the wire tells as its rooms, outermost first: its gates, its rooms,
+// its helm.
+template<typename Tell>
+void each_room(const domain::Abode& abode, Tell tell)
+{
+	const domain::Gates& gates = abode.outer().gates();
+	tell(gates, gates.name(), gates.part());
+	for (const domain::Room& room : abode.rooms())
+		tell(room, room.name(), room.part());
+	const domain::Helm& helm = abode.inner().helm();
+	tell(helm, helm.name(), helm.part());
+}
+
+
+} // namespace
+
+
 void ProtocolAdapter::handle_turn(const SessionId session_id, const v1::Turn& msg)
 {
 	const domain::Man& self = session_man(session_id);
@@ -57,13 +80,15 @@ void ProtocolAdapter::handle_turn(const SessionId session_id, const v1::Turn& ms
 	try {
 		if (msg.room().empty()) {
 			witness.contemplate(host->abode());
-		} else {
-			const domain::Room* room = host->abode().room(msg.room());
-			if (!room) {
-				refuse(session_id, v1::NOTICE_NO_SUCH_ROOM);
-				return;
-			}
+		} else if (msg.room() == host->abode().outer().gates().name()) {
+			witness.contemplate(host->abode().outer().gates());
+		} else if (msg.room() == host->abode().inner().helm().name()) {
+			witness.contemplate(host->abode().inner().helm());
+		} else if (const domain::Room* room = host->abode().room(msg.room())) {
 			witness.contemplate(*room);
+		} else {
+			refuse(session_id, v1::NOTICE_NO_SUCH_ROOM);
+			return;
 		}
 	} catch (const domain::PassThroughGates& e) {
 		refuse(session_id, e);
@@ -128,7 +153,7 @@ void ProtocolAdapter::handle_admit(const SessionId session_id, const v1::Admit& 
 	send_notice(session_id, v1::NOTICE_ADMITTED, {std::string{man->name().text()}});
 	tell_dwelling(self, *man);
 	retell_gates(*gates);
-	retell_helm(self.abode().helm());
+	retell_helm(self.abode().inner().helm());
 }
 
 
@@ -181,7 +206,7 @@ void ProtocolAdapter::handle_regard(const SessionId session_id, const v1::Regard
 	send_notice(session_id, v1::NOTICE_REGARDED, {std::string{man->name().text()}});
 	tell_dwelling(self, *man);
 	retell_abode(self, *man);
-	retell_helm(self.abode().helm());
+	retell_helm(self.abode().inner().helm());
 }
 
 
@@ -191,11 +216,8 @@ void ProtocolAdapter::retell_abode(const domain::Man& host, const domain::Man& d
 	if (!gaze)
 		return;
 
-	// He looks at the abode itself, or at one of its rooms.
-	const auto* room = dynamic_cast<const domain::Room*>(&gaze->place());
-	const bool here = &gaze->place() == static_cast<const domain::Place*>(&host.abode())
-					  || (room && &room->abode() == &host.abode());
-	if (!here)
+	// He looks at the abode itself, or at one of its places.
+	if (abode_of(gaze->place()) != &host.abode())
 		return;
 
 	const auto sid = registry_.session_id_for_vessel(dweller.Vessel::id());
@@ -204,8 +226,7 @@ void ProtocolAdapter::retell_abode(const domain::Man& host, const domain::Man& d
 
 	v1::ServerEvent turned;
 	turned.mutable_turned()->set_abode_of(std::string{host.name().text()});
-	if (room)
-		turned.mutable_turned()->set_room(room->name());
+	turned.mutable_turned()->set_room(room_of(gaze->place()));
 	turned.mutable_turned()->set_writable(writes_here(dweller));
 	turned.mutable_turned()->set_aspect(aspect_of(gaze->place()));
 	turned.mutable_turned()->set_testator(testator_of(gaze->place()));
@@ -250,7 +271,7 @@ void ProtocolAdapter::tell_view(const SessionId session_id, const domain::Contem
 	if (!abode) {
 		tell_words(session_id, gaze, listener, limit);
 		// In a room of a tie, one is told the approaches underway in its trainings.
-		for (const std::shared_ptr<const domain::Word>& word : gaze.words()) {
+		for (const std::shared_ptr<const domain::Word>& word : gaze.room().words(gaze)) {
 			const auto training = std::dynamic_pointer_cast<const domain::Training>(word);
 			if (training && training->underway())
 				send_event(session_id, underway_event(*training));
@@ -272,8 +293,8 @@ void ProtocolAdapter::tell_view(const SessionId session_id, const domain::Contem
 void ProtocolAdapter::handle_arrange(const SessionId session_id, const v1::Arrange& msg)
 {
 	const domain::Man& self = session_man(session_id);
-	const domain::Cell* cell = self.abode().cell(msg.room());
-	if (!cell) {
+	const domain::Room* room = self.abode().room(msg.room());
+	if (!room) {
 		refuse(session_id, v1::NOTICE_NO_SUCH_ROOM);
 		return;
 	}
@@ -282,7 +303,7 @@ void ProtocolAdapter::handle_arrange(const SessionId session_id, const v1::Arran
 														: self.abode().inner();
 	try {
 		const domain::Contemplation& gaze = gaze_of(self);
-		gaze.helm().arrange(gaze, *cell, part);
+		gaze.helm().arrange(gaze, *room, part);
 	} catch (const std::exception& e) {
 		refuse(session_id, e);
 		return;
@@ -291,10 +312,10 @@ void ProtocolAdapter::handle_arrange(const SessionId session_id, const v1::Arran
 	send_notice(session_id,
 				&part == &self.abode().outer() ? v1::NOTICE_ARRANGED_OUTER : v1::NOTICE_ARRANGED_INNER,
 				{msg.room()});
-	retell_helm(self.abode().helm());  // the host there sees his rooms anew
+	retell_helm(self.abode().inner().helm());  // the host there sees his rooms anew
 	for (const std::shared_ptr<const domain::Acquaintance>& dweller : self.abode().dwellers())
 		retell_abode(self, dweller->man());
-	retell_gates(self.abode().gates());  // set in another part, they are seen by other kinds
+	retell_gates(self.abode().outer().gates());  // set in another part, they are seen by other kinds
 }
 
 
@@ -320,13 +341,13 @@ v1::ServerEvent ProtocolAdapter::arranged_rooms_event(const domain::Abode& abode
 {
 	v1::ServerEvent event;
 	auto* rooms = event.mutable_rooms();
-	for (const domain::Room& room : abode.rooms()) {
+	each_room(abode, [&](const domain::Place& room, const std::string& name, const domain::Part& part) {
 		auto* told = rooms->add_rooms();
-		told->set_name(room.name());
-		told->set_part(&room.part() == &abode.outer() ? v1::OUTER : v1::INNER);
+		told->set_name(name);
+		told->set_part(&part == &abode.outer() ? v1::OUTER : v1::INNER);
 		told->set_aspect(aspect_of(room));
 		told->set_testator(testator_of(room));
-	}
+	});
 	return event;
 }
 
@@ -336,15 +357,15 @@ void ProtocolAdapter::tell_rooms(const SessionId session_id, const domain::Abode
 {
 	v1::ServerEvent event;
 	auto* rooms = event.mutable_rooms();
-	for (const domain::Room& room : abode.rooms()) {
+	each_room(abode, [&](const domain::Place& room, const std::string& name, const domain::Part& part) {
 		if (!room.dwells(listener))
-			continue;
+			return;
 		auto* told = rooms->add_rooms();
-		told->set_name(room.name());
-		told->set_part(&room.part() == &abode.outer() ? v1::OUTER : v1::INNER);
+		told->set_name(name);
+		told->set_part(&part == &abode.outer() ? v1::OUTER : v1::INNER);
 		told->set_aspect(aspect_of(room));
 		told->set_testator(testator_of(room));
-	}
+	});
 	send_event(session_id, event);
 }
 
@@ -461,8 +482,8 @@ v1::ServerEvent ProtocolAdapter::outstanding_event(const domain::Abode& abode) c
 	const auto tell = [&](const std::vector<std::shared_ptr<const domain::Behest>>& behests, auto&& add) {
 		for (const std::shared_ptr<const domain::Behest>& behest : behests) {
 			v1::OutstandingBehest* told = add();
-			if (const domain::Cell* cell = abode.cell(behest->tie()))
-				told->set_room(cell->name());
+			if (const domain::Room* room = abode.room(behest->tie()))
+				told->set_room(room->name());
 			told->set_counterpart(std::string{behest->tie().counterpart(host).name().text()});
 			*told->mutable_behest() = word_event(*behest, host.Soul::id()).word();
 			const auto training = std::dynamic_pointer_cast<const domain::Training>(behest);
@@ -473,7 +494,7 @@ v1::ServerEvent ProtocolAdapter::outstanding_event(const domain::Abode& abode) c
 	tell(abode.owed(), [&] { return outstanding->add_owed(); });
 	tell(abode.awaited(), [&] { return outstanding->add_awaited(); });
 	tell(abode.unreviewed(), [&] { return outstanding->add_unreviewed(); });
-	outstanding->set_waiting(static_cast<std::uint32_t>(abode.gates().knocking().size()));
+	outstanding->set_waiting(static_cast<std::uint32_t>(abode.outer().gates().knocking().size()));
 	return event;
 }
 

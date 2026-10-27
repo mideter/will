@@ -45,7 +45,7 @@ std::vector<std::shared_ptr<const will::domain::Letter>>
 letters_seen_by(const std::shared_ptr<const will::domain::Contemplation>& gaze)
 {
 	std::vector<std::shared_ptr<const will::domain::Letter>> letters;
-	for (const std::shared_ptr<const will::domain::Word>& word : gaze->words()) {
+	for (const std::shared_ptr<const will::domain::Word>& word : gaze->room().words(*gaze)) {
 		if (auto letter = std::dynamic_pointer_cast<const will::domain::Letter>(word))
 			letters.push_back(std::move(letter));
 	}
@@ -124,10 +124,10 @@ TEST_CASE("sqlite persistence survives reopen")
 
 		man_a.wake();
 		man_b.wake();
-		man_a.contemplate(*man_a.abode().cell(man_a.abode()));
-		man_b.contemplate(*man_b.abode().cell(man_b.abode()));
-		{ const auto gaze = world.contemplation(man_a); gaze->cell().write(*gaze, "from-peer"); }
-		{ const auto gaze = world.contemplation(man_b); gaze->cell().write(*gaze, "from-me"); }
+		man_a.contemplate(*man_a.abode().room(man_a.abode()));
+		man_b.contemplate(*man_b.abode().room(man_b.abode()));
+		{ const auto gaze = world.contemplation(man_a); gaze->room().write(*gaze, "from-peer"); }
+		{ const auto gaze = world.contemplation(man_b); gaze->room().write(*gaze, "from-me"); }
 
 		const auto& witness_a = man_a;
 		const auto letters = letters_seen_by(world.contemplation(witness_a));
@@ -182,7 +182,7 @@ TEST_CASE("sqlite persistence survives reopen")
 		// After the World awakens anew everyone is asleep until he comes.
 		CHECK_FALSE(world.contemplation(man_a_reloaded));
 		man_a_reloaded.wake();
-		man_a_reloaded.contemplate(*man_a_reloaded.abode().cell(man_a_reloaded.abode()));
+		man_a_reloaded.contemplate(*man_a_reloaded.abode().room(man_a_reloaded.abode()));
 
 		const auto letters = letters_seen_by(world.contemplation(man_a_reloaded));
 		REQUIRE(letters.size() == 1);
@@ -238,13 +238,13 @@ TEST_CASE("sqlite keeps a behest, its execution and its review across reopen")
 		supplicate(world, novice, testator);
 		accept(world, testator, *testator.supplication(novice));
 		testator.wake();
-		testator.contemplate(*testator.abode().cell(testator.shepherding(novice)));
+		testator.contemplate(*testator.abode().room(testator.shepherding(novice)));
 		novice.wake();
-		novice.contemplate(*novice.abode().cell(novice.obedience(testator)));
+		novice.contemplate(*novice.abode().room(novice.obedience(testator)));
 
-		const std::shared_ptr<const Behest> open_held = std::dynamic_pointer_cast<const Behest>(world.contemplation(testator)->cell().write(*world.contemplation(testator), "fast"));
+		const std::shared_ptr<const Behest> open_held = std::dynamic_pointer_cast<const Behest>(world.contemplation(testator)->room().write(*world.contemplation(testator), "fast"));
 		const Behest& open = *open_held;
-		const std::shared_ptr<const Behest> willed_held = std::dynamic_pointer_cast<const Behest>(world.contemplation(testator)->cell().write(*world.contemplation(testator), "pray"));
+		const std::shared_ptr<const Behest> willed_held = std::dynamic_pointer_cast<const Behest>(world.contemplation(testator)->room().write(*world.contemplation(testator), "pray"));
 		const Behest& willed = *willed_held;
 		CHECK(&willed.tie().novice() == &novice);
 		open_id = open.id();
@@ -260,7 +260,7 @@ TEST_CASE("sqlite keeps a behest, its execution and its review across reopen")
 		CHECK_THROWS_AS(bundle.temporality().review(deed_id), std::logic_error);
 
 		// Behests are placed in the tie, not among the letters of an abode.
-		novice.wake();
+		novice.contemplate(will::domain::test::room_of(novice));
 		CHECK(letters_seen_by(world.contemplation(novice)).empty());
 	}
 
@@ -272,9 +272,9 @@ TEST_CASE("sqlite keeps a behest, its execution and its review across reopen")
 		const auto& testator = born(world, token_testator);
 
 		// The reborn tie shows the same behests to both sides, oldest first; the novice acts
-		// on them as he beholds them, standing in his cell of the tie.
+		// on them as he beholds them, standing in his room of the tie.
 		novice.wake();
-		novice.contemplate(*novice.abode().cell(novice.obedience(testator)));
+		novice.contemplate(*novice.abode().room(novice.obedience(testator)));
 		const std::vector<std::shared_ptr<const Behest>> shown = novice.obedience(testator).behests(gaze_of(world, novice));
 		REQUIRE(shown.size() == 2);
 		const Behest& open = *shown[0];
@@ -406,13 +406,12 @@ TEST_CASE("sqlite keeps the dwellers of an abode and their kind across reopen")
 		CHECK(host.abode().dwellers().size() == 2);
 		CHECK(std::dynamic_pointer_cast<const Neighbour>(host.abode().dweller(*host.father(matter::Fatherhood::Line::Flesh))));
 
-		// Each abode keeps its standard rooms across reopen: the cell, the gates,
-		// the helm.
-		REQUIRE(host.abode().rooms().size() == 3);
+		// Each abode keeps its own room across reopen, and its gates and helm with it.
+		REQUIRE(host.abode().rooms().size() == 1);
 		CHECK(host.abode().rooms()[0].get().name() == "Слово");
-		CHECK(host.abode().rooms()[1].get().name() == "Врата");
-		CHECK(host.abode().rooms()[2].get().name() == "Кормчая");
-		CHECK(bundle.spatiality().rooms(host.abode().id()).size() == 3);
+		CHECK(bundle.spatiality().rooms(host.abode().id()).size() == 1);
+		CHECK(host.abode().outer().gates().id() == bundle.spatiality().abode(host.Soul::id())->gates());
+		CHECK(host.abode().inner().helm().id() == bundle.spatiality().abode(host.Soul::id())->helm());
 	}
 
 }

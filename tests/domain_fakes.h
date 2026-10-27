@@ -14,6 +14,9 @@
 #include "places/abode.h"
 #include "words/letter.h"
 #include "places/room.h"
+#include "places/gates.h"
+#include "places/helm.h"
+#include "places/part.h"
 #include "men/witness.h"
 #include "words/recollection.h"
 #include "relations/contemplation.h"
@@ -261,7 +264,9 @@ public:
 		if (abode(host))
 			throw std::logic_error("soul already keeps an abode");
 
-		const matter::Abode kept{eternity_.space().point(), std::move(name)};
+		const id::Place id = eternity_.space().point();
+		const id::Place gates = eternity_.space().point();
+		const matter::Abode kept{id, std::move(name), gates, eternity_.space().point()};
 		shared_.abodes.emplace_back(host, kept);
 		return kept;
 	}
@@ -281,13 +286,13 @@ public:
 
 	std::vector<matter::Dweller> dwellers() const override { return shared_.dwellers; }
 
-	matter::Room furnish(const id::Place abode, const id::Place reflects, const matter::Room::Aspect aspect) override
+	matter::Room furnish(const id::Place abode, const id::Place reflects) override
 	{
 		for (const matter::Room& row : shared_.rooms) {
-			if (row.abode() == abode && row.reflects() == reflects && row.aspect() == aspect)
+			if (row.abode() == abode && row.reflects() == reflects)
 				throw std::logic_error("the abode already has a room reflecting this place");
 		}
-		shared_.rooms.emplace_back(eternity_.space().point(), abode, reflects, aspect, matter::Room::Part::Inner);
+		shared_.rooms.emplace_back(eternity_.space().point(), abode, reflects, matter::Room::Part::Inner);
 		return shared_.rooms.back();
 	}
 
@@ -295,7 +300,7 @@ public:
 	{
 		for (matter::Room& row : shared_.rooms) {
 			if (row.id() == room) {
-				row = matter::Room{row.id(), row.abode(), row.reflects(), row.aspect(), part};
+				row = matter::Room{row.id(), row.abode(), row.reflects(), part};
 				return row;
 			}
 		}
@@ -652,7 +657,7 @@ inline const Contemplation& gaze_of(World& world, const Man& man)
 inline std::shared_ptr<const Word> write(World& world, const Man& man, const Saying& saying)
 {
 	const Contemplation& gaze = gaze_of(world, man);
-	return gaze.cell().write(gaze, saying);
+	return gaze.room().write(gaze, saying);
 }
 
 
@@ -673,7 +678,7 @@ inline std::shared_ptr<const Training> train(World& world, const Man& man, const
 											 std::vector<Exercise> exercises)
 {
 	const Contemplation& gaze = gaze_of(world, man);
-	return gaze.cell().train(gaze, title, std::move(exercises));
+	return gaze.room().train(gaze, title, std::move(exercises));
 }
 
 
@@ -682,7 +687,7 @@ inline std::shared_ptr<const Deed> execute(World& world, const Man& man, const B
 										   std::optional<std::vector<Exercise>> performed = std::nullopt)
 {
 	const Contemplation& gaze = gaze_of(world, man);
-	return gaze.cell().fulfil(gaze, behest, std::move(report), std::move(performed));
+	return gaze.room().fulfil(gaze, behest, std::move(report), std::move(performed));
 }
 
 
@@ -690,14 +695,14 @@ inline void begin(World& world, const Man& man, const Training& training, std::u
 				  std::uint32_t approach)
 {
 	const Contemplation& gaze = gaze_of(world, man);
-	gaze.cell().begin(gaze, training, exercise, approach);
+	gaze.room().begin(gaze, training, exercise, approach);
 }
 
 
 inline void end(World& world, const Man& man, const Training& training)
 {
 	const Contemplation& gaze = gaze_of(world, man);
-	gaze.cell().end(gaze, training);
+	gaze.room().end(gaze, training);
 }
 
 
@@ -705,7 +710,7 @@ inline matter::Effort finish(World& world, const Man& man, const Training& train
 							 std::uint32_t repetitions, Strain strain = Strain{})
 {
 	const Contemplation& gaze = gaze_of(world, man);
-	return gaze.cell().finish(gaze, training, weight, repetitions, strain);
+	return gaze.room().finish(gaze, training, weight, repetitions, strain);
 }
 
 
@@ -713,7 +718,7 @@ inline matter::Remark remark(World& world, const Man& man, const Training& train
 							 const Saying& saying)
 {
 	const Contemplation& gaze = gaze_of(world, man);
-	return gaze.cell().remark(gaze, training, exercise, saying);
+	return gaze.room().remark(gaze, training, exercise, saying);
 }
 
 
@@ -745,10 +750,10 @@ inline void regard(World& world, const Man& man, const Man& dweller, matter::Dwe
 }
 
 
-inline void arrange(World& world, const Man& man, const Cell& cell, const Part& part)
+inline void arrange(World& world, const Man& man, const Room& room, const Part& part)
 {
 	const Contemplation& gaze = gaze_of(world, man);
-	gaze.helm().arrange(gaze, cell, part);
+	gaze.helm().arrange(gaze, room, part);
 }
 
 
@@ -756,6 +761,10 @@ inline const Abode& abode_of(const Place& place)
 {
 	if (const auto* abode = dynamic_cast<const Abode*>(&place))
 		return *abode;
+	if (const auto* gates = dynamic_cast<const Gates*>(&place))
+		return gates->abode();
+	if (const auto* helm = dynamic_cast<const Helm*>(&place))
+		return helm->abode();
 	return dynamic_cast<const Room&>(place).abode();
 }
 
@@ -765,6 +774,10 @@ inline void turn(const Man& man, const Place& place)
 	const auto& witness = man;
 	if (const auto* abode = dynamic_cast<const Abode*>(&place))
 		witness.contemplate(*abode);
+	else if (const auto* gates = dynamic_cast<const Gates*>(&place))
+		witness.contemplate(*gates);
+	else if (const auto* helm = dynamic_cast<const Helm*>(&place))
+		witness.contemplate(*helm);
 	else
 		witness.contemplate(dynamic_cast<const Room&>(place));
 }
@@ -775,15 +788,15 @@ inline void go(World& world, const Man& man, const Place& place)
 	const std::shared_ptr<const Contemplation> gaze = world.contemplation(man);
 	const Place& here = gaze ? gaze->place() : man.abode();
 	if (!here.leads_to(place)) {
-		turn(man, abode_of(here).gates());
-		turn(man, abode_of(place).gates());
+		turn(man, abode_of(here).outer().gates());
+		turn(man, abode_of(place).outer().gates());
 	}
 	turn(man, place);
 }
 
 
 template<typename Act>
-void looking_at(World& world, const Man& man, const Room& room, Act act)
+void looking_at(World& world, const Man& man, const Place& room, Act act)
 {
 	const std::shared_ptr<const Contemplation> before = world.contemplation(man);
 	go(world, man, room);
@@ -797,8 +810,8 @@ void looking_at(World& world, const Man& man, const Room& room, Act act)
 
 inline void admit_at_gates(World& world, const Man& host, const Man& man)
 {
-	looking_at(world, host, host.abode().gates(), [&] {
-		looking_at(world, man, host.abode().gates(), [&] {
+	looking_at(world, host, host.abode().outer().gates(), [&] {
+		looking_at(world, man, host.abode().outer().gates(), [&] {
 			knock(world, man);
 			admit(world, host, man);
 		});
@@ -808,13 +821,13 @@ inline void admit_at_gates(World& world, const Man& host, const Man& man)
 
 inline void regard_in_helm(World& world, const Man& host, const Man& man, const matter::Dweller::Kind kind)
 {
-	looking_at(world, host, host.abode().helm(), [&] { regard(world, host, man, kind); });
+	looking_at(world, host, host.abode().inner().helm(), [&] { regard(world, host, man, kind); });
 }
 
 
 inline void supplicate(World& world, const Man& man, const Man& addressee)
 {
-	looking_at(world, man, man.abode().helm(), [&] {
+	looking_at(world, man, man.abode().inner().helm(), [&] {
 		const Contemplation& gaze = gaze_of(world, man);
 		gaze.helm().supplicate(gaze, addressee);
 	});
@@ -824,7 +837,7 @@ inline void supplicate(World& world, const Man& man, const Man& addressee)
 inline const Shepherding& accept(World& world, const Man& testator, const Supplication& ask)
 {
 	const Shepherding* accepted = nullptr;
-	looking_at(world, testator, testator.abode().helm(), [&] {
+	looking_at(world, testator, testator.abode().inner().helm(), [&] {
 		const Contemplation& gaze = gaze_of(world, testator);
 		accepted = &gaze.helm().accept(gaze, ask);
 	});
@@ -834,35 +847,41 @@ inline const Shepherding& accept(World& world, const Man& testator, const Suppli
 
 inline void reject(World& world, const Man& testator, const Supplication& ask)
 {
-	looking_at(world, testator, testator.abode().helm(), [&] {
+	looking_at(world, testator, testator.abode().inner().helm(), [&] {
 		const Contemplation& gaze = gaze_of(world, testator);
 		gaze.helm().reject(gaze, ask);
 	});
 }
 
 
-inline void arrange_in_helm(World& world, const Man& host, const Cell& cell, const Part& part)
+inline void arrange_in_helm(World& world, const Man& host, const Room& room, const Part& part)
 {
-	looking_at(world, host, host.abode().helm(), [&] { arrange(world, host, cell, part); });
+	looking_at(world, host, host.abode().inner().helm(), [&] { arrange(world, host, room, part); });
 }
 
 
-inline const Cell& cell_of(const Man& man)
+inline const Room& room_of(const Man& man)
 {
-	return *man.abode().cell(man.abode());
+	return *man.abode().room(man.abode());
 }
 
 
-inline const Cell& room_in(const Man& man, const Place& reflected)
+inline const Room& room_in(const Man& man, const Place& reflected)
 {
-	return *man.abode().cell(reflected);
+	return *man.abode().room(reflected);
+}
+
+
+inline std::vector<std::shared_ptr<const Word>> words_seen_by(const std::shared_ptr<const Contemplation>& gaze)
+{
+	return gaze->room().words(*gaze);
 }
 
 
 inline std::vector<std::shared_ptr<const Letter>> letters_seen_by(const std::shared_ptr<const Contemplation>& gaze)
 {
 	std::vector<std::shared_ptr<const Letter>> letters;
-	for (const std::shared_ptr<const Word>& word : gaze->words()) {
+	for (const std::shared_ptr<const Word>& word : words_seen_by(gaze)) {
 		if (auto letter = std::dynamic_pointer_cast<const Letter>(word))
 			letters.push_back(std::move(letter));
 	}
@@ -886,7 +905,7 @@ inline const Man& born(World& world, const DeviceToken& token)
 		return *man;
 
 	const Man* child = nullptr;
-	looking_at(world, elder, elder.abode().gates(),
+	looking_at(world, elder, elder.abode().outer().gates(),
 			   [&] { child = &bear(world, elder, dynamic_cast<const Unborn&>(body)); });
 	return *child;
 }

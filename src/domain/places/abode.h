@@ -22,24 +22,23 @@ namespace will::domain {
 
 class Acquaintance;
 class Behest;
+class Room;
+class Contemplation;
 class Letter;
 class Man;
 class Gates;
-class Helm;
 class Witness;
-class Cell;
-class Room;
 class Supplication;
 class World;
 
 
-/// A man's own place: its words are seen only through its rooms, and others dwell in it as
-/// its host lets them in at the gates. Every abode has its gates and its helm; its rooms
-/// keep the order they were furnished in. In it dwell the host, his dwellers and his fathers
-/// by spirit, who are ever friends yet unseen among the dwellers. What it owes and awaits
-/// are the behests not yet fulfilled where its host is the novice or the testator; what it
-/// has to review, the behests fulfilled where he is the testator, whose deeds he has not yet
-/// seen; each oldest first by room.
+/// A man's own place, of two parts, the outer and the inner: its words are seen only through
+/// its rooms, and others dwell in it as its host lets them in at the gates. Only its host
+/// acts in the places within it; its rooms keep the order they were furnished in. In it
+/// dwell the host, his dwellers and his fathers by spirit, who are ever friends yet unseen
+/// among the dwellers. What it owes and awaits are the behests not yet fulfilled where its
+/// host is the novice or the testator; what it has to review, the behests fulfilled where he
+/// is the testator, whose deeds he has not yet seen; each oldest first by room.
 class Abode : public Place {
 public:
 	Abode(Birth<Man> birth, matter::Abode kept);
@@ -67,24 +66,19 @@ public:
 
 	std::vector<std::reference_wrapper<const Room>> rooms() const;
 
-	const Cell* cell(const Place& reflects) const;
-	const Cell* cell(std::string_view name) const;
-
-	const Gates& gates() const;
-	const Helm& helm() const;
-
+	const Room* room(const Place& reflects) const;
 	const Room* room(std::string_view name) const;
+
+	void host_only(const Contemplation& gaze, const Place& here) const;
 
 	std::shared_ptr<const Acquaintance> dweller(const Man& man) const;
 
 	bool dwells(const Man& man) const override;
 
-	bool shows(const Man& who, const Word& word) const override;
-
 	bool leads_to(const Place& next) const override;
 	bool within(const Abode& abode) const override;
 
-	std::shared_ptr<const Word> receive(Birth<Cell> cell, const Saying& saying) const override;
+	std::shared_ptr<const Word> receive(Birth<Room> room, const Saying& saying) const override;
 
 	std::vector<std::shared_ptr<const Behest>> owed() const;
 

@@ -1,7 +1,7 @@
 #include "place.h"
 
 #include "horizons/life.h"
-#include "relations/contemplation.h"
+#include "places/room.h"
 #include "words/recollection.h"
 #include "horizons/space.h"
 
@@ -30,18 +30,6 @@ const Place& Place::of(const id::Place id)
 }
 
 
-const Place& Place::source() const
-{
-	return *this;
-}
-
-
-bool Place::shows(const Man&, const Word&) const
-{
-	return true;
-}
-
-
 bool Place::leads_to(const Place&) const
 {
 	return false;
@@ -54,10 +42,10 @@ bool Place::within(const Abode&) const
 }
 
 
-std::shared_ptr<const Recollection> Place::recollection(const Contemplation& gaze) const
+std::shared_ptr<const Recollection> Place::recollection(const Birth<Room> room) const
 {
-	if (&gaze.place().source() != &source())
-		throw std::logic_error("these words are not what is contemplated");
+	if (&room.parent().reflects() != this)
+		throw std::logic_error("the room does not reflect this place");
 
 	return recollection();
 }
@@ -65,7 +53,7 @@ std::shared_ptr<const Recollection> Place::recollection(const Contemplation& gaz
 
 std::shared_ptr<const Recollection> Place::recollection() const
 {
-	return Life::recollection(Birth<Place>{source()});
+	return Life::recollection(Birth<Place>{*this});
 }
 
 
@@ -81,7 +69,7 @@ bool Place::takes_words_of(const Man&) const
 }
 
 
-std::shared_ptr<const Word> Place::receive(Birth<Cell>, const Saying&) const
+std::shared_ptr<const Word> Place::receive(Birth<Room>, const Saying&) const
 {
 	throw std::logic_error("this place takes no written words");
 }

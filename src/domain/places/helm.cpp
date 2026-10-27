@@ -1,0 +1,96 @@
+#include "helm.h"
+#include "refusals/abode.h"
+
+#include "horizons/space.h"
+#include "men/man.h"
+#include "places/abode.h"
+#include "places/part.h"
+#include "relations/acquaintance.h"
+#include "relations/contemplation.h"
+
+
+namespace will::domain {
+
+
+Helm::Helm(const Birth<Inner> birth, const id::Place id)
+	: Place(id)
+	, inner_(birth.parent())
+{
+	Immanent<Space>::present<Place>();
+}
+
+
+const Abode& Helm::abode() const noexcept
+{
+	return inner_.abode();
+}
+
+
+std::string Helm::name() const
+{
+	return "Кормчая";
+}
+
+
+bool Helm::dwells(const Man& man) const
+{
+	return &man == &abode().host();
+}
+
+
+bool Helm::leads_to(const Place& next) const
+{
+	return abode().leads_to(next);
+}
+
+
+bool Helm::within(const Abode& abode) const
+{
+	return &abode == &this->abode();
+}
+
+
+void Helm::regard(const Contemplation& gaze, const Man& dweller, const matter::Dweller::Kind kind) const
+{
+	abode().host_only(gaze, *this);
+
+	abode().host().regard(Birth<Helm>{*this}, dweller, kind);
+}
+
+
+void Helm::supplicate(const Contemplation& gaze, const Man& addressee) const
+{
+	abode().host_only(gaze, *this);
+	const std::shared_ptr<const Acquaintance> dweller = abode().dweller(addressee);
+	if (!dweller)
+		throw DoesNotDwell();
+
+	abode().host().supplicate(Birth<Helm>{*this}, *dweller);
+}
+
+
+const Shepherding& Helm::accept(const Contemplation& gaze, const Supplication& ask) const
+{
+	abode().host_only(gaze, *this);
+
+	return abode().host().accept(Birth<Helm>{*this}, ask);
+}
+
+
+void Helm::reject(const Contemplation& gaze, const Supplication& ask) const
+{
+	abode().host_only(gaze, *this);
+
+	abode().host().reject(Birth<Helm>{*this}, ask);
+}
+
+
+void Helm::arrange(const Contemplation& gaze, const Room& room, const Part& part) const
+{
+	abode().host_only(gaze, *this);
+
+	abode().host().arrange(Birth<Helm>{*this}, room, part);
+}
+
+
+} // namespace will::domain

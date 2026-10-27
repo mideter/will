@@ -78,7 +78,7 @@ TEST_CASE("Letter is born of its abode from matter, with living place and author
 
 	cosmos.fake_time().set_instant(Timestamp{100});
 	witness.wake();
-	witness.contemplate(cell_of(man));
+	witness.contemplate(room_of(man));
 	write(world, man, "hello");
 
 	const auto letters = letters_seen_by(world.contemplation(man));

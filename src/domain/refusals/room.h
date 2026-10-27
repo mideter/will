@@ -6,7 +6,7 @@
 namespace will::domain {
 
 
-/// What the gates, the helm and a room refuses.
+/// What the gates, the helm and a room refuse.
 class OnlyHostActs final : public Refusal {
 public:
 	OnlyHostActs()
