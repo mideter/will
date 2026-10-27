@@ -8,7 +8,6 @@
 #include "values/exercise.h"
 #include "values/weight.h"
 
-#include <atomic>
 #include <cstdint>
 #include <memory>
 #include <optional>
@@ -32,25 +31,24 @@ class Word;
 
 /// The window of an Abode onto the words of a place: of its abode, «Слово» in the interface;
 /// of a tie, «Ведение» or «Послушание». It has no words of its own: it shows those of the
-/// place it reflects to whom its part admits, and a gaze into it keeps them living. Its host
-/// sets it in a part. Only he writes here, and the place it reflects decides what his words
+/// place it reflects to whom its part admits, and a gaze into it keeps them living. It lies
+/// in a part, where its host sets it. Only he writes here, and the place it reflects decides what his words
 /// become; in the novice's room of a tie, the novice fulfils, trains and remarks on the
 /// exercises.
 class Room final : public Place {
 public:
-	Room(Birth<Abode> birth, const Place& reflects, const Part& part, matter::Room kept);
+	Room(Birth<Part> birth, const Place& reflects, matter::Room kept);
 
 	const Abode& abode() const noexcept { return abode_; }
 	const Place& reflects() const noexcept { return reflects_; }
-	const Part& part() const { return *part_.load(); }
+
+	const Part& part() const;
 
 	bool dwells(const Man& man) const override;
 
 	bool leads_to(const Man& who, const Place& next) const override;
 
 	bool within(const Abode& abode) const override;
-
-	void arrange(Birth<Abode> birth, const Part& part) const;
 
 	std::shared_ptr<const Recollection> recollection(Birth<Contemplation> gaze) const;
 
@@ -79,7 +77,6 @@ private:
 
 	const Abode& abode_;
 	const Place& reflects_;
-	mutable std::atomic<const Part*> part_;
 };
 
 

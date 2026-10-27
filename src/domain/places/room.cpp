@@ -24,20 +24,26 @@
 namespace will::domain {
 
 
-Room::Room(const Birth<Abode> birth, const Place& reflects, const Part& part, matter::Room kept)
+Room::Room(const Birth<Part> birth, const Place& reflects, matter::Room kept)
 	: Place(kept.id())
-	, abode_(birth.parent())
+	, abode_(birth.parent().abode())
 	, reflects_(reflects)
-	, part_(&part)
 {
 	if (kept.abode() != abode_.id())
 		throw std::logic_error("the room is not of this abode");
 	if (kept.reflects() != reflects_.id())
 		throw std::logic_error("the room reflects another place");
-	if (&part.abode() != &abode_)
-		throw std::logic_error("the part is not of this abode");
 
 	Immanent<Space>::present<Place>();
+}
+
+
+const Part& Room::part() const
+{
+	// A room is in the part that holds it.
+	if (abode_.outer().holds(*this))
+		return abode_.outer();
+	return abode_.inner();
 }
 
 
@@ -56,15 +62,6 @@ bool Room::leads_to(const Man& who, const Place& next) const
 bool Room::within(const Abode& abode) const
 {
 	return &abode == &abode_;
-}
-
-
-void Room::arrange(const Birth<Abode> birth, const Part& part) const
-{
-	if (&birth.parent() != &abode_ || &part.abode() != &abode())
-		throw std::logic_error("only its abode arranges a room, in its own parts");
-
-	part_.store(&part);
 }
 
 

@@ -30,11 +30,14 @@ Man::Man(Birth<World>, matter::Man kept)
 
 	abode_ = std::make_unique<Abode>(Birth<Man>{*this}, std::move(*own));
 
-	// Its own room, Слово; the gates and the helm are born with it.
+	// The gates and the helm are born with it; its own room, Слово, he recalls as kept, or
+	// furnishes anew.
 	const std::vector<matter::Room> rooms = spatiality().rooms(abode_->id());
-	const auto found = std::find_if(rooms.begin(), rooms.end(),
-									[&](const matter::Room& room) { return room.reflects() == abode_->id(); });
-	abode_->furnish(Birth<Man>{*this}, found != rooms.end() ? *found : spatiality().furnish(abode_->id(), abode_->id()));
+	const auto word = std::ranges::find_if(rooms, [&](const matter::Room& room) { return room.reflects() == abode_->id(); });
+	if (word != rooms.end())
+		abode_->part(word->part()).recall(Birth<Man>{*this}, *word);
+	else
+		abode_->inner().furnish(Birth<Man>{*this}, spatiality().furnish(abode_->id(), abode_->id()));
 }
 
 

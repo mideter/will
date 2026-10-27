@@ -26,15 +26,14 @@ class Letter;
 class Man;
 class Gates;
 class Witness;
-class Supplication;
 class World;
 
 
 /// A man's own place, of two parts, the outer and the inner: its words are seen only through
 /// its rooms, and others dwell in it as its host lets them in at the gates. Only its host
-/// acts in the places within it; its rooms keep the order they were furnished in. In it
-/// dwell the host, his dwellers and his fathers by spirit, who are ever friends yet unseen
-/// among the dwellers.
+/// acts in the places within it; its rooms come by its parts, the outer first, each in the
+/// order they came into it. In it dwell the host, his dwellers and his fathers by spirit, who
+/// are ever friends yet unseen among the dwellers.
 class Abode : public Place {
 public:
 	Abode(Birth<Man> birth, matter::Abode kept);
@@ -54,9 +53,7 @@ public:
 
 	std::vector<std::shared_ptr<const Acquaintance>> dwellers() const;
 
-	const Room& furnish(Birth<Man> birth, const matter::Room& kept);
-	const Room& furnish(Birth<World> birth, const matter::Room& kept);
-	const Room& furnish(Birth<Supplication> birth, const matter::Room& kept);
+	const Part& part(matter::Room::Part kept) const;
 
 	void arrange(Birth<Man> birth, const matter::Room& kept) const;
 
@@ -81,8 +78,6 @@ public:
 
 private:
 	void admit(const Man& man, const matter::Dweller& kept);
-	const Room& furnish(const matter::Room& kept);
-	const Part& part(matter::Room::Part kept) const;
 
 	const Man& host_;
 	AbodeName name_;
@@ -90,8 +85,6 @@ private:
 	Inner inner_;
 	mutable std::unique_ptr<std::mutex> mutex_;
 	std::unordered_map<const Man*, std::shared_ptr<const Acquaintance>> dwellers_;
-	std::vector<std::unique_ptr<Room>> rooms_;
-
 };
 
 

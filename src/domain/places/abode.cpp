@@ -91,61 +91,23 @@ void Abode::admit(const Man& man, const matter::Dweller& kept)
 }
 
 
-const Room& Abode::furnish(const Birth<Man> birth, const matter::Room& kept)
-{
-	if (&birth.parent() != &host_)
-		throw std::logic_error("only the host furnishes his abode");
-
-	return furnish(kept);
-}
-
-
-const Room& Abode::furnish(Birth<World>, const matter::Room& kept)
-{
-	return furnish(kept);
-}
-
-
-const Room& Abode::furnish(Birth<Supplication>, const matter::Room& kept)
-{
-	return furnish(kept);
-}
-
-
 void Abode::arrange(const Birth<Man> birth, const matter::Room& kept) const
 {
 	if (&birth.parent() != &host_)
 		throw std::logic_error("only the host arranges his abode");
 
-	{
-		std::lock_guard lock(*mutex_);
-		const auto found = std::find_if(rooms_.begin(), rooms_.end(),
-										[&](const std::unique_ptr<Room>& room) { return room->id() == kept.id(); });
-		if (found == rooms_.end())
-			throw std::logic_error("the room is not of this abode");
-		(*found)->arrange(Birth<Abode>{*this}, part(kept.part()));
-	}
+	const std::vector<std::reference_wrapper<const Room>> all = rooms();
+	const auto found = std::ranges::find_if(all, [&](const Room& room) { return room.id() == kept.id(); });
+	if (found == all.end())
+		throw std::logic_error("the room is not of this abode");
+	const Room& room = *found;
+	const Part& to = part(kept.part());
+	if (&room.part() != &to)
+		room.part().give(Birth<Abode>{*this}, room, to);
+
 	// Those standing in it whom its new part does not let in withdraw.
 	for (const std::shared_ptr<const Acquaintance>& dweller : dwellers())
 		dweller->man().withdraw(Birth<Abode>{*this});
-}
-
-
-const Room& Abode::furnish(const matter::Room& kept)
-{
-	if (kept.abode() != id())
-		throw std::logic_error("the room is not of this abode");
-
-	const Place& reflects = kept.reflects() == id() ? static_cast<const Place&>(*this) : Place::of(kept.reflects());
-
-	std::lock_guard lock(*mutex_);
-	for (const std::unique_ptr<Room>& room : rooms_) {
-		if (&room->reflects() == &reflects)
-			throw std::logic_error("the abode already has a room reflecting this place");
-	}
-
-	rooms_.push_back(std::make_unique<Room>(Birth<Abode>{*this}, reflects, part(kept.part()), kept));
-	return *rooms_.back();
 }
 
 
@@ -159,22 +121,18 @@ const Part& Abode::part(const matter::Room::Part kept) const
 
 std::vector<std::reference_wrapper<const Room>> Abode::rooms() const
 {
-	std::lock_guard lock(*mutex_);
-
-	std::vector<std::reference_wrapper<const Room>> out;
-	out.reserve(rooms_.size());
-	for (const std::unique_ptr<Room>& room : rooms_)
-		out.emplace_back(*room);
+	std::vector<std::reference_wrapper<const Room>> out = outer_.rooms();
+	const std::vector<std::reference_wrapper<const Room>> inner = inner_.rooms();
+	out.insert(out.end(), inner.begin(), inner.end());
 	return out;
 }
 
 
 const Room* Abode::room(const Place& reflects) const
 {
-	std::lock_guard lock(*mutex_);
-	for (const std::unique_ptr<Room>& room : rooms_) {
-		if (&room->reflects() == &reflects)
-			return room.get();
+	for (const Room& room : rooms()) {
+		if (&room.reflects() == &reflects)
+			return &room;
 	}
 	return nullptr;
 }
