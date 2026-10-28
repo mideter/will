@@ -321,6 +321,7 @@ message Room {
     string name = 1;
     RoomPart part = 2;
     string testator = 4;  // the room reflects a tie whose novice is the host: its testator
+    string novice = 5;    // the room reflects a tie whose testator is the host: its novice
 }
 
 

@@ -1123,6 +1123,26 @@ TEST_CASE("the testator wills a training over the wire; the novice fulfils it te
 		CHECK(seen);
 	}
 
+	// Each sees his room of the tie told by the other side: the trainer by his novice, the
+	// novice by his trainer.
+	for (const auto& [stream, room, testator, novice_side] :
+		 {std::tuple{trainer.stream.get(), "Ведение — " + novice_name, std::string{}, novice_name},
+		  std::tuple{novice.stream.get(), "Послушание — " + trainer_name, trainer_name, std::string{}}}) {
+		will::v1::ClientEvent list;
+		list.mutable_list_rooms();
+		REQUIRE(stream->Write(list));
+		const will::v1::ServerEvent told = read_until(*stream, [](const auto& e) { return e.has_rooms(); });
+		bool seen = false;
+		for (const will::v1::Room& shown : told.rooms().rooms()) {
+			if (shown.name() != room)
+				continue;
+			seen = true;
+			CHECK(shown.testator() == testator);
+			CHECK(shown.novice() == novice_side);
+		}
+		CHECK(seen);
+	}
+
 	// Each enters his room of the tie.
 	send_turn_to_abode(*trainer.stream, {}, "Ведение — " + novice_name);
 	read_until(*trainer.stream, [](const auto& e) { return e.has_history_end(); });

@@ -73,6 +73,9 @@ const domain::Room* room_named(const domain::Abode& abode, std::string_view name
 std::string testator_of(const domain::Place& place);
 
 
+std::string novice_of(const domain::Room& room);
+
+
 void tell_standing(v1::Turned& turned, const domain::Place& place);
 
 

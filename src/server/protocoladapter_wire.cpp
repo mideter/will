@@ -290,6 +290,7 @@ void tell_room(v1::Room& told, const domain::Room& room)
 	told.set_name(name_of(room));
 	told.set_part(room.abode().inward(room) ? v1::INNER : v1::OUTER);
 	told.set_testator(testator_of(room));
+	told.set_novice(novice_of(room));
 }
 
 
@@ -301,6 +302,16 @@ std::string testator_of(const domain::Place& place)
 	if (!tie || tie->novice().Soul::id() != room->abode().host().Soul::id())
 		return {};
 	return std::string{tie->testator().name().text()};
+}
+
+
+std::string novice_of(const domain::Room& room)
+{
+	// A room of a tie whose testator is its host: there the host leads, and its novice is led.
+	const auto* tie = dynamic_cast<const domain::Tie*>(&room.reflects());
+	if (!tie || tie->testator().Soul::id() != room.abode().host().Soul::id())
+		return {};
+	return std::string{tie->novice().name().text()};
 }
 
 
