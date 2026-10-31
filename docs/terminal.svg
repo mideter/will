@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 752 748" width="752" height="748" role="img" aria-label="Two will-clients in one world">
+<title>Two will-clients: the first man writes a letter in his room and bears a second body at his gates; the second body waits unborn until it is born</title>
+<rect x="0" y="0" width="752.45616" height="423.0" rx="11" fill="#0d1117" stroke="#30363d"/>
+<rect x="0" y="0" width="752.45616" height="36.0" rx="11" fill="#161b22"/>
+<rect x="0" y="25.0" width="752.45616" height="11" fill="#161b22"/>
+<line x1="0" y1="36.0" x2="752.45616" y2="36.0" stroke="#21262d"/>
+<circle cx="22" cy="18.0" r="5.5" fill="#ff5f56"/>
+<circle cx="42" cy="18.0" r="5.5" fill="#ffbd2e"/>
+<circle cx="62" cy="18.0" r="5.5" fill="#27c93f"/>
+<text x="88" y="22.4" font-family="'DejaVu Sans Mono','Liberation Mono','Menlo','Consolas',monospace" font-size="12.5" fill="#8b949e">$ ./build/will-client</text>
+<text x="18.00" y="64.00" font-family="'DejaVu Sans Mono','Liberation Mono','Menlo','Consolas',monospace" font-size="14.0" fill="#e6edf3" xml:space="preserve">Connected as 2e2lqk82.</text>
+<text x="18.00" y="85.00" font-family="'DejaVu Sans Mono','Liberation Mono','Menlo','Consolas',monospace" font-size="14.0" fill="#e6edf3" xml:space="preserve">Type text in a room to write there.</text>
+<text x="313.01" y="85.00" font-family="'DejaVu Sans Mono','Liberation Mono','Menlo','Consolas',monospace" font-size="14.0" fill="#7d8590" xml:space="preserve"> — /help for commands, Ctrl+D to exit</text>
+<text x="18.00" y="106.00" font-family="'DejaVu Sans Mono','Liberation Mono','Menlo','Consolas',monospace" font-size="14.0" fill="#3fb950" xml:space="preserve" font-weight="700">&gt; </text>
+<text x="34.86" y="106.00" font-family="'DejaVu Sans Mono','Liberation Mono','Menlo','Consolas',monospace" font-size="14.0" fill="#e6edf3" xml:space="preserve">/rooms</text>
+<text x="18.00" y="127.00" font-family="'DejaVu Sans Mono','Liberation Mono','Menlo','Consolas',monospace" font-size="14.0" fill="#e6edf3" xml:space="preserve">Rooms</text>
+<text x="60.14" y="127.00" font-family="'DejaVu Sans Mono','Liberation Mono','Menlo','Consolas',monospace" font-size="14.0" fill="#7d8590" xml:space="preserve"> — /room &lt;number&gt;</text>
+<text x="18.00" y="148.00" font-family="'DejaVu Sans Mono','Liberation Mono','Menlo','Consolas',monospace" font-size="14.0" fill="#e6edf3" xml:space="preserve">  1  Слово  inner</text>
+<text x="18.00" y="169.00" font-family="'DejaVu Sans Mono','Liberation Mono','Menlo','Consolas',monospace" font-size="14.0" fill="#3fb950" xml:space="preserve" font-weight="700">&gt; </text>
+<text x="34.86" y="169.00" font-family="'DejaVu Sans Mono','Liberation Mono','Menlo','Consolas',monospace" font-size="14.0" fill="#e6edf3" xml:space="preserve">/room 1</text>
+<text x="18.00" y="190.00" font-family="'DejaVu Sans Mono','Liberation Mono','Menlo','Consolas',monospace" font-size="14.0" fill="#56d4dd" xml:space="preserve" font-weight="700">── home · Слово ──</text>
+<text x="18.00" y="211.00" font-family="'DejaVu Sans Mono','Liberation Mono','Menlo','Consolas',monospace" font-size="14.0" fill="#3fb950" xml:space="preserve" font-weight="700">&gt; </text>
+<text x="34.86" y="211.00" font-family="'DejaVu Sans Mono','Liberation Mono','Menlo','Consolas',monospace" font-size="14.0" fill="#e6edf3" xml:space="preserve">Мир да пребудет в этом доме.</text>
+<text x="18.00" y="232.00" font-family="'DejaVu Sans Mono','Liberation Mono','Menlo','Consolas',monospace" font-size="14.0" fill="#3fb950" xml:space="preserve">[me]</text>
+<text x="51.72" y="232.00" font-family="'DejaVu Sans Mono','Liberation Mono','Menlo','Consolas',monospace" font-size="14.0" fill="#e6edf3" xml:space="preserve"> Мир да пребудет в этом доме.</text>
+<text x="296.15" y="232.00" font-family="'DejaVu Sans Mono','Liberation Mono','Menlo','Consolas',monospace" font-size="14.0" fill="#7d8590" xml:space="preserve"> ✓</text>
+<text x="18.00" y="253.00" font-family="'DejaVu Sans Mono','Liberation Mono','Menlo','Consolas',monospace" font-size="14.0" fill="#3fb950" xml:space="preserve" font-weight="700">&gt; </text>
+<text x="34.86" y="253.00" font-family="'DejaVu Sans Mono','Liberation Mono','Menlo','Consolas',monospace" font-size="14.0" fill="#e6edf3" xml:space="preserve">/birth</text>
+<text x="18.00" y="274.00" font-family="'DejaVu Sans Mono','Liberation Mono','Menlo','Consolas',monospace" font-size="14.0" fill="#56d4dd" xml:space="preserve" font-weight="700">── home · Врата ──</text>
+<text x="18.00" y="295.00" font-family="'DejaVu Sans Mono','Liberation Mono','Menlo','Consolas',monospace" font-size="14.0" fill="#e6edf3" xml:space="preserve">Awaiting birth</text>
+<text x="136.00" y="295.00" font-family="'DejaVu Sans Mono','Liberation Mono','Menlo','Consolas',monospace" font-size="14.0" fill="#7d8590" xml:space="preserve"> — /bear &lt;mark&gt;</text>
+<text x="18.00" y="316.00" font-family="'DejaVu Sans Mono','Liberation Mono','Menlo','Consolas',monospace" font-size="14.0" fill="#e6edf3" xml:space="preserve">  #2</text>
+<text x="18.00" y="337.00" font-family="'DejaVu Sans Mono','Liberation Mono','Menlo','Consolas',monospace" font-size="14.0" fill="#3fb950" xml:space="preserve" font-weight="700">&gt; </text>
+<text x="34.86" y="337.00" font-family="'DejaVu Sans Mono','Liberation Mono','Menlo','Consolas',monospace" font-size="14.0" fill="#e6edf3" xml:space="preserve">/bear 2</text>
+<text x="18.00" y="358.00" font-family="'DejaVu Sans Mono','Liberation Mono','Menlo','Consolas',monospace" font-size="14.0" fill="#e3b341" xml:space="preserve">vqjvcm27 born</text>
+<text x="18.00" y="379.00" font-family="'DejaVu Sans Mono','Liberation Mono','Menlo','Consolas',monospace" font-size="14.0" fill="#e3b341" xml:space="preserve">You dwell in the abode of vqjvcm27 as a neighbour</text>
+<text x="431.02" y="379.00" font-family="'DejaVu Sans Mono','Liberation Mono','Menlo','Consolas',monospace" font-size="14.0" fill="#7d8590" xml:space="preserve"> — /visit vqjvcm27</text>
+<text x="18.00" y="400.00" font-family="'DejaVu Sans Mono','Liberation Mono','Menlo','Consolas',monospace" font-size="14.0" fill="#3fb950" xml:space="preserve" font-weight="700">&gt; </text>
+<rect x="0" y="451.0" width="752.45616" height="297.0" rx="11" fill="#0d1117" stroke="#30363d"/>
+<rect x="0" y="451.0" width="752.45616" height="36.0" rx="11" fill="#161b22"/>
+<rect x="0" y="476.0" width="752.45616" height="11" fill="#161b22"/>
+<line x1="0" y1="487.0" x2="752.45616" y2="487.0" stroke="#21262d"/>
+<circle cx="22" cy="469.0" r="5.5" fill="#ff5f56"/>
+<circle cx="42" cy="469.0" r="5.5" fill="#ffbd2e"/>
+<circle cx="62" cy="469.0" r="5.5" fill="#27c93f"/>
+<text x="88" y="473.4" font-family="'DejaVu Sans Mono','Liberation Mono','Menlo','Consolas',monospace" font-size="12.5" fill="#8b949e">$ ./build/will-client --device-token-path will.device_token.user2</text>
+<text x="18.00" y="515.00" font-family="'DejaVu Sans Mono','Liberation Mono','Menlo','Consolas',monospace" font-size="14.0" fill="#56d4dd" xml:space="preserve" font-weight="700">You are not yet born.</text>
+<text x="18.00" y="536.00" font-family="'DejaVu Sans Mono','Liberation Mono','Menlo','Consolas',monospace" font-size="14.0" fill="#e6edf3" xml:space="preserve">Your body is seen as #2 at the gates: wait until someone bears you.</text>
+<text x="582.74" y="536.00" font-family="'DejaVu Sans Mono','Liberation Mono','Menlo','Consolas',monospace" font-size="14.0" fill="#7d8590" xml:space="preserve"> — Ctrl+D to leave</text>
+<text x="18.00" y="557.00" font-family="'DejaVu Sans Mono','Liberation Mono','Menlo','Consolas',monospace" font-size="14.0" fill="#3fb950" xml:space="preserve" font-weight="700">&gt; </text>
+<text x="18.00" y="578.00" font-family="'DejaVu Sans Mono','Liberation Mono','Menlo','Consolas',monospace" font-size="14.0" fill="#56d4dd" xml:space="preserve" font-weight="700">You are born.</text>
+<text x="18.00" y="599.00" font-family="'DejaVu Sans Mono','Liberation Mono','Menlo','Consolas',monospace" font-size="14.0" fill="#7d8590" xml:space="preserve">── history ──</text>
+<text x="18.00" y="620.00" font-family="'DejaVu Sans Mono','Liberation Mono','Menlo','Consolas',monospace" font-size="14.0" fill="#e6edf3" xml:space="preserve">Rooms</text>
+<text x="60.14" y="620.00" font-family="'DejaVu Sans Mono','Liberation Mono','Menlo','Consolas',monospace" font-size="14.0" fill="#7d8590" xml:space="preserve"> — /room &lt;number&gt;</text>
+<text x="18.00" y="641.00" font-family="'DejaVu Sans Mono','Liberation Mono','Menlo','Consolas',monospace" font-size="14.0" fill="#e6edf3" xml:space="preserve">  1  Слово  inner</text>
+<text x="18.00" y="662.00" font-family="'DejaVu Sans Mono','Liberation Mono','Menlo','Consolas',monospace" font-size="14.0" fill="#7d8590" xml:space="preserve">── live ──</text>
+<text x="18.00" y="683.00" font-family="'DejaVu Sans Mono','Liberation Mono','Menlo','Consolas',monospace" font-size="14.0" fill="#e6edf3" xml:space="preserve">Connected as vqjvcm27.</text>
+<text x="18.00" y="704.00" font-family="'DejaVu Sans Mono','Liberation Mono','Menlo','Consolas',monospace" font-size="14.0" fill="#e6edf3" xml:space="preserve">Type text in a room to write there.</text>
+<text x="313.01" y="704.00" font-family="'DejaVu Sans Mono','Liberation Mono','Menlo','Consolas',monospace" font-size="14.0" fill="#7d8590" xml:space="preserve"> — /help for commands, Ctrl+D to exit</text>
+<text x="18.00" y="725.00" font-family="'DejaVu Sans Mono','Liberation Mono','Menlo','Consolas',monospace" font-size="14.0" fill="#3fb950" xml:space="preserve" font-weight="700">&gt; </text>
+</svg>

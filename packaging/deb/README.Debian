@@ -36,8 +36,11 @@ server, that the key never leaves it:
   sudo systemctl restart will-server
 
 The certificate (server.crt) is public: it is built into the clients, which trust
-it alone. Open port 17771 in the firewall. Flags: --tls-cert, --tls-key, --tls-port;
-the service starts the server with --no-plain, so nothing listens in the open.
+it alone. Where a server is offered as a public demo, its SHA-256 fingerprint is
+pinned in REFERENCE.md ("Visiting the public world"): remake or renew the certificate,
+and the pin there must be replaced at the same time. Open port 17771 in the firewall.
+Flags: --tls-cert, --tls-key, --tls-port; the service starts the server with
+--no-plain, so nothing listens in the open.
 
 Scaling (single process)
 ------------------------

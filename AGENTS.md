@@ -3,9 +3,9 @@
 ## What this project is
 
 Will is a C++20 client/server system with a gRPC transport and a persistent,
-domain-driven world. Although the README introduces it as a messenger, the code
-also models personal abodes, visibility and access, birth and parentage,
-trainer–novice ties, assignments, deeds, and detailed training sessions.
+domain-driven world. The README gives the quick start; behind it the code models
+personal abodes, visibility and access, birth and parentage, trainer–novice ties,
+assignments, deeds, and detailed training sessions.
 
 The domain model is the source of truth for behavior. Do not reduce a task to
 its transport or database detail when the domain rules are relevant.

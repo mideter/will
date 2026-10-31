@@ -1,23 +1,57 @@
 # Will
 
-Will is a C++20 gRPC messenger with a dedicated server and chat client. Clients authenticate with a persistent device token (one user per device), exchange messages in real time, and can load recent chat history from SQLite on connect.
+Will is a world where what is willed gets done, and is seen to be done. A behest
+is given through a tie between a testator and a novice, fulfilled as a deed with
+a report, and reviewed by the one who willed it. The rest of the world is built
+around that: who you are to the host — acquaintance, neighbour, or friend —
+decides what you may see and where you may stand; a stranger reaches only the
+gates and knocks to be admitted; and a body is born into the world once, through
+another person, and stays. You enter it from a terminal client; the world lives
+on a server of its own and does not forget.
 
-## Features
+The name is the world's basic act: to *will* something is to leave a behest
+behind, and what is willed becomes a deed when it is fulfilled.
 
-- **Device-token authentication** — each client generates a persistent token on first run; one token maps to one user account
-- **Persistent chat** — stored in three SQLite databases, `will.eternity.db`, `will.space.db` and `will.time.db`, in the directory given by `--db-path` (the working directory by default)
-- **Chat history** — clients can request the last *N* messages on connect (`--history`, default 50)
-- **Load testing** — `will-load-clients` opens many concurrent authenticated sessions
-- **Layered design** — domain use cases, protobuf/gRPC transport, SQLite persistence
+![Two will-clients in one world: the first man writes in his room and bears a second body at his gates; the second waits unborn until it is born](docs/terminal.svg)
 
-## Requirements
+## It is not a chat room
 
-- [xmake](https://xmake.io)
-- C++20 compiler (GCC 10+, Clang 12+, or equivalent)
-- SQLite3 development libraries
-- gRPC and Protobuf development libraries (`libgrpc++-dev`, `libprotobuf-dev`, `protobuf-compiler`, `protobuf-compiler-grpc`)
+It is not a chat room that happens to have users. Every man has an abode with
+gates, a helm, and rooms. Words belong to places rather than to a global feed: a
+letter is written in one's own room, a behest is given in a tie room, a training
+carries exercises and approaches, and a deed is its one-time fulfilment.
+Correspondence is one act among many, not the shape of the system.
 
-[CLI11](https://github.com/CLIUtils/CLI11) is pulled automatically by xmake. gRPC/Protobuf come from the system via pkg-config.
+The domain is named in Russian and the code speaks English;
+[GLOSSARY.md](GLOSSARY.md) is where the two meet. The full model is described in
+[ARCHITECTURE.md](ARCHITECTURE.md). This file is a quick start; the same
+document lives in Russian in [README.ru.md](README.ru.md).
+
+## What you can do
+
+- **Ask and serve** — a novice asks a dweller of his abode to become his
+  testator; acceptance forms a tie with two views, *shepherding* and *obedience*.
+- **Fulfil and review** — a behest given through a tie is owed: the novice
+  performs it and reports, and it becomes a one-time deed which the testator
+  reviews. A training is a behest with exercises and planned approaches:
+  approaches are reported one by one, and strain is marked with `!`.
+- **Dwell** — arrange rooms between the outer and inner parts of your abode at
+  the helm, and decide what an acquaintance, a neighbour, or a friend may see.
+- **Visit** — walk to another abode, contemplate its gates, knock, and be
+  admitted.
+- **Write** — letters in your own room; they are seen only where that room is
+  reflected and only by those allowed to see it.
+- **Enter the world** — a device token identifies a body. The first token in an
+  empty world is born at once; later ones wait as *unborn* vessels until a host
+  bears them at his gates.
+
+## Build
+
+Requirements: [xmake](https://xmake.io), a C++20 compiler (GCC 10+, Clang 12+ or
+equivalent), SQLite3 development libraries, and gRPC/Protobuf development
+libraries (`libgrpc++-dev`, `libprotobuf-dev`, `protobuf-compiler`,
+`protobuf-compiler-grpc`). [CLI11](https://github.com/CLIUtils/CLI11) is pulled
+automatically by xmake; gRPC/Protobuf come from the system via pkg-config.
 
 On Debian/Ubuntu:
 
@@ -26,7 +60,7 @@ sudo apt install build-essential xmake libsqlite3-dev \
   libgrpc++-dev libprotobuf-dev protobuf-compiler protobuf-compiler-grpc
 ```
 
-## Build
+Then:
 
 ```bash
 xmake
@@ -36,11 +70,15 @@ All binaries are written to `build/`:
 
 | Binary | Description |
 |--------|-------------|
-| `will-server` | gRPC server with device-token auth and message persistence |
-| `will-client` | Interactive chat client |
+| `will-server` | gRPC server owning the world and its persistence |
+| `will-client` | Interactive terminal client |
 | `will-load-clients` | Concurrent session / message load generator |
 
-## Quick start (local development)
+## Quick start
+
+The first client you open is born immediately. The second one is not: it is an
+unborn vessel, visible to others only as a mark at the gates, and someone must
+bear it. This is the intended first experience, not a defect.
 
 **Terminal 1 — server:**
 
@@ -48,60 +86,62 @@ All binaries are written to `build/`:
 ./build/will-server
 ```
 
-**Terminal 2 — client:**
+The server creates `will.eternity.db`, `will.space.db`, and `will.time.db` in the
+working directory. The world lives across restarts, and only these three files
+are the world: remove them to start over. The mark `#2` below assumes they are
+gone.
+
+**Terminal 2 — the first man:**
 
 ```bash
 ./build/will-client --host 127.0.0.1 --port 7770
 ```
 
-On first run the client creates `will.device_token` in the current directory and registers with the server. Type messages in the client terminal; incoming messages from other connected clients appear in real time. On connect the client requests the last 50 messages by default.
+On first run the client creates `will.device_token` in the current directory and
+registers with the server. You are born with a generated name, an abode, a room
+called `Слово` in the interface, and the roles of witness, novice, and testator
+at once. Type text in a room to write there; `/help` lists the commands, and
+`Ctrl+D` leaves the client.
 
-Open a second client with a different token file to chat between two users:
+**Terminal 3 — a second body:**
 
 ```bash
 ./build/will-client --device-token-path will.device_token.user2
 ```
 
-## CLI reference
+This one prints that it is not yet born and shows its mark: `#2` in a fresh
+world. It can do nothing else until it is born.
 
-Run any binary with `--help` for the full option list.
+**Back in terminal 2**, stand at your gates and bear it:
 
-### will-server
+```text
+/birth            stand at your gates and keep them
+                  the client lists "Awaiting birth" with a mark
+/bear 2           bear the vessel with that mark
+```
 
-Listens on gRPC port **7770** by default. Key options:
+Terminal 3 is now born, receives a name, his own abode, and a dwelling in the
+host's abode. Both clients can talk, visit, and arrange their worlds.
 
-| Option | Default | Description |
-|--------|---------|-------------|
-| `--port` | `7770` | Listen port |
-| `--db-path` | `.` | Existing directory of the SQLite databases (`will.eternity.db`, `will.space.db`, `will.time.db`) |
-| `--max-clients` | `4096` | Max concurrent sessions |
-| `--keepalive-interval` | `30` | gRPC HTTP/2 keepalive ping interval (seconds) |
-| `--keepalive-timeout` | `10` | gRPC HTTP/2 keepalive ping timeout (seconds) |
+Do not delete the token file to "start over": the body it created stays in the
+world, and a new token produces another waiting body. Use `--device-token-path`
+to keep identities apart; a lost token file cannot be recovered. Two clients
+sharing one token file do not give you two sessions: a vessel has one active
+session, and the later bind displaces the earlier one.
 
-### will-client
+A public demo world you can visit is described in
+[REFERENCE.md](REFERENCE.md#visiting-the-public-world).
 
-| Option | Default | Description |
-|--------|---------|-------------|
-| `--host` | `127.0.0.1` | Server IPv4 address |
-| `--port` | `7770` | Server gRPC port |
-| `--device-token-path` | `will.device_token` | Path to persistent device token file |
-| `--history` | `50` | Request last *N* messages on connect |
-| `--no-history` | — | Skip history request |
-| `--quiet` | off | Suppress server receipt messages on stderr |
+## Project layout
 
-### will-load-clients
-
-| Option | Default | Description |
-|--------|---------|-------------|
-| `--clients` | `100` | Concurrent sessions |
-| `--messages` | `0` | Chat messages per client (`0` = idle only) |
-| `--hold-seconds` | `30` | Keep sessions open |
-
-Example — 2000 idle sessions for 10 seconds:
-
-```bash
-./build/will-server &
-./build/will-load-clients --host 127.0.0.1 --port 7770 --clients 2000 --hold-seconds 10
+```
+src/
+  domain/    living beings, values, matter, storage ports, horizons, refusals
+  infra/     SQLite persistence (three databases), gRPC transport (messenger.proto)
+  server/    will-server: sessions, protocol/domain mapping, lifecycle
+  client/    will-client: transport, interactive workflow, terminal UI
+tests/       unit, component, process, and gRPC integration tests
+packaging/   Debian package, systemd service, deployment
 ```
 
 ## Tests
@@ -111,33 +151,27 @@ xmake
 xmake test
 ```
 
-The test suite covers domain logic, SQLite persistence, CLI parsing, and integration tests that spawn `will-server` / `will-client`.
+The suite uses doctest and runs from unit rules up to tests that spawn real
+`will-server` and `will-client` processes. What it covers, and where its
+coverage is thin, is kept in one place:
+[ARCHITECTURE.md §9](ARCHITECTURE.md#9-tests-and-delivery).
 
-## Project layout
+## Before exposing it
 
-```
-src/
-  domain/              Entities, ports, and use cases (auth, chat, history)
-  infra/
-    persistence/       SQLite repositories
-    transport/         messenger.proto (gRPC Messenger.Session)
-  server/              will-server: sessions, auth, gRPC service
-  client/              will-client: session, inbound handler, CLI
-tests/
-  load/                will-load-clients load generator
-  *.cpp                Unit and integration tests (xmake test)
-packaging/deb/         Debian package and systemd unit
-```
+Device tokens are bearer credentials, stored in plaintext in the client file and
+in SQLite, and a body keeps its identity permanently: a lost token file cannot be
+recovered. Use TLS outside a trusted development setup. This is not a limitation
+of the protocol but a property of the world — a man is one, and his token is what
+points at him.
 
-## Debian packaging
+## Documentation
 
-Build and install:
-
-```bash
-./packaging/build-deb.sh
-sudo dpkg -i build/deb-packaging/will-server_*.deb
-```
-
-The package installs `will-server.service` (enabled on install). The databases are stored in `/var/lib/will-server` (`will.eternity.db`, `will.space.db`, `will.time.db`).
-
-See [`packaging/deb/README.Debian`](packaging/deb/README.Debian) for deployment notes and scaling recommendations.
+| File | Content |
+|------|---------|
+| [README.ru.md](README.ru.md) | This document in Russian |
+| [REFERENCE.md](REFERENCE.md) | CLI reference, client commands, the demo world, Debian packaging |
+| [ARCHITECTURE.md](ARCHITECTURE.md) | System and domain architecture, persistence, recovery, constraints |
+| [GLOSSARY.md](GLOSSARY.md) | Russian domain terms, English code names, interface words |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | Naming, formatting, comments, commits |
+| [AGENTS.md](AGENTS.md) | Orientation for agents working in the tree |
+| [`src/infra/transport/messenger.proto`](src/infra/transport/messenger.proto) | Complete wire contract |
