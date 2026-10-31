@@ -1,57 +1,51 @@
 # Will
 
-Will is a world where what is willed gets done, and is seen to be done. A behest
-is given through a tie between a testator and a novice, fulfilled as a deed with
-a report, and reviewed by the one who willed it. The rest of the world is built
-around that: who you are to the host — acquaintance, neighbour, or friend —
-decides what you may see and where you may stand; a stranger reaches only the
-gates and knocks to be admitted; and a body is born into the world once, through
-another person, and stays. You enter it from a terminal client; the world lives
-on a server of its own and does not forget.
+At the heart of Will is the transmission of will from a person close to some
+good to another, to help that other person attain it.
 
-The name is the world's basic act: to *will* something is to leave a behest
-behind, and what is willed becomes a deed when it is fulfilled.
+Will is a client-server application built around the relationship between a
+trainer and a novice. A trainer gives assignments and writes structured workouts
+with exercises, working weights, repetitions, and rest intervals; the novice
+performs them set by set, reports what was done, and the trainer reviews the
+result. The server persists all state in SQLite and communicates with terminal
+clients over gRPC.
 
-![Two will-clients in one world: the first man writes in his room and bears a second body at his gates; the second waits unborn until it is born](docs/terminal.svg)
+![Two will-clients: the first user writes in his room and admits a second user into the world](docs/terminal.svg)
 
-## It is not a chat room
+## How it works
 
-It is not a chat room that happens to have users. Every man has an abode with
-gates, a helm, and rooms. Words belong to places rather than to a global feed: a
-letter is written in one's own room, a behest is given in a tie room, a training
-carries exercises and approaches, and a deed is its one-time fulfilment.
-Correspondence is one act among many, not the shape of the system.
+- **Guidance and obedience** — any participant can ask another to become their
+  trainer. Once accepted, a shared room is created for the pair (named
+  `Ведение` for the trainer and `Послушание` for the novice). The same person
+  can be a novice to some and a trainer to others.
+- **Assignments and workouts** — a message written by the trainer in that shared
+  room becomes an assignment owed by the novice until fulfilled with a report
+  (`/done`). For workouts (`/train`), the trainer specifies exercises, weights,
+  repetitions, and rest times between sets. The novice can track sets one by one
+  (`/begin`, `/end`, `/finish`), mark perceived strain (`!`, `!!`), and leave
+  notes on specific exercises (`/remark`). When the trainer opens the room,
+  completed assignments are marked as reviewed.
+- **Personal spaces and rooms** — each participant has a personal space with
+  their own room (`Слово`) and shared rooms, and decides whom to let in
+  (`/admit`) and which rooms are visible to acquaintances, neighbours, or
+  friends.
+- **Admission by existing participants** — each device is identified by a token.
+  The first user on a fresh server enters immediately; every subsequent new
+  device waits until an existing participant admits them into the world.
 
-The domain is named in Russian and the code speaks English;
-[GLOSSARY.md](GLOSSARY.md) is where the two meet. The full model is described in
-[ARCHITECTURE.md](ARCHITECTURE.md). This file is a quick start; the same
-document lives in Russian in [README.ru.md](README.ru.md).
-
-## What you can do
-
-- **Ask and serve** — a novice asks a dweller of his abode to become his
-  testator; acceptance forms a tie with two views, *shepherding* and *obedience*.
-- **Fulfil and review** — a behest given through a tie is owed: the novice
-  performs it and reports, and it becomes a one-time deed which the testator
-  reviews. A training is a behest with exercises and planned approaches:
-  approaches are reported one by one, and strain is marked with `!`.
-- **Dwell** — arrange rooms between the outer and inner parts of your abode at
-  the helm, and decide what an acquaintance, a neighbour, or a friend may see.
-- **Visit** — walk to another abode, contemplate its gates, knock, and be
-  admitted.
-- **Write** — letters in your own room; they are seen only where that room is
-  reflected and only by those allowed to see it.
-- **Enter the world** — a device token identifies a body. The first token in an
-  empty world is born at once; later ones wait as *unborn* vessels until a host
-  bears them at his gates.
+Internally, the C++ domain model uses its own vocabulary; the mapping between
+Russian domain concepts, English class names, and UI labels is in
+[GLOSSARY.md](GLOSSARY.md), and the full system design is in
+[ARCHITECTURE.md](ARCHITECTURE.md). The Russian version of this document is in
+[README.ru.md](README.ru.md).
 
 ## Build
 
-Requirements: [xmake](https://xmake.io), a C++20 compiler (GCC 10+, Clang 12+ or
-equivalent), SQLite3 development libraries, and gRPC/Protobuf development
-libraries (`libgrpc++-dev`, `libprotobuf-dev`, `protobuf-compiler`,
-`protobuf-compiler-grpc`). [CLI11](https://github.com/CLIUtils/CLI11) is pulled
-automatically by xmake; gRPC/Protobuf come from the system via pkg-config.
+Requirements: [xmake](https://xmake.io), a C++20 compiler (GCC 10+, Clang 12+,
+or equivalent), SQLite3 development libraries, and gRPC/Protobuf development
+packages (`libgrpc++-dev`, `libprotobuf-dev`, `protobuf-compiler`,
+`protobuf-compiler-grpc`). [CLI11](https://github.com/CLIUtils/CLI11) is fetched
+automatically by xmake.
 
 On Debian/Ubuntu:
 
@@ -60,25 +54,24 @@ sudo apt install build-essential xmake libsqlite3-dev \
   libgrpc++-dev libprotobuf-dev protobuf-compiler protobuf-compiler-grpc
 ```
 
-Then:
+Build all targets:
 
 ```bash
 xmake
 ```
 
-All binaries are written to `build/`:
+Binaries are written to `build/`:
 
 | Binary | Description |
 |--------|-------------|
-| `will-server` | gRPC server owning the world and its persistence |
+| `will-server` | gRPC server owning the world and its SQLite databases |
 | `will-client` | Interactive terminal client |
-| `will-load-clients` | Concurrent session / message load generator |
+| `will-load-clients` | Concurrent session and message load generator |
 
 ## Quick start
 
-The first client you open is born immediately. The second one is not: it is an
-unborn vessel, visible to others only as a mark at the gates, and someone must
-bear it. This is the intended first experience, not a defect.
+Below we start a local server, connect two users, link them as trainer and
+novice, and run a first workout.
 
 **Terminal 1 — server:**
 
@@ -87,61 +80,82 @@ bear it. This is the intended first experience, not a defect.
 ```
 
 The server creates `will.eternity.db`, `will.space.db`, and `will.time.db` in the
-working directory. The world lives across restarts, and only these three files
-are the world: remove them to start over. The mark `#2` below assumes they are
-gone.
+working directory. Delete these three files whenever you want to reset the
+server to an empty state.
 
-**Terminal 2 — the first man:**
+**Terminal 2 — first user:**
 
 ```bash
 ./build/will-client --host 127.0.0.1 --port 7770
 ```
 
-On first run the client creates `will.device_token` in the current directory and
-registers with the server. You are born with a generated name, an abode, a room
-called `Слово` in the interface, and the roles of witness, novice, and testator
-at once. Type text in a room to write there; `/help` lists the commands, and
-`Ctrl+D` leaves the client.
+On first run, the client saves a token to `will.device_token` and connects. On
+an empty server, the first user is created immediately with a generated name and
+a personal room called `Слово`. Type plain text in a room to write a message;
+`/help` lists commands, and `Ctrl+D` exits.
 
-**Terminal 3 — a second body:**
+**Terminal 3 — second user:**
 
 ```bash
 ./build/will-client --device-token-path will.device_token.user2
 ```
 
-This one prints that it is not yet born and shows its mark: `#2` in a fresh
-world. It can do nothing else until it is born.
+Because the server is no longer empty, the second client waits to be admitted by
+an existing user and displays its waiting number (`#2`).
 
-**Back in terminal 2**, stand at your gates and bear it:
+**Admitting the second user (in terminal 2):**
 
 ```text
-/birth            stand at your gates and keep them
-                  the client lists "Awaiting birth" with a mark
-/bear 2           bear the vessel with that mark
+/birth            list users awaiting entry (shows #2)
+/bear 2           admit #2
 ```
 
-Terminal 3 is now born, receives a name, his own abode, and a dwelling in the
-host's abode. Both clients can talk, visit, and arrange their worlds.
+Both users are now active and added to each other's contact list.
 
-Do not delete the token file to "start over": the body it created stays in the
-world, and a new token produces another waiting body. Use `--device-token-path`
-to keep identities apart; a lost token file cannot be recovered. Two clients
-sharing one token file do not give you two sessions: a vessel has one active
-session, and the later bind displaces the earlier one.
+**Linking trainer and novice and running a workout:**
 
-A public demo world you can visit is described in
+In terminal 3, ask the first user to become your trainer:
+
+```text
+/helm             open contact and room management
+/dwellers         check the first user's name
+/ask <trainer_name>
+```
+
+In terminal 2, accept the request, switch to the new `Ведение` room, and assign a
+workout:
+
+```text
+/helm
+/accept <novice_name>
+/rooms
+/room 2           enter "Ведение — <novice_name>"
+/train Bench day | bench press 60x10 1:30/70x8 | pushups 0x12
+```
+
+In terminal 3, open the `Послушание` room and complete the workout:
+
+```text
+/rooms
+/room 2           enter "Послушание — <trainer_name>"
+/begin 1 1 1      start set 1 of exercise 1 in workout #1
+/finish 1 60x10
+/done 1 Done | bench press 60x10 70x8 | pushups 0x12
+```
+
+Instructions for connecting to the public demo server are in
 [REFERENCE.md](REFERENCE.md#visiting-the-public-world).
 
 ## Project layout
 
-```
+```text
 src/
-  domain/    living beings, values, matter, storage ports, horizons, refusals
-  infra/     SQLite persistence (three databases), gRPC transport (messenger.proto)
+  domain/    domain model: entities, values, records, storage ports, refusals
+  infra/     SQLite adapters (three databases), gRPC wire contract (messenger.proto)
   server/    will-server: sessions, protocol/domain mapping, lifecycle
-  client/    will-client: transport, interactive workflow, terminal UI
+  client/    will-client: transport, slash commands, terminal UI
 tests/       unit, component, process, and gRPC integration tests
-packaging/   Debian package, systemd service, deployment
+packaging/   Debian package build, systemd service, deployment scripts
 ```
 
 ## Tests
@@ -151,27 +165,32 @@ xmake
 xmake test
 ```
 
-The suite uses doctest and runs from unit rules up to tests that spawn real
-`will-server` and `will-client` processes. What it covers, and where its
-coverage is thin, is kept in one place:
-[ARCHITECTURE.md §9](ARCHITECTURE.md#9-tests-and-delivery).
+The doctest suite covers domain rules, in-memory and SQLite persistence, and
+end-to-end tests that launch real `will-server` and `will-client` processes. See
+[ARCHITECTURE.md §9](ARCHITECTURE.md#9-tests-and-delivery) for details.
 
-## Before exposing it
+## Tokens and security
 
-Device tokens are bearer credentials, stored in plaintext in the client file and
-in SQLite, and a body keeps its identity permanently: a lost token file cannot be
-recovered. Use TLS outside a trusted development setup. This is not a limitation
-of the protocol but a property of the world — a man is one, and his token is what
-points at him.
+A device token (`will.device_token`) is a bearer credential stored in plaintext
+on the client and in SQLite. If the token file is lost, that account cannot be
+recovered; deleting the file does not remove the user from the server, it only
+causes the client to generate a new waiting token on next run. Use
+`--device-token-path` to keep multiple accounts separate on one machine. Only
+one session may use a token at a time — a newer connection with the same token
+closes the previous session.
+
+Plain gRPC is the default for local development; enable TLS (`--tls-cert`,
+`--tls-key`, `--no-plain`) whenever the server is exposed outside a trusted
+network.
 
 ## Documentation
 
 | File | Content |
 |------|---------|
 | [README.ru.md](README.ru.md) | This document in Russian |
-| [REFERENCE.md](REFERENCE.md) | CLI reference, client commands, the demo world, Debian packaging |
-| [ARCHITECTURE.md](ARCHITECTURE.md) | System and domain architecture, persistence, recovery, constraints |
-| [GLOSSARY.md](GLOSSARY.md) | Russian domain terms, English code names, interface words |
-| [CONTRIBUTING.md](CONTRIBUTING.md) | Naming, formatting, comments, commits |
-| [AGENTS.md](AGENTS.md) | Orientation for agents working in the tree |
-| [`src/infra/transport/messenger.proto`](src/infra/transport/messenger.proto) | Complete wire contract |
+| [REFERENCE.md](REFERENCE.md) | CLI flags, client commands, public demo server, Debian packaging |
+| [ARCHITECTURE.md](ARCHITECTURE.md) | Domain and server architecture, SQLite storage, recovery rules |
+| [GLOSSARY.md](GLOSSARY.md) | Mapping between domain terms, C++ class names, and UI labels |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | Naming, formatting, comments, and commit conventions |
+| [AGENTS.md](AGENTS.md) | Guide for AI agents working in the repository |
+| [`src/infra/transport/messenger.proto`](src/infra/transport/messenger.proto) | Complete protobuf/gRPC wire contract |
