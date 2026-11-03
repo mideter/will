@@ -10,9 +10,6 @@
 namespace will::domain::matter {
 
 
-/// An approach begun and not yet told: an effort without its weight and repetitions. It may
-/// have ended already, while what was done in it is being told. Exercises and approaches are
-/// counted from zero.
 class Underway {
 public:
 	Underway(id::Word training, std::uint32_t exercise, std::uint32_t approach, Timestamp begun,

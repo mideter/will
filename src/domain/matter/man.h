@@ -8,7 +8,6 @@
 namespace will::domain::matter {
 
 
-/// Soul and body, gathered from Eternity and Temporality.
 class Man {
 public:
 	Man(Soul soul, Vessel vessel, const Embodiment& embodiment);

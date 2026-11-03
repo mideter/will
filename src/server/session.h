@@ -25,11 +25,6 @@ namespace will {
 class SessionRegistry;
 
 
-/// Session — one client's stream. What the server tells the client goes into the
-/// session's own queue and is written out by its own writer, so that whoever acts
-/// never waits for another's network: a client that reads slowly or not at all holds
-/// up only itself, and is closed when it falls MaxPending events behind. The writer is
-/// stopped and waited for before the stream goes away.
 class Session {
 public:
 	using Stream = grpc::ServerReaderWriter<v1::ServerEvent, v1::ClientEvent>;

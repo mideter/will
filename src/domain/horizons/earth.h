@@ -17,7 +17,6 @@ class Temporality;
 class Spatiality;
 
 
-/// The visible world: the bodies, and the dimensions that keep matter.
 class Earth : private Immanent<Earth> {
 public:
 	bool knows(id::Vessel id) const;

@@ -30,15 +30,6 @@ class Helm;
 class InboundClientMessageHandler;
 
 
-/// Maps client protobuf events to domain communion and enqueues outbound events. A session
-/// ended puts its man asleep, unless a newer session of his body took over; waking and
-/// falling asleep are guarded against the two meeting. What came of a request goes into its
-/// Reply if the asker numbered it, else into a notice — by its code, the names apart, and in
-/// the server's own words; the world's Refusal is told by its reason. A word newly placed is
-/// told to those who look at the place, and a short word of it to the other side of a tie
-/// who looks elsewhere. Turning to a place, one is told what one sees there: at an abode
-/// itself, the rooms one may enter and, to its host, what awaits him; elsewhere, the last
-/// TurnWords words. One writes in one's own room, or in a tie room as its testator.
 class ProtocolAdapter {
 	friend class InboundClientMessageHandler;
 
@@ -150,8 +141,6 @@ private:
 	std::mutex presence_mutex_;
 	std::unordered_map<std::uint64_t, domain::id::Vessel> woken_by_session_;
 
-	/// A numbered request being answered: what is said to the asker meanwhile goes into
-	/// its one Reply, sent when the request is handled.
 	struct Answer {
 		std::uint64_t request_id = 0;
 		bool refused = false;

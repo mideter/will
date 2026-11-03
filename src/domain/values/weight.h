@@ -6,7 +6,6 @@
 namespace will::domain {
 
 
-/// In grams, that 62.5 kg stays exact; zero is one's own weight.
 class Weight {
 public:
 	static constexpr std::uint32_t MaxGrams = 1'000'000;

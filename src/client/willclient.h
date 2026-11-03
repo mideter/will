@@ -20,11 +20,6 @@
 namespace will {
 
 
-/// The console's one session with the server, authenticated by the device token; the answer
-/// is awaited before BindToken is sent, for it may come at once, and the inbound handler runs
-/// on the reader thread. It speaks in the open, or TLS trusting only the server certificate of
-/// the config. Exercises and approaches are numbered from zero; an unborn body is known by its
-/// mark until it is born and named. History is not asked for with a limit of zero.
 class WillClient {
 public:
 	WillClient();

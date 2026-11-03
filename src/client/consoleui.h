@@ -11,10 +11,6 @@
 namespace will {
 
 
-/// Terminal-aware chat printer: tagged lines, optional ANSI color, shared stdout lock. A hint
-/// of the command follows a dash, dimmed. Lines that come go above the prompt, together: it
-/// is cleared before them and, while live, drawn again after; turned off, it is wiped. A list
-/// is its title, then a row to a line with the cells of each column aligned.
 class ConsoleUi {
 public:
 	explicit ConsoleUi(ColorMode mode = ColorMode::Auto);

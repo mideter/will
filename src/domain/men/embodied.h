@@ -11,8 +11,6 @@ namespace will::domain {
 class Abode;
 
 
-/// A soul in a body, with its abode: what the roles of a man
-/// stand on. The man builds it; a role is never born alone.
 class Embodied : public Soul, public Vessel {
 public:
 	~Embodied() override;

@@ -12,9 +12,6 @@
 namespace will {
 
 
-/// SQLite Eternity — souls, the one Time and Space, indelible words.
-/// Opens will.eternity.db in its directory; realises Spatiality and Temporality
-/// over will.space.db and will.time.db there when Creation asks.
 class SqliteEternity final : public domain::Eternity {
 public:
 	explicit SqliteEternity(std::string directory);

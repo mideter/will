@@ -19,7 +19,6 @@ class Man;
 class Testator;
 
 
-/// A tie as its testator sees it; its behests and deeds come oldest first.
 class Shepherding : public virtual Place {
 public:
 	~Shepherding() override = default;

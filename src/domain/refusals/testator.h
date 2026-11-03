@@ -6,7 +6,6 @@
 namespace will::domain {
 
 
-/// What a testator refuses.
 class HearOnlyDweller final : public Refusal {
 public:
 	HearOnlyDweller()

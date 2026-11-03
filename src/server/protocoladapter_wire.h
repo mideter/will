@@ -27,9 +27,6 @@ class Remark;
 } // namespace will::domain
 
 
-/// How the domain is told over the wire, and brought from it: what the parts of the
-/// protocol adapter share. What cannot be brought from the wire is refused
-/// (std::invalid_argument).
 namespace will::wire {
 
 

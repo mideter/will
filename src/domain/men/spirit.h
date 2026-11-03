@@ -21,8 +21,6 @@ class Place;
 class Soul;
 
 
-/// The highest of the soul, its eye: it alone utters, beholds and asks; Heaven keeps what it
-/// asks until it is answered.
 class Spirit : public Immanent<Heaven> {
 public:
 	virtual ~Spirit() = default;

@@ -17,11 +17,6 @@
 namespace will::domain {
 
 
-/// Places and where a word is fixed: abodes, dwellers, rooms, ties, placements. A host
-/// keeps one abode, its gates and its helm marked with it. A dweller's kind kept anew
-/// replaces the former one. An abode has one room for each place it reflects, furnished
-/// inward. A pair is bound once. A place's placements come all. What would break
-/// these it refuses; an unknown room it does not arrange.
 class Spatiality {
 public:
 	virtual ~Spatiality() = default;

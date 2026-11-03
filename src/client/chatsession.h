@@ -10,8 +10,6 @@
 namespace will {
 
 
-/// Interactive chat session: loads history, then stdin send loop with inbound/closed handlers.
-/// An unborn body first waits to be born, unless one leaves meanwhile.
 class ChatSession {
 public:
 	ChatSession(WillClient& client, ConsoleUi& ui);

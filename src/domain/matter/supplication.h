@@ -6,7 +6,6 @@
 namespace will::domain::matter {
 
 
-/// Awaits until its answer is kept.
 class Supplication {
 public:
 	Supplication(id::Soul suppliant, id::Soul addressee);

@@ -6,7 +6,6 @@
 namespace will::domain {
 
 
-/// Where one stands: what is done in a place of a kind, is done only standing in it.
 class StandInRoom final : public Refusal {
 public:
 	StandInRoom()
@@ -28,7 +27,6 @@ public:
 	{}
 };
 
-/// Where one goes: out of an abode and into another only through gates.
 class PassThroughGates final : public Refusal {
 public:
 	PassThroughGates()

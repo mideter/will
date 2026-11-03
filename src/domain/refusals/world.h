@@ -6,7 +6,6 @@
 namespace will::domain {
 
 
-/// What the world refuses.
 class NoSuchUnborn final : public Refusal {
 public:
 	NoSuchUnborn()

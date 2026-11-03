@@ -6,8 +6,6 @@
 namespace will::domain {
 
 
-/// How an approach went, in marks as one writes them by it: none — it went as it should; one
-/// — it was hard; two — it was at the limit.
 class Strain {
 public:
 	static constexpr std::uint32_t MaxMarks = 2;

@@ -7,7 +7,6 @@
 namespace will::domain::matter {
 
 
-/// A soul dwells in this body; it has no living pair of its own.
 class Embodiment {
 public:
 	Embodiment(id::Soul soul, id::Vessel vessel);

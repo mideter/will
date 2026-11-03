@@ -8,10 +8,6 @@
 namespace will {
 
 
-/// Server configuration (no invariants; validated by ServerConfigValidator). Given both a
-/// TLS certificate chain and private key (PEM files), the server listens with TLS on
-/// tls_port beside the open listen_port; given neither, it speaks only in the open. The open
-/// port stays while old clients, which speak only in the open, are not all renewed.
 struct ServerConfig {
 	static constexpr int MinListenPort = 1;
 	static constexpr int MaxListenPort = 65535;

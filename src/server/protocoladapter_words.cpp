@@ -1,5 +1,3 @@
-/// The protocol adapter, its part of words and ties: what is written and told, the
-/// supplications, behests and deeds, the trainings and their approaches.
 #include "protocoladapter.h"
 #include "protocoladapter_wire.h"
 

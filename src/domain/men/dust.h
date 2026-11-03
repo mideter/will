@@ -11,7 +11,6 @@ class Temporality;
 class Spatiality;
 
 
-/// The earthly foundation of the body: through it the body is of Earth.
 class Dust : public Immanent<Earth> {
 public:
 	Temporality& temporality() const { return earth().temporality(); }

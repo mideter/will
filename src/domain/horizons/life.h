@@ -24,9 +24,6 @@ class Temporality;
 class Word;
 
 
-/// Proceeds from Eternity and brings forth the World in its one Creation; it recollects the
-/// words of a place from memory while the gazes hold them, one recollection at a time,
-/// oldest first.
 class Life : private Immanent<Eternity> {
 public:
 	Life();

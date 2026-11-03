@@ -18,9 +18,6 @@ class Shepherding;
 class Supplication;
 
 
-/// The host's own place, the inner edge of his abode, whence he steers his abode; no one
-/// else enters. Here alone he answers those who ask him and asks himself, regards his
-/// dwellers anew and moves his rooms outward and inward.
 class Helm final : public Place {
 public:
 	Helm(Birth<Abode> birth, id::Place id);

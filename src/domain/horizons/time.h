@@ -6,7 +6,6 @@
 namespace will::domain {
 
 
-/// The one present, given only through Eternity.
 class Time {
 public:
 	virtual ~Time() = default;

@@ -11,8 +11,6 @@
 namespace will::domain::matter {
 
 
-/// An approach of a training done, at most once; exercises and approaches are counted from
-/// zero. The rest before it is the time since the effort before it finished.
 class Effort {
 public:
 	Effort(id::Word training, std::uint32_t exercise, std::uint32_t approach, Weight weight,

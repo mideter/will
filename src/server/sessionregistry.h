@@ -21,12 +21,6 @@
 namespace will {
 
 
-/**
- * Thread-safe registry of active gRPC sessions.
- * Owns session lifecycle, transport fan-out, and authenticated vessel bindings.
- * Enforces one active session per vessel: binding a vessel displaces its former session.
- * A session without transport is registered only for unit tests.
- */
 class SessionRegistry {
 public:
 	SessionRegistry() = default;

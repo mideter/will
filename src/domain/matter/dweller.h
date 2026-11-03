@@ -7,8 +7,6 @@
 namespace will::domain::matter {
 
 
-/// One dwelling in another's abode as its host regards him:
-/// знакомый, ближний or друг.
 class Dweller {
 public:
 	enum class Kind {

@@ -10,8 +10,6 @@
 namespace will {
 
 
-/// SQLite Spatiality — abodes and where words are placed.
-/// Place ids are pointed from Eternity's Space.
 class SqliteSpatiality final : public domain::Spatiality {
 public:
 	SqliteSpatiality(std::string path, domain::Eternity& eternity);

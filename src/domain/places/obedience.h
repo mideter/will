@@ -18,7 +18,6 @@ class Novice;
 class Man;
 
 
-/// A tie as its novice sees it; its behests and deeds come oldest first.
 class Obedience : public virtual Place {
 public:
 	~Obedience() override = default;

@@ -20,8 +20,6 @@ namespace will::domain {
 
 class Life;
 class Testator;
-/// The novice's word fulfilling a behest: his report, or «совершено». It lives with the behest it
-/// fulfils, which knows it. Its testator reviews it once, seeing it.
 class Deed : public Word {
 public:
 	Deed(Birth<Tie>, const Behest& behest, matter::Deed kept);

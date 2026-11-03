@@ -26,8 +26,6 @@ inline std::uint64_t sqlite_last_insert_id(sqlite3* db)
 }
 
 
-/// RAII SQLite prepared statement. A step gives a row or its end, and throws on an error; one
-/// that changes (INSERT, UPDATE, DELETE) expects the end.
 class SqliteStmt {
 public:
 	SqliteStmt(sqlite3* db, const char* sql, const char* context)
@@ -101,7 +99,6 @@ private:
 };
 
 
-/// RAII SQLite transaction: ROLLBACK on destruction unless commit() succeeded.
 class SqliteTransaction {
 public:
 	explicit SqliteTransaction(sqlite3* db)

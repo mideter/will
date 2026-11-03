@@ -23,13 +23,6 @@ class Witness;
 class World;
 
 
-/// A man's own place: its outer, and within it the rooms set inward and the helm, which
-/// only friends see. Its words are seen only through its rooms, and a dweller sees a room as
-/// deep as his kind reaches; the host sees all. A new room is furnished inward: its own by
-/// the host as the abode is born, one of a tie as the tie is bound. A kept room is recalled
-/// where it is kept: its own by the host, one of a tie by the world once the tie lives. A
-/// room moved goes whole from one side to the other; one place is reflected by one room. Its
-/// rooms come outward first, each in the order they came.
 class Abode final : public OuterAbode {
 public:
 	Abode(Birth<Man> birth, matter::Abode kept);

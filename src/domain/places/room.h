@@ -29,11 +29,6 @@ class Training;
 class Word;
 
 
-/// The window of an Abode onto the words of a place: of its abode, «Слово» in the interface;
-/// of a tie, «Ведение» or «Послушание». It has no words of its own: it shows those of the
-/// place it reflects to whom its abode shows it, and a gaze into it keeps them living. Only he writes here, and the place it reflects decides what his words
-/// become; in the novice's room of a tie, the novice fulfils, trains and remarks on the
-/// exercises.
 class Room final : public Place {
 public:
 	Room(Birth<Abode> birth, const Place& reflects, matter::Room kept);

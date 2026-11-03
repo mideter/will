@@ -14,7 +14,6 @@
 namespace will::domain::matter {
 
 
-/// Gathered from the three dimensions; no single one keeps it.
 class Deed {
 public:
 	Deed(Word word, Placement placement, Dating dating, Execution execution,

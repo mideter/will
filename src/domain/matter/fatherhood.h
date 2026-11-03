@@ -6,8 +6,6 @@
 namespace will::domain::matter {
 
 
-/// By flesh, the host of the gates one was born at, never
-/// changed; by spirit, the one the child chooses, at most one at a time.
 class Fatherhood {
 public:
 	enum class Line {

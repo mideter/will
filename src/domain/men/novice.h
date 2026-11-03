@@ -34,14 +34,6 @@ class Testator;
 class Helm;
 
 
-/// The side of a tie who fulfils its behests and does its trainings, and asks to be led.
-/// Without a report his deed says «совершено»; a deed of a training tells what was done,
-/// the exercises in their willed order, those of which nothing was done left out. He does
-/// the exercises in any order, the approaches of an exercise in order, and once the willed
-/// are done, one beyond them; one approach of a training at a time. He ends an approach, and
-/// then tells what was done in it; until he tells, he begins no other. Until the training is
-/// fulfilled he may say remarks on its exercises, as many as he will. What he owes are the
-/// behests of his ties not yet fulfilled, oldest first by tie.
 class Novice : public virtual Embodied {
 public:
 	void supplicate(Birth<Helm> helm, const Acquaintance& dweller) const;

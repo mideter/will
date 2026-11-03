@@ -16,7 +16,6 @@
 namespace will::domain::matter {
 
 
-/// Gathered from the three dimensions; no single one keeps it.
 class Behest {
 public:
 	Behest(Word word, Placement placement, Dating dating, std::optional<Training> training = std::nullopt,

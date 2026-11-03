@@ -8,8 +8,6 @@
 namespace will::domain {
 
 
-/// So many repetitions with this weight, and the rest before it: how
-/// rested one comes to it. The first effort of a training comes fully rested.
 class Approach {
 public:
 	static constexpr std::uint32_t MaxRepetitions = 10'000;

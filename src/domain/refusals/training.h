@@ -6,7 +6,6 @@
 namespace will::domain {
 
 
-/// What a training refuses.
 class TrainOnlyInContemplatedTie final : public Refusal {
 public:
 	TrainOnlyInContemplatedTie()

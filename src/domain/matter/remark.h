@@ -10,8 +10,6 @@
 namespace will::domain::matter {
 
 
-/// That this word is a remark on this exercise of this training, counted from zero; kept in
-/// Eternity, once for a word.
 class Remarked {
 public:
 	Remarked(id::Word remark, id::Word training, std::uint32_t exercise);
@@ -27,7 +25,6 @@ private:
 };
 
 
-/// Gathered from the dimensions: the word the novice said, what it is said on, and when.
 class Remark {
 public:
 	Remark(Word word, Remarked on, Dating dating);

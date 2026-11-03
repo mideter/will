@@ -10,8 +10,6 @@
 namespace will {
 
 
-/// SQLite Temporality — vessels, embodiments, datings, supplications, executions, reviews in time.
-/// Owns the time database; the present is taken from Eternity.
 class SqliteTemporality final : public domain::Temporality {
 public:
 	SqliteTemporality(std::string path, domain::Eternity& eternity);

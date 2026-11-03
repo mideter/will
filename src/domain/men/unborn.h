@@ -11,8 +11,6 @@ namespace will::domain {
 class World;
 
 
-/// A body awaiting its soul: it only waits, seen by the keepers
-/// of every gates by the mark of its body.
 class Unborn final : public Vessel {
 public:
 	Unborn(Birth<World>, matter::Vessel kept);

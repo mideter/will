@@ -6,7 +6,6 @@
 namespace will::domain {
 
 
-/// What a novice refuses.
 class FulfilOnlyInContemplatedTie final : public Refusal {
 public:
 	FulfilOnlyInContemplatedTie()

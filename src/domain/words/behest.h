@@ -17,7 +17,6 @@ class Deed;
 class Life;
 
 
-/// The testator's word of will in a tie, fulfilled once by the novice's deed, which it knows.
 class Behest : public Word {
 public:
 	Behest(Birth<Tie>, matter::Behest kept);

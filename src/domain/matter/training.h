@@ -10,7 +10,6 @@
 namespace will::domain::matter {
 
 
-/// What a behest wills, or what the deed fulfilling it has done.
 class Training {
 public:
 	static constexpr std::size_t MaxExercises = 50;

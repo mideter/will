@@ -7,7 +7,6 @@
 namespace will::domain::matter {
 
 
-/// The testator saw this deed, then: it is reviewed once.
 class Review {
 public:
 	Review(id::Word deed, Timestamp at);

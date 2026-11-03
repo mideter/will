@@ -8,7 +8,6 @@
 namespace will::domain::matter {
 
 
-/// The eternal part of every word's matter.
 class Word {
 public:
 	Word(id::Word id, id::Soul author, Saying saying);

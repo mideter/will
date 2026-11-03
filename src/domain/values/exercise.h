@@ -10,7 +10,6 @@
 namespace will::domain {
 
 
-/// Named freely by the testator, who may give an instruction for it.
 class Exercise {
 public:
 	static constexpr std::size_t MaxNameLength = 128;

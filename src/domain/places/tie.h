@@ -21,8 +21,6 @@ class Testator;
 class Training;
 
 
-/// The place a testator and a novice share: Послушание to the one, Ведение to the other.
-/// It takes its testator's words, as behests.
 class Tie : public Obedience, public Shepherding {
 public:
 	Tie(Birth<Novice>, matter::Tie kept);

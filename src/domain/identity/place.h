@@ -8,7 +8,6 @@
 namespace will::domain::id {
 
 
-/// Minted only by Space::point.
 class Place : public Id {
 public:
 	explicit Place(std::uint64_t value) : Id(value) {}

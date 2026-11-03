@@ -7,7 +7,6 @@
 namespace will::domain {
 
 
-/// The text the spirit utters; not the word itself.
 class Saying {
 public:
 	static constexpr std::size_t MaxBodyLength = 4096;

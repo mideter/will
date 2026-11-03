@@ -17,9 +17,6 @@ enum class ColorMode : std::uint8_t {
 };
 
 
-/// Client configuration (no invariants; validated by ClientConfigValidator). Given the
-/// server's certificate (PEM file), the client speaks only TLS and trusts it alone; without
-/// it, in the open.
 struct ClientConfig {
 	static constexpr int MinPort = 1;
 	static constexpr int MaxPort = 65535;

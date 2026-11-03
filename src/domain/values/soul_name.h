@@ -10,7 +10,6 @@
 namespace will::domain {
 
 
-/** Random public soul label: Latin letters a-z and digits, fixed length. */
 class SoulName {
 public:
 	static constexpr std::size_t Length = 8;

@@ -17,7 +17,6 @@ enum class SqliteFace {
 };
 
 
-/** Owns one SQLite connection and the schema for one face of being. */
 class SqliteDatabase {
 public:
 	SqliteDatabase(std::string db_path, SqliteFace face);

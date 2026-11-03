@@ -6,7 +6,6 @@
 namespace will::domain::matter {
 
 
-/// This deed fulfils that behest, at most once.
 class Execution {
 public:
 	Execution(id::Word deed, id::Word behest);

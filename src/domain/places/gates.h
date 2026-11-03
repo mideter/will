@@ -18,11 +18,6 @@ class OuterAbode;
 class Unborn;
 
 
-/// The threshold of an Abode, the outer edge of its outer and not inside it: anyone may
-/// stand here. From his own gates one goes anywhere; from another's, only in or back to his
-/// own. One who does not dwell behind them may knock, once while he stands here. Only the
-/// host keeps them, and they are open while he stands in them: he lets in one who knocks as
-/// his acquaintance, and bears a child of his here.
 class Gates final : public Place, private Immanent<Heaven> {
 public:
 	Gates(Birth<OuterAbode> birth, id::Place id);

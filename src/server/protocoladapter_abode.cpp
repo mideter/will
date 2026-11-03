@@ -1,5 +1,3 @@
-/// The protocol adapter, its part of the abode: turning, what each place shows, the
-/// rooms, the gates and the helm, the dwellers let in, regarded and told.
 #include "protocoladapter.h"
 #include "protocoladapter_wire.h"
 

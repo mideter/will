@@ -20,10 +20,6 @@ class Man;
 class Word;
 
 
-/// The gaze of a spirit, the eye of a soul, one at a time: the words a room shows live while
-/// it is beheld. It gives the place one stands in as the kind one would act in, or refuses;
-/// what one writes is taken only in a room whose host one is. At gates one does not dwell
-/// behind, it may knock.
 class Contemplation : public Immanent<Heaven> {
 public:
 	virtual ~Contemplation() = default;

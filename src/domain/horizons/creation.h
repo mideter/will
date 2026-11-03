@@ -16,8 +16,6 @@ namespace will::domain {
 class Life;
 
 
-/// The act of Life: it has Eternity realise the dimensions, brings
-/// forth the World and awakens it; their matter outlives it.
 class Creation : public Immanent<Life> {
 public:
 	explicit Creation(Birth<Life> birth);

@@ -6,7 +6,6 @@
 namespace will::domain::matter {
 
 
-/// The gates and the helm are born with the abode, its outer and its inner edge.
 class Abode {
 public:
 	Abode(id::Place id, id::Place gates, id::Place helm);

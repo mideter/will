@@ -1,5 +1,3 @@
-/// The protocol adapter, its part of coming in and going away: the token bound, the
-/// session ended, the unborn told and borne, the father by spirit.
 #include "protocoladapter.h"
 #include "protocoladapter_wire.h"
 

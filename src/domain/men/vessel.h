@@ -9,7 +9,6 @@
 namespace will::domain {
 
 
-/// The device through which a soul reaches the world.
 class Vessel : public Dust {
 public:
 	virtual ~Vessel() = default;

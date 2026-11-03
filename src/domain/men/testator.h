@@ -27,11 +27,6 @@ class Witness;
 class World;
 
 
-/// The side of a tie who wills its behests and trainings, and hears the supplications that
-/// would bind one, refusing those he may not hear. Seeing his tie, as he looks at it or as it
-/// is fulfilled before his eyes, he reviews its deeds. What he awaits are the behests of his
-/// ties not yet fulfilled; what he has to review, those fulfilled whose deeds he has not yet
-/// seen; each oldest first by tie.
 class Testator : public virtual Embodied {
 public:
 	const Shepherding& accept(Birth<Helm> helm, const Supplication& ask) const;

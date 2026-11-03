@@ -9,7 +9,6 @@
 namespace will::domain::matter {
 
 
-/// Gathered from the three dimensions; no single one keeps it.
 class Letter {
 public:
 	Letter(Word word, Placement placement, Dating dating);

@@ -7,7 +7,6 @@
 namespace will {
 
 
-/// Server-side identifier for an active gRPC session.
 struct SessionId {
 	std::uint64_t value = 0;
 

@@ -8,7 +8,6 @@
 namespace will::domain::id {
 
 
-/// Shared by all the parts of a word's matter.
 class Word : public Id {
 public:
 	explicit Word(std::uint64_t value) : Id(value) {}

@@ -6,7 +6,6 @@
 namespace will::domain {
 
 
-/// What a tie refuses.
 class OnlyTestatorWills final : public Refusal {
 public:
 	OnlyTestatorWills()

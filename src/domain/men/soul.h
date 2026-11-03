@@ -9,7 +9,6 @@
 namespace will::domain {
 
 
-/// The enduring identity of a person.
 class Soul : public Spirit {
 public:
 	static const Soul& of(id::Soul id);

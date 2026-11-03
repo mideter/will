@@ -6,7 +6,6 @@
 namespace will::domain {
 
 
-/// What an abode refuses.
 class AlreadyDwells final : public Refusal {
 public:
 	AlreadyDwells()

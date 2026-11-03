@@ -7,7 +7,6 @@
 namespace will::domain {
 
 
-/// Nanoseconds since the Unix epoch; "now" is Time::instant.
 class Timestamp {
 public:
 	explicit Timestamp(std::int64_t value);

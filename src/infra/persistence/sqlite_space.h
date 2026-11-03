@@ -7,7 +7,6 @@
 namespace will {
 
 
-/// Space with place-id mark kept in the eternity database.
 class SqliteSpace final : public domain::Space {
 public:
 	explicit SqliteSpace(SqliteDatabase& database);

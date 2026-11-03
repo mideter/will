@@ -13,9 +13,6 @@ class OuterAbode;
 class Space;
 
 
-/// Every dweller is at least one: he sees no room of the abode, neither outward nor
-/// inward, and only knows that he dwells there. Regarded anew, he is born anew of the new
-/// kind.
 class Acquaintance : public Immanent<Space> {
 public:
 	Acquaintance(Birth<OuterAbode>, const Man& man);

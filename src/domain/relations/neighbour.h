@@ -6,7 +6,6 @@
 namespace will::domain {
 
 
-/// An acquaintance who sees the rooms set outward.
 class Neighbour : public Acquaintance {
 public:
 	Neighbour(Birth<OuterAbode> birth, const Man& man);

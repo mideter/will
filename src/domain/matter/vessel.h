@@ -7,7 +7,6 @@
 namespace will::domain::matter {
 
 
-/// Whose body it is, the Embodiment tells.
 class Vessel {
 public:
 	Vessel(id::Vessel id, DeviceToken token);

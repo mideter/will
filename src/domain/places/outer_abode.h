@@ -22,11 +22,6 @@ class Man;
 class Room;
 
 
-/// An abode as it stands outward: its host, its dwellers, its gates, and the rooms set
-/// outward, which neighbours see. Only the host brings one to dwell in it, each born anew
-/// of his kind; the host's fathers by spirit dwell in it as ever friends, yet unseen among
-/// the dwellers. Only its host acts in the places within it, and from within one goes out
-/// only through its gates. Whether it shows a man a room, the whole abode says.
 class OuterAbode : public Place {
 public:
 	~OuterAbode() override;
